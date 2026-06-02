@@ -1,0 +1,39 @@
+name: Deploy Lumen Theory to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lumen-theory/**"
+      - ".github/workflows/deploy-lumen-theory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build MkDocs site
+        working-directory: lumen-theory
+        run: |
+          uvx --with mkdocs-material \
+              --with mkdocs-jupyter \
+              mkdocs build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./lumen-theory/site
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: lumen-theory docs from ${{ github.sha }}"

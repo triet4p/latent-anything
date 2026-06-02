@@ -1,0 +1,87 @@
+site_name: Lumen Theory
+site_url: https://triet4p.github.io/lumen/
+site_description: Nghiên cứu lý thuyết cho dự án Lumen — không gian ẩn, đa tạp, metric, và hình học.
+site_author: Le Minh Triet
+repo_url: https://github.com/triet4p/lumen
+repo_name: triet4p/lumen
+
+docs_dir: .
+site_dir: site
+
+exclude_docs: |
+  .venv/**
+  site/**
+  uv.lock
+  pyproject.toml
+  __pycache__/**
+  *.pyc
+
+not_in_nav: true
+
+theme:
+  name: material
+  language: vi
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Chuyển sang chế độ tối
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Chuyển sang chế độ sáng
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search:
+      lang: vi
+  - mkdocs-jupyter:
+      execute: false
+      include_source: true
+
+nav:
+  - Trang chủ: README.md
+  - "1. Biểu diễn không gian":
+      - "Metric Space & Vector Space": 01-space-representation/research/01-metric-space-vector-space.md
+      - "Khoảng cách Mahalanobis": 01-space-representation/research/02-mahalanobis-distance.md
+      - "Giả thuyết Đa tạp": 01-space-representation/research/03-manifold-hypothesis.md
+      - "Lời nguyền chiều": 01-space-representation/research/04-curse-of-dimensionality.md
+      - "Geodesic": 01-space-representation/research/05-geodesic.md
+      - "Pullback Metric": 01-space-representation/research/06-pullback-metric.md
+      - Notebooks:
+          - "Hiệp phương sai & Mahalanobis": 01-space-representation/notebooks/02_covariance_and_mahalanobis_exercise.ipynb
+          - "Đa tạp & Lời nguyền chiều": 01-space-representation/notebooks/03_manifold_hypothesis_and_curse_of_dimensionality.ipynb
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/triet4p/lumen

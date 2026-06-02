@@ -1,2 +1,5 @@
 # Ignore python version of uv
 **/.python-version
+
+# MkDocs build output
+lumen-theory/site/
