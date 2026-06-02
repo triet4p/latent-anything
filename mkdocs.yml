@@ -56,9 +56,11 @@ nav:
       - "Lời nguyền chiều": 01-space-representation/research/04-curse-of-dimensionality.md
       - "Geodesic": 01-space-representation/research/05-geodesic.md
       - "Pullback Metric": 01-space-representation/research/06-pullback-metric.md
+      - "FlatVI": 01-space-representation/research/07-flatvi.md
       - Notebooks:
           - "Hiệp phương sai & Mahalanobis": 01-space-representation/notebooks/02_covariance_and_mahalanobis_exercise.ipynb
           - "Đa tạp & Lời nguyền chiều": 01-space-representation/notebooks/03_manifold_hypothesis_and_curse_of_dimensionality.ipynb
+          - "Geodesic, Pullback & FlatVI": 01-space-representation/notebooks/05_06_07_geodesic_pullback_flatvi.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
@@ -76,6 +78,7 @@ markdown_extensions:
       permalink: true
 
 extra_javascript:
+  - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 extra:
