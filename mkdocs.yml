@@ -5,12 +5,11 @@ site_author: Le Minh Triet
 repo_url: https://github.com/triet4p/lumen
 repo_name: triet4p/lumen
 
-docs_dir: .
-site_dir: site
+docs_dir: lumen-theory
+site_dir: .gh-pages-build
 
 exclude_docs: |
   .venv/**
-  site/**
   uv.lock
   pyproject.toml
   __pycache__/**

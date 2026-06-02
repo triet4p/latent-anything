@@ -23,7 +23,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Build MkDocs site
-        working-directory: lumen-theory
         run: |
           uvx --with mkdocs-material \
               --with mkdocs-jupyter \
@@ -33,7 +32,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lumen-theory/site
+          publish_dir: ./.gh-pages-build
           publish_branch: gh-pages
           force_orphan: true
           commit_message: "deploy: lumen-theory docs from ${{ github.sha }}"
