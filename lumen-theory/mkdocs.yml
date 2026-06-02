@@ -16,8 +16,6 @@ exclude_docs: |
   __pycache__/**
   *.pyc
 
-not_in_nav: true
-
 theme:
   name: material
   language: vi
