@@ -17,6 +17,7 @@ Khi số chiều của không gian tăng lên, thể tích của nó tăng theo 
 ## Nén dữ liệu (Compression/Dimensionality Reduction)
 
 Để hệ thống học máy có thể hoạt động hiệu quả ta bắt buộc phải nén dữ liệu (AE, PCA, UMAP, t-SNE,...) để:
+
 1. Loại bỏ chiều nhiễu để khôi phục khoảng cách
 2. Chống overfitting do dữ liệu thưa
 3. Khai thác cấu trúc đa tạp (intrinsic dimension), tôi ưu chi phí tính toán, không gian lưu trữ.

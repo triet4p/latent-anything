@@ -5,7 +5,8 @@
 Giả thuyết đa tạp phát biểu rằng mặc dù dữ liệu thực tế được biểu diễn trong một không gian có số chiều cực kỳ lớn (không gian ngoại tại - ambient space), chúng thực chất lại phân bố tập trung dày đặc trên hoặc xung quanh các đa tạp con (submanifolds) có số chiều nội tại (intrinsic dimension) thấp hơn rất nhiều.
 
 **Tại sao dữ liệu thực lại nằm trên submanifold có chiều thấp?**
-Nguyên nhân cốt lõi đến từ các quy luật tự nhiên, vật lý hoặc ngữ nghĩa chi phối quá trình tạo ra dữ liệu. Dữ liệu thực tế không bao giờ là tập hợp của những giá trị hoàn toàn ngẫu nhiên và độc lập. 
+Nguyên nhân cốt lõi đến từ các quy luật tự nhiên, vật lý hoặc ngữ nghĩa chi phối quá trình tạo ra dữ liệu. Dữ liệu thực tế không bao giờ là tập hợp của những giá trị hoàn toàn ngẫu nhiên và độc lập.
+
 *   Hãy lấy ví dụ về hình ảnh một khuôn mặt người: Dù bức ảnh có độ phân giải hàng triệu pixel (hàng triệu chiều), cấu trúc của khuôn mặt lại bị ràng buộc khắt khe bởi các yếu tố biến thiên liên tục (degrees of freedom) như góc chiếu sáng, tư thế quay đầu (pose), hoặc các biểu cảm. 
 *   Trong không gian vật lý, quỹ đạo chuyển động của một cánh tay robot tuy được ghi nhận ở không gian nhiều chiều nhưng thực chất bị giới hạn bởi số lượng khớp nối cơ học. 
 
@@ -20,7 +21,8 @@ Theo định nghĩa hình học vi phân, một không gian chỉ được coi l
 *   Ý nghĩa của cấu trúc cục bộ là cho phép chúng ta thực hiện các phép đo hình học (như khoảng cách ngắn, góc lệch) thông qua một mêtric Riemannian đặt trực tiếp trên không gian tiếp tuyến phẳng này, bất chấp việc toàn bộ đa tạp đang uốn cong trong không gian lớn.
 
 **Cấu trúc Toàn cục (Global structure)**
-Trong khi cấu trúc cục bộ giúp ta xấp xỉ tuyến tính tại một điểm, **Cấu trúc toàn cục (Global structure)** mô tả hình dáng và sự liên kết tổng thể của toàn bộ dữ liệu. 
+Trong khi cấu trúc cục bộ giúp ta xấp xỉ tuyến tính tại một điểm, **Cấu trúc toàn cục (Global structure)** mô tả hình dáng và sự liên kết tổng thể của toàn bộ dữ liệu.
+
 *   Cấu trúc này được hình thành bằng cách mô tả cách mà các vùng không gian tiếp tuyến cục bộ (được gọi là các hiến chương - charts) liên kết, gộp nối (stitch) lại với nhau thông qua một "tập bản đồ" (atlas) có các miền chồng lấn để tạo nên hình dạng phi tuyến hoàn chỉnh của đa tạp. 
 *   Ở góc nhìn toàn cục, đa tạp sẽ thể hiện các thuộc tính topo đặc trưng mà phân tích cục bộ không thể thấy được, chẳng hạn như tính đóng, sự tồn tại của ranh giới (boundaries), hay tính định hướng (orientability - xác định xem đa tạp có bị xoắn như dải Möbius hay chai Klein hay không). 
 

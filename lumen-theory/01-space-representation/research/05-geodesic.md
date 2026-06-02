@@ -19,6 +19,7 @@ Sự khác biệt giữa đường thẳng và đường trắc địa dẫn đ�
 ![MNIST Geosedic](../assets/mnist-geosedic.png)
 
 ## Giải pháp nội suy bằng đường trắc địa:
+
 1. Sử dụng quy trình 2 bước:
     - Dùng *Logarithmic map* để tính toán một vector tiếp tuyến chỉ hướng từ điểm xuất phát tới điểm đích.
     - Dùng *Exponential map* để di chuyển một khoảng cách tương ứng dọc theo đường trắc địa dựa trên vector tiếp tuyến đó. 

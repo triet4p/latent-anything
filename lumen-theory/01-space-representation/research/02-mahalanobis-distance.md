@@ -25,6 +25,7 @@ $$ \Sigma = \mathbb{E}[(X-\mu)(X-\mu)^T]$$
 Giả sử có ma trận dữ liệu $X\in \mathbb{R}^{d\times n}$ gồm $n$ điểm dữ liệu, mỗi điểm có $d$ chiều.
 
 Việc tính toán ma trận hiệp phương sai $\Sigma$ gồm các bước sau:
+
 1. **Tính vector trung bình**: Cho từng chiều i, tính
 $$ \mu_i = \frac{1}{n}\sum_{j=1}^n x_{ij}$$
 2. **Định tâm dữ liệu**: Lấy mỗi điểm dữ liệu trừ đi vector trung bình để dời trọng tâm về gốc tọa độ. Ta được ma trận dữ liệu đã định tâm $\tilde{X}$.
@@ -67,13 +68,15 @@ Lúc này, ma trận hiệp phương sai đóng vài trò làm *hệ quy chiếu
 Cuối cùng, ta ***chọn khoảng cách điểm test point tới lớp gần nhất*** (chính là maximum likelihood)
 
 Quá trình phân loại thường diễn ra như sau:
+
 - Huấn luyện: Với mỗi lớp $i$, tính $\mu_i$ và $\Sigma_i$ (trung bình và hiệp phương sai) dựa trên các mẫu đã biết.
 - Test: Khi có test point mới, hệ thống dùng khoảng cách của từng lớp để tính khoảng cách đến tâm phân phối từng lớp.
 - Decision: Điểm dữ liệu được xếp vào lớp có khoảng cách Mahalanobis nhỏ nhất, hay được xếp vào lớp mà điểm đó nằm sâu nhất trong "vùng ảnh hưởng của phân phối". 
 
 ![Mahalanobis 3 Step](../assets/mahalanobis-3-step.png)
 
-Đây là nền tảng của 
+Đây là nền tảng của:
+
 - Supervised Classification
 - Fisher's linear discriminant analysis
 - Pattern Recognition

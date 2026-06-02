@@ -5,6 +5,7 @@
 Metric Space là một cặp $(X, d_X)$ trong đó $X$ là tập hợp các đối tượng và $d_X$ là một hàm khoảng cách.
 
 Hàm khoảng cách $d_X$ cần phải tuân thủ các tiên đề về:
+
 - Không âm
 - Đồng nhất
 - Phân biệt ($d(x,y)>0$ nêu $x\ne y$)
@@ -26,7 +27,8 @@ Chuẩn là một hàm toán học để đo lường **độ dài** hoặc **đ
 Mọi chuẩn đều có thể tự sinh ra một **metric khoảng cách (distance metric)** thông qua công thức 
 $$ d(x, y) = ||x - y|| $$
 
-Phổ biến nhất có 2 chuẩn là
+Phổ biến nhất có 2 chuẩn là:
+
 - L2 (Chiều dài đường Euclidean)
 - L1 (Chiều dài Manhattan)
 

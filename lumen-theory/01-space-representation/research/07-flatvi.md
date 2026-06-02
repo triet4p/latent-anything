@@ -23,11 +23,13 @@ Nói cách khác, nó ép $M(z) \approx \alpha I_d$. Nếu điều kiện này x
 **3. Tối ưu hóa song song (Joint Training)**
 Hàm phạt phẳng hóa này không đứng một mình mà được cộng trực tiếp vào hàm mất mát tiêu chuẩn của VAE (hàm ELBO). 
 Quá trình huấn luyện sẽ là một cuộc giằng co:
+
 *   ELBO ép mô hình phải tái tạo lại dữ liệu tế bào cho đúng.
 *   Hàm Flattening ép không gian ẩn phải phẳng.
 Kết quả là mô hình phải tìm ra cách sắp xếp các điểm dữ liệu trong không gian ẩn sao cho vừa giữ được đặc tính sinh học, vừa tạo ra một bề mặt hình học phẳng hoàn hảo.
 
 **Tại sao cơ chế này lại vượt trội?**
+
 *   **Chấm dứt sự phức tạp:** Các phương pháp khác (như GAGA hay NeuralFIM) chấp nhận không gian bị cong và phải dùng một mạng nơ-ron chuyên biệt (Neural ODE) cực kỳ nặng nề để dò dẫm giải phương trình tìm đường cong trắc địa. Quá trình này rất chậm, không ổn định và hay tạo ra các biểu hiện gene sai lệch (dao động bất thường).
 *   **Nội suy bằng đường thẳng (LERP):** Vì FlatVI đã dọn dẹp sẵn và san phẳng không gian, người dùng giờ đây chỉ cần dùng phép nối đường thẳng (linear interpolation) cực kỳ rẻ và cơ bản. Các đường thẳng này, khi được giải mã, sẽ sinh ra quỹ đạo biến đổi tế bào hợp lý, tự nhiên, và bám sát đa tạp dữ liệu thực tế.
 *   **Phù hợp với các công cụ có sẵn:** Rất nhiều công cụ phân tích hiện tại (như Vận chuyển Tối ưu Optimal Transport hay k-NN) mặc định giả định dữ liệu tính bằng khoảng cách thẳng Euclidean. Bằng cách cung cấp một không gian ẩn thực sự "phẳng", FlatVI giúp các công cụ hạ nguồn này hoạt động chính xác hơn rất nhiều.
