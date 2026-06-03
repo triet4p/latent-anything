@@ -25,10 +25,12 @@ Common types:
 ## Commits
 
 - **One logical change per commit.** Do not mix unrelated changes (e.g., a bug fix and a refactor) in the same commit.
-- **Never commit to `main` directly.** All changes go through a branch and are merged via pull request.
+- **Solo project:** direct commits to `main` are acceptable. Skip the branch/PR flow.
 - Stage specific files by name — never use `git add .` or `git add -A`, which can accidentally include unintended files.
 
 ## Branch naming
+
+Only needed when collaborating or experimenting with risky changes.
 
 **Format:** `<type>/<short-description>`
 
