@@ -1,6 +1,6 @@
-# Lumen — Theory Index
+# Latent Anything — Theory Index
 
-> Danh mục lý thuyết cần nắm để build Lumen
+> Danh mục lý thuyết cần nắm để build Latent-Anything
 > Phiên bản: 0.1 — May 2026
 >
 > Cách đọc: mỗi mục có trạng thái [ ] chưa học / [~] đang học / [x] đã nắm.
@@ -69,7 +69,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 
 ## Tầng 4 — Tính toán trong latent space
 
-Các operation cơ bản trực tiếp implement vào Layer B của Lumen.
+Các operation cơ bản trực tiếp implement vào Layer B của Latent-Anything.
 
 - [ ] **Lerp (linear interpolation)** — z = (1−t)·z₁ + t·z₂. Khi nào đủ tốt, khi nào fail.
 - [ ] **Slerp** — chi tiết hơn tầng 3: implementation, tại sao tốt hơn lerp cho unit-norm latent.
@@ -180,7 +180,7 @@ Unify latent space với language model architecture.
 
 ## Tầng bổ sung — Interpretability & Analysis Tools
 
-*Đọc song song với tầng 5. Directly inform Layer A của Lumen.*
+*Đọc song song với tầng 5. Directly inform Layer A của Latent-Anything.*
 
 - [ ] **Mechanistic interpretability overview** — circuit finding, superposition, feature geometry. Survey của Anthropic/Neel Nanda.
 - [ ] **Towards Monosemanticity (Anthropic, 2023)** — SAE on MLP neurons. Đọc kỹ phần method.
@@ -221,7 +221,7 @@ Tầng 4 → Tầng 5 → Tầng 6 → Tầng 7 → Tầng 8 → Tầng 9
                                           Large-scale WM & VLA
 ```
 
-**Điểm checkpoint quan trọng với Lumen:**
+**Điểm checkpoint quan trọng với Latent-Anything:**
 
 Sau tầng 3 → có thể thiết kế `LatentSpace` primitive.
 Sau tầng 3B → có thể thiết kế `ModelAdapter` cho LeWM.

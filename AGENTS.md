@@ -1,8 +1,8 @@
-# Lumen — Agent Instructions
+# Latent-anything — Agent Instructions
 
 ## Project
 
-**Lumen** (*Latent Understanding, Manipulation & Execution Network*) is a Python framework that treats latent space as a first-class object: load latent representations from any model, inspect them, manipulate them, and execute pipelines efficiently. Plugin-first architecture with three pillars: introspection (A), manipulation (B), runtime (C).
+**Latent Anything** (*Latent Understanding, Manipulation & Execution Network*) is a Python framework that treats latent space as a first-class object: load latent representations from any model, inspect them, manipulate them, and execute pipelines efficiently. Plugin-first architecture with three pillars: introspection (A), manipulation (B), runtime (C).
 
 See [docs/IDEA.md](docs/IDEA.md) for the full vision, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for core primitives and layer design.
 

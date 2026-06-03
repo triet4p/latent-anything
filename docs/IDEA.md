@@ -1,4 +1,4 @@
-# Lumen — Idea
+# Latent-Anything — Idea
 
 > Tài liệu định hướng và lý do tồn tại của dự án
 > Phiên bản: 0.1 — May 2026
@@ -7,7 +7,7 @@
 
 ## 1. Tên dự án
 
-**Lumen** — *Latent Understanding, Manipulation & Execution Network*
+**Latent-Anything** — *Latent Understanding, Manipulation & Execution Network*
 
 Tên gợi ý "ánh sáng soi vào không gian tiềm ẩn", phản ánh ba trụ cột của dự án: hiểu (introspection), tác động (manipulation), và thực thi (execution). Tên ngắn, dễ phát âm, chưa bị chiếm dụng trong ecosystem ML lớn, và không gắn chặt với bất kỳ model architecture nào — phù hợp với định hướng layer ngang phục vụ nhiều thế hệ model.
 
@@ -17,7 +17,7 @@ Tên gợi ý "ánh sáng soi vào không gian tiềm ẩn", phản ánh ba tr�
 
 ## 2. Mô tả ngắn
 
-Lumen là một framework Python (sẽ có Rust core sau) coi **latent space như một đối tượng first-class**: load latent từ bất kỳ model nào (VAE, VLA, world model, diffusion, LLM hidden state), inspect chúng, thao tác trên chúng, và execute pipeline hiệu quả. Kiến trúc plugin-first cho phép tích hợp method từ paper mới như cách LeRobot tích hợp policy. Mục tiêu là trở thành tooling layer chung cho mọi người làm việc với representation learning, world model, và embodied AI.
+Latent-Anything là một framework Python (sẽ có Rust core sau) coi **latent space như một đối tượng first-class**: load latent từ bất kỳ model nào (VAE, VLA, world model, diffusion, LLM hidden state), inspect chúng, thao tác trên chúng, và execute pipeline hiệu quả. Kiến trúc plugin-first cho phép tích hợp method từ paper mới như cách LeRobot tích hợp policy. Mục tiêu là trở thành tooling layer chung cho mọi người làm việc với representation learning, world model, và embodied AI.
 
 **Thesis:** *Latent space xứng đáng có một abstraction layer riêng, độc lập với model architecture. Mọi thứ làm việc với latent — visualization, probing, editing, rollout — nên build trên cùng primitive thay vì mỗi lab tự reinvent.*
 
@@ -29,7 +29,7 @@ LLM và VLA hiện nay về bản chất là imitation learning ở quy mô lớ
 
 World model như LeWM đại diện cho hướng khác: học một latent space mà ở đó dynamics của thế giới có thể được mô phỏng trực tiếp. Rollout xảy ra trong latent, decode ra observation chỉ khi cần. Đây là cách JEPA, Dreamer series, và LeWM đang đi.
 
-Vấn đề là **không có tooling layer nào tốt cho việc làm việc với latent space**. Hiện tại mỗi lab tự viết code visualize, probe, và manipulate latent của riêng họ — PCA rồi matplotlib, script ad-hoc, không reusable. Không có cái gì giống "framework cho latent space operation" tồn tại. Đây là khoảng trống Lumen muốn lấp.
+Vấn đề là **không có tooling layer nào tốt cho việc làm việc với latent space**. Hiện tại mỗi lab tự viết code visualize, probe, và manipulate latent của riêng họ — PCA rồi matplotlib, script ad-hoc, không reusable. Không có cái gì giống "framework cho latent space operation" tồn tại. Đây là khoảng trống Latent-Anything muốn lấp.
 
 ---
 
@@ -47,7 +47,7 @@ Khoảng trống này đang widening vì ba lý do hội tụ:
 
 ## 5. Định vị
 
-Lumen không cạnh tranh với các framework hiện tại — nó ngồi ở khoảng trống giữa chúng:
+Latent-Anything không cạnh tranh với các framework hiện tại — nó ngồi ở khoảng trống giữa chúng:
 
 **Agent frameworks (LangChain, AutoGen, CrewAI)** giả định agent sống trong máy tính: tool là API call, state là text, latency không quan trọng. Toàn bộ stack được shaped bởi assumption đó.
 
@@ -55,7 +55,7 @@ Lumen không cạnh tranh với các framework hiện tại — nó ngồi ở k
 
 **Interpretability tools (TensorBoard projector, Neuroscope, SAE libraries)** là point tools, không phải framework. Không composable, không có unified interface, không có runtime layer.
 
-Lumen là **layer ngang** phục vụ tất cả những thứ trên: bất kỳ ai làm việc với latent representation đều là user tiềm năng.
+Latent-Anything là **layer ngang** phục vụ tất cả những thứ trên: bất kỳ ai làm việc với latent representation đều là user tiềm năng.
 
 ---
 
@@ -95,7 +95,7 @@ Chạy pipeline hiệu quả: batching, caching, async execution, streaming, pro
 
 ## 8. Nền tảng lý thuyết
 
-Lumen build trên một chuỗi lý thuyết liên kết chặt chẽ. Hiểu chuỗi này là prerequisite để thiết kế primitive đúng. Dưới đây là cây kiến thức theo dòng chảy khái niệm — mỗi tầng build trực tiếp lên tầng trước.
+Latent-Anything build trên một chuỗi lý thuyết liên kết chặt chẽ. Hiểu chuỗi này là prerequisite để thiết kế primitive đúng. Dưới đây là cây kiến thức theo dòng chảy khái niệm — mỗi tầng build trực tiếp lên tầng trước.
 
 ---
 
@@ -151,7 +151,7 @@ Lumen build trên một chuỗi lý thuyết liên kết chặt chẽ. Hiểu ch
 
 **Spherical harmonics cho view-dependent color.** Mỗi Gaussian encode color bằng spherical harmonics basis function — màu thay đổi theo góc nhìn một cách smooth và compact. Cần hiểu SH basis và tại sao nó hiệu quả hơn MLP cho color encoding.
 
-**Gaussian parameters là latent variable.** Đây là điểm kết nối với Lumen. Trong context world model, các parameter (μ, Σ, α, SH coefficients) là latent state của thế giới 3D. Encoder học map observation → tập Gaussian. Transition model predict tập Gaussian mới từ tập cũ và action. Decoder là Gaussian rasterizer — deterministic, không cần learn. Đây là cách LeWM tổ chức latent space.
+**Gaussian parameters là latent variable.** Đây là điểm kết nối với Latent-Anything. Trong context world model, các parameter (μ, Σ, α, SH coefficients) là latent state của thế giới 3D. Encoder học map observation → tập Gaussian. Transition model predict tập Gaussian mới từ tập cũ và action. Decoder là Gaussian rasterizer — deterministic, không cần learn. Đây là cách LeWM tổ chức latent space.
 
 **Tại sao 3DGS tốt hơn NeRF cho world model.** NeRF latent khó manipulate vì implicit — không có "object handle". 3DGS explicit: mỗi Gaussian là một entity, có thể move, rotate, add, remove. World model có thể learn transition trên *tập Gaussian* — cấu trúc này amenable hơn nhiều với transition model và planning.
 
@@ -193,7 +193,7 @@ Lumen build trên một chuỗi lý thuyết liên kết chặt chẽ. Hiểu ch
 
 **Stochastic vs deterministic transition.** Transition thực tế có noise. RSSM tách thành deterministic component (GRU hidden state — capture history chắc chắn) và stochastic component (Gaussian sample — capture uncertainty). Đây là core architecture của Dreamer series.
 
-**Latent trajectory.** Sequence z_0, z_1, ..., z_T là trajectory trong latent space. Operation trên trajectory: smoothing, segmentation, similarity, interpolation giữa hai trajectory. Đây là `Trajectory` primitive của Lumen.
+**Latent trajectory.** Sequence z_0, z_1, ..., z_T là trajectory trong latent space. Operation trên trajectory: smoothing, segmentation, similarity, interpolation giữa hai trajectory. Đây là `Trajectory` primitive của Latent-Anything.
 
 **Rollout và imagination.** Có transition model, rollout k step trong latent mà không cần observation thật: z_{t+1} = f(z_t, a_t), lặp lại. Agent simulate tương lai trong latent — "imagination". Rollout trong latent O(k·d) rẻ hơn nhiều so với pixel space O(k·H·W·C).
 
@@ -219,7 +219,7 @@ Lumen build trên một chuỗi lý thuyết liên kết chặt chẽ. Hiểu ch
 
 **Joint embedding.** Cả context và target đều được encode vào latent trước khi predict. Predictor học map latent của context sang latent của target. Không có decoder. Đây là JEPA architecture.
 
-**Implication cho Lumen.** Nếu model học được world dynamics trong latent mà không cần decode, thì decode chỉ là một output head khi cần. Reasoning, planning, prediction xảy ra trong latent. Đây là thesis của Lumen: latent space là môi trường suy luận chính, không phải token space.
+**Implication cho Latent-Anything.** Nếu model học được world dynamics trong latent mà không cần decode, thì decode chỉ là một output head khi cần. Reasoning, planning, prediction xảy ra trong latent. Đây là thesis của Latent-Anything: latent space là môi trường suy luận chính, không phải token space.
 
 ---
 
@@ -250,7 +250,7 @@ Không gian & manifold
                             → Discrete latent (VQ, codebook, tokenized WM)
 ```
 
-Lumen cần người build hiểu đến tầng 8 để thiết kế primitive đúng, và tầng 9 + tầng 3B để support world model adapter hiện đại (LeWM, GAIA, Genie).
+Latent-Anything cần người build hiểu đến tầng 8 để thiết kế primitive đúng, và tầng 9 + tầng 3B để support world model adapter hiện đại (LeWM, GAIA, Genie).
 
 ---
 
@@ -271,11 +271,11 @@ Lumen cần người build hiểu đến tầng 8 để thiết kế primitive �
 ## 10. Câu hỏi mở
 
 - *Wire protocol cho cross-language plugin*: Arrow IPC vs gRPC vs ZeroMQ. Quyết khi đến giai đoạn 7, dựa trên benchmark.
-- *Tên chính thức*: "Lumen" là placeholder. Verify PyPI + crates.io khi gần publish.
+- *Tên chính thức*: "Latent-Anything" là placeholder. Verify PyPI + crates.io khi gần publish.
 - *Cache hosting*: HuggingFace Hub là tự nhiên nhưng cần đánh giá lock-in.
 - *License*: Apache 2.0 hoặc MIT là default reasonable.
 - *Real-time guarantee level*: soft hay hard real-time, jitter budget — quyết khi có integration partner thật.
 
 ---
 
-*Tài liệu này là định hướng và lý do tồn tại của Lumen. Cập nhật khi thesis thay đổi hoặc khi có insight mới từ implementation.*
+*Tài liệu này là định hướng và lý do tồn tại của Latent-Anything. Cập nhật khi thesis thay đổi hoặc khi có insight mới từ implementation.*

@@ -1,4 +1,4 @@
-# Lumen — Architecture
+# Latent-Anything — Architecture
 
 > Tài liệu kiến trúc kỹ thuật của dự án
 > Phiên bản: 0.1 — May 2026
@@ -353,4 +353,4 @@ Khi interface không còn muốn refactor, freeze API, release 1.0. Cam kết ba
 
 ---
 
-*Tài liệu này là architecture reference của Lumen. Cập nhật khi có quyết định kỹ thuật mới hoặc khi interface thay đổi.*
+*Tài liệu này là architecture reference của Latent-Anything. Cập nhật khi có quyết định kỹ thuật mới hoặc khi interface thay đổi.*

@@ -1,5 +1,7 @@
 # latent-anything
 
+> *Latent Understanding, Manipulation & Execution Network*
+
 A Python framework that treats latent space as a first-class object: load latent representations from any model, inspect them, manipulate them, and execute pipelines efficiently.
 
 ## Overview
