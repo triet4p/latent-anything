@@ -8,9 +8,11 @@ dependencies = [
     "matplotlib>=3.10.9",
     "numpy>=2.0,<3.0",
     "scikit-learn>=1.8.0",
+    "scipy>=1.13",
 ]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=6.29",
     "nbconvert>=7.17.1",
 ]
