@@ -61,6 +61,11 @@ nav:
           - "Hiệp phương sai & Mahalanobis": 01-space-representation/notebooks/02_covariance_and_mahalanobis_exercise.ipynb
           - "Đa tạp & Lời nguyền chiều": 01-space-representation/notebooks/03_manifold_hypothesis_and_curse_of_dimensionality.ipynb
           - "Geodesic, Pullback & FlatVI": 01-space-representation/notebooks/05_06_07_geodesic_pullback_flatvi.ipynb
+  - "2. Representation Learning":
+      - "Information Bottleneck": 02-representation-learning/research/01-information-bottleneck.md
+      - "Autoencoder": 02-representation-learning/research/02-autoencoder.md
+      - Notebooks:
+          - "Information Bottleneck": 02-representation-learning/notebooks/01_information_bottleneck.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
