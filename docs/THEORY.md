@@ -25,11 +25,11 @@ Nền tảng toán học trước khi đụng vào bất kỳ model nào.
 Cách model học map observation xuống latent.
 
 - [x] **Information bottleneck principle** — maximize I(Z;Y), minimize I(Z;X). Tại sao ép model bỏ thông tin không cần thiết lại cho biểu diễn tốt hơn.
-- [ ] **Autoencoder** — reconstruction objective, bottleneck architecture. Vấn đề: latent không có cấu trúc probabilistic.
-- [ ] **Variational inference** — approximate posterior q(Z|X), ELBO derivation, tại sao không optimize log p(X) trực tiếp.
-- [ ] **KL divergence** — đo khoảng cách giữa hai phân phối. Role trong ELBO: regularize posterior về prior.
-- [ ] **VAE (Kingma & Welling, 2013)** — ELBO = reconstruction term − KL term. Reparameterization trick: z = μ + σ·ε.
-- [ ] **β-VAE (Higgins et al., 2017)** — penalty KL mạnh hơn để ép disentanglement. Trade-off reconstruction vs regularization.
+- [x] **Autoencoder** — reconstruction objective, bottleneck architecture. Vấn đề: latent không có cấu trúc probabilistic.
+- [x] **Variational inference** — approximate posterior q(Z|X), ELBO derivation, tại sao không optimize log p(X) trực tiếp.
+- [x] **KL divergence** — đo khoảng cách giữa hai phân phối. Role trong ELBO: regularize posterior về prior.
+- [x] **VAE (Kingma & Welling, 2013)** — ELBO = reconstruction term − KL term. Reparameterization trick: z = μ + σ·ε.
+- [x] **β-VAE (Higgins et al., 2017)** — penalty KL mạnh hơn để ép disentanglement. Trade-off reconstruction vs regularization.
 - [ ] **VQ-VAE (Oord et al., 2017)** — discrete latent space, vector quantization, straight-through estimator, codebook.
 - [ ] **VQGAN (Esser et al., 2021)** — VQ-VAE + perceptual loss + adversarial loss. Cách latent được dùng trong generative model lớn.
 

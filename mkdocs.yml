@@ -64,9 +64,11 @@ nav:
   - "2. Representation Learning":
       - "Information Bottleneck": 02-representation-learning/research/01-information-bottleneck.md
       - "Autoencoder": 02-representation-learning/research/02-autoencoder.md
+      - "VAE": 02-representation-learning/research/03-vae.md
       - Notebooks:
           - "Information Bottleneck": 02-representation-learning/notebooks/01_information_bottleneck.ipynb
           - "Autoencoder": 02-representation-learning/notebooks/02_autoencoder.ipynb
+          - "Variational Autoencoder": 02-representation-learning/notebooks/03_vae.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
