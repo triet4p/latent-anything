@@ -11,10 +11,13 @@ Trong đó, việc **tối đa hóa $I(Z;Y)$** đảm bảo $Z$ giữ lại lư�
 Dưới đây là giải thích chi tiết về cả hai đại lượng này dựa trên Nguyên lý Nghẽn thông tin (Information Bottleneck - IB), trong đó $Z$ (trong nhiều tài liệu cũng được ký hiệu là $T$) là không gian biểu diễn ẩn của mô hình:
 
 **1. Đại lượng $I(Z; X)$ (Số hạng độ phức tạp - Complexity Term)**
+
 *   **Ý nghĩa:** $I(Z; X)$ chính là thông tin tương hỗ (mutual information) giữa dữ liệu đầu vào $X$ và biểu diễn ẩn $Z$. Nó định lượng chính xác **lượng thông tin của dữ liệu gốc $X$ được giữ lại (hoặc nén) bên trong lớp ẩn $Z$**. 
+
 *   **Vai trò:** Đại lượng này được gọi là "số hạng độ phức tạp" (complexity term) hay "chi phí nén" (compression cost). Việc tối thiểu hóa $I(Z; X)$ là nỗ lực ép mô hình vứt bỏ các chi tiết dư thừa và không liên quan từ đầu vào.
 
 **2. Đại lượng $I(Z; Y)$ (Số hạng dự báo - Prediction Term)**
+
 *   **Ý nghĩa:** $I(Z; Y)$ là thông tin tương hỗ giữa biểu diễn ẩn $Z$ và biến mục tiêu/nhãn $Y$. Nó định lượng xem **không gian ẩn $Z$ chứa đựng bao nhiêu thông tin liên quan và hữu ích để suy ra đầu ra $Y$**. 
 *   **Vai trò:** Đại lượng này đại diện cho "sức mạnh dự báo" (predictive power) hay "lợi ích dự báo" (predictive benefit) của mô hình. Để mô hình đạt được độ chính xác cao (tốt hơn việc đoán mò), biểu diễn mà nó học được phải căn chỉnh chặt chẽ với dữ liệu mục tiêu. Vì vậy, mục tiêu của mô hình là phải **tối đa hóa** $I(Z; Y)$.
 
@@ -23,6 +26,7 @@ Toàn bộ Nguyên lý Nghẽn thông tin xoay quanh hàm mục tiêu Lagrangian
 $\mathcal{L}_{\text{IB}} = I(Z;Y) - \beta I(Z;X)$
 
 Bạn có thể hình dung hàm này như một bài toán kinh tế học:
+
 *   **$I(Z; X)$ là "chi phí" (cost):** Bạn phải tốn chi phí để lưu trữ thông tin của $X$ vào $Z$. Bạn muốn chi phí này càng thấp càng tốt để biểu diễn $Z$ trở nên tối giản, qua đó giúp mô hình loại bỏ biến nhiễu và tổng quát hóa tốt hơn.
 *   **$I(Z; Y)$ là "doanh thu" (benefit):** Đây là phần thưởng cho việc dự đoán đúng mục tiêu $Y$. Bạn muốn thu về lượng thông tin này càng cao càng tốt để đảm bảo mô hình thực hiện thành công tác vụ.
 *   **Tham số $\beta \ge 0$ là hệ số điều phối:** Nó xác định tỷ giá đánh đổi giữa việc muốn nén dữ liệu thật nhỏ (giảm $I(Z; X)$) và muốn giữ lại thông tin để dự báo chính xác (tăng $I(Z; Y)$).
