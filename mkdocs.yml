@@ -66,6 +66,7 @@ nav:
       - "Autoencoder": 02-representation-learning/research/02-autoencoder.md
       - Notebooks:
           - "Information Bottleneck": 02-representation-learning/notebooks/01_information_bottleneck.ipynb
+          - "Autoencoder": 02-representation-learning/notebooks/02_autoencoder.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

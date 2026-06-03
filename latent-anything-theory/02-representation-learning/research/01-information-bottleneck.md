@@ -1,4 +1,4 @@
-# Information Bottlenec
+# Information Bottleneck
 
 Nguyên lý Nghẽn thông tin (Information Bottleneck - IB) là một khung lý thuyết thông tin nhằm tối ưu hóa sự đánh đổi giữa tính nén của biểu diễn (độ phức tạp) và khả năng dự báo (độ chính xác).
 
