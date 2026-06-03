@@ -12,11 +12,11 @@
 
 Nền tảng toán học trước khi đụng vào bất kỳ model nào.
 
-- [ ] **Metric space và vector space** — norm, inner product, cosine similarity, Mahalanobis distance. Câu hỏi cốt lõi: "gần nhau" trong latent space nghĩa là gì?
-- [ ] **Manifold hypothesis** — tại sao dữ liệu thực nằm trên submanifold có chiều thấp. Local vs global structure, tangent space.
-- [ ] **Geodesic** — đường ngắn nhất trên manifold khác đường thẳng trong ambient space. Hệ quả cho interpolation.
-- [ ] **Curse of dimensionality** — volume tập trung ở rìa, nearest neighbor mất ý nghĩa ở chiều cao. Lý do cần compress.
-- [ ] **Intrinsic vs extrinsic dimension** — chiều thật của manifold vs chiều của ambient space chứa nó.
+- [x] **Metric space và vector space** — norm, inner product, cosine similarity, Mahalanobis distance. Câu hỏi cốt lõi: "gần nhau" trong latent space nghĩa là gì?
+- [x] **Manifold hypothesis** — tại sao dữ liệu thực nằm trên submanifold có chiều thấp. Local vs global structure, tangent space.
+- [x] **Geodesic** — đường ngắn nhất trên manifold khác đường thẳng trong ambient space. Hệ quả cho interpolation.
+- [x] **Curse of dimensionality** — volume tập trung ở rìa, nearest neighbor mất ý nghĩa ở chiều cao. Lý do cần compress.
+- [x] **Intrinsic vs extrinsic dimension** — chiều thật của manifold vs chiều của ambient space chứa nó.
 
 ---
 
@@ -24,7 +24,7 @@ Nền tảng toán học trước khi đụng vào bất kỳ model nào.
 
 Cách model học map observation xuống latent.
 
-- [ ] **Information bottleneck principle** — maximize I(Z;Y), minimize I(Z;X). Tại sao ép model bỏ thông tin không cần thiết lại cho biểu diễn tốt hơn.
+- [x] **Information bottleneck principle** — maximize I(Z;Y), minimize I(Z;X). Tại sao ép model bỏ thông tin không cần thiết lại cho biểu diễn tốt hơn.
 - [ ] **Autoencoder** — reconstruction objective, bottleneck architecture. Vấn đề: latent không có cấu trúc probabilistic.
 - [ ] **Variational inference** — approximate posterior q(Z|X), ELBO derivation, tại sao không optimize log p(X) trực tiếp.
 - [ ] **KL divergence** — đo khoảng cách giữa hai phân phối. Role trong ELBO: regularize posterior về prior.

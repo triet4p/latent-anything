@@ -3,3 +3,7 @@
 
 # MkDocs build output
 .gh-pages-build/
+
+# Virtual environments
+**/.venv
+**/venv
