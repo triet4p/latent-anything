@@ -1,11 +1,11 @@
-name: Deploy Lumen Theory to GitHub Pages
+name: Deploy Latent-Anything Theory to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - "lumen-theory/**"
-      - ".github/workflows/deploy-lumen-theory.yml"
+      - "latent-anything-theory/**"
+      - ".github/workflows/deploy-latent-anything-theory.yml"
   workflow_dispatch:
 
 permissions:
@@ -35,4 +35,4 @@ jobs:
           publish_dir: ./.gh-pages-build
           publish_branch: gh-pages
           force_orphan: true
-          commit_message: "deploy: lumen-theory docs from ${{ github.sha }}"
+          commit_message: "deploy: latent-anything-theory docs from ${{ github.sha }}"

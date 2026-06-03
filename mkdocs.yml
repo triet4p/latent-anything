@@ -1,11 +1,11 @@
-site_name: Lumen Theory
-site_url: https://triet4p.github.io/lumen/
-site_description: Nghiên cứu lý thuyết cho dự án Lumen — không gian ẩn, đa tạp, metric, và hình học.
+site_name: Latent-Anything Theory
+site_url: https://triet4p.github.io/latent-anything/
+site_description: Nghiên cứu lý thuyết cho dự án Latent-Anything — không gian ẩn, đa tạp, metric, và hình học.
 site_author: Le Minh Triet
-repo_url: https://github.com/triet4p/lumen
-repo_name: triet4p/lumen
+repo_url: https://github.com/triet4p/latent-anything
+repo_name: triet4p/latent-anything
 
-docs_dir: lumen-theory
+docs_dir: latent-anything-theory
 site_dir: .gh-pages-build
 
 exclude_docs: |
@@ -85,4 +85,4 @@ extra_javascript:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/triet4p/lumen
+      link: https://github.com/triet4p/latent-anything

@@ -1,12 +1,10 @@
-# Lumen
-
-**Latent Understanding, Manipulation & Execution Network**
+# latent-anything
 
 A Python framework that treats latent space as a first-class object: load latent representations from any model, inspect them, manipulate them, and execute pipelines efficiently.
 
 ## Overview
 
-Lumen sits as a horizontal tooling layer for anyone working with latent representations — researchers debugging models, developers building applications on pretrained models, and engineers running large-scale experiments.
+latent-anything sits as a horizontal tooling layer for anyone working with latent representations — researchers debugging models, developers building applications on pretrained models, and engineers running large-scale experiments.
 
 **Three pillars:**
 
@@ -20,14 +18,14 @@ Lumen sits as a horizontal tooling layer for anyone working with latent represen
 
 ```bash
 git clone <repo-url>
-cd lumen
+cd latent-anything
 pip install -e .
 ```
 
 ## Quick Start
 
 ```python
-import lumen
+import latent_anything
 
 # Coming soon
 ```
@@ -35,7 +33,7 @@ import lumen
 ## Project Structure
 
 ```
-lumen/
+latent-anything/
 ├── docs/               # Architecture, theory, and design docs
 │   ├── IDEA.md
 │   ├── ARCHITECTURE.md
