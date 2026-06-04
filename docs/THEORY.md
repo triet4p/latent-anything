@@ -31,7 +31,7 @@ Cách model học map observation xuống latent.
 - [x] **VAE (Kingma & Welling, 2013)** — ELBO = reconstruction term − KL term. Reparameterization trick: z = μ + σ·ε.
 - [x] **β-VAE (Higgins et al., 2017)** — penalty KL mạnh hơn để ép disentanglement. Trade-off reconstruction vs regularization.
 - [x] **VQ-VAE (Oord et al., 2017)** — discrete latent space, vector quantization, straight-through estimator, codebook.
-- [ ] **VQGAN (Esser et al., 2021)** — VQ-VAE + perceptual loss + adversarial loss. Cách latent được dùng trong generative model lớn.
+- [x] **VQGAN (Esser et al., 2021)** — VQ-VAE + perceptual loss + adversarial loss. Cách latent được dùng trong generative model lớn.
 
 ---
 
