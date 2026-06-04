@@ -30,7 +30,7 @@ Cách model học map observation xuống latent.
 - [x] **KL divergence** — đo khoảng cách giữa hai phân phối. Role trong ELBO: regularize posterior về prior.
 - [x] **VAE (Kingma & Welling, 2013)** — ELBO = reconstruction term − KL term. Reparameterization trick: z = μ + σ·ε.
 - [x] **β-VAE (Higgins et al., 2017)** — penalty KL mạnh hơn để ép disentanglement. Trade-off reconstruction vs regularization.
-- [ ] **VQ-VAE (Oord et al., 2017)** — discrete latent space, vector quantization, straight-through estimator, codebook.
+- [x] **VQ-VAE (Oord et al., 2017)** — discrete latent space, vector quantization, straight-through estimator, codebook.
 - [ ] **VQGAN (Esser et al., 2021)** — VQ-VAE + perceptual loss + adversarial loss. Cách latent được dùng trong generative model lớn.
 
 ---

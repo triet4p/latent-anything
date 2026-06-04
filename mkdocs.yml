@@ -69,6 +69,7 @@ nav:
           - "Information Bottleneck": 02-representation-learning/notebooks/01_information_bottleneck.ipynb
           - "Autoencoder": 02-representation-learning/notebooks/02_autoencoder.ipynb
           - "Variational Autoencoder": 02-representation-learning/notebooks/03_vae.ipynb
+          - "VQ-VAE": 02-representation-learning/notebooks/04_vq_vae.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
