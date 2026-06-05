@@ -39,7 +39,7 @@ Cách model học map observation xuống latent.
 
 Latent space không phải hộp đen — nó có hình dạng.
 
-- [ ] **Linear structure trong latent** — tại sao direction trong latent tương ứng với factor biến thiên. Hệ quả từ cách model học.
+- [x] **Linear structure trong latent** — tại sao direction trong latent tương ứng với factor biến thiên. Hệ quả từ cách model học.
 - [ ] **Disentanglement** — lý tưởng mỗi chiều control một factor độc lập. Metric: mutual information, DCI score, intervention effect.
 - [ ] **Isotropy vs anisotropy** — latent có phân phối đều theo mọi hướng không? Tại sao hầu hết model anisotropic và hệ quả.
 - [ ] **Riemannian geometry cơ bản** — curvature, parallel transport. Khi nào manifold trong latent cong đủ để lerp fail.

@@ -73,6 +73,10 @@ nav:
           - "Variational Autoencoder": 02-representation-learning/notebooks/03_vae.ipynb
           - "VQ-VAE": 02-representation-learning/notebooks/04_vq_vae.ipynb
           - "VQGAN": 02-representation-learning/notebooks/05_vqgan.ipynb
+  - "3. Hình học & Cấu trúc":
+      - "Cấu trúc tuyến tính": 03-geometry-structure/research/01-linear-structure.md
+      - Notebooks:
+          - "Cấu trúc tuyến tính": 03-geometry-structure/notebooks/01_linear_structure.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
