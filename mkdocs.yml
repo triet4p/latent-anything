@@ -76,9 +76,11 @@ nav:
   - "3. Hình học & Cấu trúc":
       - "Cấu trúc tuyến tính": 03-geometry-structure/research/01-linear-structure.md
       - "Tính tách biệt biểu diễn": 03-geometry-structure/research/02-disentanglement.md
+      - "Đẳng hướng & Bất đẳng hướng": 03-geometry-structure/research/03-isotropy-anisotropy.md
       - Notebooks:
           - "Cấu trúc tuyến tính": 03-geometry-structure/notebooks/01_linear_structure.ipynb
           - "Tính tách biệt biểu diễn": 03-geometry-structure/notebooks/02_disentanglement.ipynb
+          - "Đẳng hướng & Bất đẳng hướng": 03-geometry-structure/notebooks/03_isotropy_anisotropy.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
