@@ -126,6 +126,7 @@ nav:
           - "Latent Arithmetic": 04-latent-computation/notebooks/03_latent_arithmetic.ipynb
           - "Subspace Projection": 04-latent-computation/notebooks/04_subspace_projection.ipynb
           - "Mahalanobis Distance": 04-latent-computation/notebooks/05_mahalanobis_distance.ipynb
+          - "Density Estimation": 04-latent-computation/notebooks/06_density_estimation.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
