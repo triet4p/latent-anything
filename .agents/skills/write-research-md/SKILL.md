@@ -28,15 +28,37 @@ The companion skill **create-theory-notebook** turns a finished note into experi
 ## Step 1 — Locate and name the file
 
 Research notes live at `latent-anything-theory/<tier-folder>/research/NN-topic-name.md` (hyphens, lowercase).
+`NN` = the order within the tier.
+
+**Folder naming rule:** `<NN><optional-letter>-<short-english-kebab-slug>`, where `NN` is the tier
+number and the slug summarizes the tier's theme. Apply this to **every** tier in `docs/THEORY.md` —
+the roadmap goes well past 3B (Tầng 4–9 plus three supplementary tiers), so do not stop here.
+
+Existing folders:
 
 | Roadmap tier (docs/THEORY.md) | Folder |
 |---|---|
 | Tầng 1 — Không gian & biểu diễn | `01-space-representation` |
 | Tầng 2 — Học biểu diễn | `02-representation-learning` |
-| Tầng 3 — Hình học & cấu trúc | `03-geometry-structure` |
+| Tầng 3 — Cấu trúc hình học | `03-geometry-structure` |
 | Tầng 3B — 3D Representation | `03b-3d-representation` |
 
-`NN` = the order within the tier. If the tier folder is new, create `<tier-folder>/research/`.
+Not yet created — make the folder (and its `research/`) the first time you write a note for that tier,
+using a slug like the suggestions below (THEORY.md is the source of truth — confirm the tier title there):
+
+| Roadmap tier | Suggested folder |
+|---|---|
+| Tầng 4 — Tính toán trong latent space | `04-latent-computation` |
+| Tầng 5 — Probe và can thiệp | `05-probing-intervention` |
+| Tầng 6 — Latent space qua thời gian | `06-latent-temporal` |
+| Tầng 7 — Planning trong latent space | `07-latent-planning` |
+| Tầng 8 — Predict trong latent, không decode | `08-latent-prediction` |
+| Tầng 9 — Discrete latent space | `09-discrete-latent` |
+| Tầng bổ sung — Large-scale World Models & VLA | `10-world-models-vla` |
+| Tầng bổ sung — Interpretability & Analysis Tools | `11-interpretability-tools` |
+| Tầng bổ sung — Toán học cần thiết | `12-math-foundations` |
+
+When you create a new tier folder, also add its `- "N. Title":` block to `mkdocs.yml` nav (Step 5).
 
 ---
 
