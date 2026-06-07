@@ -118,6 +118,7 @@ nav:
       - "Slerp — Spherical Interpolation": 04-latent-computation/research/02-slerp.md
       - Notebooks:
           - "Lerp — Nội suy tuyến tính": 04-latent-computation/notebooks/01_lerp.ipynb
+          - "Slerp — Nội suy cầu": 04-latent-computation/notebooks/02_slerp.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
