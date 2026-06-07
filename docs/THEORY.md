@@ -76,7 +76,7 @@ Các operation cơ bản trực tiếp implement vào Layer B của Latent-Anyth
 - [x] **Slerp** — chi tiết hơn tầng 3: implementation, tại sao tốt hơn lerp cho unit-norm latent.
 - [x] **Latent arithmetic** — điều kiện để z_a − z_b + z_c có nghĩa. Tại sao cần cùng coordinate system.
 - [x] **Subspace projection** — project lên PCA direction, concept direction. Decompose z = z_concept + z_residual.
-- [~] **Mahalanobis distance** — normalize theo covariance. Khi nào tốt hơn Euclidean.
+- [x] **Mahalanobis distance** — normalize theo covariance. Khi nào tốt hơn Euclidean.
 - [ ] **Density estimation trong latent** — Gaussian mixture model, normalizing flow trên latent. Dùng để in/out-of-distribution detection.
 - [ ] **Optimal transport trong latent** — Wasserstein distance giữa hai distribution latent. Dùng để compare trajectory distribution.
 

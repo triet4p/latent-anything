@@ -124,6 +124,7 @@ nav:
           - "Slerp — Nội suy cầu": 04-latent-computation/notebooks/02_slerp.ipynb
           - "Latent Arithmetic": 04-latent-computation/notebooks/03_latent_arithmetic.ipynb
           - "Subspace Projection": 04-latent-computation/notebooks/04_subspace_projection.ipynb
+          - "Mahalanobis Distance": 04-latent-computation/notebooks/05_mahalanobis_distance.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
