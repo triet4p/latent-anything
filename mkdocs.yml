@@ -113,6 +113,9 @@ nav:
           - "Dynamic 3DGS": 03b-3d-representation/notebooks/11_dynamic_3dgs.ipynb
           - "Gaussian Set Operations": 03b-3d-representation/notebooks/12_gaussian_set_operations.ipynb
 
+  - "4. Tính toán trong Latent Space":
+      - "Lerp — Linear Interpolation": 04-latent-computation/research/01-lerp.md
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
