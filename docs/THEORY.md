@@ -54,9 +54,9 @@ Latent space không phải hộp đen — nó có hình dạng.
 
 - [x] **Neural implicit representation** — biểu diễn 3D bằng function f(x,y,z) → (density, color) thay vì explicit mesh/voxel.
 - [~] **NeRF (Mildenhall et al., 2020)** — MLP nhận tọa độ 3D + viewing direction, output color và density. Train từ 2D image supervision.
-- [ ] **Volume rendering và ray marching** — integrate density dọc theo ray để render ảnh 2D. Alpha compositing. Tại sao differentiable.
-- [ ] **Positional encoding trong NeRF** — Fourier features để MLP capture high-frequency detail.
-- [ ] **Instant-NGP (Müller et al., 2022)** — hash encoding thay MLP thuần. Nhanh hơn NeRF nhiều bậc. Hiểu để biết bottleneck của NeRF là gì.
+- [x] **Volume rendering và ray marching** — integrate density dọc theo ray để render ảnh 2D. Alpha compositing. Tại sao differentiable.
+- [x] **Positional encoding trong NeRF** — Fourier features để MLP capture high-frequency detail.
+- [x] **Instant-NGP (Müller et al., 2022)** — hash encoding thay MLP thuần. Nhanh hơn NeRF nhiều bậc. Hiểu để biết bottleneck của NeRF là gì.
 - [ ] **3D Gaussian Splatting (Kerbl et al., 2023)** — biểu diễn scene bằng tập 3D Gaussian {μ, Σ, α, color}. Render bằng projection + alpha compositing, không cần ray marching.
 - [ ] **Covariance matrix trong 3DGS** — Σ = R·S·Sᵀ·Rᵀ, decompose thành rotation và scale. Tại sao parameterize thế này thay vì trực tiếp.
 - [ ] **Spherical harmonics** — basis function để encode view-dependent color compact. SH degree 0, 1, 2, 3 và trade-off.
