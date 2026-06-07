@@ -99,6 +99,7 @@ nav:
       - "Gaussian Rasterization": 03b-3d-representation/research/09-gaussian-rasterization.md
       - "Gaussian Parameters là Latent": 03b-3d-representation/research/10-gaussian-parameters-latent-variable.md
       - "Dynamic 3DGS": 03b-3d-representation/research/11-dynamic-3dgs.md
+      - "Gaussian Set Operations": 03b-3d-representation/research/12-gaussian-set-operations.md
       - Notebooks:
           - "Neural Implicit Representation": 03b-3d-representation/notebooks/01_neural_implicit_representation.ipynb
           - "NeRF": 03b-3d-representation/notebooks/02_nerf.ipynb
@@ -110,6 +111,7 @@ nav:
           - "Gaussian Rasterization": 03b-3d-representation/notebooks/09_gaussian_rasterization.ipynb
           - "Gaussian Latent State": 03b-3d-representation/notebooks/10_gaussian_parameters_latent_variable.ipynb
           - "Dynamic 3DGS": 03b-3d-representation/notebooks/11_dynamic_3dgs.ipynb
+          - "Gaussian Set Operations": 03b-3d-representation/notebooks/12_gaussian_set_operations.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
