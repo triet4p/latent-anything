@@ -27,3 +27,19 @@ Sự khác biệt giữa đường thẳng và đường trắc địa dẫn đ�
 
 2. Dùng *Pullback Metric*
 3. Làm phẳng Latent Space (FlatVI)
+
+---
+
+## Liên quan
+
+- [Pullback Metric](06-pullback-metric.md) — cách đo độ dài đường trên đa tạp ẩn để tìm geodesic.
+- [FlatVI](07-flatvi.md) — làm phẳng không gian để geodesic ≈ đường thẳng (lerp).
+- [Giả thuyết Đa tạp](03-manifold-hypothesis.md) — geodesic là khái niệm trên manifold.
+- [Hình học Riemannian](../../03-geometry-structure/research/04-riemannian-geometry.md) — exp/log map, độ cong.
+- [Slerp](../../03-geometry-structure/research/05-slerp.md) — geodesic dạng đóng trên mặt cầu.
+
+## Tham khảo
+
+- Arvanitidis, Hansen, Hauberg, *Latent Space Oddity: on the Curvature of Deep Generative Models* (ICLR 2018, arXiv:1710.11379).
+- Shao, Kumar, Fletcher, *The Riemannian Geometry of Deep Generative Models* (CVPR Workshops, 2018).
+- do Carmo, M., *Riemannian Geometry* (Birkhäuser, 1992) — geodesic, exponential/logarithmic map.

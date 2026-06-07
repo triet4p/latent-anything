@@ -25,3 +25,17 @@ Tuy nhiên, bằng cách áp đặt cấu trúc bottleneck kết hợp với áp
 Mặc dù Autoencoder nguyên thủy thực hiện rất tốt việc nén (compression) và giảm chiều dữ liệu, bản chất của nó là một mô hình **tất định (deterministic)**. Khi học, bộ mã hóa ánh xạ một đầu vào $X$ thành một tọa độ điểm cố định duy nhất $Z$ trong không gian ẩn, hoàn toàn thiếu vắng cấu trúc xác suất (probabilistic structure). 
 
 Hệ quả là các điểm biểu diễn của dữ liệu huấn luyện nằm rải rác, tạo ra các "khoảng trống" (latent gaps) vô nghĩa trong không gian ẩn. Vì mạng chưa bao giờ được huấn luyện để giải mã các khoảng trống này, nếu bạn lấy mẫu ngẫu nhiên một điểm bất kỳ trong không gian ẩn và đưa cho bộ giải mã, nó sẽ sinh ra những hình ảnh vô nghĩa hoặc dị dạng. Đó là lý do tại sao Autoencoder nguyên thủy không thể được sử dụng làm mô hình sinh (Generative Model) để tạo ra dữ liệu mới, mà phải cần đến những kiến trúc áp đặt phân phối xác suất lên không gian ẩn như Variational Autoencoder (VAE) sau này.
+
+---
+
+## Liên quan
+
+- [Information Bottleneck](01-information-bottleneck.md) — nền tảng lý thuyết của việc nén qua bottleneck.
+- [VAE](03-vae.md) — bổ sung cấu trúc xác suất để biến AE thành mô hình sinh.
+- [Giả thuyết Đa tạp](../../01-space-representation/research/03-manifold-hypothesis.md) — AE học chiếu dữ liệu xuống đa tạp chiều thấp.
+
+## Tham khảo
+
+- Hinton, Salakhutdinov, *Reducing the Dimensionality of Data with Neural Networks* (Science, 2006).
+- Goodfellow, Bengio, Courville, *Deep Learning* (MIT Press, 2016), Chương 14 — Autoencoders.
+- Vincent et al., *Extracting and Composing Robust Features with Denoising Autoencoders* (ICML, 2008).

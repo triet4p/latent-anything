@@ -97,4 +97,21 @@ $$\text{ELBO}_\beta = \underbrace{\mathbb{E}[\log p(x|z)]}_{\text{sức mạnh t
 
 Khi $\beta$ tăng, mô hình bị ép loại bỏ nhiều thông tin hơn từ $X$ — chỉ giữ lại những gì thực sự cần thiết để tái cấu trúc. Điều này tạo ra một **đường cong Pareto** trong không gian thông tin, tương tự như Information Plane trong nguyên lý IB: mỗi giá trị $\beta$ tương ứng với một điểm vận hành trên đường biên tối ưu giữa $I(Z;X)$ và chất lượng tái cấu trúc.
 
+---
+
+## Liên quan
+
+- [Autoencoder](02-autoencoder.md) — VAE thêm cấu trúc xác suất lên latent của AE.
+- [Information Bottleneck](01-information-bottleneck.md) — β-VAE = IB Lagrangian.
+- [VQ-VAE](04-vq-vae.md) — chuyển sang latent rời rạc để tránh blur và posterior collapse.
+- [Tính tách biệt biểu diễn](../../03-geometry-structure/research/02-disentanglement.md) — β-VAE khuyến khích disentanglement.
+- [Normalizing Flows](../../03-geometry-structure/research/06-normalizing-flows.md) — likelihood *chính xác* so với cận dưới ELBO của VAE.
+- [FlatVI](../../01-space-representation/research/07-flatvi.md) — biến thể VAE cộng phạt phẳng hóa hình học.
+
+## Tham khảo
+
+- Kingma, Welling, *Auto-Encoding Variational Bayes* (ICLR 2014, arXiv:1312.6114).
+- Rezende, Mohamed, Wierstra, *Stochastic Backpropagation and Approximate Inference in Deep Generative Models* (ICML, 2014).
+- Higgins et al., *β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework* (ICLR, 2017).
+
 

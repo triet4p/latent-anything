@@ -20,3 +20,18 @@ Metric này sẽ kéo cấu trúc cong của dữ liệu từ không gian đầu
 
 - Tính chính xác được Geosedic
 - Nhưng khó khăn về tính toán (vì phải tính Jacobian liên tục).
+
+---
+
+## Liên quan
+
+- [Geodesic](05-geodesic.md) — pullback metric cho phép tính chính xác đường trắc địa.
+- [FlatVI](07-flatvi.md) — ép pullback metric ≈ ma trận đơn vị để làm phẳng.
+- [Giả thuyết Đa tạp](03-manifold-hypothesis.md) — metric đặt trên tangent space của đa tạp.
+- [Hình học Riemannian](../../03-geometry-structure/research/04-riemannian-geometry.md) — metric tensor và độ cong.
+
+## Tham khảo
+
+- Arvanitidis, Hansen, Hauberg, *Latent Space Oddity: on the Curvature of Deep Generative Models* (ICLR 2018, arXiv:1710.11379) — pullback metric $J^T J$ trong generative model.
+- Shao, Kumar, Fletcher, *The Riemannian Geometry of Deep Generative Models* (2018).
+- Amari, S., *Information Geometry and Its Applications* (Springer, 2016) — Fisher information metric.

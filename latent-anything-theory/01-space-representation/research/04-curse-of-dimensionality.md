@@ -21,3 +21,19 @@ Khi số chiều của không gian tăng lên, thể tích của nó tăng theo 
 1. Loại bỏ chiều nhiễu để khôi phục khoảng cách
 2. Chống overfitting do dữ liệu thưa
 3. Khai thác cấu trúc đa tạp (intrinsic dimension), tôi ưu chi phí tính toán, không gian lưu trữ.
+
+---
+
+## Liên quan
+
+- [Metric Space & Vector Space](01-metric-space-vector-space.md) — định nghĩa khoảng cách bị ảnh hưởng ở chiều cao.
+- [Giả thuyết Đa tạp](03-manifold-hypothesis.md) — lối thoát: dữ liệu thật sống ở chiều nội tại thấp.
+- [Khoảng cách Mahalanobis](02-mahalanobis-distance.md) — chuẩn hóa khoảng cách theo phân phối.
+- [Slerp](../../03-geometry-structure/research/05-slerp.md) — hiện tượng vỏ siêu cầu (concentration of measure) ở chiều cao.
+
+## Tham khảo
+
+- Bellman, R., *Adaptive Control Processes: A Guided Tour* (Princeton, 1961) — nguồn gốc thuật ngữ.
+- Beyer et al., *When Is "Nearest Neighbor" Meaningful?* (ICDT, 1999).
+- Aggarwal, Hinneburg, Keim, *On the Surprising Behavior of Distance Metrics in High Dimensional Space* (ICDT, 2001).
+- Radovanović, Nanopoulos, Ivanović, *Hubs in Space: Popular Nearest Neighbors in High-Dimensional Data* (JMLR, 2010) — hiện tượng hubness.

@@ -54,3 +54,17 @@ Việc biểu diễn giữ lại quá nhiều thông tin dư thừa từ đầu 
 
 **5. Thúc đẩy cơ chế hợp lực giữa các đặc trưng (Synergistic Interactions)**
 Từ góc nhìn của lý thuyết Generalized Information Bottleneck (GIB), việc áp đặt nén thông tin còn đóng vai trò trừng phạt việc mô hình phụ thuộc quá mức vào các đặc trưng đơn lẻ của đầu vào. Bằng cách giới hạn thông tin chung, mô hình bị ép phải tìm ra cách kết hợp các đầu vào một cách "hợp lực" (synergy) — tức là xử lý thông tin thông qua sự tương tác tập thể của nhiều đặc trưng thay vì độc lập. Phân tích lý thuyết và thực nghiệm cho thấy các hàm có tính hợp lực cao sẽ luôn đạt được khả năng tổng quát hóa ưu việt hơn so với các hàm không có tính hợp lực.
+
+---
+
+## Liên quan
+
+- [Autoencoder](02-autoencoder.md) — bottleneck *vật lý* (số chiều) vs bottleneck *thông tin* (Lagrangian).
+- [VAE](03-vae.md) — β-VAE chính là hiện thực hóa IB Lagrangian.
+- [Tính tách biệt biểu diễn](../../03-geometry-structure/research/02-disentanglement.md) — hệ quả của việc nén thông tin về prior độc lập.
+
+## Tham khảo
+
+- Tishby, Pereira, Bialek, *The Information Bottleneck Method* (1999).
+- Tishby, Zaslavsky, *Deep Learning and the Information Bottleneck Principle* (IEEE ITW, 2015).
+- Alemi, Fischer, Dillon, Murphy, *Deep Variational Information Bottleneck* (ICLR 2017, arXiv:1612.00410).

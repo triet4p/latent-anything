@@ -36,3 +36,20 @@ Nhóm này mang đậm tính nhân quả (causality), đánh giá bằng cách *
 
     *   **UC (Tính không nhiễu):** Kiểm tra xem các nhân tố khác nhau có bị gán chồng chéo lên cùng một tập hợp biến ẩn hay không, nhằm loại bỏ các yếu tố gây nhiễu (confounders).
     *   **CG (Khả năng sinh dữ liệu giả định):** Can thiệp trực tiếp (toán tử *do*) vào các chiều ẩn cụ thể để sinh ra hình ảnh giả định (counterfactuals). Nó đo lường **tác động nhân quả trung bình (Average Causal Effect)** của riêng chiều ẩn đó lên ảnh được tạo ra, nhằm đảm bảo rằng khi kéo một "thanh trượt" trong latent space, nó tác động đúng lên nhân tố mục tiêu mà không phá hỏng bất kỳ thuộc tính nào khác.
+
+---
+
+## Liên quan
+
+- [Cấu trúc tuyến tính](01-linear-structure.md) — mỗi hướng tuyến tính lý tưởng kiểm soát một factor.
+- [VAE](../../02-representation-learning/research/03-vae.md) — β-VAE và áp lực KL thúc đẩy disentanglement.
+- [Information Bottleneck](../../02-representation-learning/research/01-information-bottleneck.md) — nén thông tin về prior độc lập.
+
+## Tham khảo
+
+- Bengio, Courville, Vincent, *Representation Learning: A Review and New Perspectives* (IEEE TPAMI, 2013).
+- Higgins et al., *β-VAE* (ICLR, 2017).
+- Chen et al., *Isolating Sources of Disentanglement in VAEs* (β-TCVAE, MIG) (NeurIPS, 2018).
+- Eastwood, Williams, *A Framework for the Quantitative Evaluation of Disentangled Representations* (DCI) (ICLR, 2018).
+- Kim, Mnih, *Disentangling by Factorising* (FactorVAE) (ICML, 2018).
+- Locatello et al., *Challenging Common Assumptions in the Unsupervised Learning of Disentangled Representations* (ICML, 2019).

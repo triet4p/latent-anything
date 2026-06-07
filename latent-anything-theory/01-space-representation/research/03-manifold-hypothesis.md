@@ -27,3 +27,19 @@ Trong khi cấu trúc cục bộ giúp ta xấp xỉ tuyến tính tại một �
 *   Ở góc nhìn toàn cục, đa tạp sẽ thể hiện các thuộc tính topo đặc trưng mà phân tích cục bộ không thể thấy được, chẳng hạn như tính đóng, sự tồn tại của ranh giới (boundaries), hay tính định hướng (orientability - xác định xem đa tạp có bị xoắn như dải Möbius hay chai Klein hay không). 
 
 Tóm lại, thông qua **Không gian tiếp tuyến** để xấp xỉ **cấu trúc cục bộ** và liên kết chúng lại để hiểu **cấu trúc toàn cục**, các mô hình máy học có khả năng khai phá và mô hình hóa thành công giả thuyết đa tạp chiều thấp tiềm ẩn bên trong dữ liệu phức tạp.
+
+---
+
+## Liên quan
+
+- [Lời nguyền chiều](04-curse-of-dimensionality.md) — lý do dữ liệu buộc phải nằm trên đa tạp chiều thấp.
+- [Geodesic](05-geodesic.md) — đường ngắn nhất *trên* đa tạp khác đường thẳng ambient.
+- [Pullback Metric](06-pullback-metric.md) — đo hình học đa tạp ẩn qua Jacobian của decoder.
+- [Hình học Riemannian](../../03-geometry-structure/research/04-riemannian-geometry.md) — độ cong và dịch chuyển song song trên đa tạp.
+- [Autoencoder](../../02-representation-learning/research/02-autoencoder.md) — model khai thác trực tiếp giả thuyết đa tạp.
+
+## Tham khảo
+
+- Fefferman, Mitter, Narayanan, *Testing the Manifold Hypothesis* (Journal of the AMS, 2016).
+- Bengio, Courville, Vincent, *Representation Learning: A Review and New Perspectives* (IEEE TPAMI, 2013).
+- do Carmo, M., *Riemannian Geometry* (Birkhäuser, 1992) — tangent space, manifold, atlas/charts.

@@ -15,5 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ipykernel>=6.29",
+    "mkdocs-jupyter>=0.26.3",
+    "mkdocs-material>=9.7.6",
     "nbconvert>=7.17.1",
 ]

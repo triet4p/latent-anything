@@ -48,3 +48,16 @@ $$\cos(\theta) = \frac{a\cdot b}{||a||_2||b||_2}$$
 (dùng chuẩn L2).
 
 Cosin simlarity là thước đo đánh giá sự tương đồng về *hướng (orientation)* và bỏ qua *độ lớn (magnitude)* của chúng.
+
+---
+
+## Liên quan
+
+- [Khoảng cách Mahalanobis](02-mahalanobis-distance.md) — chuẩn hóa khoảng cách theo hiệp phương sai thay vì Euclidean thuần.
+- [Lời nguyền chiều](04-curse-of-dimensionality.md) — tại sao norm và khoảng cách mất ý nghĩa ở số chiều cao.
+- [Đẳng hướng & Bất đẳng hướng](../../03-geometry-structure/research/03-isotropy-anisotropy.md) — khi cosine similarity bị bóp méo do latent co cụm thành hình nón.
+
+## Tham khảo
+
+- Goodfellow, Bengio, Courville, *Deep Learning* (MIT Press, 2016), Chương 2 — Linear Algebra.
+- Mikolov et al., *Efficient Estimation of Word Representations in Vector Space* (2013) — cosine similarity trong không gian embedding.

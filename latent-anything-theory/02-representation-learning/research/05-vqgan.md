@@ -32,3 +32,16 @@ Mạng Transformer có độ phức tạp tính toán tăng theo bình phương 
 
 **Ý nghĩa đối với các mô hình Generative hiện đại:**
 Nhờ việc số hóa dữ liệu liên tục (hình ảnh, video, âm thanh) thành các "tô-ken ẩn" (latent tokens) rời rạc như của VQGAN, các thế hệ AI đa phương tiện quy mô lớn hiện nay (như LLaMA, Muse, Chameleon, Parti, v.v.) có thể kết hợp chung dữ liệu văn bản và hình ảnh vào cùng một từ điển. Điều này mở ra kỷ nguyên cho phép duy nhất một cấu trúc Transformer tiêu chuẩn xử lý linh hoạt mọi loại dữ liệu (multimodal) mà không cần thay đổi kiến trúc nội bộ.
+
+---
+
+## Liên quan
+
+- [VQ-VAE](04-vq-vae.md) — nền tảng codebook + lượng tử hóa mà VQGAN kế thừa.
+- [VAE](03-vae.md) — gốc rễ của họ autoencoder sinh.
+
+## Tham khảo
+
+- Esser, Rombach, Ommer, *Taming Transformers for High-Resolution Image Synthesis* (CVPR 2021, arXiv:2012.09841) — VQGAN.
+- Zhang et al., *The Unreasonable Effectiveness of Deep Features as a Perceptual Metric* (CVPR, 2018) — LPIPS / perceptual loss.
+- Isola et al., *Image-to-Image Translation with Conditional Adversarial Networks* (CVPR, 2017) — PatchGAN discriminator.

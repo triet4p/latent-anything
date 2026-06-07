@@ -40,3 +40,18 @@ Mặc dù bị coi là "thoái hóa", các nghiên cứu gần đây chỉ ra r�
 *   **Mã hóa Cú pháp:** Cấu trúc hình nón này thường là nơi chứa các quy luật cú pháp ngôn ngữ (syntax). Các mô hình học cách nhóm các đặc trưng cấu trúc chung vào một số ít trục tọa độ lớn, giúp việc phân loại tuyến tính dễ dàng hơn. Do đó, việc cố gắng ép mô hình trở nên hoàn toàn Isotropic đôi khi lại làm hỏng hiệu suất ở các tác vụ cần phân tách cụm từ vựng.
 
 **Tóm lại:** Không gian ẩn không hề đẳng hướng (Isotropic) mà bị kéo giãn và dồn ép khốc liệt thành dạng bất đẳng hướng (Anisotropic). Đây là kết quả tất yếu của cơ chế Attention, sự chênh lệch tần suất dữ liệu và thiên kiến của Gradient. Mặc dù nó gây khó khăn cho việc đo lường bằng hình học phẳng (Euclidean), nhưng chính sự "co cụm" này lại là cách mô hình nén các quy luật ngôn ngữ để thực hiện suy luận. Các kỹ thuật khắc phục (như phạt tương phản hay kéo giãn bằng hình học Simplicial) hiện đang được nghiên cứu để mở rộng không gian này nhằm tối ưu hóa sự đa dạng mà không làm mất đi các quy luật cấu trúc đã học.
+
+---
+
+## Liên quan
+
+- [Cấu trúc tuyến tính](01-linear-structure.md) — anisotropy là hệ quả tiêu cực của cách model học hướng tuyến tính.
+- [Metric Space & Vector Space](../../01-space-representation/research/01-metric-space-vector-space.md) — cosine similarity bị thổi phồng khi anisotropic.
+- [Slerp](05-slerp.md) — thao tác trên mặt siêu cầu khi latent có cấu trúc cầu.
+- [VQ-VAE](../../02-representation-learning/research/04-vq-vae.md) — chuẩn hóa L2 ép code về đẳng hướng trên mặt cầu.
+
+## Tham khảo
+
+- Gao et al., *Representation Degeneration Problem in Training Natural Language Generation Models* (ICLR, 2019).
+- Mu, Viswanath, *All-but-the-Top: Simple and Effective Postprocessing for Word Representations* (ICLR, 2018).
+- Ethayarajh, *How Contextual are Contextualized Word Representations? Comparing the Geometry of BERT, ELMo, and GPT-2 Embeddings* (EMNLP, 2019).

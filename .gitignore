@@ -3,7 +3,10 @@
 
 # MkDocs build output
 .gh-pages-build/
+**/.cache/
 
 # Virtual environments
 **/.venv
 **/venv
+
+**/settings.json

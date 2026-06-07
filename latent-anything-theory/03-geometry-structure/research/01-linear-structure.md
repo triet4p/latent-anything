@@ -27,3 +27,20 @@ Một hệ quả tiêu cực từ cách học của các mô hình ngôn ngữ (
 Mặc dù mô hình cố gắng "trải phẳng" không gian, cấu trúc thực tế do bộ giải mã (decoder) định hình lại thường là một **đa tạp khả vi cong Riemannian**. Do đó, việc di chuyển theo một đường thẳng tuyến tính Euclidean (lerp) giữa hai điểm ở xa nhau sẽ vạch ra một quỹ đạo cắt ngang qua lòng đa tạp cong, đi xuyên qua các vùng "ngoại đa tạp" (off-manifold). 
 *   Đây là những vùng lõi có mật độ xác suất dữ liệu thực tế cực thấp. 
 *   **Hệ quả:** Khi bộ giải mã tiếp nhận các vector nằm trên đoạn thẳng tuyến tính này (nơi có chuẩn vector bị suy giảm nghiêm trọng), nó sẽ sinh ra các mẫu hình ảnh trung gian bị mờ, mất chi tiết, méo mó hoặc không thực tế. Điều này đòi hỏi phải sử dụng các phép nội suy trên hình cầu (Slerp) hoặc tính toán đường trắc địa (Geodesic) uốn cong theo mật độ dữ liệu để khắc phục.
+
+---
+
+## Liên quan
+
+- [Tính tách biệt biểu diễn](02-disentanglement.md) — lý tưởng mỗi hướng tuyến tính = một factor độc lập.
+- [Đẳng hướng & Bất đẳng hướng](03-isotropy-anisotropy.md) — mặt tiêu cực: hướng co cụm thành hình nón.
+- [Hình học Riemannian](04-riemannian-geometry.md) — khi nào đa tạp cong đủ để lerp fail.
+- [Slerp](05-slerp.md) — nội suy trên mặt cầu khắc phục norm degradation.
+- [Geodesic](../../01-space-representation/research/05-geodesic.md) — nội suy theo đường trắc địa.
+
+## Tham khảo
+
+- Mikolov, Yih, Zweig, *Linguistic Regularities in Continuous Space Word Representations* (NAACL, 2013) — latent arithmetic.
+- Radford, Metz, Chintala, *Unsupervised Representation Learning with Deep Convolutional GANs* (ICLR, 2016) — vector arithmetic trong latent GAN.
+- Bengio, Courville, Vincent, *Representation Learning: A Review and New Perspectives* (IEEE TPAMI, 2013).
+- Gao et al., *Representation Degeneration Problem in Training Natural Language Generation Models* (ICLR, 2019).

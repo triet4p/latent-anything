@@ -33,3 +33,19 @@ Kết quả là mô hình phải tìm ra cách sắp xếp các điểm dữ li�
 *   **Chấm dứt sự phức tạp:** Các phương pháp khác (như GAGA hay NeuralFIM) chấp nhận không gian bị cong và phải dùng một mạng nơ-ron chuyên biệt (Neural ODE) cực kỳ nặng nề để dò dẫm giải phương trình tìm đường cong trắc địa. Quá trình này rất chậm, không ổn định và hay tạo ra các biểu hiện gene sai lệch (dao động bất thường).
 *   **Nội suy bằng đường thẳng (LERP):** Vì FlatVI đã dọn dẹp sẵn và san phẳng không gian, người dùng giờ đây chỉ cần dùng phép nối đường thẳng (linear interpolation) cực kỳ rẻ và cơ bản. Các đường thẳng này, khi được giải mã, sẽ sinh ra quỹ đạo biến đổi tế bào hợp lý, tự nhiên, và bám sát đa tạp dữ liệu thực tế.
 *   **Phù hợp với các công cụ có sẵn:** Rất nhiều công cụ phân tích hiện tại (như Vận chuyển Tối ưu Optimal Transport hay k-NN) mặc định giả định dữ liệu tính bằng khoảng cách thẳng Euclidean. Bằng cách cung cấp một không gian ẩn thực sự "phẳng", FlatVI giúp các công cụ hạ nguồn này hoạt động chính xác hơn rất nhiều.
+
+---
+
+## Liên quan
+
+- [Pullback Metric](06-pullback-metric.md) — đại lượng mà FlatVI ép về ma trận đơn vị.
+- [Geodesic](05-geodesic.md) — khi không gian phẳng, geodesic trở thành đường thẳng.
+- [VAE](../../02-representation-learning/research/03-vae.md) — FlatVI cộng phạt phẳng hóa vào hàm ELBO.
+- [Normalizing Flows](../../03-geometry-structure/research/06-normalizing-flows.md) — một hướng khác để "làm thẳng/re-coordinatize" không gian.
+- [Slerp](../../03-geometry-structure/research/05-slerp.md) — giải pháp nội suy thay thế khi không làm phẳng được.
+
+## Tham khảo
+
+- *FlatVI: Enforcing Latent Euclidean Geometry in Single-Cell VAEs for Manifold Interpolation* (2025, arXiv:2507.11789).
+- Arvanitidis, Hansen, Hauberg, *Latent Space Oddity* (ICLR 2018, arXiv:1710.11379) — nền tảng pullback metric.
+- Lopez et al., *Deep generative modeling for single-cell transcriptomics* (scVI, Nature Methods, 2018) — decoder Negative Binomial cho scRNA-seq.

@@ -126,3 +126,17 @@ Trong thực tiễn triển khai (như các thiết lập cấu hình của ki�
 **Một điểm đánh đổi cần lưu ý (The Trade-off)**
 Mặc dù phương pháp ép L2 lên mặt cầu mang lại sự ổn định tuyệt vời cho các mô hình sinh dữ liệu (Generative Models) và cải thiện sai số tái cấu trúc, một số phân tích chỉ ra rằng nó có thể **làm giảm hiệu năng trên các tác vụ phân loại (classification)**. 
 Nguyên nhân là do việc triệt tiêu độ lớn của vector (magnitude) đồng nghĩa với việc vứt bỏ đi một phần thông tin. Trong các tác vụ phân loại sử dụng hàm mất mát nhạy cảm với biên độ (như soft-max cross-entropy), độ lớn của vector biểu diễn thường tỷ lệ thuận với "độ tự tin" (confidence) của mô hình. Tuy nhiên, nếu mục tiêu của bạn là học biểu diễn nén (compression) hoặc sinh ảnh/video, thì phương pháp chiếu lên mặt cầu của bạn là một bước đi cực kỳ chính xác và bắt kịp chuẩn mực của các mô hình SOTA hiện tại.
+
+---
+
+## Liên quan
+
+- [VAE](03-vae.md) — VQ-VAE thay latent liên tục bằng codebook rời rạc.
+- [VQGAN](05-vqgan.md) — VQ-VAE + perceptual loss + adversarial loss.
+- [Đẳng hướng & Bất đẳng hướng](../../03-geometry-structure/research/03-isotropy-anisotropy.md) — chuẩn hóa L2 đưa code lên mặt siêu cầu.
+
+## Tham khảo
+
+- van den Oord, Vinyals, Kavukcuoglu, *Neural Discrete Representation Learning* (NeurIPS 2017, arXiv:1711.00937) — VQ-VAE gốc.
+- Razavi, van den Oord, Vinyals, *Generating Diverse High-Fidelity Images with VQ-VAE-2* (NeurIPS, 2019).
+- Yu et al., *Vector-quantized Image Modeling with Improved VQGAN* (ViT-VQGAN, 2021) — L2-normalized codes.

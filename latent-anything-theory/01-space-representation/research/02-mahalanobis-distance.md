@@ -81,3 +81,17 @@ Quá trình phân loại thường diễn ra như sau:
 - Fisher's linear discriminant analysis
 - Pattern Recognition
 
+---
+
+## Liên quan
+
+- [Metric Space & Vector Space](01-metric-space-vector-space.md) — chuẩn, metric và tích vô hướng nền tảng.
+- [Lời nguyền chiều](04-curse-of-dimensionality.md) — bối cảnh khoảng cách ở số chiều cao.
+- [Giả thuyết Đa tạp](03-manifold-hypothesis.md) — hiệp phương sai phản ánh cấu trúc cục bộ của dữ liệu.
+
+## Tham khảo
+
+- Mahalanobis, P. C., *On the generalised distance in statistics* (Proc. National Institute of Sciences of India, 1936) — bài báo gốc.
+- De Maesschalck, Jouan-Rimbaud, Massart, *The Mahalanobis distance* (Chemometrics and Intelligent Laboratory Systems, 2000) — tổng quan ứng dụng.
+- Fisher, R. A., *The use of multiple measurements in taxonomic problems* (1936) — liên hệ với Linear Discriminant Analysis.
+
