@@ -12,7 +12,7 @@ $$
 
 Với hình học 3D, $f_\theta(x, y, z)$ trả về thông tin về hình dạng tại điểm $(x,y,z)$. Hình dạng không được lưu dưới dạng một danh sách đỉnh/voxel, mà **chính là bộ trọng số $\theta$ của mạng** — bản thân mạng *là* hình dạng. Đây gọi là mạng **coordinate-based** (dựa trên tọa độ).
 
-> Đây là prerequisite cho **NeRF** (mục tiếp theo của tầng 3B) và 3D Gaussian Splatting: hiểu được "biểu diễn 3D = một hàm" là nền tảng để hiểu vì sao một scene có thể được nhồi vào latent và render khả vi.
+> Đây là prerequisite cho [NeRF](02-nerf.md) và 3D Gaussian Splatting: hiểu được "biểu diễn 3D = một hàm" là nền tảng để hiểu vì sao một scene có thể được nhồi vào latent và render khả vi.
 
 ---
 
@@ -89,7 +89,7 @@ $$
 
 * NIR là dạng **decoder hình học**: latent $\mathbf{z}$ → trường liên tục → (qua render/marching cubes) → hình 3D. Đây là khuôn mẫu để thiết kế `ModelAdapter` cho các model 3D.
 * Vì hình dạng = một điểm latent, mọi công cụ ở Tầng 3–4 (nội suy, [slerp](../../03-geometry-structure/research/05-slerp.md), số học latent) áp dụng được cho biến đổi hình học.
-* Đặt nền cho việc hiểu vì sao **NeRF** (density+color field) và sau đó 3D Gaussian Splatting (biểu diễn tường minh, amenable với world model) là các lựa chọn thiết kế latent khác nhau.
+* Đặt nền cho việc hiểu vì sao [NeRF](02-nerf.md) (density+color field) và sau đó 3D Gaussian Splatting (biểu diễn tường minh, amenable với world model) là các lựa chọn thiết kế latent khác nhau.
 
 ---
 

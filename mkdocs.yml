@@ -89,8 +89,10 @@ nav:
           - "Normalizing Flows": 03-geometry-structure/notebooks/06_normalizing_flows.ipynb
   - "3B. 3D Representation":
       - "Neural Implicit Representation": 03b-3d-representation/research/01-neural-implicit-representation.md
+      - "NeRF": 03b-3d-representation/research/02-nerf.md
       - Notebooks:
           - "Neural Implicit Representation": 03b-3d-representation/notebooks/01_neural_implicit_representation.ipynb
+          - "NeRF": 03b-3d-representation/notebooks/02_nerf.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
