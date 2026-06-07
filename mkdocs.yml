@@ -115,6 +115,7 @@ nav:
 
   - "4. Tính toán trong Latent Space":
       - "Lerp — Linear Interpolation": 04-latent-computation/research/01-lerp.md
+      - "Slerp — Spherical Interpolation": 04-latent-computation/research/02-slerp.md
       - Notebooks:
           - "Lerp — Nội suy tuyến tính": 04-latent-computation/notebooks/01_lerp.ipynb
 
