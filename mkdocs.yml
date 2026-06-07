@@ -120,6 +120,7 @@ nav:
       - Notebooks:
           - "Lerp — Nội suy tuyến tính": 04-latent-computation/notebooks/01_lerp.ipynb
           - "Slerp — Nội suy cầu": 04-latent-computation/notebooks/02_slerp.ipynb
+          - "Latent Arithmetic": 04-latent-computation/notebooks/03_latent_arithmetic.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
