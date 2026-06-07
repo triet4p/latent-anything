@@ -61,7 +61,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 - [x] **3D Gaussian Splatting (Kerbl et al., 2023)** — biểu diễn scene bằng tập 3D Gaussian {μ, Σ, α, color}. Render bằng projection + alpha compositing, không cần ray marching.
 - [x] **Covariance matrix trong 3DGS** — Σ = R·S·Sᵀ·Rᵀ, decompose thành rotation và scale. Tại sao parameterize thế này thay vì trực tiếp.
 - [x] **Spherical harmonics** — basis function để encode view-dependent color compact. SH degree 0, 1, 2, 3 và trade-off.
-- [ ] **Gaussian rasterization** — project 3D Gaussian lên 2D, sort by depth, tile-based rendering. Tại sao nhanh hơn NeRF.
+- [x] **Gaussian rasterization** — project 3D Gaussian lên 2D, sort by depth, tile-based rendering. Tại sao nhanh hơn NeRF.
 - [ ] **Gaussian parameters là latent variable** — encoder map observation → Gaussian set. Transition model predict Gaussian set mới. Decoder là rasterizer deterministic. Đây là cách LeWM tổ chức latent.
 - [ ] **Dynamic 3DGS** — extend 3DGS cho scene có motion. Gaussian deformation field, temporal consistency.
 - [ ] **Gaussian set operations** — add, remove, merge Gaussian. Tại sao explicit representation amenable với world model hơn implicit NeRF.
