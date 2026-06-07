@@ -117,6 +117,7 @@ nav:
       - "Lerp — Linear Interpolation": 04-latent-computation/research/01-lerp.md
       - "Slerp — Spherical Interpolation": 04-latent-computation/research/02-slerp.md
       - "Latent Arithmetic": 04-latent-computation/research/03-latent-arithmetic.md
+      - "Subspace Projection": 04-latent-computation/research/04-subspace-projection.md
       - Notebooks:
           - "Lerp — Nội suy tuyến tính": 04-latent-computation/notebooks/01_lerp.ipynb
           - "Slerp — Nội suy cầu": 04-latent-computation/notebooks/02_slerp.ipynb
