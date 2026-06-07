@@ -78,11 +78,13 @@ nav:
       - "Tính tách biệt biểu diễn": 03-geometry-structure/research/02-disentanglement.md
       - "Đẳng hướng & Bất đẳng hướng": 03-geometry-structure/research/03-isotropy-anisotropy.md
       - "Hình học Riemannian": 03-geometry-structure/research/04-riemannian-geometry.md
+      - "Slerp": 03-geometry-structure/research/05-slerp.md
       - Notebooks:
           - "Cấu trúc tuyến tính": 03-geometry-structure/notebooks/01_linear_structure.ipynb
           - "Tính tách biệt biểu diễn": 03-geometry-structure/notebooks/02_disentanglement.ipynb
           - "Đẳng hướng & Bất đẳng hướng": 03-geometry-structure/notebooks/03_isotropy_anisotropy.ipynb
           - "Hình học Riemannian": 03-geometry-structure/notebooks/04_riemannian_geometry.ipynb
+          - "Slerp": 03-geometry-structure/notebooks/05_slerp.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

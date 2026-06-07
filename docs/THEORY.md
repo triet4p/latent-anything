@@ -43,7 +43,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 - [x] **Disentanglement** — lý tưởng mỗi chiều control một factor độc lập. Metric: mutual information, DCI score, intervention effect.
 - [x] **Isotropy vs anisotropy** — latent có phân phối đều theo mọi hướng không? Tại sao hầu hết model anisotropic và hệ quả.
 - [x] **Riemannian geometry cơ bản** — curvature, parallel transport. Khi nào manifold trong latent cong đủ để lerp fail.
-- [ ] **Slerp (spherical linear interpolation)** — đi theo geodesic trên hypersphere thay vì đường thẳng. Khi nào dùng thay lerp.
+- [x] **Slerp (spherical linear interpolation)** — đi theo geodesic trên hypersphere thay vì đường thẳng. Khi nào dùng thay lerp.
 - [ ] **Normalizing flows** — học bijective mapping giữa simple distribution và complex latent distribution. Density estimation chính xác trong latent.
 
 ---
