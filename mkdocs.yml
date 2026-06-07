@@ -87,6 +87,10 @@ nav:
           - "Hình học Riemannian": 03-geometry-structure/notebooks/04_riemannian_geometry.ipynb
           - "Slerp": 03-geometry-structure/notebooks/05_slerp.ipynb
           - "Normalizing Flows": 03-geometry-structure/notebooks/06_normalizing_flows.ipynb
+  - "3B. 3D Representation":
+      - "Neural Implicit Representation": 03b-3d-representation/research/01-neural-implicit-representation.md
+      - Notebooks:
+          - "Neural Implicit Representation": 03b-3d-representation/notebooks/01_neural_implicit_representation.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

@@ -52,7 +52,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 
 *Song song với tầng 3. Prerequisite cho LeWM adapter và world model 3D.*
 
-- [ ] **Neural implicit representation** — biểu diễn 3D bằng function f(x,y,z) → (density, color) thay vì explicit mesh/voxel.
+- [x] **Neural implicit representation** — biểu diễn 3D bằng function f(x,y,z) → (density, color) thay vì explicit mesh/voxel.
 - [ ] **NeRF (Mildenhall et al., 2020)** — MLP nhận tọa độ 3D + viewing direction, output color và density. Train từ 2D image supervision.
 - [ ] **Volume rendering và ray marching** — integrate density dọc theo ray để render ảnh 2D. Alpha compositing. Tại sao differentiable.
 - [ ] **Positional encoding trong NeRF** — Fourier features để MLP capture high-frequency detail.
