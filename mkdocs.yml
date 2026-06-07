@@ -97,6 +97,7 @@ nav:
       - "Covariance Matrix trong 3DGS": 03b-3d-representation/research/07-covariance-matrix-3dgs.md
       - "Spherical Harmonics": 03b-3d-representation/research/08-spherical-harmonics.md
       - "Gaussian Rasterization": 03b-3d-representation/research/09-gaussian-rasterization.md
+      - "Gaussian Parameters là Latent": 03b-3d-representation/research/10-gaussian-parameters-latent-variable.md
       - Notebooks:
           - "Neural Implicit Representation": 03b-3d-representation/notebooks/01_neural_implicit_representation.ipynb
           - "NeRF": 03b-3d-representation/notebooks/02_nerf.ipynb
@@ -106,6 +107,7 @@ nav:
           - "3DGS & Hiệp phương sai": 03b-3d-representation/notebooks/06_07_3d_gaussian_splatting_covariance.ipynb
           - "Spherical Harmonics": 03b-3d-representation/notebooks/08_spherical_harmonics.ipynb
           - "Gaussian Rasterization": 03b-3d-representation/notebooks/09_gaussian_rasterization.ipynb
+          - "Gaussian Latent State": 03b-3d-representation/notebooks/10_gaussian_parameters_latent_variable.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

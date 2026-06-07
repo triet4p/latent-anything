@@ -62,7 +62,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 - [x] **Covariance matrix trong 3DGS** — Σ = R·S·Sᵀ·Rᵀ, decompose thành rotation và scale. Tại sao parameterize thế này thay vì trực tiếp.
 - [x] **Spherical harmonics** — basis function để encode view-dependent color compact. SH degree 0, 1, 2, 3 và trade-off.
 - [x] **Gaussian rasterization** — project 3D Gaussian lên 2D, sort by depth, tile-based rendering. Tại sao nhanh hơn NeRF.
-- [ ] **Gaussian parameters là latent variable** — encoder map observation → Gaussian set. Transition model predict Gaussian set mới. Decoder là rasterizer deterministic. Đây là cách LeWM tổ chức latent.
+- [x] **Gaussian parameters là latent variable** — encoder map observation → Gaussian set. Transition model predict Gaussian set mới. Decoder là rasterizer deterministic. Đây là hướng tổ chức latent ngày càng rõ trong các world model Gaussian-centric.
 - [ ] **Dynamic 3DGS** — extend 3DGS cho scene có motion. Gaussian deformation field, temporal consistency.
 - [ ] **Gaussian set operations** — add, remove, merge Gaussian. Tại sao explicit representation amenable với world model hơn implicit NeRF.
 
