@@ -1,5 +1,7 @@
 # Autoencoder
 
+> **TL;DR.** Autoencoder nén $x$ qua một **bottleneck** rồi tái tạo lại $x$; chính nút thắt cộng với áp lực tái cấu trúc ép mạng học đặc trưng cốt lõi. Nhưng latent của nó **tất định**, không có cấu trúc xác suất → không sinh được mẫu mới và để lại "lỗ hổng" vô nghĩa trong không gian ẩn (mở đường cho VAE).
+
 Mô hình Tự mã hóa (Autoencoder - AE) nguyên thủy nhất là một mạng nơ-ron nhân tạo được thiết kế cho các tác vụ học không giám sát (unsupervised learning) và giảm chiều dữ liệu (dimensionality reduction). Thay vì dự đoán một nhãn $Y$ từ đầu vào $X$, mục tiêu tối thượng của AE là học một hàm đồng nhất (identity function) sao cho đầu ra được tái tạo gần giống với đầu vào nhất có thể, tức là $f(x) \approx x$. 
 
 ## **1. Kiến trúc thắt nút cổ chai (Bottleneck Architecture)**

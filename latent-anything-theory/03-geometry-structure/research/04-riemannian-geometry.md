@@ -1,5 +1,7 @@
 # Riemannian Geometry Fundamental
 
+> **TL;DR.** Hai trụ cột: **parallel transport** (dịch chuyển vector mà giữ "song song" trên đa tạp cong) và **curvature** (độ cong). Holonomy — vector bị quay lệch sau khi đi một vòng kín — đúng bằng lượng độ cong bên trong vòng. Khi latent cong đủ, lerp đi ra ngoài đa tạp / sụt norm → phải dùng [slerp](05-slerp.md) hoặc pullback geodesic.
+
 Trong hình học Riemannian, **Dịch chuyển song song (Parallel Transport)** và **Độ cong (Curvature)** là hai khái niệm nền tảng để định hình cách chúng ta đo lường khoảng cách và phương hướng trên các không gian không bằng phẳng (đa tạp cong).
 
 ## **1. Dịch chuyển song song (Parallel Transport)**

@@ -1,5 +1,7 @@
 # Isotropy & Anisotropy
 
+> **TL;DR.** Latent lý tưởng *đẳng hướng* (trải đều mọi hướng), nhưng hầu hết model thực tế **bất đẳng hướng** — vector bị co cụm vào một hình nón hẹp (do self-attention, chênh lệch tần suất token, gradient bias). Hệ quả: cosine similarity bị thổi phồng và hình học ngữ nghĩa méo mó.
+
 **Isotropy (Tính đẳng hướng)** và **Anisotropy (Tính bất đẳng hướng)** là hai khái niệm hình học mô tả cách các vector biểu diễn (embeddings) phân bố trong không gian ẩn (latent space). 
 
 Trong một không gian ẩn lý tưởng và phân phối đều (Isotropic), các vector biểu diễn sẽ dàn trải đồng đều theo mọi hướng. Cấu trúc hình cầu này giúp tối đa hóa entropy, tận dụng toàn bộ dung lượng thông tin của không gian và bảo toàn tính đồng nhất cho các phép đo khoảng cách.

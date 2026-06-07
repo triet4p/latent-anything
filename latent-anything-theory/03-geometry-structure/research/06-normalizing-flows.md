@@ -1,5 +1,7 @@
 # Normalizing Flows
 
+> **TL;DR.** Normalizing flow là một chuỗi ánh xạ **khả nghịch** giữa Gaussian đơn giản và phân phối phức tạp; nhờ công thức đổi biến (định thức Jacobian) nó cho **likelihood chính xác** — thứ mà VAE (chỉ có cận dưới ELBO) và GAN (không có) đều thiếu. Ràng buộc: giữ nguyên số chiều và bảo toàn topology.
+
 **Normalizing Flow (Luồng chuẩn hóa)** là một họ mô hình sinh học một **ánh xạ khả nghịch (bijective)** giữa một phân phối đơn giản đã biết (base distribution — thường là Gaussian $\mathcal{N}(0, I)$) và một phân phối phức tạp của dữ liệu (hoặc của latent). Nhờ tính khả nghịch, nó cho phép **ước lượng mật độ chính xác (exact density estimation)** — điều mà VAE (chỉ tối ưu cận dưới ELBO) và GAN (không có likelihood) không làm được.
 
 Tên gọi đến từ chính cơ chế: dữ liệu được "chảy" (flow) qua một chuỗi phép biến đổi, mỗi bước được "chuẩn hóa" (normalize) lại thể tích bằng định thức Jacobian, cho tới khi biến thành phân phối base chuẩn tắc.

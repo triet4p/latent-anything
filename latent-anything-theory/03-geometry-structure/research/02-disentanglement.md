@@ -1,4 +1,6 @@
-# Disentanglement (Tính tác biệt biểu diễn)
+# Disentanglement (Tính tách biệt biểu diễn)
+
+> **TL;DR.** Disentanglement = mỗi chiều latent kiểm soát đúng *một* factor sinh dữ liệu và bất biến trước các factor khác. Đo bằng 3 họ thước đo: dựa trên thông tin (MIG), dựa trên bộ dự đoán (DCI), và dựa trên can thiệp (β-VAE/FactorVAE, causal).
 
 Trong học máy, **Disentanglement (tính tách biệt biểu diễn)** là mục tiêu tìm ra một không gian ẩn (latent space) mà ở đó, các nguồn biến thiên cốt lõi (factors of variation) của thế giới thực được tách rời hoàn toàn và biểu diễn bằng các tọa độ độc lập. 
 

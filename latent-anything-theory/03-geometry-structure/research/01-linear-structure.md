@@ -1,5 +1,7 @@
 # Linear Structure in Latent Space
 
+> **TL;DR.** Mô hình có xu hướng mã hóa mỗi *factor biến thiên* thành một **hướng tuyến tính** trong latent → cho phép latent arithmetic ($z_{\text{king}}-z_{\text{man}}+z_{\text{woman}}\approx z_{\text{queen}}$). Mặt trái: anisotropy (co cụm thành hình nón) và lerp thất bại khi đa tạp thực tế bị cong.
+
 ## Giả thuyết hướng ẩn (Latent Direction Hypothesis)
 
 Giả thuyết này khẳng định các mô hình học sâu tham số hóa cao (overparameterized) không mã hóa các hành vi hoặc khái niệm trừu tượng một cách phân tán phức tạp mà có xu hướng mã hóa các ***nhân tố biến thiên cốt lõi (factors of variation)*** dưới dạng các **vector định hướng có thể truy cập tuyến tính** trong không gian ẩn.

@@ -1,8 +1,8 @@
 # VQGAN (Vector Quantized Generative Adversarial Network)
 
-VQGAN được đề xuất bởi Esser và các cộng sự vào năm 2021 trong bài báo *"Taming Transformers for High-Resolution Image Synthesis"*, là một bước đột phá trong việc xử lý hình ảnh độ phân giải cao bằng cách kết hợp sức mạnh biểu diễn rời rạc của VQ-VAE với khả năng sinh ảnh sắc nét của GAN. 
+> **TL;DR.** VQGAN = VQ-VAE + **perceptual loss** (LPIPS) + **adversarial loss** (PatchGAN), nên token rời rạc giải mã ra ảnh sắc nét thay vì mờ. Chuỗi token này được Transformer học tự hồi quy (next-token prediction), hợp nhất ảnh với ngôn ngữ — nền của các mô hình sinh đa phương tiện quy mô lớn.
 
-Dưới đây là cơ chế hoạt động chi tiết của VQGAN và cách các "tô-ken ẩn" (latent tokens) của nó mở đường cho kỷ nguyên của các mô hình sinh (Generative Models) quy mô lớn.
+VQGAN được đề xuất bởi Esser và các cộng sự vào năm 2021 trong bài báo *"Taming Transformers for High-Resolution Image Synthesis"*, là một bước đột phá trong việc xử lý hình ảnh độ phân giải cao bằng cách kết hợp sức mạnh biểu diễn rời rạc của VQ-VAE với khả năng sinh ảnh sắc nét của GAN.
 
 ### 1. VQGAN = VQ-VAE + Perceptual Loss + Adversarial Loss
 

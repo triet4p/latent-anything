@@ -1,5 +1,7 @@
 # Mahalanobis Distance
 
+> **TL;DR.** Khoảng cách Mahalanobis là khoảng cách Euclidean *sau khi* "bóp" không gian theo nghịch đảo hiệp phương sai $\Sigma^{-1}$ — nhờ đó nó scale-invariant và tính đến tương quan giữa các chiều. Bản chất: đo một điểm *thuộc về một phân phối* tới mức nào, không chỉ cách tâm bao xa.
+
 ## Nhược điểm của khoảng cách Euclidean
 
 Euclidean ngầm định rằng tất cả các chiều dữ liệu đều độc lập và có cùng phương sai, điều hầu như không bao giờ đúng trong thực tế.
@@ -50,9 +52,9 @@ Công thức:
 
 $$d_M(x, y) = \sqrt{(x-y)^T\Sigma^{-1}(x-y)}$$
 
-trong đó $\Sigma^-1$ là ma trận nghịch đảo hiệp phương sai.
+trong đó $\Sigma^{-1}$ là ma trận nghịch đảo hiệp phương sai.
 
-*Chú ý*: Khoảng cách Mahalanobis là một thức đo **data-dependent**. Phải có một tập dữ liệu nền hoặc một phân phối xác suất trước.
+*Chú ý*: Khoảng cách Mahalanobis là một thước đo **data-dependent**. Phải có một tập dữ liệu nền hoặc một phân phối xác suất trước.
 
 ## Tính tương đối của Mahalanobis
 
@@ -63,7 +65,7 @@ Mahalanobis thực chất đánh giá xem một điểm mới (test point) *thu�
 Ví dụ, trong bài toán phân loại đa lớp (chó, mèo, chuột), mỗi lớp động vật sẽ có một đặc thù phân bố dữ liệu khác nhau.
 
 Nếu dùng một thước đo khoảng cách chung cho mọi lớp, chúng ta đang ngầm định chúng có độ phân tán giống nhau (hình cầu chuẩn).
-Lúc này, ma trận hiệp phương sai đóng vài trò làm *hệ quy chiếu* riêng cho từng lớp.
+Lúc này, ma trận hiệp phương sai đóng vai trò làm *hệ quy chiếu* riêng cho từng lớp.
 
 Cuối cùng, ta ***chọn khoảng cách điểm test point tới lớp gần nhất*** (chính là maximum likelihood)
 

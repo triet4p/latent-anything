@@ -1,5 +1,7 @@
 # Slerp — Spherical Linear Interpolation
 
+> **TL;DR.** Slerp nội suy theo **cung tròn lớn** trên mặt siêu cầu thay vì dây cung thẳng — bảo toàn norm và đi với vận tốc góc đều. Dùng thay lerp khi latent sống trên vỏ cầu (prior Gaussian chiều cao); suy biến về lerp khi góc giữa hai điểm nhỏ.
+
 **Slerp (Spherical Linear Interpolation — nội suy tuyến tính cầu)** là phép nội suy giữa hai vector đi men theo **cung tròn lớn (great circle)** trên mặt siêu cầu đơn vị, thay vì đi theo dây cung thẳng băng qua lòng cầu như Lerp. Đây chính là hiện thực hóa cụ thể của đường trắc địa ([geodesic](../../01-space-representation/research/05-geodesic.md)) trên trường hợp đặc biệt — và quan trọng nhất với deep learning — là mặt cầu.
 
 Thuật ngữ "Slerp" được Ken Shoemake đặt ra trong bài *"Animating Rotation with Quaternion Curves"* (SIGGRAPH 1985) để nội suy mượt các phép quay 3D biểu diễn bằng quaternion. Tuy ra đời trong computer graphics, công thức của nó áp dụng được cho **bất kỳ vector đơn vị nào trong một không gian tích trong (inner product space)** — đó là lý do nó trở thành công cụ tiêu chuẩn cho nội suy trong latent space.

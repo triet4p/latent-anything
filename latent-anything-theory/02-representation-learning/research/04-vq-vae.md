@@ -1,5 +1,7 @@
 # Vector-Quantized VAE (VQ-VAE)
 
+> **TL;DR.** VQ-VAE thay latent liên tục bằng một **codebook rời rạc**: encoder xuất vector, mỗi vector bị "ép" về vector gần nhất trong bảng mã (nearest-neighbor + straight-through estimator để gradient chảy qua được). Lợi: hết blur, tránh posterior collapse, biến ảnh thành chuỗi token cho Transformer. Khó: **codebook collapse** (nhiều mã chết) — khắc phục bằng EMA, reset, hoặc chuẩn hóa L2.
+
 VQ-VAE được giới thiệu bởi van den Oord và các cộng sự vào năm 2017, đại diện cho một bước chuyển mình mang tính bước ngoặt trong lĩnh vực học máy: dịch chuyển từ các không gian ẩn liên tục (như trong VAE truyền thống) sang **một không gian ẩn rời rạc (discrete latent space)**
 
 ## Tại sao cần VQ-VAE?
@@ -66,7 +68,7 @@ Mặc dù VQ Loss ở trên có thể dùng để cập nhật Codebook thông q
 
 Hiện tượng này xảy ra khi chỉ có một phần rất nhỏ các vector trong Codebook thực sự được sử dụng để lượng tử hóa đầu ra của bộ mã hóa (encoder), trong khi phần lớn các vector còn lại không bao giờ được chọn làm láng giềng gần nhất. Vì không được chọn, các "vector chết" này sẽ không nhận được bất kỳ gradient nào trong quá trình lan truyền ngược (do thuật toán Straight-Through Estimator chỉ cập nhật vector được gán), khiến chúng vĩnh viễn bị loại khỏi quá trình huấn luyện và làm giảm nghiêm trọng dung lượng biểu diễn của mô hình.
 
-Dưới đây là phân tích về nguyên nhân gốc rễ và các kỹ thuật thực tiễn nhất để bạn khắc phục tình trạng này trong quá trình triển khai:
+Nguyên nhân gốc rễ và các kỹ thuật khắc phục thực tiễn:
 
 ### Nguyên nhân cốt lõi gây sụp đổ Codebook
 
@@ -97,7 +99,7 @@ Thực nghiệm cho thấy, nếu bạn cần tăng dung lượng biểu diễn 
 Trong những bước huấn luyện đầu tiên, một batch size lớn sẽ cung cấp đa dạng các mẫu dữ liệu, giúp bao phủ nhiều vùng không gian và "kích hoạt" được nhiều vector Codebook hơn. Điều này giúp giảm rủi ro sụp đổ mã sớm.
 
 #### **5. Các phương pháp lan truyền gradient nâng cao (NS-VQ / TransVQ)**
-Nếu bạn muốn áp dụng can thiệp sâu vào cấu trúc:
+Nếu muốn can thiệp sâu vào cấu trúc:
 *   **NS-VQ (Non-Stationary Vector Quantization):** Cải tiến thuật toán lan truyền ngược để phân phối một phần gradient của đầu ra encoder cho cả những Codebook không được chọn, dựa trên khoảng cách của chúng tới dữ liệu (sử dụng hàm nhân Kernel).
 *   **TransVQ:** Đặt một mạng Transformer nhỏ (1 lớp) để làm hàm ánh xạ tự động biến đổi (transform) toàn bộ các điểm trong Codebook mỗi khi encoder có sự thay đổi, giúp bảng mã luôn thích ứng linh hoạt.
 
@@ -125,7 +127,7 @@ Trong thực tiễn triển khai (như các thiết lập cấu hình của ki�
 
 **Một điểm đánh đổi cần lưu ý (The Trade-off)**
 Mặc dù phương pháp ép L2 lên mặt cầu mang lại sự ổn định tuyệt vời cho các mô hình sinh dữ liệu (Generative Models) và cải thiện sai số tái cấu trúc, một số phân tích chỉ ra rằng nó có thể **làm giảm hiệu năng trên các tác vụ phân loại (classification)**. 
-Nguyên nhân là do việc triệt tiêu độ lớn của vector (magnitude) đồng nghĩa với việc vứt bỏ đi một phần thông tin. Trong các tác vụ phân loại sử dụng hàm mất mát nhạy cảm với biên độ (như soft-max cross-entropy), độ lớn của vector biểu diễn thường tỷ lệ thuận với "độ tự tin" (confidence) của mô hình. Tuy nhiên, nếu mục tiêu của bạn là học biểu diễn nén (compression) hoặc sinh ảnh/video, thì phương pháp chiếu lên mặt cầu của bạn là một bước đi cực kỳ chính xác và bắt kịp chuẩn mực của các mô hình SOTA hiện tại.
+Nguyên nhân là do việc triệt tiêu độ lớn của vector (magnitude) đồng nghĩa với việc vứt bỏ đi một phần thông tin. Trong các tác vụ phân loại sử dụng hàm mất mát nhạy cảm với biên độ (như soft-max cross-entropy), độ lớn của vector biểu diễn thường tỷ lệ thuận với "độ tự tin" (confidence) của mô hình. Tuy nhiên, nếu mục tiêu là học biểu diễn nén (compression) hoặc sinh ảnh/video, thì việc chiếu lên mặt cầu là một lựa chọn rất hợp lý và bắt kịp chuẩn mực của các mô hình SOTA hiện tại.
 
 ---
 

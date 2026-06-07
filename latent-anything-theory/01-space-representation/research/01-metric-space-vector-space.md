@@ -1,5 +1,7 @@
 # Metric Space và Vector Space
 
+> **TL;DR.** Latent space là một *vector space* được trang bị một *metric* (thước đo khoảng cách). "Gần nhau" đo bằng norm (L2/L1), tích vô hướng và **cosine similarity** — thước đo chỉ quan tâm *hướng*, bỏ qua *độ lớn*. Đây là nền tảng cho mọi phép đo ở các tầng sau.
+
 ## Metric Space
 
 Metric Space là một cặp $(X, d_X)$ trong đó $X$ là tập hợp các đối tượng và $d_X$ là một hàm khoảng cách.
@@ -8,7 +10,7 @@ Hàm khoảng cách $d_X$ cần phải tuân thủ các tiên đề về:
 
 - Không âm
 - Đồng nhất
-- Phân biệt ($d(x,y)>0$ nêu $x\ne y$)
+- Phân biệt ($d(x,y)>0$ nếu $x\ne y$)
 - Đối xứng.
 - Bất đẳng thức tam giác.
 
@@ -47,7 +49,7 @@ Từ đây ta có **độ tương đồng cosin (Cosin Similarity)**:
 $$\cos(\theta) = \frac{a\cdot b}{||a||_2||b||_2}$$
 (dùng chuẩn L2).
 
-Cosin simlarity là thước đo đánh giá sự tương đồng về *hướng (orientation)* và bỏ qua *độ lớn (magnitude)* của chúng.
+Cosine similarity là thước đo đánh giá sự tương đồng về *hướng (orientation)* và bỏ qua *độ lớn (magnitude)* của chúng.
 
 ---
 

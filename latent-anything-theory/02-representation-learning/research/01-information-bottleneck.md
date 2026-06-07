@@ -1,14 +1,14 @@
 # Information Bottleneck
 
+> **TL;DR.** Information Bottleneck ép biểu diễn $Z$ giữ tối đa thông tin về mục tiêu $I(Z;Y)$ trong khi nén tối đa thông tin về đầu vào $I(Z;X)$ — chính việc "vứt bớt" thông tin thừa lại cải thiện khả năng tổng quát hóa. Hàm mục tiêu: $\mathcal{L} = I(Z;Y) - \beta I(Z;X)$. β-VAE ở chương sau chính là hiện thực hóa nguyên lý này.
+
 Nguyên lý Nghẽn thông tin (Information Bottleneck - IB) là một khung lý thuyết thông tin nhằm tối ưu hóa sự đánh đổi giữa tính nén của biểu diễn (độ phức tạp) và khả năng dự báo (độ chính xác).
 
 Cụ thể, khi ánh xạ đầu vào $X$ sang một không gian ẩn $Z$ (hoặc $T$) để dự đoán mục tiêu $Y$, hàm mục tiêu của IB được thiết lập dưới dạng Lagrangian: $\mathcal{L}_{\text{IB}} = I(Z;Y) - \beta I(Z;X)$. 
 
 Trong đó, việc **tối đa hóa $I(Z;Y)$** đảm bảo $Z$ giữ lại lượng thông tin có ích lớn nhất để giải quyết tác vụ, còn việc **tối thiểu hóa $I(Z;X)$** đóng vai trò là một "nút thắt cổ chai", ép mô hình phải nén dữ liệu và vứt bỏ những chi tiết thừa từ $X$. 
 
-Đúng vậy, bạn đã hiểu hoàn toàn chính xác về $I(Z; X)$. 
-
-Dưới đây là giải thích chi tiết về cả hai đại lượng này dựa trên Nguyên lý Nghẽn thông tin (Information Bottleneck - IB), trong đó $Z$ (trong nhiều tài liệu cũng được ký hiệu là $T$) là không gian biểu diễn ẩn của mô hình:
+Hai đại lượng cốt lõi của nguyên lý này (với $Z$, trong nhiều tài liệu ký hiệu là $T$, là biểu diễn ẩn):
 
 **1. Đại lượng $I(Z; X)$ (Số hạng độ phức tạp - Complexity Term)**
 
@@ -25,7 +25,7 @@ Dưới đây là giải thích chi tiết về cả hai đại lượng này d�
 Toàn bộ Nguyên lý Nghẽn thông tin xoay quanh hàm mục tiêu Lagrangian: 
 $\mathcal{L}_{\text{IB}} = I(Z;Y) - \beta I(Z;X)$
 
-Bạn có thể hình dung hàm này như một bài toán kinh tế học:
+Có thể hình dung hàm này như một bài toán kinh tế học:
 
 *   **$I(Z; X)$ là "chi phí" (cost):** Bạn phải tốn chi phí để lưu trữ thông tin của $X$ vào $Z$. Bạn muốn chi phí này càng thấp càng tốt để biểu diễn $Z$ trở nên tối giản, qua đó giúp mô hình loại bỏ biến nhiễu và tổng quát hóa tốt hơn.
 *   **$I(Z; Y)$ là "doanh thu" (benefit):** Đây là phần thưởng cho việc dự đoán đúng mục tiêu $Y$. Bạn muốn thu về lượng thông tin này càng cao càng tốt để đảm bảo mô hình thực hiện thành công tác vụ.
@@ -42,6 +42,8 @@ Các phân tích từ lý thuyết học thống kê đã chứng minh toán h�
 Cụ thể, chặn trên của sai số này tỷ lệ thuận với lũy thừa cơ số 2 $\sqrt{I(X;Z)}$:
 
 $$ \Delta \le \sqrt{\frac{2^{I(X;Z_l)}\log(2/\delta)}{2n}} $$
+
+trong đó $\Delta$ là khoảng cách tổng quát hóa (chênh lệch hiệu năng train/test), $n$ là số mẫu huấn luyện, $\delta$ là mức rủi ro (chặn đúng với xác suất $1-\delta$), và $I(X;Z_l)$ là lượng thông tin mà lớp ẩn $l$ giữ lại từ đầu vào. Điểm cốt lõi: chặn chỉ phụ thuộc thông tin *thực sự* đi qua nút thắt, không phụ thuộc số tham số.
 
 
 Không giống như các phương pháp đánh giá độ phức tạp truyền thống (như VC-dimension hay Rademacher complexity vốn nới rộng theo số lượng tham số), chặn tổng quát hóa của IB chỉ phụ thuộc vào lượng thông tin thực tế đi qua nút thắt. Do đó, việc chủ động nén $I(Z;X)$ giúp thu hẹp tường minh sai số tổng quát hóa, thậm chí được ví von rằng "mỗi bit nén của biểu diễn có hiệu quả tương đương với việc tăng gấp đôi kích thước tập dữ liệu huấn luyện" (dưới một số điều kiện nhất định).

@@ -1,5 +1,7 @@
 # Neural Implicit Representation
 
+> **TL;DR.** Neural Implicit Representation biểu diễn tín hiệu/hình 3D bằng một **MLP theo tọa độ** $f_\theta(x)$ — liên tục, không phụ thuộc độ phân giải, "mạng *chính là* tín hiệu". Cần Fourier features/SIREN để chống spectral bias; điều kiện hóa bằng **latent code** để biểu diễn cả một họ hình và sinh hình mới.
+
 **Neural Implicit Representation (NIR)** — hay **Implicit Neural Representation (INR)** — là cách biểu diễn một tín hiệu (hình dạng 3D, ảnh, video, trường vật lý) bằng **một hàm liên tục được tham số hóa bởi mạng neural**, thay vì bằng một cấu trúc rời rạc tường minh (explicit) như lưới voxel, mesh, hay point cloud.
 
 Ý tưởng cốt lõi: một mạng MLP nhận **tọa độ** làm đầu vào và trả về **giá trị của tín hiệu tại tọa độ đó**:

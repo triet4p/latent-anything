@@ -1,5 +1,7 @@
 # Variational AutoEncoder (VAE)
 
+> **TL;DR.** VAE học một latent *xác suất*: encoder cho phân phối xấp xỉ $q(z|x)$, mô hình tối ưu **ELBO = reconstruction − KL(q‖prior)** thay vì tối ưu trực tiếp $\log p(x)$ (bất khả thi). Reparameterization trick cho phép backprop qua khâu lấy mẫu. Hệ số $\beta$ điều chỉnh nén vs tái cấu trúc và thúc đẩy disentanglement.
+
 ## Probabilistic Generative Models (Mô hình sinh xác suất)
 
 Trong học máy, các mô hình sinh xác suất là một lớp mô hình được thiết kế để học cấu trúc và phân phối tiềm ẩn của dữ liệu, từ đó có khả năng sinh (generate) những mẫu dữ liệu mới tương tự như dữ liệu gốc trong tập huấn luyện.
@@ -7,13 +9,13 @@ Trong học máy, các mô hình sinh xác suất là một lớp mô hình đư
 Khác với mô hình tất định (như Autoencoder cổ điển chỉ ánh xạ một đầu vào thành một điểm cố định duy nhất), mô hình sinh xác suất thường mã hóa không gian ẩn dưới dạng các phân phối xác suất liên tục. Quá trình sinh của chúng được định nghĩa chặt chẽ qua các bước:
 
 1. Trước tiên, một vector ẩn $z$ được lấy mẫu ngẫu nhiên từ một phân phối tiên nghiệm (prior distribution) $p_\theta(z)$.
-2. Sau đó, một điểm dữ liệu mới $x sinh ra từ phân phối có điều kiện $p_\theta(x|z)$ (đóng vai trò là probabilistic decoder).
+2. Sau đó, một điểm dữ liệu mới $x$ sinh ra từ phân phối có điều kiện $p_\theta(x|z)$ (đóng vai trò là probabilistic decoder).
 
-## Marginal Likelihood (Hàm khả di biên)
+## Marginal Likelihood (Hàm khả dĩ biên)
 
 Trong bài toán suy diễn xác suất, đại lượng cốt lõi để đánh giá mô hình là hàm khả dĩ biên, ký hiệu $P(X)$ hoặc $p_\theta(x)$.
 
-$P(X)$ đại diện cho xác suất biên (xác suất tổng thể để dữ liệu quan sát được xuất hiện) cuả dữ liệu dưới một mô hình với bộ tham số $\theta$. Vì chúng ta giả định dữ liệu $x$ sinh ra từ một biến ẩn $z$ chưa biết, để tính được xác suất thực sự của $x$, ta phải tính tổng/tichs phân xác suất của $x$ trên toàn bộ các cấu hình khả dĩ của không gian ẩn $Z$. Công thức toán là:
+$P(X)$ đại diện cho xác suất biên (xác suất tổng thể để dữ liệu quan sát được xuất hiện) của dữ liệu dưới một mô hình với bộ tham số $\theta$. Vì chúng ta giả định dữ liệu $x$ sinh ra từ một biến ẩn $z$ chưa biết, để tính được xác suất thực sự của $x$, ta phải tính tổng/tích phân xác suất của $x$ trên toàn bộ các cấu hình khả dĩ của không gian ẩn $Z$. Công thức toán là:
 
 $$ P(X) = p_\theta(x) = \int p_\theta(x, z)dz=\int p_\theta(x|z)p_\theta(z)dz$$
 

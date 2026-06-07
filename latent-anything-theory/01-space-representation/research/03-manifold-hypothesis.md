@@ -1,5 +1,7 @@
 # Manifold Hypothesis & Tangent Space
 
+> **TL;DR.** Dữ liệu thực tuy sống trong ambient space chiều rất cao nhưng thực chất tập trung trên một **đa tạp con (submanifold) chiều thấp** do các ràng buộc vật lý/ngữ nghĩa. Cục bộ đa tạp trông phẳng (xấp xỉ bằng **tangent space**), toàn cục thì cong. Đây là giả định nền của mọi mô hình latent.
+
 ## **Giả thuyết Đa tạp (Manifold Hypothesis)** 
 
 Giả thuyết đa tạp phát biểu rằng mặc dù dữ liệu thực tế được biểu diễn trong một không gian có số chiều cực kỳ lớn (không gian ngoại tại - ambient space), chúng thực chất lại phân bố tập trung dày đặc trên hoặc xung quanh các đa tạp con (submanifolds) có số chiều nội tại (intrinsic dimension) thấp hơn rất nhiều.

@@ -1,5 +1,7 @@
 # FlatVI
 
+> **TL;DR.** FlatVI thêm một **hàm phạt phẳng hóa** ép [pullback metric](06-pullback-metric.md) ≈ ma trận đơn vị, "san phẳng" latent để [geodesic](05-geodesic.md) ≈ đường thẳng Euclidean. Nhờ đó lerp, k-NN và Optimal Transport chạy đúng mà không cần solver geodesic đắt đỏ.
+
 ## Flat Variational Inference (FlatVI)
 
 FlatVI là một khung huấn luyện (training framework) dành cho các mô hình VAE để thiết kế để xử lý dữ liệu thưa và rời rạc như scRNA-seq trong sinh học
