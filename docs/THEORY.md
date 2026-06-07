@@ -72,7 +72,7 @@ Latent space không phải hộp đen — nó có hình dạng.
 
 Các operation cơ bản trực tiếp implement vào Layer B của Latent-Anything.
 
-- [~] **Lerp (linear interpolation)** — z = (1−t)·z₁ + t·z₂. Khi nào đủ tốt, khi nào fail.
+- [x] **Lerp (linear interpolation)** — z = (1−t)·z₁ + t·z₂. Khi nào đủ tốt, khi nào fail.
 - [ ] **Slerp** — chi tiết hơn tầng 3: implementation, tại sao tốt hơn lerp cho unit-norm latent.
 - [ ] **Latent arithmetic** — điều kiện để z_a − z_b + z_c có nghĩa. Tại sao cần cùng coordinate system.
 - [ ] **Subspace projection** — project lên PCA direction, concept direction. Decompose z = z_concept + z_residual.
