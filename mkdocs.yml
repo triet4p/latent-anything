@@ -120,6 +120,7 @@ nav:
       - "Subspace Projection": 04-latent-computation/research/04-subspace-projection.md
       - "Mahalanobis Distance": 04-latent-computation/research/05-mahalanobis-distance.md
       - "Density Estimation": 04-latent-computation/research/06-density-estimation.md
+      - "Optimal Transport trong Latent": 04-latent-computation/research/07-optimal-transport-in-latent.md
       - Notebooks:
           - "Lerp — Nội suy tuyến tính": 04-latent-computation/notebooks/01_lerp.ipynb
           - "Slerp — Nội suy cầu": 04-latent-computation/notebooks/02_slerp.ipynb
@@ -127,6 +128,7 @@ nav:
           - "Subspace Projection": 04-latent-computation/notebooks/04_subspace_projection.ipynb
           - "Mahalanobis Distance": 04-latent-computation/notebooks/05_mahalanobis_distance.ipynb
           - "Density Estimation": 04-latent-computation/notebooks/06_density_estimation.ipynb
+          - "Optimal Transport trong Latent": 04-latent-computation/notebooks/07_optimal_transport_in_latent.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

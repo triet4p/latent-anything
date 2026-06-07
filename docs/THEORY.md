@@ -78,7 +78,7 @@ Các operation cơ bản trực tiếp implement vào Layer B của Latent-Anyth
 - [x] **Subspace projection** — project lên PCA direction, concept direction. Decompose z = z_concept + z_residual.
 - [x] **Mahalanobis distance** — normalize theo covariance. Khi nào tốt hơn Euclidean.
 - [x] **Density estimation trong latent** — Gaussian mixture model, normalizing flow trên latent. Dùng để in/out-of-distribution detection.
-- [ ] **Optimal transport trong latent** — Wasserstein distance giữa hai distribution latent. Dùng để compare trajectory distribution.
+- [x] **Optimal transport trong latent** — Wasserstein distance giữa hai distribution latent. Dùng để compare trajectory distribution.
 
 ---
 
