@@ -93,12 +93,15 @@ nav:
       - "Volume Rendering & Ray Marching": 03b-3d-representation/research/03-volume-rendering-ray-marching.md
       - "Positional Encoding": 03b-3d-representation/research/04-positional-encoding.md
       - "Instant-NGP": 03b-3d-representation/research/05-instant-ngp.md
+      - "3D Gaussian Splatting": 03b-3d-representation/research/06-3d-gaussian-splatting.md
+      - "Covariance Matrix trong 3DGS": 03b-3d-representation/research/07-covariance-matrix-3dgs.md
       - Notebooks:
           - "Neural Implicit Representation": 03b-3d-representation/notebooks/01_neural_implicit_representation.ipynb
           - "NeRF": 03b-3d-representation/notebooks/02_nerf.ipynb
           - "Volume Rendering & Ray Marching": 03b-3d-representation/notebooks/03_volume_rendering_ray_marching.ipynb
           - "Positional Encoding": 03b-3d-representation/notebooks/04_positional_encoding.ipynb
           - "Instant-NGP": 03b-3d-representation/notebooks/05_instant_ngp.ipynb
+          - "3DGS & Hiệp phương sai": 03b-3d-representation/notebooks/06_07_3d_gaussian_splatting_covariance.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
