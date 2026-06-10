@@ -132,8 +132,10 @@ nav:
 
   - "5. Probe & Can thiệp":
       - "Linear Probing": 05-probing-intervention/research/01-linear-probing.md
+      - "Nonlinear Probing": 05-probing-intervention/research/02-nonlinear-probing.md
       - Notebooks:
           - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
+          - "Nonlinear Probing": 05-probing-intervention/notebooks/02_nonlinear_probing.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
