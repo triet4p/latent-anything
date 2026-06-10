@@ -89,7 +89,7 @@ Nền tảng của Layer A (introspection) và một phần Layer B (manipulatio
 - [x] **Linear probing** — train linear classifier trên frozen latent. Test cho "feature này có encode tuyến tính không".
 - [x] **Nonlinear probing** — MLP probe. Upper bound cho thông tin có trong latent, không phân biệt tuyến tính hay không.
 - [x] **Concept Activation Vectors — TCAV (Kim et al., 2018)** — tìm direction trong latent tương ứng với human-defined concept. TCAV score đo sensitivity của output với direction đó.
-- [ ] **Causal intervention vs observational study** — correlation trong latent khác causation. Do-calculus cơ bản áp dụng cho latent.
+- [x] **Causal intervention vs observational study** — correlation trong latent khác causation. Do-calculus cơ bản áp dụng cho latent.
 - [ ] **Activation patching** — intervene vào forward pass: patch activation từ run A sang run B. Identify đâu trong model một piece of information được xử lý.
 - [ ] **Superposition hypothesis** — model encode nhiều feature hơn số neuron bằng superposition. Tại sao PCA không đủ để decompose.
 - [ ] **Sparse autoencoder — SAE (Anthropic, 2023)** — tìm overcomplete sparse basis. Mỗi observation activate sparse subset. Mono-semantic feature hơn PCA direction.

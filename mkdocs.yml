@@ -134,10 +134,12 @@ nav:
       - "Linear Probing": 05-probing-intervention/research/01-linear-probing.md
       - "Nonlinear Probing": 05-probing-intervention/research/02-nonlinear-probing.md
       - "TCAV — Concept Activation Vectors": 05-probing-intervention/research/03-tcav.md
+      - "Can thiệp Nhân quả vs Quan sát": 05-probing-intervention/research/04-causal-intervention-vs-observational.md
       - Notebooks:
           - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
           - "Nonlinear Probing": 05-probing-intervention/notebooks/02_nonlinear_probing.ipynb
           - "TCAV — Concept Activation Vectors": 05-probing-intervention/notebooks/03_tcav.ipynb
+          - "Can thiệp Nhân quả vs Quan sát": 05-probing-intervention/notebooks/04_causal_intervention_vs_observational.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
