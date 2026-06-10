@@ -92,7 +92,7 @@ Nền tảng của Layer A (introspection) và một phần Layer B (manipulatio
 - [x] **Causal intervention vs observational study** — correlation trong latent khác causation. Do-calculus cơ bản áp dụng cho latent.
 - [x] **Activation patching** — intervene vào forward pass: patch activation từ run A sang run B. Identify đâu trong model một piece of information được xử lý.
 - [x] **Superposition hypothesis** — model encode nhiều feature hơn số neuron bằng superposition. Tại sao PCA không đủ để decompose.
-- [ ] **Sparse autoencoder — SAE (Anthropic, 2023)** — tìm overcomplete sparse basis. Mỗi observation activate sparse subset. Mono-semantic feature hơn PCA direction.
+- [x] **Sparse autoencoder — SAE (Anthropic, 2023)** — tìm overcomplete sparse basis. Mỗi observation activate sparse subset. Mono-semantic feature hơn PCA direction.
 - [ ] **Dictionary learning** — general framework cho sparse decomposition. SAE là một instance. K-SVD, ISTA.
 - [ ] **Steering vectors (Zou et al., 2023 — Representation Engineering)** — mean difference giữa có/không có concept. Apply vào latent để "inject" concept. Đơn giản nhưng work mạnh.
 - [ ] **Logit lens / tuned lens** — inspect latent ở giữa chừng transformer bằng cách decode sớm. Hiểu information flow qua layers.

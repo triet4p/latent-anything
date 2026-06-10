@@ -137,6 +137,7 @@ nav:
       - "Can thiệp Nhân quả vs Quan sát": 05-probing-intervention/research/04-causal-intervention-vs-observational.md
       - "Activation Patching": 05-probing-intervention/research/05-activation-patching.md
       - "Superposition Hypothesis": 05-probing-intervention/research/06-superposition-hypothesis.md
+      - "Sparse Autoencoder — SAE": 05-probing-intervention/research/07-sparse-autoencoder.md
       - Notebooks:
           - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
           - "Nonlinear Probing": 05-probing-intervention/notebooks/02_nonlinear_probing.ipynb
@@ -144,6 +145,7 @@ nav:
           - "Can thiệp Nhân quả vs Quan sát": 05-probing-intervention/notebooks/04_causal_intervention_vs_observational.ipynb
           - "Activation Patching": 05-probing-intervention/notebooks/05_activation_patching.ipynb
           - "Superposition Hypothesis": 05-probing-intervention/notebooks/06_superposition_hypothesis.ipynb
+          - "Sparse Autoencoder — SAE": 05-probing-intervention/notebooks/07_sparse_autoencoder.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
