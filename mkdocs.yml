@@ -130,6 +130,11 @@ nav:
           - "Density Estimation": 04-latent-computation/notebooks/06_density_estimation.ipynb
           - "Optimal Transport trong Latent": 04-latent-computation/notebooks/07_optimal_transport_in_latent.ipynb
 
+  - "5. Probe & Can thiệp":
+      - "Linear Probing": 05-probing-intervention/research/01-linear-probing.md
+      - Notebooks:
+          - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true

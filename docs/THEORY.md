@@ -86,7 +86,7 @@ Các operation cơ bản trực tiếp implement vào Layer B của Latent-Anyth
 
 Nền tảng của Layer A (introspection) và một phần Layer B (manipulation).
 
-- [ ] **Linear probing** — train linear classifier trên frozen latent. Test cho "feature này có encode tuyến tính không".
+- [x] **Linear probing** — train linear classifier trên frozen latent. Test cho "feature này có encode tuyến tính không".
 - [ ] **Nonlinear probing** — MLP probe. Upper bound cho thông tin có trong latent, không phân biệt tuyến tính hay không.
 - [ ] **Concept Activation Vectors — TCAV (Kim et al., 2018)** — tìm direction trong latent tương ứng với human-defined concept. TCAV score đo sensitivity của output với direction đó.
 - [ ] **Causal intervention vs observational study** — correlation trong latent khác causation. Do-calculus cơ bản áp dụng cho latent.
