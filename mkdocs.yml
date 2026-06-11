@@ -140,6 +140,7 @@ nav:
       - "Sparse Autoencoder — SAE": 05-probing-intervention/research/07-sparse-autoencoder.md
       - "Dictionary Learning": 05-probing-intervention/research/08-dictionary-learning.md
       - "Steering Vectors": 05-probing-intervention/research/09-steering-vectors.md
+      - "Logit Lens / Tuned Lens": 05-probing-intervention/research/10-logit-lens-tuned-lens.md
       - Notebooks:
           - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
           - "Nonlinear Probing": 05-probing-intervention/notebooks/02_nonlinear_probing.ipynb
@@ -150,6 +151,7 @@ nav:
           - "Sparse Autoencoder — SAE": 05-probing-intervention/notebooks/07_sparse_autoencoder.ipynb
           - "Dictionary Learning": 05-probing-intervention/notebooks/08_dictionary_learning.ipynb
           - "Steering Vectors": 05-probing-intervention/notebooks/09_steering_vectors.ipynb
+          - "Logit Lens / Tuned Lens": 05-probing-intervention/notebooks/10_logit_lens_tuned_lens.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

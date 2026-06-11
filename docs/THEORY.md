@@ -95,7 +95,7 @@ Nền tảng của Layer A (introspection) và một phần Layer B (manipulatio
 - [x] **Sparse autoencoder — SAE (Anthropic, 2023)** — tìm overcomplete sparse basis. Mỗi observation activate sparse subset. Mono-semantic feature hơn PCA direction.
 - [x] **Dictionary learning** — general framework cho sparse decomposition. SAE là một instance. K-SVD, ISTA.
 - [x] **Steering vectors (Zou et al., 2023 — Representation Engineering)** — mean difference giữa có/không có concept. Apply vào latent để "inject" concept. Đơn giản nhưng work mạnh.
-- [ ] **Logit lens / tuned lens** — inspect latent ở giữa chừng transformer bằng cách decode sớm. Hiểu information flow qua layers.
+- [x] **Logit lens / tuned lens** — inspect latent ở giữa chừng transformer bằng cách decode sớm. Hiểu information flow qua layers.
 
 ---
 
