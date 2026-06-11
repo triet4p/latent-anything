@@ -16,7 +16,7 @@ Hệ thống thước đo này định lượng trực tiếp **lượng thông 
 
 *   **Ý nghĩa:** Một giá trị MIG cao (gần 1) chứng tỏ **thông tin về một nhân tố được tập trung cao độ và độc quyền vào một chiều duy nhất**, thay vì bị rò rỉ (spillover) và phân tán ra nhiều chiều khác nhau.
 
-*   **Điểm mù và cách khắc phục:** MIG mặc định giả định rằng các nhân tố trong thế giới thực là hoàn toàn độc lập với nhau. Tuy nhiên, nếu dữ liệu có các nhân tố tương quan (ví dụ: màu sắc và hình dạng thường đi kèm nhau), MIG sẽ đánh giá sai và cho điểm thấp. Để giải quyết, biến thể **DMIG (Dependency-aware MIG)** được sử dụng bằng cách thay thế mẫu số bằng entropy có điều kiện, giúp đo lường chính xác ngay cả khi các thuộc tính bị phụ thuộc lẫn nhau.
+*   **Điểm mù và cách khắc phục:** MIG mặc định giả định rằng các nhân tố trong thế giới thực là hoàn toàn độc lập với nhau. Tuy nhiên, nếu dữ liệu có các nhân tố tương quan (ví dụ: màu sắc và hình dạng thường đi kèm nhau), MIG sẽ đánh giá sai và cho điểm thấp. Để giải quyết, biến thể **DMIG (Dependency-aware MIG)** thay **số hạng thứ hai** của gap — lượng thông tin tương hỗ của chiều top-2 — bằng một **mutual information có điều kiện** $I(z_{(2)}; f_j \mid f_{(2)})$: phần thông tin mà chiều top-2 còn nắm về nhân tố $f_j$ *sau khi đã trừ* phần rò rỉ qua nhân tố tương quan $f_{(2)}$ mà nó thực sự sở hữu. Với một encoder sạch, phần dư này xấp xỉ 0, nên điểm số gần như không đổi ngay cả khi các nhân tố phụ thuộc lẫn nhau.
 
 ### 2. Thước đo dựa trên Bộ dự đoán (DCI Score)
 
