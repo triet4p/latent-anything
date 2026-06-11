@@ -138,6 +138,7 @@ nav:
       - "Activation Patching": 05-probing-intervention/research/05-activation-patching.md
       - "Superposition Hypothesis": 05-probing-intervention/research/06-superposition-hypothesis.md
       - "Sparse Autoencoder — SAE": 05-probing-intervention/research/07-sparse-autoencoder.md
+      - "Dictionary Learning": 05-probing-intervention/research/08-dictionary-learning.md
       - Notebooks:
           - "Linear Probing": 05-probing-intervention/notebooks/01_linear_probing.ipynb
           - "Nonlinear Probing": 05-probing-intervention/notebooks/02_nonlinear_probing.ipynb
@@ -146,6 +147,7 @@ nav:
           - "Activation Patching": 05-probing-intervention/notebooks/05_activation_patching.ipynb
           - "Superposition Hypothesis": 05-probing-intervention/notebooks/06_superposition_hypothesis.ipynb
           - "Sparse Autoencoder — SAE": 05-probing-intervention/notebooks/07_sparse_autoencoder.ipynb
+          - "Dictionary Learning": 05-probing-intervention/notebooks/08_dictionary_learning.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
