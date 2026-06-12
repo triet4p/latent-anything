@@ -103,7 +103,7 @@ Nền tảng của Layer A (introspection) và một phần Layer B (manipulatio
 
 Từ đây latent trở thành *state*, không chỉ là *embedding*.
 
-- [ ] **Markov property và state space** — tương lai chỉ phụ thuộc state hiện tại. Khi nào assumption này valid trong thực tế.
+- [x] **Markov property và state space** — tương lai chỉ phụ thuộc state hiện tại. Khi nào assumption này valid trong thực tế.
 - [ ] **Latent transition model** — f(z_t, a_t) → z_{t+1}. Deterministic trước, stochastic sau.
 - [ ] **Stochastic transition** — f(z_t, a_t) → p(z_{t+1}). Gaussian output. Khi nào cần stochastic.
 - [ ] **RSSM — Recurrent State Space Model (Dreamer)** — tách deterministic component (GRU) và stochastic component (Gaussian). Tại sao split này giúp stability và long-horizon prediction.

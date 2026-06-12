@@ -153,6 +153,11 @@ nav:
           - "Steering Vectors": 05-probing-intervention/notebooks/09_steering_vectors.ipynb
           - "Logit Lens / Tuned Lens": 05-probing-intervention/notebooks/10_logit_lens_tuned_lens.ipynb
 
+  - "6. Latent Space qua Thời gian":
+      - "Markov Property & State Space": 06-latent-temporal/research/01-markov-property-state-space.md
+      - Notebooks:
+          - "Markov Property & State Space": 06-latent-temporal/notebooks/01_markov_property_state_space.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
