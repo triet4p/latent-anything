@@ -155,8 +155,10 @@ nav:
 
   - "6. Latent Space qua Thời gian":
       - "Markov Property & State Space": 06-latent-temporal/research/01-markov-property-state-space.md
+      - "Latent Transition Model": 06-latent-temporal/research/02-latent-transition-model.md
       - Notebooks:
           - "Markov Property & State Space": 06-latent-temporal/notebooks/01_markov_property_state_space.ipynb
+          - "Latent Transition Model": 06-latent-temporal/notebooks/02_latent_transition_model.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
