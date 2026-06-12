@@ -157,10 +157,12 @@ nav:
       - "Markov Property & State Space": 06-latent-temporal/research/01-markov-property-state-space.md
       - "Latent Transition Model": 06-latent-temporal/research/02-latent-transition-model.md
       - "Stochastic Transition": 06-latent-temporal/research/03-stochastic-transition.md
+      - "RSSM — Dreamer": 06-latent-temporal/research/04-rssm-recurrent-state-space-model.md
       - Notebooks:
           - "Markov Property & State Space": 06-latent-temporal/notebooks/01_markov_property_state_space.ipynb
           - "Latent Transition Model": 06-latent-temporal/notebooks/02_latent_transition_model.ipynb
           - "Stochastic Transition": 06-latent-temporal/notebooks/03_stochastic_transition.ipynb
+          - "RSSM — Dreamer": 06-latent-temporal/notebooks/04_rssm_recurrent_state_space_model.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
