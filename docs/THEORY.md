@@ -108,7 +108,7 @@ Từ đây latent trở thành *state*, không chỉ là *embedding*.
 - [x] **Stochastic transition** — f(z_t, a_t) → p(z_{t+1}). Gaussian output. Khi nào cần stochastic.
 - [x] **RSSM — Recurrent State Space Model (Dreamer)** — tách deterministic component (GRU) và stochastic component (Gaussian). Tại sao split này giúp stability và long-horizon prediction.
 - [x] **Kalman filter và variants** — linear Gaussian state space model. Nền tảng lý thuyết cho stochastic transition. Extended KF, Unscented KF cho nonlinear.
-- [ ] **Latent trajectory** — sequence z_0..T trong latent space. Operations: smoothing, segmentation, similarity, interpolation giữa trajectory.
+- [x] **Latent trajectory** — sequence z_0..T trong latent space. Operations: smoothing, segmentation, similarity, interpolation giữa trajectory.
 - [ ] **Rollout / latent imagination** — lặp z_{t+1} = f(z_t, a_t) nhiều step. Cost O(k·d) vs O(k·H·W·C) trong pixel space.
 - [ ] **Trajectory similarity metrics** — DTW (Dynamic Time Warping), Fréchet distance. So sánh trajectory có length khác nhau.
 
