@@ -13,6 +13,7 @@ Density estimation là bước tự nhiên tiếp theo sau [Mahalanobis distance
 Hình dung latent space 2D của một model ảnh khuôn mặt: các điểm training tập trung thành nhiều cụm — nam/nữ, trẻ/già, ảnh sáng/tối. Giữa các cụm là vùng thưa thớt hoặc trống. Density estimation vẽ bản đồ này: vùng đỏ (mật độ cao, in-distribution), vùng xanh (mật độ thấp, OOD hoặc bất thường).
 
 Khi nhận một $z_{\text{new}}$, ta có thể:
+
 1. Tính $\log p(z_{\text{new}})$ — nếu thấp hơn ngưỡng $\tau$, flag là OOD.
 2. Tính softmax assignment $p(k \mid z) = \pi_k \mathcal{N}(z \mid \mu_k, \Sigma_k) / p(z)$ — biết $z$ thuộc cluster nào với xác suất bao nhiêu.
 3. Dùng gradient của log-density $\nabla_z \log p(z)$ — hướng về phía "trung tâm" của phân phối, dùng để "kéo" $z$ vào vùng in-distribution nếu nó bị trôi ra ngoài.
@@ -32,6 +33,7 @@ $$p(z) = \sum_{k=1}^{K} \pi_k \, \mathcal{N}(z \mid \mu_k, \Sigma_k)$$
 trong đó $K$ là số component; $\pi_k \geq 0$, $\sum_k \pi_k = 1$ là mixing weight; $\mu_k \in \mathbb{R}^d$ và $\Sigma_k \in \mathbb{R}^{d \times d}$ là mean và covariance của component $k$. Kết quả $p(z)$ là mật độ xác suất tại điểm $z$ — tổng có trọng số của $K$ Gaussian.
 
 **Fitting bằng EM algorithm:**
+
 - **E-step:** Tính posterior $r_{nk} = p(k \mid z_n) = \pi_k \mathcal{N}(z_n \mid \mu_k, \Sigma_k) / p(z_n)$ — xác suất mỗi điểm $z_n$ thuộc component $k$.
 - **M-step:** Cập nhật parameters: $\pi_k = \frac{1}{N}\sum_n r_{nk}$, $\mu_k = \frac{\sum_n r_{nk} z_n}{\sum_n r_{nk}}$, $\Sigma_k = \frac{\sum_n r_{nk}(z_n - \mu_k)(z_n - \mu_k)^T}{\sum_n r_{nk}}$.
 
@@ -52,6 +54,7 @@ $$\log p(z) = \log p_0(f_\theta^{-1}(z)) + \log \left|\det J_{f_\theta^{-1}}(z)\
 trong đó $f_\theta^{-1}$ là inverse của flow; $J_{f_\theta^{-1}}(z) = \frac{\partial f_\theta^{-1}}{\partial z}$ là Jacobian của inverse flow tại $z$; $\log |\det J|$ là log-determinant Jacobian — đo "how much volume the inverse mapping compresses or expands at $z$". Kết quả: $\log p(z)$ là log-density *chính xác*, không phải xấp xỉ.
 
 Để tính $\log |\det J|$ hiệu quả, flow phải có cấu trúc đặc biệt:
+
 - **Coupling layers** (Real NVP, Glow): Chia $z$ thành hai phần $[z_1, z_2]$; transform $z_2$ bằng hàm phụ thuộc $z_1$. Jacobian là triangular → $\det J = $ tích các phần tử đường chéo → $O(d)$.
 - **Continuous flow** (FFJORD): Dùng Neural ODE. $\log |\det J|$ tính bằng Hutchinson trace estimator: $\log |\det J| = -\int_{t_0}^{t_1} \text{tr}(J_f) \, dt \approx -\int_{t_0}^{t_1} \epsilon^T J_f \epsilon \, dt$ với $\epsilon \sim \mathcal{N}(0, I)$. Đắt hơn coupling layers nhưng không cần cấu trúc đặc biệt.
 

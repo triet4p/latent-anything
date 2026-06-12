@@ -27,6 +27,7 @@ Một hệ quả tiêu cực từ cách học của các mô hình ngôn ngữ (
 
 ### **4. Sự thất bại của phép nội suy tuyến tính (Lerp) khi đa tạp bị cong:**
 Mặc dù mô hình cố gắng "trải phẳng" không gian, cấu trúc thực tế do bộ giải mã (decoder) định hình lại thường là một **đa tạp khả vi cong Riemannian**. Do đó, việc di chuyển theo một đường thẳng tuyến tính Euclidean (lerp) giữa hai điểm ở xa nhau sẽ vạch ra một quỹ đạo cắt ngang qua lòng đa tạp cong, đi xuyên qua các vùng "ngoại đa tạp" (off-manifold). 
+
 *   Đây là những vùng lõi có mật độ xác suất dữ liệu thực tế cực thấp. 
 *   **Hệ quả:** Khi bộ giải mã tiếp nhận các vector nằm trên đoạn thẳng tuyến tính này (nơi có chuẩn vector bị suy giảm nghiêm trọng), nó sẽ sinh ra các mẫu hình ảnh trung gian bị mờ, mất chi tiết, méo mó hoặc không thực tế. Điều này đòi hỏi phải sử dụng các phép nội suy trên hình cầu (Slerp) hoặc tính toán đường trắc địa (Geodesic) uốn cong theo mật độ dữ liệu để khắc phục.
 

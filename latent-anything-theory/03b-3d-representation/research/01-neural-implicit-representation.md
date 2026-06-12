@@ -53,6 +53,7 @@ $$
 \gamma(\mathbf{x}) = \big(\sin(2^0\pi \mathbf{x}), \cos(2^0\pi \mathbf{x}), \dots, \sin(2^{L-1}\pi \mathbf{x}), \cos(2^{L-1}\pi \mathbf{x})\big)
 $$
   Việc "trải" tọa độ ra nhiều tần số giúp MLP học được chi tiết sắc nét (Tancik et al., 2020 — *Fourier Features*). NeRF dùng đúng kỹ thuật này.
+
 * **Periodic activation (SIREN):** thay ReLU bằng hàm kích hoạt **sin** ($\sin(\omega_0 \cdot)$). Mạng SIREN (Sitzmann et al., 2020) biểu diễn trực tiếp được tín hiệu tần số cao và cả đạo hàm của chúng, rất hợp để học SDF (cần gradient trơn).
 
 ---
@@ -74,11 +75,13 @@ $$
 ## **5. Ưu điểm và hạn chế**
 
 **Ưu điểm:**
+
 - Liên tục, **không phụ thuộc độ phân giải**; nhỏ gọn (memory tách khỏi resolution).
 - Khả vi → nhúng được vào pipeline tối ưu gradient (đặc biệt khi kết hợp render khả vi như NeRF).
 - Biểu diễn topology tùy ý, không bị ràng buộc lưới.
 
 **Hạn chế:**
+
 - **Tối ưu theo từng scene** (per-scene/per-shape optimization) thường chậm — đây là nhược điểm mà Instant-NGP và 3DGS sau này khắc phục.
 - Spectral bias cố hữu (cần positional encoding/SIREN).
 - Là hàm **toàn cục**: thay đổi một vùng nhỏ có thể ảnh hưởng toàn bộ; khó chỉnh sửa cục bộ và khó cho các phép toán tập hợp (add/remove) — ngược với biểu diễn tường minh như Gaussian Splatting.

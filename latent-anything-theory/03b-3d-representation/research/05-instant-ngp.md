@@ -25,6 +25,7 @@ h(\mathbf{x}) = \Big(\bigoplus_{i=1}^{d} x_i\,\pi_i\Big) \bmod T
 $$
 
    trong đó $\oplus$ là XOR theo bit, và $\pi_i$ là các số nguyên tố lớn (ví dụ $\pi=[1,\,2654435761,\,805459861]$). Lấy vector đặc trưng tại các đỉnh rồi **nội suy trilinear** theo vị trí của $\mathbf{x}$ trong ô.
+
 4. **Ghép:** nối đặc trưng từ cả $L$ mức → vector $L\times F$ chiều, đưa vào MLP tí hon → $(\sigma, c)$.
 
 Ở mức thô, số đỉnh < $T$ nên **không va chạm** (ánh xạ 1–1, bỏ qua hash). Ở mức mịn, số đỉnh > $T$ nên *phải* hash và xảy ra va chạm.

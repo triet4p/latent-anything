@@ -100,6 +100,7 @@ Trong những bước huấn luyện đầu tiên, một batch size lớn sẽ c
 
 #### **5. Các phương pháp lan truyền gradient nâng cao (NS-VQ / TransVQ)**
 Nếu muốn can thiệp sâu vào cấu trúc:
+
 *   **NS-VQ (Non-Stationary Vector Quantization):** Cải tiến thuật toán lan truyền ngược để phân phối một phần gradient của đầu ra encoder cho cả những Codebook không được chọn, dựa trên khoảng cách của chúng tới dữ liệu (sử dụng hàm nhân Kernel).
 *   **TransVQ:** Đặt một mạng Transformer nhỏ (1 lớp) để làm hàm ánh xạ tự động biến đổi (transform) toàn bộ các điểm trong Codebook mỗi khi encoder có sự thay đổi, giúp bảng mã luôn thích ứng linh hoạt.
 

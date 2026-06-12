@@ -146,6 +146,7 @@ Optimal transport là primitive ở mức **distribution-level** cho Layer A và
 - **Prior/posterior alignment:** encoder plugin có thể expose `match_prior(method="sinkhorn")` theo tinh thần WAE, thay vì chỉ KL-regularize từng sample.
 
 Pipeline thực dụng cho latent anisotropic:
+
 1. Whiten hoặc đổi cost theo [Mahalanobis distance](05-mahalanobis-distance.md).
 2. Nếu $d$ lớn, project xuống subspace tốt bằng [Subspace projection](04-subspace-projection.md) hoặc PCA.
 3. Dựng empirical measures từ minibatch / trajectory window.

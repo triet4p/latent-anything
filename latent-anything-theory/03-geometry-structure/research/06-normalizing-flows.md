@@ -54,6 +54,7 @@ Mỗi bước "uốn" phân phối thêm một chút; xếp chồng đủ nhiề
 
 ### Hai ràng buộc thiết kế bắt buộc
 Mỗi $f_i$ phải đồng thời:
+
 1. **Khả nghịch** — để đi được cả hai chiều.
 2. **Có định thức Jacobian tính được rẻ** — định thức tổng quát tốn $O(D^3)$, không khả thi ở chiều cao.
 
@@ -91,6 +92,7 @@ $$
 
 ### Autoregressive flows
 Biến đổi từng chiều, mỗi chiều phụ thuộc các chiều trước → Jacobian tam giác tự nhiên.
+
 * **MAF (Masked Autoregressive Flow):** đánh giá mật độ nhanh (một lượt), nhưng lấy mẫu chậm (tuần tự $D$ bước).
 * **IAF (Inverse Autoregressive Flow):** ngược lại — lấy mẫu nhanh, đánh giá mật độ chậm. IAF hay dùng để **cải thiện posterior của VAE**.
 

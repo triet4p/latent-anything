@@ -11,6 +11,7 @@ Latent space thường có hàng trăm hoặc hàng nghìn chiều, nhưng hầu
 Hình dung latent space của một model ảnh mặt người. Toàn bộ không gian 512-chiều chứa thông tin về danh tính, cảm xúc, góc nhìn, ánh sáng, tuổi tác, … Nếu muốn *chỉnh* cảm xúc mà không làm thay đổi danh tính, cần tìm một subspace mà cảm xúc nằm trong đó nhưng danh tính thì không.
 
 **Subspace projection** cung cấp công cụ cho điều đó:
+
 1. Tìm một tập basis $\{u_1, \ldots, u_k\}$ (orthonormal) span subspace cần thiết.
 2. Project $z$ lên subspace để lấy phần khái niệm: $z_{\text{concept}} = \sum_{i=1}^k (z \cdot u_i)\, u_i$.
 3. Phần bổ sung $z_{\text{residual}} = z - z_{\text{concept}}$ không chứa thông tin nằm trong subspace đó.

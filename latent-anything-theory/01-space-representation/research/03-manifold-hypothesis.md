@@ -19,6 +19,7 @@ Việc giả định dữ liệu có cấu trúc đa tạp chiều thấp cho ph
 ## **Cấu trúc Cục bộ (Local structure) và Không gian Tiếp tuyến (Tangent space)**
 
 Theo định nghĩa hình học vi phân, một không gian chỉ được coi là đa tạp (manifold) nếu **ở phạm vi cục bộ (local)**, nó trông giống hệt như một không gian phẳng Euclidean. 
+
 *   **Không gian tiếp tuyến (Tangent space - $T_pM$):** Để hiểu và phân tích cấu trúc cục bộ này, người ta dùng không gian tiếp tuyến. Tại bất kỳ điểm $p$ nào trên đa tạp, không gian tiếp tuyến là một không gian vectơ tuyến tính đóng vai trò xấp xỉ tốt nhất phần đa tạp ngay tại điểm đó. Định nghĩa một cách chặt chẽ, nó là tập hợp tất cả các vận tốc (đạo hàm) của mọi đường cong trơn nằm hoàn toàn trên đa tạp và đi ngang qua điểm $p$. 
 *   Ý nghĩa của cấu trúc cục bộ là cho phép chúng ta thực hiện các phép đo hình học (như khoảng cách ngắn, góc lệch) thông qua một mêtric Riemannian đặt trực tiếp trên không gian tiếp tuyến phẳng này, bất chấp việc toàn bộ đa tạp đang uốn cong trong không gian lớn.
 

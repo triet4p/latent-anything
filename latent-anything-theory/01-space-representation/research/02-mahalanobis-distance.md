@@ -29,10 +29,14 @@ Giả sử có ma trận dữ liệu $X\in \mathbb{R}^{d\times n}$ gồm $n$ đi
 Việc tính toán ma trận hiệp phương sai $\Sigma$ gồm các bước sau:
 
 1. **Tính vector trung bình**: Cho từng chiều i, tính
-$$ \mu_i = \frac{1}{n}\sum_{j=1}^n x_{ij}$$
+
+    $$ \mu_i = \frac{1}{n}\sum_{j=1}^n x_{ij}$$
+
 2. **Định tâm dữ liệu**: Lấy mỗi điểm dữ liệu trừ đi vector trung bình để dời trọng tâm về gốc tọa độ. Ta được ma trận dữ liệu đã định tâm $\tilde{X}$.
 3. **Tính từng phân tử của ma trận hiệp phương sai**: Phần tử hàng $i$, cột $j$:
-$$ c_{ij} = \frac{1}{n}\sum_{l=1}^n (x_{il}-\mu_i)(x_{jl}-\mu_j) $$
+
+    $$ c_{ij} = \frac{1}{n}\sum_{l=1}^n (x_{il}-\mu_i)(x_{jl}-\mu_j) $$
+
     Trong thống kê, để có unbiased, thường dùng $n-1$ thay vì $n$
 
 Có thể dùng dạng thu gọn $\Sigma=\frac{1}{n}\tilde{X}\tilde{X}^T$.
@@ -42,6 +46,7 @@ Có thể dùng dạng thu gọn $\Sigma=\frac{1}{n}\tilde{X}\tilde{X}^T$.
 Khoảng cách Mahalanobis **tích hợp cấu trúc hiệp phương sai (covariance)** của tập dữ liệu vào phép đo, giúp đánh giá khoảng cách từ một điểm đến trung tâm của một phân phối xác suất.
 
 Mahalanobis sẽ thực hiện chuỗi biến đổi:
+
 1. Tịnh tiến gốc tọa độ về trung tâm dữ liệu.
 2. Xoay các trục tọa độ dọc theo các chiều có phương sai lớn nhất (vector riêng) và co giãn các trục này theo phương sai của chúng.
 3. Phép biến đổi này "bóp" hình elip thành 1 hình cầu.
