@@ -161,6 +161,7 @@ nav:
       - "Kalman Filter và các biến thể": 06-latent-temporal/research/05-kalman-filter-variants.md
       - "Latent Trajectory": 06-latent-temporal/research/06-latent-trajectory.md
       - "Rollout và Latent Imagination": 06-latent-temporal/research/07-rollout-latent-imagination.md
+      - "Độ tương đồng Trajectory": 06-latent-temporal/research/08-trajectory-similarity-metrics.md
       - Notebooks:
           - "Markov Property & State Space": 06-latent-temporal/notebooks/01_markov_property_state_space.ipynb
           - "Latent Transition Model": 06-latent-temporal/notebooks/02_latent_transition_model.ipynb
@@ -169,6 +170,7 @@ nav:
           - "Kalman Filter và các biến thể": 06-latent-temporal/notebooks/05_kalman_filter_variants.ipynb
           - "Latent Trajectory": 06-latent-temporal/notebooks/06_latent_trajectory.ipynb
           - "Rollout và Latent Imagination": 06-latent-temporal/notebooks/07_rollout_latent_imagination.ipynb
+          - "Độ tương đồng Trajectory": 06-latent-temporal/notebooks/08_trajectory_similarity_metrics.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
