@@ -143,7 +143,7 @@ Từ đây không cần decoder nữa — reasoning thuần latent.
 - [x] **JEPA — Joint Embedding Predictive Architecture (LeCun, 2022)** — predict latent của target từ latent của context. Không có decoder. Không predict pixel.
 - [x] **I-JEPA (Assran et al., 2023)** — JEPA cho image. Predict latent của masked region từ visible context.
 - [x] **V-JEPA (Bardes et al., 2024)** — JEPA cho video. Predict latent của masked frames.
-- [ ] **Tại sao latent prediction tốt hơn pixel prediction** — pixel prediction ép model capture noise và texture. Latent prediction ép model capture semantic structure.
+- [x] **Tại sao latent prediction tốt hơn pixel prediction** — pixel prediction ép model capture noise và texture. Latent prediction ép model capture semantic structure.
 
 ---
 

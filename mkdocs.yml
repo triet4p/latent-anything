@@ -204,6 +204,7 @@ nav:
       - "JEPA": 08-latent-prediction/research/06-jepa.md
       - "I-JEPA": 08-latent-prediction/research/07-i-jepa.md
       - "V-JEPA": 08-latent-prediction/research/08-v-jepa.md
+      - "Latent vs Pixel Prediction": 08-latent-prediction/research/09-latent-vs-pixel-prediction.md
       - Notebooks:
           - "Masked Autoencoder (MAE)": 08-latent-prediction/notebooks/01_masked_autoencoder_mae.ipynb
           - "Representation Collapse": 08-latent-prediction/notebooks/02_representation_collapse.ipynb
@@ -213,6 +214,7 @@ nav:
           - "JEPA": 08-latent-prediction/notebooks/06_jepa.ipynb
           - "I-JEPA": 08-latent-prediction/notebooks/07_i_jepa.ipynb
           - "V-JEPA": 08-latent-prediction/notebooks/08_v_jepa.ipynb
+          - "Latent vs Pixel Prediction": 08-latent-prediction/notebooks/09_latent_vs_pixel_prediction.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
