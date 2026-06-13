@@ -198,9 +198,11 @@ nav:
   - "8. Predict trong Latent, không Decode":
       - "Masked Autoencoder (MAE)": 08-latent-prediction/research/01-masked-autoencoder-mae.md
       - "Representation Collapse": 08-latent-prediction/research/02-representation-collapse.md
+      - "Stop-gradient & Bất đối xứng": 08-latent-prediction/research/03-stop-gradient-asymmetric.md
       - Notebooks:
           - "Masked Autoencoder (MAE)": 08-latent-prediction/notebooks/01_masked_autoencoder_mae.ipynb
           - "Representation Collapse": 08-latent-prediction/notebooks/02_representation_collapse.ipynb
+          - "Stop-gradient & Bất đối xứng": 08-latent-prediction/notebooks/03_stop_gradient_asymmetric.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
