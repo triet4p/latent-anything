@@ -174,8 +174,10 @@ nav:
 
   - "7. Planning trong Latent Space":
       - "Model-based vs Model-free RL": 07-latent-planning/research/01-model-based-vs-model-free-rl.md
+      - "Reward Model trong Latent": 07-latent-planning/research/02-reward-model-in-latent.md
       - Notebooks:
           - "Model-based vs Model-free RL": 07-latent-planning/notebooks/01_model_based_vs_model_free_rl.ipynb
+          - "Reward Model trong Latent": 07-latent-planning/notebooks/02_reward_model_in_latent.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

@@ -119,7 +119,7 @@ Từ đây latent trở thành *state*, không chỉ là *embedding*.
 Dùng latent world model để plan, không chỉ để represent.
 
 - [x] **Model-based vs model-free RL** — trade-off sample efficiency vs computational cost. Tại sao latent world model là sweet spot.
-- [ ] **Reward model trong latent** — r(z_t) → scalar. Train trên imagined trajectory.
+- [x] **Reward model trong latent** — r(z_t) → scalar. Train trên imagined trajectory.
 - [ ] **Value function trong latent** — V(z_t) → expected return. Bellman equation trong latent space.
 - [ ] **Model Predictive Control (MPC)** — rollout nhiều action sequence, chọn tốt nhất, thực thi bước đầu, lặp lại. Receding horizon.
 - [ ] **Cross-Entropy Method (CEM)** — population-based optimizer cho MPC. Sample action sequence, keep elite, refit distribution.
