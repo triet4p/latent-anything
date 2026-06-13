@@ -200,11 +200,13 @@ nav:
       - "Representation Collapse": 08-latent-prediction/research/02-representation-collapse.md
       - "Stop-gradient & Bất đối xứng": 08-latent-prediction/research/03-stop-gradient-asymmetric.md
       - "Contrastive Learning": 08-latent-prediction/research/04-contrastive-learning.md
+      - "EMA Target Encoder": 08-latent-prediction/research/05-ema-target-encoder.md
       - Notebooks:
           - "Masked Autoencoder (MAE)": 08-latent-prediction/notebooks/01_masked_autoencoder_mae.ipynb
           - "Representation Collapse": 08-latent-prediction/notebooks/02_representation_collapse.ipynb
           - "Stop-gradient & Bất đối xứng": 08-latent-prediction/notebooks/03_stop_gradient_asymmetric.ipynb
           - "Contrastive Learning": 08-latent-prediction/notebooks/04_contrastive_learning.ipynb
+          - "EMA Target Encoder": 08-latent-prediction/notebooks/05_ema_target_encoder.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
