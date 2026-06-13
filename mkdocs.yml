@@ -195,6 +195,11 @@ nav:
           - "MCTS trong Latent": 07-latent-planning/notebooks/09_mcts_in_latent.ipynb
           - "Latent Imagination Horizon": 07-latent-planning/notebooks/10_latent_imagination_horizon.ipynb
 
+  - "8. Predict trong Latent, không Decode":
+      - "Masked Autoencoder (MAE)": 08-latent-prediction/research/01-masked-autoencoder-mae.md
+      - Notebooks:
+          - "Masked Autoencoder (MAE)": 08-latent-prediction/notebooks/01_masked_autoencoder_mae.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
