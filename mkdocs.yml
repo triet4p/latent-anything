@@ -202,6 +202,7 @@ nav:
       - "Contrastive Learning": 08-latent-prediction/research/04-contrastive-learning.md
       - "EMA Target Encoder": 08-latent-prediction/research/05-ema-target-encoder.md
       - "JEPA": 08-latent-prediction/research/06-jepa.md
+      - "I-JEPA": 08-latent-prediction/research/07-i-jepa.md
       - Notebooks:
           - "Masked Autoencoder (MAE)": 08-latent-prediction/notebooks/01_masked_autoencoder_mae.ipynb
           - "Representation Collapse": 08-latent-prediction/notebooks/02_representation_collapse.ipynb
@@ -209,6 +210,7 @@ nav:
           - "Contrastive Learning": 08-latent-prediction/notebooks/04_contrastive_learning.ipynb
           - "EMA Target Encoder": 08-latent-prediction/notebooks/05_ema_target_encoder.ipynb
           - "JEPA": 08-latent-prediction/notebooks/06_jepa.ipynb
+          - "I-JEPA": 08-latent-prediction/notebooks/07_i_jepa.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
