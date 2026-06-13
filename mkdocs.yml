@@ -172,6 +172,11 @@ nav:
           - "Rollout và Latent Imagination": 06-latent-temporal/notebooks/07_rollout_latent_imagination.ipynb
           - "Độ tương đồng Trajectory": 06-latent-temporal/notebooks/08_trajectory_similarity_metrics.ipynb
 
+  - "7. Planning trong Latent Space":
+      - "Model-based vs Model-free RL": 07-latent-planning/research/01-model-based-vs-model-free-rl.md
+      - Notebooks:
+          - "Model-based vs Model-free RL": 07-latent-planning/notebooks/01_model_based_vs_model_free_rl.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
