@@ -178,12 +178,14 @@ nav:
       - "Value Function trong Latent": 07-latent-planning/research/03-value-function-in-latent.md
       - "Model Predictive Control (MPC)": 07-latent-planning/research/04-model-predictive-control.md
       - "Cross-Entropy Method (CEM)": 07-latent-planning/research/05-cross-entropy-method.md
+      - "MPPI — Path Integral": 07-latent-planning/research/06-mppi.md
       - Notebooks:
           - "Model-based vs Model-free RL": 07-latent-planning/notebooks/01_model_based_vs_model_free_rl.ipynb
           - "Reward Model trong Latent": 07-latent-planning/notebooks/02_reward_model_in_latent.ipynb
           - "Value Function trong Latent": 07-latent-planning/notebooks/03_value_function_in_latent.ipynb
           - "Model Predictive Control (MPC)": 07-latent-planning/notebooks/04_model_predictive_control.ipynb
           - "Cross-Entropy Method (CEM)": 07-latent-planning/notebooks/05_cross_entropy_method.ipynb
+          - "MPPI — Path Integral": 07-latent-planning/notebooks/06_mppi.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
