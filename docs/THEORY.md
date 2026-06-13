@@ -127,7 +127,7 @@ Dùng latent world model để plan, không chỉ để represent.
 - [x] **Policy gradient trên imagined trajectory (Dreamer)** — backprop qua differentiable transition model. Actor-critic trong latent.
 - [x] **Value equivalence (MuZero)** — latent không cần reconstruct observation, chỉ cần predict value/policy/reward đúng. Latent tồn tại chỉ để serve planning.
 - [x] **MCTS trong latent** — Monte Carlo Tree Search với world model làm simulator. AlphaZero-style planning trong learned latent space.
-- [ ] **Latent imagination horizon** — trade-off giữa rollout dài (more signal) và compound error (model drift). Truncated backprop through time.
+- [x] **Latent imagination horizon** — trade-off giữa rollout dài (more signal) và compound error (model drift). Truncated backprop through time.
 
 ---
 

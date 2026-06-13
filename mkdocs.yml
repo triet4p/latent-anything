@@ -182,6 +182,7 @@ nav:
       - "Policy Gradient Imagined (Dreamer)": 07-latent-planning/research/07-policy-gradient-imagined-dreamer.md
       - "Value Equivalence (MuZero)": 07-latent-planning/research/08-value-equivalence-muzero.md
       - "MCTS trong Latent": 07-latent-planning/research/09-mcts-in-latent.md
+      - "Latent Imagination Horizon": 07-latent-planning/research/10-latent-imagination-horizon.md
       - Notebooks:
           - "Model-based vs Model-free RL": 07-latent-planning/notebooks/01_model_based_vs_model_free_rl.ipynb
           - "Reward Model trong Latent": 07-latent-planning/notebooks/02_reward_model_in_latent.ipynb
@@ -192,6 +193,7 @@ nav:
           - "Policy Gradient Imagined (Dreamer)": 07-latent-planning/notebooks/07_policy_gradient_imagined_dreamer.ipynb
           - "Value Equivalence (MuZero)": 07-latent-planning/notebooks/08_value_equivalence_muzero.ipynb
           - "MCTS trong Latent": 07-latent-planning/notebooks/09_mcts_in_latent.ipynb
+          - "Latent Imagination Horizon": 07-latent-planning/notebooks/10_latent_imagination_horizon.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
