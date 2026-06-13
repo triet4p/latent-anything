@@ -136,7 +136,7 @@ Dùng latent world model để plan, không chỉ để represent.
 Từ đây không cần decoder nữa — reasoning thuần latent.
 
 - [x] **Masked Autoencoder — MAE (He et al., 2021)** — predict pixel bị mask. Baseline để so sánh với latent prediction.
-- [ ] **Representation collapse** — tại sao predict trong latent naively dẫn đến collapse. Tất cả encode thành cùng một điểm.
+- [x] **Representation collapse** — tại sao predict trong latent naively dẫn đến collapse. Tất cả encode thành cùng một điểm.
 - [ ] **Stop-gradient và asymmetric architecture** — BYOL, SimSiam. Fix collapse bằng cách ngăn gradient chạy qua một nhánh.
 - [ ] **Contrastive learning** — SimCLR, MoCo. Fix collapse bằng cách push negative pair ra xa. InfoNCE loss.
 - [ ] **EMA target encoder** — DINO, JEPA. Target encoder update chậm bằng EMA của online encoder. Stable training.
