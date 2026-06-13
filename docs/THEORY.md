@@ -124,7 +124,7 @@ Dùng latent world model để plan, không chỉ để represent.
 - [x] **Model Predictive Control (MPC)** — rollout nhiều action sequence, chọn tốt nhất, thực thi bước đầu, lặp lại. Receding horizon.
 - [x] **Cross-Entropy Method (CEM)** — population-based optimizer cho MPC. Sample action sequence, keep elite, refit distribution.
 - [x] **MPPI (Model Predictive Path Integral)** — smooth MPC bằng importance-weighted average thay vì hard selection. Tốt hơn CEM cho continuous control.
-- [ ] **Policy gradient trên imagined trajectory (Dreamer)** — backprop qua differentiable transition model. Actor-critic trong latent.
+- [x] **Policy gradient trên imagined trajectory (Dreamer)** — backprop qua differentiable transition model. Actor-critic trong latent.
 - [ ] **Value equivalence (MuZero)** — latent không cần reconstruct observation, chỉ cần predict value/policy/reward đúng. Latent tồn tại chỉ để serve planning.
 - [ ] **MCTS trong latent** — Monte Carlo Tree Search với world model làm simulator. AlphaZero-style planning trong learned latent space.
 - [ ] **Latent imagination horizon** — trade-off giữa rollout dài (more signal) và compound error (model drift). Truncated backprop through time.
