@@ -157,7 +157,7 @@ Unify latent space với language model architecture.
 - [~] **Codebook collapse** — dead codes không được dùng. Detection và fix: random restart, usage tracking.
 - [~] **Residual VQ (SoundStream, EnCodec)** — stack nhiều VQ layer, mỗi layer quantize residual của layer trước. Tốt hơn single VQ cho audio và continuous signal.
 - [~] **Finite Scalar Quantization — FSQ** — discrete latent không cần codebook. Simpler alternative to VQ.
-- [ ] **Tokenized world model** — encode observation → discrete token sequence → Transformer model dynamics. Unify với LM architecture.
+- [~] **Tokenized world model** — encode observation → discrete token sequence → Transformer model dynamics. Unify với LM architecture.
 - [ ] **GAIA-1 (Wayve, 2023)** — large-scale tokenized world model cho autonomous driving. Đọc để hiểu cách scale.
 - [ ] **Genie (Google, 2024)** — interactive world model từ video, controllable bằng latent action.
 
