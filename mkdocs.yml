@@ -216,6 +216,11 @@ nav:
           - "V-JEPA": 08-latent-prediction/notebooks/08_v_jepa.ipynb
           - "Latent vs Pixel Prediction": 08-latent-prediction/notebooks/09_latent_vs_pixel_prediction.ipynb
 
+  - "9. Discrete Latent Space":
+      - "Vector Quantization": 09-discrete-latent/research/01-vector-quantization.md
+      - Notebooks:
+          - "Vector Quantization": 09-discrete-latent/notebooks/01_vector_quantization.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
