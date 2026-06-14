@@ -154,7 +154,7 @@ Unify latent space với language model architecture.
 - [~] **Vector quantization** — nearest neighbor lookup trong codebook. Forward: hard assignment. Backward: straight-through estimator.
 - [~] **Commitment loss** — ép encoder output gần codebook entry. Phần của VQ-VAE loss.
 - [~] **EMA codebook update** — update codebook bằng exponential moving average thay vì gradient. Stable hơn.
-- [ ] **Codebook collapse** — dead codes không được dùng. Detection và fix: random restart, usage tracking.
+- [~] **Codebook collapse** — dead codes không được dùng. Detection và fix: random restart, usage tracking.
 - [ ] **Residual VQ (SoundStream, EnCodec)** — stack nhiều VQ layer, mỗi layer quantize residual của layer trước. Tốt hơn single VQ cho audio và continuous signal.
 - [ ] **Finite Scalar Quantization — FSQ** — discrete latent không cần codebook. Simpler alternative to VQ.
 - [ ] **Tokenized world model** — encode observation → discrete token sequence → Transformer model dynamics. Unify với LM architecture.
