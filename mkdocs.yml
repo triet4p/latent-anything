@@ -225,6 +225,7 @@ nav:
       - "Finite Scalar Quantization (FSQ)": 09-discrete-latent/research/06-finite-scalar-quantization.md
       - "Tokenized World Model": 09-discrete-latent/research/07-tokenized-world-model.md
       - "GAIA-1": 09-discrete-latent/research/08-gaia-1.md
+      - "Genie": 09-discrete-latent/research/09-genie.md
       - Notebooks:
           - "Vector Quantization": 09-discrete-latent/notebooks/01_vector_quantization.ipynb
           - "Commitment Loss": 09-discrete-latent/notebooks/02_commitment_loss.ipynb
@@ -234,6 +235,7 @@ nav:
           - "Finite Scalar Quantization (FSQ)": 09-discrete-latent/notebooks/06_finite_scalar_quantization.ipynb
           - "Tokenized World Model": 09-discrete-latent/notebooks/07_tokenized_world_model.ipynb
           - "GAIA-1": 09-discrete-latent/notebooks/08_gaia_1.ipynb
+          - "Genie": 09-discrete-latent/notebooks/09_genie.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
