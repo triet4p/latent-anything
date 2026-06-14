@@ -219,9 +219,11 @@ nav:
   - "9. Discrete Latent Space":
       - "Vector Quantization": 09-discrete-latent/research/01-vector-quantization.md
       - "Commitment Loss": 09-discrete-latent/research/02-commitment-loss.md
+      - "EMA Codebook Update": 09-discrete-latent/research/03-ema-codebook-update.md
       - Notebooks:
           - "Vector Quantization": 09-discrete-latent/notebooks/01_vector_quantization.ipynb
           - "Commitment Loss": 09-discrete-latent/notebooks/02_commitment_loss.ipynb
+          - "EMA Codebook Update": 09-discrete-latent/notebooks/03_ema_codebook_update.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
