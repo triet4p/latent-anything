@@ -272,6 +272,10 @@ nav:
           - "Probing Classifiers — Survey": 11-interpretability-tools/notebooks/04_probing_classifiers_survey.ipynb
           - "UMAP Theory": 11-interpretability-tools/notebooks/05_umap_theory.ipynb
           - "PaCMAP": 11-interpretability-tools/notebooks/06_pacmap.ipynb
+  - "12. Toán học cần thiết":
+      - "Optimal Transport cơ bản": 12-math-foundations/research/04-optimal-transport-basics.md
+      - Notebooks:
+          - "Optimal Transport cơ bản": 12-math-foundations/notebooks/04_optimal_transport_basics.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

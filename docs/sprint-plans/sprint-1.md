@@ -13,7 +13,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Task 5: Hoan thien "Probing classifiers survey" va commit.
 - [x] Task 6: Tao "UMAP theory" va commit.
 - [x] Task 7: Tao "PaCMAP" va commit.
-- [ ] Task 8: Tao "Optimal transport co ban" va commit.
+- [x] Task 8: Tao "Optimal transport co ban" va commit.
 - [ ] Task 9: Tao "Lie groups va Lie algebra" va commit.
 
 ## Notes / Blockers
