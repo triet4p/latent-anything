@@ -246,6 +246,7 @@ nav:
       - "OpenVLA": 10-world-models-vla/research/06-openvla.md
       - "π0 — Flow Matching VLA": 10-world-models-vla/research/07-pi0.md
       - "LeWM — LeWorldModel": 10-world-models-vla/research/08-lewm.md
+      - "UniSim": 10-world-models-vla/research/09-unisim.md
       - Notebooks:
           - "DreamerV1": 10-world-models-vla/notebooks/01_dreamerv1.ipynb
           - "DreamerV2": 10-world-models-vla/notebooks/02_dreamerv2.ipynb
@@ -255,6 +256,7 @@ nav:
           - "OpenVLA": 10-world-models-vla/notebooks/06_openvla.ipynb
           - "π0 — Flow Matching VLA": 10-world-models-vla/notebooks/07_pi0.ipynb
           - "LeWM — LeWorldModel": 10-world-models-vla/notebooks/08_lewm.ipynb
+          - "UniSim": 10-world-models-vla/notebooks/09_unisim.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

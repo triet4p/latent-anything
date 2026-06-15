@@ -175,7 +175,7 @@ Unify latent space với language model architecture.
 - [~] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
 - [~] **π0 — Physical Intelligence (Black et al., 2024)** — VLA với flow matching action head. Latent action representation.
 - [~] **LeWM — LeWorldModel (2026)** — JEPA ổn định đầu tiên train end-to-end từ pixel: predict embedding tương lai, chống collapse bằng regularizer Gaussian đẳng hướng (1 loss-hyperparameter). Decoder-free, ~15M params, plan nhanh 48×. Anchor model cho framework. Đọc architecture paper kỹ nhất trong nhóm này. *(Roadmap cũ ghi "3DGS-based latent" — bản thực tế là JEPA từ pixel.)*
-- [ ] **UniSim (Yang et al., 2023)** — universal simulator từ diverse data. Cách handle multi-domain latent.
+- [~] **UniSim (Yang et al., 2023)** — universal simulator từ diverse data. Cách handle multi-domain latent.
 
 ---
 
