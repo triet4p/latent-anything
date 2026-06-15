@@ -206,6 +206,17 @@ Unify latent space với language model architecture.
 
 ---
 
+## Tầng bổ sung — Mô hình dựng 3D thực tiễn
+
+*Đọc sau tầng 3B. Tầng ứng dụng cao — các pipeline và mô hình dựng 3D thực tế, từ COLMAP cổ điển đến feed-forward learning-based hiện đại. Liên kết trực tiếp với các insight từ CVPR 2026.*
+
+- [~] **COLMAP & SfM/MVS cổ điển** — pipeline hình học thuần tuý: SIFT matching, geometric verification, incremental SfM, bundle adjustment, MVS. Hiểu để biết *tại sao* cần deep learning 3D.
+- [~] **Dust3R, Must3R & VGGT-Ω** — từ pairwise pointmap regression đến feed-forward 3D foundation model. Register attention, self-supervision photometric, và cầu nối VLA.
+- [~] **Image-to-Point Cloud Feature Back-Projection** — cầu nối 2D–3D: chiếu đặc trưng ảnh lên point cloud để multimodal training end-to-end.
+- [~] **CVPR 2026: Từ "nhìn thấy gì" đến "làm gì"** — ranh giới perception-action bị xoá nhoà. End-to-end learning thắng pipeline có bước trung gian. 3D là phương tiện, không phải mục đích.
+
+---
+
 ## Thứ tự đọc đề xuất
 
 ```
@@ -214,6 +225,8 @@ Toán học cần thiết (nếu cần review)
 Tầng 1 → Tầng 2 → Tầng 3
                       ↓
                    Tầng 3B (song song, cần trước tầng 6)
+                      ↓
+              Mô hình dựng 3D thực tiễn (song song tầng 3B, ứng dụng)
                       ↓
 Tầng 4 → Tầng 5 → Tầng 6 → Tầng 7 → Tầng 8 → Tầng 9
                       ↓

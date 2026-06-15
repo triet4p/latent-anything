@@ -12,6 +12,7 @@ Hoan thanh cac muc con thieu trong pham vi bo sung da duoc chot cua `docs/THEORY
 
 ## Completed Sprints
 * [Sprint 1](sprint-plans/sprint-1.md) - *Status: Completed*
+* [Sprint 2](sprint-plans/sprint-2.md) - *Status: Completed* — Thêm tầng bổ sung "Mô hình dựng 3D thực tiễn".
 
 ## Backlog / Future Work
 * None in the current scope.

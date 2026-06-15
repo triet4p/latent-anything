@@ -113,6 +113,12 @@ nav:
           - "Dynamic 3DGS": 03b-3d-representation/notebooks/11_dynamic_3dgs.ipynb
           - "Gaussian Set Operations": 03b-3d-representation/notebooks/12_gaussian_set_operations.ipynb
 
+  - "3C. Mô hình dựng 3D thực tiễn":
+      - "COLMAP & SfM/MVS cổ điển": 13-practical-3d-reconstruction/research/01-colmap-sfm-mvs.md
+      - "Dust3R, Must3R & VGGT-Ω": 13-practical-3d-reconstruction/research/02-feed-forward-3d-recon.md
+      - "Image-to-Point Cloud Back-Projection": 13-practical-3d-reconstruction/research/03-image-to-pointcloud-backprojection.md
+      - "CVPR 2026: Từ nhìn đến làm": 13-practical-3d-reconstruction/research/04-vision-for-action.md
+
   - "4. Tính toán trong Latent Space":
       - "Lerp — Linear Interpolation": 04-latent-computation/research/01-lerp.md
       - "Slerp — Spherical Interpolation": 04-latent-computation/research/02-slerp.md
