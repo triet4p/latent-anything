@@ -11,7 +11,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Task 3: Hoan thien "Towards Monosemanticity" va commit.
 - [x] Task 4: Hoan thien "Scaling Monosemanticity" va commit.
 - [x] Task 5: Hoan thien "Probing classifiers survey" va commit.
-- [ ] Task 6: Tao "UMAP theory" va commit.
+- [x] Task 6: Tao "UMAP theory" va commit.
 - [ ] Task 7: Tao "PaCMAP" va commit.
 - [ ] Task 8: Tao "Multivariate Gaussian" va commit.
 - [ ] Task 9: Tao "SVD va PCA" va commit.
