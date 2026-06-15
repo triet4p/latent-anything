@@ -242,11 +242,13 @@ nav:
       - "DreamerV2": 10-world-models-vla/research/02-dreamerv2.md
       - "DreamerV3": 10-world-models-vla/research/03-dreamerv3.md
       - "TD-MPC2": 10-world-models-vla/research/04-td-mpc2.md
+      - "MuZero": 10-world-models-vla/research/05-muzero.md
       - Notebooks:
           - "DreamerV1": 10-world-models-vla/notebooks/01_dreamerv1.ipynb
           - "DreamerV2": 10-world-models-vla/notebooks/02_dreamerv2.ipynb
           - "DreamerV3": 10-world-models-vla/notebooks/03_dreamerv3.ipynb
           - "TD-MPC2": 10-world-models-vla/notebooks/04_td_mpc2.ipynb
+          - "MuZero": 10-world-models-vla/notebooks/05_muzero.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
