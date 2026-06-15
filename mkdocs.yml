@@ -240,9 +240,11 @@ nav:
   - "10. World Models & VLA":
       - "DreamerV1": 10-world-models-vla/research/01-dreamerv1.md
       - "DreamerV2": 10-world-models-vla/research/02-dreamerv2.md
+      - "DreamerV3": 10-world-models-vla/research/03-dreamerv3.md
       - Notebooks:
           - "DreamerV1": 10-world-models-vla/notebooks/01_dreamerv1.ipynb
           - "DreamerV2": 10-world-models-vla/notebooks/02_dreamerv2.ipynb
+          - "DreamerV3": 10-world-models-vla/notebooks/03_dreamerv3.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
