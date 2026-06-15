@@ -262,10 +262,12 @@ nav:
       - "Mechanistic Interpretability — Tổng quan": 11-interpretability-tools/research/01-mechanistic-interpretability-overview.md
       - "Towards Monosemanticity": 11-interpretability-tools/research/02-towards-monosemanticity.md
       - "Scaling Monosemanticity": 11-interpretability-tools/research/03-scaling-monosemanticity.md
+      - "Probing Classifiers — Survey": 11-interpretability-tools/research/04-probing-classifiers-survey.md
       - Notebooks:
           - "Mechanistic Interpretability — Tổng quan": 11-interpretability-tools/notebooks/01_mechanistic_interpretability_overview.ipynb
           - "Towards Monosemanticity": 11-interpretability-tools/notebooks/02_towards_monosemanticity.ipynb
           - "Scaling Monosemanticity": 11-interpretability-tools/notebooks/03_scaling_monosemanticity.ipynb
+          - "Probing Classifiers — Survey": 11-interpretability-tools/notebooks/04_probing_classifiers_survey.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
