@@ -167,15 +167,15 @@ Unify latent space với language model architecture.
 
 *Đọc sau khi hoàn thành tầng 1–9. Đây là frontier application, không phải lý thuyết nền.*
 
-- [~] **DreamerV1 (Hafner et al., 2019)** — RSSM + latent imagination + actor-critic. First complete latent world model for RL.
-- [~] **DreamerV2 (Hafner et al., 2020)** — discrete latent trong Dreamer. Stability improvement.
-- [~] **DreamerV3 (Hafner et al., 2023)** — scale lên nhiều domain. KL balancing, symlog transform.
-- [~] **TD-MPC2 (Hansen et al., 2023)** — world model cho continuous control robotics. Temporal difference learning trong latent. Liên quan trực tiếp đến embodied use case.
-- [~] **MuZero (Schrittwieser et al., 2019)** — value equivalence. Không cần reconstruct observation.
-- [~] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
-- [~] **π0 — Physical Intelligence (Black et al., 2024)** — VLA với flow matching action head. Latent action representation.
-- [~] **LeWM — LeWorldModel (2026)** — JEPA ổn định đầu tiên train end-to-end từ pixel: predict embedding tương lai, chống collapse bằng regularizer Gaussian đẳng hướng (1 loss-hyperparameter). Decoder-free, ~15M params, plan nhanh 48×. Anchor model cho framework. Đọc architecture paper kỹ nhất trong nhóm này. *(Roadmap cũ ghi "3DGS-based latent" — bản thực tế là JEPA từ pixel.)*
-- [~] **UniSim (Yang et al., 2023)** — universal simulator từ diverse data. Cách handle multi-domain latent.
+- [x] **DreamerV1 (Hafner et al., 2019)** — RSSM + latent imagination + actor-critic. First complete latent world model for RL.
+- [x] **DreamerV2 (Hafner et al., 2020)** — discrete latent trong Dreamer. Stability improvement.
+- [x] **DreamerV3 (Hafner et al., 2023)** — scale lên nhiều domain. KL balancing, symlog transform.
+- [x] **TD-MPC2 (Hansen et al., 2023)** — world model cho continuous control robotics. Temporal difference learning trong latent. Liên quan trực tiếp đến embodied use case.
+- [x] **MuZero (Schrittwieser et al., 2019)** — value equivalence. Không cần reconstruct observation.
+- [x] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
+- [x] **π0 — Physical Intelligence (Black et al., 2024)** — VLA với flow matching action head. Latent action representation.
+- [x] **LeWM — LeWorldModel (2026)** — JEPA ổn định đầu tiên train end-to-end từ pixel: predict embedding tương lai, chống collapse bằng regularizer Gaussian đẳng hướng (1 loss-hyperparameter). Decoder-free, ~15M params, plan nhanh 48×. Anchor model cho framework. Đọc architecture paper kỹ nhất trong nhóm này. *(Roadmap cũ ghi "3DGS-based latent" — bản thực tế là JEPA từ pixel.)*
+- [x] **UniSim (Yang et al., 2023)** — universal simulator từ diverse data. Cách handle multi-domain latent.
 
 ---
 
@@ -183,7 +183,7 @@ Unify latent space với language model architecture.
 
 *Đọc song song với tầng 5. Directly inform Layer A của Latent-Anything.*
 
-- [ ] **Mechanistic interpretability overview** — circuit finding, superposition, feature geometry. Survey của Anthropic/Neel Nanda.
+- [~] **Mechanistic interpretability overview** — circuit finding, superposition, feature geometry. Survey của Anthropic/Neel Nanda.
 - [ ] **Towards Monosemanticity (Anthropic, 2023)** — SAE on MLP neurons. Đọc kỹ phần method.
 - [ ] **Scaling Monosemanticity (Anthropic, 2024)** — scale SAE lên Claude 3 Sonnet. Cách evaluate feature quality.
 - [ ] **Probing classifiers survey (Belinkov, 2022)** — tổng quan các probing method. Khi nào dùng gì.

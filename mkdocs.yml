@@ -258,6 +258,11 @@ nav:
           - "LeWM — LeWorldModel": 10-world-models-vla/notebooks/08_lewm.ipynb
           - "UniSim": 10-world-models-vla/notebooks/09_unisim.ipynb
 
+  - "11. Interpretability & Analysis Tools":
+      - "Mechanistic Interpretability — Tổng quan": 11-interpretability-tools/research/01-mechanistic-interpretability-overview.md
+      - Notebooks:
+          - "Mechanistic Interpretability — Tổng quan": 11-interpretability-tools/notebooks/01_mechanistic_interpretability_overview.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
