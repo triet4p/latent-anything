@@ -10,7 +10,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Task 2: Hoan thien "Mechanistic interpretability overview" va commit.
 - [x] Task 3: Hoan thien "Towards Monosemanticity" va commit.
 - [x] Task 4: Hoan thien "Scaling Monosemanticity" va commit.
-- [ ] Task 5: Hoan thien "Probing classifiers survey" va commit.
+- [x] Task 5: Hoan thien "Probing classifiers survey" va commit.
 - [ ] Task 6: Tao "UMAP theory" va commit.
 - [ ] Task 7: Tao "PaCMAP" va commit.
 - [ ] Task 8: Tao "Multivariate Gaussian" va commit.
