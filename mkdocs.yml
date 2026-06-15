@@ -237,6 +237,11 @@ nav:
           - "GAIA-1": 09-discrete-latent/notebooks/08_gaia_1.ipynb
           - "Genie": 09-discrete-latent/notebooks/09_genie.ipynb
 
+  - "10. World Models & VLA":
+      - "DreamerV1": 10-world-models-vla/research/01-dreamerv1.md
+      - Notebooks:
+          - "DreamerV1": 10-world-models-vla/notebooks/01_dreamerv1.ipynb
+
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
