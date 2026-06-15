@@ -33,7 +33,7 @@ Superposition là lý do mech interp khó: thông tin *có* ở đó (linearly d
 
 Cách tách superposition được ưa chuộng nhất: học một **overcomplete dictionary** các hướng feature sao cho mỗi activation = tổ hợp *thưa* của chúng. [Sparse autoencoder](../../05-probing-intervention/research/07-sparse-autoencoder.md) là hiện thân: encode activation thành một vector thưa chiều cao (nhiều feature hơn neuron), mỗi feature kỳ vọng **mono-semantic**. Đây là một instance của [dictionary learning](../../05-probing-intervention/research/08-dictionary-learning.md) tổng quát.
 
-Chương trình SAE là trục chính của mech interp hiện đại: **Towards Monosemanticity (mục tiếp theo)** chứng minh trên một layer nhỏ, **Scaling Monosemanticity (mục sau)** scale lên Claude 3 Sonnet. Đây là nơi tầng 11 đào sâu nhất.
+Chương trình SAE là trục chính của mech interp hiện đại: [Towards Monosemanticity](02-towards-monosemanticity.md) chứng minh trên một layer nhỏ, còn [Scaling Monosemanticity](03-scaling-monosemanticity.md) scale lên Claude 3 Sonnet. Đây là nơi tầng 11 đào sâu nhất.
 
 ---
 
@@ -78,7 +78,7 @@ class InterpToolkit(Protocol):
 - **Layer B — Manipulation**: "feature = direction" biến manipulation thành cộng/chiếu vector ([subspace projection](../../04-latent-computation/research/04-subspace-projection.md), steering); circuit cho biết *can thiệp ở đâu* để có hiệu quả mong muốn.
 - **Layer C — Runtime**: chạy SAE/patching ở quy mô là workload nặng (nhiều forward, activation lớn) — Layer C cache activation và batch các can thiệp.
 
-Mục này khung hóa cả tầng 11. Hai mục kế tiếp đào sâu trục SAE — **Towards Monosemanticity** và **Scaling Monosemanticity** — rồi tầng chuyển sang probing survey và các công cụ trực quan hóa (UMAP, PaCMAP).
+Mục này khung hóa cả tầng 11. Hai mục kế tiếp đào sâu trục SAE — [Towards Monosemanticity](02-towards-monosemanticity.md) và [Scaling Monosemanticity](03-scaling-monosemanticity.md) — rồi tầng chuyển sang probing survey và các công cụ trực quan hóa (UMAP, PaCMAP).
 
 ---
 

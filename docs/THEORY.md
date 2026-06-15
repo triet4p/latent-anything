@@ -183,7 +183,7 @@ Unify latent space với language model architecture.
 
 *Đọc song song với tầng 5. Directly inform Layer A của Latent-Anything.*
 
-- [~] **Mechanistic interpretability overview** — circuit finding, superposition, feature geometry. Survey của Anthropic/Neel Nanda.
+- [x] **Mechanistic interpretability overview** — circuit finding, superposition, feature geometry. Survey của Anthropic/Neel Nanda.
 - [~] **Towards Monosemanticity (Anthropic, 2023)** — SAE on MLP neurons. Đọc kỹ phần method.
 - [~] **Scaling Monosemanticity (Anthropic, 2024)** — scale SAE lên Claude 3 Sonnet. Cách evaluate feature quality.
 - [ ] **Probing classifiers survey (Belinkov, 2022)** — tổng quan các probing method. Khi nào dùng gì.
