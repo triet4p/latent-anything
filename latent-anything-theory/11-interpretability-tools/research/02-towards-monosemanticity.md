@@ -55,7 +55,7 @@ Bài đo chất lượng feature qua: **specificity** (feature chỉ active đú
 
 ## 4. Giới hạn / Khi nào thất bại
 
-**Mới ở quy mô toy.** Transformer 1 lớp; câu hỏi liệu phương pháp scale lên model lớn là chủ đề của **Scaling Monosemanticity (mục tiếp theo)**.
+**Mới ở quy mô toy.** Transformer 1 lớp; câu hỏi liệu phương pháp scale lên model lớn là chủ đề của [Scaling Monosemanticity](03-scaling-monosemanticity.md).
 
 **Dead features.** Nhiều feature không bao giờ active (chết) — lãng phí dung lượng, cần resampling (giống [codebook collapse](../../09-discrete-latent/research/04-codebook-collapse.md) của VQ).
 
@@ -84,7 +84,7 @@ class SparseAutoencoder(Protocol):
 - **Layer B — Manipulation**: feature SAE là *hướng có ngữ nghĩa sạch* để [steering](../../05-probing-intervention/research/09-steering-vectors.md) — bật/tắt một feature là can thiệp diễn giải được, sạch hơn steering vector thô.
 - **Layer C — Runtime**: train SAE trên hàng tỉ activation là workload nặng; Layer C lo thu hoạch/cache activation và train dictionary hiệu quả — đúng loại pipeline scale mà framework hướng tới.
 
-Bài đặt nền; mục kế tiếp — **Scaling Monosemanticity** — scale chính phương pháp này lên Claude 3 Sonnet và bàn cách *đánh giá chất lượng feature* ở quy mô lớn.
+Bài đặt nền; mục kế tiếp — [Scaling Monosemanticity](03-scaling-monosemanticity.md) — scale chính phương pháp này lên Claude 3 Sonnet và bàn cách *đánh giá chất lượng feature* ở quy mô lớn.
 
 ---
 
