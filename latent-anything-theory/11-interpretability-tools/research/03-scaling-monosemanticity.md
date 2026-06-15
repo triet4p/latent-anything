@@ -2,7 +2,7 @@
 
 > **TL;DR.** "Scaling Monosemanticity" (Templeton et al., 2024) đưa phương pháp [SAE](02-towards-monosemanticity.md) từ transformer 1 lớp lên **Claude 3 Sonnet** (model production cỡ trung), trích **hàng triệu feature** từ residual stream lớp giữa — gồm feature về người nổi tiếng, thành phố, lỗ hổng bảo mật, và các feature *an toàn* (lừa dối, thiên kiến, sycophancy). Chứng minh feature **đa ngôn ngữ + đa phương thức** và **lái được nhân quả** (clamp feature "Cầu Cổng Vàng" cao → "Golden Gate Claude"). Trọng tâm bài: *cách đánh giá chất lượng feature ở quy mô lớn* (specificity, influence, feature neighborhoods). Caveat: chỉ cover một phần feature của model; SAE đắt; "feature" vẫn phụ thuộc dung lượng và đánh giá còn thủ công.
 
-[Towards Monosemanticity](02-towards-monosemanticity.md) chứng minh SAE *hoạt động* ở quy mô toy. Câu hỏi sống còn: nó có *scale* lên model thật không? Bài này trả lời "có" trên Claude 3 Sonnet, và quan trọng hơn cho framework — nó đặt ra *quy trình đánh giá feature* mà Layer A cần để dùng SAE một cách đáng tin.
+[Towards Monosemanticity](02-towards-monosemanticity.md) chứng minh SAE *hoạt động* ở quy mô toy. Câu hỏi sống còn: nó có *scale* lên model thật không? Bài này trả lời "có" trên Claude 3 Sonnet, và quan trọng hơn cho framework — nó đặt ra *quy trình đánh giá feature* mà Layer A cần để dùng SAE một cách đáng tin. Bài gốc được Anthropic/Transformer Circuits công bố ngày **May 21, 2024**; hiện cũng có mirror trên arXiv với mốc đăng **May 28, 2026**.
 
 ---
 
@@ -73,9 +73,9 @@ class FeatureReport(Protocol):
 
 - **Layer A — Introspection**: đây *là* bản thiết kế Layer A ở quy mô lớn — trích feature, đo specificity/influence/coverage, duyệt feature neighborhoods. Feature an toàn (lừa dối, bias) là use case introspection giá trị nhất.
 - **Layer B — Manipulation**: feature steering (clamp) là manipulation nhân quả sạch nhất — "Golden Gate Claude" là minh chứng [steering](../../05-probing-intervention/research/09-steering-vectors.md) ở mức feature mono-semantic, mạnh hơn steering vector thô.
-- **Layer C — Runtime**: train + chạy SAE 34M feature trên activation production là workload runtime cực nặng; Layer C lo thu hoạch activation, train phân tán, và phục vµ feature lookup hiệu quả.
+- **Layer C — Runtime**: train + chạy SAE 34M feature trên activation production là workload runtime cực nặng; Layer C lo thu hoạch activation, train phân tán, và phục vụ feature lookup hiệu quả.
 
-Hai mục SAE khép trục mech-interp. Tầng chuyển sang công cụ phân tích còn lại: **probing classifiers survey** (khi nào dùng probe gì), rồi trực quan hóa chiều cao (**UMAP**, **PaCMAP**).
+Hai mục SAE khép trục mech-interp. Tầng chuyển sang công cụ phân tích còn lại: [Probing Classifiers Survey](04-probing-classifiers-survey.md) (khi nào dùng probe gì), rồi trực quan hóa chiều cao (**UMAP**, **PaCMAP**).
 
 ---
 
@@ -89,6 +89,6 @@ Hai mục SAE khép trục mech-interp. Tầng chuyển sang công cụ phân t�
 
 ## Tham khảo
 
-- A. Templeton, T. Conerly, J. Marcus, et al., *Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet* (Anthropic, Transformer Circuits, 2024).
+- A. Templeton, T. Conerly, J. Marcus, et al., *Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet* (Anthropic / Transformer Circuits, 2024, arXiv:2605.29358).
 - T. Bricken et al., *Towards Monosemanticity: Decomposing Language Models with Dictionary Learning* (Anthropic, 2023).
 - N. Elhage et al., *Toy Models of Superposition* (Anthropic, 2022, arXiv:2209.10652).
