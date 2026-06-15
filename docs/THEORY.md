@@ -170,7 +170,7 @@ Unify latent space với language model architecture.
 - [~] **DreamerV1 (Hafner et al., 2019)** — RSSM + latent imagination + actor-critic. First complete latent world model for RL.
 - [~] **DreamerV2 (Hafner et al., 2020)** — discrete latent trong Dreamer. Stability improvement.
 - [~] **DreamerV3 (Hafner et al., 2023)** — scale lên nhiều domain. KL balancing, symlog transform.
-- [ ] **TD-MPC2 (Hansen et al., 2023)** — world model cho continuous control robotics. Temporal difference learning trong latent. Liên quan trực tiếp đến embodied use case.
+- [~] **TD-MPC2 (Hansen et al., 2023)** — world model cho continuous control robotics. Temporal difference learning trong latent. Liên quan trực tiếp đến embodied use case.
 - [ ] **MuZero (Schrittwieser et al., 2019)** — value equivalence. Không cần reconstruct observation.
 - [ ] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
 - [ ] **π0 — Physical Intelligence (Black et al., 2024)** — VLA với flow matching action head. Latent action representation.
