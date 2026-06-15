@@ -244,6 +244,7 @@ nav:
       - "TD-MPC2": 10-world-models-vla/research/04-td-mpc2.md
       - "MuZero": 10-world-models-vla/research/05-muzero.md
       - "OpenVLA": 10-world-models-vla/research/06-openvla.md
+      - "π0 — Flow Matching VLA": 10-world-models-vla/research/07-pi0.md
       - Notebooks:
           - "DreamerV1": 10-world-models-vla/notebooks/01_dreamerv1.ipynb
           - "DreamerV2": 10-world-models-vla/notebooks/02_dreamerv2.ipynb
@@ -251,6 +252,7 @@ nav:
           - "TD-MPC2": 10-world-models-vla/notebooks/04_td_mpc2.ipynb
           - "MuZero": 10-world-models-vla/notebooks/05_muzero.ipynb
           - "OpenVLA": 10-world-models-vla/notebooks/06_openvla.ipynb
+          - "π0 — Flow Matching VLA": 10-world-models-vla/notebooks/07_pi0.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:
