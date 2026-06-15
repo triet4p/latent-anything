@@ -14,7 +14,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Task 6: Tao "UMAP theory" va commit.
 - [x] Task 7: Tao "PaCMAP" va commit.
 - [x] Task 8: Tao "Optimal transport co ban" va commit.
-- [ ] Task 9: Tao "Lie groups va Lie algebra" va commit.
+- [x] Task 9: Tao "Lie groups va Lie algebra" va commit.
 
 ## Notes / Blockers
 * User yeu cau su dung tuan tu, no parallel, va moi muc phai di qua research note + notebook execution truoc khi commit.

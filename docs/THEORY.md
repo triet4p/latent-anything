@@ -200,7 +200,7 @@ Unify latent space với language model architecture.
 - [ ] **SVD và PCA** — connection giữa SVD, eigendecomposition, và PCA. Tại sao PCA là linear projection optimal.
 - [ ] **Riemannian geometry cơ bản** — metric tensor, geodesic, exponential map, logarithmic map. Cần cho slerp và latent space geometry tầng 3.
 - [x] **Optimal transport cơ bản** — Wasserstein distance, Sinkhorn algorithm. Cần cho trajectory comparison và latent distribution alignment.
-- [ ] **Lie groups và Lie algebra** — rotation group SO(3), SE(3). Cần cho 3DGS covariance parameterization và robotics.
+- [x] **Lie groups và Lie algebra** — rotation group SO(3), SE(3). Cần cho 3DGS covariance parameterization và robotics.
 - [ ] **Spherical harmonics** — basis functions trên sphere, SH coefficients, addition theorem. Cần cho 3DGS color encoding.
 - [ ] **Information theory cơ bản** — entropy, mutual information, KL divergence, ELBO. Cần cho tầng 2 và information bottleneck.
 
