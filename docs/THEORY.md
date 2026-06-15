@@ -172,7 +172,7 @@ Unify latent space với language model architecture.
 - [~] **DreamerV3 (Hafner et al., 2023)** — scale lên nhiều domain. KL balancing, symlog transform.
 - [~] **TD-MPC2 (Hansen et al., 2023)** — world model cho continuous control robotics. Temporal difference learning trong latent. Liên quan trực tiếp đến embodied use case.
 - [~] **MuZero (Schrittwieser et al., 2019)** — value equivalence. Không cần reconstruct observation.
-- [ ] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
+- [~] **OpenVLA** — open-source VLA. Đọc để hiểu latent action space và cách thiết kế ModelAdapter.
 - [ ] **π0 — Physical Intelligence (Black et al., 2024)** — VLA với flow matching action head. Latent action representation.
 - [ ] **LeWM (2026)** — large-scale embodied world model với 3DGS-based latent. Anchor model cho framework. Đọc architecture paper kỹ nhất trong nhóm này.
 - [ ] **UniSim (Yang et al., 2023)** — universal simulator từ diverse data. Cách handle multi-domain latent.
