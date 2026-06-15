@@ -264,12 +264,14 @@ nav:
       - "Scaling Monosemanticity": 11-interpretability-tools/research/03-scaling-monosemanticity.md
       - "Probing Classifiers — Survey": 11-interpretability-tools/research/04-probing-classifiers-survey.md
       - "UMAP Theory": 11-interpretability-tools/research/05-umap-theory.md
+      - "PaCMAP": 11-interpretability-tools/research/06-pacmap.md
       - Notebooks:
           - "Mechanistic Interpretability — Tổng quan": 11-interpretability-tools/notebooks/01_mechanistic_interpretability_overview.ipynb
           - "Towards Monosemanticity": 11-interpretability-tools/notebooks/02_towards_monosemanticity.ipynb
           - "Scaling Monosemanticity": 11-interpretability-tools/notebooks/03_scaling_monosemanticity.ipynb
           - "Probing Classifiers — Survey": 11-interpretability-tools/notebooks/04_probing_classifiers_survey.ipynb
           - "UMAP Theory": 11-interpretability-tools/notebooks/05_umap_theory.ipynb
+          - "PaCMAP": 11-interpretability-tools/notebooks/06_pacmap.ipynb
 
 markdown_extensions:
   - pymdownx.arithmatex:

@@ -188,7 +188,7 @@ Unify latent space với language model architecture.
 - [x] **Scaling Monosemanticity (Anthropic, 2024)** — scale SAE lên Claude 3 Sonnet. Cách evaluate feature quality.
 - [x] **Probing classifiers survey (Belinkov, 2022)** — tổng quan các probing method. Khi nào dùng gì.
 - [x] **UMAP theory (McInnes et al., 2018)** — fuzzy topological structure. Tại sao UMAP preserve global structure tốt hơn t-SNE.
-- [ ] **PaCMAP** — alternative UMAP, balance local và global structure tốt hơn.
+- [x] **PaCMAP** — alternative UMAP, balance local và global structure tốt hơn.
 
 ---
 
