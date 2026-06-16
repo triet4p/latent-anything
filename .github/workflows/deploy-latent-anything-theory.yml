@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "latent-anything-theory/**"
+      - "mkdocs.yml"
       - ".github/workflows/deploy-latent-anything-theory.yml"
   workflow_dispatch:
 
@@ -14,19 +15,39 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      MPLBACKEND: Agg
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Build MkDocs site
+      - name: Sync theory docs environment
+        run: uv sync --project latent-anything-theory --group dev --locked
+
+      - name: Execute theory notebooks
         run: |
-          uvx --with mkdocs-material \
-              --with mkdocs-jupyter \
-              mkdocs build
+          find latent-anything-theory -path '*/notebooks/*.ipynb' -type f -print0 | while IFS= read -r -d '' notebook; do
+            echo "Executing $notebook"
+            uv run --project latent-anything-theory --group dev \
+              python -m jupyter nbconvert \
+              --to notebook \
+              --execute \
+              --inplace \
+              --ExecutePreprocessor.timeout=600 \
+              "$notebook"
+          done
+
+      - name: Build MkDocs site
+        run: uv run --project latent-anything-theory --group dev mkdocs build --strict
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
