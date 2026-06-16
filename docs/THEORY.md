@@ -217,6 +217,14 @@ Unify latent space với language model architecture.
 
 ---
 
+## Tầng 14 — Đa tạp sinh mẫu: Denoising & số phận của Latent
+
+*Đọc sau tầng 3B và Large-scale World Models. Tầng meta — soi lại tiền đề "luôn có latent space" qua các paper thách thức nó. Liên kết trực tiếp với triết lý first-class latent của Latent-Anything.*
+
+- [x] **JiT — Let Denoising Generative Models Denoise (Li & He, 2025)** — x-prediction vs ε/v-prediction, luận điểm đa tạp (dữ liệu sạch ít chiều, nhiễu thì không), catastrophic failure ở patch lớn. ViT thuần trên pixel, không VAE. Phân biệt hai nghĩa của "latent" và câu hỏi "bỏ được latent trong 3D/robotics không".
+
+---
+
 ## Thứ tự đọc đề xuất
 
 ```
