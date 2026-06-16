@@ -281,9 +281,11 @@ nav:
   - "12. Toán học cần thiết":
       - "Optimal Transport cơ bản": 12-math-foundations/research/04-optimal-transport-basics.md
       - "Lie groups và Lie algebra": 12-math-foundations/research/05-lie-groups-and-lie-algebra.md
+      - "Spherical Harmonics": 12-math-foundations/research/06-spherical-harmonics.md
       - Notebooks:
           - "Optimal Transport cơ bản": 12-math-foundations/notebooks/04_optimal_transport_basics.ipynb
           - "Lie groups và Lie algebra": 12-math-foundations/notebooks/05_lie_groups_and_lie_algebra.ipynb
+          - "Spherical Harmonics": 12-math-foundations/notebooks/06_spherical_harmonics.ipynb
   - "14. Đa tạp Sinh mẫu & Latent":
       - "JiT — Để Denoising thực sự Denoise": 14-generative-denoising-manifold/research/01-jit-denoise-clean-data.md
 
