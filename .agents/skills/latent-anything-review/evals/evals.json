@@ -1,0 +1,26 @@
+{
+  "skill_name": "latent-anything-review",
+  "evals": [
+    {
+      "id": 0,
+      "name": "torch-leak-and-mutable-trajectory",
+      "prompt": "I just wrote the first version of the core primitives in latent_space_bad.py for latent-anything. Can you review it before I commit it?",
+      "expected_output": "FAIL verdict. Catches torch.Tensor in the public whiten() signature (must be numpy), the in-place mutating Trajectory.append (Trajectory must be immutable), interpolate() hardcoding euclidean lerp instead of geometry dispatch, and LatentSpace keyed on shape instead of geometry. Each finding cites file:line + the rule/ADR.",
+      "files": ["../../latent-anything-review-workspace/fixtures/latent_space_bad.py"]
+    },
+    {
+      "id": 1,
+      "name": "premature-method-protocol",
+      "prompt": "I'm adding UMAP as the second introspection method and pulled out a shared Method interface in methods.py. Is this good and compliant with how we build latent-anything?",
+      "expected_output": "Flags premature abstraction: a Method Protocol was frozen with only 2 concrete implementations (PCA, UMAP); Rule of Three says extract the interface only at the 3rd differing-philosophy instance (SAE), keep a tentative unstable shape until then, and not on the public surface. Cites INCREMENTAL.md §4a.",
+      "files": ["../../latent-anything-review-workspace/fixtures/methods.py"]
+    },
+    {
+      "id": 2,
+      "name": "clean-narrow-trajectory",
+      "prompt": "Review my Trajectory implementation in trajectory.py before I commit it.",
+      "expected_output": "PASS or PASS-WITH-WARNINGS. Recognizes immutability is correct, numpy public surface is correct, and does NOT falsely flag the euclidean-only scope as an ADR violation (narrow is allowed — only making the general shape impossible is a violation). Advisory notes (e.g. missing tests/changelog) are fine.",
+      "files": ["../../latent-anything-review-workspace/fixtures/trajectory.py"]
+    }
+  ]
+}

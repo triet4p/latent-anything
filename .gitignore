@@ -10,3 +10,9 @@
 **/venv
 
 **/settings.json
+
+# Python bytecode
+**/__pycache__/
+
+# Skill eval workspaces (regenerable benchmark/fixture artifacts)
+**/*-workspace/
