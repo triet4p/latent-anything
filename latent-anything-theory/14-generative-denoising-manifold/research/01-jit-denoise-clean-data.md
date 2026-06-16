@@ -130,6 +130,27 @@ Bỏ VAE nghĩa là Transformer phải nuốt thẳng độ phân giải pixel; 
 
 Kết: paper *không* hủy tiền đề của Latent-Anything; nó **làm sắc** tiền đề đó — buộc ta phải tách bạch hai nghĩa của latent, và nhận ra rằng cái "first-class object" ta đang xây framework quanh nó là **đa tạp ít chiều**, chứ không phải cái hộp VAE cụ thể nào.
 
+## **6. Hướng tương lai: latent có bị bỏ không?**
+
+Luận điểm gói gọn:
+
+> **Trong tương lai, không chắc latent có bị bỏ không — nhưng cái *chắc chắn bị bỏ* không phải latent, mà là *tính hộp-đen* của nó. Dịch chuyển không đi từ "có biểu diễn trung gian" sang "không có", mà từ *mờ đục* sang *tường minh và soi được*.**
+
+[NeRF → 3DGS](../../03b-3d-representation/research/06-3d-gaussian-splatting.md) là bằng chứng rõ nhất. NeRF **đã là** một latent — loại tệ nhất để thao tác: cả scene bị nén vào **trọng số của một MLP** hộp đen $f(\mathbf{x},\mathbf{d})\to(\sigma,c)$ không chỉ tay vào đâu được. 3DGS thắng **không phải vì bỏ biểu diễn trung gian** — nó vẫn nén scene xuống một tập primitive ít chiều — mà vì biểu diễn đó **tường minh**: mỗi Gaussian có vị trí, covariance, opacity, [SH color](../../03b-3d-representation/research/08-spherical-harmonics.md), mỗi chiều *mang nghĩa*, add/remove/merge được. Đặt chính xác:
+
+$$ \text{latent mờ đục, entangled} \;\longrightarrow\; \text{latent tường minh, disentangled, inspectable} $$
+
+trong đó vế trái là MLP của NeRF (hoặc VAE-bottleneck), vế phải là tập Gaussian (hoặc patch pixel có cấu trúc của JiT). JiT làm *đúng move này* ở ảnh — thay VAE học được bằng patch pixel tường minh. Hai modality, **một meta-xu hướng**: ngành đánh đổi *tính mờ đục lấy tính soi được* khi tìm được một biểu diễn explicit vừa khả vi vừa đủ biểu cảm, nhưng **không bao giờ bỏ cấu trúc ít chiều**.
+
+Phải tránh tuyệt đối hoá — có dòng chảy ngược:
+
+- **LLM** càng scale càng *latent hơn, hộp đen hơn*, và vẫn thắng; [latent diffusion](../../02-representation-learning/research/05-vqgan.md) đè pixel diffusion nhiều năm nhờ hiệu quả, JiT mới là phản-đề gần đây.
+- Biểu diễn explicit chỉ thắng **khi tồn tại một parameterization explicit tốt** (Gaussian cho hình học). Với ngữ nghĩa ngôn ngữ hay suy luận trừu tượng, **chưa có "Gaussian" tương đương** — ở đó latent vẫn mờ đục.
+
+Nên tương lai gần như chắc chắn **không đồng nhất**: vài modality (3D, có thể video) đi về explicit, vài modality (ngôn ngữ) ở lại latent mờ đục. Bất biến xuyên suốt **không phải hình thức biểu diễn**, mà là [giả thuyết đa tạp](../../01-space-representation/research/03-manifold-hypothesis.md): tín hiệu sạch luôn sống trên cấu trúc ít chiều.
+
+Và đây là vế "nhưng" mạnh nhất cho framework: **dù latent có bị "bỏ" theo nghĩa hộp-đen hay không, cả hai nhánh tương lai đều củng cố tiền đề của Latent-Anything, không bác bỏ nó.** Nếu ngành đi về explicit (kiểu 3DGS), biểu diễn trung gian trở nên *dễ soi/sửa/thao tác hơn* — đúng việc Layer A/B sinh ra để làm (một MLP NeRF gần như bất khả-introspect; một Gaussian set thì probe/edit được ngay). Nếu ngành ở lại latent mờ đục (kiểu LLM), nhu cầu một framework *coi latent là first-class để mở hộp đen* càng cấp thiết. Latent-Anything **không đặt cược vào việc latent tồn tại hay biến mất**; nó đặt cược vào việc *đa tạp ít chiều luôn ở đó và luôn đáng thao tác* — và cược đó thắng ở cả hai kịch bản.
+
 ---
 
 ## Liên quan
