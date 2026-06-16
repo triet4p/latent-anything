@@ -71,12 +71,25 @@ Mỗi giới hạn dưới đây không chỉ là "chỗ JiT yếu", mà là **m
 
 #### 4.1. Modality không có "patch": sinh mẫu 3D đã *hội tụ* về latent
 
-Mánh của JiT phụ thuộc một đặc quyền của ảnh: pixel nằm trên **lưới đều**, nên gộp patch lớn vẫn giữ được cấu trúc cục bộ và một thứ tự token xác định. Dữ liệu 3D **không có đặc quyền đó**:
+Mánh của JiT phụ thuộc một đặc quyền của ảnh: pixel nằm trên **lưới đều**, nên gộp patch lớn vẫn giữ được cấu trúc cục bộ và một thứ tự token xác định. Tập điểm / tập Gaussian của [3DGS](../../03b-3d-representation/research/06-3d-gaussian-splatting.md) là một **tập vô thứ tự, hoán vị bất biến, siêu thừa** (hàng trăm nghìn–triệu primitive mỗi scene) — không có "patch" hiển nhiên, không có lưới để cắt.
 
-- Tập điểm / tập Gaussian của [3DGS](../../03b-3d-representation/research/06-3d-gaussian-splatting.md) là một **tập vô thứ tự, hoán vị bất biến, siêu thừa** (hàng trăm nghìn–triệu primitive mỗi scene) — không có "patch" hiển nhiên, không có lưới để cắt.
-- Hệ quả thực nghiệm rất rõ: **toàn bộ dòng sinh mẫu 3D native hiện đại đều quay về latent**, không ai diffuse thẳng trên hình học thô. 3DShape2VecSet mã hoá shape thành một **vecset latent thưa** qua cross-attention rồi mới diffuse; CLAY mở rộng đúng pipeline đó bằng DiT; GaussianAnything học **VAE → latent point-cloud có cấu trúc → latent diffusion** để sinh Gaussian. Tức là khi chuyển từ *fit một scene* sang *sinh phân phối scene*, cộng đồng 3D đã **độc lập tái phát minh latent nghĩa (a)** vì không còn lựa chọn nào khác.
+**"Bỏ latent" trong 3D không phải chuyện chưa ai thử — nó đã được thử thật.** Đây là chỗ ở vòng trước note này nói quá; xin chính xác lại. Có hẳn một dòng diffusion *trực tiếp trên hình học thô, không VAE*:
 
-    → Đây là phản-ví dụ mạnh nhất: ở 3D, "bỏ latent" không phải lựa chọn bị bỏ qua, mà là lựa chọn **đã được thử và thua**. Một framework coi latent là first-class phải xử lý đúng lớp "tập vô thứ tự" này — không thể giả định mọi latent đều là tensor có lưới.
+- **DPM** (Luo & Hu, 2021) coi mỗi điểm như một hạt khuếch tán và học reverse process **thẳng trong không gian toạ độ điểm**.
+- **PVD** (Point-Voxel Diffusion) là một diffusion model đơn sinh point cloud trực tiếp.
+- **Point-E** (OpenAI, 2022) diffuse thẳng trên point cloud để text-to-3D nhanh.
+
+Vậy bằng chứng "thua" nằm ở đâu? Ở chỗ chính các nhóm này **đo được latent thắng**:
+
+- **LION** (Zeng et al., NeurIPS 2022) phát biểu thẳng: đưa point cloud vào một **VAE phân cấp** rồi diffuse trong latent *boost performance so với DDM chạy thẳng trên điểm*. Đây là so sánh có kiểm soát, không phải suy diễn.
+- Diffusion điểm trực tiếp **mắc kẹt ở độ phân giải thấp / thô** (Point-E phải kèm một bước upsampling riêng), nên khi cộng đồng đẩy lên fidelity cao, cả dòng **3D-native hiện đại đều hội tụ về latent**: 3DShape2VecSet nén shape thành **vecset latent thưa** qua cross-attention; CLAY mở rộng pipeline đó bằng DiT; GaussianAnything học **VAE → latent point-cloud có cấu trúc → latent diffusion**.
+
+Còn **"patch 3D" thì có tồn tại không?** Có — nhưng không miễn phí, và đó mới là điểm thú vị:
+
+- **Voxel** vốn *có* lưới đều nên patch được như ảnh, nhưng chi phí bộ nhớ $O(N^3)$ bóp nghẹt ở độ phân giải cao, buộc phải thưa hoá hoặc nén latent (ví dụ **XCube** dùng sparse-structure VAE để lên tới $1024^3$).
+- **GaussianCube** (NeurIPS 2024) *chế tạo* một lưới: nó dùng **Optimal Transport** xếp lại tập Gaussian vô thứ tự vào một voxel grid cố định, để rồi một **3D U-Net chuẩn** (vốn cũng là patch-based) chạy được. Tức câu trả lời của ngành cho "không có patch" là: **hoặc trả giá bộ nhớ bậc ba, hoặc tự áp đặt cấu trúc** — cả hai đều là một phép biến đổi biểu diễn, không phải "diffuse thẳng trên set thô".
+
+    → Phát biểu chính xác: latent thắng cuộc đua *fidelity* trong sinh mẫu 3D vì hai lý do **hiệu quả tính toán** và **bài toán tập-vô-thứ-tự**, chứ *không* phải vì có ai chạy thí nghiệm kiểu JiT (patch lớn + x-prediction) trên 3D rồi thấy hỏng — **thí nghiệm đó chưa từng có**. Liệu một "JiT cho 3D" có lật ngược được không vẫn là câu hỏi mở. Hệ quả cho framework không đổi mà còn sắc hơn: latent ở 3D là first-class **bắt buộc** hôm nay, và đúng loại "tập vô thứ tự cần cấu trúc hoá" này là thứ adapter phải xử lý — không thể giả định mọi latent đều là tensor có lưới.
 
 #### 4.2. Quỹ đạo & robotics/VLA: latent là *điều kiện sống còn của rollout*, không phải tuỳ chọn
 
@@ -137,6 +150,12 @@ Kết: paper *không* hủy tiền đề của Latent-Anything; nó **làm sắc
 - Tim Salimans, Jonathan Ho, *Progressive Distillation for Fast Sampling of Diffusion Models* (ICLR 2022, arXiv:2202.00512) — nguồn v-prediction.
 - Robin Rombach et al., *High-Resolution Image Synthesis with Latent Diffusion Models* (CVPR 2022, arXiv:2112.10752) — latent diffusion / VAE bottleneck mà JiT vứt bỏ.
 - Bernhard Kerbl et al., *3D Gaussian Splatting for Real-Time Radiance Field Rendering* (SIGGRAPH 2023, arXiv:2308.04079).
+- Shitong Luo, Wei Hu, *Diffusion Probabilistic Models for 3D Point Cloud Generation* (CVPR 2021, arXiv:2103.01458) — diffusion thẳng trên điểm thô, không latent.
+- Linqi Zhou, Yilun Du, Jiajun Wu, *3D Shape Generation and Completion through Point-Voxel Diffusion* (PVD, ICCV 2021, arXiv:2104.03670).
+- Alex Nichol et al., *Point-E: A System for Generating 3D Point Clouds from Complex Prompts* (2022, arXiv:2212.08751) — diffusion điểm trực tiếp, kèm bước upsampling.
+- Xiaohui Zeng et al., *LION: Latent Point Diffusion Models for 3D Shape Generation* (NeurIPS 2022, arXiv:2210.06978) — đo được VAE latent thắng DDM chạy thẳng trên điểm.
+- Bowen Zhang et al., *GaussianCube: A Structured and Explicit Radiance Representation for 3D Generative Modeling* (NeurIPS 2024, arXiv:2403.19655) — xếp Gaussian vào voxel grid bằng Optimal Transport để dùng 3D U-Net.
+- Xuanchi Ren et al., *XCube: Large-Scale 3D Generative Modeling using Sparse Voxel Hierarchies* (CVPR 2024, arXiv:2312.03806) — sparse-structure VAE tới $1024^3$.
 - Yushi Lan et al., *GaussianAnything: Interactive Point Cloud Latent Diffusion for 3D Generation* (ICLR 2025, arXiv:2411.08033).
 - Biao Zhang et al., *3DShape2VecSet: A 3D Shape Representation for Neural Fields and Generative Diffusion Models* (SIGGRAPH 2023, arXiv:2301.11445) — latent vecset cho sinh mẫu 3D.
 - Longwen Zhang et al., *CLAY: A Controllable Large-scale Generative Model for Creating High-quality 3D Assets* (SIGGRAPH 2024, arXiv:2406.13897) — mở rộng vecset bằng DiT.
