@@ -9,7 +9,8 @@ description: >
   commit/merge", finishes a task or sprint increment, or is about to commit Python here — even
   without "review". Prefer it over a generic review for any latent-anything source: it
   catches torch leaking into the public API, premature abstraction (a Protocol/ABC before the 3rd
-  impl), a mutable Trajectory, or Euclidean-hardcoded interpolation that a generic reviewer misses.
+  impl), a mutable Trajectory, Euclidean-hardcoded interpolation, or fake-green tests that always
+  pass / only exist to dodge the rules — things a generic reviewer often misses.
   Do NOT use it for reviewing docs/research notes/notebooks, code in another repo, or non-review
   tasks like writing research, planning sprints, or running a formatter.
 ---
@@ -61,7 +62,9 @@ On any tool, scope to the changed files when possible, but run the full test sui
 - `uv run pytest` — all tests pass; note if the increment added no test for new behavior.
 
 Capture the real output. A gate failure is **blocking** — do not soften it. If the tooling can't run
-(no package yet, missing config), say so plainly rather than guessing a pass.
+(no package yet, missing config), say so plainly rather than guessing a pass. A green `pytest` run is
+necessary but not sufficient: changed tests still need an integrity check so the suite is not
+"passing" on tautologies or rule-circumvention.
 
 ### 3. Static conformance review (judgment — what tools can't see)
 
@@ -80,10 +83,16 @@ project-specific checks, in priority order:
    Conversely, did a third differing instance land without the interface being extracted and all
    prior call-sites migrated? Both are findings. See the checklist for how to count and the
    exceptions.
-4. **ADR reconciliation** — if the code touches a `pending` ADR area, decisions.md must be updated
+4. **Test integrity / anti-cheat** — if tests changed, make sure they can actually fail when the
+   behavior is wrong. Treat as **Blocking** any test that is effectively guaranteed to pass
+   (`assert True`, a value compared to itself, over-broad mocks/stubs that make the assertion true by
+   construction, swallowing the expected failure and then passing), or any test whose main purpose
+   is to satisfy the gate while dodging a project rule/invariant. A fake-green test is worse than no
+   test because it creates false confidence.
+5. **ADR reconciliation** — if the code touches a `pending` ADR area, decisions.md must be updated
    (mark `validated`) or a new reversing/amending ADR appended. Silent divergence from an ADR is a
    finding.
-5. **Rules hygiene** — approved packages only; full type annotations; `collections.abc` over `typing`
+6. **Rules hygiene** — approved packages only; full type annotations; `collections.abc` over `typing`
    aliases; `Protocol` over ABC when an interface *is* warranted; naming conventions; async-primary
    with a `run_sync` wrapper; changelog updated in the same change for user-visible behavior; no
    forbidden files staged (`.venv/`, `__pycache__/`, secrets); conventional-commit shape if a commit

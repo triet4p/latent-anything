@@ -12,10 +12,11 @@ Each item is tagged **[B]** Blocking or **[A]** Advisory. Blocking ⇒ FAIL.
 2. Public surface purity
 3. ADR conformance
 4. Rule of Three (the judgment call)
-5. ADR reconciliation
-6. Python rules hygiene
-7. Git / changelog / files
-8. Markdown (only if docs changed)
+5. Test integrity / anti-cheat
+6. ADR reconciliation
+7. Python rules hygiene
+8. Git / changelog / files
+9. Markdown (only if docs changed)
 
 ---
 
@@ -29,6 +30,8 @@ Each item is tagged **[B]** Blocking or **[A]** Advisory. Blocking ⇒ FAIL.
   also get `hypothesis` property-based tests, not just example-based ones.
 
 If the package/tooling doesn't exist yet, report "gate not runnable: <reason>" — that is not a pass.
+A green `pytest` run only proves the suite is green, not that the tests are meaningful; changed
+tests still need the integrity checks in section 5.
 
 ---
 
@@ -105,7 +108,31 @@ and cite §4a — so the author sees the count, not just a verdict.
 
 ---
 
-## 5. ADR reconciliation
+## 5. Test integrity / anti-cheat
+
+Tests are part of the evidence for whether code is safe. A test that cannot fail for the intended
+bug, or that exists mainly to game the gate, is worse than no test because it creates false
+confidence.
+
+- **[B]** A new/changed test is effectively guaranteed to pass regardless of whether the behavior is
+  correct. Common smells: `assert True`, comparing a value to itself, asserting only that a mock
+  returned the value the test itself configured, swallowing the expected exception and then passing,
+  or verifying only truthiness / non-`None` when the real contract is more specific. → Replace it
+  with assertions over observable behavior and a failure mode that would break if the code regressed.
+- **[B]** A test was added mainly to satisfy the review/tooling gate while dodging a project rule or
+  invariant. Examples: weakening assertions to avoid exposing a public-API contract leak, using
+  over-broad mocks so the forbidden path is never exercised, or encoding today's buggy behavior as
+  "the spec" without an explicit decision. → Fix the code/rule mismatch, or log the decision
+  honestly; do not use tests to launder it.
+- **[A]** A test mirrors the implementation step-for-step instead of asserting the external contract
+  or invariant. It may still fail, but it is low-signal and brittle. → Prefer behavior/invariant
+  assertions that survive refactors.
+
+When flagging a meaningless test, explain *why it would still pass if the real behavior were broken*.
+
+---
+
+## 6. ADR reconciliation
 
 From [INCREMENTAL.md §4c](../../../docs/INCREMENTAL.md). Code is how the pending ADRs get validated or
 overturned; the log must stay coupled to what the code proves.
@@ -119,7 +146,7 @@ overturned; the log must stay coupled to what the code proves.
 
 ---
 
-## 6. Python rules hygiene
+## 7. Python rules hygiene
 
 From [python.md](../../rules/python.md). Mostly **[A]** unless it breaks a contract.
 
@@ -136,7 +163,7 @@ From [python.md](../../rules/python.md). Mostly **[A]** unless it breaks a contr
 
 ---
 
-## 7. Git / changelog / files
+## 8. Git / changelog / files
 
 - **[B]** A user-visible change (new feature, changed behavior, bug fix) with no `CHANGELOG.md`
   `[Unreleased]` entry in the same change. Internal refactors / test-only / docs-only are exempt.
@@ -149,7 +176,7 @@ From [python.md](../../rules/python.md). Mostly **[A]** unless it breaks a contr
 
 ---
 
-## 8. Markdown (only if docs / research notes / notebooks changed)
+## 9. Markdown (only if docs / research notes / notebooks changed)
 
 From [markdown.md](../../rules/markdown.md). The site is Python-Markdown (stricter than GitHub).
 
