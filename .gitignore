@@ -14,5 +14,11 @@
 # Python bytecode
 **/__pycache__/
 
+# Build artifacts
+*.egg-info/
+
+# Pytest cache
+.pytest_cache/
+
 # Skill eval workspaces (regenerable benchmark/fixture artifacts)
 **/*-workspace/
