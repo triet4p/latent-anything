@@ -7,16 +7,18 @@ from typing import cast
 import numpy as np
 from sklearn.decomposition import PCA as _SKLearnPCA  # noqa: N811  # pyright: ignore[reportMissingTypeStubs]
 
+from latent_anything.methods._base import _MethodBase  # pyright: ignore[reportPrivateUsage]
 
-class PCA:
+
+class PCA(_MethodBase):
     """PCA dimensionality reduction method.
 
     Stateful method: call ``fit`` to learn the transformation, then
     ``transform`` to apply it. Input and output are numpy arrays.
 
     This is a concrete hardcoded implementation wrapping scikit-learn's PCA.
-    It will be generalized to a ``Method`` interface once instance #3 of a
-    different philosophy appears (Rule of Three, see INCREMENTAL.md §4a).
+    It has been migrated to the internal ``_MethodBase`` shape alongside
+    UMAP (Rule of Three instance #2, see INCREMENTAL.md §4a).
 
     Parameters
     ----------
@@ -64,22 +66,6 @@ class PCA:
             raise RuntimeError(msg)
         result = self._pca.transform(data)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         return cast(np.ndarray, result)
-
-    def fit_transform(self, data: np.ndarray) -> np.ndarray:
-        """Fit PCA and transform data in one step.
-
-        Parameters
-        ----------
-        data : np.ndarray
-            2D array of shape ``(n_samples, n_features)``.
-
-        Returns
-        -------
-        np.ndarray
-            Transformed array of shape ``(n_samples, n_components)``.
-        """
-        self.fit(data)
-        return self.transform(data)
 
     @property
     def components_(self) -> np.ndarray:

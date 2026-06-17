@@ -83,3 +83,16 @@ A chronological log of *why* key choices were made in this project.
 - Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
 
 **Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 5 (UMAP addition).
+
+## [2026-06-17] Sprint 5 Round 2 — ADR reconciliation: all three pending ADRs remain pending
+
+**Decision:** The three 2026-06-16 ADRs (geometry-keyed `LatentSpace`, 3-mode `ModelAdapter`, geometry-dispatch) all remain **`pending`** after Sprint 5 Round 2. This increment added UMAP (Method #2, nonlinear/stochastic/stateful) and sketched the internal `_MethodBase` shape, but touched no geometry-keying, metric dispatch, or model adapter concerns.
+
+**Evidence considered:** The Sprint 5 code — UMAP wrapping `umap-learn`, `_MethodBase` as minimal internal base with only `fit`/`transform`/`fit_transform`, PCA migrated to `_MethodBase`. None of these exercise the geometry-variant logic, metric dispatch, or model adapter concerns that the ADRs describe.
+
+**Status update:** `pending` (no change). Expected validation trigger:
+- `LatentSpace` geometry-keyed ADR: Sprint 9 (geometry case #2, unit-norm/spherical).
+- `ModelAdapter` 3-mode ADR: Sprint 7 (VAE adapter #1).
+- Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
+
+**Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 6 (SAE addition).
