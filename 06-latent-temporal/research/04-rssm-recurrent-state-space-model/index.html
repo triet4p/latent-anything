@@ -1,0 +1,9800 @@
+
+<!doctype html>
+<html lang="vi" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Nghiên cứu lý thuyết cho dự án Latent-Anything — không gian ẩn, đa tạp, metric, và hình học.">
+      
+      
+        <meta name="author" content="Le Minh Triet">
+      
+      
+        <link rel="canonical" href="https://triet4p.github.io/latent-anything/06-latent-temporal/research/04-rssm-recurrent-state-space-model/">
+      
+      
+        <link rel="prev" href="../03-stochastic-transition/">
+      
+      
+        <link rel="next" href="../05-kalman-filter-variants/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>RSSM — Dreamer - Latent-Anything Theory</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rssm-recurrent-state-space-model" class="md-skip">
+          Bỏ qua
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Đầu trang">
+    <a href="../../.." title="Latent-Anything Theory" class="md-header__button md-logo" aria-label="Latent-Anything Theory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Latent-Anything Theory
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              RSSM — Dreamer
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Chuyển sang chế độ tối"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Chuyển sang chế độ tối" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Chuyển sang chế độ sáng"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Chuyển sang chế độ sáng" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Tìm kiếm" placeholder="Tìm kiếm" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Tìm kiếm">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Xoá" aria-label="Xoá" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/triet4p/latent-anything" title="Xem mã nguồn" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Trang chủ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../01-space-representation/research/01-metric-space-vector-space/" class="md-tabs__link">
+          
+  
+  
+  1. Biểu diễn không gian
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../02-representation-learning/research/01-information-bottleneck/" class="md-tabs__link">
+          
+  
+  
+  2. Representation Learning
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../03-geometry-structure/research/01-linear-structure/" class="md-tabs__link">
+          
+  
+  
+  3. Hình học & Cấu trúc
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../03b-3d-representation/research/01-neural-implicit-representation/" class="md-tabs__link">
+          
+  
+  
+  3B. 3D Representation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../13-practical-3d-reconstruction/research/01-colmap-sfm-mvs/" class="md-tabs__link">
+          
+  
+  
+  3C. Mô hình dựng 3D thực tiễn
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../04-latent-computation/research/01-lerp/" class="md-tabs__link">
+          
+  
+  
+  4. Tính toán trong Latent Space
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../05-probing-intervention/research/01-linear-probing/" class="md-tabs__link">
+          
+  
+  
+  5. Probe & Can thiệp
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../01-markov-property-state-space/" class="md-tabs__link">
+          
+  
+  
+  6. Latent Space qua Thời gian
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../07-latent-planning/research/01-model-based-vs-model-free-rl/" class="md-tabs__link">
+          
+  
+  
+  7. Planning trong Latent Space
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../08-latent-prediction/research/01-masked-autoencoder-mae/" class="md-tabs__link">
+          
+  
+  
+  8. Predict trong Latent, không Decode
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../09-discrete-latent/research/01-vector-quantization/" class="md-tabs__link">
+          
+  
+  
+  9. Discrete Latent Space
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../10-world-models-vla/research/01-dreamerv1/" class="md-tabs__link">
+          
+  
+  
+  10. World Models & VLA
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../11-interpretability-tools/research/01-mechanistic-interpretability-overview/" class="md-tabs__link">
+          
+  
+  
+  11. Interpretability & Analysis Tools
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../12-math-foundations/research/04-optimal-transport-basics/" class="md-tabs__link">
+          
+  
+  
+  12. Toán học cần thiết
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../14-generative-denoising-manifold/research/01-jit-denoise-clean-data/" class="md-tabs__link">
+          
+  
+  
+  14. Đa tạp Sinh mẫu & Latent
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Thanh điều hướng" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Latent-Anything Theory" class="md-nav__button md-logo" aria-label="Latent-Anything Theory" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Latent-Anything Theory
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/triet4p/latent-anything" title="Xem mã nguồn" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trang chủ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Biểu diễn không gian
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    1. Biểu diễn không gian
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/01-metric-space-vector-space/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric Space & Vector Space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/02-mahalanobis-distance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Khoảng cách Mahalanobis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/03-manifold-hypothesis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Giả thuyết Đa tạp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/04-curse-of-dimensionality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lời nguyền chiều
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/05-geodesic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geodesic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/06-pullback-metric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pullback Metric
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/research/07-flatvi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlatVI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/notebooks/02_covariance_and_mahalanobis_exercise/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Covariance and Mahalanobis Distance Exercise
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/notebooks/03_manifold_hypothesis_and_curse_of_dimensionality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manifold Hypothesis &amp; Curse of Dimensionality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01-space-representation/notebooks/05_06_07_geodesic_pullback_flatvi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geodesic, Pullback Metric &amp; FlatVI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Representation Learning
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    2. Representation Learning
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/research/01-information-bottleneck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Information Bottleneck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/research/02-autoencoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Autoencoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/research/03-vae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/research/04-vq-vae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VQ-VAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/research/05-vqgan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VQGAN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/notebooks/01_information_bottleneck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Information Bottleneck — Thí nghiệm Trực quan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/notebooks/02_autoencoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Autoencoder — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/notebooks/03_vae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variational Autoencoder (VAE) — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/notebooks/04_vq_vae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector-Quantized VAE (VQ-VAE) — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02-representation-learning/notebooks/05_vqgan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VQGAN — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Hình học & Cấu trúc
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    3. Hình học & Cấu trúc
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/01-linear-structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cấu trúc tuyến tính
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/02-disentanglement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tính tách biệt biểu diễn
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/03-isotropy-anisotropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Đẳng hướng & Bất đẳng hướng
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/04-riemannian-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hình học Riemannian
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/05-slerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slerp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/research/06-normalizing-flows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalizing Flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/01_linear_structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear Structure in Latent Space — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/02_disentanglement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Disentanglement — Measuring When One Slider Controls One Factor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/03_isotropy_anisotropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Isotropy &amp; Anisotropy — Why Latent Spaces Collapse into a Narrow Cone
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/04_riemannian_geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Riemannian Geometry — Parallel Transport, Curvature, and Why Lerp Fails
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/05_slerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slerp — Spherical Linear Interpolation: Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03-geometry-structure/notebooks/06_normalizing_flows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalizing Flows — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3B. 3D Representation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    3B. 3D Representation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/01-neural-implicit-representation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Implicit Representation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/02-nerf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeRF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/03-volume-rendering-ray-marching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Volume Rendering & Ray Marching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/04-positional-encoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Positional Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/05-instant-ngp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instant-NGP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/06-3d-gaussian-splatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3D Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/07-covariance-matrix-3dgs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Covariance Matrix trong 3DGS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/08-spherical-harmonics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/09-gaussian-rasterization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Rasterization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/10-gaussian-parameters-latent-variable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Parameters là Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/11-dynamic-3dgs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic 3DGS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/research/12-gaussian-set-operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Set Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_13" id="__nav_5_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/01_neural_implicit_representation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Implicit Representation — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/02_nerf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeRF — Visual Experiments (a 2D differentiable renderer)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/03_volume_rendering_ray_marching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Volume Rendering &amp; Ray Marching — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/04_positional_encoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Positional Encoding (Fourier Features) — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/05_instant_ngp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instant-NGP — Visual Experiments (a 2D multiresolution hash grid)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/06_07_3d_gaussian_splatting_covariance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3D Gaussian Splatting &amp; Covariance — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/08_spherical_harmonics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonics — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/09_gaussian_rasterization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Rasterization — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/10_gaussian_parameters_latent_variable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Parameters as Latent Variables — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/11_dynamic_3dgs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic 3DGS — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../03b-3d-representation/notebooks/12_gaussian_set_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gaussian Set Operations — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3C. Mô hình dựng 3D thực tiễn
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    3C. Mô hình dựng 3D thực tiễn
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../13-practical-3d-reconstruction/research/01-colmap-sfm-mvs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    COLMAP & SfM/MVS cổ điển
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../13-practical-3d-reconstruction/research/02-feed-forward-3d-recon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust3R, Must3R & VGGT-Ω
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../13-practical-3d-reconstruction/research/03-image-to-pointcloud-backprojection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image-to-Point Cloud Back-Projection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../13-practical-3d-reconstruction/research/04-vision-for-action/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CVPR 2026: Từ nhìn đến làm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Tính toán trong Latent Space
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    4. Tính toán trong Latent Space
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/01-lerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lerp — Linear Interpolation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/02-slerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slerp — Spherical Interpolation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/03-latent-arithmetic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Arithmetic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/04-subspace-projection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subspace Projection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/05-mahalanobis-distance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mahalanobis Distance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/06-density-estimation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Density Estimation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/research/07-optimal-transport-in-latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optimal Transport trong Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_8" id="__nav_7_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/01_lerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lerp — Linear Interpolation: Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/02_slerp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slerp — Spherical Interpolation: Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/03_latent_arithmetic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Arithmetic — Conditions for Meaningful Vector Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/04_subspace_projection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subspace Projection — Decomposing Latent Vectors into Concept + Residual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/05_mahalanobis_distance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mahalanobis Distance in Latent Computation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/06_density_estimation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Density Estimation in Latent Space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../04-latent-computation/notebooks/07_optimal_transport_in_latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optimal Transport in Latent Space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Probe & Can thiệp
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    5. Probe & Can thiệp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/01-linear-probing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear Probing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/02-nonlinear-probing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nonlinear Probing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/03-tcav/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCAV — Concept Activation Vectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/04-causal-intervention-vs-observational/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Can thiệp Nhân quả vs Quan sát
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/05-activation-patching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Activation Patching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/06-superposition-hypothesis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Superposition Hypothesis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/07-sparse-autoencoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sparse Autoencoder — SAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/08-dictionary-learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dictionary Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/09-steering-vectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering Vectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/research/10-logit-lens-tuned-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logit Lens / Tuned Lens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_11" id="__nav_8_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/01_linear_probing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear Probing — Reading Frozen Latents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/02_nonlinear_probing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nonlinear Probing — Existence vs Form
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/03_tcav/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCAV — Testing with Concept Activation Vectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/04_causal_intervention_vs_observational/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Causal Intervention vs Observational Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/05_activation_patching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Activation Patching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/06_superposition_hypothesis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Superposition Hypothesis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/07_sparse_autoencoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sparse Autoencoder — SAE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/08_dictionary_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dictionary Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/09_steering_vectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steering Vectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../05-probing-intervention/notebooks/10_logit_lens_tuned_lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logit Lens / Tuned Lens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Latent Space qua Thời gian
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    6. Latent Space qua Thời gian
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-markov-property-state-space/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markov Property & State Space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-latent-transition-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Transition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-stochastic-transition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stochastic Transition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RSSM — Dreamer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RSSM — Dreamer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Mục lục">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Mục lục
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-vi-sao-khong-chi-dung-rnn-hoac-state-space-model-stochastic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Vì sao không chỉ dùng RNN hoặc state-space model stochastic?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-state-cua-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. State của RSSM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. State của RSSM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-deterministic-transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Deterministic transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-prior-hoac-dynamics-predictor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Prior hoặc dynamics predictor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-posterior-hoac-representation-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Posterior hoặc representation model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-prediction-heads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Prediction heads
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hai-che-o-chay-filtering-va-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Hai chế độ chạy: filtering và imagination
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Hai chế độ chạy: filtering và imagination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filtering-voi-observation-that" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering với observation thật
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imagination-khong-co-observation-tuong-lai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imagination không có observation tương lai
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-hoc-rssm-bang-variational-objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Học RSSM bằng variational objective
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Học RSSM bằng variational objective">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prediction-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prediction loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kl-regularization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KL regularization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elbo-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ELBO interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reparameterization-hoac-straight-through" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reparameterization hoặc straight-through
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-vi-sao-split-deterministicstochastic-giup-long-horizon-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Vì sao split deterministic–stochastic giúp long-horizon prediction?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Vì sao split deterministic–stochastic giúp long-horizon prediction?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deterministic-path-giu-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic path giữ memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-path-tao-information-bottleneck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic path tạo information bottleneck
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior-hoc-cach-bat-chuoc-state-a-uoc-observation-hieu-chinh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior học cách bắt chước state đã được observation hiệu chỉnh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uncertainty-khong-lam-nhieu-toan-bo-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uncertainty không làm nhiễu toàn bộ memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ablation-cua-planet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ablation của PlaNet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-kl-balancing-free-nats-va-stop-gradient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. KL balancing, free nats và stop-gradient
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. KL balancing, free nats và stop-gradient">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kl-balancing-trong-dreamerv2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KL balancing trong DreamerV2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#free-nats-free-bits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Free nats / free bits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cac-failure-mode-cua-kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Các failure mode của KL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-rssm-trong-dreamer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. RSSM trong Dreamer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. RSSM trong Dreamer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latent-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latent imagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rssm-khong-ong-nghia-reconstruction-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RSSM không đồng nghĩa reconstruction-only
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-tien-hoa-tu-planet-en-dreamerv3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Tiến hóa từ PlaNet đến DreamerV3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Tiến hóa từ PlaNet đến DreamerV3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gaussian-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gaussian RSSM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categorical-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categorical RSSM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dreamerv3-stability-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DreamerV3 stability stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-latent-overshooting-va-multi-step-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Latent overshooting và multi-step consistency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-anh-gia-mot-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Đánh giá một RSSM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Đánh giá một RSSM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#posterior-reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Posterior reconstruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priorposterior-gap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior–posterior gap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-loop-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open-loop prediction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-ablation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State ablation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#information-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavior-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior consistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-gioi-han-khi-nao-that-bai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Giới hạn / Khi nào thất bại
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-lien-he-voi-latent-anything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Liên hệ với Latent-Anything
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Liên hệ với Latent-Anything">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-a-introspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer A — Introspection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-b-manipulation-va-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer B — Manipulation và imagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-c-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer C — Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-gaussian-world-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Gaussian world state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lien-quan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Liên quan
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tham-khao" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tham khảo
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-kalman-filter-variants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kalman Filter và các biến thể
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-latent-trajectory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Trajectory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-rollout-latent-imagination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rollout và Latent Imagination
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-trajectory-similarity-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Độ tương đồng Trajectory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_9" id="__nav_9_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/01_markov_property_state_space/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markov Property and State Space — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/02_latent_transition_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Transition Model — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/03_stochastic_transition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stochastic Transition — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/04_rssm_recurrent_state_space_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RSSM — Recurrent State Space Model Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/05_kalman_filter_variants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kalman Filter and Variants — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/06_latent_trajectory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Trajectory — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/07_rollout_latent_imagination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rollout and Latent Imagination — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notebooks/08_trajectory_similarity_metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trajectory Similarity Metrics — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Planning trong Latent Space
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    7. Planning trong Latent Space
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/01-model-based-vs-model-free-rl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model-based vs Model-free RL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/02-reward-model-in-latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward Model trong Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/03-value-function-in-latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Value Function trong Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/04-model-predictive-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Predictive Control (MPC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/05-cross-entropy-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Entropy Method (CEM)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/06-mppi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MPPI — Path Integral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/07-policy-gradient-imagined-dreamer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policy Gradient Imagined (Dreamer)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/08-value-equivalence-muzero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Value Equivalence (MuZero)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/09-mcts-in-latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCTS trong Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/research/10-latent-imagination-horizon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Imagination Horizon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_11" id="__nav_10_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/01_model_based_vs_model_free_rl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model-based vs Model-free RL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/02_reward_model_in_latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward Model in Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/03_value_function_in_latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Value Function in Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/04_model_predictive_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Predictive Control (MPC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/05_cross_entropy_method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Entropy Method (CEM)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/06_mppi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MPPI — Model Predictive Path Integral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/07_policy_gradient_imagined_dreamer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policy Gradient on Imagined Trajectory (Dreamer)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/08_value_equivalence_muzero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Value Equivalence (MuZero)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/09_mcts_in_latent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCTS in Latent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../07-latent-planning/notebooks/10_latent_imagination_horizon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Imagination Horizon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Predict trong Latent, không Decode
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    8. Predict trong Latent, không Decode
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/01-masked-autoencoder-mae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Autoencoder (MAE)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/02-representation-collapse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Representation Collapse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/03-stop-gradient-asymmetric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stop-gradient & Bất đối xứng
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/04-contrastive-learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contrastive Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/05-ema-target-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EMA Target Encoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/06-jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JEPA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/07-i-jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I-JEPA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/08-v-jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V-JEPA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/research/09-latent-vs-pixel-prediction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent vs Pixel Prediction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_11_10" id="__nav_11_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/01_masked_autoencoder_mae/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Autoencoder (MAE) — Visual Intuition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/02_representation_collapse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Representation Collapse — Visual Intuition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/03_stop_gradient_asymmetric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stop-gradient &amp; Asymmetric Architecture — Visual Intuition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/04_contrastive_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contrastive Learning — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/05_ema_target_encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EMA Target Encoder — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/06_jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JEPA — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/07_i_jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I-JEPA - Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/08_v_jepa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V-JEPA - Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../08-latent-prediction/notebooks/09_latent_vs_pixel_prediction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent Prediction vs Pixel Prediction - Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Discrete Latent Space
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    9. Discrete Latent Space
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/01-vector-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/02-commitment-loss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commitment Loss
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/03-ema-codebook-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EMA Codebook Update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/04-codebook-collapse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Codebook Collapse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/05-residual-vq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Residual VQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/06-finite-scalar-quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finite Scalar Quantization (FSQ)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/07-tokenized-world-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tokenized World Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/08-gaia-1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GAIA-1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/research/09-genie/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Genie
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_10" id="__nav_12_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/01_vector_quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector Quantization — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/02_commitment_loss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commitment Loss — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/03_ema_codebook_update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EMA Codebook Update — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/04_codebook_collapse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Codebook Collapse — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/05_residual_vq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Residual Vector Quantization — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/06_finite_scalar_quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finite Scalar Quantization — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/07_tokenized_world_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tokenized World Model — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/08_gaia_1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GAIA-1 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../09-discrete-latent/notebooks/09_genie/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Genie — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. World Models & VLA
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    10. World Models & VLA
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/01-dreamerv1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/02-dreamerv2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/03-dreamerv3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/04-td-mpc2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TD-MPC2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/05-muzero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MuZero
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/06-openvla/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenVLA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/07-pi0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    π0 — Flow Matching VLA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/08-lewm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LeWM — LeWorldModel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/research/09-unisim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UniSim
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_13_10" id="__nav_13_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_13_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/01_dreamerv1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV1 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/02_dreamerv2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV2 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/03_dreamerv3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DreamerV3 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/04_td_mpc2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TD-MPC2 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/05_muzero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MuZero — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/06_openvla/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenVLA — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/07_pi0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    π0 — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/08_lewm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LeWM (LeWorldModel) — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../10-world-models-vla/notebooks/09_unisim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UniSim — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Interpretability & Analysis Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    11. Interpretability & Analysis Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/01-mechanistic-interpretability-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mechanistic Interpretability — Tổng quan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/02-towards-monosemanticity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Towards Monosemanticity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/03-scaling-monosemanticity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scaling Monosemanticity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/04-probing-classifiers-survey/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probing Classifiers — Survey
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/05-umap-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UMAP Theory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/research/06-pacmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PaCMAP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_14_7" id="__nav_14_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_14_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/01_mechanistic_interpretability_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mechanistic Interpretability — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/02_towards_monosemanticity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Towards Monosemanticity — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/03_scaling_monosemanticity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scaling Monosemanticity — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/04_probing_classifiers_survey/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probing Classifiers — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/05_umap_theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UMAP Theory — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../11-interpretability-tools/notebooks/06_pacmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PaCMAP — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Toán học cần thiết
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    12. Toán học cần thiết
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/research/04-optimal-transport-basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optimal Transport cơ bản
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/research/05-lie-groups-and-lie-algebra/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lie groups và Lie algebra
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/research/06-spherical-harmonics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_15_4" id="__nav_15_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_15_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/notebooks/04_optimal_transport_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optimal Transport Basics — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/notebooks/05_lie_groups_and_lie_algebra/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lie Groups and Lie Algebra — Visual Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../12-math-foundations/notebooks/06_spherical_harmonics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spherical Harmonics — the math foundation, visualized
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_16" >
+        
+          
+          <label class="md-nav__link" for="__nav_16" id="__nav_16_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Đa tạp Sinh mẫu & Latent
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_16">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    14. Đa tạp Sinh mẫu & Latent
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../14-generative-denoising-manifold/research/01-jit-denoise-clean-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JiT — Để Denoising thực sự Denoise
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Mục lục">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Mục lục
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-vi-sao-khong-chi-dung-rnn-hoac-state-space-model-stochastic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Vì sao không chỉ dùng RNN hoặc state-space model stochastic?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-state-cua-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. State của RSSM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. State của RSSM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-deterministic-transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Deterministic transition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-prior-hoac-dynamics-predictor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Prior hoặc dynamics predictor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-posterior-hoac-representation-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Posterior hoặc representation model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-prediction-heads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Prediction heads
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hai-che-o-chay-filtering-va-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Hai chế độ chạy: filtering và imagination
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Hai chế độ chạy: filtering và imagination">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filtering-voi-observation-that" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering với observation thật
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imagination-khong-co-observation-tuong-lai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imagination không có observation tương lai
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-hoc-rssm-bang-variational-objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Học RSSM bằng variational objective
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Học RSSM bằng variational objective">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prediction-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prediction loss
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kl-regularization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KL regularization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elbo-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ELBO interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reparameterization-hoac-straight-through" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reparameterization hoặc straight-through
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-vi-sao-split-deterministicstochastic-giup-long-horizon-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Vì sao split deterministic–stochastic giúp long-horizon prediction?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Vì sao split deterministic–stochastic giúp long-horizon prediction?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deterministic-path-giu-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic path giữ memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stochastic-path-tao-information-bottleneck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stochastic path tạo information bottleneck
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior-hoc-cach-bat-chuoc-state-a-uoc-observation-hieu-chinh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior học cách bắt chước state đã được observation hiệu chỉnh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uncertainty-khong-lam-nhieu-toan-bo-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uncertainty không làm nhiễu toàn bộ memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ablation-cua-planet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ablation của PlaNet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-kl-balancing-free-nats-va-stop-gradient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. KL balancing, free nats và stop-gradient
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. KL balancing, free nats và stop-gradient">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kl-balancing-trong-dreamerv2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KL balancing trong DreamerV2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#free-nats-free-bits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Free nats / free bits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cac-failure-mode-cua-kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Các failure mode của KL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-rssm-trong-dreamer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. RSSM trong Dreamer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. RSSM trong Dreamer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latent-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latent imagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rssm-khong-ong-nghia-reconstruction-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RSSM không đồng nghĩa reconstruction-only
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-tien-hoa-tu-planet-en-dreamerv3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Tiến hóa từ PlaNet đến DreamerV3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Tiến hóa từ PlaNet đến DreamerV3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gaussian-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gaussian RSSM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categorical-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categorical RSSM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dreamerv3-stability-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DreamerV3 stability stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-latent-overshooting-va-multi-step-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Latent overshooting và multi-step consistency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-anh-gia-mot-rssm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Đánh giá một RSSM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Đánh giá một RSSM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#posterior-reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Posterior reconstruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priorposterior-gap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior–posterior gap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-loop-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open-loop prediction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-ablation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State ablation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#information-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavior-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior consistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-gioi-han-khi-nao-that-bai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Giới hạn / Khi nào thất bại
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-lien-he-voi-latent-anything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Liên hệ với Latent-Anything
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Liên hệ với Latent-Anything">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-a-introspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer A — Introspection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-b-manipulation-va-imagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer B — Manipulation và imagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-c-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer C — Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-gaussian-world-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Gaussian world state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lien-quan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Liên quan
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tham-khao" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tham khảo
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="rssm-recurrent-state-space-model">RSSM — Recurrent State Space Model<a class="headerlink" href="#rssm-recurrent-state-space-model" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>TL;DR.</strong> RSSM biểu diễn state bằng cặp <span class="arithmatex">\(s_t=(h_t,z_t)\)</span>, trong đó <span class="arithmatex">\(h_t\)</span> là recurrent state tất định giữ memory dài hạn, còn <span class="arithmatex">\(z_t\)</span> là stochastic state nhận thông tin mới và biểu diễn phần bất định. Khi quan sát dữ liệu, posterior <span class="arithmatex">\(q_\phi(z_t\mid h_t,o_t)\)</span> hiệu chỉnh state; khi imagination, prior <span class="arithmatex">\(p_\theta(z_t\mid h_t)\)</span> tự rollout mà không cần observation. Caveat chính là split này không tự bảo đảm world model đúng: posterior collapse, prior kém, reconstruction shortcut và compounding error vẫn có thể làm imagined trajectory sai.</p>
+</blockquote>
+<p><a href="../03-stochastic-transition/">Stochastic Transition</a> mở rộng transition từ một điểm sang phân phối. RSSM đi thêm một bước: không buộc toàn bộ history, uncertainty và thông tin mới phải đi qua cùng một stochastic vector. State được tách thành một đường recurrent tất định và một biến ẩn stochastic, rồi hai phần phối hợp để dự báo observation, reward và tương lai.</p>
+<p>Kiến trúc này được đặt tên trong PlaNet. DreamerV1 dùng RSSM làm world model và thay online planning bằng actor-critic học trên imagined trajectories. DreamerV2 và DreamerV3 tiếp tục giữ khung recurrent-plus-stochastic nhưng thay Gaussian latent bằng categorical latent và bổ sung các kỹ thuật ổn định KL.</p>
+<hr />
+<h2 id="1-vi-sao-khong-chi-dung-rnn-hoac-state-space-model-stochastic"><strong>1. Vì sao không chỉ dùng RNN hoặc state-space model stochastic?</strong><a class="headerlink" href="#1-vi-sao-khong-chi-dung-rnn-hoac-state-space-model-stochastic" title="Permanent link">&para;</a></h2>
+<p>Một recurrent neural network thuần tất định cập nhật hidden state:</p>
+<div class="arithmatex">\[
+h_t=f_\theta(h_{t-1},a_{t-1},e_t),
+\]</div>
+<p>trong đó <span class="arithmatex">\(h_t\)</span> là hidden state, <span class="arithmatex">\(a_{t-1}\)</span> là action trước và <span class="arithmatex">\(e_t\)</span> là embedding của observation hiện tại. Cách này giữ memory tốt, nhưng mỗi history chỉ ánh xạ tới một state duy nhất nên khó biểu diễn nhiều tương lai hoặc uncertainty có cấu trúc.</p>
+<p>Một state-space model thuần stochastic dùng:</p>
+<div class="arithmatex">\[
+z_t\sim p_\theta(z_t\mid z_{t-1},a_{t-1}),
+\qquad
+o_t\sim p_\theta(o_t\mid z_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(z_t\)</span> là stochastic state và <span class="arithmatex">\(o_t\)</span> là observation. Mô hình có thể biểu diễn phân phối tương lai, nhưng toàn bộ memory phải được truyền qua chuỗi sample stochastic; trong thực tế việc tối ưu để một số chiều giữ thông tin gần tất định qua horizon dài có thể khó.</p>
+<p>RSSM kết hợp hai đường:</p>
+<table>
+<thead>
+<tr>
+<th>Kiến trúc</th>
+<th>Memory dài hạn</th>
+<th>Nhiều tương lai / uncertainty</th>
+<th>Điểm yếu chính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RNN thuần tất định</strong></td>
+<td>mạnh</td>
+<td>yếu</td>
+<td>planner có thể khai thác prediction quá tự tin</td>
+</tr>
+<tr>
+<td><strong>SSM thuần stochastic</strong></td>
+<td>khó tối ưu ổn định</td>
+<td>mạnh</td>
+<td>thông tin phải đi qua sampling ở mọi bước</td>
+</tr>
+<tr>
+<td><strong>RSSM</strong></td>
+<td>recurrent state <span class="arithmatex">\(h_t\)</span></td>
+<td>stochastic state <span class="arithmatex">\(z_t\)</span></td>
+<td>training và semantics phức tạp hơn</td>
+</tr>
+</tbody>
+</table>
+<p>PlaNet thực nghiệm thấy cả deterministic path lẫn stochastic path đều quan trọng cho planning. Ý nghĩa của split không phải "phần chắc chắn" và "phần ngẫu nhiên" được tách hoàn hảo theo nghĩa vật lý; đây là inductive bias giúp model có một kênh memory ổn định và một bottleneck xác suất để nhận thông tin mới.</p>
+<hr />
+<h2 id="2-state-cua-rssm"><strong>2. State của RSSM</strong><a class="headerlink" href="#2-state-cua-rssm" title="Permanent link">&para;</a></h2>
+<p>Ký hiệu state tổng hợp:</p>
+<div class="arithmatex">\[
+s_t=(h_t,z_t),
+\]</div>
+<p>trong đó <span class="arithmatex">\(h_t\in\mathbb{R}^{d_h}\)</span> là deterministic recurrent state và <span class="arithmatex">\(z_t\)</span> là stochastic latent state. Decoder, reward head, continuation head, actor và critic thường đọc feature được tạo từ cả hai phần.</p>
+<p>Một bước RSSM chuẩn gồm bốn phép tính.</p>
+<h3 id="21-deterministic-transition">2.1 Deterministic transition<a class="headerlink" href="#21-deterministic-transition" title="Permanent link">&para;</a></h3>
+<p>Recurrent state được cập nhật từ state và action trước:</p>
+<div class="arithmatex">\[
+h_t
+=
+f_\theta(h_{t-1},z_{t-1},a_{t-1}).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(f_\theta\)</span> thường là GRU hoặc recurrent block tương đương. <span class="arithmatex">\(h_t\)</span> nén history của các stochastic state và action trước đó; observation <span class="arithmatex">\(o_t\)</span> chưa được dùng trực tiếp ở bước này.</p>
+<h3 id="22-prior-hoac-dynamics-predictor">2.2 Prior hoặc dynamics predictor<a class="headerlink" href="#22-prior-hoac-dynamics-predictor" title="Permanent link">&para;</a></h3>
+<p>Từ recurrent state, model dự báo phân phối stochastic state:</p>
+<div class="arithmatex">\[
+\hat z_t
+\sim
+p_\theta(z_t\mid h_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(p_\theta\)</span> là prior transition, còn <span class="arithmatex">\(\hat z_t\)</span> là sample dùng khi model tự imagination. Prior không nhìn observation hiện tại nên đây là phân phối phải đủ tốt cho open-loop rollout.</p>
+<h3 id="23-posterior-hoac-representation-model">2.3 Posterior hoặc representation model<a class="headerlink" href="#23-posterior-hoac-representation-model" title="Permanent link">&para;</a></h3>
+<p>Khi có observation thật, encoder tạo embedding:</p>
+<div class="arithmatex">\[
+e_t=\operatorname{Enc}_\phi(o_t),
+\]</div>
+<p>trong đó <span class="arithmatex">\(e_t\)</span> là representation của observation <span class="arithmatex">\(o_t\)</span>. Embedding này cùng <span class="arithmatex">\(h_t\)</span> tham số hóa posterior:</p>
+<div class="arithmatex">\[
+z_t
+\sim
+q_\phi(z_t\mid h_t,e_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(q_\phi\)</span> là approximate posterior hoặc representation model. Posterior được quan sát <span class="arithmatex">\(o_t\)</span> hiệu chỉnh nên thường mang nhiều thông tin hơn prior.</p>
+<h3 id="24-prediction-heads">2.4 Prediction heads<a class="headerlink" href="#24-prediction-heads" title="Permanent link">&para;</a></h3>
+<p>State tổng hợp dự báo các đại lượng cần thiết:</p>
+<div class="arithmatex">\[
+\hat o_t\sim p_\theta(o_t\mid h_t,z_t),
+\qquad
+\hat r_t\sim p_\theta(r_t\mid h_t,z_t),
+\qquad
+\hat c_t\sim p_\theta(c_t\mid h_t,z_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(\hat o_t\)</span>, <span class="arithmatex">\(\hat r_t\)</span> và <span class="arithmatex">\(\hat c_t\)</span> lần lượt là observation, reward và continuation prediction. Continuation <span class="arithmatex">\(c_t\)</span> biểu diễn xác suất episode còn tiếp tục; một số RSSM chỉ có observation và reward head.</p>
+<p>Trong thiết kế PlaNet, observation không đi thẳng vào deterministic path. Thông tin mới phải đi qua posterior sample <span class="arithmatex">\(z_t\)</span> trước khi ảnh hưởng bước recurrent tiếp theo. Ràng buộc này tránh một deterministic shortcut cho phép decoder tái tạo ảnh mà stochastic state bị bỏ qua.</p>
+<hr />
+<h2 id="3-hai-che-o-chay-filtering-va-imagination"><strong>3. Hai chế độ chạy: filtering và imagination</strong><a class="headerlink" href="#3-hai-che-o-chay-filtering-va-imagination" title="Permanent link">&para;</a></h2>
+<p>Cùng một RSSM có hai execution mode khác nhau.</p>
+<h3 id="filtering-voi-observation-that">Filtering với observation thật<a class="headerlink" href="#filtering-voi-observation-that" title="Permanent link">&para;</a></h3>
+<p>Tại mỗi bước dữ liệu:</p>
+<div class="arithmatex">\[
+h_t=f_\theta(h_{t-1},z_{t-1},a_{t-1}),
+\qquad
+z_t\sim q_\phi(z_t\mid h_t,\operatorname{Enc}_\phi(o_t)).
+\]</div>
+<p>Trong đó posterior dùng observation hiện tại để correction. Chuỗi <span class="arithmatex">\((h_t,z_t)\)</span> tạo ra theo cách này thường được gọi là posterior trajectory hoặc observed trajectory.</p>
+<p>Filtering xấp xỉ belief update trong POMDP: <span class="arithmatex">\(h_t\)</span> mang memory hữu hạn chiều, còn distribution của <span class="arithmatex">\(z_t\)</span> biểu diễn phần state được suy luận từ observation mới.</p>
+<h3 id="imagination-khong-co-observation-tuong-lai">Imagination không có observation tương lai<a class="headerlink" href="#imagination-khong-co-observation-tuong-lai" title="Permanent link">&para;</a></h3>
+<p>Sau state khởi đầu, model lặp:</p>
+<div class="arithmatex">\[
+h_{t+1}
+=
+f_\theta(h_t,\hat z_t,a_t),
+\qquad
+\hat z_{t+1}
+\sim
+p_\theta(z_{t+1}\mid h_{t+1}).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(\hat z_t\)</span> là prior sample và action <span class="arithmatex">\(a_t\)</span> đến từ planner hoặc policy. Không có encoder và không có observation correction; toàn bộ trajectory phụ thuộc vào dynamics đã học.</p>
+<table>
+<thead>
+<tr>
+<th>Chế độ</th>
+<th>Stochastic state đến từ</th>
+<th>Có observation correction?</th>
+<th>Dùng cho</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Filtering / posterior</strong></td>
+<td><span class="arithmatex">\(q_\phi(z_t\mid h_t,e_t)\)</span></td>
+<td>có</td>
+<td>state estimation, world-model training</td>
+</tr>
+<tr>
+<td><strong>One-step prediction</strong></td>
+<td><span class="arithmatex">\(p_\theta(z_{t+1}\mid h_{t+1})\)</span></td>
+<td>chưa</td>
+<td>đánh giá dynamics prior</td>
+</tr>
+<tr>
+<td><strong>Open-loop imagination</strong></td>
+<td>prior lặp nhiều bước</td>
+<td>không</td>
+<td>planning, actor-critic, counterfactual rollout</td>
+</tr>
+</tbody>
+</table>
+<p>Khoảng cách giữa posterior và prior là tín hiệu cốt lõi. Posterior có thể dự báo tốt không có nghĩa prior imagination tốt; decoder đẹp trên posterior trajectory vẫn có thể che một transition model yếu.</p>
+<hr />
+<h2 id="4-hoc-rssm-bang-variational-objective"><strong>4. Học RSSM bằng variational objective</strong><a class="headerlink" href="#4-hoc-rssm-bang-variational-objective" title="Permanent link">&para;</a></h2>
+<p>Với posterior trajectory, world model tối ưu prediction loss và regularization giữa posterior với prior.</p>
+<h3 id="prediction-loss">Prediction loss<a class="headerlink" href="#prediction-loss" title="Permanent link">&para;</a></h3>
+<p>Một objective tổng quát là:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{pred}}
+=
+\sum_{t=1}^{T}
+\left[
+-\log p_\theta(o_t\mid h_t,z_t)
+-\log p_\theta(r_t\mid h_t,z_t)
+-\log p_\theta(c_t\mid h_t,z_t)
+\right].
+\]</div>
+<p>Trong đó ba số hạng lần lượt huấn luyện observation, reward và continuation head. Tùy distribution head, negative log-likelihood có thể trở thành MSE, cross-entropy hoặc một transformed regression loss.</p>
+<h3 id="kl-regularization">KL regularization<a class="headerlink" href="#kl-regularization" title="Permanent link">&para;</a></h3>
+<p>Posterior được kéo về prior:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{KL}}
+=
+\sum_{t=1}^{T}
+D_{\mathrm{KL}}
+\left(
+q_\phi(z_t\mid h_t,e_t)
+\;\|\;
+p_\theta(z_t\mid h_t)
+\right).
+\]</div>
+<p>Trong đó KL đo lượng thông tin observation hiện tại đưa vào stochastic state mà prior chưa dự báo được. KL nhỏ khiến prior và posterior nhất quán hơn cho imagination; KL quá mạnh có thể làm posterior bỏ qua observation.</p>
+<p>World-model loss cơ bản:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{model}}
+=
+\mathcal{L}_{\text{pred}}
++
+\beta\mathcal{L}_{\text{KL}},
+\]</div>
+<p>trong đó <span class="arithmatex">\(\beta\)</span> điều chỉnh trade-off giữa state giàu thông tin và state dễ dự báo. Đây là sequential analogue của <a href="../../../02-representation-learning/research/03-vae/">VAE</a>: reconstruction/prediction giữ thông tin, còn KL tạo prior có thể sample.</p>
+<h3 id="elbo-interpretation">ELBO interpretation<a class="headerlink" href="#elbo-interpretation" title="Permanent link">&para;</a></h3>
+<p>Bỏ reward và continuation để đơn giản, objective tương ứng với negative evidence lower bound:</p>
+<div class="arithmatex">\[
+\log p_\theta(o_{1:T}\mid a_{1:T-1})
+\ge
+\sum_{t=1}^{T}
+\mathbb{E}_{q_\phi}
+\left[
+\log p_\theta(o_t\mid h_t,z_t)
+\right]
+-
+\sum_{t=1}^{T}
+D_{\mathrm{KL}}(q_\phi(z_t\mid h_t,e_t)\|p_\theta(z_t\mid h_t)).
+\]</div>
+<p>Trong đó vế phải gồm expected observation likelihood và KL theo thời gian. Tối đa hóa cận dưới đồng thời học representation posterior, transition prior và decoder.</p>
+<h3 id="reparameterization-hoac-straight-through">Reparameterization hoặc straight-through<a class="headerlink" href="#reparameterization-hoac-straight-through" title="Permanent link">&para;</a></h3>
+<p>DreamerV1 dùng Gaussian stochastic state:</p>
+<div class="arithmatex">\[
+z_t
+=
+\mu_\phi(h_t,e_t)
++
+\sigma_\phi(h_t,e_t)\odot\epsilon_t,
+\qquad
+\epsilon_t\sim\mathcal{N}(0,I).
+\]</div>
+<p>Trong đó reparameterization cho phép gradient đi qua posterior sample. DreamerV2/V3 dùng nhiều biến categorical và straight-through estimator: forward pass dùng one-hot sample, backward pass truyền gradient qua probability vector xấp xỉ.</p>
+<hr />
+<h2 id="5-vi-sao-split-deterministicstochastic-giup-long-horizon-prediction"><strong>5. Vì sao split deterministic–stochastic giúp long-horizon prediction?</strong><a class="headerlink" href="#5-vi-sao-split-deterministicstochastic-giup-long-horizon-prediction" title="Permanent link">&para;</a></h2>
+<h3 id="deterministic-path-giu-memory">Deterministic path giữ memory<a class="headerlink" href="#deterministic-path-giu-memory" title="Permanent link">&para;</a></h3>
+<p><span class="arithmatex">\(h_t\)</span> có thể mang thông tin qua nhiều bước mà không phải sample lại. Ví dụ object tạm thời ra khỏi camera vẫn có thể được recurrent state ghi nhớ cho tới khi xuất hiện lại.</p>
+<h3 id="stochastic-path-tao-information-bottleneck">Stochastic path tạo information bottleneck<a class="headerlink" href="#stochastic-path-tao-information-bottleneck" title="Permanent link">&para;</a></h3>
+<p><span class="arithmatex">\(z_t\)</span> là nơi observation mới đi vào dynamics. KL giới hạn lượng thông tin mới, khuyến khích model tận dụng memory từ <span class="arithmatex">\(h_t\)</span> và chỉ encode residual mà prior chưa biết.</p>
+<h3 id="prior-hoc-cach-bat-chuoc-state-a-uoc-observation-hieu-chinh">Prior học cách bắt chước state đã được observation hiệu chỉnh<a class="headerlink" href="#prior-hoc-cach-bat-chuoc-state-a-uoc-observation-hieu-chinh" title="Permanent link">&para;</a></h3>
+<p>Posterior đóng vai trò target giàu thông tin. KL huấn luyện prior dự báo distribution của posterior chỉ từ history và action, nhờ đó model có thể tiếp tục khi observation tương lai bị bỏ đi.</p>
+<h3 id="uncertainty-khong-lam-nhieu-toan-bo-memory">Uncertainty không làm nhiễu toàn bộ memory<a class="headerlink" href="#uncertainty-khong-lam-nhieu-toan-bo-memory" title="Permanent link">&para;</a></h3>
+<p>Các yếu tố cần giữ ổn định có thể đi qua <span class="arithmatex">\(h_t\)</span>, còn event khó đoán được biểu diễn qua <span class="arithmatex">\(z_t\)</span>. Đây là lợi thế tối ưu thực dụng, không phải bảo đảm disentanglement: model vẫn có thể đặt thông tin "ngẫu nhiên" vào <span class="arithmatex">\(h_t\)</span> hoặc information dài hạn vào <span class="arithmatex">\(z_t\)</span> nếu loss cho phép.</p>
+<h3 id="ablation-cua-planet">Ablation của PlaNet<a class="headerlink" href="#ablation-cua-planet" title="Permanent link">&para;</a></h3>
+<p>PlaNet so sánh RSSM với GRU thuần tất định và SSM thuần stochastic trên sáu control tasks từ pixel. Kết quả cho thấy deterministic path giúp nhớ thông tin qua nhiều bước, còn stochastic component đặc biệt quan trọng dưới partial observability và dynamics khó dự báo.</p>
+<p>Không nên đọc ablation này thành định luật rằng mọi task đều cần RSSM. Với state thật đầy đủ và dynamics gần tất định, residual deterministic model có thể đơn giản và hiệu quả hơn. RSSM có giá trị khi observation là high-dimensional, history quan trọng và open-loop rollout cần một latent prior có cấu trúc.</p>
+<hr />
+<h2 id="6-kl-balancing-free-nats-va-stop-gradient"><strong>6. KL balancing, free nats và stop-gradient</strong><a class="headerlink" href="#6-kl-balancing-free-nats-va-stop-gradient" title="Permanent link">&para;</a></h2>
+<p>KL chuẩn có thể giảm theo hai hướng:</p>
+<ul>
+<li>prior tốt hơn, tiến gần posterior;</li>
+<li>posterior ít thông tin hơn, tiến gần prior.</li>
+</ul>
+<p>Hai hướng không có giá trị như nhau cho imagination. Nếu posterior tăng entropy hoặc collapse chỉ để giảm KL, prior chưa chắc học dynamics tốt hơn.</p>
+<h3 id="kl-balancing-trong-dreamerv2">KL balancing trong DreamerV2<a class="headerlink" href="#kl-balancing-trong-dreamerv2" title="Permanent link">&para;</a></h3>
+<p>KL được tách bằng stop-gradient:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{dyn}}
+=
+D_{\mathrm{KL}}
+\left(
+\operatorname{sg}(q_\phi)
+\;\|\;
+p_\theta
+\right),
+\qquad
+\mathcal{L}_{\text{rep}}
+=
+D_{\mathrm{KL}}
+\left(
+q_\phi
+\;\|\;
+\operatorname{sg}(p_\theta)
+\right).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(\operatorname{sg}\)</span> là stop-gradient. <span class="arithmatex">\(\mathcal{L}_{\text{dyn}}\)</span> chỉ cập nhật prior theo posterior cố định, còn <span class="arithmatex">\(\mathcal{L}_{\text{rep}}\)</span> chỉ regularize posterior theo prior cố định.</p>
+<p>Hai loss được cân bằng:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{KL-balanced}}
+=
+\alpha\mathcal{L}_{\text{dyn}}
++
+(1-\alpha)\mathcal{L}_{\text{rep}},
+\]</div>
+<p>trong đó <span class="arithmatex">\(\alpha\)</span> lớn hơn ưu tiên học prior dynamics thay vì làm posterior mất thông tin. DreamerV2 báo cáo KL balancing tốt hơn KL chuẩn trên phần lớn Atari tasks trong ablation của paper.</p>
+<h3 id="free-nats-free-bits">Free nats / free bits<a class="headerlink" href="#free-nats-free-bits" title="Permanent link">&para;</a></h3>
+<p>Để tránh regularization bóp stochastic state trước khi prediction heads học đủ, KL có thể được clip dưới một ngưỡng:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{free}}
+=
+\max(\tau,\mathcal{L}_{\text{KL}}),
+\]</div>
+<p>trong đó <span class="arithmatex">\(\tau\)</span> là lượng thông tin miễn phí, đo bằng nat hoặc bit. Khi KL đã thấp hơn <span class="arithmatex">\(\tau\)</span>, gradient regularization tạm dừng và model tập trung cải thiện prediction.</p>
+<p>DreamerV3 dùng dynamics loss và representation loss tách riêng với stop-gradient, rồi áp dụng free bits cho từng loss. Paper dùng ngưỡng 1 nat và thêm một lượng nhỏ uniform probability vào categorical distributions để tránh chúng trở nên gần deterministic, gây KL spike.</p>
+<h3 id="cac-failure-mode-cua-kl">Các failure mode của KL<a class="headerlink" href="#cac-failure-mode-cua-kl" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Failure mode</th>
+<th>Dấu hiệu</th>
+<th>Nguyên nhân thường gặp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Posterior collapse</strong></td>
+<td><span class="arithmatex">\(q\approx p\)</span>, latent không mang observation</td>
+<td>KL quá mạnh, decoder quá khỏe</td>
+</tr>
+<tr>
+<td><strong>Prior lag</strong></td>
+<td>posterior reconstruction tốt, imagination kém</td>
+<td>prior học chậm hơn encoder</td>
+</tr>
+<tr>
+<td><strong>KL spike</strong></td>
+<td>loss và gradient tăng đột ngột</td>
+<td>categorical probability gần 0/1, distribution quá sắc</td>
+</tr>
+<tr>
+<td><strong>Information leak</strong></td>
+<td>decoder tốt nhưng stochastic state vô dụng</td>
+<td>observation đi qua shortcut ngoài bottleneck</td>
+</tr>
+<tr>
+<td><strong>Over-regularization</strong></td>
+<td>chi tiết task-relevant biến mất</td>
+<td>representation loss quá mạnh</td>
+</tr>
+</tbody>
+</table>
+<p>Vì vậy chỉ theo dõi tổng ELBO là chưa đủ. Cần log riêng prediction loss, dynamics KL, representation KL, prior entropy, posterior entropy và usage của từng stochastic dimension/category.</p>
+<hr />
+<h2 id="7-rssm-trong-dreamer"><strong>7. RSSM trong Dreamer</strong><a class="headerlink" href="#7-rssm-trong-dreamer" title="Permanent link">&para;</a></h2>
+<p>RSSM là world model; Dreamer là cách dùng world model đó để học behavior.</p>
+<p>Quy trình Dreamer có ba giai đoạn lặp:</p>
+<ol>
+<li>Thu thập trajectory thật và lưu vào replay buffer.</li>
+<li>Học RSSM cùng observation, reward và continuation heads trên sequence batch.</li>
+<li>Bắt đầu từ posterior states trong batch, rollout prior bằng policy và học actor-critic trên imagined trajectories.</li>
+</ol>
+<h3 id="latent-imagination">Latent imagination<a class="headerlink" href="#latent-imagination" title="Permanent link">&para;</a></h3>
+<p>Actor tạo action từ model state:</p>
+<div class="arithmatex">\[
+a_t\sim\pi_\psi(a_t\mid h_t,z_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(\pi_\psi\)</span> là policy có tham số <span class="arithmatex">\(\psi\)</span>. RSSM dùng action này để tạo prior state tiếp theo mà không decode image.</p>
+<p>Reward và continuation được dự báo:</p>
+<div class="arithmatex">\[
+\hat r_t=r_\theta(h_t,z_t),
+\qquad
+\hat c_t=c_\theta(h_t,z_t).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(\hat r_t\)</span> và <span class="arithmatex">\(\hat c_t\)</span> cung cấp tín hiệu return trên imagined trajectory. Critic học value trên cùng latent feature.</p>
+<p>DreamerV1 truyền analytic gradient qua differentiable dynamics và value predictions để cập nhật actor. Điểm quan trọng cho RSSM là actor-critic tiêu thụ <strong>prior imagined states</strong>, không phải posterior states luôn được observation sửa lỗi. World model vì thế phải được đánh giá ở chế độ open-loop mà behavior learning thực sự dùng.</p>
+<p>World-model parameters thường không được actor-critic cập nhật trực tiếp trong bước behavior learning. Việc tách objective ngăn policy làm biến dạng latent dynamics chỉ để tăng imagined return.</p>
+<h3 id="rssm-khong-ong-nghia-reconstruction-only">RSSM không đồng nghĩa reconstruction-only<a class="headerlink" href="#rssm-khong-ong-nghia-reconstruction-only" title="Permanent link">&para;</a></h3>
+<p>Observation decoder cung cấp dense training signal, nhưng reward và continuation heads cũng định hình state. Nếu decoder dành capacity cho texture không liên quan, representation có thể tốt về pixel nhưng yếu cho control. Nếu bỏ decoder hoàn toàn, cần objective khác chống collapse và bảo toàn task-relevant information.</p>
+<p><strong>Latent imagination (mục sau)</strong> sẽ đi sâu vào rollout và cost. Ở đây điểm cốt lõi là RSSM tạo một simulator stateful có thể chuyển từ posterior filtering sang prior-only imagination.</p>
+<hr />
+<h2 id="8-tien-hoa-tu-planet-en-dreamerv3"><strong>8. Tiến hóa từ PlaNet đến DreamerV3</strong><a class="headerlink" href="#8-tien-hoa-tu-planet-en-dreamerv3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Stochastic state</th>
+<th>Cách dùng world model</th>
+<th>Kỹ thuật nổi bật</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PlaNet</strong></td>
+<td>Gaussian</td>
+<td>CEM planning online</td>
+<td>RSSM, latent overshooting</td>
+</tr>
+<tr>
+<td><strong>DreamerV1</strong></td>
+<td>Gaussian</td>
+<td>actor-critic bằng latent imagination</td>
+<td>analytic gradients qua imagined trajectories</td>
+</tr>
+<tr>
+<td><strong>DreamerV2</strong></td>
+<td>categorical</td>
+<td>actor-critic trên Atari và continuous control</td>
+<td>straight-through, KL balancing</td>
+</tr>
+<tr>
+<td><strong>DreamerV3</strong></td>
+<td>categorical</td>
+<td>một cấu hình trên nhiều domain</td>
+<td>dynamics/representation loss, free bits, symlog/two-hot predictions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gaussian-rssm">Gaussian RSSM<a class="headerlink" href="#gaussian-rssm" title="Permanent link">&para;</a></h3>
+<p>Gaussian state có reparameterization đơn giản và phù hợp với smooth continuous dynamics. Giới hạn chính là prior Gaussian đơn khó khớp aggregate posterior đa mode.</p>
+<h3 id="categorical-rssm">Categorical RSSM<a class="headerlink" href="#categorical-rssm" title="Permanent link">&para;</a></h3>
+<p>DreamerV2 dùng một vector gồm nhiều categorical variables. Một sample được flatten thành sparse one-hot feature; paper dùng 32 categorical variables, mỗi biến có 32 classes. Đây là lựa chọn implementation của DreamerV2/V3, không phải yêu cầu định nghĩa RSSM.</p>
+<p>Categorical latent phù hợp với event không trơn như đổi room, item biến mất hoặc contact regime thay đổi. DreamerV2 đưa ra một số giả thuyết cho lợi ích này, nhưng không khẳng định một giải thích duy nhất.</p>
+<h3 id="dreamerv3-stability-stack">DreamerV3 stability stack<a class="headerlink" href="#dreamerv3-stability-stack" title="Permanent link">&para;</a></h3>
+<p>DreamerV3 giữ RSSM categorical và thêm các kỹ thuật scale ổn định giữa domain:</p>
+<ul>
+<li>symlog transform cho đại lượng có dynamic range lớn;</li>
+<li>two-hot regression cho reward và value;</li>
+<li>dynamics loss và representation loss tách bằng stop-gradient;</li>
+<li>free bits để tránh over-regularization;</li>
+<li>uniform mixing để categorical distribution không quá sắc;</li>
+<li>normalization và percentile-based return scaling trong behavior learning.</li>
+</ul>
+<p>Các kỹ thuật này thuộc full DreamerV3 agent, không phải tất cả đều là thành phần bắt buộc của RSSM.</p>
+<hr />
+<h2 id="9-latent-overshooting-va-multi-step-consistency"><strong>9. Latent overshooting và multi-step consistency</strong><a class="headerlink" href="#9-latent-overshooting-va-multi-step-consistency" title="Permanent link">&para;</a></h2>
+<p>One-step KL chỉ huấn luyện prior tại <span class="arithmatex">\(t+1\)</span> từ posterior state tại <span class="arithmatex">\(t\)</span>. Trong open-loop rollout, prior phải ăn sample do chính nó sinh ra nhiều bước liên tiếp.</p>
+<p>PlaNet định nghĩa multi-step prior:</p>
+<div class="arithmatex">\[
+p_\theta(z_t\mid z_{t-d},a_{t-d:t-1})
+=
+\int
+\prod_{k=t-d+1}^{t}
+p_\theta(z_k\mid h_k)
+\;dz_{t-d+1:t-1},
+\]</div>
+<p>trong đó <span class="arithmatex">\(d\)</span> là overshooting distance và các state trung gian được marginalize hoặc xấp xỉ bằng sample. Distribution này dự báo <span class="arithmatex">\(z_t\)</span> từ một state cách <span class="arithmatex">\(d\)</span> bước mà không dùng observation trung gian.</p>
+<p>Latent overshooting thêm KL:</p>
+<div class="arithmatex">\[
+\mathcal{L}_{\text{over}}
+=
+\sum_{t}
+\sum_{d=2}^{D}
+\lambda_d
+D_{\mathrm{KL}}
+\left(
+\operatorname{sg}(q_\phi(z_t\mid h_t,e_t))
+\;\|\;
+p_\theta(z_t\mid z_{t-d},a_{t-d:t-1})
+\right).
+\]</div>
+<p>Trong đó <span class="arithmatex">\(D\)</span> là horizon tối đa, <span class="arithmatex">\(\lambda_d\)</span> là trọng số và posterior target được stop-gradient. Loss ép multi-step prior khớp state đã được observation hiệu chỉnh mà không cần decode thêm image cho mọi overshooting path.</p>
+<p>PlaNet báo cáo một số dynamics model hưởng lợi từ latent overshooting, nhưng RSSM cuối cùng của họ không bắt buộc kỹ thuật này để đạt kết quả chính. Vì vậy overshooting là regularizer tùy chọn, không phải phần định nghĩa RSSM.</p>
+<hr />
+<h2 id="10-anh-gia-mot-rssm"><strong>10. Đánh giá một RSSM</strong><a class="headerlink" href="#10-anh-gia-mot-rssm" title="Permanent link">&para;</a></h2>
+<h3 id="posterior-reconstruction">Posterior reconstruction<a class="headerlink" href="#posterior-reconstruction" title="Permanent link">&para;</a></h3>
+<p>Đo observation/reward prediction khi <span class="arithmatex">\(z_t\)</span> đến từ posterior. Đây là kiểm tra encoder và heads, nhưng chưa đánh giá prior imagination đầy đủ.</p>
+<h3 id="priorposterior-gap">Prior–posterior gap<a class="headerlink" href="#priorposterior-gap" title="Permanent link">&para;</a></h3>
+<p>Theo dõi KL, distance giữa prior/posterior mean, category agreement hoặc decoded difference. Gap lớn cho thấy observation liên tục phải sửa những gì dynamics không dự báo được.</p>
+<h3 id="open-loop-prediction">Open-loop prediction<a class="headerlink" href="#open-loop-prediction" title="Permanent link">&para;</a></h3>
+<p>Cung cấp vài context frames, sau đó chuyển sang prior-only rollout. Báo cáo prediction quality theo horizon, reward error, continuation calibration và latent support drift.</p>
+<h3 id="state-ablation">State ablation<a class="headerlink" href="#state-ablation" title="Permanent link">&para;</a></h3>
+<p>So full RSSM với:</p>
+<ul>
+<li>bỏ stochastic state;</li>
+<li>bỏ deterministic state;</li>
+<li>dùng posterior mean thay sample;</li>
+<li>randomize hoặc zero một phần <span class="arithmatex">\(h_t\)</span>;</li>
+<li>giảm history context.</li>
+</ul>
+<p>Ablation giúp xác định model thực sự dùng memory và uncertainty hay chỉ dựa vào shortcut.</p>
+<h3 id="information-usage">Information usage<a class="headerlink" href="#information-usage" title="Permanent link">&para;</a></h3>
+<p>Với Gaussian, theo dõi active dimensions, posterior variance và KL per dimension. Với categorical, theo dõi entropy, class usage và dead categories. KL thấp không tự động tốt nếu stochastic state đã collapse.</p>
+<h3 id="behavior-consistency">Behavior consistency<a class="headerlink" href="#behavior-consistency" title="Permanent link">&para;</a></h3>
+<p>Nếu RSSM phục vụ control, đo correlation giữa imagined return và return thật, action ranking, constraint violations và policy performance khi thay đổi imagination horizon. Decoder đẹp nhưng xếp sai action vẫn là world model kém.</p>
+<hr />
+<h2 id="11-gioi-han-khi-nao-that-bai"><strong>11. Giới hạn / Khi nào thất bại</strong><a class="headerlink" href="#11-gioi-han-khi-nao-that-bai" title="Permanent link">&para;</a></h2>
+<p><strong>Posterior tốt, prior yếu.</strong> Observation correction có thể giữ trajectory đúng trong training, trong khi prior drift nhanh khi imagination. Đây là failure mode quan trọng nhất vì actor và planner dùng prior.</p>
+<p><strong>Posterior collapse.</strong> Decoder hoặc recurrent state giải thích dữ liệu mà không cần <span class="arithmatex">\(z_t\)</span>. KL gần zero nhưng stochastic path không mang uncertainty hay thông tin mới.</p>
+<p><strong>Deterministic shortcut.</strong> Nếu observation embedding đi thẳng vào <span class="arithmatex">\(h_t\)</span> hoặc decoder, reconstruction không còn ép stochastic bottleneck hoạt động.</p>
+<p><strong>Recurrent state che uncertainty.</strong> <span class="arithmatex">\(h_t\)</span> là một điểm tất định. Nếu model nhét nhiều hypothesis chưa được resolve vào cùng hidden vector, uncertainty semantics của <span class="arithmatex">\(z_t\)</span> trở nên khó diễn giải.</p>
+<p><strong>Unimodal Gaussian không đủ.</strong> DreamerV1 RSSM vẫn chịu giới hạn của Gaussian đơn trước transition đa mode. Categorical latent giúp một số domain nhưng distribution factorized vẫn không biểu diễn mọi dependency.</p>
+<p><strong>Categorical state mất geometry liên tục.</strong> One-hot representation thuận lợi cho event rời rạc nhưng interpolation, metric và covariance không còn tự nhiên như Gaussian latent.</p>
+<p><strong>KL objective không đồng nghĩa calibrated uncertainty.</strong> Prior/posterior khớp nhau có thể cùng sai hoặc quá tự tin. RSSM không tự mô hình hóa epistemic uncertainty ngoài vùng dữ liệu.</p>
+<p><strong>Compounding error.</strong> Recurrent memory không loại bỏ distribution shift giữa posterior training và prior rollout. Error trong cả <span class="arithmatex">\(h_t\)</span> và <span class="arithmatex">\(z_t\)</span> có thể tích lũy.</p>
+<p><strong>Reconstruction giữ nuisance.</strong> Pixel decoder có thể ép state dành capacity cho texture, lighting hoặc background không liên quan tới reward.</p>
+<p><strong>Task-oriented heads bỏ thông tin.</strong> Ngược lại, representation chỉ tối ưu reward/value hiện tại có thể không còn phù hợp cho task mới, visualization hoặc transfer.</p>
+<p><strong>Long sequence optimization vẫn khó.</strong> Truncated backpropagation, gradient clipping, state reset và batch chunking ảnh hưởng memory học được. RSSM có recurrent path không có nghĩa model tận dụng được dependency tùy ý dài.</p>
+<p><strong>Action distribution shift.</strong> Policy học trong imagination có thể tìm action mà world model dự báo quá lạc quan. RSSM không tự giải quyết model exploitation.</p>
+<p><strong>Structured world state khó đóng gói.</strong> Một vector <span class="arithmatex">\(z_t\)</span> và GRU state có thể không giữ identity, permutation và cardinality của object/Gaussian set qua thời gian.</p>
+<hr />
+<h2 id="12-lien-he-voi-latent-anything"><strong>12. Liên hệ với Latent-Anything</strong><a class="headerlink" href="#12-lien-he-voi-latent-anything" title="Permanent link">&para;</a></h2>
+<p>RSSM đặt ra một state schema giàu hơn một tensor latent:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">state</span> <span class="o">=</span> <span class="n">RSSMState</span><span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">deterministic</span><span class="o">=</span><span class="n">h_t</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">stochastic</span><span class="o">=</span><span class="n">z_t</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">source</span><span class="o">=</span><span class="s2">&quot;posterior&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span>
+</code></pre></div>
+<p>Một RSSM adapter cần tách ít nhất:</p>
+<ul>
+<li><code>deterministic</code>: recurrent memory <span class="arithmatex">\(h_t\)</span>;</li>
+<li><code>stochastic</code>: sample <span class="arithmatex">\(z_t\)</span>;</li>
+<li><code>stochastic_params</code>: Gaussian hoặc categorical parameters;</li>
+<li><code>source</code>: <code>posterior</code> hay <code>prior</code>;</li>
+<li><code>observation_embedding</code>: nếu cần audit representation model;</li>
+<li>recurrent cache, reset mask và continuation semantics;</li>
+<li>RNG state cho stochastic rollout.</li>
+</ul>
+<p>Interface nên phân biệt ba operation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">posterior_state</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">previous_state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">observation</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">prior_prediction</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">previous_state</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">imagined</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">imagine</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
+</code></pre></div>
+<p><code>observe</code> thực hiện filtering bằng posterior; <code>predict</code> trả prior distribution; <code>imagine</code> rollout prior-only. Nếu cùng gọi chung là <code>step</code>, caller dễ vô tình dùng posterior trong benchmark rollout hoặc dùng prior khi đang cần correction từ sensor.</p>
+<h3 id="layer-a-introspection">Layer A — Introspection<a class="headerlink" href="#layer-a-introspection" title="Permanent link">&para;</a></h3>
+<p>Layer A có thể:</p>
+<ul>
+<li>so prior và posterior theo thời gian;</li>
+<li>visualize KL, entropy và active latent units;</li>
+<li>tìm đoạn observation correction lớn;</li>
+<li>kiểm tra memory bằng hidden-state ablation;</li>
+<li>đo posterior-to-prior switch drift;</li>
+<li>phát hiện categorical collapse hoặc Gaussian inactive dimensions.</li>
+</ul>
+<h3 id="layer-b-manipulation-va-imagination">Layer B — Manipulation và imagination<a class="headerlink" href="#layer-b-manipulation-va-imagination" title="Permanent link">&para;</a></h3>
+<p>Layer B dùng RSSM state để rollout action sequence, edit stochastic state, giữ hoặc reset deterministic memory và tạo counterfactual trajectory. Manipulation phải khai báo tác động lên phần nào: đổi <span class="arithmatex">\(z_t\)</span> nhưng giữ <span class="arithmatex">\(h_t\)</span> có thể tạo cặp state không từng xuất hiện trong training.</p>
+<h3 id="layer-c-runtime">Layer C — Runtime<a class="headerlink" href="#layer-c-runtime" title="Permanent link">&para;</a></h3>
+<p>Layer C cần batch recurrent state theo particle/action candidate, giữ reset mask cho episode boundary, quản lý RNG và cache decoder-independent rollout. Với Dreamer-style behavior learning, hàng nghìn imagined states được sinh mà không decode pixel; runtime không nên materialize observation prediction trừ khi diagnostic yêu cầu.</p>
+<h3 id="structured-gaussian-world-state">Structured Gaussian world state<a class="headerlink" href="#structured-gaussian-world-state" title="Permanent link">&para;</a></h3>
+<p>Với <a href="../../../03b-3d-representation/research/10-gaussian-parameters-latent-variable/">Gaussian Parameters là Latent Variable</a>, RSSM có thể dùng:</p>
+<ul>
+<li><span class="arithmatex">\(h_t\)</span> làm global scene memory;</li>
+<li><span class="arithmatex">\(z_t\)</span> làm stochastic global code;</li>
+<li>một Gaussian set làm structured spatial state;</li>
+<li>posterior update để thêm thông tin từ camera mới.</li>
+</ul>
+<p>Tuy nhiên, một global GRU không tự giải quyết correspondence giữa Gaussian primitives. Adapter cần khai báo liệu deterministic memory nằm ở scene level, object level hay per-primitive, và stochastic sample có geometry nào.</p>
+<p>Mục tiếp theo, <strong>Kalman filter và variants</strong>, cung cấp trường hợp tuyến tính-Gaussian có belief update giải tích. RSSM có thể được xem như nonlinear learned filter, nhưng posterior của nó là amortized inference chứ không phải Bayes update chính xác.</p>
+<hr />
+<h2 id="lien-quan">Liên quan<a class="headerlink" href="#lien-quan" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../01-markov-property-state-space/">Markov Property và State Space</a> — RSSM xấp xỉ belief state khi observation riêng lẻ không Markov.</li>
+<li><a href="../02-latent-transition-model/">Latent Transition Model</a> — cung cấp deterministic rollout, training horizon và diagnostics mà RSSM mở rộng bằng recurrent memory.</li>
+<li><a href="../03-stochastic-transition/">Stochastic Transition</a> — giải thích prior/posterior distribution, reparameterization và uncertainty semantics của <span class="arithmatex">\(z_t\)</span>.</li>
+<li><a href="../../../02-representation-learning/research/03-vae/">VAE</a> — nền tảng ELBO, KL và stochastic bottleneck cho variational sequence model.</li>
+<li><a href="../../../02-representation-learning/research/01-information-bottleneck/">Information Bottleneck</a> — KL giới hạn lượng thông tin observation mới đi vào state.</li>
+<li><a href="../../../04-latent-computation/research/06-density-estimation/">Density Estimation trong Latent</a> — bổ sung support diagnostics khi prior imagination rời vùng posterior states.</li>
+<li><a href="../../../03b-3d-representation/research/10-gaussian-parameters-latent-variable/">Gaussian Parameters là Latent Variable</a> — ví dụ structured state cần RSSM schema vượt ra ngoài vector phẳng.</li>
+</ul>
+<h2 id="tham-khao">Tham khảo<a class="headerlink" href="#tham-khao" title="Permanent link">&para;</a></h2>
+<ul>
+<li>J. Chung, K. Kastner, L. Dinh, K. Goel, A. Courville, Y. Bengio, <em>A Recurrent Latent Variable Model for Sequential Data</em> (NeurIPS 2015, arXiv:1506.02216).</li>
+<li>M. Karl, M. Soelch, J. Bayer, P. van der Smagt, <em>Deep Variational Bayes Filters: Unsupervised Learning of State Space Models from Raw Data</em> (ICLR 2017, arXiv:1605.06432).</li>
+<li>R. G. Krishnan, U. Shalit, D. Sontag, <em>Structured Inference Networks for Nonlinear State Space Models</em> (AAAI 2017, arXiv:1609.09869).</li>
+<li>L. Buesing, T. Weber, S. Racaniere, S. M. A. Eslami, D. Rezende, D. P. Reichert, F. Viola, F. Besse, K. Gregor, D. Hassabis, D. Wierstra, <em>Learning and Querying Fast Generative Models for Reinforcement Learning</em> (arXiv 2018, arXiv:1802.03006).</li>
+<li>D. Hafner, T. Lillicrap, I. Fischer, R. Villegas, D. Ha, H. Lee, J. Davidson, <em>Learning Latent Dynamics for Planning from Pixels</em> (ICML 2019, arXiv:1811.04551).</li>
+<li>D. Hafner, T. Lillicrap, J. Ba, M. Norouzi, <em>Dream to Control: Learning Behaviors by Latent Imagination</em> (ICLR 2020, arXiv:1912.01603).</li>
+<li>D. Hafner, T. Lillicrap, M. Norouzi, J. Ba, <em>Mastering Atari with Discrete World Models</em> (ICLR 2021, arXiv:2010.02193).</li>
+<li>D. Hafner, J. Pasukonis, J. Ba, T. Lillicrap, <em>Mastering Diverse Domains through World Models</em> (arXiv 2023, arXiv:2301.04104).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Trở lại mục lục
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/triet4p/latent-anything" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0110\u00e3 sao ch\u00e9p", "clipboard.copy": "Sao ch\u00e9p v\u00e0o b\u1ed9 nh\u1edb t\u1ea1m", "search.result.more.one": "1 t\u1eeb kh\u00e1c trong trang", "search.result.more.other": "# t\u1eeb kh\u00e1c trong trang", "search.result.none": "Kh\u00f4ng t\u00ecm th\u1ea5y t\u00e0i li\u1ec7u li\u00ean quan", "search.result.one": "1 t\u00e0i li\u1ec7u li\u00ean quan", "search.result.other": "# t\u00e0i li\u1ec7u li\u00ean quan", "search.result.placeholder": "Nh\u1eadp \u0111\u1ec3 b\u1eaft \u0111\u1ea7u t\u00ecm ki\u1ebfm", "search.result.term.missing": "Kh\u00f4ng", "select.version": "Ch\u1ecdn phi\u00ean b\u1ea3n"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
