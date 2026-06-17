@@ -27,7 +27,7 @@ class TestLatentSpaceInit:
         space = LatentSpace(dim=16, metadata=meta)
         assert space.metadata == meta
         # Ensure we keep our own copy
-        meta["extra"] = True
+        meta["extra"] = True  # type: ignore[assignment]
         assert "extra" not in space.metadata
 
     def test_shape_property(self) -> None:

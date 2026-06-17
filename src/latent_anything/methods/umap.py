@@ -15,9 +15,9 @@ class UMAP(_MethodBase):
     Stateful method: call ``fit`` to learn the transformation, then
     ``transform`` to apply it. Input and output are numpy arrays.
 
-    This is a concrete hardcoded implementation wrapping ``umap-learn``.
-    It will be generalized to the ``_MethodBase`` interface alongside PCA
-    (Rule of Three, see INCREMENTAL.md §4a).
+    Conforms to the ``Method`` Protocol (structural duck-typing) via the
+    internal ``_MethodBase`` convenience base. This is Method #2 (nonlinear,
+    stochastic, manifold-learning).
 
     Parameters
     ----------

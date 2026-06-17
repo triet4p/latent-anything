@@ -1,12 +1,9 @@
-"""UNSTABLE — internal base shape for stateful dimensionality-reduction methods.
+"""Internal convenience base backed by the frozen ``Method`` Protocol.
 
-.. warning::
-    Do **not** depend on this class. It is a tentative shared shape sketched
-    when instance #2 (UMAP) landed alongside instance #1 (PCA), following
-    the Rule of Three (INCREMENTAL.md §4a). It will be **replaced** when
-    Method #3 (a different philosophy) arrives in Sprint 6. The underscore
-    prefix means it is **internal** — not part of the public API, not in
-    ``__all__``, and not exported from the top-level package.
+Provides ``fit_transform`` as a default implementation for subclasses.
+This is an internal convenience — all public API surface is the ``Method``
+Protocol. Classes conform to ``Method`` via structural duck-typing, not
+inheritance.
 """
 
 from __future__ import annotations
@@ -15,14 +12,14 @@ import numpy as np
 
 
 class _MethodBase:  # pyright: ignore[reportUnusedClass]
-    """Tentative internal base for stateful dimensionality-reduction methods.
+    """Internal convenience base backed by the frozen ``Method`` Protocol.
 
     Provides the ``fit_transform`` convenience method (calling ``fit`` then
     ``transform``). Subclasses must implement ``fit`` and ``transform``.
 
-    This shape is **unstable** and will be replaced when a third method with
-    a different philosophy appears (Sprint 6). Do not add ``save``/``load``
-    or any other abstraction yet.
+    This class is **internal** — not part of the public API, not in
+    ``__all__``. The public API is the ``Method`` Protocol. Subclasses
+    conform to ``Method`` via structural duck-typing.
     """
 
     def fit(self, data: np.ndarray) -> None:

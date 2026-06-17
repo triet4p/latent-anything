@@ -16,9 +16,9 @@ class PCA(_MethodBase):
     Stateful method: call ``fit`` to learn the transformation, then
     ``transform`` to apply it. Input and output are numpy arrays.
 
-    This is a concrete hardcoded implementation wrapping scikit-learn's PCA.
-    It has been migrated to the internal ``_MethodBase`` shape alongside
-    UMAP (Rule of Three instance #2, see INCREMENTAL.md §4a).
+    Conforms to the ``Method`` Protocol (structural duck-typing) via the
+    internal ``_MethodBase`` convenience base. This is Method #1 (linear,
+    matrix decomposition).
 
     Parameters
     ----------

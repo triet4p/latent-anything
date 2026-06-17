@@ -96,3 +96,16 @@ A chronological log of *why* key choices were made in this project.
 - Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
 
 **Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 6 (SAE addition).
+
+## [2026-06-17] Sprint 6 Round 3 — ADR reconciliation: all three pending ADRs remain pending
+
+**Decision:** The three 2026-06-16 ADRs (geometry-keyed `LatentSpace`, 3-mode `ModelAdapter`, geometry-dispatch) all remain **`pending`** after Sprint 6 Round 3. This increment added SAE (Method #3, neural/trained, encoder/decoder with L1 sparsity), froze the `Method` Protocol, migrated PCA/UMAP docstrings to note conformance, and promoted `Method` to the public surface — but touched no geometry-keying, metric dispatch, or model adapter concerns.
+
+**Evidence considered:** The Sprint 6 code — `Method` Protocol in `protocols.py`, SAE torch-based implementation, PCA/UMAP docstring updates, `_MethodBase` docstring update from UNSTABLE to frozen-backing. None of these exercise the geometry-variant logic, metric dispatch, or model adapter concerns that the ADRs describe.
+
+**Status update:** `pending` (no change). Expected validation trigger:
+- `LatentSpace` geometry-keyed ADR: Sprint 9 (geometry case #2, unit-norm/spherical).
+- `ModelAdapter` 3-mode ADR: Sprint 7 (VAE adapter #1).
+- Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
+
+**Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 7 (VAE adapter).
