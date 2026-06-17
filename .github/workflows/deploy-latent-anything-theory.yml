@@ -15,8 +15,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      MPLBACKEND: Agg
 
     steps:
       - name: Checkout
@@ -45,6 +43,44 @@ jobs:
               --ExecutePreprocessor.timeout=600 \
               "$notebook"
           done
+
+      - name: Verify notebook image outputs
+        run: |
+          uv run --project latent-anything-theory --group dev python - <<'PY'
+          import json
+          from pathlib import Path
+
+          missing_images = []
+          for notebook in Path("latent-anything-theory").rglob("*.ipynb"):
+              if "notebooks" not in notebook.parts:
+                  continue
+
+              data = json.loads(notebook.read_text(encoding="utf-8"))
+              code_cells = [
+                  cell for cell in data.get("cells", [])
+                  if cell.get("cell_type") == "code"
+              ]
+              has_matplotlib_show = any(
+                  "plt.show(" in "".join(cell.get("source", []))
+                  for cell in code_cells
+              )
+              has_png_output = any(
+                  "image/png" in output.get("data", {})
+                  for cell in code_cells
+                  for output in cell.get("outputs", [])
+              )
+
+              if has_matplotlib_show and not has_png_output:
+                  missing_images.append(str(notebook))
+
+          if missing_images:
+              print("Notebooks with plt.show() but no image/png outputs:")
+              for notebook in missing_images:
+                  print(f"- {notebook}")
+              raise SystemExit(1)
+
+          print("Notebook image outputs verified.")
+          PY
 
       - name: Build MkDocs site
         run: uv run --project latent-anything-theory --group dev mkdocs build --strict
