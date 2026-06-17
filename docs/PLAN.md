@@ -9,7 +9,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [ ] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13).
 
 ## Active Sprints
-* [Sprint 6](sprint-plans/sprint-6.md) - *Status: Not Started* — Layer A: thêm SAE (Method #3 khác triết lý) → **freeze `Method` interface**, migrate PCA+UMAP (Round 3).
+* [Sprint 7](sprint-plans/sprint-7.md) - *Status: In Progress* — Adapter VAE (ModelAdapter #1, explicit learned latent), end-to-end (Round 4).
 
 ## Completed Sprints
 * [Sprint 1](sprint-plans/sprint-1.md) - *Status: Completed* — Hoàn tất tầng 11 + 2 mục tầng 12.
@@ -17,12 +17,12 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [Sprint 3](sprint-plans/sprint-3.md) - *Status: Completed* — Scaffold package `latent_anything` + tooling/CI (Round 0).
 * [Sprint 4](sprint-plans/sprint-4.md) - *Status: Completed* — Increment đầu: `LatentSpace`+`Trajectory`+PCA hardcoded, end-to-end (Round 1).
 * [Sprint 5](sprint-plans/sprint-5.md) - *Status: Completed* — Layer A: UMAP (Method #2) + phác `_MethodBase` unstable internal (Round 2).
+* [Sprint 6](sprint-plans/sprint-6.md) - *Status: Completed* — Layer A: SAE (Method #3) + freeze `Method` Protocol (Round 3).
 
 ## Backlog / Future Work
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Chỉ chi tiết hóa thành sprint file khi tới lượt — tránh thiết kế trước cái code chưa lộ ra.*
 
-**Giai đoạn 1 (tiếp theo Sprint 6):**
-* Sprint 7 — Adapter VAE (own training, explicit learned latent — ModelAdapter #1) (Round 4).
+**Giai đoạn 1 (tiếp theo Sprint 7):**
 * Sprint 8 — Adapter VLA (pretrained — ModelAdapter #2), phác `ModelAdapter` shape tạm (Round 5).
 * Sprint 9 — Geometry case #2 (unit-norm/spherical) → validate/đảo ADR `LatentSpace` + ADR geometry-dispatch (Round 6).
 

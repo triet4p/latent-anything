@@ -4,6 +4,10 @@
 
 ### Added
 
+- VAE (Variational Autoencoder) adapter — ModelAdapter #1 (mode i: explicit learned latent), torch-based with `encode`/`decode`/`latent_space` and all-numpy public surface. Trains from scratch on [0,1]-scaled data with MSE + KL divergence loss. (#sprint-7)
+- `adapters` sub-package (`src/latent_anything/adapters/`) — namespace for model adapter implementations, sibling to `methods/`. Not exported from top-level `__init__.py`. (#sprint-7)
+- End-to-end demo script `scripts/end_to_end_vae_demo.py` — synthetic cluster data → VAE training → encode → LatentSpace → Trajectory → PCA + UMAP → 2×2 matplotlib visualization (original, reconstruction, PCA latent, UMAP latent). First pipeline exercising ALL Layer A primitives together. (#sprint-7)
+- Test suite: 23 VAE tests covering construction, `hidden_dim` heuristic, `latent_space` property, fit/loss, encode/decode shape invariants, error cases, roundtrip reconstruction, and `random_state` reproducibility. (#sprint-7)
 - SAE (Sparse Autoencoder) dimensionality reduction method — Method #3 with fundamentally different philosophy (gradient-descent training, L1 sparsity, encoder/decoder architecture), torch-based with all-numpy public surface. (#sprint-6)
 - `Method` Protocol — frozen structural `typing.Protocol` defining `fit(data: np.ndarray) -> None` / `transform(data: np.ndarray) -> np.ndarray`, promoted to public surface as third core primitive. (#sprint-6)
 - End-to-end demo script `scripts/end_to_end_sae_demo.py` — synthetic latent → Trajectory → SAE training → sparse feature projection → side-by-side PCA vs UMAP vs SAE 2D visualization with matplotlib. (#sprint-6)

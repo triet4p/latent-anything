@@ -109,3 +109,16 @@ A chronological log of *why* key choices were made in this project.
 - Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
 
 **Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 7 (VAE adapter).
+
+## [2026-06-17] Sprint 7 Round 4 — ADR reconciliation: VAE confirms mode (i) of 3-mode `ModelAdapter` ADR, ADR remains pending
+
+**Decision:** The VAE adapter (ModelAdapter #1, explicit learned latent, mode i) confirms that the 3-mode `ModelAdapter` ADR's mode (i) — explicit learned latent with `encode`/`decode`/`latent_space` — is real and useful. The ADR stays **`pending`** (not `validated`) because modes (ii) no-explicit-latent (JiT/LLM hidden states) and (iii) deterministic-renderer (3DGS/LeWM) remain untested. The other two ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) were not exercised by this increment.
+
+**Evidence considered:** The Sprint 7 code — VAE adapter with `encode` (returns latent mean), `decode` (sigmoid reconstruction), `latent_space` property returning `LatentSpace(dim=..., source_model="vae")`. The VAE cleanly exercises mode (i): a learned encoder maps data to a bottleneck, a learned decoder maps back, and the latent space is an explicit lower-dimensional representation. This is the simplest case among the three modes.
+
+**Status update:**
+- `ModelAdapter` 3-mode ADR: `pending` → `pending` (mode i confirmed, 2 of 3 modes untested). Expected full validation: Sprint 8 (VLA — may exercise mode ii) + future sprint (3DGS — mode iii).
+- `LatentSpace` geometry-keyed ADR: `pending` (no change). Expected validation: Sprint 9 (geometry case #2, unit-norm/spherical).
+- Geometry-dispatch ADR: `pending` (no change). Expected validation: Sprint 9–12 (when third Layer-B method lands).
+
+**Consequences:** VAE reinforces that `encode`/`decode`/`latent_space` is a viable shape for the `ModelAdapter` interface, but the ADR is not yet confirmed general. No Protocol/ABC should be created until at least 2 modes are proven (per Rule of Three). Next re-evaluation at Sprint 8 (VLA adapter).
