@@ -1,0 +1,65 @@
+[project]
+name = "latent-anything"
+version = "0.1.0"
+description = "Latent Understanding, Manipulation & Execution Network — a Python framework that treats latent space as a first-class object"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = { text = "MIT" }
+authors = [
+    { name = "latent-anything contributors" },
+]
+dependencies = [
+    "numpy>=2.0,<3.0",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "ARG",  # flake8-unused-arguments
+]
+ignore = [
+    "B905",  # zip()-without-explicit-strict — allow when strict is not needed
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+include = ["src"]
+exclude = ["**/__pycache__"]
+pythonVersion = "3.12"
+pythonPlatform = "All"
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.155.3",
+    "pyright>=1.1.410",
+    "pytest>=9.1.0",
+    "ruff>=0.15.17",
+]

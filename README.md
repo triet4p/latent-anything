@@ -16,12 +16,12 @@ latent-anything sits as a horizontal tooling layer for anyone working with laten
 
 ## Installation
 
-> Package not yet published. Clone and install locally:
+> Package not yet published. Clone and install locally using [uv](https://docs.astral.sh/uv/):
 
 ```bash
 git clone <repo-url>
 cd latent-anything
-pip install -e .
+uv sync
 ```
 
 ## Quick Start
@@ -29,19 +29,29 @@ pip install -e .
 ```python
 import latent_anything
 
-# Coming soon
+print(latent_anything.__version__)
+# 0.1.0
 ```
 
 ## Project Structure
 
 ```
 latent-anything/
-├── docs/               # Architecture, theory, and design docs
+├── src/
+│   └── latent_anything/   # Main framework package (src-layout)
+│       └── __init__.py
+├── tests/                 # Test suite mirroring src/
+│   ├── conftest.py
+│   └── test_latent_anything/
+├── docs/                  # Architecture, theory, and design docs
 │   ├── IDEA.md
 │   ├── ARCHITECTURE.md
 │   ├── THEORY.md
 │   └── INDEX.md
-├── .agents/            # Agent rules, skills, and memory
+├── latent-anything-theory/ # Standalone theory research sub-project
+├── .agents/               # Agent rules, skills, and memory
+├── .github/workflows/     # CI / deployment workflows
+├── pyproject.toml         # Package config (ruff, pyright, pytest)
 └── CHANGELOG.md
 ```
 

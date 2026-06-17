@@ -48,3 +48,14 @@ Never commit:
 - IDE/editor config (`.vscode/`, `.idea/`) unless agreed upon by the team
 
 Ensure a `.gitignore` covers these before the first commit in any new sub-project.
+
+## Theory deployment
+
+The deploy workflow (`.github/workflows/deploy-latent-anything-theory.yml`) triggers **only** on:
+
+1. **Push tag** matching `theory-v*` — e.g., `git tag theory-v0.2.0 && git push origin theory-v0.2.0`.
+2. **Manual dispatch** via GitHub UI — for emergency or pre-release testing.
+
+Do **not** deploy theory content by pushing to `main` alone. Tag-based deployment is intentional — it gives a final review checkpoint before content goes live on GitHub Pages.
+
+**Tag naming convention for theory:** `theory-v<major>.<minor>.<patch>` (e.g., `theory-v0.1.0`, `theory-v0.2.0`). Tags follow [Semantic Versioning](https://semver.org/) independently of the main framework package version.

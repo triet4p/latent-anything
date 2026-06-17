@@ -29,7 +29,7 @@ For scripts that are independent of any sub-project, do **not** use the sub-proj
 ```python
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
 #     "requests<3",
 #     "rich",
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
 - **Linter / formatter:** `ruff` — run `ruff check` and `ruff format` before committing. Never leave lint errors unresolved.
 - **Type checker:** `pyright` in strict mode. All public APIs must pass without errors.
-- **Minimum Python version:** 3.11.
+- **Minimum Python version:** 3.12.
 
 ## Type annotations
 

@@ -2,11 +2,8 @@ name: Deploy Latent-Anything Theory to GitHub Pages
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "latent-anything-theory/**"
-      - "mkdocs.yml"
-      - ".github/workflows/deploy-latent-anything-theory.yml"
+    tags:
+      - "theory-v*"
   workflow_dispatch:
 
 permissions:
