@@ -10,7 +10,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 
 ## Active Sprints
 * [Sprint 3](sprint-plans/sprint-3.md) - *Status: Not Started* — Scaffold package `latent_anything` + tooling/CI (Round 0).
-* [Sprint 4](sprint-plans/sprint-4.md) - *Status: Not Started* — Increment đầu: `LatentSpace`+`Trajectory`+PCA hardcoded, end-to-end (Round 1).
+* [Sprint 4](sprint-plans/sprint-4.md) - *Status: Completed* — Increment đầu: `LatentSpace`+`Trajectory`+PCA hardcoded, end-to-end (Round 1).
 
 ## Completed Sprints
 * [Sprint 1](sprint-plans/sprint-1.md) - *Status: Completed* — Hoàn tất tầng 11 + 2 mục tầng 12.

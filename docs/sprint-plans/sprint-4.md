@@ -6,15 +6,15 @@ Increment đầu tiên (Round 1): `LatentSpace` (euclidean flat) + `Trajectory` 
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Task 1: `LatentSpace` concrete class — chỉ euclidean flat vector (`dim`, `geometry="euclidean"`, metadata model nguồn). Public surface là `numpy`.
-- [ ] Task 2: `Trajectory` concrete class — immutable, giữ sequence latent state (numpy); trajectory một-điểm hợp lệ; ops tối thiểu (`len`, indexing/slice trả về `Trajectory` mới, `to_numpy`).
-- [ ] Task 3: PCA method concrete class — stateful (`fit`/`transform`), dùng `scikit-learn` internal, in/out `numpy`.
-- [ ] Task 4: Đường đi end-to-end (script hoặc notebook): latent tổng hợp → `Trajectory` → PCA `fit` → projection 2D.
-- [ ] Task 5: Visualization 2D của projection (`matplotlib` static, hoặc `plotly` interactive).
-- [ ] Task 6: Tests — pytest cho `LatentSpace`; `hypothesis` cho tính immutable/slice của `Trajectory`; roundtrip/shape của PCA.
-- [ ] Task 7: `ruff check` + `ruff format` + `pyright` strict sạch.
-- [ ] Task 8: Áp Rule of Three §4a — ghi quyết định "giữ hardcoded, chưa tạo `Method` interface" + artifact summary (skill `implement-atomic-task`).
-- [ ] Task 9: Đối chiếu ADR §4c — ghi ADR `LatentSpace` vẫn `pending` (mới chạm euclidean) + entry `CHANGELOG.md`.
+- [x] Task 1: `LatentSpace` concrete class — chỉ euclidean flat vector (`dim`, `geometry="euclidean"`, metadata model nguồn). Public surface là `numpy`.
+- [x] Task 2: `Trajectory` concrete class — immutable, giữ sequence latent state (numpy); trajectory một-điểm hợp lệ; ops tối thiểu (`len`, indexing/slice trả về `Trajectory` mới, `to_numpy`).
+- [x] Task 3: PCA method concrete class — stateful (`fit`/`transform`), dùng `scikit-learn` internal, in/out `numpy`.
+- [x] Task 4: Đường đi end-to-end (script hoặc notebook): latent tổng hợp → `Trajectory` → PCA `fit` → projection 2D.
+- [x] Task 5: Visualization 2D của projection (`matplotlib` static, hoặc `plotly` interactive).
+- [x] Task 6: Tests — pytest cho `LatentSpace`; `hypothesis` cho tính immutable/slice của `Trajectory`; roundtrip/shape của PCA.
+- [x] Task 7: `ruff check` + `ruff format` + `pyright` strict sạch.
+- [x] Task 8: Áp Rule of Three §4a — ghi quyết định "giữ hardcoded, chưa tạo `Method` interface" + artifact summary (skill `implement-atomic-task`).
+- [x] Task 9: Đối chiếu ADR §4c — ghi ADR `LatentSpace` vẫn `pending` (mới chạm euclidean) + entry `CHANGELOG.md`.
 
 ## Notes / Blockers
 * Phụ thuộc Sprint 3 (package + tooling phải xong trước).

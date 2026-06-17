@@ -70,3 +70,16 @@ A chronological log of *why* key choices were made in this project.
 **Reason:** The root-level location makes `import latent_anything` natural and discoverable in a standard Python project. The src-layout prevents import confusion between the repo root and installed package. The theory sub-project (`latent-anything-theory/`) has a different purpose (research + notebooks) and a separate Python version requirement (3.13 vs ≥3.11), so keeping them as separate uv projects is cleaner than nesting them in a monorepo.
 
 **Consequences:** All CI, tooling, and docs must reference `src/latent_anything/` as the package root. The theory sub-project remains independently installable and maintainable. Reversing this would require relocating all source files and updating every path in pyproject.toml, CI, and documentation.
+
+## [2026-06-17] Sprint 4 Round 1 — ADR reconciliation: all three pending ADRs remain pending
+
+**Decision:** The three 2026-06-16 ADRs (geometry-keyed `LatentSpace`, 3-mode `ModelAdapter`, geometry-dispatch) all remain **`pending`** after Sprint 4 Round 1. This increment implemented the simplest euclidean flat case only (Method #1, LatentSpace #1) and did not exercise geometry keying, metric dispatch, or the `ModelAdapter` interface at all. No ADR is confirmed or refuted yet.
+
+**Evidence considered:** The Sprint 4 code — `LatentSpace` with hardcoded `geometry="euclidean"`, `Trajectory` as immutable numpy sequence, PCA wrapping sklearn. None of these touch the geometry-variant logic, metric dispatch, or model adapter concerns that the ADRs describe.
+
+**Status update:** `pending` (no change). Expected validation trigger:
+- `LatentSpace` geometry-keyed ADR: Sprint 9 (geometry case #2, unit-norm/spherical).
+- `ModelAdapter` 3-mode ADR: Sprint 7 (VAE adapter #1).
+- Geometry-dispatch ADR: Sprint 9–12 (when third Layer-B method lands).
+
+**Consequences:** No reversal or migration needed. Next re-evaluation at Sprint 5 (UMAP addition).

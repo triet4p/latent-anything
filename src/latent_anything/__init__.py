@@ -13,4 +13,9 @@ Plugin-first architecture with three pillars:
   profiling.
 """
 
+from latent_anything.latent_space import LatentSpace as LatentSpace
+from latent_anything.trajectory import Trajectory as Trajectory
+
 __version__ = "0.1.0"
+
+__all__ = ["LatentSpace", "Trajectory"]
