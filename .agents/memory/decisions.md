@@ -122,3 +122,18 @@ A chronological log of *why* key choices were made in this project.
 - Geometry-dispatch ADR: `pending` (no change). Expected validation: Sprint 9–12 (when third Layer-B method lands).
 
 **Consequences:** VAE reinforces that `encode`/`decode`/`latent_space` is a viable shape for the `ModelAdapter` interface, but the ADR is not yet confirmed general. No Protocol/ABC should be created until at least 2 modes are proven (per Rule of Three). Next re-evaluation at Sprint 8 (VLA adapter).
+
+## [2026-06-17] Sprint 8 Round 5 — ADR reconciliation: all three pending ADRs remain pending; `_ModelAdapterBase` shape sketched UNSTABLE
+
+**Decision:** The three 2026-06-16 ADRs (geometry-keyed `LatentSpace`, 3-mode `ModelAdapter`, geometry-dispatch) all remain **`pending`** after Sprint 8 Round 5. This increment added RandomProjection (ModelAdapter #2, stateless/fixed-weight) and sketched the internal `_ModelAdapterBase` shape (marked UNSTABLE), but touched no geometry-keying, metric dispatch, or new model-adapter modes.
+
+**Rule of Three §4a outcome:** Instance #2 → sketch shared shape (`_ModelAdapterBase` with `encode`, `decode`, `latent_space`), marked UNSTABLE, NOT public. `fit` deliberately excluded (VAE-specific). Not promoted to public surface.
+
+**Evidence considered:** The Sprint 8 code — RandomProjection with pure numpy fixed-weight projection matrix, no `fit` method, `encode` (data @ W.T), `decode` (latent @ W), `latent_space` returning `LatentSpace(dim=latent_dim, source_model="random_projection")`. `_ModelAdapterBase` as internal ABC with only `encode`/`decode`/`latent_space`. None of these exercise geometry-variant logic, metric dispatch, or new model-adapter modes (ii) or (iii).
+
+**Status update:**
+- `ModelAdapter` 3-mode ADR: `pending` → `pending` (mode i confirmed by VAE, modes ii and iii untested). The RandomProjection confirms the stateless/pretrained pattern exists but is still mode i-like (encode projects to explicit latent, decode projects back). Expected full validation: future sprint with mode ii (JiT/LLM hidden states) + mode iii (3DGS/LeWM deterministic renderer).
+- `LatentSpace` geometry-keyed ADR: `pending` (no change). Expected validation: Sprint 9 (geometry case #2, unit-norm/spherical).
+- Geometry-dispatch ADR: `pending` (no change). Expected validation: Sprint 9–12 (when third Layer-B method lands).
+
+**Consequences:** RandomProjection proves that a `ModelAdapter` can work with pure numpy (no torch dependency) and without a `fit` step, reinforcing the shared `encode`/`decode`/`latent_space` surface while proving `fit` is genuinely VAE-specific. The internal `_ModelAdapterBase` shape is deliberately unstable and not public. The 3-mode ADR stays pending because only mode (i) is confirmed. Next re-evaluation at Sprint 9 (geometry case #2).

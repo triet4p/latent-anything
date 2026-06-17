@@ -4,6 +4,10 @@
 
 ### Added
 
+- RandomProjection adapter — ModelAdapter #2 (fixed-weight/stateless, pretrained pattern), pure numpy with Johnson-Lindenstrauss-style random Gaussian projection matrix, `encode`/`decode`/`latent_space`, no `fit` method. (#sprint-8)
+- Internal `_ModelAdapterBase` ABC sketching the shared ModelAdapter shape (`encode`/`decode`/`latent_space`), marked UNSTABLE and not part of the public surface. `fit` deliberately excluded (VAE-specific). (#sprint-8)
+- End-to-end demo script `scripts/end_to_end_random_projection_demo.py` — synthetic cluster data → RandomProjection encode → LatentSpace → Trajectory → PCA/UMAP → 1×3 matplotlib visualization (PCA original, PCA latent, UMAP latent) demonstrating JL distance preservation. (#sprint-8)
+- Test suite: 24 RandomProjection tests covering construction, projection matrix normalisation, encode/decode shapes and error cases, roundtrip, reproducibility (same/different seeds), and approximate Johnson-Lindenstrauss distance preservation. (#sprint-8)
 - VAE (Variational Autoencoder) adapter — ModelAdapter #1 (mode i: explicit learned latent), torch-based with `encode`/`decode`/`latent_space` and all-numpy public surface. Trains from scratch on [0,1]-scaled data with MSE + KL divergence loss. (#sprint-7)
 - `adapters` sub-package (`src/latent_anything/adapters/`) — namespace for model adapter implementations, sibling to `methods/`. Not exported from top-level `__init__.py`. (#sprint-7)
 - End-to-end demo script `scripts/end_to_end_vae_demo.py` — synthetic cluster data → VAE training → encode → LatentSpace → Trajectory → PCA + UMAP → 2×2 matplotlib visualization (original, reconstruction, PCA latent, UMAP latent). First pipeline exercising ALL Layer A primitives together. (#sprint-7)

@@ -5,6 +5,12 @@ latent space via the ``latent_space`` property. This is the first
 ModelAdapter instance in the latent-anything framework, demonstrating
 mode (i): explicit learned latent, with a learned encoder and decoder.
 
+Conforms to the shared internal shape sketched in ``_ModelAdapterBase``
+(``encode``, ``decode``, ``latent_space``), but does NOT inherit from it
+— ``fit`` is VAE-specific and not part of the universal adapter surface.
+The ``_ModelAdapterBase`` shape is UNSTABLE and will be replaced when
+ModelAdapter #3 lands.
+
 All public input/output is ``numpy.ndarray``. PyTorch is used internally
 but never leaked to callers.
 """

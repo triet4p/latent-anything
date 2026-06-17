@@ -6,26 +6,26 @@ Increment thứ tư (Round 4): thêm **VAE adapter** (ModelAdapter #1 — explic
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [x] Task 1: Create `src/latent_anything/adapters/` package with `__init__.py`. This is the new adapters namespace parallel to `methods/`.
-- [x] Task 2: Implement `VAE` concrete class in `src/latent_anything/adapters/vae.py` — torch-based Variational Autoencoder with:
+- [ ] Task 1: Create `src/latent_anything/adapters/` package with `__init__.py`. This is the new adapters namespace parallel to `methods/`.
+- [ ] Task 2: Implement `VAE` concrete class in `src/latent_anything/adapters/vae.py` — torch-based Variational Autoencoder with:
   - Encoder: `input_dim → hidden_dim → mu (latent_dim) + logvar (latent_dim)`
   - Reparameterization trick: `z = mu + exp(0.5 * logvar) * epsilon`
   - Decoder: `latent_dim → hidden_dim → input_dim`
   - Training: `fit(data)` via gradient descent with reconstruction loss (MSE) + KL divergence
   - `encode(data: np.ndarray) -> np.ndarray` — encode to latent mean (numpy)
   - `decode(latent: np.ndarray) -> np.ndarray` — decode from latent (numpy)
-  - `latent_space` property → `LatentSpace(dim=latent_dim, source_model="vae")`
+  - `latent_space` property → `LatentSpace(dim=latent_dim, geometry="euclidean", source_model="vae")`
   - Constructor: `input_dim`, `latent_dim`, `hidden_dim` (optional, defaults to heuristic), `learning_rate`, `n_epochs`, `random_state`
   - All public I/O is `numpy.ndarray`; torch conversion at boundary only
-- [x] Task 3: Export `VAE` from `src/latent_anything/adapters/__init__.py`. Do NOT export from top-level `__init__.py` — `ModelAdapter` is not yet a frozen public primitive. The `adapters` sub-package is accessible via `from latent_anything.adapters import VAE`.
-- [x] Task 4: End-to-end demo script `scripts/end_to_end_vae_demo.py` — synthetic data generation (e.g., noisy sine waves, MNIST-like digits, or structured clusters) → VAE training → encode to latent → `LatentSpace` → `Trajectory` → PCA 2D projection + UMAP 2D embedding → side-by-side visualization (original data reconstruction + latent space structure). Show: reconstruction quality, latent space clustering.
-- [x] Task 5: Visualization — matplotlib 2×2 grid: (1) original data sample, (2) VAE reconstruction, (3) PCA of encoded latents colored by class, (4) UMAP of encoded latents colored by class. Demonstrates the full adapter→method pipeline.
-- [x] Task 6: Tests — pytest for `VAE` class: construction defaults, encode/decode shape invariants, `latent_space` property returns correct `LatentSpace`, reconstruction sanity (loss decreases over training), encode-then-decode roundtrip produces similar output, `random_state` reproducibility, error cases (wrong input dim, unfitted encode). Target: ~12–14 tests. (Delivered: 23 tests.)
-- [x] Task 7: Tooling gate — `ruff check` + `ruff format` + `pyright` strict clean across all new and changed files. Verify `torch` stays internal (no `torch.Tensor` in any public signature — `encode`, `decode`, `latent_space`, `fit`).
-- [x] Task 8: Rule of Three §4a — ghi artifact summary: "ModelAdapter #1 (VAE, explicit learned latent) → stay hardcoded. No ModelAdapter Protocol/ABC. This is instance #1 of a new primitive; interface extraction happens at instance #3 per §4a." (skill `implement-atomic-task`).
-- [x] Task 9: ADR check §4c — VAE touches the "ModelAdapter 3-mode" ADR (exercise mode i: explicit learned latent). The ADR remains `pending` (only 1 of 3 modes proven). Append entry to `decisions.md` noting: "VAE confirms mode (i) — explicit learned latent — is real and useful. ADR not yet `validated` because modes (ii) no-explicit-latent and (iii) deterministic-renderer remain untested."
-- [x] Task 10: Update `CHANGELOG.md` `[Unreleased]` — add VAE adapter, adapters package, and demo entries under `Added`.
-- [x] Task 11: Update `docs/PLAN.md` — mark Sprint 6 complete, Sprint 7 active, remove Sprint 7 from backlog.
+- [ ] Task 3: Export `VAE` from `src/latent_anything/adapters/__init__.py`. Do NOT export from top-level `__init__.py` — `ModelAdapter` is not yet a frozen public primitive. The `adapters` sub-package is accessible via `from latent_anything.adapters import VAE`.
+- [ ] Task 4: End-to-end demo script `scripts/end_to_end_vae_demo.py` — synthetic data generation (e.g., noisy sine waves, MNIST-like digits, or structured clusters) → VAE training → encode to latent → `LatentSpace` → `Trajectory` → PCA 2D projection + UMAP 2D embedding → side-by-side visualization (original data reconstruction + latent space structure). Show: reconstruction quality, latent space clustering.
+- [ ] Task 5: Visualization — matplotlib 2×2 grid: (1) original data sample, (2) VAE reconstruction, (3) PCA of encoded latents colored by class, (4) UMAP of encoded latents colored by class. Demonstrates the full adapter→method pipeline.
+- [ ] Task 6: Tests — pytest for `VAE` class: construction defaults, encode/decode shape invariants, `latent_space` property returns correct `LatentSpace`, reconstruction sanity (loss decreases over training), encode-then-decode roundtrip produces similar output, `random_state` reproducibility, error cases (wrong input dim, unfitted encode). Target: ~12–14 tests.
+- [ ] Task 7: Tooling gate — `ruff check` + `ruff format` + `pyright` strict clean across all new and changed files. Verify `torch` stays internal (no `torch.Tensor` in any public signature — `encode`, `decode`, `latent_space`, `fit`).
+- [ ] Task 8: Rule of Three §4a — ghi artifact summary: "ModelAdapter #1 (VAE, explicit learned latent) → stay hardcoded. No ModelAdapter Protocol/ABC. This is instance #1 of a new primitive; interface extraction happens at instance #3 per §4a." (skill `implement-atomic-task`).
+- [ ] Task 9: ADR check §4c — VAE touches the "ModelAdapter 3-mode" ADR (exercise mode i: explicit learned latent). The ADR remains `pending` (only 1 of 3 modes proven). Append entry to `decisions.md` noting: "VAE confirms mode (i) — explicit learned latent — is real and useful. ADR not yet `validated` because modes (ii) no-explicit-latent and (iii) deterministic-renderer remain untested."
+- [ ] Task 10: Update `CHANGELOG.md` `[Unreleased]` — add VAE adapter, adapters package, and demo entries under `Added`.
+- [ ] Task 11: Update `docs/PLAN.md` — mark Sprint 6 complete, Sprint 7 active, remove Sprint 7 from backlog.
 
 ## Rule-of-Three checkpoint (to verify at end)
 | Check | Status |
@@ -59,7 +59,7 @@ Training: torch.optim.Adam, n_epochs
 - Data must be scaled to [0,1] before calling `fit` (documented in docstring)
 
 ## Notes / Blockers
-* ~~Phụ thuộc Sprint 6 (SAE + frozen `Method` Protocol phải xong).~~ ✓ Đã hoàn tất Sprint 6.
+* Phụ thuộc Sprint 6 (SAE + frozen `Method` Protocol phải xong). ✓ Đã hoàn tất.
 * **New primitive, new package.** `src/latent_anything/adapters/` is a sibling to `methods/`, not a sub-package. This is intentional: `ModelAdapter` is a separate core primitive from `Method`.
 * **Do NOT create a `ModelAdapter` Protocol.** Instance #1 stays hardcoded. The Protocol/ABC only appears at instance #3 (Sprint 8+). This is the same discipline we applied to `Method` (stay hardcoded at Sprint 4, sketch at Sprint 5, freeze at Sprint 6).
 * `torch` is already a dependency (from Sprint 6). VAE reuses it — no new dependency needed.
