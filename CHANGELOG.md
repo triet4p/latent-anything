@@ -4,6 +4,14 @@
 
 ### Added
 
+- Spherical geometry (`unit_norm`) as geometry case #2 for `LatentSpace` — validates the geometry-keyed and geometry-dispatch ADRs with real code. `geometry` moved from class-level constant to instance-level parameter, validated at construction. (#sprint-9)
+- `LatentSpace.distance(a, b) -> float` — dispatches on `self.geometry`: Euclidean (`||a-b||`) or angular (`arccos`). (#sprint-9)
+- `LatentSpace.interpolate(a, b, t) -> np.ndarray` — dispatches on `self.geometry`: lerp for Euclidean, proper slerp for spherical (geodesic on unit sphere) with edge-case handling for `sin(ω) ≈ 0`. (#sprint-9)
+- `LatentSpace.normalize(point) -> np.ndarray` — euclidean returns copy; unit_norm projects to unit sphere. Zero vector raises for spherical. (#sprint-9)
+- End-to-end demo script `scripts/end_to_end_spherical_demo.py` — synthetic unit-norm data → LatentSpace with unit_norm geometry → demonstrates validate_point, angular distance, slerp-vs-lerp, and normalization. 1×3 matplotlib visualization (3D scatter + lerp path + slerp path). (#sprint-9)
+- Test suite: 35 new LatentSpace tests covering geometry construction, validate_point for unit_norm, distance (6 cases including known angles), interpolate/slerp (midpoint, endpoints, unit-norm invariance, edge cases), and normalize. (#sprint-9)
+- **ADR milestone**: `LatentSpace` geometry-keyed ADR and geometry-dispatch ADR both moved from `pending` → `validated`. This is the last sprint of Giai đoạn 1 — core primitives confirmed with two geometry cases. (#sprint-9)
+
 - RandomProjection adapter — ModelAdapter #2 (fixed-weight/stateless, pretrained pattern), pure numpy with Johnson-Lindenstrauss-style random Gaussian projection matrix, `encode`/`decode`/`latent_space`, no `fit` method. (#sprint-8)
 - Internal `_ModelAdapterBase` ABC sketching the shared ModelAdapter shape (`encode`/`decode`/`latent_space`), marked UNSTABLE and not part of the public surface. `fit` deliberately excluded (VAE-specific). (#sprint-8)
 - End-to-end demo script `scripts/end_to_end_random_projection_demo.py` — synthetic cluster data → RandomProjection encode → LatentSpace → Trajectory → PCA/UMAP → 1×3 matplotlib visualization (PCA original, PCA latent, UMAP latent) demonstrating JL distance preservation. (#sprint-8)

@@ -137,3 +137,22 @@ A chronological log of *why* key choices were made in this project.
 - Geometry-dispatch ADR: `pending` (no change). Expected validation: Sprint 9–12 (when third Layer-B method lands).
 
 **Consequences:** RandomProjection proves that a `ModelAdapter` can work with pure numpy (no torch dependency) and without a `fit` step, reinforcing the shared `encode`/`decode`/`latent_space` surface while proving `fit` is genuinely VAE-specific. The internal `_ModelAdapterBase` shape is deliberately unstable and not public. The 3-mode ADR stays pending because only mode (i) is confirmed. Next re-evaluation at Sprint 9 (geometry case #2).
+
+## [2026-06-17] Sprint 9 Round 6 — ADR reconciliation: LatentSpace geometry-keyed ADR → **validated**; geometry-dispatch ADR → **validated**
+
+**Decision:** Two of the three 2026-06-16 ADRs move from `pending` → `validated` after Sprint 9. This increment added `unit_norm` (spherical) as geometry case #2 to `LatentSpace`, proving both geometry-keying and geometry-dispatch with real code across two distinct metrics.
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR**: The `geometry` parameter is now instance-level (moved from class-level), validated against `{"euclidean", "unit_norm"}` at construction. Two `LatentSpace` instances with different geometries (`LatentSpace(dim=3)` vs `LatentSpace(dim=3, geometry="unit_norm")`) coexist, each carrying its own geometry key. The key drives `validate_point`, `distance`, `interpolate`, and `normalize` behavior. Code: `src/latent_anything/latent_space.py`.
+
+2. **Geometry-dispatch ADR**: `distance()` dispatches on `self.geometry` — Euclidean (`||a-b||`) vs angular (`arccos(clip(a·b, -1, 1))`). `interpolate()` dispatches — lerp for Euclidean vs slerp (proper geodesic on sphere) for unit_norm, with edge case handling (`sin(ω) ≈ 0`). `validate_point()` dispatches — shape-only for Euclidean, shape + norm ≈ 1 for unit_norm. 35 new tests prove metric correctness across both geometries.
+
+3. **Rule of Three §4a**: Instance #2 confirms dispatch stays inline (`if/elif`), no `GeometryProtocol` extracted. Instance #3 (sequence/grid, Gaussian set, or discrete code) would trigger extraction.
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `pending` → **`validated`** (2 geometry cases prove enum structure works).
+- Geometry-dispatch ADR: `pending` → **`validated`** (distance/interpolate/validate dispatch on geometry proven with 2 metrics).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — mode i confirmed by VAE, modes ii and iii untested).
+
+**Consequences:** Both geometry-related ADRs are now considered settled design principles. Future geometry additions must follow the validated dispatch pattern. The `ModelAdapter` 3-mode ADR remains the last pending ADR, awaiting mode ii (JiT/LLM hidden states) or mode iii (3DGS/LeWM deterministic renderer). This concludes Giai đoạn 1 of the project plan — core primitives with two geometry cases and three ModelAdapter instances.

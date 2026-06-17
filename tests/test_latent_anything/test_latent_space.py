@@ -78,3 +78,248 @@ class TestLatentSpaceRepr:
         assert "dim=32" in r
         assert "euclidean" in r
         assert "vae" in r
+
+    def test_repr_unit_norm(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        r = repr(space)
+        assert "unit_norm" in r
+
+
+class TestLatentSpaceGeometry:
+    """Geometry parameter handling."""
+
+    def test_default_is_euclidean(self) -> None:
+        space = LatentSpace(dim=8)
+        assert space.geometry == "euclidean"
+
+    def test_explicit_euclidean(self) -> None:
+        space = LatentSpace(dim=8, geometry="euclidean")
+        assert space.geometry == "euclidean"
+
+    def test_unit_norm(self) -> None:
+        space = LatentSpace(dim=8, geometry="unit_norm")
+        assert space.geometry == "unit_norm"
+
+    def test_invalid_geometry_raises(self) -> None:
+        with pytest.raises(ValueError, match="Unknown geometry"):
+            LatentSpace(dim=8, geometry="spherical")
+
+    def test_invalid_geometry_empty_str(self) -> None:
+        with pytest.raises(ValueError, match="Unknown geometry"):
+            LatentSpace(dim=8, geometry="")
+
+    def test_geometry_is_instance_level(self) -> None:
+        eucl = LatentSpace(dim=4, geometry="euclidean")
+        sphere = LatentSpace(dim=4, geometry="unit_norm")
+        assert eucl.geometry == "euclidean"
+        assert sphere.geometry == "unit_norm"
+
+
+class TestLatentSpaceValidatePointUnitNorm:
+    """Point validation for unit_norm geometry."""
+
+    def test_valid_unit_vector(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        point = np.array([1.0, 0.0, 0.0])
+        space.validate_point(point)
+
+    def test_valid_unit_vector_another(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        # A non-trivial unit vector
+        v = np.array([0.6, 0.8, 0.0])
+        space.validate_point(v)
+
+    def test_non_unit_vector_raises(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        with pytest.raises(ValueError, match="unit_norm requires"):
+            space.validate_point(np.array([1.0, 2.0, 3.0]))
+
+    def test_zero_vector_raises(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        with pytest.raises(ValueError, match="unit_norm requires"):
+            space.validate_point(np.zeros(3))
+
+    def test_shape_check_still_applies(self) -> None:
+        space = LatentSpace(dim=4, geometry="unit_norm")
+        with pytest.raises(ValueError, match="Expected shape \\(4,\\)"):
+            space.validate_point(np.array([1.0, 0.0, 0.0]))
+
+    def test_euclidean_still_allows_any_vector(self) -> None:
+        space = LatentSpace(dim=3)
+        space.validate_point(np.array([1.0, 2.0, 3.0]))
+        space.validate_point(np.zeros(3))
+        space.validate_point(np.array([-5.0, 100.0, 0.001]))
+
+
+class TestLatentSpaceDistance:
+    """Distance method."""
+
+    def test_euclidean_distance(self) -> None:
+        space = LatentSpace(dim=3)
+        a = np.array([0.0, 0.0, 0.0])
+        b = np.array([3.0, 4.0, 0.0])
+        assert space.distance(a, b) == pytest.approx(5.0)
+
+    def test_euclidean_distance_zero(self) -> None:
+        space = LatentSpace(dim=3)
+        a = np.array([1.0, 2.0, 3.0])
+        assert space.distance(a, a) == pytest.approx(0.0)
+
+    def test_unit_norm_angular_distance(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([0.0, 1.0, 0.0])
+        # orthogonal vectors should have angular distance pi/2
+        assert space.distance(a, b) == pytest.approx(np.pi / 2)
+
+    def test_unit_norm_same_vector(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        assert space.distance(a, a) == pytest.approx(0.0)
+
+    def test_unit_norm_opposite_vector(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([-1.0, 0.0, 0.0])
+        assert space.distance(a, b) == pytest.approx(np.pi)
+
+    def test_unit_norm_45_degrees(self) -> None:
+        space = LatentSpace(dim=2, geometry="unit_norm")
+        a = np.array([1.0, 0.0])
+        b = np.array([np.sqrt(2) / 2, np.sqrt(2) / 2])
+        assert space.distance(a, b) == pytest.approx(np.pi / 4)
+
+    def test_unit_norm_returns_float(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([0.0, 1.0, 0.0])
+        result = space.distance(a, b)
+        assert isinstance(result, float)
+
+
+class TestLatentSpaceInterpolate:
+    """Interpolate method (lerp / slerp)."""
+
+    def test_euclidean_lerp(self) -> None:
+        space = LatentSpace(dim=3)
+        a = np.array([0.0, 0.0, 0.0])
+        b = np.array([10.0, 20.0, 30.0])
+        mid = space.interpolate(a, b, 0.5)
+        np.testing.assert_array_almost_equal(mid, [5.0, 10.0, 15.0])
+
+    def test_euclidean_lerp_t0(self) -> None:
+        space = LatentSpace(dim=3)
+        a = np.array([1.0, 2.0, 3.0])
+        b = np.array([7.0, 8.0, 9.0])
+        result = space.interpolate(a, b, 0.0)
+        np.testing.assert_array_almost_equal(result, a)
+
+    def test_euclidean_lerp_t1(self) -> None:
+        space = LatentSpace(dim=3)
+        a = np.array([1.0, 2.0, 3.0])
+        b = np.array([7.0, 8.0, 9.0])
+        result = space.interpolate(a, b, 1.0)
+        np.testing.assert_array_almost_equal(result, b)
+
+    def test_unit_norm_slerp_midpoint(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([0.0, 1.0, 0.0])
+        mid = space.interpolate(a, b, 0.5)
+        # Midpoint of two orthogonal unit vectors should be at 45°
+        expected = np.array([np.sqrt(2) / 2, np.sqrt(2) / 2, 0.0])
+        np.testing.assert_array_almost_equal(mid, expected)
+        # Must still be a unit vector
+        assert abs(np.linalg.norm(mid) - 1.0) < 1e-10
+
+    def test_unit_norm_slerp_t0(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([0.6, 0.8, 0.0])
+        b = np.array([0.0, 0.0, 1.0])
+        result = space.interpolate(a, b, 0.0)
+        np.testing.assert_array_almost_equal(result, a)
+
+    def test_unit_norm_slerp_t1(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([0.6, 0.8, 0.0])
+        b = np.array([0.0, 0.0, 1.0])
+        result = space.interpolate(a, b, 1.0)
+        np.testing.assert_array_almost_equal(result, b)
+
+    def test_unit_norm_slerp_returns_unit_vector(self) -> None:
+        space = LatentSpace(dim=5, geometry="unit_norm")
+        rng = np.random.default_rng(42)
+        a = rng.normal(size=5)
+        a = a / np.linalg.norm(a)
+        b = rng.normal(size=5)
+        b = b / np.linalg.norm(b)
+        for t in [0.2, 0.5, 0.8]:
+            result = space.interpolate(a, b, t)
+            assert abs(np.linalg.norm(result) - 1.0) < 1e-10
+
+    def test_unit_norm_slerp_same_vector(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([0.6, 0.8, 0.0])
+        result = space.interpolate(a, a, 0.5)
+        np.testing.assert_array_almost_equal(result, a)
+
+    def test_unit_norm_slerp_opposite_vectors(self) -> None:
+        """Slerp with angle ≈ π falls back to lerp (sin(ω) ≈ 0)."""
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([-1.0, 0.0, 0.0])
+        result = space.interpolate(a, b, 0.5)
+        # At ω=π, slerp degenerates; lerp gives (a+b)/2 ≈ 0
+        np.testing.assert_array_almost_equal(result, np.zeros(3))
+
+    def test_slerp_stays_on_sphere_where_lerp_departs(self) -> None:
+        """Slerp stays on sphere; lerp of same points goes inside."""
+        space_unit = LatentSpace(dim=3, geometry="unit_norm")
+        space_eucl = LatentSpace(dim=3)
+        a = np.array([1.0, 0.0, 0.0])
+        b = np.array([0.0, 1.0, 0.0])
+        for t in [0.25, 0.5, 0.75]:
+            slerp_pt = space_unit.interpolate(a, b, t)
+            lerp_pt = space_eucl.interpolate(a, b, t)
+            # Slerp stays on sphere
+            assert abs(np.linalg.norm(slerp_pt) - 1.0) < 1e-10
+            # Lerp departs from sphere (except at t=0,1)
+            assert np.linalg.norm(lerp_pt) < 0.999
+
+
+class TestLatentSpaceNormalize:
+    """Normalize method."""
+
+    def test_euclidean_returns_copy(self) -> None:
+        space = LatentSpace(dim=3)
+        point = np.array([1.0, 2.0, 3.0])
+        result = space.normalize(point)
+        np.testing.assert_array_equal(result, point)
+        assert result is not point  # Should be a copy
+
+    def test_unit_norm_normalizes(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        point = np.array([3.0, 0.0, 0.0])
+        result = space.normalize(point)
+        expected = np.array([1.0, 0.0, 0.0])
+        np.testing.assert_array_almost_equal(result, expected)
+
+    def test_unit_norm_arbitrary_vector(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        point = np.array([1.0, 2.0, 3.0])
+        result = space.normalize(point)
+        assert abs(np.linalg.norm(result) - 1.0) < 1e-10
+        # Direction should be preserved
+        expected_dir = point / np.linalg.norm(point)
+        np.testing.assert_array_almost_equal(result, expected_dir)
+
+    def test_unit_norm_zero_vector_raises(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        with pytest.raises(ValueError, match="Cannot normalize zero vector"):
+            space.normalize(np.zeros(3))
+
+    def test_unit_norm_returns_copy(self) -> None:
+        space = LatentSpace(dim=3, geometry="unit_norm")
+        point = np.array([1.0, 2.0, 3.0])
+        result = space.normalize(point)
+        assert result is not point  # Should be a copy
