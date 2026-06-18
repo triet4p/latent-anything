@@ -156,3 +156,22 @@ A chronological log of *why* key choices were made in this project.
 - `ModelAdapter` 3-mode ADR: `pending` (no change — mode i confirmed by VAE, modes ii and iii untested).
 
 **Consequences:** Both geometry-related ADRs are now considered settled design principles. Future geometry additions must follow the validated dispatch pattern. The `ModelAdapter` 3-mode ADR remains the last pending ADR, awaiting mode ii (JiT/LLM hidden states) or mode iii (3DGS/LeWM deterministic renderer). This concludes Giai đoạn 1 of the project plan — core primitives with two geometry cases and three ModelAdapter instances.
+
+## [2026-06-18] Sprint 10 Round 7 — ADR reconciliation: both validated ADRs exercised; no change to ADR statuses
+
+**Decision:** Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) are exercised by the Lerp B-Method — Lerp delegates to `LatentSpace.interpolate()` for geometry-aware dispatch, proving the geometry-dispatch pattern is consumed by Layer B methods. No ADR status changes. The `ModelAdapter` 3-mode ADR remains `pending` (no change — not touched by this Layer B increment).
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated)**: Lerp accepts an optional `LatentSpace` at construction via `Lerp(space=space)`. When provided, `__call__` delegates to `space.interpolate(a, b, t)`, consuming the geometry key. When `None`, defaults to Euclidean `(1-t)*a + t*b`. This is the first time a Layer B method exercises the geometry-keyed `LatentSpace` from a consumer perspective — the architecture works as designed.
+
+2. **Geometry-dispatch ADR (validated)**: `Lerp.__call__` with `Lerp(space=LatentSpace(dim=3, geometry="unit_norm"))` produces correct slerp (stays on sphere, midpoint at 45°), while `Lerp()` (no space) produces Euclidean lerp (departs sphere). This confirms the dispatch pattern is usable from Layer B methods without modification.
+
+3. **Rule of Three §4a**: B-Method #1 (Lerp, stateless, pure transform) → stay hardcoded. No `Method` Protocol modification. The existing `Method` Protocol has `fit`/`transform` — stateless methods don't fit this yet. Interface expansion happens when B-Method #3 (activation patching, Sprint 12) reveals the full stateless+stateful spectrum.
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by Lerp consumer).
+- Geometry-dispatch ADR: `validated` (no change — exercised by Lerp consumer).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — not touched by this Layer B increment).
+
+**Consequences:** This sprint confirms that the two validated ADRs are consumed correctly by Layer B methods, validating the architecture from the consumer side. The `ModelAdapter` 3-mode ADR remains the last pending ADR. Giai đoạn 2 is now underway — Layer B foundation with Lerp as B-Method #1. Next re-evaluation at Sprint 11 (steering vector, B-Method #2).

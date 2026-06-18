@@ -4,6 +4,11 @@
 
 ### Added
 
+- `Lerp` — B-Method #1 (Layer B / Manipulation), stateless interpolation method wrapping `LatentSpace.interpolate()` for geometry-aware dispatch. Supports `__call__(a, b, t)` for single-point interpolation, `between(traj_a, traj_b, t)` for pointwise trajectory interpolation, and `blend_sequence(trajectory, n_steps)` for trajectory densification. Pure numpy — no torch leakage. (#sprint-10)
+- End-to-end demo script `scripts/end_to_end_lerp_demo.py` — two scenarios: (A) Euclidean lerp with two random 8D vectors → PCA to 2D, (B) spherical slerp on unit-norm vectors → PCA projection → lerp-vs-slerp path comparison → trajectory blending with `blend_sequence`. 1×2 matplotlib visualization with t-value annotations and sphere reference outline. (#sprint-10)
+- Test suite: 28 Lerp tests covering construction with/without LatentSpace, correct interpolation (t=0→a, t=1→b, t=0.5→midpoint), geometry dispatch (slerp stays on sphere), trajectory between (shape, endpoints, error cases), and blend_sequence (densification, endpoint preservation, edge cases). (#sprint-10)
+- **Giai đoạn 2 begins** — first Layer B method. Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) exercised from the consumer side. `ModelAdapter` 3-mode ADR remains pending. (#sprint-10)
+
 - Spherical geometry (`unit_norm`) as geometry case #2 for `LatentSpace` — validates the geometry-keyed and geometry-dispatch ADRs with real code. `geometry` moved from class-level constant to instance-level parameter, validated at construction. (#sprint-9)
 - `LatentSpace.distance(a, b) -> float` — dispatches on `self.geometry`: Euclidean (`||a-b||`) or angular (`arccos`). (#sprint-9)
 - `LatentSpace.interpolate(a, b, t) -> np.ndarray` — dispatches on `self.geometry`: lerp for Euclidean, proper slerp for spherical (geodesic on unit sphere) with edge-case handling for `sin(ω) ≈ 0`. (#sprint-9)

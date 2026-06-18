@@ -5,11 +5,11 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 
 ## Milestones
 * [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
-* [ ] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, `ModelAdapter`, `Method`, `Pipeline`) + Layer A trio + adapter VAE/VLA, end-to-end qua pipeline (Sprint 3–9).
-* [ ] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13).
+* [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, `ModelAdapter`, `Method`, `Pipeline`) + Layer A trio + adapter VAE/VLA, end-to-end qua pipeline (Sprint 3–9). **✅ Complete — 2 ADRs validated.**
+* [~] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13). **Sprint 10 active — Lerp (B-Method #1).**
 
 ## Active Sprints
-* None (Giai đoạn 1 complete)
+* [Sprint 10](sprint-plans/sprint-10.md) - *Status: Active* — Layer B: lerp (B-Method #1, stateless), trajectory blending, end-to-end (Round 7). **Giai đoạn 2 begins.**
 
 ## Completed Sprints
 * [Sprint 9](sprint-plans/sprint-9.md) - *Status: Completed* — Geometry case #2 (unit-norm/spherical) → validate ADR `LatentSpace` + ADR geometry-dispatch (Round 6). **Two ADRs validated.** Last sprint of Giai đoạn 1.
@@ -25,8 +25,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 ## Backlog / Future Work
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Chỉ chi tiết hóa thành sprint file khi tới lượt — tránh thiết kế trước cái code chưa lộ ra.*
 
-**Giai đoạn 2:**
-* Sprint 10 — Layer B: lerp (B-Method #1, stateless) (Round 7).
+**Giai đoạn 2 (tiếp theo Sprint 10):**
 * Sprint 11 — Layer B: steering vector (B-Method #2, stateful) (Round 8).
 * Sprint 12 — Layer B: activation patching (B-Method #3 khác triết lý) → **freeze Layer-B interface**, migrate (Round 9).
 * Sprint 13 — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10).
