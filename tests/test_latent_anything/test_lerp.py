@@ -298,3 +298,60 @@ class TestLerpBlendSequence:
         dense = lerp.blend_sequence(traj, n_steps=2)
         assert len(dense) == 1
         assert_array_almost_equal(dense.to_numpy(), data)
+
+
+# ---------------------------------------------------------------------------
+# is_fitted — BMethod Protocol conformance
+# ---------------------------------------------------------------------------
+
+
+class TestLerpIsFitted:
+    def test_is_fitted_always_true(self) -> None:
+        lerp = Lerp()
+        assert lerp.is_fitted is True
+
+    def test_is_fitted_with_space(self) -> None:
+        space = LatentSpace(dim=8)
+        lerp = Lerp(space=space)
+        assert lerp.is_fitted is True
+
+
+# ---------------------------------------------------------------------------
+# apply_trajectory — BMethod Protocol conformance
+# ---------------------------------------------------------------------------
+
+
+class TestLerpApplyTrajectory:
+    def test_apply_trajectory_with_other_and_t(self) -> None:
+        lerp = Lerp()
+        data_a = np.array([[0.0, 0.0], [10.0, 10.0]])
+        data_b = np.array([[20.0, 20.0], [30.0, 30.0]])
+        traj_a = Trajectory(data_a)
+        traj_b = Trajectory(data_b)
+        result = lerp.apply_trajectory(traj_a, other=traj_b, t=0.5)
+        assert isinstance(result, Trajectory)
+        assert_array_almost_equal(result.to_numpy()[0], [10.0, 10.0])
+        assert_array_almost_equal(result.to_numpy()[1], [20.0, 20.0])
+
+    def test_apply_trajectory_with_n_steps(self) -> None:
+        lerp = Lerp()
+        data = np.array([[0.0, 0.0], [10.0, 10.0]])
+        traj = Trajectory(data)
+        result = lerp.apply_trajectory(traj, n_steps=2)
+        assert isinstance(result, Trajectory)
+        assert len(result) == 3
+
+    def test_apply_trajectory_without_kwargs_raises(self) -> None:
+        lerp = Lerp()
+        traj = Trajectory(data=np.array([[0.0, 0.0], [10.0, 10.0]]))
+        with pytest.raises(ValueError, match="requires either"):
+            lerp.apply_trajectory(traj)
+
+    def test_apply_trajectory_returns_new_trajectory(self) -> None:
+        lerp = Lerp()
+        data = np.array([[0.0, 0.0], [10.0, 10.0]])
+        traj_a = Trajectory(data)
+        traj_b = Trajectory(data + 5.0)
+        result = lerp.apply_trajectory(traj_a, other=traj_b, t=0.0)
+        assert result is not traj_a
+        assert result is not traj_b

@@ -6,10 +6,8 @@ are stateful (fit → transform), Lerp is a pure function with no internal
 state. It delegates to ``LatentSpace.interpolate()`` for geometry-aware
 dispatch, or defaults to Euclidean lerp when no space is provided.
 
-Per the Rule of Three (§4a in INCREMENTAL.md), this is instance #1 of
-the B-Method pattern. It stays hardcoded — no ``Method`` Protocol
-modification. Protocol expansion happens at B-Method #3 (activation
-patching) when the stateless + stateful B-patterns are both proven.
+Conforms to the ``BMethod`` Protocol (structural, duck-typed) after the
+Rule of Three freeze at B-Method #3 (``ActivationPatch``, Sprint 12).
 """
 
 from __future__ import annotations
@@ -27,6 +25,10 @@ class Lerp:
     Method object. All operations are pure functions — no ``fit``,
     no internal state.
 
+    Conforms to the ``BMethod`` Protocol (structural, duck-typed).
+    ``is_fitted`` always returns ``True`` because Lerp is stateless —
+    there is no ``fit`` phase.
+
     Parameters
     ----------
     space : LatentSpace | None, optional
@@ -41,6 +43,16 @@ class Lerp:
     def space(self) -> LatentSpace | None:
         """Return the optional ``LatentSpace`` used for geometry dispatch."""
         return self._space
+
+    @property
+    def is_fitted(self) -> bool:
+        """Return ``True`` — Lerp is stateless and always ready.
+
+        Stateless methods have no ``fit`` phase and are always
+        considered fitted. This satisfies the ``BMethod`` Protocol
+        requirement.
+        """
+        return True
 
     def __call__(self, a: np.ndarray, b: np.ndarray, t: float) -> np.ndarray:
         """Interpolate between two 1D latent vectors ``a`` and ``b``.
@@ -155,3 +167,44 @@ class Lerp:
         dense.append(data[-1])  # final point
 
         return Trajectory(data=np.array(dense))
+
+    def apply_trajectory(self, trajectory: Trajectory, **kwargs: float) -> Trajectory:
+        """Apply interpolation to a trajectory (generic ``BMethod`` interface).
+
+        Supports two modes via ``**kwargs``:
+
+        - ``other`` (Trajectory) + ``t`` (float): delegates to
+          ``between(trajectory, other, t)``.
+        - ``n_steps`` (int): delegates to ``blend_sequence(trajectory, n_steps)``.
+
+        Parameters
+        ----------
+        trajectory : Trajectory
+            Input trajectory.
+        **kwargs : float
+            Keyword arguments — must contain either ``other`` + ``t``
+            or ``n_steps``.
+
+        Returns
+        -------
+        Trajectory
+            A new ``Trajectory`` with the operation applied.
+
+        Raises
+        ------
+        ValueError
+            If the keyword arguments do not match the expected patterns.
+        """
+        if "other" in kwargs and "t" in kwargs:
+            other_traj: Trajectory = kwargs.pop("other")  # type: ignore[assignment]
+            t_val: float = kwargs.pop("t")
+            return self.between(trajectory, other_traj, t_val)
+        if "n_steps" in kwargs:
+            n_steps_val: int = int(kwargs.pop("n_steps"))
+            return self.blend_sequence(trajectory, n_steps=n_steps_val)
+        msg = (
+            "Lerp.apply_trajectory requires either "
+            "'other' (Trajectory) + 't' (float) or 'n_steps' (int). "
+            f"Got kwargs={kwargs!r}"
+        )
+        raise ValueError(msg)

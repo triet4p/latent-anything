@@ -6,10 +6,9 @@ no ``fit``), ``SteeringVector`` has a ``fit(positives, negatives)``
 phase that learns a unit steering direction from contrast data, and a
 ``__call__(latent, strength)`` phase that applies the steering.
 
-SteeringVector constitutes instance #2 of the B-Method pattern.
-Per the Rule of Three (§4a in INCREMENTAL.md), the shared B-Method shape
-is sketched in ``_b_base.py`` as an internal UNSTABLE base. Public
-interface freeze happens at B-Method #3 (activation patching, Sprint 12).
+Conforms to the ``BMethod`` Protocol (structural, duck-typed) after the
+Rule of Three freeze at B-Method #3 (``ActivationPatch``, Sprint 12).
+Note that ``fit`` is instance-specific — it is not part of the Protocol.
 """
 
 from __future__ import annotations
@@ -27,6 +26,10 @@ class SteeringVector:
     positive from negative examples, then steers latent representations
     along that direction. This is the stateful counterpart to ``Lerp``
     (stateless) — B-Method #2.
+
+    Conforms to the ``BMethod`` Protocol (structural, duck-typed).
+    ``fit`` is instance-specific — not part of the Protocol, but
+    required before ``__call__`` and ``apply_trajectory``.
 
     Algorithm:
         1. ``fit(positives, negatives)``: compute ``direction = normalize(mean(pos) - mean(neg))``.

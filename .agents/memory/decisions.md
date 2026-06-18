@@ -196,3 +196,26 @@ A chronological log of *why* key choices were made in this project.
 - `ModelAdapter` 3-mode ADR: `pending` (no change — not touched by this Layer B increment).
 
 **Consequences:** This sprint confirms that stateful B-Methods (with `fit`) can consume the two validated ADRs correctly. The `_BMethodBase` internal sketch follows the established pattern from `_MethodBase` (Sprint 5) and `_ModelAdapterBase` (Sprint 8). The `ModelAdapter` 3-mode ADR remains the last pending ADR. Next re-evaluation at Sprint 12 (activation patching, B-Method #3 — freeze trigger).
+
+## [2026-06-18] Sprint 12 Round 9 — ADR reconciliation: BMethod Protocol frozen; ModelAdapter 3-mode ADR gains consumer-side evidence, stays pending
+
+**Decision:** Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) continue to be exercised by `ActivationPatch` — it accesses `adapter.latent_space` and uses `.dim` for validation, coupling through the adapter layer. No ADR status changes for the two validated ones. The `ModelAdapter` 3-mode ADR gains **consumer-side evidence** but stays `pending`. The `BMethod` Protocol is now frozen per Rule of Three (§4a).
+
+**Rule of Three §4a outcome:** B-Method #3 (ActivationPatch, model-mediated, data→data via adapter → encode → patch → decode) → **freeze `BMethod` Protocol** in `methods/b_protocols.py`. Remove `_b_base.py` (the UNSTABLE sketch). Migrate Lerp (add `is_fitted` + generic `apply_trajectory(**kwargs)`) and SteeringVector (docstring update). Three distinct B-Method patterns now proven: stateless latent→latent (Lerp), stateful latent→latent (SteeringVector), model-mediated data→data (ActivationPatch).
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated, no change)**: `ActivationPatch.space` returns `adapter.latent_space`, which is always a `LatentSpace` instance. Unlike Lerp/SteeringVector (which may return `None`), ActivationPatch always has a space because the adapter is required. The geometry key is consumed through the adapter's `LatentSpace`, not directly — this is a new consumption pattern (adapter-mediated).
+
+2. **Geometry-dispatch ADR (validated, no change)**: Not directly exercised by ActivationPatch — ActivationPatch operates in data space, not latent space. Geometry dispatch is relevant when the `BMethod` is used for latent-space operations (Lerp/SteeringVector), not for model-mediated data→data transformations.
+
+3. **`ModelAdapter` 3-mode ADR (pending → pending)**: ActivationPatch is the first B-Method to consume a `ModelAdapter` directly. It works with VAE (mode i, explicit learned latent, `encode`/`decode` both learned) and RandomProjection (mode i-like, stateless projection). This proves that `ModelAdapter` is consumable from Layer B, but modes (ii) no-explicit-latent (JiT/LLM hidden states) and (iii) deterministic-renderer (3DGS/LeWM) remain untested. The ADR now has **consumer-side evidence** in addition to the producer-side evidence from VAE and RandomProjection, but full validation still requires modes (ii) and (iii).
+
+4. **`BMethod` vs `Method` separation validated**: The frozen `BMethod` Protocol (`space`, `is_fitted`, `apply_trajectory`) is structurally different from the `Method` Protocol (`fit`, `transform`). This confirms ARCHITECTURE.md's prediction that A/B/C methods have different shapes — the aspirational "interface chung cho mọi A/B/C method" is **disproven by code**, replaced by separate fit-for-purpose Protocols.
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised via adapter coupling).
+- Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — consumer-side evidence added, but modes ii and iii untested).
+
+**Consequences:** The `BMethod` Protocol freeze is the third Rule of Three freeze in the project (after `Method` at Sprint 6, and geometry dispatch patterns at Sprint 9). The separation of A (`Method`) and B (`BMethod`) Protocols is now an established architectural principle — future Layer C methods will likely produce a `CMethod` Protocol, not be forced into either existing one. The `ModelAdapter` 3-mode ADR remains the last pending ADR with consumer-side evidence but incomplete mode coverage. Next re-evaluation at Sprint 13 (showcase end-to-end).

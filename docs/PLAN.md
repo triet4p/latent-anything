@@ -6,12 +6,13 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 ## Milestones
 * [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
 * [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, `ModelAdapter`, `Method`, `Pipeline`) + Layer A trio + adapter VAE/VLA, end-to-end qua pipeline (Sprint 3–9). **✅ Complete — 2 ADRs validated.**
-* [~] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13). **Sprint 11 completed — SteeringVector (B-Method #2, stateful). Sprint 12 next.**
+* [~] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13). **Sprint 13 active — Showcase end-to-end.**
 
 ## Active Sprints
-* [Sprint 12](sprint-plans/sprint-12.md) - *Status: Pending* — Layer B: activation patching (B-Method #3, different philosophy) → freeze B-Method interface (Round 9).
+* [Sprint 13](sprint-plans/sprint-13.md) - *Status: Active* — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10).
 
 ## Completed Sprints
+* [Sprint 12](sprint-plans/sprint-12.md) - *Status: Completed* — Layer B: activation patching (B-Method #3, model-mediated) → **freeze BMethod Protocol**, migrate Lerp + SteeringVector (Round 9).
 * [Sprint 9](sprint-plans/sprint-9.md) - *Status: Completed* — Geometry case #2 (unit-norm/spherical) → validate ADR `LatentSpace` + ADR geometry-dispatch (Round 6). **Two ADRs validated.** Last sprint of Giai đoạn 1.
 * [Sprint 1](sprint-plans/sprint-1.md) - *Status: Completed* — Hoàn tất tầng 11 + 2 mục tầng 12.
 * [Sprint 2](sprint-plans/sprint-2.md) - *Status: Completed* — Thêm tầng "Mô hình dựng 3D thực tiễn".
@@ -27,6 +28,5 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 ## Backlog / Future Work
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Chỉ chi tiết hóa thành sprint file khi tới lượt — tránh thiết kế trước cái code chưa lộ ra.*
 
-**Giai đoạn 2 (tiếp theo Sprint 11):**
-* Sprint 12 — Layer B: activation patching (B-Method #3 khác triết lý) → **freeze Layer-B interface**, migrate (Round 9).
+**Giai đoạn 2 (tiếp theo Sprint 12):**
 * Sprint 13 — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10).
