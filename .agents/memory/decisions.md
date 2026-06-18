@@ -175,3 +175,24 @@ A chronological log of *why* key choices were made in this project.
 - `ModelAdapter` 3-mode ADR: `pending` (no change — not touched by this Layer B increment).
 
 **Consequences:** This sprint confirms that the two validated ADRs are consumed correctly by Layer B methods, validating the architecture from the consumer side. The `ModelAdapter` 3-mode ADR remains the last pending ADR. Giai đoạn 2 is now underway — Layer B foundation with Lerp as B-Method #1. Next re-evaluation at Sprint 11 (steering vector, B-Method #2).
+
+## [2026-06-18] Sprint 11 Round 8 — ADR reconciliation: both validated ADRs exercised by SteeringVector; no change to ADR statuses
+
+**Decision:** Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) are exercised by the `SteeringVector` B-Method #2 — SteeringVector optionally accepts a `LatentSpace` and uses `space.normalize()` for geometry-aware post-steer normalization (e.g. project back to sphere). No ADR status changes. The `ModelAdapter` 3-mode ADR remains `pending` (not touched by this Layer B increment).
+
+**Rule of Three §4a outcome:** B-Method #2 (SteeringVector, stateful, `fit(positives, negatives)` from contrast) → sketch internal `_BMethodBase`, mark UNSTABLE. Lerp (stateless, no `fit`) and SteeringVector (stateful, has `fit`) now show two distinct B-Method patterns. `_BMethodBase` captures `__call__` + `space` + `apply_trajectory`. Neither B-Method inherits from it — structural duck-typing only. The existing `Method` Protocol (`fit`/`transform`/`fit_transform`) was designed for stateful Layer A dimensionality-reduction methods and does NOT fit either B-Method.
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated)**: SteeringVector accepts an optional `LatentSpace` at construction via `SteeringVector(space=space)`. When provided and `space.geometry == "unit_norm"`, `__call__` applies `space.normalize()` after steering to keep points on the sphere. When `space=None` (default), Euclidean steering with no normalization.
+
+2. **Geometry-dispatch ADR (validated)**: `SteeringVector(space=LatentSpace(dim=3, geometry="unit_norm"))` triggers `space.normalize()` after each `__call__`, projecting steered points back onto the unit sphere. Tests confirm steered points have `||point|| ≈ 1` at all strengths, while Euclidean steering (no space or Euclidean space) departs from the sphere.
+
+3. **Rule of Three §4a**: Instance #2 → `_BMethodBase` sketched at `methods/_b_base.py`, marked UNSTABLE. Covers `__call__` + `space` + `apply_trajectory`. B-Method freeze at instance #3 (activation patching, Sprint 12) when stateless + stateful + hook-based patterns are all proven.
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by SteeringVector consumer).
+- Geometry-dispatch ADR: `validated` (no change — exercised by SteeringVector consumer).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — not touched by this Layer B increment).
+
+**Consequences:** This sprint confirms that stateful B-Methods (with `fit`) can consume the two validated ADRs correctly. The `_BMethodBase` internal sketch follows the established pattern from `_MethodBase` (Sprint 5) and `_ModelAdapterBase` (Sprint 8). The `ModelAdapter` 3-mode ADR remains the last pending ADR. Next re-evaluation at Sprint 12 (activation patching, B-Method #3 — freeze trigger).
