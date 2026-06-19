@@ -10,9 +10,60 @@ To reproduce a run, import this module or copy the ``SHOWCASE_CONFIG`` dict.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypedDict
 
-SHOWCASE_CONFIG: dict[str, Any] = {
+
+class DataConfig(TypedDict):
+    n_clusters: int
+    n_per_cluster: int
+    input_dim: int
+    latent_dim: int
+    noise_scale: float
+
+
+class VAEConfig(TypedDict):
+    hidden_dim: int | None
+    n_epochs: int
+    learning_rate: float
+    beta: float
+
+
+class SplitConfig(TypedDict):
+    source_clusters: list[int]
+    target_clusters: list[int]
+    n_held_out: int
+
+
+class PCAConfig(TypedDict):
+    n_components: int
+
+
+class PatchConfig(TypedDict):
+    pass
+
+
+class LerpConfig(TypedDict):
+    n_steps: int
+
+
+class OutputConfig(TypedDict):
+    figure: str
+    summary: str
+    config_snapshot: str
+
+
+class ShowcaseConfig(TypedDict):
+    seed: int
+    data: DataConfig
+    vae: VAEConfig
+    split: SplitConfig
+    pca: PCAConfig
+    patch: PatchConfig
+    lerp: LerpConfig
+    output: OutputConfig
+
+
+SHOWCASE_CONFIG: ShowcaseConfig = {
     # ── Seed ──────────────────────────────────────────────────────────
     "seed": 42,
     # ── Data generation ───────────────────────────────────────────────
@@ -57,3 +108,15 @@ SHOWCASE_CONFIG: dict[str, Any] = {
         "config_snapshot": "artifacts/showcase_config_snapshot.txt",
     },
 }
+
+__all__ = [
+    "DataConfig",
+    "LerpConfig",
+    "OutputConfig",
+    "PCAConfig",
+    "PatchConfig",
+    "SHOWCASE_CONFIG",
+    "ShowcaseConfig",
+    "SplitConfig",
+    "VAEConfig",
+]

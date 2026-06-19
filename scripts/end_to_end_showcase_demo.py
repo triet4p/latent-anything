@@ -45,9 +45,11 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import TypedDict, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 from matplotlib.patches import Ellipse
 
 # Ensure we can import from src and the config file
@@ -55,18 +57,53 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT / "src"))
 sys.path.insert(0, str(_REPO_ROOT / "scripts"))
 
-from showcase_config import SHOWCASE_CONFIG  # noqa: E402
+from showcase_config import SHOWCASE_CONFIG, OutputConfig, ShowcaseConfig  # noqa: E402
 
 from latent_anything import Trajectory  # noqa: E402
 from latent_anything.adapters import VAE  # noqa: E402
 from latent_anything.methods import PCA, ActivationPatch, Lerp  # noqa: E402
+
+FloatArray = npt.NDArray[np.float64]
+IntArray = npt.NDArray[np.int64]
+
+
+class ClusterInfo(TypedDict):
+    cluster_centers: FloatArray
+    indices_by_label: dict[int, IntArray]
+
+
+class SplitResult(TypedDict):
+    source_data: FloatArray
+    target_data: FloatArray
+    failure_data: FloatArray
+    test_source_idx: IntArray
+    test_target_idx: IntArray
+    test_target_ref: FloatArray
+
+
+class BaselineMetrics(TypedDict):
+    recon_mse_failure: float
+    recon_mse_source: float
+    recon_mse_target: float
+    dist_to_target_before: float
+    centroid_source_to_target: float
+
+
+class PostMetrics(TypedDict):
+    dist_to_target_after: float
+    improvement_ratio: float
+    dist_delta: float
+
+
+TrajectoryPanelResult = tuple[FloatArray, FloatArray, FloatArray, FloatArray, Trajectory]
+PCAProjectionResult = tuple[PCA, FloatArray, FloatArray, FloatArray]
 
 # ---------------------------------------------------------------------------
 # 1. Data generation
 # ---------------------------------------------------------------------------
 
 
-def _generate_data(cfg: dict) -> tuple[np.ndarray, np.ndarray, dict]:
+def _generate_data(cfg: ShowcaseConfig) -> tuple[FloatArray, IntArray, ClusterInfo]:
     """Generate structured synthetic cluster data.
 
     Returns
@@ -83,11 +120,11 @@ def _generate_data(cfg: dict) -> tuple[np.ndarray, np.ndarray, dict]:
     noise_scale = dc["noise_scale"]
 
     # Four well-separated cluster centers in 8D
-    centers_raw = [
-        np.array([0.9, 0.1, 0.9, 0.1, 0.5, 0.1, 0.1, 0.1]),
-        np.array([0.1, 0.9, 0.1, 0.9, 0.1, 0.5, 0.1, 0.9]),
-        np.array([0.1, 0.1, 0.1, 0.1, 0.9, 0.9, 0.5, 0.1]),
-        np.array([0.5, 0.5, 0.5, 0.5, 0.1, 0.1, 0.9, 0.9]),
+    centers_raw: list[FloatArray] = [
+        np.array([0.9, 0.1, 0.9, 0.1, 0.5, 0.1, 0.1, 0.1], dtype=np.float64),
+        np.array([0.1, 0.9, 0.1, 0.9, 0.1, 0.5, 0.1, 0.9], dtype=np.float64),
+        np.array([0.1, 0.1, 0.1, 0.1, 0.9, 0.9, 0.5, 0.1], dtype=np.float64),
+        np.array([0.5, 0.5, 0.5, 0.5, 0.1, 0.1, 0.9, 0.9], dtype=np.float64),
     ]
     # Truncate or tile centers to match n_clusters
     if n_clusters < len(centers_raw):
@@ -99,19 +136,19 @@ def _generate_data(cfg: dict) -> tuple[np.ndarray, np.ndarray, dict]:
     else:
         centers = centers_raw
 
-    points_list = []
-    label_list = []
+    points_list: list[FloatArray] = []
+    label_list: list[IntArray] = []
     for idx, center in enumerate(centers):
         pts = center + rng.normal(scale=noise_scale, size=(n_per, input_dim))
         pts = np.clip(pts, 0.0, 1.0)
         points_list.append(pts)
-        label_list.append(np.full(n_per, idx))
+        label_list.append(np.full(n_per, idx, dtype=np.int64))
 
     points = np.vstack(points_list)
     labels = np.concatenate(label_list)
 
-    cluster_info = {
-        "cluster_centers": np.array([c[:input_dim] for c in centers]),
+    cluster_info: ClusterInfo = {
+        "cluster_centers": np.array([c[:input_dim] for c in centers], dtype=np.float64),
         "indices_by_label": {i: np.where(labels == i)[0] for i in range(n_clusters)},
     }
     return points, labels, cluster_info
@@ -123,10 +160,10 @@ def _generate_data(cfg: dict) -> tuple[np.ndarray, np.ndarray, dict]:
 
 
 def _split_data(
-    points: np.ndarray,
-    labels: np.ndarray,
-    cfg: dict,
-) -> dict:
+    points: FloatArray,
+    labels: IntArray,
+    cfg: ShowcaseConfig,
+) -> SplitResult:
     """Split data into source, target, test (held-out failure), and rest.
 
     Returns dict with keys:
@@ -146,13 +183,13 @@ def _split_data(
     rng = np.random.default_rng(cfg["seed"])
 
     # Shuffle source indices and split
-    source_idx = np.arange(len(source_all))
+    source_idx = np.arange(len(source_all), dtype=np.int64)
     rng.shuffle(source_idx)
     failure_idx = source_idx[:n_held]
     train_source_idx = source_idx[n_held:]
 
     # Also shuffle target and hold out some for reference
-    target_idx = np.arange(len(target_all))
+    target_idx = np.arange(len(target_all), dtype=np.int64)
     rng.shuffle(target_idx)
     test_target_idx = target_idx[:n_held]
     train_target_idx = target_idx[n_held:]
@@ -173,12 +210,12 @@ def _split_data(
 
 
 def _compute_baseline_metrics(
-    data: np.ndarray,
-    failure_data: np.ndarray,
-    target_data: np.ndarray,
-    target_centroid_data: np.ndarray,
+    source_data: FloatArray,
+    target_data: FloatArray,
+    failure_data: FloatArray,
+    target_centroid_data: FloatArray,
     vae: VAE,
-) -> dict:
+) -> BaselineMetrics:
     """Compute baseline (pre-edit) metrics for failure samples.
 
     Metrics computed:
@@ -194,21 +231,23 @@ def _compute_baseline_metrics(
     -------
     dict of metric name → float value
     """
-    recon_all = vae.decode(vae.encode(data))
-    recon_source = recon_all[: len(data) - len(target_data)]
-    recon_target = recon_all[len(recon_source) :]
+    combined_train = np.vstack([source_data, target_data])
+    recon_all = vae.decode(vae.encode(combined_train))
+    recon_source = recon_all[: len(source_data)]
+    recon_target = recon_all[len(source_data) :]
 
     # Failure reconstruction
-    recon_failure = vae.decode(vae.encode(failure_data))
+    recon_failure = cast(FloatArray, vae.decode(vae.encode(failure_data)))
     recon_mse_failure = float(np.mean((failure_data - recon_failure) ** 2))
-    recon_mse_source = float(np.mean((data[: len(recon_source)] - recon_source) ** 2))
+    recon_mse_source = float(np.mean((source_data - recon_source) ** 2))
     recon_mse_target = float(np.mean((target_data - recon_target) ** 2))
 
     # Data-space distances
     failure_centroid_data = failure_data.mean(axis=0)
     target_centroid_data_val = target_centroid_data.mean(axis=0)
 
-    dist_to_target = float(np.mean(np.linalg.norm(failure_data - target_centroid_data_val, axis=1)))
+    failure_distances = cast(FloatArray, np.linalg.norm(failure_data - target_centroid_data_val, axis=1))
+    dist_to_target = float(np.mean(failure_distances))
     centroid_dist = float(np.linalg.norm(failure_centroid_data - target_centroid_data_val))
 
     return {
@@ -226,11 +265,11 @@ def _compute_baseline_metrics(
 
 
 def _project_latent_pca(
-    encoded_source: np.ndarray,
-    encoded_target: np.ndarray,
-    encoded_failure: np.ndarray,
+    encoded_source: FloatArray,
+    encoded_target: FloatArray,
+    encoded_failure: FloatArray,
     n_components: int = 2,
-) -> tuple[PCA, np.ndarray, np.ndarray, np.ndarray]:
+) -> PCAProjectionResult:
     """Fit PCA on source+target latents and project all three sets.
 
     Returns
@@ -244,9 +283,9 @@ def _project_latent_pca(
     pca = PCA(n_components=n_components)
     pca.fit(all_latent)
 
-    proj_source = pca.transform(encoded_source)
-    proj_target = pca.transform(encoded_target)
-    proj_failure = pca.transform(encoded_failure)
+    proj_source = cast(FloatArray, pca.transform(encoded_source))
+    proj_target = cast(FloatArray, pca.transform(encoded_target))
+    proj_failure = cast(FloatArray, pca.transform(encoded_failure))
     return pca, proj_source, proj_target, proj_failure
 
 
@@ -257,10 +296,10 @@ def _project_latent_pca(
 
 def _apply_activation_patch(
     vae: VAE,
-    source_data: np.ndarray,
-    target_data: np.ndarray,
-    failure_data: np.ndarray,
-) -> tuple[ActivationPatch, np.ndarray]:
+    source_data: FloatArray,
+    target_data: FloatArray,
+    failure_data: FloatArray,
+) -> tuple[ActivationPatch, FloatArray]:
     """Fit an ``ActivationPatch`` and apply to failure samples.
 
     Returns
@@ -272,15 +311,15 @@ def _apply_activation_patch(
     """
     patch = ActivationPatch(adapter=vae)
     patch.fit(source_data=source_data, target_data=target_data)
-    edited = patch(failure_data)
+    edited = cast(FloatArray, patch(failure_data))
     return patch, edited
 
 
 def _compute_post_metrics(
-    edited_data: np.ndarray,
-    target_centroid: np.ndarray,
-    baseline: dict,
-) -> dict:
+    edited_data: FloatArray,
+    target_centroid: FloatArray,
+    baseline: BaselineMetrics,
+) -> PostMetrics:
     """Compute post-edit metrics and compare to baseline.
 
     Returns
@@ -288,7 +327,8 @@ def _compute_post_metrics(
     dict with additional keys:
         dist_to_target_after, improvement_ratio
     """
-    dist_after = float(np.mean(np.linalg.norm(edited_data - target_centroid.mean(axis=0), axis=1)))
+    edited_distances = cast(FloatArray, np.linalg.norm(edited_data - target_centroid.mean(axis=0), axis=1))
+    dist_after = float(np.mean(edited_distances))
     dist_before = baseline["dist_to_target_before"]
     improvement = (dist_before - dist_after) / max(dist_before, 1e-12)
 
@@ -307,10 +347,10 @@ def _compute_post_metrics(
 def _build_trajectory_panel(
     vae: VAE,
     patch: ActivationPatch,
-    source_data: np.ndarray,
-    target_data: np.ndarray,
+    source_data: FloatArray,
+    target_data: FloatArray,
     n_steps: int = 6,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, Trajectory, Trajectory]:
+) -> TrajectoryPanelResult:
     """Build latent trajectory with Lerp and compare with ActivationPatch.
 
     1. Compute mean latent centroids for source and target.
@@ -324,22 +364,20 @@ def _build_trajectory_panel(
     orig_decoded : np.ndarray  (n_points, input_dim) — decoded trajectory (no patch)
     patched_decoded : np.ndarray  (n_points, input_dim) — patched decoded trajectory
     traj_lerp : Trajectory — the latent-space Lerp trajectory
-    traj_patched : Trajectory — the patched latent trajectory
     """
-    latent_source = vae.encode(source_data).mean(axis=0)
-    latent_target = vae.encode(target_data).mean(axis=0)
+    latent_source = cast(FloatArray, vae.encode(source_data).mean(axis=0))
+    latent_target = cast(FloatArray, vae.encode(target_data).mean(axis=0))
 
     # Lerp trajectory in latent space
     lerp = Lerp()
-    endpoints = Trajectory(data=np.array([latent_source, latent_target]))
+    endpoints = Trajectory(data=np.vstack([latent_source, latent_target]))
     traj_lerp = lerp.blend_sequence(endpoints, n_steps=n_steps)
 
     # Decode trajectory directly (no patch)
-    orig_decoded = vae.decode(traj_lerp.to_numpy())
+    orig_decoded = cast(FloatArray, vae.decode(traj_lerp.to_numpy()))
 
     # Apply ActivationPatch to trajectory
-    patched_latent = traj_lerp.to_numpy() + patch._delta  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
-    patched_decoded = vae.decode(patched_latent)
+    patched_decoded = cast(FloatArray, patch.apply_trajectory(traj_lerp))
 
     return latent_source, latent_target, orig_decoded, patched_decoded, traj_lerp
 
@@ -351,17 +389,17 @@ def _build_trajectory_panel(
 
 def _plot_composite(
     pca: PCA,
-    proj_source: np.ndarray,
-    proj_target: np.ndarray,
-    proj_failure: np.ndarray,
-    failure_data: np.ndarray,
-    edited_data: np.ndarray,
-    target_centroid_data: np.ndarray,
-    orig_decoded: np.ndarray,
-    patched_decoded: np.ndarray,
-    baseline: dict,
-    post: dict,
-    cfg: dict,
+    proj_source: FloatArray,
+    proj_target: FloatArray,
+    proj_failure: FloatArray,
+    failure_data: FloatArray,
+    edited_data: FloatArray,
+    target_centroid_data: FloatArray,
+    orig_decoded: FloatArray,
+    patched_decoded: FloatArray,
+    baseline: BaselineMetrics,
+    post: PostMetrics,
+    cfg: ShowcaseConfig,
     output_path: str,
 ) -> None:
     """Build a 2×2 composite figure.
@@ -419,14 +457,16 @@ def _plot_composite(
     # ---- Panel 2: Before/after in data space ----
     ax2 = axes[0, 1]
     # Pick 2D for display: PCA of data space
-    from sklearn.decomposition import PCA as _SKPCA
+    from sklearn.decomposition import PCA as _SKPCA  # pyright: ignore[reportMissingTypeStubs]
 
     data_pca = _SKPCA(n_components=2)
-    all_data_2d = data_pca.fit_transform(np.vstack([failure_data, edited_data, target_centroid_data]))
+    all_data_2d: FloatArray = data_pca.fit_transform(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        np.vstack([failure_data, edited_data, target_centroid_data])
+    )
     n_f = len(failure_data)
-    fail_2d = all_data_2d[:n_f]
-    edit_2d = all_data_2d[n_f : 2 * n_f]
-    tgt_2d = all_data_2d[2 * n_f :]
+    fail_2d = cast(FloatArray, all_data_2d[:n_f])
+    edit_2d = cast(FloatArray, all_data_2d[n_f : 2 * n_f])
+    tgt_2d = cast(FloatArray, all_data_2d[2 * n_f :])
 
     ax2.scatter(fail_2d[:, 0], fail_2d[:, 1], c="blue", marker="o", s=40, alpha=0.6, label="before (failure)")
     ax2.scatter(edit_2d[:, 0], edit_2d[:, 1], c="red", marker="^", s=40, alpha=0.8, label="after (edited)")
@@ -456,9 +496,10 @@ def _plot_composite(
     ax3 = axes[1, 0]
     # Project decoded trajectories via shared PCA
     all_traj = np.vstack([orig_decoded, patched_decoded])
-    traj_pca = _SKPCA(n_components=2).fit(all_traj)
-    orig_2d = traj_pca.transform(orig_decoded)
-    patch_2d = traj_pca.transform(patched_decoded)
+    traj_pca = _SKPCA(n_components=2)
+    traj_pca.fit(all_traj)  # pyright: ignore[reportUnknownMemberType]
+    orig_2d = cast(FloatArray, traj_pca.transform(orig_decoded))  # pyright: ignore[reportUnknownMemberType]
+    patch_2d = cast(FloatArray, traj_pca.transform(patched_decoded))  # pyright: ignore[reportUnknownMemberType]
 
     ax3.plot(orig_2d[:, 0], orig_2d[:, 1], "c-o", linewidth=2, markersize=6, label="lerp trajectory (decode)")
     ax3.plot(patch_2d[:, 0], patch_2d[:, 1], "r-^", linewidth=2, markersize=6, label="patched trajectory")
@@ -516,14 +557,14 @@ def _plot_composite(
         bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", alpha=0.8),
     )
 
-    plt.suptitle(
+    plt.suptitle(  # pyright: ignore[reportUnknownMemberType]
         "Sprint 13 Showcase — VAE → PCA → ActivationPatch → Decode\n"
         "Composition of existing primitives (no new abstraction)",
         fontsize=13,
         y=1.01,
     )
     plt.tight_layout()
-    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")  # pyright: ignore[reportUnknownMemberType]
     print(f"\n  ✓ Composite figure saved to {output_path}")
     plt.close(fig)
 
@@ -533,7 +574,12 @@ def _plot_composite(
 # ---------------------------------------------------------------------------
 
 
-def _print_summary(baseline: dict, post: dict, cfg: dict, output_paths: dict) -> None:
+def _print_summary(
+    baseline: BaselineMetrics,
+    post: PostMetrics,
+    cfg: ShowcaseConfig,
+    output_paths: OutputConfig,
+) -> None:
     """Print a structured console summary with seed, metrics, and artifact paths."""
     sep = "=" * 62
     print(f"\n{sep}")
@@ -620,7 +666,7 @@ def main() -> None:
 
     # 1. Generate data
     print("\n[1/7] Generating synthetic cluster data...")
-    points, labels, cluster_info = _generate_data(cfg)
+    points, labels, _cluster_info = _generate_data(cfg)
     total_pts = len(points)
     print(
         f"       {total_pts} points, {cfg['data']['n_clusters']} clusters, "
@@ -655,9 +701,9 @@ def main() -> None:
     # 4. Encode → baseline metrics
     print("\n[4/7] Computing baseline metrics...")
     baseline = _compute_baseline_metrics(
-        combined_train,
-        split["failure_data"],
+        split["source_data"],
         split["target_data"],
+        split["failure_data"],
         split["target_data"],
         vae,
     )
@@ -696,7 +742,7 @@ def main() -> None:
 
     # 7. Trajectory panel
     print("\n[7/7] Building trajectory panel...")
-    latent_a, latent_b, orig_decoded, patched_decoded, traj_lerp = _build_trajectory_panel(
+    _latent_a, _latent_b, orig_decoded, patched_decoded, traj_lerp = _build_trajectory_panel(
         vae,
         patch,
         split["source_data"],
