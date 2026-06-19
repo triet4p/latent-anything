@@ -1,0 +1,23 @@
+==============================================================
+  Sprint 13 Showcase — Summary
+==============================================================
+  Seed:                42
+  Data:                4 clusters × 80 pts, 8D → latent 3D
+  VAE epochs:          300
+  Held-out failure:    10 samples
+==============================================================
+  Reconstruction MSE:
+    Source:            0.133379
+    Target:            0.107026
+    Failure:           0.131513
+==============================================================
+  Distance to target (data-space):
+    Before edit:       1.2102
+    After edit:        0.3854
+    Improvement:       68.2%
+==============================================================
+  Artifacts:
+    figure: artifacts/showcase_demo_plot.png
+    summary: artifacts/showcase_demo_summary.txt
+    config_snapshot: artifacts/showcase_config_snapshot.txt
+==============================================================
