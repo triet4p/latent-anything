@@ -219,3 +219,24 @@ A chronological log of *why* key choices were made in this project.
 - `ModelAdapter` 3-mode ADR: `pending` (no change — consumer-side evidence added, but modes ii and iii untested).
 
 **Consequences:** The `BMethod` Protocol freeze is the third Rule of Three freeze in the project (after `Method` at Sprint 6, and geometry dispatch patterns at Sprint 9). The separation of A (`Method`) and B (`BMethod`) Protocols is now an established architectural principle — future Layer C methods will likely produce a `CMethod` Protocol, not be forced into either existing one. The `ModelAdapter` 3-mode ADR remains the last pending ADR with consumer-side evidence but incomplete mode coverage. Next re-evaluation at Sprint 13 (showcase end-to-end).
+
+## [2026-06-19] Sprint 13 Round 10 — ADR reconciliation: composition-only round; no ADR status changes
+
+**Decision:** No ADR status changes for Sprint 13. This is a **composition-only round** that adds no new adapter, method, or geometry instances. All three ADR statuses remain unchanged. The `ModelAdapter` 3-mode ADR gains additional consumer-side evidence (the showcase uses `ActivationPatch` with both VAE and RandomProjection adapters in a composite narrative), but modes (ii) no-explicit-latent and (iii) deterministic-renderer remain untested.
+
+**Rule of Three §4a outcome:** Not applicable — this is a composition round, not an instance-adding round. No new abstraction extracted. No interface frozen. The showcase config is kept as a local artifact in `scripts/showcase_config.py`, deliberately NOT promoted to `src/` or treated as a framework-wide config system.
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated, no change)**: VAE's `LatentSpace` (euclidean, dim=3) is consumed by PCA Layer A (projection), ActivationPatch (space property), and Lerp (trajectory blending). All three consumed instances work without modification.
+
+2. **Geometry-dispatch ADR (validated, no change)**: Not directly exercised by this showcase (no spherical/second-geometry needed). The Euclidean-only story is consistent with the VAE adapter's flat latent space.
+
+3. **`ModelAdapter` 3-mode ADR (pending → pending)**: The showcase confirms that `ActivationPatch` (B-Method #3) composes correctly with `VAE` (mode i) for the full encode → patch → decode cycle in a multi-step narrative. This adds consumer-side evidence but does not test modes (ii) or (iii).
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by showcase).
+- Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — consumer-side evidence added, modes ii and iii still untested).
+
+**Consequences:** This sprint proves that the framework's existing primitives compose correctly into an end-to-end story without requiring new abstractions. The `ModelAdapter` 3-mode ADR remains the last pending ADR. Full validation still requires mode ii (JiT/LLM hidden states — e.g. with a real LLM adapter) and mode iii (3DGS/LeWM deterministic renderer). Next re-evaluation at the next sprint that adds a new adapter instance or a new method instance.
