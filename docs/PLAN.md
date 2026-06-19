@@ -6,10 +6,10 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 ## Milestones
 * [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
 * [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, `ModelAdapter`, `Method`, `Pipeline`) + Layer A trio + adapter VAE/VLA, end-to-end qua pipeline (Sprint 3–9). **✅ Complete — 2 ADRs validated.**
-* [~] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13). **Sprint 13 active — Showcase end-to-end.**
+* [~] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent trên VLA (Sprint 10–13). **Next up: draft Sprint 13 showcase plan.**
 
 ## Active Sprints
-* [Sprint 13](sprint-plans/sprint-13.md) - *Status: Active* — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10).
+* No active sprint file is drafted right now. Sprint 13 is the next planned increment, but its dedicated sprint file has not been written yet.
 
 ## Completed Sprints
 * [Sprint 12](sprint-plans/sprint-12.md) - *Status: Completed* — Layer B: activation patching (B-Method #3, model-mediated) → **freeze BMethod Protocol**, migrate Lerp + SteeringVector (Round 9).
@@ -29,4 +29,4 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Chỉ chi tiết hóa thành sprint file khi tới lượt — tránh thiết kế trước cái code chưa lộ ra.*
 
 **Giai đoạn 2 (tiếp theo Sprint 12):**
-* Sprint 13 — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10).
+* Sprint 13 — Showcase end-to-end: load VLA → tìm failure → edit latent → decode → quan sát behavior, reproducible từ config (Round 10). Sprint file not drafted yet.

@@ -22,7 +22,7 @@ Khác biệt cốt lõi:
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Task 1: Implement `ActivationPatch` concrete class in `src/latent_anything/methods/activation_patch.py`.
+- [x] Task 1: Implement `ActivationPatch` concrete class in `src/latent_anything/methods/activation_patch.py`.
   - Constructor: `ActivationPatch(adapter)` — nhận một `ModelAdapter`-like object (duck-typed: cần `encode` và `decode`). Adapter là required (không optional như `space` của Lerp/SteeringVector).
   - `space` property → `LatentSpace` — delegates to `adapter.latent_space`. Always returns a `LatentSpace` (không `None` như Lerp/SteeringVector — vì adapter luôn có latent_space). Return type: `LatentSpace` (not `LatentSpace | None`).
   - `is_fitted` property → `bool`.
@@ -40,7 +40,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
   - `delta` property → `np.ndarray` shape `(dim,)` — the learned patch direction in latent space. Raises `RuntimeError` if not fitted.
   - `apply_trajectory(trajectory: Trajectory) -> np.ndarray` — encode each trajectory point (reshape if needed), patch, decode each. Returns stacked decoded outputs. Shape: `(n_points, decoder_output_dim)`. Note: returns `np.ndarray` (decoded data), NOT `Trajectory` — because the output is in data space, not latent space. This is a deliberate difference from Lerp/SteeringVector — captured by `BMethod` Protocol's flexible `apply_trajectory` return type.
   - All I/O: numpy for data, Trajectory for latent sequences. ModelAdapter may use torch internally but public surface is numpy.
-- [ ] Task 2: **Freeze `BMethod` Protocol** — extract from `_b_base.py` → promote to public `protocols.py` (or new `b_protocols.py`).
+- [x] Task 2: **Freeze `BMethod` Protocol** — extract from `_b_base.py` → promote to public `protocols.py` (or new `b_protocols.py`).
   - Create `src/latent_anything/methods/b_protocols.py` with frozen `BMethod` Protocol:
     ```python
     @runtime_checkable
@@ -58,7 +58,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
   - `__call__` is deliberately **NOT** in the Protocol — signatures genuinely differ across instances (Lerp: `(a, b, t)`, SteeringVector: `(latent, strength)`, ActivationPatch: `(input_data)`). Forcing a unified `__call__` would be "design from imagination" (INCREMENTAL.md §3 cấm).
   - Mark docstring: "Frozen at B-Method #3 (ActivationPatch, Sprint 12). Validated by 3 instances with differing philosophies: stateless latent→latent (Lerp), stateful latent→latent (SteeringVector), model-mediated data→data (ActivationPatch)."
   - Remove `_b_base.py` (the UNSTABLE sketch is superseded by the frozen Protocol).
-- [ ] Task 3: **Migrate Lerp** to note `BMethod` Protocol conformance.
+- [x] Task 3: **Migrate Lerp** to note `BMethod` Protocol conformance.
   - Add `is_fitted` property → always returns `True` (stateless methods are always "ready").
   - Add generic `apply_trajectory(trajectory: Trajectory, **kwargs: float) -> Trajectory` method that delegates to existing trajectory ops:
     - If `kwargs` contains `"other"` (a Trajectory) and `"t"` (float): delegate to `between(trajectory, kwargs["other"], kwargs["t"])`.
@@ -66,16 +66,16 @@ Status legend: [ ] pending / [~] in progress / [x] done
     - Else: raise `ValueError` with helpful message.
   - Update docstring: note conformance to `BMethod` Protocol (structural, duck-typed).
   - Keep existing methods `between`, `blend_sequence`, `__call__` — they are instance-specific and still valid.
-- [ ] Task 4: **Migrate SteeringVector** to note `BMethod` Protocol conformance.
+- [x] Task 4: **Migrate SteeringVector** to note `BMethod` Protocol conformance.
   - Already has `space`, `is_fitted`, `apply_trajectory` → conforms structurally.
   - Update docstring: note conformance to `BMethod` Protocol. Note that `fit` is instance-specific (not in Protocol).
   - No code changes needed beyond docstring.
-- [ ] Task 5: Export `BMethod` and `ActivationPatch` from `src/latent_anything/methods/__init__.py`. Add both to `__all__`. `BMethod` joins `Method` as the second public Protocol in the methods package.
-- [ ] Task 6: End-to-end demo script `scripts/end_to_end_activation_patch_demo.py` — two scenarios:
+- [x] Task 5: Export `BMethod` and `ActivationPatch` from `src/latent_anything/methods/__init__.py`. Add both to `__all__`. `BMethod` joins `Method` as the second public Protocol in the methods package.
+- [x] Task 6: End-to-end demo script `scripts/end_to_end_activation_patch_demo.py` — two scenarios:
   - **Scenario A (VAE latent arithmetic)**: Train a tiny VAE on synthetic 2D grid data (e.g. `make_blobs` or simple geometric shapes). Fit `ActivationPatch(adapter=vae)` with source=cluster_A, target=cluster_B. Apply patch to test samples from cluster_A → decode → visualize patched reconstruction vs original reconstruction side-by-side. Show that patched outputs morph toward cluster_B characteristics.
   - **Scenario B (Trajectory patching)**: Create a trajectory of latent points from cluster_A to cluster_B (via Lerp). Apply `ActivationPatch.apply_trajectory(trajectory)` → decode each point → create a grid visualization showing the morphing sequence. Compare with direct latent interpolation (Lerp → Trajectory) to highlight data-space vs latent-space perspective.
   - Use matplotlib: 2×2 grid showing (1) original reconstruction, (2) patched reconstruction, (3) latent space PCA with patch direction arrow, (4) trajectory morphing grid.
-- [ ] Task 7: Tests — pytest for `ActivationPatch` and `BMethod` Protocol:
+- [x] Task 7: Tests — pytest for `ActivationPatch` and `BMethod` Protocol:
   - `test_activation_patch_construction_with_vae` — construct with VAE adapter
   - `test_activation_patch_construction_with_random_projection` — construct with RandomProjection adapter
   - `test_activation_patch_space_delegates_to_adapter` — space property returns adapter.latent_space
@@ -97,16 +97,16 @@ Status legend: [ ] pending / [~] in progress / [x] done
   - `test_activation_patch_conforms_to_bmethod` — ActivationPatch passes check
   - `test_bmethod_rejects_non_conforming` — object without space/is_fitted/apply_trajectory fails check
   - Target: ~20 tests.
-- [ ] Task 8: Tooling gate — `ruff check` + `ruff format` + `pyright` strict clean. All existing tests (~227) + new tests (~20) pass.
-- [ ] Task 9: Rule of Three §4a — ghi artifact summary:
+- [x] Task 8: Tooling gate — `ruff check` + `ruff format` + `pyright` strict clean. All existing tests (~227) + new tests (~20) pass.
+- [x] Task 9: Rule of Three §4a — ghi artifact summary:
   > "B-Method #3 (ActivationPatch, model-mediated data→data) → **freeze `BMethod` Protocol**, migrate Lerp + SteeringVector. Three distinct B-Method patterns now proven: stateless latent→latent (Lerp), stateful latent→latent (SteeringVector), model-mediated data→data (ActivationPatch). The frozen `BMethod` Protocol captures the invariant surface (`space`, `is_fitted`, `apply_trajectory`) while deliberately excluding `__call__` (signatures genuinely differ). `_b_base.py` removed — superseded by frozen Protocol. `Method` Protocol unchanged (remains Layer A stateful dim-reduction). This confirms ARCHITECTURE.md's prediction that A/B/C methods have different shapes — the aspirational 'interface chung cho mọi A/B/C method' is disproven by code, replaced by separate fit-for-purpose Protocols."
-- [ ] Task 10: ADR check §4c — ActivationPatch exercises the two validated ADRs:
+- [x] Task 10: ADR check §4c — ActivationPatch exercises the two validated ADRs:
   - `LatentSpace` geometry-keyed ADR (validated): ActivationPatch accesses `adapter.latent_space` and uses `.dim` for validation. Exercised through adapter coupling.
   - Geometry-dispatch ADR (validated): If adapter's latent_space has `unit_norm` geometry, patch delta could be normalized via `space.normalize()`. Exercised indirectly through adapter's `LatentSpace`.
   - `ModelAdapter` 3-mode ADR: `pending` → **partially exercised**. ActivationPatch is the first B-Method to consume a `ModelAdapter` directly. It works with VAE (mode i, explicit learned latent) and RandomProjection (mode i-like, stateless projection). This proves that `ModelAdapter` is consumable from Layer B, but modes (ii) and (iii) remain untested. ADR stays `pending` but now has consumer-side evidence.
   - Append routine entry to `decisions.md`.
-- [ ] Task 11: Update `CHANGELOG.md` `[Unreleased]` — add ActivationPatch B-Method, `BMethod` Protocol freeze, Lerp/SteeringVector migration, trajectory-to-data-space demo, and Protocol architecture note under `Added`. Breaking change note under `Changed`: `BMethod` Protocol frozen, `_b_base.py` removed.
-- [ ] Task 12: Update `docs/PLAN.md` — Sprint 12 → Completed, Sprint 13 → Active, Milestone 2 nearing completion (one sprint left).
+- [x] Task 11: Update `CHANGELOG.md` `[Unreleased]` — add ActivationPatch B-Method, `BMethod` Protocol freeze, Lerp/SteeringVector migration, trajectory-to-data-space demo, and Protocol architecture note under `Added`. Breaking change note under `Changed`: `BMethod` Protocol frozen, `_b_base.py` removed.
+- [x] Task 12: Update `docs/PLAN.md` — Sprint 12 → Completed; Sprint 13 remains the next planned sprint in backlog until its dedicated sprint file is drafted. Milestone 2 still has one remaining showcase sprint.
 
 ## Rule-of-Three checkpoint (to verify at end)
 | Check | Status |

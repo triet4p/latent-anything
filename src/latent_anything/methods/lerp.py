@@ -12,6 +12,8 @@ Rule of Three freeze at B-Method #3 (``ActivationPatch``, Sprint 12).
 
 from __future__ import annotations
 
+from numbers import Integral, Real
+
 import numpy as np
 
 from latent_anything.latent_space import LatentSpace
@@ -168,7 +170,7 @@ class Lerp:
 
         return Trajectory(data=np.array(dense))
 
-    def apply_trajectory(self, trajectory: Trajectory, **kwargs: float) -> Trajectory:
+    def apply_trajectory(self, trajectory: Trajectory, **kwargs: object) -> Trajectory:
         """Apply interpolation to a trajectory (generic ``BMethod`` interface).
 
         Supports two modes via ``**kwargs``:
@@ -181,7 +183,7 @@ class Lerp:
         ----------
         trajectory : Trajectory
             Input trajectory.
-        **kwargs : float
+        **kwargs : object
             Keyword arguments — must contain either ``other`` + ``t``
             or ``n_steps``.
 
@@ -196,11 +198,21 @@ class Lerp:
             If the keyword arguments do not match the expected patterns.
         """
         if "other" in kwargs and "t" in kwargs:
-            other_traj: Trajectory = kwargs.pop("other")  # type: ignore[assignment]
-            t_val: float = kwargs.pop("t")
-            return self.between(trajectory, other_traj, t_val)
+            other_value = kwargs.pop("other")
+            t_value = kwargs.pop("t")
+            if not isinstance(other_value, Trajectory):
+                msg = f"'other' must be a Trajectory, got {type(other_value).__name__}"
+                raise ValueError(msg)
+            if not isinstance(t_value, Real):
+                msg = f"'t' must be a real number, got {type(t_value).__name__}"
+                raise ValueError(msg)
+            return self.between(trajectory, other_value, float(t_value))
         if "n_steps" in kwargs:
-            n_steps_val: int = int(kwargs.pop("n_steps"))
+            n_steps_value = kwargs.pop("n_steps")
+            if not isinstance(n_steps_value, Integral):
+                msg = f"'n_steps' must be an integer, got {type(n_steps_value).__name__}"
+                raise ValueError(msg)
+            n_steps_val = int(n_steps_value)
             return self.blend_sequence(trajectory, n_steps=n_steps_val)
         msg = (
             "Lerp.apply_trajectory requires either "

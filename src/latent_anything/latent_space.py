@@ -1,4 +1,4 @@
-"""A concrete LatentSpace class representing a Euclidean flat vector space."""
+"""A concrete geometry-aware latent space with Euclidean and spherical support."""
 
 from __future__ import annotations
 
@@ -8,17 +8,22 @@ import numpy as np
 
 
 class LatentSpace:
-    """Represents a latent space with Euclidean flat geometry.
+    """Represents a latent space with concrete geometry-aware operations.
 
-    This is a concrete, hardcoded implementation supporting only
-    Euclidean flat vector spaces. It will be generalized to an
-    interface once instance #3 of a different philosophy appears
-    (Rule of Three, see INCREMENTAL.md §4a).
+    This is a concrete, hardcoded implementation supporting two
+    validated geometry cases so far: Euclidean flat vectors
+    (``"euclidean"``) and unit-norm spherical vectors
+    (``"unit_norm"``). It will be generalized to an interface once
+    instance #3 of a different philosophy appears (Rule of Three,
+    see INCREMENTAL.md §4a).
 
     Parameters
     ----------
     dim : int
         Dimensionality of the latent space.
+    geometry : str, optional
+        Geometry hint for dispatch. Supported values are
+        ``"euclidean"`` and ``"unit_norm"``.
     source_model : str, optional
         Name or identifier of the source model.
     metadata : dict, optional

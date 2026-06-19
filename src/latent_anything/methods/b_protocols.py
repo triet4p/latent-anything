@@ -68,16 +68,16 @@ class BMethod(Protocol):
         """Return ``True`` if the method is ready to apply."""
         ...
 
-    def apply_trajectory(self, trajectory: Trajectory, **kwargs: float) -> Trajectory | np.ndarray:
+    def apply_trajectory(self, trajectory: Trajectory, **kwargs: object) -> Trajectory | np.ndarray:
         """Apply the B-Method operation to every point in a trajectory.
 
         Parameters
         ----------
         trajectory : Trajectory
             Input trajectory.
-        **kwargs : float
-            Method-specific keyword arguments (e.g. ``t`` for Lerp,
-            ``strength`` for SteeringVector).
+        **kwargs : object
+            Method-specific keyword arguments (e.g. ``other`` + ``t``
+            for Lerp, ``strength`` for SteeringVector).
 
         Returns
         -------
