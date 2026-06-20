@@ -268,3 +268,24 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 - Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
 
 **Consequences:** All three 2026-06-16 ADRs are now validated. The `ModelAdapter` 3-mode ADR is validated with modes (i) and (ii) confirmed — mode (iii) determination remains provisional until a concrete renderer adapter exists (expected Sprint 16). The Protocol split (`ModelAdapter` vs `DecodableAdapter`) is the established architectural pattern for the adapter layer. Next re-evaluation at Sprint 15 (Gaussian set geometry) and Sprint 16 (deterministic renderer adapter for mode iii).
+
+## [2026-06-20] Sprint 15 Round 12 — ADR reconciliation: geometry-keyed and geometry-dispatch ADRs exercised by `gaussian_set` case #3; no status changes
+
+**Decision:** No ADR status changes for Sprint 15. Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) are exercised by the `gaussian_set` geometry case #3 — the first structured, set-like latent shape. The `ModelAdapter` 3-mode ADR remains `validated` (not touched by this geometry-only increment).
+
+**Rule of Three §4a outcome:** Geometry #3 (`gaussian_set`) confirms inline `if/elif` dispatch remains acceptable — 3 branches are not yet brittle. No dispatch table extraction was needed. The public `LatentSpace(dim=...)` API is preserved for flat geometries; `n_gaussians` and dimension-parameter fields are additive constructor kwargs.
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated, no change)**: The `gaussian_set` geometry case proves that the geometry key can carry structured shape information (`(n_gaussians, param_dim)` instead of `(dim,)`) while preserving flat-geometry ergonomics. The `shape` property now returns geometry-dependent tuples. `n_gaussians` and `param_dim` are exposed as properties. The `gaussian_set_param_layout` metadata entry documents the parameter column layout (position, scale, opacity, color).
+
+2. **Geometry-dispatch ADR (validated, no change)**: `distance()` dispatches to a permutation-aware set distance (sort-by-position lexicographic, then Frobenius norm). `interpolate()` dispatches to a constrained interpolation (log-space for scale, clamp for opacity/color). `normalize()` returns a copy (no geometry constraint beyond what `validate_point` checks). `validate_point()` checks shape `(n_gaussians, param_dim)` plus numeric constraints (scale > 0, opacity/color in [0,1]). All four methods follow the established `if/elif` dispatch pattern.
+
+3. **`ModelAdapter` 3-mode ADR (validated, no change)**: Not touched by this geometry-only sprint. Mode (iii) deterministic-renderer remains pending Sprint 16.
+
+**Status update:**
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by `gaussian_set` case #3).
+- Geometry-dispatch ADR: `validated` (no change — exercised by `gaussian_set` distance/interpolate/validate dispatch).
+- `ModelAdapter` 3-mode ADR: `validated` (no change — not touched this sprint).
+
+**Consequences:** This sprint proves that the geometry-keyed `LatentSpace` design can represent structured, set-like latent shapes without modifying the flat-geometry API. The `if/elif` dispatch pattern survives 3 geometries without abstraction. The sprint prepares the codebase for a deterministic-renderer adapter (Sprint 16) that will consume `gaussian_set` geometry through the `ModelAdapter` interface. Next re-evaluation at Sprint 16 (deterministic renderer adapter for `ModelAdapter` mode iii).
