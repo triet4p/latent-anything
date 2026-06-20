@@ -18,6 +18,7 @@ philosophies validate the split:
 
 from __future__ import annotations
 
+from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter as GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter as HiddenStateAdapter
 from latent_anything.adapters.protocols import DecodableAdapter as DecodableAdapter
 from latent_anything.adapters.protocols import ModelAdapter as ModelAdapter
@@ -26,6 +27,7 @@ from latent_anything.adapters.vae import VAE as VAE
 
 __all__ = [
     "DecodableAdapter",
+    "GaussianRendererAdapter",
     "HiddenStateAdapter",
     "ModelAdapter",
     "RandomProjection",

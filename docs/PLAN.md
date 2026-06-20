@@ -7,15 +7,16 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
 * [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, Layer A `Method`) + first adapters and geometry dispatch (Sprint 3–9). **Complete — 2 ADRs validated; `ModelAdapter` remains intentionally pending.**
 * [x] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent story (Sprint 10–13). **Sprint 13 completed — VAE-based end-to-end showcase proven.** The showcase composes existing primitives (VAE, PCA, ActivationPatch, Lerp) into a coherent edit story with 68.2% distance improvement. Real VLA showcase remains future ecosystem work when a VLA adapter exists in the codebase.
-* [ ] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16).
+* [x] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16). **Complete — all three 2026-06-16 ADRs fully validated with all modes confirmed by running code.**
 * [ ] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19).
 * [ ] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21).
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Planned* — Add deterministic Gaussian renderer adapter to exercise `ModelAdapter` mode (iii).
+*(No active sprints — next planned: Sprint 17.)*
 
 ## Completed Sprints
+* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 51 new tests, 376 total. (Round 13).
 * [Sprint 15](sprint-plans/sprint-15.md) - *Status: Completed* — Add structured `gaussian_set` latent geometry as geometry case #3. Geometry-keyed and geometry-dispatch ADRs exercised by set-like structured shape. Inline `if/elif` dispatch survives 3 geometries (Rule of Three §4a: instance #3 → keep hardcoded). 78 LatentSpace tests pass. (Round 12).
 * [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR moves to **validated** (modes i and ii confirmed). All three 2026-06-16 ADRs now validated. (Round 11).
 * [Sprint 13](sprint-plans/sprint-13.md) - *Status: Completed* — End-to-end VAE-based showcase: adapter → latent inspection (PCA Layer A) → latent edit (ActivationPatch Layer B) → decode → before/after metric (68.2% improvement) → trajectory panel (Lerp). Reproducible from config lightweight; no new abstraction added. (Round 10 — composition/validation round).

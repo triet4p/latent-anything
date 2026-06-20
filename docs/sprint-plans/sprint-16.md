@@ -9,16 +9,16 @@ This closes the last planned `ModelAdapter` ADR mode: a latent representation wh
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Task 1: Implement `GaussianRendererAdapter` in `src/latent_anything/adapters/gaussian_renderer.py`.
-- [ ] Task 2: Use the Sprint 15 `gaussian_set` `LatentSpace` metadata as the adapter's `latent_space`.
-- [ ] Task 3: Implement deterministic `decode(latent: np.ndarray) -> np.ndarray` with a tiny 2D Gaussian splat renderer.
-- [ ] Task 4: Implement `encode(data: np.ndarray) -> np.ndarray` only if a simple, honest synthetic path exists; otherwise document the adapter as latent-source-first and keep tests around decode + latent_space.
-- [ ] Task 5: Make protocol typing precise: this adapter is decodable, but not learned-decoder-based.
-- [ ] Task 6: Add tests for output shape, opacity/color constraints, deterministic decode, protocol conformance, and no mutation.
-- [ ] Task 7: Add a demo: Gaussian-set latent → rendered image grid → interpolation sequence.
-- [ ] Task 8: Run `ruff check`, `ruff format`, `pyright`, and full pytest.
-- [ ] Task 9: ADR check: validate `ModelAdapter` mode (iii); if all three modes are now covered, append a final validation entry.
-- [ ] Task 10: Update artifact summary, `CHANGELOG.md`, and `docs/PLAN.md`.
+- [x] Task 1: Implement `GaussianRendererAdapter` in `src/latent_anything/adapters/gaussian_renderer.py`.
+- [x] Task 2: Use the Sprint 15 `gaussian_set` `LatentSpace` metadata as the adapter's `latent_space`.
+- [x] Task 3: Implement deterministic `decode(latent: np.ndarray) -> np.ndarray` with a tiny 2D Gaussian splat renderer.
+- [x] Task 4: Implement `encode(data: np.ndarray) -> np.ndarray` only if a simple, honest synthetic path exists; otherwise document the adapter as latent-source-first and keep tests around decode + latent_space.
+- [x] Task 5: Make protocol typing precise: this adapter is decodable, but not learned-decoder-based.
+- [x] Task 6: Add tests for output shape, opacity/color constraints, deterministic decode, protocol conformance, and no mutation.
+- [x] Task 7: Add a demo: Gaussian-set latent → rendered image grid → interpolation sequence.
+- [x] Task 8: Run `ruff check`, `ruff format`, `pyright`, and full pytest.
+- [x] Task 9: ADR check: validate `ModelAdapter` mode (iii); if all three modes are now covered, append a final validation entry.
+- [x] Task 10: Update artifact summary, `CHANGELOG.md`, and `docs/PLAN.md`.
 
 ## Rule-of-Three Checkpoint
 | Check | Status |

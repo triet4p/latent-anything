@@ -289,3 +289,27 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 - `ModelAdapter` 3-mode ADR: `validated` (no change — not touched this sprint).
 
 **Consequences:** This sprint proves that the geometry-keyed `LatentSpace` design can represent structured, set-like latent shapes without modifying the flat-geometry API. The `if/elif` dispatch pattern survives 3 geometries without abstraction. The sprint prepares the codebase for a deterministic-renderer adapter (Sprint 16) that will consume `gaussian_set` geometry through the `ModelAdapter` interface. Next re-evaluation at Sprint 16 (deterministic renderer adapter for `ModelAdapter` mode iii).
+
+## [2026-06-20] Sprint 16 Round 13 — ADR reconciliation: ModelAdapter mode (iii) confirmed by GaussianRendererAdapter; all three 2026-06-16 ADRs now fully validated with all modes
+
+**Decision:** The `ModelAdapter` 3-mode ADR's mode (iii) — explicit non-latent structured representation with deterministic decode — is now confirmed by running code (`GaussianRendererAdapter`). This closes the last evidence gap for the 2026-06-16 ADR. All three ADRs are now fully validated with all modes confirmed by concrete instances.
+
+**Rule of Three §4a outcome:** Adapter #4 (`GaussianRendererAdapter`) is the first instance in mode (iii). No new Protocol extraction is needed — the existing `ModelAdapter`/`DecodableAdapter` split already handles this case correctly. The `gaussian_set` geometry (geometry #3) survives as inline `if/elif` dispatch — 3 branches remain acceptable.
+
+**Evidence considered:**
+
+1. **`ModelAdapter` 3-mode ADR (validated → fully validated)**: Mode (iii) is now confirmed by `GaussianRendererAdapter` — a concrete adapter whose `decode` is a deterministic numpy-only 2D Gaussian splat renderer (not a learned neural network). The adapter conforms to both `ModelAdapter` (encode + latent_space) and `DecodableAdapter` (encode + decode + latent_space), with `encode` provided as a heuristic grid-based approximation (the adapter is documented as latent-source-first). Three modes are now all confirmed by running code:
+   - Mode (i) — explicit learned latent: VAE (Sprint 7), RandomProjection (Sprint 8).
+   - Mode (ii) — no-explicit-latent: HiddenStateAdapter (Sprint 14).
+   - Mode (iii) — deterministic renderer: GaussianRendererAdapter (Sprint 16).
+
+2. **`LatentSpace` geometry-keyed ADR (validated, no change)**: `GaussianRendererAdapter.latent_space` returns a `gaussian_set` `LatentSpace` with `position_dim=2, scale_dim=2, color_dim=3` (8 columns: pos(2) + scale(2) + opacity(1) + color(3)), and metadata marking `exposure_mode="deterministic_renderer"` plus image dimensions. The geometry key correctly carries structured parameter layout info that the decode method consumes.
+
+3. **Geometry-dispatch ADR (validated, no change)**: Not directly exercised by this sprint — the adapter's `LatentSpace` is `gaussian_set` geometry, but the decode operation is a custom renderer (not a `LatentSpace` distance/interpolate call). The `LatentSpace` geometry dispatch is used only when a caller uses `space.interpolate()` or `space.distance()` on the adapter's latent points.
+
+**Status update:**
+- `ModelAdapter` 3-mode ADR: `validated` → **`validated (all 3 modes confirmed)`** — mode (iii) confirmed by GaussianRendererAdapter. This is the final ADR closure from the 2026-06-16 set.
+- `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by GaussianRendererAdapter's gaussian_set latent space).
+- Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
+
+**Consequences:** All three 2026-06-16 ADRs are now fully validated with all modes confirmed by running code. The `ModelAdapter` vs `DecodableAdapter` Protocol split is proven correct — the deterministic renderer conforms to `DecodableAdapter` because it has a `decode` method, while `HiddenStateAdapter` (mode ii) correctly does not. The next ADR-relevant sprint will be Sprint 17 (plugin registry) or a future adapter that challenges the existing Protocol shape. No further ADR reconciliation is expected from the 2026-06-16 set.
