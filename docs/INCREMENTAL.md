@@ -117,7 +117,27 @@ Diễn giải [ARCHITECTURE §5](ARCHITECTURE.md) thành chuỗi increment cụ 
 
 Geometry-dispatch ADR (slerp/Mahalanobis/log-exp/SO(3)) chỉ được freeze khi **method thứ 3 phụ thuộc metric** xuất hiện (vòng 6–9 vùng lân cận), đúng tinh thần ADR gốc "validate when the third Layer-B method lands".
 
-Các Giai đoạn 3–9 giữ nguyên như ARCHITECTURE §5; tài liệu này sẽ được mở rộng khi Giai đoạn 1–2 hoàn tất và lộ ra pattern mới.
+## 7. Plan tổng incremental — sau Sprint 13
+
+Sprint 13 đã chứng minh story composition đầu tiên bằng VAE, PCA, ActivationPatch và Lerp. Từ Sprint 14 trở đi, thứ tự ưu tiên là đóng nợ ADR còn lại trước khi mở rộng runtime: `ModelAdapter` phải được stress-test bằng no-explicit-latent và deterministic-renderer mode; `LatentSpace` phải có structured geometry đầu tiên; sau đó mới extract plugin/config/pipeline/runtime.
+
+Các dòng dưới đây map trực tiếp sang `docs/sprint-plans/sprint-<N>.md`. Sprint 15+ vẫn là plan có chủ đích nhưng provisional: nếu code ở sprint trước phản bác giả định, chỉnh sprint sau và ghi ADR thay vì bám bảng này máy móc.
+
+| Sprint | Nội dung | Instance / evidence | Mục tiêu Rule-of-Three |
+|---|---|---|---|
+| 14 | `HiddenStateAdapter` — no-explicit-latent mode; latent là hidden activations, không fake decoder. | ModelAdapter #3, mode (ii) | Freeze `ModelAdapter` Protocol; tách decodable surface nếu code yêu cầu |
+| 15 | `gaussian_set` geometry — fixed-size structured Gaussian latent state. | Geometry #3 | Extract dispatch abstraction chỉ nếu inline dispatch bắt đầu brittle |
+| 16 | `GaussianRendererAdapter` — deterministic Gaussian splat decode. | ModelAdapter mode (iii) | Validate hoặc revise `ModelAdapter` 3-mode ADR |
+| 17 | In-process registry cho adapters/methods. | Plugin extraction #1 | Giữ local registry; chưa entry points |
+| 18 | Pydantic config specs để instantiate registry objects. | Config instantiation #1 | Không tạo workflow language |
+| 19 | Convert built-ins sang registry-first, prove behavior parity. | Plugin extraction #2 | Quyết có cần entry points chưa bằng evidence |
+| 20 | Pipeline #1: adapter → Layer A analysis. | Pipeline #1 | Giữ concrete, không generic DAG |
+| 21 | Pipeline #2: adapter/latent → Layer B manipulation. | Pipeline #2 | Sketch shared shape nếu thật sự có code chung |
+| 22 | BatchExecutor #1. | Runtime #1 | Eager/sync only |
+| 23 | In-memory cache #1. | Runtime #2 | Chốt cache key trước khi disk backend |
+| 24 | Async execution + profiling hooks. | Runtime #3-ish | Freeze runtime protocol chỉ nếu BatchExecutor + Cache + Async lộ invariant thật |
+
+Sau Sprint 24, các hướng theory-backed tiếp theo được mở nhưng chưa sprint-filed: probing/TCAV (tầng 5), trajectory similarity và rollout (tầng 6), MPC/CEM planning (tầng 7), discrete/tokenized world-model adapters (tầng 9).
 
 ---
 

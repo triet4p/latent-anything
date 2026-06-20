@@ -5,11 +5,15 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 
 ## Milestones
 * [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
-* [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, `ModelAdapter`, `Method`, `Pipeline`) + Layer A trio + adapter VAE/VLA, end-to-end qua pipeline (Sprint 3–9). **✅ Complete — 2 ADRs validated.**
+* [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, Layer A `Method`) + first adapters and geometry dispatch (Sprint 3–9). **Complete — 2 ADRs validated; `ModelAdapter` remains intentionally pending.**
 * [x] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent story (Sprint 10–13). **Sprint 13 completed — VAE-based end-to-end showcase proven.** The showcase composes existing primitives (VAE, PCA, ActivationPatch, Lerp) into a coherent edit story with 68.2% distance improvement. Real VLA showcase remains future ecosystem work when a VLA adapter exists in the codebase.
+* [ ] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16).
+* [ ] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19).
+* [ ] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21).
+* [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-*none currently — next sprint is TBD*
+* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Not Started* — Hidden-state / no-explicit-latent adapter; freeze the first `ModelAdapter` Protocol surface without forcing `decode` into every adapter.
 
 ## Completed Sprints
 * [Sprint 13](sprint-plans/sprint-13.md) - *Status: Completed* — End-to-end VAE-based showcase: adapter → latent inspection (PCA Layer A) → latent edit (ActivationPatch Layer B) → decode → before/after metric (68.2% improvement) → trajectory panel (Lerp). Reproducible from config lightweight; no new abstraction added. (Round 10 — composition/validation round).
@@ -27,7 +31,28 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [Sprint 10](sprint-plans/sprint-10.md) - *Status: Completed* — Layer B: lerp (B-Method #1, stateless), trajectory blending, end-to-end (Round 7). **Giai đoạn 2 begins.**
 
 ## Backlog / Future Work
-*Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Chỉ chi tiết hóa thành sprint file khi tới lượt — tránh thiết kế trước cái code chưa lộ ra.*
+*Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint 15+ là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
 
-**Giai đoạn 2 (sau Sprint 13):**
-* TBD — chọn increment tiếp theo sau khi showcase round chốt được story nào thật sự đáng đẩy tiếp: VLA adapter thật, ModelAdapter #3 mode (ii)/(iii), hay Layer C/runtime foundation.
+**Adapter/geometry closure:**
+* [Sprint 15](sprint-plans/sprint-15.md) - *Status: Planned* — Add structured `gaussian_set` latent geometry as geometry case #3.
+* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Planned* — Add deterministic Gaussian renderer adapter to exercise `ModelAdapter` mode (iii).
+
+**Plugin extraction:**
+* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Planned* — Add in-process registry for adapters and methods.
+* [Sprint 18](sprint-plans/sprint-18.md) - *Status: Planned* — Add pydantic config specs for registry-backed instantiation.
+* [Sprint 19](sprint-plans/sprint-19.md) - *Status: Planned* — Convert built-in adapters/methods to registry entries and prove behavior parity.
+
+**Pipeline foundation:**
+* [Sprint 20](sprint-plans/sprint-20.md) - *Status: Planned* — Add concrete Pipeline #1 for adapter → Layer A analysis.
+* [Sprint 21](sprint-plans/sprint-21.md) - *Status: Planned* — Add concrete Pipeline #2 for adapter → Layer B manipulation and sketch shared shape.
+
+**Layer C runtime foundation:**
+* [Sprint 22](sprint-plans/sprint-22.md) - *Status: Planned* — Add batch executor.
+* [Sprint 23](sprint-plans/sprint-23.md) - *Status: Planned* — Add cache layer, starting with in-memory cache.
+* [Sprint 24](sprint-plans/sprint-24.md) - *Status: Planned* — Add async execution and profiling hooks.
+
+**Later ecosystem expansion, not yet sprint-filed:**
+* Add label-aware probing / TCAV work from theory tầng 5.
+* Add trajectory similarity, rollout, and transition-model methods from tầng 6.
+* Add MPC/CEM planning methods from tầng 7.
+* Add discrete/tokenized world-model adapters from tầng 9.
