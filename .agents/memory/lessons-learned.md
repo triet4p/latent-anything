@@ -12,6 +12,24 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Symptom:** What went wrong or behaved unexpectedly.
 **Root cause:** Why it happened.
 **Fix / workaround:** What resolved it.
+**Watch out for:** Conditions that would trigger this again.
+```
+
+---
+
+## [2026-06-20] Untracked files left behind after commit
+
+**Symptom:** After committing Sprint 14 changes, `git status` showed an untracked `artifacts/hidden_state_demo_plot.png` that was never staged or committed.
+
+**Root cause:** The demo plot file was generated during the sprint but never added to the staging area. The `git commit` only included files explicitly staged via `git add <file>...`, and the PNG was inadvertently skipped because it was treated as a "build artifact" rather than a deliverable that should be versioned alongside the demo script.
+
+**Fix / workaround:** Stage all files — including generated outputs like demo plots — with `git add <path>` and then `git commit --amend --no-edit` to incorporate them into the existing commit. No file should remain untracked after a commit; every untracked file is either (a) committed, (b) added to `.gitignore`, or (c) deleted.
+
+**Watch out for:** After running any script that generates an output file (plot, report, artifact), check `git status` before committing. Demo plots in `artifacts/` are tracked alongside their scripts, not ignored.
+
+**Symptom:** What went wrong or behaved unexpectedly.
+**Root cause:** Why it happened.
+**Fix / workaround:** What resolved it.
 **Watch out for:** Conditions that trigger this again.
 ```
 
