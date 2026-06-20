@@ -4,6 +4,12 @@
 
 ### Added
 
+- **`ModelAdapter` / `DecodableAdapter` Protocols frozen** — `adapters/protocols.py` with structural `typing.Protocol` split: base `ModelAdapter` (universal: `encode` + `latent_space`) and `DecodableAdapter` (extended: `+decode`). The split reflects the core evidence from three adapters: `decode` is NOT universal. Frozen at ModelAdapter #3 (Sprint 14), this is the fourth Protocol freeze in the project (after `Method`, geometry patterns, `BMethod`). (#sprint-14)
+- **`HiddenStateAdapter`** — ModelAdapter #3 (mode ii: no-explicit-latent), demonstrating the pattern where hidden-state activations *are* the latent representation. Fixed random 2-layer ReLU MLP with He initialisation. `encode(data)` returns `(n_samples, hidden_dim)` hidden activations. No `decode` method — there is no decoder. `latent_space` returns Euclidean `LatentSpace` with `exposure_mode="hidden_state"` metadata. Pure numpy — no torch or heavy transformer dependency. (#sprint-14)
+- **`ActivationPatch` runtime guard** — now requires `DecodableAdapter` with `isinstance` check at construction. A `HiddenStateAdapter` (which has no `decode`) is cleanly rejected with `TypeError`. (#sprint-14)
+- End-to-end demo script `scripts/end_to_end_hidden_state_demo.py` — synthetic 8D clusters → HiddenStateAdapter encode → PCA/UMAP 2D visualization → no decode story. (#sprint-14)
+- Test suite: 29 HiddenStateAdapter tests covering construction, latent_space property, encode shape/determinism/nonlinearity/validation, ModelAdapter conformance, DecodableAdapter non-conformance, ActivationPatch rejection, and reproducibility. (#sprint-14)
+
 - **First composition showcase** — Sprint 13 end-to-end story: generate synthetic 8D cluster data → train VAE → encode to 3D latent → PCA Layer A introspection (source/target/failure regions visible) → baseline metrics → ActivationPatch Layer B edit (encode → patch → decode) → post-edit metrics (68.2% distance improvement toward target) → Lerp trajectory panel → composite 2×2 figure. Proves existing primitives compose without new abstractions. (#sprint-13)
 - Showcase config `scripts/showcase_config.py` — lightweight local dict (not framework-wide config system) with seed 42, data generation params, VAE params, split config, and output paths. Guarantees reproducibility for the Sprint 13 narrative. (#sprint-13)
 - Showcase script `scripts/end_to_end_showcase_demo.py` — orchestration entry point implementing the full compose narrative. Reuses existing patterns from `end_to_end_vae_demo.py`, `end_to_end_activation_patch_demo.py`, and `end_to_end_lerp_demo.py` rather than duplicating. (#sprint-13)
@@ -18,6 +24,12 @@
 - Test suite: 32 SteeringVector tests covering construction with/without LatentSpace, fit direction learning, direction property (before/after fit), `__call__` edge cases (zero/negative/wrong-dim/strength scaling), input non-mutation, apply_trajectory shape/semantics, spherical normalization at multiple strengths, and no-torch-leakage verification. (#sprint-11)
 
 ### Changed
+
+- **`ModelAdapter` 3-mode ADR → validated** — modes (i) and (ii) confirmed by running code (VAE, RandomProjection, HiddenStateAdapter). Mode (iii) remains pending Sprint 16. All three 2026-06-16 ADRs are now validated. (#sprint-14)
+- **`_ModelAdapterBase` removed** — superseded by frozen `ModelAdapter`/`DecodableAdapter` Protocols. The UNSTABLE internal sketch (`_base.py`) is replaced by the public Protocol surface. (#sprint-14)
+- **`ActivationPatch`** — adapter parameter now typed with a runtime `isinstance` guard requiring `DecodableAdapter`. `HiddenStateAdapter` (no `decode`) is cleanly rejected at construction with `TypeError`. All pyright ignore comments removed. (#sprint-14)
+- **`adapters/__init__.py`** — exports `ModelAdapter`, `DecodableAdapter`, and `HiddenStateAdapter`. Docstring updated to reflect frozen Protocol design. (#sprint-14)
+- **`VAE` and `RandomProjection` docstrings** — updated to reference `ModelAdapter` and `DecodableAdapter` Protocols instead of the removed `_ModelAdapterBase`. (#sprint-14)
 
 - **`BMethod` Protocol frozen** — `_b_base.py` removed, superseded by frozen `BMethod` Protocol in `methods/b_protocols.py`. Lerp and SteeringVector migrated to note Protocol conformance. This is the third Rule of Three freeze in the project (after `Method` at Sprint 6 and geometry dispatch patterns at Sprint 9). The separation of A (`Method`) and B (`BMethod`) Protocols confirms that A/B/C layers have fundamentally different method shapes — the aspirational unified interface is disproven by code. (#sprint-12)
 - `Lerp` — added `is_fitted` property (always `True` — stateless methods are always ready) and generic `apply_trajectory(**kwargs)` method supporting `other`+`t` (delegates to `between`) or `n_steps` (delegates to `blend_sequence`). Docstring updated to note `BMethod` Protocol conformance. (#sprint-12)

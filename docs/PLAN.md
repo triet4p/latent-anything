@@ -13,9 +13,10 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Not Started* — Hidden-state / no-explicit-latent adapter; freeze the first `ModelAdapter` Protocol surface without forcing `decode` into every adapter.
+* [Sprint 15](sprint-plans/sprint-15.md) - *Status: Planned* — Add structured `gaussian_set` latent geometry as geometry case #3.
 
 ## Completed Sprints
+* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR moves to **validated** (modes i and ii confirmed). All three 2026-06-16 ADRs now validated. (Round 11).
 * [Sprint 13](sprint-plans/sprint-13.md) - *Status: Completed* — End-to-end VAE-based showcase: adapter → latent inspection (PCA Layer A) → latent edit (ActivationPatch Layer B) → decode → before/after metric (68.2% improvement) → trajectory panel (Lerp). Reproducible from config lightweight; no new abstraction added. (Round 10 — composition/validation round).
 * [Sprint 12](sprint-plans/sprint-12.md) - *Status: Completed* — Layer B: activation patching (B-Method #3, model-mediated) → **freeze BMethod Protocol**, migrate Lerp + SteeringVector (Round 9).
 * [Sprint 9](sprint-plans/sprint-9.md) - *Status: Completed* — Geometry case #2 (unit-norm/spherical) → validate ADR `LatentSpace` + ADR geometry-dispatch (Round 6). **Two ADRs validated.** Last sprint of Giai đoạn 1.

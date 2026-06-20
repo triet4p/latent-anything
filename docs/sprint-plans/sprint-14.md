@@ -1,6 +1,6 @@
 # Sprint 14 Plan
 
-## Sprint Goal
+## Sprint Goal (Completed)
 Increment thứ mười một (Round 11): thêm **HiddenStateAdapter** — `ModelAdapter` instance #3, mode (ii) **no-explicit-latent**. Adapter này expose hidden-state activations như latent mà không giả định có decoder. Kết thúc: **freeze `ModelAdapter` Protocol** theo Rule of Three, nhưng không ép mọi adapter phải có `decode`.
 
 ## Why This Sprint
@@ -9,19 +9,19 @@ Increment thứ mười một (Round 11): thêm **HiddenStateAdapter** — `Mode
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Task 1: Implement `HiddenStateAdapter` in `src/latent_anything/adapters/hidden_state.py`.
-- [ ] Task 2: Keep it lightweight and local: fixed/random numpy MLP or deterministic feature stack; no heavyweight transformer dependency.
-- [ ] Task 3: `encode(data: np.ndarray) -> np.ndarray` returns hidden activations with shape `(n_samples, hidden_dim)`.
-- [ ] Task 4: `latent_space` returns Euclidean `LatentSpace(hidden_dim, source_model="hidden_state")` with metadata marking exposure mode `"hidden_state"`.
-- [ ] Task 5: Do not provide a fake learned decoder. Either omit `decode` or make unsupported decoding explicit through the frozen protocol design.
-- [ ] Task 6: Freeze adapter protocols in `src/latent_anything/adapters/protocols.py`: a base `ModelAdapter` for `encode` + `latent_space`, and a separate decodable surface if implementation evidence requires it.
-- [ ] Task 7: Migrate VAE and RandomProjection docstrings/exports to the frozen protocol surface; remove or supersede `_ModelAdapterBase`.
-- [ ] Task 8: Update `ActivationPatch` typing so it requires a decodable adapter contract, not every `ModelAdapter`.
-- [ ] Task 9: Add tests for `HiddenStateAdapter`, runtime protocol checks, and `ActivationPatch` rejecting non-decodable adapters cleanly.
-- [ ] Task 10: Add an end-to-end demo: data → hidden activations → PCA/UMAP visualization; no decode story.
-- [ ] Task 11: Run `ruff check`, `ruff format`, `pyright`, and full pytest.
-- [ ] Task 12: ADR check: mode (ii) confirmed; `ModelAdapter` ADR remains pending until mode (iii) deterministic renderer lands.
-- [ ] Task 13: Update artifact summary, `CHANGELOG.md`, and `docs/PLAN.md`.
+- [x] Task 1: Implement `HiddenStateAdapter` in `src/latent_anything/adapters/hidden_state.py`.
+- [x] Task 2: Keep it lightweight and local: fixed/random numpy MLP or deterministic feature stack; no heavyweight transformer dependency.
+- [x] Task 3: `encode(data: np.ndarray) -> np.ndarray` returns hidden activations with shape `(n_samples, hidden_dim)`.
+- [x] Task 4: `latent_space` returns Euclidean `LatentSpace(hidden_dim, source_model="hidden_state")` with metadata marking exposure mode `"hidden_state"`.
+- [x] Task 5: Do not provide a fake learned decoder. Either omit `decode` or make unsupported decoding explicit through the frozen protocol design.
+- [x] Task 6: Freeze adapter protocols in `src/latent_anything/adapters/protocols.py`: a base `ModelAdapter` for `encode` + `latent_space`, and a separate decodable surface if implementation evidence requires it.
+- [x] Task 7: Migrate VAE and RandomProjection docstrings/exports to the frozen protocol surface; remove or supersede `_ModelAdapterBase`.
+- [x] Task 8: Update `ActivationPatch` typing so it requires a decodable adapter contract, not every `ModelAdapter`.
+- [x] Task 9: Add tests for `HiddenStateAdapter`, runtime protocol checks, and `ActivationPatch` rejecting non-decodable adapters cleanly.
+- [x] Task 10: Add an end-to-end demo: data → hidden activations → PCA/UMAP visualization; no decode story.
+- [x] Task 11: Run `ruff check`, `ruff format`, `pyright`, and full pytest.
+- [x] Task 12: ADR check: mode (ii) confirmed; `ModelAdapter` ADR moves to **validated** (modes i and ii confirmed); mode (iii) still pending Sprint 16.
+- [x] Task 13: Update artifact summary, `CHANGELOG.md`, and `docs/PLAN.md`.
 
 ## Rule-of-Three Checkpoint
 | Check | Status |

@@ -6,6 +6,11 @@ pseudo-inverse decoding via transpose. This is the second ModelAdapter
 instance, demonstrating the stateless/pretrained pattern — fundamentally
 different from VAE (stateful, trained-from-scratch).
 
+Conforms to both the ``ModelAdapter`` Protocol (``encode``,
+``latent_space``) and the ``DecodableAdapter`` Protocol (``encode``,
+``decode``, ``latent_space``). Unlike VAE, there is no ``fit`` method
+— weights are fixed at construction.
+
 All input/output is ``numpy.ndarray``. No PyTorch dependency.
 """
 

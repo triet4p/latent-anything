@@ -3,9 +3,9 @@
 This is B-Method #3 — the third Layer B (Manipulation) method, and the
 first *model-mediated* B-Method. Unlike Lerp (stateless, pure function)
 and SteeringVector (stateful, latent→latent), ActivationPatch works
-through a ``ModelAdapter``-like object: it encodes input data, patches
-the latent representation, and decodes back to data space. The output
-is in **data space** (e.g. images), not latent space.
+through a ``DecodableAdapter``: it encodes input data, patches the
+latent representation, and decodes back to data space. The output is
+in **data space** (e.g. images), not latent space.
 
 This is the Rule of Three freeze trigger for the ``BMethod`` Protocol.
 """
@@ -16,6 +16,7 @@ from typing import Any
 
 import numpy as np
 
+from latent_anything.adapters.protocols import DecodableAdapter
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
 
@@ -24,8 +25,8 @@ class ActivationPatch:
     """Model-mediated activation patching via encode → patch → decode.
 
     Unlike Lerp and SteeringVector which operate directly on latent
-    points, ``ActivationPatch`` works through a ``ModelAdapter``: it
-    encodes input data, patches the latent representation, and decodes
+    points, ``ActivationPatch`` works through a ``DecodableAdapter``:
+    it encodes input data, patches the latent representation, and decodes
     back to data space. The output is in data space (e.g., images),
     not latent space.
 
@@ -35,12 +36,18 @@ class ActivationPatch:
     Parameters
     ----------
     adapter
-        A ``ModelAdapter``-like object with ``encode``, ``decode``,
-        and ``latent_space``. Duck-typed — no inheritance required.
+        A ``DecodableAdapter`` instance with ``encode``, ``decode``,
+        and ``latent_space``.
     """
 
     def __init__(self, adapter: Any) -> None:
-        self._adapter: Any = adapter
+        if not isinstance(adapter, DecodableAdapter):
+            msg = (
+                f"ActivationPatch requires a DecodableAdapter (with encode + decode + latent_space), "
+                f"got {type(adapter).__name__}"
+            )
+            raise TypeError(msg)
+        self._adapter: DecodableAdapter = adapter
         self._delta: np.ndarray | None = None
 
     # ------------------------------------------------------------------
@@ -55,7 +62,7 @@ class ActivationPatch:
         ``None``), ``ActivationPatch`` always has a ``LatentSpace``
         because the adapter is required and always provides one.
         """
-        return self._adapter.latent_space  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return self._adapter.latent_space
 
     @property
     def is_fitted(self) -> bool:
@@ -125,8 +132,8 @@ class ActivationPatch:
             )
             raise ValueError(msg)
 
-        source_latent: np.ndarray = self._adapter.encode(source_data)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-        target_latent: np.ndarray = self._adapter.encode(target_data)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        source_latent: np.ndarray = self._adapter.encode(source_data)
+        target_latent: np.ndarray = self._adapter.encode(target_data)
 
         self._delta = target_latent.mean(axis=0) - source_latent.mean(axis=0)
 
@@ -157,9 +164,9 @@ class ActivationPatch:
             msg = "ActivationPatch not fitted. Call fit() first."
             raise RuntimeError(msg)
 
-        latent: np.ndarray = self._adapter.encode(input_data)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        latent: np.ndarray = self._adapter.encode(input_data)
         patched: np.ndarray = latent + self._delta  # broadcast delta across samples
-        return self._adapter.decode(patched)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return self._adapter.decode(patched)
 
     def apply_trajectory(self, trajectory: Trajectory, **kwargs: float) -> np.ndarray:
         """Patch each latent point in trajectory, decode, return data-space outputs.
@@ -192,4 +199,4 @@ class ActivationPatch:
 
         data = trajectory.to_numpy()  # (n_points, dim)
         patched = data + self._delta  # broadcast delta
-        return self._adapter.decode(patched)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return self._adapter.decode(patched)
