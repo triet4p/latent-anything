@@ -1,4 +1,9 @@
-"""In-process registry for built-in adapters and methods.
+"""In-process registry infrastructure (no built-in class dependencies).
+
+This module defines the ``Registry`` class, kind constants, and
+convenience helpers. It has **no knowledge** of concrete adapter or
+method classes — those are registered separately in
+``_plugin_builtins.py``.
 
 This is registry instance #1 — the first step of **Plugin Extraction**
 (Milestone 4). It is intentionally in-process with no Python entry points
@@ -34,21 +39,6 @@ from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
-
-from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter as _GaussianRendererAdapter  # noqa: E402
-from latent_anything.adapters.hidden_state import HiddenStateAdapter as _HiddenStateAdapter  # noqa: E402
-from latent_anything.adapters.random_projection import RandomProjection as _RandomProjection  # noqa: E402
-
-# Import built-in classes for registration (no circular dependency —
-# adapters/methods import from latent_space, trajectory, and protocols,
-# not from registry).
-from latent_anything.adapters.vae import VAE as _VAE  # noqa: E402
-from latent_anything.methods.activation_patch import ActivationPatch as _ActivationPatch  # noqa: E402
-from latent_anything.methods.lerp import Lerp as _Lerp  # noqa: E402
-from latent_anything.methods.pca import PCA as _PCA  # noqa: E402
-from latent_anything.methods.sae import SAE as _SAE  # noqa: E402
-from latent_anything.methods.steering import SteeringVector as _SteeringVector  # noqa: E402
-from latent_anything.methods.umap import UMAP as _UMAP  # noqa: E402
 
 # ── Kind constants ──────────────────────────────────────────────────
 
@@ -228,8 +218,9 @@ class Registry:
 GLOBAL_REGISTRY = Registry(name="global")
 """The module-level global registry instance.
 
-All built-in adapters and methods are automatically registered here
-when this module is imported.
+Built-in adapters and methods are registered here by
+``_plugin_builtins.py``, not by this module directly. Importing
+``latent_anything`` (or ``_plugin_builtins``) triggers registration.
 """
 
 
@@ -310,92 +301,3 @@ def lookup(name: str, *, registry: Registry | None = None) -> RegistryEntry:
     """
     target = registry or GLOBAL_REGISTRY
     return target.lookup(name)
-
-
-# ── Register built-in classes ───────────────────────────────────────
-
-# Adapters
-GLOBAL_REGISTRY.register(
-    KIND_ADAPTER,
-    "vae",
-    _VAE,
-    description="Variational Autoencoder — explicit learned latent (mode i)",
-    protocol="ModelAdapter, DecodableAdapter, FlatBatchDecodableAdapter",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_ADAPTER,
-    "random_projection",
-    _RandomProjection,
-    description="Random fixed-weight projection (mode i-like, stateless)",
-    protocol="ModelAdapter, DecodableAdapter, FlatBatchDecodableAdapter",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_ADAPTER,
-    "hidden_state",
-    _HiddenStateAdapter,
-    description="Hidden-state activations — no-explicit-latent (mode ii)",
-    protocol="ModelAdapter",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_ADAPTER,
-    "gaussian_renderer",
-    _GaussianRendererAdapter,
-    description="2D Gaussian splat renderer — deterministic decode (mode iii)",
-    protocol="ModelAdapter, DecodableAdapter",
-    source="built-in",
-)
-
-# Layer A methods
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
-    "pca",
-    _PCA,
-    description="Principal Component Analysis — linear dimensionality reduction",
-    protocol="Method",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
-    "umap",
-    _UMAP,
-    description="Uniform Manifold Approximation and Projection — nonlinear dim-reduction",
-    protocol="Method",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
-    "sae",
-    _SAE,
-    description="Sparse Autoencoder — neural/trained with L1 sparsity",
-    protocol="Method",
-    source="built-in",
-)
-
-# Layer B methods
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
-    "lerp",
-    _Lerp,
-    description="Linear/geodesic interpolation — B-Method #1 (stateless latent→latent)",
-    protocol="BMethod",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
-    "steering",
-    _SteeringVector,
-    description="Steering vector — B-Method #2 (stateful latent→latent via contrast)",
-    protocol="BMethod",
-    source="built-in",
-)
-GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
-    "activation_patch",
-    _ActivationPatch,
-    description="Activation patching — B-Method #3 (model-mediated data→data)",
-    protocol="BMethod",
-    source="built-in",
-)

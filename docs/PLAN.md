@@ -8,14 +8,16 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, Layer A `Method`) + first adapters and geometry dispatch (Sprint 3–9). **Complete — 2 ADRs validated; `ModelAdapter` remains intentionally pending.**
 * [x] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent story (Sprint 10–13). **Sprint 13 completed — VAE-based end-to-end showcase proven.** The showcase composes existing primitives (VAE, PCA, ActivationPatch, Lerp) into a coherent edit story with 68.2% distance improvement. Real VLA showcase remains future ecosystem work when a VLA adapter exists in the codebase.
 * [x] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16). **Complete — all three 2026-06-16 ADRs fully validated with all modes confirmed by running code.**
-* [ ] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19).
+* [x] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19). **Complete — all 10 built-in classes registered with registry-first pattern; behavior parity proven by 22 parity tests; infrastructure remains entry-point-free pending external plugin demand.**
 * [ ] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21).
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-*(No active sprints — next planned: Sprint 18.)*
+*(No active sprints — next planned: Sprint 20.)*
 
 ## Completed Sprints
+* [Sprint 19](sprint-plans/sprint-19.md) - *Status: Completed* — Convert built-in adapters/methods to registry-first built-ins with separate `_plugin_builtins.py` module, proving behavior parity via 22 parity tests + 15 demo smoke tests. Infrastructure-only round — no new adapter/method/geometry instances. 502 total tests. (Round 16).
+* [Sprint 18](sprint-plans/sprint-18.md) - *Status: Completed* — Registry-backed config instantiation using pydantic v2. ObjectSpec model with kind/name/params, build_from_config resolver, nested spec resolution for adapter-in-method (ActivationPatch), clear validation errors, and 36 config tests. 465 total tests. (Round 15).
 * [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
 * [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 52 GaussianRenderer tests, 381 total. (Round 13).
 * [Sprint 15](sprint-plans/sprint-15.md) - *Status: Completed* — Add structured `gaussian_set` latent geometry as geometry case #3. Geometry-keyed and geometry-dispatch ADRs exercised by set-like structured shape. Inline `if/elif` dispatch survives 3 geometries (Rule of Three §4a: instance #3 → keep hardcoded). 78 LatentSpace tests pass. (Round 12).
@@ -36,11 +38,6 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 
 ## Backlog / Future Work
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint tương lai là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
-
-**Plugin extraction:**
-* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
-* [Sprint 18](sprint-plans/sprint-18.md) - *Status: Planned* — Add pydantic config specs for registry-backed instantiation.
-* [Sprint 19](sprint-plans/sprint-19.md) - *Status: Planned* — Convert built-in adapters/methods to registry entries and prove behavior parity.
 
 **Pipeline foundation:**
 * [Sprint 20](sprint-plans/sprint-20.md) - *Status: Planned* — Add concrete Pipeline #1 for adapter → Layer A analysis.

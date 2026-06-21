@@ -13,6 +13,12 @@ Plugin-first architecture with three pillars:
   profiling.
 """
 
+# Trigger built-in registration into GLOBAL_REGISTRY before any
+# registry-dependent imports (like config).
+from latent_anything import _plugin_builtins as _plugin_builtins  # noqa: F401  # trigger registration
+from latent_anything.config import ObjectSpec as ObjectSpec
+from latent_anything.config import build_from_config as build_from_config
+from latent_anything.config import build_from_dict as build_from_dict
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.methods import Method as Method
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
@@ -29,9 +35,12 @@ __all__ = [
     "GLOBAL_REGISTRY",
     "LatentSpace",
     "Method",
+    "ObjectSpec",
     "Registry",
     "RegistryEntry",
     "Trajectory",
+    "build_from_config",
+    "build_from_dict",
     "list_entries",
     "lookup_entry",
     "register_entry",

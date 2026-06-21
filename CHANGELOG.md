@@ -4,6 +4,25 @@
 
 ### Added
 
+- **Separated built-in registry module** — `src/latent_anything/_plugin_builtins.py` as the single stable import location where all built-in adapters and methods are registered into `GLOBAL_REGISTRY`. This decouples `registry.py` from concrete class dependencies, making it pure infrastructure. (#sprint-19)
+- **Internal plugin extraction contract** — Documented in `_plugin_builtins.py` docstring: registration-only (no re-exports), deterministic order, no circular imports, one-to-one with built-in classes, and entry-point readiness for future external plugins. (#sprint-19)
+- **Parity test suite** — 22 new tests in `test_parity.py` covering registry constructor vs direct import constructor for all 10 built-in classes (4 adapters + 3 method_a + 3 method_b), plus factory identity checks proving `registry.lookup("name").factory` is the class itself. (#sprint-19)
+- **Demo smoke test suite** — 15 new tests in `test_demo_smoke.py` verifying that every `scripts/end_to_end_*.py` demo's core imports and helpers still work after the registry refactoring. (#sprint-19)
+
+### Changed
+
+- **`registry.py`** — Refactored to infrastructure-only: removed all adapter/method class imports and the registration block at module bottom. `Registry` class, kind constants, convenience helpers, and `GLOBAL_REGISTRY` singleton remain unchanged. (#sprint-19)
+- **`__init__.py`** — Added `from latent_anything import _plugin_builtins` to trigger built-in registration on package import, before any registry-dependent modules (like `config.py`). (#sprint-19)
+- Test suite: 502 total tests (465 existing + 22 parity + 15 demo smoke). (#sprint-19)
+
+- **Registry-backed config instantiation** — `src/latent_anything/config.py` with pydantic v2 `ObjectSpec` model (`kind`, `name`, `params`), `build_from_config(spec)` that resolves registry entries and instantiates them, and `build_from_dict(data)` convenience wrapper. Config instantiation instance #1 — registry-local, deliberately narrow, no Pipeline/workflow language. (#sprint-18)
+- **Nested spec resolution** — `build_from_config` recursively resolves nested `ObjectSpec` values inside `params`, enabling Layer B methods with adapter dependencies to be built from config (e.g. `ActivationPatch(adapter=VAE(...))`). Nested specs work as both `ObjectSpec` instances and plain dicts. (#sprint-18)
+- **Clear validation errors** — `build_from_config` raises `KeyError` with sorted available names for unknown entries, `ValueError` with kind mismatch details, and `TypeError` with the failing params for instantiation failures. (#sprint-18)
+- **Config-driven demo script** — `scripts/end_to_end_config_demo.py` builds the showcase object stack (VAE, PCA, Lerp, ActivationPatch with nested VAE) entirely from pydantic config specs without manual constructor calls. No Pipeline abstraction introduced. (#sprint-18)
+- **New public exports** — `ObjectSpec`, `build_from_config`, `build_from_dict` exported from the top-level `latent_anything` package. (#sprint-18)
+- **pydantic v2 dependency** — `pydantic>=2.0,<3.0` added to project dependencies for config model validation. (#sprint-18)
+- Test suite: 36 config tests covering ObjectSpec construction (5), adapter building (4), Layer A method building (4), Layer B method building (4), error cases (7), custom registry (2), build_from_dict (3), and all six required classes (6). 465 total tests. (#sprint-18)
+
 - **In-process registry** — `src/latent_anything/registry.py` with `Registry` class (`OrderedDict`-backed), frozen `RegistryEntry` dataclass, kind constants (`KIND_ADAPTER`, `KIND_METHOD_A`, `KIND_METHOD_B`), module-level convenience helpers (`register`, `lookup`, `list_entries`), and a `GLOBAL_REGISTRY` singleton. Designed as registry instance #1 with no Python entry points yet. (#sprint-17)
 - **Built-in class registration** — All 10 built-in classes registered in `GLOBAL_REGISTRY`: VAE, RandomProjection, HiddenStateAdapter, GaussianRendererAdapter (adapters); PCA, UMAP, SAE (Layer A methods); Lerp, SteeringVector, ActivationPatch (Layer B methods). Registration uses class references as factories with metadata (protocol, description, source). (#sprint-17)
 - **Deterministic ordering** — `Registry.list()` and `Registry.list(kind=...)` return entries in insertion order, guaranteed by `OrderedDict` backing. (#sprint-17)
