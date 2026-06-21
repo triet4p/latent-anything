@@ -1,18 +1,11 @@
 ---
 name: latent-anything-review
 description: >
-  Review Python source in THIS latent-anything repo to verify it is "good" and "compliant" before
-  it lands — runs the real tooling gate (ruff, pyright strict, pytest), then judges the code against
-  the project's coding rules (.agents/rules), the architecture ADRs (.agents/memory/decisions.md),
-  and the incremental Rule-of-Three process (docs/INCREMENTAL.md). Use it whenever the user asks to
-  review/check/verify new or changed `src` code, asks "is this good / compliant / safe to
-  commit/merge", finishes a task or sprint increment, or is about to commit Python here — even
-  without "review". Prefer it over a generic review for any latent-anything source: it
-  catches torch leaking into the public API, premature abstraction (a Protocol/ABC before the 3rd
-  impl), a mutable Trajectory, Euclidean-hardcoded interpolation, or fake-green tests that always
-  pass / only exist to dodge the rules — things a generic reviewer often misses.
-  Do NOT use it for reviewing docs/research notes/notebooks, code in another repo, or non-review
-  tasks like writing research, planning sprints, or running a formatter.
+  Review Python source in this latent-anything repo before commit or merge. Use when the user asks
+  to review, check, verify, or confirm whether changed src code is good, compliant, safe, or ready
+  to commit. Run the real gate with ruff, pyright strict, and pytest, then judge project rules,
+  ADRs, the Rule of Three, and test integrity. Prefer this over generic review for latent-anything
+  source changes.
 ---
 
 # Latent-Anything Review
@@ -28,6 +21,20 @@ load-bearing decisions — `Trajectory` is immutable, the public API never leaks
 are *discovered* not designed, and three ADRs are *hypotheses to validate by code*. A generic
 reviewer will happily approve code that quietly violates these. This reviewer's main value is
 catching exactly those.
+
+## Trigger guidance
+
+Use this skill whenever the user asks to review, check, or verify new or changed `src` code; asks
+"is this good", "is this compliant", "is this safe to commit/merge"; finishes a task or sprint
+increment; or is about to commit Python here, even if they do not explicitly say "review".
+
+Prefer it over a generic review for latent-anything source because it checks project-specific
+failure modes: `torch` leaking into public APIs, premature `Protocol`/ABC abstractions before the
+third differing implementation, mutable `Trajectory` behavior, Euclidean-hardcoded interpolation,
+and fake-green tests that always pass or exist only to dodge rules.
+
+Do not use it for reviewing docs, research notes, notebooks, code in another repo, or non-review
+tasks like writing research, planning sprints, or running a formatter.
 
 ## Source of truth (read these live — they evolve)
 
