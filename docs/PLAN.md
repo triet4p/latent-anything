@@ -13,9 +13,10 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-*(No active sprints — next planned: Sprint 17.)*
+*(No active sprints — next planned: Sprint 18.)*
 
 ## Completed Sprints
+* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
 * [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 52 GaussianRenderer tests, 381 total. (Round 13).
 * [Sprint 15](sprint-plans/sprint-15.md) - *Status: Completed* — Add structured `gaussian_set` latent geometry as geometry case #3. Geometry-keyed and geometry-dispatch ADRs exercised by set-like structured shape. Inline `if/elif` dispatch survives 3 geometries (Rule of Three §4a: instance #3 → keep hardcoded). 78 LatentSpace tests pass. (Round 12).
 * [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR gains mode ii evidence, with full validation still pending the deterministic renderer mode iii later completed in Sprint 16. (Round 11).
@@ -37,7 +38,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint tương lai là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
 
 **Plugin extraction:**
-* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Planned* — Add in-process registry for adapters and methods.
+* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
 * [Sprint 18](sprint-plans/sprint-18.md) - *Status: Planned* — Add pydantic config specs for registry-backed instantiation.
 * [Sprint 19](sprint-plans/sprint-19.md) - *Status: Planned* — Convert built-in adapters/methods to registry entries and prove behavior parity.
 

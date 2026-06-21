@@ -323,3 +323,19 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Reason:** `GaussianRendererAdapter` is a valid mode (iii) `DecodableAdapter`: it decodes a Gaussian-set latent into an image through a deterministic renderer. But `ActivationPatch` computes means over sample batches and broadcasts latent deltas, so accepting a structured image/gaussian-set decoder would fail semantically despite passing runtime Protocol checks. The narrower Protocol records that method-level assumption explicitly without weakening the adapter ADR.
 
 **Consequences:** Structured decoders remain first-class `DecodableAdapter`s, while flat-batch Layer B consumers have an enforceable guard. Future methods must choose the broad or narrow Protocol based on the shapes they actually consume.
+
+## [2026-06-21] Sprint 17 Round 14 — ADR reconciliation: infrastructure-only round; no ADR status changes
+
+**Decision:** No ADR status changes for Sprint 17. This is a **plugin-extraction infrastructure round** that adds no new adapter, method, or geometry instances. All three validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch, `ModelAdapter` 3-mode) remain unchanged.
+
+**Rule of Three §4a outcome:** Not applicable — this is an infrastructure round, not an instance-adding round. The registry is instance #1 (in-process, no entry points). No new abstraction extracted. No interface frozen.
+
+**Evidence considered:**
+
+1. **`LatentSpace` geometry-keyed ADR (validated, no change)**: Not exercised by this sprint — no new `LatentSpace` instances added.
+2. **Geometry-dispatch ADR (validated, no change)**: Not exercised by this sprint — no new geometry or dispatch operations added.
+3. **`ModelAdapter` 3-mode ADR (validated, all 3 modes confirmed)**: Not exercised by this sprint — no new adapter instances added.
+
+**Status update:** All three ADRs: `validated` (no change).
+
+**Consequences:** The registry is intentionally in-process with no Python entry points, following the Sprint 17 design constraint. Future rounds (Sprint 18: pydantic config specs, Sprint 19: behavior parity conversion) will exercise the registry from a consumer perspective and may trigger Rule of Three generalization. Next re-evaluation at Sprint 18 (config specs).

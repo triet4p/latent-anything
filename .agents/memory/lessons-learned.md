@@ -80,3 +80,13 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The showcase script and tests were written as lightweight local artifacts with raw `dict`/`tuple` annotations and dynamic imports, so strict typing degraded into `Unknown` across the whole file. Separately, the trajectory panel bypassed the public patch API by reading the private `_delta` field directly, which let tests stay green without validating the intended contract.
 **Fix / workaround:** Give even local `scripts/` artifacts explicit `TypedDict` payloads when they are reviewed with `pyright`, and add typed fixtures/protocol casts in tests so helper imports do not collapse to `Unknown`. For trajectory-level patching, call `ActivationPatch.apply_trajectory()` directly and add an assertion that the showcase panel output matches that public API.
 **Watch out for:** Any future showcase/demo/research-style script that gets pulled into the repo's formal review gate. If it is linted/type-checked like product code, treat its config/result payloads as first-class typed structures and avoid reaching into private fields just because the code is "only a demo".
+
+## [2026-06-21] `__len__` makes empty `Registry` falsy — `or` fallthrough to global singleton
+
+**Symptom:** The convenience `register(kind, name, factory, registry=empty_registry)` function silently added entries to `GLOBAL_REGISTRY` instead of the explicitly-passed `empty_registry`, causing tests to fail and the global registry to accumulate test entries.
+
+**Root cause:** `Registry` implements `__len__`, which Python uses as the fallback truthiness check. An empty registry (len=0) is falsy, so `registry or GLOBAL_REGISTRY` evaluated to `GLOBAL_REGISTRY` when the target registry was empty, even though `registry` was not `None`.
+
+**Fix / workaround:** Two changes: (1) Added `__bool__` method to `Registry` that always returns `True`, overriding Python's default `__len__`-based truthiness. (2) Changed the `register` helper from `registry or GLOBAL_REGISTRY` to `registry if registry is not None else GLOBAL_REGISTRY` for defense-in-depth.
+
+**Watch out for:** Any class that implements `__len__` and is used with `or` for default-value logic. `__len__` makes `bool(obj)` return `False` when `len(obj) == 0`. Always use explicit `is not None` checks with such classes.
