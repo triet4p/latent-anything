@@ -62,7 +62,8 @@ def _make_colour_block(
     latent = np.zeros((n_g, PARAM_DIM), dtype=np.float64)
 
     # Compute grid dimensions
-    n_cols = max(1, int(np.round(np.sqrt(n_g * w / h))))
+    sqrt_value = float(np.sqrt(float(n_g) * float(w) / float(h)))
+    n_cols = max(1, int(round(sqrt_value)))
     n_rows = max(1, n_g // n_cols)
     while n_rows * n_cols < n_g:
         n_cols += 1
@@ -168,7 +169,7 @@ def main() -> None:
 
     n_steps = 5
     print(f"    {n_steps} steps from A → B:")
-    interpolated = []
+    interpolated: list[np.ndarray] = []
     for _i, t in enumerate(np.linspace(0, 1, n_steps)):
         latent_t = space.interpolate(latent_a, latent_b, float(t))
         img_t = adapter.decode(latent_t)
@@ -229,7 +230,7 @@ def _plot_results(
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(2, 3, figsize=(12, 7))
-    fig.suptitle(
+    fig.suptitle(  # pyright: ignore[reportUnknownMemberType]
         "GaussianRendererAdapter — Deterministic 2D Splat Decode\n"
         f"gaussian_set interpolation: {N_GAUSSIANS} Gaussians, {IMG_H}×{IMG_W} px",
         fontsize=12,
@@ -276,7 +277,7 @@ def _plot_results(
     axes[1, 2].axis("off")
 
     plt.tight_layout()
-    plt.savefig("artifacts/gaussian_renderer_demo.png", dpi=150, bbox_inches="tight")
+    plt.savefig("artifacts/gaussian_renderer_demo.png", dpi=150, bbox_inches="tight")  # pyright: ignore[reportUnknownMemberType]
     plt.close()
     print("    Matplotlib figure created.")
 

@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from latent_anything.adapters import DecodableAdapter, GaussianRendererAdapter, ModelAdapter
+from latent_anything.adapters import DecodableAdapter, FlatBatchDecodableAdapter, GaussianRendererAdapter, ModelAdapter
 from latent_anything.latent_space import LatentSpace
 
 # ---------------------------------------------------------------------------
@@ -461,6 +461,9 @@ class TestGaussianRendererProtocolConformance:
 
     def test_conforms_to_decodable_adapter(self, adapter: GaussianRendererAdapter) -> None:
         assert isinstance(adapter, DecodableAdapter)
+
+    def test_does_not_conform_to_flat_batch_decodable_adapter(self, adapter: GaussianRendererAdapter) -> None:
+        assert not isinstance(adapter, FlatBatchDecodableAdapter)
 
     def test_has_encode(self, adapter: GaussianRendererAdapter) -> None:
         assert hasattr(adapter, "encode")

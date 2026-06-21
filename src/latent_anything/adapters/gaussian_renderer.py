@@ -52,9 +52,11 @@ class GaussianRendererAdapter:
     heuristic grid-based approximation for testing and demonstration
     — **not** a true inverse of the renderer.
 
-    Conforms to both ``DecodableAdapter`` (``encode`` + ``decode`` +
-    ``latent_space``) and ``ModelAdapter`` (``encode`` + ``latent_space``)
-    Protocols.
+    Conforms to ``ModelAdapter`` and the shape-generic
+    ``DecodableAdapter`` Protocol. It intentionally does **not** conform
+    to ``FlatBatchDecodableAdapter`` because its public shapes are one
+    image ``(H, W, 3)`` ↔ one Gaussian set ``(n_gaussians, 8)``, not
+    flat sample batches.
 
     Parameters
     ----------
@@ -159,8 +161,8 @@ class GaussianRendererAdapter:
                                         + (y - py_i)² / sy_i²))
 
         where ``c_i`` is the RGB colour. Contributions are accumulated
-        with alpha compositing (back-to-front by opacity, then
-        normalised by total weight per pixel).
+        additively and clipped to [0, 1]; there is no back-to-front sort
+        and no per-pixel normalisation.
 
         Parameters
         ----------
@@ -227,9 +229,9 @@ class GaussianRendererAdapter:
     def _render(self, latent: np.ndarray) -> np.ndarray:
         """Core 2D Gaussian splat rasterisation.
 
-        Accumulates Gaussian contributions with alpha compositing:
-        each Gaussian's colour is weighted by its opacity and 2D
-        Gaussian falloff, then normalised per pixel.
+        Accumulates Gaussian contributions additively: each Gaussian's
+        colour is weighted by its opacity and 2D Gaussian falloff, then
+        summed with the other contributions.
         """
         pdim = _DEFAULT_POSITION_DIM
         sdim = _DEFAULT_SCALE_DIM

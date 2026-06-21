@@ -21,7 +21,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from latent_anything import LatentSpace, Trajectory
-from latent_anything.adapters import VAE, RandomProjection
+from latent_anything.adapters import VAE, GaussianRendererAdapter, RandomProjection
 from latent_anything.methods import ActivationPatch, BMethod, Lerp, SteeringVector  # noqa: F401
 
 # ---------------------------------------------------------------------------
@@ -82,6 +82,11 @@ class TestActivationPatchConstruction:
         space = patch.space
         assert isinstance(space, LatentSpace)
         assert space.dim == vae_adapter.latent_space.dim
+
+    def test_construction_rejects_structured_decodable_adapter(self) -> None:
+        adapter = GaussianRendererAdapter(n_gaussians=4, img_height=16, img_width=16)
+        with pytest.raises(TypeError, match="FlatBatchDecodableAdapter"):
+            _ = ActivationPatch(adapter=adapter)
 
 
 # ---------------------------------------------------------------------------

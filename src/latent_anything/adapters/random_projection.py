@@ -6,9 +6,9 @@ pseudo-inverse decoding via transpose. This is the second ModelAdapter
 instance, demonstrating the stateless/pretrained pattern — fundamentally
 different from VAE (stateful, trained-from-scratch).
 
-Conforms to both the ``ModelAdapter`` Protocol (``encode``,
-``latent_space``) and the ``DecodableAdapter`` Protocol (``encode``,
-``decode``, ``latent_space``). Unlike VAE, there is no ``fit`` method
+Conforms to ``ModelAdapter``, ``DecodableAdapter``, and the narrower
+``FlatBatchDecodableAdapter`` Protocol because its public encode/decode
+contract is batch-matrix based. Unlike VAE, there is no ``fit`` method
 — weights are fixed at construction.
 
 All input/output is ``numpy.ndarray``. No PyTorch dependency.
@@ -84,6 +84,11 @@ class RandomProjection:
             A Euclidean flat latent space of dimension ``latent_dim``.
         """
         return LatentSpace(dim=self.latent_dim, source_model="random_projection")
+
+    @property
+    def supports_flat_batch(self) -> bool:
+        """Return ``True`` because projection encode/decode use flat sample batches."""
+        return True
 
     def encode(self, data: np.ndarray) -> np.ndarray:
         """Encode data to the latent space via the fixed random projection.

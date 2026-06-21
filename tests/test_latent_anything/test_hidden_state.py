@@ -22,7 +22,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from latent_anything import LatentSpace
-from latent_anything.adapters import DecodableAdapter, HiddenStateAdapter, ModelAdapter
+from latent_anything.adapters import DecodableAdapter, FlatBatchDecodableAdapter, HiddenStateAdapter, ModelAdapter
 from latent_anything.methods import ActivationPatch
 
 # ---------------------------------------------------------------------------
@@ -175,6 +175,9 @@ class TestHiddenStateAdapterProtocolConformance:
     def test_does_not_conform_to_decodable_adapter(self, adapter: HiddenStateAdapter) -> None:
         assert not isinstance(adapter, DecodableAdapter)
 
+    def test_does_not_conform_to_flat_batch_decodable_adapter(self, adapter: HiddenStateAdapter) -> None:
+        assert not isinstance(adapter, FlatBatchDecodableAdapter)
+
     def test_has_no_decode_attribute(self, adapter: HiddenStateAdapter) -> None:
         assert not hasattr(adapter, "decode")
 
@@ -183,12 +186,14 @@ class TestHiddenStateAdapterProtocolConformance:
 
         vae = VAE(input_dim=2, latent_dim=3)
         assert isinstance(vae, DecodableAdapter)
+        assert isinstance(vae, FlatBatchDecodableAdapter)
 
     def test_random_projection_conforms_to_decodable_adapter(self) -> None:
         from latent_anything.adapters import RandomProjection
 
         rp = RandomProjection(input_dim=4, latent_dim=2)
         assert isinstance(rp, DecodableAdapter)
+        assert isinstance(rp, FlatBatchDecodableAdapter)
 
 
 # ---------------------------------------------------------------------------
@@ -196,11 +201,11 @@ class TestHiddenStateAdapterProtocolConformance:
 # ---------------------------------------------------------------------------
 
 
-class TestActivationPatchRejectsNonDecodable:
+class TestActivationPatchRejectsNonFlatBatchDecodable:
     def test_activation_patch_raises_type_error_with_hidden_state(self) -> None:
         adapter = HiddenStateAdapter(input_dim=4, hidden_dim=3)
         with pytest.raises(TypeError):
-            # HiddenStateAdapter is not a DecodableAdapter — ActivationPatch
+            # HiddenStateAdapter is not flat-batch decodable — ActivationPatch
             # should raise TypeError at construction due to Protocol check
             _ = ActivationPatch(adapter=adapter)  # pyright: ignore[reportArgumentType]
 

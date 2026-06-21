@@ -5,10 +5,10 @@ latent space via the ``latent_space`` property. This is the first
 ModelAdapter instance in the latent-anything framework, demonstrating
 mode (i): explicit learned latent, with a learned encoder and decoder.
 
-Conforms to both the ``ModelAdapter`` Protocol (``encode``,
-``latent_space``) and the ``DecodableAdapter`` Protocol (``encode``,
-``decode``, ``latent_space``). ``fit`` is VAE-specific and deliberately
-not part of either Protocol — it's not universal across adapters.
+Conforms to ``ModelAdapter``, ``DecodableAdapter``, and the narrower
+``FlatBatchDecodableAdapter`` Protocol because its public encode/decode
+contract is batch-matrix based. ``fit`` is VAE-specific and deliberately
+not part of these Protocols — it's not universal across adapters.
 
 All public input/output is ``numpy.ndarray``. PyTorch is used internally
 but never leaked to callers.
@@ -94,6 +94,11 @@ class VAE:
             A Euclidean flat latent space of dimension ``latent_dim``.
         """
         return LatentSpace(dim=self.latent_dim, source_model="vae")
+
+    @property
+    def supports_flat_batch(self) -> bool:
+        """Return ``True`` because VAE encode/decode use flat sample batches."""
+        return True
 
     def fit(self, data: np.ndarray) -> None:
         """Train the VAE on the given data via gradient descent.

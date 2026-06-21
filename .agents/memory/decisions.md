@@ -241,9 +241,9 @@ A chronological log of *why* key choices were made in this project.
 
 **Consequences:** This sprint proves that the framework's existing primitives compose correctly into an end-to-end story without requiring new abstractions. The `ModelAdapter` 3-mode ADR remains the last pending ADR. Full validation still requires mode ii (JiT/LLM hidden states — e.g. with a real LLM adapter) and mode iii (3DGS/LeWM deterministic renderer). Next re-evaluation at the next sprint that adds a new adapter instance or a new method instance.
 
-## [2026-06-20] Sprint 14 Round 11 — ADR reconciliation: ModelAdapter 3-mode ADR mode (ii) confirmed → **validated**; ModelAdapter + DecodableAdapter Protocols frozen
+## [2026-06-20] Sprint 14 Round 11 — ADR reconciliation: ModelAdapter 3-mode ADR mode (ii) confirmed; ModelAdapter + DecodableAdapter Protocols frozen
 
-**Decision:** The `ModelAdapter` 3-mode ADR moves from `pending` → **`validated`** after Sprint 14. This increment added `HiddenStateAdapter` (ModelAdapter #3, mode ii: no-explicit-latent), completing validation of two of the three modes from the 2026-06-16 ADR. The two already-validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) remain unchanged.
+**Decision:** The `ModelAdapter` 3-mode ADR remains `pending` after Sprint 14, but mode (ii) is confirmed by running code. This increment added `HiddenStateAdapter` (ModelAdapter #3, mode ii: no-explicit-latent), completing validation of two of the three modes from the 2026-06-16 ADR. The two already-validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) remain unchanged.
 
 **Rule of Three §4a outcome:** ModelAdapter #3 (HiddenStateAdapter, no-explicit-latent, encode-only, no decode) → **freeze `ModelAdapter` Protocol** + **`DecodableAdapter` Protocol** in `adapters/protocols.py`. Remove `_base.py` (the UNSTABLE `_ModelAdapterBase` sketch). Three instances with differing philosophies now proven:
 - VAE (#1) — explicit learned latent (mode i): conforms to both `ModelAdapter` and `DecodableAdapter`.
@@ -254,7 +254,7 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 
 **Evidence considered:**
 
-1. **`ModelAdapter` 3-mode ADR (pending → validated)**: Modes (i) and (ii) are now confirmed by running code. Mode (i) was confirmed by VAE (Sprint 7) and RandomProjection (Sprint 8) — both have `encode` + `decode` + `latent_space`. Mode (ii) is confirmed by HiddenStateAdapter (Sprint 14) — `encode` + `latent_space` only, no `decode`, with metadata marking `exposure_mode="hidden_state"`. The ADR's core claim — that `decode` cannot be assumed universal and that three distinct modes exist — is proven. Mode (iii) (deterministic renderer) remains untested pending Sprint 16 but is now a plausible extension of the existing Protocol design.
+1. **`ModelAdapter` 3-mode ADR (pending → pending, modes i/ii confirmed)**: Modes (i) and (ii) are now confirmed by running code. Mode (i) was confirmed by VAE (Sprint 7) and RandomProjection (Sprint 8) — both have `encode` + `decode` + `latent_space`. Mode (ii) is confirmed by HiddenStateAdapter (Sprint 14) — `encode` + `latent_space` only, no `decode`, with metadata marking `exposure_mode="hidden_state"`. The ADR's core claim that `decode` cannot be assumed universal is supported, but full validation still requires mode (iii) deterministic renderer.
 
 2. **`LatentSpace` geometry-keyed ADR (validated, no change)**: HiddenStateAdapter's `latent_space` returns a Euclidean `LatentSpace` with metadata marking `exposure_mode="hidden_state"`. The geometry-keyed LatentSpace design handles mode (ii) without modification.
 
@@ -263,15 +263,15 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 4. **Protocol separation validated**: The split into `ModelAdapter` (universal: encode + latent_space) and `DecodableAdapter` (extended: +decode) is the fourth Protocol in the project (after `Method` at Sprint 6, geometry patterns at Sprint 9, and `BMethod` at Sprint 12). The design proves that `ActivationPatch` (which needs `decode`) can be typed against `DecodableAdapter` and will reject a `HiddenStateAdapter` with a clean `TypeError` at construction.
 
 **Status update:**
-- `ModelAdapter` 3-mode ADR: `pending` → **`validated`** (modes i and ii confirmed by code; mode iii pending Sprint 16).
+- `ModelAdapter` 3-mode ADR: `pending` → `pending` (modes i and ii confirmed by code; mode iii pending Sprint 16).
 - `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by HiddenStateAdapter).
 - Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
 
-**Consequences:** All three 2026-06-16 ADRs are now validated. The `ModelAdapter` 3-mode ADR is validated with modes (i) and (ii) confirmed — mode (iii) determination remains provisional until a concrete renderer adapter exists (expected Sprint 16). The Protocol split (`ModelAdapter` vs `DecodableAdapter`) is the established architectural pattern for the adapter layer. Next re-evaluation at Sprint 15 (Gaussian set geometry) and Sprint 16 (deterministic renderer adapter for mode iii).
+**Consequences:** The `ModelAdapter` 3-mode ADR is not fully validated yet, but its Protocol split (`ModelAdapter` vs `DecodableAdapter`) is established at the Rule-of-Three freeze point. Mode (iii) determination remains provisional until a concrete renderer adapter exists (expected Sprint 16). Next re-evaluation at Sprint 15 (Gaussian set geometry) and Sprint 16 (deterministic renderer adapter for mode iii).
 
 ## [2026-06-20] Sprint 15 Round 12 — ADR reconciliation: geometry-keyed and geometry-dispatch ADRs exercised by `gaussian_set` case #3; no status changes
 
-**Decision:** No ADR status changes for Sprint 15. Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) are exercised by the `gaussian_set` geometry case #3 — the first structured, set-like latent shape. The `ModelAdapter` 3-mode ADR remains `validated` (not touched by this geometry-only increment).
+**Decision:** No ADR status changes for Sprint 15. Both validated ADRs (geometry-keyed `LatentSpace`, geometry-dispatch) are exercised by the `gaussian_set` geometry case #3 — the first structured, set-like latent shape. The `ModelAdapter` 3-mode ADR remains `pending` with modes (i) and (ii) confirmed; mode (iii) is not touched by this geometry-only increment.
 
 **Rule of Three §4a outcome:** Geometry #3 (`gaussian_set`) confirms inline `if/elif` dispatch remains acceptable — 3 branches are not yet brittle. No dispatch table extraction was needed. The public `LatentSpace(dim=...)` API is preserved for flat geometries; `n_gaussians` and dimension-parameter fields are additive constructor kwargs.
 
@@ -281,12 +281,12 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 
 2. **Geometry-dispatch ADR (validated, no change)**: `distance()` dispatches to a permutation-aware set distance (sort-by-position lexicographic, then Frobenius norm). `interpolate()` dispatches to a constrained interpolation (log-space for scale, clamp for opacity/color). `normalize()` returns a copy (no geometry constraint beyond what `validate_point` checks). `validate_point()` checks shape `(n_gaussians, param_dim)` plus numeric constraints (scale > 0, opacity/color in [0,1]). All four methods follow the established `if/elif` dispatch pattern.
 
-3. **`ModelAdapter` 3-mode ADR (validated, no change)**: Not touched by this geometry-only sprint. Mode (iii) deterministic-renderer remains pending Sprint 16.
+3. **`ModelAdapter` 3-mode ADR (pending, no change)**: Not touched by this geometry-only sprint. Mode (iii) deterministic-renderer remains pending Sprint 16.
 
 **Status update:**
 - `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by `gaussian_set` case #3).
 - Geometry-dispatch ADR: `validated` (no change — exercised by `gaussian_set` distance/interpolate/validate dispatch).
-- `ModelAdapter` 3-mode ADR: `validated` (no change — not touched this sprint).
+- `ModelAdapter` 3-mode ADR: `pending` (no change — not touched this sprint; modes i and ii confirmed).
 
 **Consequences:** This sprint proves that the geometry-keyed `LatentSpace` design can represent structured, set-like latent shapes without modifying the flat-geometry API. The `if/elif` dispatch pattern survives 3 geometries without abstraction. The sprint prepares the codebase for a deterministic-renderer adapter (Sprint 16) that will consume `gaussian_set` geometry through the `ModelAdapter` interface. Next re-evaluation at Sprint 16 (deterministic renderer adapter for `ModelAdapter` mode iii).
 
@@ -298,7 +298,7 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 
 **Evidence considered:**
 
-1. **`ModelAdapter` 3-mode ADR (validated → fully validated)**: Mode (iii) is now confirmed by `GaussianRendererAdapter` — a concrete adapter whose `decode` is a deterministic numpy-only 2D Gaussian splat renderer (not a learned neural network). The adapter conforms to both `ModelAdapter` (encode + latent_space) and `DecodableAdapter` (encode + decode + latent_space), with `encode` provided as a heuristic grid-based approximation (the adapter is documented as latent-source-first). Three modes are now all confirmed by running code:
+1. **`ModelAdapter` 3-mode ADR (pending → validated)**: Mode (iii) is now confirmed by `GaussianRendererAdapter` — a concrete adapter whose `decode` is a deterministic numpy-only 2D Gaussian splat renderer (not a learned neural network). The adapter conforms to both `ModelAdapter` (encode + latent_space) and the shape-generic `DecodableAdapter` (encode + decode + latent_space), with `encode` provided as a heuristic grid-based approximation (the adapter is documented as latent-source-first). It intentionally does not conform to `FlatBatchDecodableAdapter` because its public shapes are image/gaussian-set rather than batch matrices. Three modes are now all confirmed by running code:
    - Mode (i) — explicit learned latent: VAE (Sprint 7), RandomProjection (Sprint 8).
    - Mode (ii) — no-explicit-latent: HiddenStateAdapter (Sprint 14).
    - Mode (iii) — deterministic renderer: GaussianRendererAdapter (Sprint 16).
@@ -308,8 +308,18 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 3. **Geometry-dispatch ADR (validated, no change)**: Not directly exercised by this sprint — the adapter's `LatentSpace` is `gaussian_set` geometry, but the decode operation is a custom renderer (not a `LatentSpace` distance/interpolate call). The `LatentSpace` geometry dispatch is used only when a caller uses `space.interpolate()` or `space.distance()` on the adapter's latent points.
 
 **Status update:**
-- `ModelAdapter` 3-mode ADR: `validated` → **`validated (all 3 modes confirmed)`** — mode (iii) confirmed by GaussianRendererAdapter. This is the final ADR closure from the 2026-06-16 set.
+- `ModelAdapter` 3-mode ADR: `pending` → **`validated (all 3 modes confirmed)`** — mode (iii) confirmed by GaussianRendererAdapter. This is the final ADR closure from the 2026-06-16 set.
 - `LatentSpace` geometry-keyed ADR: `validated` (no change — exercised by GaussianRendererAdapter's gaussian_set latent space).
 - Geometry-dispatch ADR: `validated` (no change — not directly exercised this sprint).
 
-**Consequences:** All three 2026-06-16 ADRs are now fully validated with all modes confirmed by running code. The `ModelAdapter` vs `DecodableAdapter` Protocol split is proven correct — the deterministic renderer conforms to `DecodableAdapter` because it has a `decode` method, while `HiddenStateAdapter` (mode ii) correctly does not. The next ADR-relevant sprint will be Sprint 17 (plugin registry) or a future adapter that challenges the existing Protocol shape. No further ADR reconciliation is expected from the 2026-06-16 set.
+**Consequences:** All three 2026-06-16 ADRs are now fully validated with all modes confirmed by running code. The `ModelAdapter` vs `DecodableAdapter` Protocol split is proven correct, and the follow-up `FlatBatchDecodableAdapter` refinement keeps flat-batch Layer B consumers from accidentally accepting structured decoders. The deterministic renderer conforms to `DecodableAdapter` because it has a `decode` method, while `HiddenStateAdapter` (mode ii) correctly does not. The next ADR-relevant sprint will be Sprint 17 (plugin registry) or a future adapter that challenges the existing Protocol shape. No further ADR reconciliation is expected from the 2026-06-16 set.
+
+## [2026-06-21] Sprint 16 review correction — split shape-generic decodability from flat-batch decodability
+
+**Decision:** Keep `DecodableAdapter` as the broad, shape-generic adapter surface (`encode` + `decode` + `latent_space`) and add `FlatBatchDecodableAdapter` for adapters whose public encode/decode contract is specifically flat batch matrices. `ActivationPatch` now requires `FlatBatchDecodableAdapter`.
+
+**Alternatives considered:** (a) Force `GaussianRendererAdapter` to accept and return flat batches; (b) leave `ActivationPatch` typed against the broad `DecodableAdapter`; (c) remove GaussianRenderer from `DecodableAdapter`.
+
+**Reason:** `GaussianRendererAdapter` is a valid mode (iii) `DecodableAdapter`: it decodes a Gaussian-set latent into an image through a deterministic renderer. But `ActivationPatch` computes means over sample batches and broadcasts latent deltas, so accepting a structured image/gaussian-set decoder would fail semantically despite passing runtime Protocol checks. The narrower Protocol records that method-level assumption explicitly without weakening the adapter ADR.
+
+**Consequences:** Structured decoders remain first-class `DecodableAdapter`s, while flat-batch Layer B consumers have an enforceable guard. Future methods must choose the broad or narrow Protocol based on the shapes they actually consume.

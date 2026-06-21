@@ -16,9 +16,9 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 *(No active sprints — next planned: Sprint 17.)*
 
 ## Completed Sprints
-* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 51 new tests, 376 total. (Round 13).
+* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 52 GaussianRenderer tests, 381 total. (Round 13).
 * [Sprint 15](sprint-plans/sprint-15.md) - *Status: Completed* — Add structured `gaussian_set` latent geometry as geometry case #3. Geometry-keyed and geometry-dispatch ADRs exercised by set-like structured shape. Inline `if/elif` dispatch survives 3 geometries (Rule of Three §4a: instance #3 → keep hardcoded). 78 LatentSpace tests pass. (Round 12).
-* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR moves to **validated** (modes i and ii confirmed). All three 2026-06-16 ADRs now validated. (Round 11).
+* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR gains mode ii evidence, with full validation still pending the deterministic renderer mode iii later completed in Sprint 16. (Round 11).
 * [Sprint 13](sprint-plans/sprint-13.md) - *Status: Completed* — End-to-end VAE-based showcase: adapter → latent inspection (PCA Layer A) → latent edit (ActivationPatch Layer B) → decode → before/after metric (68.2% improvement) → trajectory panel (Lerp). Reproducible from config lightweight; no new abstraction added. (Round 10 — composition/validation round).
 * [Sprint 12](sprint-plans/sprint-12.md) - *Status: Completed* — Layer B: activation patching (B-Method #3, model-mediated) → **freeze BMethod Protocol**, migrate Lerp + SteeringVector (Round 9).
 * [Sprint 9](sprint-plans/sprint-9.md) - *Status: Completed* — Geometry case #2 (unit-norm/spherical) → validate ADR `LatentSpace` + ADR geometry-dispatch (Round 6). **Two ADRs validated.** Last sprint of Giai đoạn 1.
@@ -34,10 +34,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [Sprint 10](sprint-plans/sprint-10.md) - *Status: Completed* — Layer B: lerp (B-Method #1, stateless), trajectory blending, end-to-end (Round 7). **Giai đoạn 2 begins.**
 
 ## Backlog / Future Work
-*Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint 15+ là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
-
-**Adapter/geometry closure:**
-* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Planned* — Add deterministic Gaussian renderer adapter to exercise `ModelAdapter` mode (iii).
+*Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint tương lai là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
 
 **Plugin extraction:**
 * [Sprint 17](sprint-plans/sprint-17.md) - *Status: Planned* — Add in-process registry for adapters and methods.

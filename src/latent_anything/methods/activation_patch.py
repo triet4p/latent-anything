@@ -3,20 +3,18 @@
 This is B-Method #3 — the third Layer B (Manipulation) method, and the
 first *model-mediated* B-Method. Unlike Lerp (stateless, pure function)
 and SteeringVector (stateful, latent→latent), ActivationPatch works
-through a ``DecodableAdapter``: it encodes input data, patches the
-latent representation, and decodes back to data space. The output is
-in **data space** (e.g. images), not latent space.
+through a ``FlatBatchDecodableAdapter``: it encodes flat sample batches,
+patches the latent representation, and decodes back to data space. The
+output is in **data space** (e.g. images), not latent space.
 
 This is the Rule of Three freeze trigger for the ``BMethod`` Protocol.
 """
 
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
 
-from latent_anything.adapters.protocols import DecodableAdapter
+from latent_anything.adapters.protocols import FlatBatchDecodableAdapter
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
 
@@ -25,10 +23,10 @@ class ActivationPatch:
     """Model-mediated activation patching via encode → patch → decode.
 
     Unlike Lerp and SteeringVector which operate directly on latent
-    points, ``ActivationPatch`` works through a ``DecodableAdapter``:
-    it encodes input data, patches the latent representation, and decodes
-    back to data space. The output is in data space (e.g., images),
-    not latent space.
+    points, ``ActivationPatch`` works through a
+    ``FlatBatchDecodableAdapter``: it encodes flat sample batches, patches
+    the latent representation, and decodes back to data space. The output
+    is in data space (e.g., images), not latent space.
 
     This is B-Method #3 — the third distinct B-Method pattern,
     triggering the Rule of Three freeze for the ``BMethod`` Protocol.
@@ -36,18 +34,19 @@ class ActivationPatch:
     Parameters
     ----------
     adapter
-        A ``DecodableAdapter`` instance with ``encode``, ``decode``,
-        and ``latent_space``.
+        A ``FlatBatchDecodableAdapter`` instance with batch-matrix
+        ``encode``/``decode`` semantics and ``latent_space``.
     """
 
-    def __init__(self, adapter: Any) -> None:
-        if not isinstance(adapter, DecodableAdapter):
+    def __init__(self, adapter: object) -> None:
+        if not isinstance(adapter, FlatBatchDecodableAdapter):
             msg = (
-                f"ActivationPatch requires a DecodableAdapter (with encode + decode + latent_space), "
+                "ActivationPatch requires a FlatBatchDecodableAdapter "
+                f"(flat-batch encode + decode + latent_space), "
                 f"got {type(adapter).__name__}"
             )
             raise TypeError(msg)
-        self._adapter: DecodableAdapter = adapter
+        self._adapter: FlatBatchDecodableAdapter = adapter
         self._delta: np.ndarray | None = None
 
     # ------------------------------------------------------------------

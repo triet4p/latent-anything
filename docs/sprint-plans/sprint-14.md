@@ -20,7 +20,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Task 9: Add tests for `HiddenStateAdapter`, runtime protocol checks, and `ActivationPatch` rejecting non-decodable adapters cleanly.
 - [x] Task 10: Add an end-to-end demo: data → hidden activations → PCA/UMAP visualization; no decode story.
 - [x] Task 11: Run `ruff check`, `ruff format`, `pyright`, and full pytest.
-- [x] Task 12: ADR check: mode (ii) confirmed; `ModelAdapter` ADR moves to **validated** (modes i and ii confirmed); mode (iii) still pending Sprint 16.
+- [x] Task 12: ADR check: mode (ii) confirmed; `ModelAdapter` ADR remains pending with modes i and ii confirmed; full validation waits for mode iii in Sprint 16.
 - [x] Task 13: Update artifact summary, `CHANGELOG.md`, and `docs/PLAN.md`.
 
 ## Rule-of-Three Checkpoint

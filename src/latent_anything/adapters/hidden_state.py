@@ -132,10 +132,11 @@ class HiddenStateAdapter:
     def encode(self, data: np.ndarray) -> np.ndarray:
         """Encode data to hidden-state activations.
 
-        Computes ``ReLU(data @ W1 + b1)`` as the hidden representation.
-        The second layer is computed but not exposed — only the first
-        layer's hidden activations are returned, simulating intermediate
-        hidden states in a deep network.
+        Computes ``ReLU(data @ W1 + b1)`` as the returned hidden
+        representation, simulating an intermediate activation capture
+        in a deep network. The second-layer weights are kept on the
+        adapter as deeper-network context, but ``encode`` intentionally
+        exposes the first hidden layer only.
 
         Parameters
         ----------

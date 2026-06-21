@@ -21,9 +21,7 @@ import numpy as np
 from latent_anything import LatentSpace
 
 
-def make_gaussian_set(
-    n_gaussians: int, seed: int, shift: float = 0.0
-) -> np.ndarray:
+def make_gaussian_set(n_gaussians: int, seed: int, shift: float = 0.0) -> np.ndarray:
     """Create a synthetic Gaussian-set point.
 
     Returns shape ``(n_gaussians, 10)`` with columns:
@@ -92,12 +90,14 @@ def main() -> None:
     for t, pt in results.items():
         space.validate_point(pt)
         pos_mean = pt[:, :3].mean(axis=0)
-        print(f"  t={t:.2f}: pos_mean=({pos_mean[0]:.2f}, {pos_mean[1]:.2f}, {pos_mean[2]:.2f})"
-              f"  opacity_mean={pt[:, 6].mean():.3f}")
+        print(
+            f"  t={t:.2f}: pos_mean=({pos_mean[0]:.2f}, {pos_mean[1]:.2f}, {pos_mean[2]:.2f})"
+            f"  opacity_mean={pt[:, 6].mean():.3f}"
+        )
 
     # ── 5. Visualize ─────────────────────────────────────────────────
     fig, axes = plt.subplots(2, 3, figsize=(14, 8))
-    fig.suptitle("Gaussian-Set Latent Geometry — Interpolation Paths", fontsize=14)
+    fig.suptitle("Gaussian-Set Latent Geometry — Interpolation Paths", fontsize=14)  # pyright: ignore[reportUnknownMemberType]
 
     # Row 0: Position (x, y), scale (mean), opacity, color (R)
     ax_pos = axes[0, 0]
@@ -116,28 +116,30 @@ def main() -> None:
         c = colors_ts[i]
         ax_pos.scatter(pt[:, 0], pt[:, 1], c=c, alpha=0.7, s=30, label=f"t={t:.2f}")
         ax_scale.scatter(pt[:, 3], pt[:, 4], c=c, alpha=0.7, s=30, label=f"t={t:.2f}")
-        ax_opacity.scatter(
-            np.full(n_gaussians, t), pt[:, 6], c=c, alpha=0.5, s=20
-        )
+        ax_opacity.scatter(np.full(n_gaussians, t), pt[:, 6], c=c, alpha=0.5, s=20)
         ax_color.scatter(pt[:, 7], pt[:, 8], c=c, alpha=0.7, s=30, label=f"t={t:.2f}")
 
     ax_pos.set_title("Position (x, y)")
-    ax_pos.set_xlabel("x"); ax_pos.set_ylabel("y")
+    ax_pos.set_xlabel("x")
+    ax_pos.set_ylabel("y")
     ax_pos.legend(fontsize=8)
     ax_pos.grid(True, alpha=0.3)
 
     ax_scale.set_title("Scale (sx, sy)")
-    ax_scale.set_xlabel("sx"); ax_scale.set_ylabel("sy")
+    ax_scale.set_xlabel("sx")
+    ax_scale.set_ylabel("sy")
     ax_scale.legend(fontsize=8)
     ax_scale.grid(True, alpha=0.3)
 
     ax_opacity.set_title("Opacity (all Gaussians)")
-    ax_opacity.set_xlabel("interpolation t"); ax_opacity.set_ylabel("opacity")
+    ax_opacity.set_xlabel("interpolation t")
+    ax_opacity.set_ylabel("opacity")
     ax_opacity.set_ylim(-0.1, 1.1)
     ax_opacity.grid(True, alpha=0.3)
 
     ax_color.set_title("Color (R, G)")
-    ax_color.set_xlabel("R"); ax_color.set_ylabel("G")
+    ax_color.set_xlabel("R")
+    ax_color.set_ylabel("G")
     ax_color.legend(fontsize=8)
     ax_color.grid(True, alpha=0.3)
 
@@ -145,7 +147,8 @@ def main() -> None:
     dists = [space.distance(a, results[t]) for t in ts]
     ax_dist.plot(ts, dists, "o-", color="#2ca02c")
     ax_dist.set_title("Distance from A Along Path")
-    ax_dist.set_xlabel("interpolation t"); ax_dist.set_ylabel("distance(A, interp(t))")
+    ax_dist.set_xlabel("interpolation t")
+    ax_dist.set_ylabel("distance(A, interp(t))")
     ax_dist.grid(True, alpha=0.3)
 
     ax_info.axis("off")
@@ -164,16 +167,22 @@ def main() -> None:
         f"  opacity: lerp + clamp [0,1]\n"
         f"  color: lerp + clamp [0,1]"
     )
-    ax_info.text(0.05, 0.95, info_text, transform=ax_info.transAxes,
-                 fontsize=10, verticalalignment="top",
-                 bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
+    ax_info.text(
+        0.05,
+        0.95,
+        info_text,
+        transform=ax_info.transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
+    )
 
     plt.tight_layout()
 
     out_dir = Path(__file__).resolve().parent.parent / "artifacts"
     os.makedirs(out_dir, exist_ok=True)
     out_path = out_dir / "gaussian_set_demo_plot.png"
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")  # pyright: ignore[reportUnknownMemberType]
     print(f"\nSaved plot to {out_path}")
     plt.close(fig)
 

@@ -4,8 +4,37 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+from hypothesis.strategies import SearchStrategy
 
 from latent_anything import LatentSpace
+
+GaussianRow = tuple[float, ...]
+
+
+def _rows_to_array(rows: list[GaussianRow]) -> np.ndarray:
+    return np.asarray(rows, dtype=np.float64)
+
+
+def _valid_gaussian_set_strategy(n_gaussians: int = 4) -> SearchStrategy[np.ndarray]:
+    coord = st.floats(min_value=-10.0, max_value=10.0, allow_nan=False, allow_infinity=False)
+    scale = st.floats(min_value=0.01, max_value=5.0, allow_nan=False, allow_infinity=False)
+    unit = st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False)
+    row = st.tuples(coord, coord, coord, scale, scale, scale, unit, unit, unit, unit)
+    return st.lists(row, min_size=n_gaussians, max_size=n_gaussians).map(_rows_to_array)
+
+
+def _sort_gaussian_rows(point: np.ndarray) -> np.ndarray:
+    order = np.lexsort(point[:, :3].T)
+    return point[order]
+
+
+def _make_gaussian_positions_unique(point: np.ndarray) -> np.ndarray:
+    result = point.copy()
+    offsets = np.arange(result.shape[0], dtype=np.float64)[:, None] * np.array([0.001, 0.002, 0.003])
+    result[:, :3] = result[:, :3] + offsets
+    return result
 
 
 class TestLatentSpaceInit:
@@ -523,16 +552,14 @@ class TestLatentSpaceGaussianSetInterpolate:
         result = space.interpolate(a, b, 0.0)
         # Interpolation sorts by position for permutation invariance,
         # so compare against sorted(a) not a itself
-        a_idx = space._gaussian_set_sort_indices(a)
-        np.testing.assert_array_almost_equal(result, a[a_idx])
+        np.testing.assert_array_almost_equal(result, _sort_gaussian_rows(a))
 
     def test_interpolate_t1_returns_b(self) -> None:
         space = LatentSpace(dim=10, geometry="gaussian_set", n_gaussians=10)
         a = self._make_point(seed=42)
         b = self._make_point(seed=99)
         result = space.interpolate(a, b, 1.0)
-        b_idx = space._gaussian_set_sort_indices(b)
-        np.testing.assert_array_almost_equal(result, b[b_idx])
+        np.testing.assert_array_almost_equal(result, _sort_gaussian_rows(b))
 
     def test_interpolate_t05_midpoint_shape(self) -> None:
         space = LatentSpace(dim=10, geometry="gaussian_set", n_gaussians=10)
@@ -589,6 +616,40 @@ class TestLatentSpaceGaussianSetInterpolate:
         for t in [0.0, 0.3, 0.7, 1.0]:
             result = space.interpolate(a, b, t)
             assert np.all(result[:, 7:10] >= 0) and np.all(result[:, 7:10] <= 1)
+
+
+class TestLatentSpaceGaussianSetProperties:
+    """Property-based checks for gaussian_set geometry invariants."""
+
+    @given(point=_valid_gaussian_set_strategy())
+    @settings(max_examples=25)
+    def test_distance_zero_for_permuted_same_set(self, point: np.ndarray) -> None:
+        space = LatentSpace(dim=10, geometry="gaussian_set", n_gaussians=4)
+        point = _make_gaussian_positions_unique(point)
+        perm = np.array([2, 0, 3, 1])
+        assert space.distance(point, point[perm]) == pytest.approx(0.0)
+
+    @given(
+        a=_valid_gaussian_set_strategy(),
+        b=_valid_gaussian_set_strategy(),
+        t=st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False, width=32),
+    )
+    @settings(max_examples=25)
+    def test_interpolate_returns_valid_point_and_preserves_inputs(
+        self,
+        a: np.ndarray,
+        b: np.ndarray,
+        t: float,
+    ) -> None:
+        space = LatentSpace(dim=10, geometry="gaussian_set", n_gaussians=4)
+        a_before = a.copy()
+        b_before = b.copy()
+
+        result = space.interpolate(a, b, t)
+
+        space.validate_point(result)
+        np.testing.assert_array_equal(a, a_before)
+        np.testing.assert_array_equal(b, b_before)
 
 
 class TestLatentSpaceGaussianSetNormalize:

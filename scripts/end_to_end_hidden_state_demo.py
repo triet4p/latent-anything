@@ -86,8 +86,17 @@ print(f"  % zero (ReLU dead): {(hidden == 0).mean() * 100:.1f}%")
 # Verify ModelAdapter protocol conformance
 from latent_anything.adapters import DecodableAdapter, ModelAdapter  # noqa: E402
 
-print(f"\n  Conforms to ModelAdapter: {isinstance(adapter, ModelAdapter)}")
-print(f"  Conforms to DecodableAdapter: {isinstance(adapter, DecodableAdapter)}")
+
+def _conforms_to_model_adapter(candidate: object) -> bool:
+    return isinstance(candidate, ModelAdapter)
+
+
+def _conforms_to_decodable_adapter(candidate: object) -> bool:
+    return isinstance(candidate, DecodableAdapter)
+
+
+print(f"\n  Conforms to ModelAdapter: {_conforms_to_model_adapter(adapter)}")
+print(f"  Conforms to DecodableAdapter: {_conforms_to_decodable_adapter(adapter)}")
 print(f"  Has decode: {hasattr(adapter, 'decode')}")
 
 # ---------------------------------------------------------------------------
@@ -125,7 +134,7 @@ for ax, proj, name in zip(axes, [pca_2d, umap_2d], ["PCA", "UMAP"]):
     ax.legend(fontsize=8)
     ax.set_aspect("equal", adjustable="datalim")
 
-plt.suptitle(
+plt.suptitle(  # pyright: ignore[reportUnknownMemberType]
     f"HiddenStateAdapter (input_dim={input_dim}, hidden_dim={hidden_dim})\nMode (ii): no-explicit-latent — no decoder",
     fontsize=11,
 )
@@ -135,7 +144,7 @@ plt.tight_layout()
 output_dir = Path(__file__).resolve().parent.parent / "artifacts"
 output_dir.mkdir(parents=True, exist_ok=True)
 output_path = output_dir / "hidden_state_demo_plot.png"
-plt.savefig(output_path, dpi=150, bbox_inches="tight")
+plt.savefig(output_path, dpi=150, bbox_inches="tight")  # pyright: ignore[reportUnknownMemberType]
 print(f"\n✓ Plot saved to {output_path}")
 
-plt.show()
+plt.show()  # pyright: ignore[reportUnknownMemberType]
