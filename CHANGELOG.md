@@ -4,6 +4,17 @@
 
 ### Added
 
+- **`AnalysisPipeline` — Pipeline #1** — `src/latent_anything/pipeline.py` with a concrete analysis pipeline chaining `adapter.encode()` → `method.fit()` + `method.transform()`. Accepts any `ModelAdapter` (decodable or non-decodable) and any Layer A `Method`. Returns a typed `PipelineResult` frozen dataclass with `latents`, `transformed`, and `latent_space` fields. Pipeline instance #1 — deliberately concrete, no Layer B or DAG support. (#sprint-20)
+- **`PipelineSpec` + `build_pipeline_from_config`** — Config-backed construction path using Sprint 18 config machinery. `PipelineSpec` is a pydantic model wrapping two `ObjectSpec` instances (adapter + method). `build_pipeline_from_config` resolves both specs through the registry and composes them into an `AnalysisPipeline`. Supports auto-coercion of plain dicts to `ObjectSpec` via pydantic v2. (#sprint-20)
+- **21 pipeline tests** — covering construction (4), run behaviour (7), PipelineResult invariants (2), PipelineSpec model invariants (4), and config-backed construction errors (4). Tests exercise both VAE/PCA (decodable, mode i) and HiddenStateAdapter/PCA (non-decodable, mode ii) combinations. (#sprint-20)
+- **Pipeline demo script** — `scripts/end_to_end_pipeline_demo.py` reproduces the Sprint 13 VAE → PCA analysis portion through Pipeline #1's unified interface, demonstrating both direct construction and config-backed construction with matplotlib visualisation. (#sprint-20)
+- **New public exports** — `AnalysisPipeline`, `PipelineResult`, `PipelineSpec`, `build_pipeline_from_config` exported from top-level `latent_anything` package. (#sprint-20)
+
+### Changed
+
+- **`__init__.py`** — Added pipeline module exports to both the import block and `__all__`. (#sprint-20)
+- Test suite: 523 total tests (502 existing + 21 pipeline). (#sprint-20)
+
 - **Separated built-in registry module** — `src/latent_anything/_plugin_builtins.py` as the single stable import location where all built-in adapters and methods are registered into `GLOBAL_REGISTRY`. This decouples `registry.py` from concrete class dependencies, making it pure infrastructure. (#sprint-19)
 - **Internal plugin extraction contract** — Documented in `_plugin_builtins.py` docstring: registration-only (no re-exports), deterministic order, no circular imports, one-to-one with built-in classes, and entry-point readiness for future external plugins. (#sprint-19)
 - **Parity test suite** — 22 new tests in `test_parity.py` covering registry constructor vs direct import constructor for all 10 built-in classes (4 adapters + 3 method_a + 3 method_b), plus factory identity checks proving `registry.lookup("name").factory` is the class itself. (#sprint-19)

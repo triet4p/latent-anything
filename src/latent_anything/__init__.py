@@ -21,6 +21,10 @@ from latent_anything.config import build_from_config as build_from_config
 from latent_anything.config import build_from_dict as build_from_dict
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.methods import Method as Method
+from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
+from latent_anything.pipeline import PipelineResult as PipelineResult
+from latent_anything.pipeline import PipelineSpec as PipelineSpec
+from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -32,15 +36,19 @@ from latent_anything.trajectory import Trajectory as Trajectory
 __version__ = "0.1.0"
 
 __all__ = [
+    "AnalysisPipeline",
     "GLOBAL_REGISTRY",
     "LatentSpace",
     "Method",
     "ObjectSpec",
+    "PipelineResult",
+    "PipelineSpec",
     "Registry",
     "RegistryEntry",
     "Trajectory",
     "build_from_config",
     "build_from_dict",
+    "build_pipeline_from_config",
     "list_entries",
     "lookup_entry",
     "register_entry",

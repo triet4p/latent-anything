@@ -13,9 +13,10 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-*(No active sprints — next planned: Sprint 20.)*
+*(No active sprints — next planned: Sprint 21.)*
 
 ## Completed Sprints
+* [Sprint 20](sprint-plans/sprint-20.md) - *Status: Completed* — Add concrete Pipeline #1 (`AnalysisPipeline`) for adapter → encode → Layer A method → typed `PipelineResult`. Config-backed construction via `PipelineSpec` + `build_pipeline_from_config`. 21 pipeline tests, 523 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 17).
 * [Sprint 19](sprint-plans/sprint-19.md) - *Status: Completed* — Convert built-in adapters/methods to registry-first built-ins with separate `_plugin_builtins.py` module, proving behavior parity via 22 parity tests + 15 demo smoke tests. Infrastructure-only round — no new adapter/method/geometry instances. 502 total tests. (Round 16).
 * [Sprint 18](sprint-plans/sprint-18.md) - *Status: Completed* — Registry-backed config instantiation using pydantic v2. ObjectSpec model with kind/name/params, build_from_config resolver, nested spec resolution for adapter-in-method (ActivationPatch), clear validation errors, and 36 config tests. 465 total tests. (Round 15).
 * [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
