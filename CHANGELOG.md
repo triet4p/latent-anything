@@ -4,16 +4,18 @@
 
 ### Added
 
-- **`AnalysisPipeline` — Pipeline #1** — `src/latent_anything/pipeline.py` with a concrete analysis pipeline chaining `adapter.encode()` → `method.fit()` + `method.transform()`. Accepts any `ModelAdapter` (decodable or non-decodable) and any Layer A `Method`. Returns a typed `PipelineResult` frozen dataclass with `latents`, `transformed`, and `latent_space` fields. Pipeline instance #1 — deliberately concrete, no Layer B or DAG support. (#sprint-20)
-- **`PipelineSpec` + `build_pipeline_from_config`** — Config-backed construction path using Sprint 18 config machinery. `PipelineSpec` is a pydantic model wrapping two `ObjectSpec` instances (adapter + method). `build_pipeline_from_config` resolves both specs through the registry and composes them into an `AnalysisPipeline`. Supports auto-coercion of plain dicts to `ObjectSpec` via pydantic v2. (#sprint-20)
-- **21 pipeline tests** — covering construction (4), run behaviour (7), PipelineResult invariants (2), PipelineSpec model invariants (4), and config-backed construction errors (4). Tests exercise both VAE/PCA (decodable, mode i) and HiddenStateAdapter/PCA (non-decodable, mode ii) combinations. (#sprint-20)
-- **Pipeline demo script** — `scripts/end_to_end_pipeline_demo.py` reproduces the Sprint 13 VAE → PCA analysis portion through Pipeline #1's unified interface, demonstrating both direct construction and config-backed construction with matplotlib visualisation. (#sprint-20)
-- **New public exports** — `AnalysisPipeline`, `PipelineResult`, `PipelineSpec`, `build_pipeline_from_config` exported from top-level `latent_anything` package. (#sprint-20)
+- **`ManipulationPipeline` — Pipeline #2** — `src/latent_anything/pipeline.py` with a concrete manipulation pipeline for Layer B methods. Supports two stories: (1) adapter-mediated data-space output via `run_data()` — encode → BMethod → decode → metric-ready `np.ndarray` (used with `ActivationPatch`); (2) latent-only trajectory output via `run_trajectory()` — BMethod `apply_trajectory` returning a new `Trajectory` (used with `SteeringVector`, `Lerp`). Deliberately avoids a generic `run()` because `__call__` signatures differ across B-Methods. (#sprint-21)
+- **`_PipelineBase` — shared pipeline sketch** — Minimal base recording the common surface (adapter + method + optional `latent_space`) between `AnalysisPipeline` and `ManipulationPipeline`. Sketch only — freeze waits for Pipeline #3 (Rule of Three). (#sprint-21)
+- **`ManipulationPipelineSpec` + `build_manipulation_pipeline_from_config`** — Config-backed construction path using Sprint 18 config machinery. Supports optional adapter spec for data-space stories. (#sprint-21)
+- **28 manipulation pipeline tests** — covering construction (6), data-space story (3), trajectory story (4), fit delegation (3), convenience methods (3), spec model invariants (4), and config-backed construction errors (5). (#sprint-21)
+- **Manipulation pipeline demo script** — `scripts/end_to_end_manipulation_demo.py` reproduces the Sprint 13 showcase path through Pipeline #2: ActivationPatch (data-space) and SteeringVector (trajectory) stories with matplotlib visualisation of before/after metrics and trajectory spread. (#sprint-21)
+- **New public exports** — `ManipulationPipeline`, `ManipulationPipelineSpec`, `build_manipulation_pipeline_from_config` exported from top-level `latent_anything` package. (#sprint-21)
 
 ### Changed
 
-- **`__init__.py`** — Added pipeline module exports to both the import block and `__all__`. (#sprint-20)
-- Test suite: 523 total tests (502 existing + 21 pipeline). (#sprint-20)
+- **`AnalysisPipeline`** now inherits from `_PipelineBase` — no behavioral change, purely structural. (#sprint-21)
+- **`__init__.py`** — Added manipulation pipeline exports to both the import block and `__all__`. (#sprint-21)
+- Test suite: 551 total tests (523 existing + 28 manipulation pipeline). (#sprint-21)
 
 - **Separated built-in registry module** — `src/latent_anything/_plugin_builtins.py` as the single stable import location where all built-in adapters and methods are registered into `GLOBAL_REGISTRY`. This decouples `registry.py` from concrete class dependencies, making it pure infrastructure. (#sprint-19)
 - **Internal plugin extraction contract** — Documented in `_plugin_builtins.py` docstring: registration-only (no re-exports), deterministic order, no circular imports, one-to-one with built-in classes, and entry-point readiness for future external plugins. (#sprint-19)

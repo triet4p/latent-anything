@@ -9,13 +9,14 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [x] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent story (Sprint 10–13). **Sprint 13 completed — VAE-based end-to-end showcase proven.** The showcase composes existing primitives (VAE, PCA, ActivationPatch, Lerp) into a coherent edit story with 68.2% distance improvement. Real VLA showcase remains future ecosystem work when a VLA adapter exists in the codebase.
 * [x] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16). **Complete — all three 2026-06-16 ADRs fully validated with all modes confirmed by running code.**
 * [x] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19). **Complete — all 10 built-in classes registered with registry-first pattern; behavior parity proven by 22 parity tests; infrastructure remains entry-point-free pending external plugin demand.**
-* [ ] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21).
+* [x] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21). **Complete — two pipeline instances (Analysis + Manipulation) with shared `_PipelineBase` sketch. Freeze waits for Pipeline #3 (runtime/streaming).**
 * [ ] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24).
 
 ## Active Sprints
-*(No active sprints — next planned: Sprint 21.)*
+*(No active sprints — next planned: Sprint 22.)*
 
 ## Completed Sprints
+* [Sprint 21](sprint-plans/sprint-21.md) - *Status: Completed* — Add concrete Pipeline #2 (`ManipulationPipeline`) for Layer B manipulation (adapter-mediated data-space + latent-only trajectory stories). Sketch `_PipelineBase` shared with `AnalysisPipeline`. Config-backed construction via `ManipulationPipelineSpec`. 28 new tests, 551 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 18).
 * [Sprint 20](sprint-plans/sprint-20.md) - *Status: Completed* — Add concrete Pipeline #1 (`AnalysisPipeline`) for adapter → encode → Layer A method → typed `PipelineResult`. Config-backed construction via `PipelineSpec` + `build_pipeline_from_config`. 21 pipeline tests, 523 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 17).
 * [Sprint 19](sprint-plans/sprint-19.md) - *Status: Completed* — Convert built-in adapters/methods to registry-first built-ins with separate `_plugin_builtins.py` module, proving behavior parity via 22 parity tests + 15 demo smoke tests. Infrastructure-only round — no new adapter/method/geometry instances. 502 total tests. (Round 16).
 * [Sprint 18](sprint-plans/sprint-18.md) - *Status: Completed* — Registry-backed config instantiation using pydantic v2. ObjectSpec model with kind/name/params, build_from_config resolver, nested spec resolution for adapter-in-method (ActivationPatch), clear validation errors, and 36 config tests. 465 total tests. (Round 15).
@@ -40,9 +41,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 ## Backlog / Future Work
 *Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint tương lai là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
 
-**Pipeline foundation:**
-* [Sprint 20](sprint-plans/sprint-20.md) - *Status: Planned* — Add concrete Pipeline #1 for adapter → Layer A analysis.
-* [Sprint 21](sprint-plans/sprint-21.md) - *Status: Planned* — Add concrete Pipeline #2 for adapter → Layer B manipulation and sketch shared shape.
+**Pipeline foundation:** *(Complete — two pipeline instances validate shared shape sketch.)*
 
 **Layer C runtime foundation:**
 * [Sprint 22](sprint-plans/sprint-22.md) - *Status: Planned* — Add batch executor.

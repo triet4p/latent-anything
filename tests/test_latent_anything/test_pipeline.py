@@ -300,3 +300,385 @@ class TestBuildPipelineFromConfig:
         )
         with pytest.raises(ValueError):
             build_pipeline_from_config(spec)
+
+
+# ── ManipulationPipeline imports ────────────────────────────────────
+# ruff: noqa: E402
+# pyright: ignore[reportUnknownMemberType, reportPrivateUsage]
+
+from latent_anything.methods.activation_patch import ActivationPatch
+from latent_anything.methods.lerp import Lerp
+from latent_anything.methods.steering import SteeringVector
+from latent_anything.pipeline import (
+    ManipulationPipeline,
+    ManipulationPipelineSpec,
+    build_manipulation_pipeline_from_config,
+)
+from latent_anything.trajectory import Trajectory
+
+# ── ManipulationPipeline: Fixtures ──────────────────────────────────
+
+
+@pytest.fixture
+def steering_fixture() -> SteeringVector:
+    """Return a fitted SteeringVector for pipeline tests."""
+    steer = SteeringVector()
+    rng = np.random.default_rng(42)
+    pos = rng.normal(loc=1.0, scale=0.5, size=(30, 5))
+    neg = rng.normal(loc=-1.0, scale=0.5, size=(30, 5))
+    steer.fit(pos, neg)
+    return steer
+
+
+@pytest.fixture
+def activation_patch_fixture(small_vae: VAE) -> ActivationPatch:
+    """Return a fitted ActivationPatch for pipeline tests."""
+    rng = np.random.default_rng(42)
+    data = rng.uniform(0, 1, size=(50, 8))
+    small_vae.fit(data)
+    patch = ActivationPatch(adapter=small_vae)
+    source = rng.uniform(0, 1, size=(20, 8))
+    target = source + 0.5
+    patch.fit(source, target)
+    return patch
+
+
+@pytest.fixture
+def sample_trajectory() -> Trajectory:
+    """Return a small synthetic trajectory."""
+    rng = np.random.default_rng(42)
+    return Trajectory(data=rng.normal(size=(10, 5)))
+
+
+# ── ManipulationPipeline: Construction ─────────────────────────────
+
+
+class TestManipulationPipelineConstruction:
+    """ManipulationPipeline construction invariants."""
+
+    def test_construct_with_steering(self, steering_fixture: SteeringVector) -> None:
+        """Construct a pipeline with SteeringVector (latent-only)."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        assert pipeline.method is steering_fixture
+        assert pipeline.adapter is None
+        assert pipeline.latent_space is None
+
+    def test_construct_with_activation_patch(self, activation_patch_fixture: ActivationPatch, small_vae: VAE) -> None:
+        """Construct a pipeline with ActivationPatch (adapter-mediated)."""
+        pipeline = ManipulationPipeline(method=activation_patch_fixture, adapter=small_vae)
+        assert pipeline.method is activation_patch_fixture
+        assert pipeline.adapter is small_vae
+        assert pipeline.latent_space is not None
+        assert pipeline.latent_space.dim == 3
+
+    def test_construct_with_lerp(self) -> None:
+        """Construct a pipeline with Lerp (stateless, latent-only)."""
+        lerp = Lerp()
+        pipeline = ManipulationPipeline(method=lerp)
+        assert pipeline.method.is_fitted  # Lerp is always fitted
+        assert pipeline.adapter is None
+
+    def test_property_method(self, steering_fixture: SteeringVector) -> None:
+        """method property returns the BMethod."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        assert pipeline.method is steering_fixture
+
+    def test_property_adapter_none(self) -> None:
+        """adapter property returns None when not provided."""
+        pipeline = ManipulationPipeline(method=Lerp())
+        assert pipeline.adapter is None
+
+    def test_is_pipeline_base_instance(self, steering_fixture: SteeringVector) -> None:
+        """ManipulationPipeline is an instance of _PipelineBase."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        from latent_anything.pipeline import _PipelineBase
+
+        assert isinstance(pipeline, _PipelineBase)
+
+
+# ── ManipulationPipeline: Adapter-mediated story ────────────────────
+
+
+class TestManipulationPipelineDataSpace:
+    """ManipulationPipeline.run_data() behavior (adapter-mediated)."""
+
+    def test_run_data_returns_array(self, activation_patch_fixture: ActivationPatch, small_vae: VAE) -> None:
+        """run_data() returns a numpy array with expected shape."""
+        pipeline = ManipulationPipeline(method=activation_patch_fixture, adapter=small_vae)
+        rng = np.random.default_rng(42)
+        data = rng.uniform(0, 1, size=(10, 8))
+        result = pipeline.run_data(data)
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (10, 8)
+
+    def test_run_data_no_adapter_raises(self, steering_fixture: SteeringVector) -> None:
+        """run_data() raises RuntimeError when no adapter is provided."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        rng = np.random.default_rng(42)
+        data = rng.normal(size=(10, 5))
+        with pytest.raises(RuntimeError, match="No adapter provided"):
+            pipeline.run_data(data)
+
+    def test_run_data_input_not_mutated(self, activation_patch_fixture: ActivationPatch, small_vae: VAE) -> None:
+        """run_data() does not mutate the input array."""
+        pipeline = ManipulationPipeline(method=activation_patch_fixture, adapter=small_vae)
+        rng = np.random.default_rng(42)
+        data = rng.uniform(0, 1, size=(10, 8))
+        original = data.copy()
+        pipeline.run_data(data)
+        np.testing.assert_array_equal(data, original)
+
+
+# ── ManipulationPipeline: Latent-only story ────────────────────────
+
+
+class TestManipulationPipelineTrajectory:
+    """ManipulationPipeline.run_trajectory() behavior (latent-only)."""
+
+    def test_run_trajectory_with_steering(
+        self, steering_fixture: SteeringVector, sample_trajectory: Trajectory
+    ) -> None:
+        """run_trajectory() with SteeringVector returns a Trajectory."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        result = pipeline.run_trajectory(sample_trajectory, strength=0.5)
+        assert isinstance(result, Trajectory)
+        assert result.shape == sample_trajectory.shape
+
+    def test_run_trajectory_with_lerp(self, sample_trajectory: Trajectory) -> None:
+        """run_trajectory() with Lerp blending returns a Trajectory."""
+        lerp = Lerp()
+        pipeline = ManipulationPipeline(method=lerp)
+        result = pipeline.run_trajectory(sample_trajectory, n_steps=3)
+        assert isinstance(result, Trajectory)
+        assert len(result) > len(sample_trajectory)
+
+    def test_run_trajectory_input_not_mutated(
+        self, steering_fixture: SteeringVector, sample_trajectory: Trajectory
+    ) -> None:
+        """run_trajectory() does not mutate the input trajectory."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        original = sample_trajectory.to_numpy()
+        pipeline.run_trajectory(sample_trajectory, strength=1.0)
+        np.testing.assert_array_equal(sample_trajectory.to_numpy(), original)
+
+    def test_run_trajectory_deterministic(
+        self, steering_fixture: SteeringVector, sample_trajectory: Trajectory
+    ) -> None:
+        """run_trajectory() returns consistent results."""
+        pipeline = ManipulationPipeline(method=steering_fixture)
+        result1 = pipeline.run_trajectory(sample_trajectory, strength=0.5)
+        result2 = pipeline.run_trajectory(sample_trajectory, strength=0.5)
+        np.testing.assert_array_equal(result1.to_numpy(), result2.to_numpy())
+
+
+# ── ManipulationPipeline: Fit ──────────────────────────────────────
+
+
+class TestManipulationPipelineFit:
+    """ManipulationPipeline.fit() behavior."""
+
+    def test_fit_steering_vector(self) -> None:
+        """fit() delegates to SteeringVector.fit()."""
+        steer = SteeringVector()
+        pipeline = ManipulationPipeline(method=steer)
+        rng = np.random.default_rng(42)
+        pos = rng.normal(loc=1.0, size=(20, 5))
+        neg = rng.normal(loc=-1.0, size=(20, 5))
+        pipeline.fit(pos, neg)
+        assert steer.is_fitted
+
+    def test_fit_activation_patch(self, small_vae: VAE) -> None:
+        """fit() delegates to ActivationPatch.fit()."""
+        rng = np.random.default_rng(42)
+        train_data = rng.uniform(0, 1, size=(50, 8))
+        small_vae.fit(train_data)
+        patch = ActivationPatch(adapter=small_vae)
+        pipeline = ManipulationPipeline(method=patch)
+        source = rng.uniform(0, 1, size=(20, 8))
+        target = source + 0.5
+        pipeline.fit(source, target)
+        assert patch.is_fitted
+
+    def test_fit_lerp_raises(self) -> None:
+        """fit() raises TypeError for stateless methods without fit."""
+        pipeline = ManipulationPipeline(method=Lerp())
+        with pytest.raises(TypeError, match="has no fit method"):
+            pipeline.fit()
+
+
+# ── ManipulationPipeline: Convenience ──────────────────────────────
+
+
+class TestManipulationPipelineConvenience:
+    """ManipulationPipeline convenience methods."""
+
+    def test_fit_run_data(self, small_vae: VAE) -> None:
+        """fit_run_data() fits and runs data-space pipeline."""
+        rng = np.random.default_rng(42)
+        data = rng.uniform(0, 1, size=(50, 8))
+        small_vae.fit(data)
+        patch = ActivationPatch(adapter=small_vae)
+        pipeline = ManipulationPipeline(method=patch, adapter=small_vae)
+        source = rng.uniform(0, 1, size=(20, 8))
+        target = source + 0.5
+        held_out = rng.uniform(0, 1, size=(10, 8))
+        result = pipeline.fit_run_data(fit_args=(source, target), data=held_out)
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (10, 8)
+
+    def test_fit_run_trajectory(self, sample_trajectory: Trajectory) -> None:
+        """fit_run_trajectory() fits and runs trajectory pipeline."""
+        steer = SteeringVector()
+        pipeline = ManipulationPipeline(method=steer)
+        rng = np.random.default_rng(42)
+        pos = rng.normal(loc=1.0, size=(20, 5))
+        neg = rng.normal(loc=-1.0, size=(20, 5))
+        result = pipeline.fit_run_trajectory(
+            fit_args=(pos, neg),
+            trajectory=sample_trajectory,
+            strength=0.5,
+        )
+        assert isinstance(result, Trajectory)
+        assert result.shape == sample_trajectory.shape
+
+    def test_fit_run_data_no_data(self) -> None:
+        """fit_run_data() with no data returns empty array."""
+        steer = SteeringVector()
+        pipeline = ManipulationPipeline(method=steer)
+        rng = np.random.default_rng(42)
+        pos = rng.normal(loc=1.0, size=(20, 5))
+        neg = rng.normal(loc=-1.0, size=(20, 5))
+        result = pipeline.fit_run_data(fit_args=(pos, neg))
+        assert isinstance(result, np.ndarray)
+        assert result.size == 0
+
+
+# ── ManipulationPipelineSpec: Config model ─────────────────────────
+
+
+class TestManipulationPipelineSpec:
+    """ManipulationPipelineSpec model invariants."""
+
+    def test_minimal_spec_method_only(self) -> None:
+        """ManipulationPipelineSpec with method only (latent-only)."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(kind="method_b", name="steering"),
+        )
+        assert spec.method.name == "steering"
+        assert spec.adapter is None
+
+    def test_spec_with_adapter(self) -> None:
+        """ManipulationPipelineSpec with method and adapter."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(
+                kind="method_b",
+                name="activation_patch",
+                params={
+                    "adapter": ObjectSpec(
+                        kind="adapter",
+                        name="vae",
+                        params={"input_dim": 8, "latent_dim": 3},
+                    ),
+                },
+            ),
+            adapter=ObjectSpec(
+                kind="adapter",
+                name="vae",
+                params={"input_dim": 8, "latent_dim": 3},
+            ),
+        )
+        assert spec.method.name == "activation_patch"
+        assert spec.adapter is not None
+        assert spec.adapter.name == "vae"
+
+    def test_spec_with_dict_auto_coercion(self) -> None:
+        """ManipulationPipelineSpec auto-coerces plain dicts to ObjectSpec."""
+        spec = ManipulationPipelineSpec(
+            method={"kind": "method_b", "name": "lerp"},  # pyright: ignore[reportArgumentType]
+        )
+        assert isinstance(spec.method, ObjectSpec)
+        assert spec.method.name == "lerp"
+
+    def test_spec_empty_method_name_rejected(self) -> None:
+        """Empty method name raises pydantic ValidationError."""
+        with pytest.raises(ValidationError):
+            ManipulationPipelineSpec(
+                method=ObjectSpec(kind="method_b", name=""),
+            )
+
+
+# ── build_manipulation_pipeline_from_config ────────────────────────
+
+
+class TestBuildManipulationPipelineFromConfig:
+    """build_manipulation_pipeline_from_config() behavior."""
+
+    def test_build_steering(self) -> None:
+        """Build ManipulationPipeline with SteeringVector from config."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(kind="method_b", name="steering"),
+        )
+        pipeline = build_manipulation_pipeline_from_config(spec)
+        assert isinstance(pipeline, ManipulationPipeline)
+        assert pipeline.adapter is None
+
+        rng = np.random.default_rng(42)
+        pos = rng.normal(loc=1.0, size=(20, 5))
+        neg = rng.normal(loc=-1.0, size=(20, 5))
+        pipeline.fit(pos, neg)
+        traj = Trajectory(data=rng.normal(size=(10, 5)))
+        result = pipeline.run_trajectory(traj, strength=0.5)
+        assert isinstance(result, Trajectory)
+
+    def test_build_activation_patch(self) -> None:
+        """Build ManipulationPipeline with ActivationPatch from config."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(
+                kind="method_b",
+                name="activation_patch",
+                params={
+                    "adapter": ObjectSpec(
+                        kind="adapter",
+                        name="vae",
+                        params={"input_dim": 8, "latent_dim": 3},
+                    ),
+                },
+            ),
+            adapter=ObjectSpec(
+                kind="adapter",
+                name="vae",
+                params={"input_dim": 8, "latent_dim": 3},
+            ),
+        )
+        pipeline = build_manipulation_pipeline_from_config(spec)
+        assert isinstance(pipeline, ManipulationPipeline)
+        assert pipeline.adapter is not None
+        assert pipeline.latent_space is not None
+
+    def test_build_lerp(self) -> None:
+        """Build ManipulationPipeline with Lerp from config."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(kind="method_b", name="lerp"),
+        )
+        pipeline = build_manipulation_pipeline_from_config(spec)
+        assert isinstance(pipeline, ManipulationPipeline)
+
+        traj = Trajectory(data=np.random.default_rng(42).normal(size=(10, 5)))
+        result = pipeline.run_trajectory(traj, n_steps=2)
+        assert isinstance(result, Trajectory)
+
+    def test_unknown_method_raises_keyerror(self) -> None:
+        """Unknown method name raises KeyError."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(kind="method_b", name="nonexistent_method"),
+        )
+        with pytest.raises(KeyError):
+            build_manipulation_pipeline_from_config(spec)
+
+    def test_kind_mismatch_raises_valueerror(self) -> None:
+        """Wrong kind for method raises ValueError."""
+        spec = ManipulationPipelineSpec(
+            method=ObjectSpec(kind="method_b", name="pca"),
+        )
+        with pytest.raises(ValueError):
+            build_manipulation_pipeline_from_config(spec)

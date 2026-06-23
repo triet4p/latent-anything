@@ -22,8 +22,11 @@ from latent_anything.config import build_from_dict as build_from_dict
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.methods import Method as Method
 from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
+from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
+from latent_anything.pipeline import ManipulationPipelineSpec as ManipulationPipelineSpec
 from latent_anything.pipeline import PipelineResult as PipelineResult
 from latent_anything.pipeline import PipelineSpec as PipelineSpec
+from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
@@ -39,6 +42,8 @@ __all__ = [
     "AnalysisPipeline",
     "GLOBAL_REGISTRY",
     "LatentSpace",
+    "ManipulationPipeline",
+    "ManipulationPipelineSpec",
     "Method",
     "ObjectSpec",
     "PipelineResult",
@@ -48,6 +53,7 @@ __all__ = [
     "Trajectory",
     "build_from_config",
     "build_from_dict",
+    "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
     "list_entries",
     "lookup_entry",
