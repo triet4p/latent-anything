@@ -4,6 +4,10 @@
 
 ### Added
 
+- **`BatchExecutor` — Runtime #1** — `src/latent_anything/runtime/batch_executor.py` with deterministic first-axis numpy chunking, eager/synchronous execution, and output concatenation in original order. Supports generic `map_array()` plus adapter `encode()`, adapter `decode()`, and Layer A method `transform()` helpers. (#sprint-22)
+- **Batch executor tests** — 23 tests covering construction, exact divisibility, remainder batches, batch size 1, batch size larger than data, invalid batch sizes, adapter `encode`/`decode`, PCA `transform`, output order/shape preservation, dtype preservation, and operation-output validation. (#sprint-22)
+- **Batch executor demo script** — `scripts/end_to_end_batch_executor_demo.py` prints direct-vs-batched timing snapshots on synthetic data and writes `artifacts/batch_executor_demo_summary.txt`. Local snapshot: `RandomProjection.encode` direct 1.934 ms vs batched 3.302 ms; `PCA.transform` direct 1.507 ms vs batched 4.475 ms. (#sprint-22)
+- **New public export** — `BatchExecutor` exported from top-level `latent_anything` package and `latent_anything.runtime`. (#sprint-22)
 - **`ManipulationPipeline` — Pipeline #2** — `src/latent_anything/pipeline.py` with a concrete manipulation pipeline for Layer B methods. Supports two stories: (1) adapter-mediated data-space output via `run_data()` — encode → BMethod → decode → metric-ready `np.ndarray` (used with `ActivationPatch`); (2) latent-only trajectory output via `run_trajectory()` — BMethod `apply_trajectory` returning a new `Trajectory` (used with `SteeringVector`, `Lerp`). Deliberately avoids a generic `run()` because `__call__` signatures differ across B-Methods. (#sprint-21)
 - **`_PipelineBase` — shared pipeline sketch** — Minimal base recording the common surface (adapter + method + optional `latent_space`) between `AnalysisPipeline` and `ManipulationPipeline`. Sketch only — freeze waits for Pipeline #3 (Rule of Three). (#sprint-21)
 - **`ManipulationPipelineSpec` + `build_manipulation_pipeline_from_config`** — Config-backed construction path using Sprint 18 config machinery. Supports optional adapter spec for data-space stories. (#sprint-21)
@@ -13,6 +17,7 @@
 
 ### Changed
 
+- Test suite: 575 total tests (551 existing + 23 batch executor + 1 demo smoke). (#sprint-22)
 - **`AnalysisPipeline`** now inherits from `_PipelineBase` — no behavioral change, purely structural. (#sprint-21)
 - **`__init__.py`** — Added manipulation pipeline exports to both the import block and `__all__`. (#sprint-21)
 - Test suite: 551 total tests (523 existing + 28 manipulation pipeline). (#sprint-21)

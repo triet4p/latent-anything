@@ -1,0 +1,5 @@
+Sprint 22 BatchExecutor demo
+data_shape=(20000, 64)
+batch_size=512
+RandomProjection.encode: direct=1.934 ms, batched=3.302 ms, ratio=1.71x, max_abs_diff=3.109e-15
+PCA.transform: direct=1.507 ms, batched=4.475 ms, ratio=2.97x, max_abs_diff=0.000e+00

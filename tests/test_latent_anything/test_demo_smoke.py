@@ -153,3 +153,9 @@ class TestOtherDemoSmokes:
         from latent_anything.methods import UMAP
 
         assert UMAP is not None
+
+    def test_batch_executor_demo_imports(self) -> None:
+        """Batch executor demo imports work."""
+        from latent_anything.runtime import BatchExecutor
+
+        assert BatchExecutor is not None
