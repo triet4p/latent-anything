@@ -4,6 +4,11 @@
 
 ### Added
 
+- **`InMemoryCache` — cache backend #1** — `src/latent_anything/runtime/cache.py` with memory-only `get`, `set`, `clear`, and stats. Stores defensive copies of numpy arrays so callers cannot mutate cached values by accident. (#sprint-23)
+- **Stable `CacheKey` structure** — Records namespace, operation, component name, component config hash, input data hash, and framework version when available. Data/config hashes use SHA-256 over numpy array shape/dtype/content and JSON-normalized public config fields; no pickle or disk format decision introduced. (#sprint-23)
+- **AnalysisPipeline cache integration** — `AnalysisPipeline(adapter, method, cache=InMemoryCache())` caches adapter `encode` latents and Layer A method fit-transform outputs for repeated identical runs. (#sprint-23)
+- **Cache demo script** — `scripts/end_to_end_cache_demo.py` demonstrates repeated-call speedup through `AnalysisPipeline` and writes `artifacts/cache_demo_summary.txt`. Local snapshot: first run 65.842 ms vs cached second run 2.495 ms (26.39x). (#sprint-23)
+- **New public exports** — `InMemoryCache`, `CacheKey`, and `CacheStats` exported from top-level `latent_anything` package and `latent_anything.runtime`. (#sprint-23)
 - **`BatchExecutor` — Runtime #1** — `src/latent_anything/runtime/batch_executor.py` with deterministic first-axis numpy chunking, eager/synchronous execution, and output concatenation in original order. Supports generic `map_array()` plus adapter `encode()`, adapter `decode()`, and Layer A method `transform()` helpers. (#sprint-22)
 - **Batch executor tests** — 23 tests covering construction, exact divisibility, remainder batches, batch size 1, batch size larger than data, invalid batch sizes, adapter `encode`/`decode`, PCA `transform`, output order/shape preservation, dtype preservation, and operation-output validation. (#sprint-22)
 - **Batch executor demo script** — `scripts/end_to_end_batch_executor_demo.py` prints direct-vs-batched timing snapshots on synthetic data and writes `artifacts/batch_executor_demo_summary.txt`. Local snapshot: `RandomProjection.encode` direct 1.934 ms vs batched 3.302 ms; `PCA.transform` direct 1.507 ms vs batched 4.475 ms. (#sprint-22)
@@ -17,6 +22,7 @@
 
 ### Changed
 
+- Test suite: 589 total tests (575 existing + 13 cache + 1 demo smoke). (#sprint-23)
 - Test suite: 575 total tests (551 existing + 23 batch executor + 1 demo smoke). (#sprint-22)
 - **`AnalysisPipeline`** now inherits from `_PipelineBase` — no behavioral change, purely structural. (#sprint-21)
 - **`__init__.py`** — Added manipulation pipeline exports to both the import block and `__all__`. (#sprint-21)

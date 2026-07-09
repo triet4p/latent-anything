@@ -39,6 +39,7 @@ from latent_anything.latent_space import LatentSpace
 from latent_anything.methods.b_protocols import BMethod
 from latent_anything.methods.protocols import Method
 from latent_anything.registry import Registry
+from latent_anything.runtime.cache import InMemoryCache, make_cache_key
 from latent_anything.trajectory import Trajectory
 
 # ── Shared base (sketch) ────────────────────────────────────────────
@@ -129,10 +130,11 @@ class AnalysisPipeline(_PipelineBase):
     (50, 2)
     """
 
-    def __init__(self, adapter: ModelAdapter, method: Method) -> None:
+    def __init__(self, adapter: ModelAdapter, method: Method, cache: InMemoryCache | None = None) -> None:
         super().__init__(adapter=adapter, method=method)
         self.adapter: ModelAdapter = adapter
         self.method: Method = method
+        self.cache = cache
         self._latent_space: LatentSpace = adapter.latent_space  # pyright: ignore[reportIncompatibleVariableOverride]
 
     # ── Properties ──────────────────────────────────────────────
@@ -162,14 +164,46 @@ class AnalysisPipeline(_PipelineBase):
             A typed result containing the encoded latents, the
             method-transformed data, and the latent space descriptor.
         """
-        latents = self.adapter.encode(data)
-        self.method.fit(latents)
-        transformed = self.method.transform(latents)
+        if self.cache is None:
+            latents = self.adapter.encode(data)
+            self.method.fit(latents)
+            transformed = self.method.transform(latents)
+        else:
+            latents = self._cached_encode(data)
+            transformed = self._cached_fit_transform(latents)
         return PipelineResult(
             latents=latents,
             transformed=transformed,
             latent_space=self._latent_space,
         )
+
+    def _cached_encode(self, data: np.ndarray) -> np.ndarray:
+        key = make_cache_key(
+            namespace="analysis_pipeline", operation="adapter.encode", component=self.adapter, data=data
+        )
+        cached = self.cache.get(key) if self.cache is not None else None
+        if cached is not None:
+            return cached
+        latents = self.adapter.encode(data)
+        if self.cache is not None:
+            self.cache.set(key, latents)
+        return latents
+
+    def _cached_fit_transform(self, latents: np.ndarray) -> np.ndarray:
+        key = make_cache_key(
+            namespace="analysis_pipeline",
+            operation="method.fit_transform",
+            component=self.method,
+            data=latents,
+        )
+        cached = self.cache.get(key) if self.cache is not None else None
+        if cached is not None:
+            return cached
+        self.method.fit(latents)
+        transformed = self.method.transform(latents)
+        if self.cache is not None:
+            self.cache.set(key, transformed)
+        return transformed
 
 
 # ── ManipulationPipeline (Pipeline #2) ──────────────────────────────

@@ -1,0 +1,7 @@
+Sprint 23 InMemoryCache demo
+data_shape=(1000, 8)
+output_shape_hint=(1000, 4)
+first_run=65.842 ms
+second_run_cached=2.495 ms
+speedup=26.39x
+cache_stats=hits:2,misses:2,sets:2,size:2

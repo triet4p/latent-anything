@@ -35,6 +35,9 @@ from latent_anything.registry import list_entries as list_entries
 from latent_anything.registry import lookup as lookup_entry
 from latent_anything.registry import register as register_entry
 from latent_anything.runtime import BatchExecutor as BatchExecutor
+from latent_anything.runtime import CacheKey as CacheKey
+from latent_anything.runtime import CacheStats as CacheStats
+from latent_anything.runtime import InMemoryCache as InMemoryCache
 from latent_anything.trajectory import Trajectory as Trajectory
 
 __version__ = "0.1.0"
@@ -42,7 +45,10 @@ __version__ = "0.1.0"
 __all__ = [
     "AnalysisPipeline",
     "BatchExecutor",
+    "CacheKey",
+    "CacheStats",
     "GLOBAL_REGISTRY",
+    "InMemoryCache",
     "LatentSpace",
     "ManipulationPipeline",
     "ManipulationPipelineSpec",

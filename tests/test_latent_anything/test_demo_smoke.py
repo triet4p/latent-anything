@@ -159,3 +159,9 @@ class TestOtherDemoSmokes:
         from latent_anything.runtime import BatchExecutor
 
         assert BatchExecutor is not None
+
+    def test_cache_demo_imports(self) -> None:
+        """Cache demo imports work."""
+        from latent_anything.runtime import InMemoryCache
+
+        assert InMemoryCache is not None
