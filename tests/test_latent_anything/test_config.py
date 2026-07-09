@@ -55,7 +55,7 @@ class TestObjectSpec:
 
     def test_from_dict_with_nested_spec(self) -> None:
         """from_dict coarses nested ObjectSpec-compatible dicts."""
-        data = {
+        data: dict[str, object] = {
             "kind": "method_b",
             "name": "activation_patch",
             "params": {

@@ -97,3 +97,17 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The first `hash_component_config()` implementation hashed every public attribute that did not start with `_` or end with `_`. Test doubles used public `encode_calls`, `fit_calls`, and `transform_calls` counters, so the component config hash changed after each call even though construction config was unchanged.
 **Fix / workaround:** Exclude obvious runtime counter fields ending in `_calls` from the config hash, while still excluding private state and fitted artifacts.
 **Watch out for:** Any future cache-key logic that derives config from `vars(component)`. Separate construction/config fields from mutable runtime bookkeeping; otherwise cache hits turn into misses after the first call.
+
+## [2026-07-09] Equal component configs can hide different model behavior
+
+**Symptom:** Two `AnalysisPipeline` instances with identical adapter hyperparameters but different random weights shared an encode cache entry, so the second pipeline returned latents produced by the first adapter.
+**Root cause:** `CacheKey` hashed only public construction fields and deliberately excluded fitted/random state such as projection matrices and learned weights.
+**Fix / workaround:** Add a stable component-state hash to encode cache keys, including numpy arrays, nested object state, and tensor-backed `state_dict` values while excluding runtime call counters.
+**Watch out for:** Any cache operation whose output depends on learned, initialized, loaded, or mutated component state. Configuration equality does not imply behavioral identity.
+
+## [2026-07-09] Cached fit-transform output can leave a fresh method unfitted
+
+**Symptom:** A fresh `AnalysisPipeline` sharing a populated cache returned a transformed result, but its own PCA remained unfitted and raised on the next `transform()` call.
+**Root cause:** The fit-transform cache stored only the output array, not the state learned during `fit()`, so a cache hit skipped the state transition required by the method contract.
+**Fix / workaround:** Cache adapter encode outputs only and always execute Layer A fit-transform on the current method instance. Do not cache a state-producing operation unless its state can also be restored coherently.
+**Watch out for:** Caching any operation that both returns a value and mutates reusable component state; output parity alone is not enough.

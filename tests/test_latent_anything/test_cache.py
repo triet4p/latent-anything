@@ -4,9 +4,18 @@ from __future__ import annotations
 
 import numpy as np
 
+from latent_anything.adapters import RandomProjection
 from latent_anything.latent_space import LatentSpace
+from latent_anything.methods import PCA
 from latent_anything.pipeline import AnalysisPipeline
-from latent_anything.runtime import CacheKey, InMemoryCache, hash_array, hash_component_config, make_cache_key
+from latent_anything.runtime import (
+    CacheKey,
+    InMemoryCache,
+    hash_array,
+    hash_component_config,
+    hash_component_state,
+    make_cache_key,
+)
 
 
 class CountingAdapter:
@@ -100,8 +109,17 @@ class TestCacheKey:
         assert key.operation == "adapter.encode"
         assert key.component_name.endswith("CountingAdapter")
         assert len(key.config_hash) == 64
+        assert len(key.state_hash) == 64
         assert len(key.data_hash) == 64
         assert key.framework_version == "0.test"
+
+    def test_hash_component_state_distinguishes_random_model_weights(self) -> None:
+        """Equal hyperparameters do not hide different random model state."""
+        adapter_a = RandomProjection(input_dim=4, latent_dim=3)
+        adapter_b = RandomProjection(input_dim=4, latent_dim=3)
+
+        assert hash_component_config(adapter_a) == hash_component_config(adapter_b)
+        assert hash_component_state(adapter_a) != hash_component_state(adapter_b)
 
 
 class TestInMemoryCache:
@@ -155,8 +173,8 @@ class TestInMemoryCache:
 class TestAnalysisPipelineCache:
     """AnalysisPipeline cache integration."""
 
-    def test_pipeline_cache_hit_reuses_encode_and_method_output(self) -> None:
-        """Repeated identical run hits cache for adapter encode and method output."""
+    def test_pipeline_cache_hit_reuses_encode_and_refits_method(self) -> None:
+        """Repeated runs reuse encode output while preserving fitted method state."""
         cache = InMemoryCache()
         adapter = CountingAdapter(scale=2.0)
         method = CountingMethod(offset=1.0)
@@ -169,12 +187,12 @@ class TestAnalysisPipelineCache:
         np.testing.assert_array_equal(second.latents, first.latents)
         np.testing.assert_array_equal(second.transformed, first.transformed)
         assert adapter.encode_calls == 1
-        assert method.fit_calls == 1
-        assert method.transform_calls == 1
-        assert cache.stats.hits == 2
-        assert cache.stats.misses == 2
-        assert cache.stats.sets == 2
-        assert cache.stats.size == 2
+        assert method.fit_calls == 2
+        assert method.transform_calls == 2
+        assert cache.stats.hits == 1
+        assert cache.stats.misses == 1
+        assert cache.stats.sets == 1
+        assert cache.stats.size == 1
 
     def test_pipeline_cache_invalidates_when_data_changes(self) -> None:
         """Different input data misses the cache and recomputes."""
@@ -192,8 +210,8 @@ class TestAnalysisPipelineCache:
         assert adapter.encode_calls == 2
         assert method.fit_calls == 2
         assert method.transform_calls == 2
-        assert cache.stats.misses == 4
-        assert cache.stats.size == 4
+        assert cache.stats.misses == 2
+        assert cache.stats.size == 2
 
     def test_pipeline_cache_invalidates_when_adapter_config_changes(self) -> None:
         """Different adapter config produces a distinct encode cache key."""
@@ -209,10 +227,10 @@ class TestAnalysisPipelineCache:
 
         assert adapter_a.encode_calls == 1
         assert adapter_b.encode_calls == 1
-        assert cache.stats.misses == 4
+        assert cache.stats.misses == 2
 
-    def test_pipeline_cache_invalidates_when_method_config_changes(self) -> None:
-        """Different method config produces a distinct method-output cache key."""
+    def test_pipeline_always_applies_current_method_config(self) -> None:
+        """Encode caching does not bypass a newly constructed method."""
         cache = InMemoryCache()
         data = synthetic_data()
         adapter = CountingAdapter(scale=2.0)
@@ -226,7 +244,7 @@ class TestAnalysisPipelineCache:
         assert method_a.fit_calls == 1
         assert method_b.fit_calls == 1
         assert cache.stats.hits == 1
-        assert cache.stats.misses == 3
+        assert cache.stats.misses == 1
         assert not np.array_equal(first.transformed, second.transformed)
 
     def test_pipeline_cache_returned_arrays_do_not_mutate_cached_values(self) -> None:
@@ -246,3 +264,31 @@ class TestAnalysisPipelineCache:
 
         np.testing.assert_array_equal(second.latents, expected_latents)
         np.testing.assert_array_equal(second.transformed, expected_transformed)
+
+    def test_cache_does_not_cross_contaminate_random_adapter_instances(self) -> None:
+        """Same hyperparameters with different weights produce separate encode entries."""
+        cache = InMemoryCache()
+        data = synthetic_data()
+        adapter_a = RandomProjection(input_dim=4, latent_dim=3)
+        adapter_b = RandomProjection(input_dim=4, latent_dim=3)
+
+        AnalysisPipeline(adapter=adapter_a, method=PCA(n_components=2), cache=cache).run(data)
+        expected = adapter_b.encode(data)
+        actual = AnalysisPipeline(adapter=adapter_b, method=PCA(n_components=2), cache=cache).run(data).latents
+
+        assert not np.array_equal(adapter_a.encode(data), expected)
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_shared_cache_does_not_leave_fresh_method_unfitted(self) -> None:
+        """A fresh pipeline sharing a cache still fits its own stateful method."""
+        cache = InMemoryCache()
+        data = synthetic_data()
+        adapter = CountingAdapter(scale=2.0)
+        first_method = CountingMethod(offset=1.0)
+        second_method = CountingMethod(offset=1.0)
+
+        AnalysisPipeline(adapter=adapter, method=first_method, cache=cache).run(data)
+        result = AnalysisPipeline(adapter=adapter, method=second_method, cache=cache).run(data)
+
+        assert second_method.fit_calls == 1
+        np.testing.assert_array_equal(second_method.transform(result.latents), result.transformed)

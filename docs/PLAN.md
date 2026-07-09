@@ -13,9 +13,10 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [x] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24). **Complete — `BatchExecutor`, `InMemoryCache`, async pipeline/executor wrappers, and runtime profiling hooks are now all present without freezing a runtime Protocol prematurely.**
 
 ## Active Sprints
-* No active sprint file at the moment. Sprint 24 is complete.
+* No active sprint file at the moment. Sprint 25 is complete.
 
 ## Completed Sprints
+* [Sprint 25](sprint-plans/sprint-25.md) - *Status: Completed* — Resolved the Sprint 17–24 review findings: state-aware cache identity, coherent stateful-method execution, type-valid `BMethod` invariant, strict typing across the complete changed scope, consolidated changelog structure, and 596 passing tests.
 * [Sprint 24](sprint-plans/sprint-24.md) - *Status: Completed* — Add async wrappers for `AnalysisPipeline`, `ManipulationPipeline`, and `BatchExecutor`, plus runtime profiling hooks (`RuntimeProfiler`, `RuntimeProfile`, `ProfileEvent`) with stage timings for cache/encode/method/decode. Includes concurrent async demo artifact and 5 new runtime coverage tests. Final gate: 594 tests pass. Runtime stays concrete — no `RuntimeExecutor` Protocol extracted. (Round 21).
 * [Sprint 23](sprint-plans/sprint-23.md) - *Status: Completed* — Add `InMemoryCache` Runtime #2 with stable `CacheKey`, SHA-256 data/config hashing, defensive-copy `get`/`set`, `clear`, and stats. Integrated as optional cache on `AnalysisPipeline` for adapter encode and method fit-transform outputs. Memory-only; no diskcache/pickle/async/cache Protocol. 13 new cache tests + 1 demo smoke, 589 total. (Round 20).
 * [Sprint 22](sprint-plans/sprint-22.md) - *Status: Completed* — Add `BatchExecutor` Runtime #1 for deterministic first-axis numpy batching. Supports adapter `encode`/`decode` and Layer A `transform` paths, preserves output order/shape, includes synthetic direct-vs-batched timing snapshot, and stays eager/sync with no cache or async. 23 new tests, 575 total. (Round 19).

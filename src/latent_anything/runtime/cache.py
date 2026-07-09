@@ -28,6 +28,7 @@ class CacheKey:
     operation: str
     component_name: str
     config_hash: str
+    state_hash: str
     data_hash: str
     framework_version: str | None
 
@@ -89,13 +90,21 @@ def make_cache_key(
     component: object,
     data: np.ndarray,
     framework_version: str | None = None,
+    include_component_state: bool = True,
 ) -> CacheKey:
-    """Build a cache key for a component operation over numpy input data."""
+    """Build a cache key for a component operation over numpy input data.
+
+    ``include_component_state`` should remain enabled for operations such as
+    adapter encoding whose output depends on learned or randomly initialized
+    parameters. It may be disabled only when an operation deliberately depends
+    on construction configuration and input data alone.
+    """
     return CacheKey(
         namespace=namespace,
         operation=operation,
         component_name=_component_name(component),
         config_hash=hash_component_config(component),
+        state_hash=hash_component_state(component) if include_component_state else "",
         data_hash=hash_array(data),
         framework_version=framework_version if framework_version is not None else _framework_version(),
     )
@@ -119,6 +128,18 @@ def hash_component_config(component: object) -> str:
     construction/config values rather than learned arrays.
     """
     payload = {name: _jsonable(value) for name, value in vars(component).items() if _is_config_field(name)}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    return sha256(encoded).hexdigest()
+
+
+def hash_component_state(component: object) -> str:
+    """Return a stable hash of behavior-affecting component state.
+
+    Unlike ``hash_component_config``, this includes private and fitted fields
+    such as learned weights. Runtime counters remain excluded because they do
+    not affect operation outputs.
+    """
+    payload = {name: _jsonable(value) for name, value in vars(component).items() if not name.endswith("_calls")}
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
     return sha256(encoded).hexdigest()
 
@@ -157,4 +178,29 @@ def _jsonable(value: object) -> object:
         return [_jsonable(item) for item in sequence]
     if isinstance(value, str | int | float | bool) or value is None:
         return value
-    return repr(value)
+    state_dict = getattr(value, "state_dict", None)
+    if callable(state_dict):
+        raw_state = state_dict()
+        if not isinstance(raw_state, dict):
+            return repr(value)
+        typed_state = cast(dict[object, object], raw_state)
+        return {
+            "object_type": _component_name(value),
+            "state_dict": _jsonable(typed_state),
+        }
+    detach = getattr(value, "detach", None)
+    if callable(detach):
+        detached = detach()
+        cpu = getattr(detached, "cpu", None)
+        on_cpu = cpu() if callable(cpu) else detached
+        to_numpy = getattr(on_cpu, "numpy", None)
+        if callable(to_numpy):
+            return _jsonable(to_numpy())
+    try:
+        object_state = vars(value)
+    except TypeError:
+        return repr(value)
+    return {
+        "object_type": _component_name(value),
+        "state": _jsonable(object_state),
+    }

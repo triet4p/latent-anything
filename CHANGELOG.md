@@ -9,9 +9,9 @@
 - **Async runtime demo script** — `scripts/end_to_end_async_runtime_demo.py` runs one `AnalysisPipeline` job and one `ManipulationPipeline` job concurrently and writes `artifacts/async_runtime_demo_summary.txt`. Local snapshot: concurrent wall time 98.607 ms with per-stage breakdowns for both jobs. (#sprint-24)
 
 - **`InMemoryCache` — cache backend #1** — `src/latent_anything/runtime/cache.py` with memory-only `get`, `set`, `clear`, and stats. Stores defensive copies of numpy arrays so callers cannot mutate cached values by accident. (#sprint-23)
-- **Stable `CacheKey` structure** — Records namespace, operation, component name, component config hash, input data hash, and framework version when available. Data/config hashes use SHA-256 over numpy array shape/dtype/content and JSON-normalized public config fields; no pickle or disk format decision introduced. (#sprint-23)
-- **AnalysisPipeline cache integration** — `AnalysisPipeline(adapter, method, cache=InMemoryCache())` caches adapter `encode` latents and Layer A method fit-transform outputs for repeated identical runs. (#sprint-23)
-- **Cache demo script** — `scripts/end_to_end_cache_demo.py` demonstrates repeated-call speedup through `AnalysisPipeline` and writes `artifacts/cache_demo_summary.txt`. Local snapshot: first run 65.842 ms vs cached second run 2.495 ms (26.39x). (#sprint-23)
+- **Stable `CacheKey` structure** — Records namespace, operation, component name, component config hash, behavior-affecting component state hash, input data hash, and framework version when available. Data/config/state hashes use SHA-256 without introducing a pickle or disk format. (#sprint-23, #sprint-25)
+- **AnalysisPipeline cache integration** — `AnalysisPipeline(adapter, method, cache=InMemoryCache())` caches adapter `encode` latents for repeated identical runs while always fitting stateful Layer A methods on the current pipeline instance. (#sprint-23, #sprint-25)
+- **Cache demo script** — `scripts/end_to_end_cache_demo.py` demonstrates adapter-encode reuse through `AnalysisPipeline` and writes `artifacts/cache_demo_summary.txt`. (#sprint-23, #sprint-25)
 - **New public exports** — `InMemoryCache`, `CacheKey`, and `CacheStats` exported from top-level `latent_anything` package and `latent_anything.runtime`. (#sprint-23)
 - **`BatchExecutor` — Runtime #1** — `src/latent_anything/runtime/batch_executor.py` with deterministic first-axis numpy chunking, eager/synchronous execution, and output concatenation in original order. Supports generic `map_array()` plus adapter `encode()`, adapter `decode()`, and Layer A method `transform()` helpers. (#sprint-22)
 - **Batch executor tests** — 23 tests covering construction, exact divisibility, remainder batches, batch size 1, batch size larger than data, invalid batch sizes, adapter `encode`/`decode`, PCA `transform`, output order/shape preservation, dtype preservation, and operation-output validation. (#sprint-22)
@@ -40,8 +40,6 @@
 - **Internal plugin extraction contract** — Documented in `_plugin_builtins.py` docstring: registration-only (no re-exports), deterministic order, no circular imports, one-to-one with built-in classes, and entry-point readiness for future external plugins. (#sprint-19)
 - **Parity test suite** — 22 new tests in `test_parity.py` covering registry constructor vs direct import constructor for all 10 built-in classes (4 adapters + 3 method_a + 3 method_b), plus factory identity checks proving `registry.lookup("name").factory` is the class itself. (#sprint-19)
 - **Demo smoke test suite** — 15 new tests in `test_demo_smoke.py` verifying that every `scripts/end_to_end_*.py` demo's core imports and helpers still work after the registry refactoring. (#sprint-19)
-
-### Changed
 
 - **`registry.py`** — Refactored to infrastructure-only: removed all adapter/method class imports and the registration block at module bottom. `Registry` class, kind constants, convenience helpers, and `GLOBAL_REGISTRY` singleton remain unchanged. (#sprint-19)
 - **`__init__.py`** — Added `from latent_anything import _plugin_builtins` to trigger built-in registration on package import, before any registry-dependent modules (like `config.py`). (#sprint-19)
@@ -96,8 +94,6 @@
 - End-to-end demo script `scripts/end_to_end_steering_demo.py` — two scenarios: (A) Euclidean steering with synthetic 8D contrast clusters → PCA to 2D → steering path at multiple strengths, (B) spherical steering with unit-norm 3D contrast data → geometry-aware normalization → points stay on sphere. 1×2 matplotlib visualization with arrows and strength annotations. (#sprint-11)
 - Test suite: 32 SteeringVector tests covering construction with/without LatentSpace, fit direction learning, direction property (before/after fit), `__call__` edge cases (zero/negative/wrong-dim/strength scaling), input non-mutation, apply_trajectory shape/semantics, spherical normalization at multiple strengths, and no-torch-leakage verification. (#sprint-11)
 
-### Changed
-
 - **`ModelAdapter` 3-mode ADR gained mode (ii) evidence** — modes (i) and (ii) confirmed by running code (VAE, RandomProjection, HiddenStateAdapter). The Protocol split was frozen at instance #3, while full ADR validation remained pending until Sprint 16's deterministic renderer mode (iii). (#sprint-14)
 - **`_ModelAdapterBase` removed** — superseded by frozen `ModelAdapter`/`DecodableAdapter` Protocols. The UNSTABLE internal sketch (`_base.py`) is replaced by the public Protocol surface. (#sprint-14)
 - **`ActivationPatch`** — adapter parameter now has a runtime `isinstance` guard requiring `FlatBatchDecodableAdapter`. `HiddenStateAdapter` (no `decode`) and structured decoders like `GaussianRendererAdapter` are cleanly rejected at construction with `TypeError`. (#sprint-14, #sprint-16)
@@ -139,8 +135,6 @@
 - End-to-end demo script `scripts/end_to_end_umap_demo.py` — synthetic latent → Trajectory → UMAP fit → 2D projection → side-by-side matplotlib visualization with PCA comparison. (#sprint-5)
 - Test suite: 12 UMAP tests covering construction, fit/transform shape invariants, fit_transform roundtrip, `random_state` reproducibility, and input validation errors. (#sprint-5)
 
-### Changed
-
 - `_MethodBase` docstring updated from "UNSTABLE — will be replaced" to "Internal convenience base backed by the frozen `Method` Protocol" following Rule of Three (Method #3 freeze trigger). (#sprint-6)
 - PCA and UMAP docstrings updated to note conformance to the frozen `Method` Protocol. (#sprint-6)
 - `LatentSpace` concrete class for Euclidean flat vector spaces with `dim`, `geometry`, `source_model`, metadata, and `validate_point()`. (#sprint-4)
@@ -155,3 +149,11 @@
 - README updated with package installation via `uv`, Quick Start example, and current project structure.
 - Python version range adjusted: `requires-python` set to `>=3.12,<3.15`, local development targets Python 3.13.
 - Deploy workflow restricted: `deploy-latent-anything-theory.yml` now triggers only on `theory-v*` tag pushes or manual `workflow_dispatch`.
+
+### Fixed
+
+- Prevented `AnalysisPipeline` cache entries from crossing between adapters that share hyperparameters but have different learned or randomly initialized state.
+- Ensured cached analysis runs always fit the current stateful Layer A method instead of returning a transformed array while leaving the method unfitted.
+- Narrowed the frozen `BMethod.apply_trajectory` invariant to the shared trajectory argument while preserving method-specific optional arguments on concrete implementations.
+- Restored strict Pyright coverage for every Python file changed in Sprints 17–25.
+- Expanded the full test suite to 596 passing tests with cache identity and state-consistency regressions.

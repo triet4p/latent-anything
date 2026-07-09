@@ -36,8 +36,9 @@ class BMethod(Protocol):
     1. **Fit** (optional): ``fit(...)`` learns the transformation
        parameters. Stateless methods like ``Lerp`` skip this phase
        and are always ``is_fitted == True``.
-    2. **Apply**: ``apply_trajectory(trajectory, **kwargs)`` applies
-       the learned transformation to every point in a trajectory.
+    2. **Apply**: ``apply_trajectory(trajectory)`` applies the learned
+       transformation to every point in a trajectory. Concrete methods may
+       expose additional method-specific optional arguments.
 
     .. note::
 
@@ -68,17 +69,13 @@ class BMethod(Protocol):
         """Return ``True`` if the method is ready to apply."""
         ...
 
-    def apply_trajectory(self, trajectory: Trajectory, **kwargs: object) -> Trajectory | np.ndarray:
+    def apply_trajectory(self, trajectory: Trajectory) -> Trajectory | np.ndarray:
         """Apply the B-Method operation to every point in a trajectory.
 
         Parameters
         ----------
         trajectory : Trajectory
             Input trajectory.
-        **kwargs : object
-            Method-specific keyword arguments (e.g. ``other`` + ``t``
-            for Lerp, ``strength`` for SteeringVector).
-
         Returns
         -------
         Trajectory | np.ndarray

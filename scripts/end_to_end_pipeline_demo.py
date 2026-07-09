@@ -100,7 +100,11 @@ print(f"  Spec adapter: {spec.adapter.kind}/{spec.adapter.name}")
 print(f"  Spec method:  {spec.method.kind}/{spec.method.name}")
 
 # Train VAE (separately for the config-built pipeline too)
-pipeline_config.adapter.fit(points)
+config_adapter = pipeline_config.adapter
+if not isinstance(config_adapter, VAE):
+    msg = f"Expected config-built VAE, got {type(config_adapter).__name__}"
+    raise TypeError(msg)
+config_adapter.fit(points)
 result_config = pipeline_config.run(points)
 
 print(f"\n  Result type: {type(result_config).__name__}")
@@ -132,7 +136,7 @@ scatter0 = axes[0].scatter(
 axes[0].set_title("Pipeline #1 (direct): VAE encode → PCA 2D")
 axes[0].set_xlabel("PC1")
 axes[0].set_ylabel("PC2")
-fig.colorbar(scatter0, ax=axes[0], label="Cluster")
+fig.colorbar(scatter0, ax=axes[0], label="Cluster")  # pyright: ignore[reportUnknownMemberType]
 
 # Config-construction result
 scatter1 = axes[1].scatter(
@@ -147,13 +151,15 @@ scatter1 = axes[1].scatter(
 axes[1].set_title("Pipeline #1 (config): build_from_config → run")
 axes[1].set_xlabel("PC1")
 axes[1].set_ylabel("PC2")
-fig.colorbar(scatter1, ax=axes[1], label="Cluster")
+fig.colorbar(scatter1, ax=axes[1], label="Cluster")  # pyright: ignore[reportUnknownMemberType]
 
-fig.suptitle("Sprint 20 — AnalysisPipeline #1 Demonstration", fontsize=14)
+fig.suptitle(  # pyright: ignore[reportUnknownMemberType]
+    "Sprint 20 — AnalysisPipeline #1 Demonstration", fontsize=14
+)
 fig.tight_layout()
 
 # Save to file
 output_path = "pipeline_demo.png"
-fig.savefig(output_path, dpi=150)
+fig.savefig(output_path, dpi=150)  # pyright: ignore[reportUnknownMemberType]
 print(f"\nVisualization saved to {output_path}")
-plt.show()
+plt.show()  # pyright: ignore[reportUnknownMemberType]

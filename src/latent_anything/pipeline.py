@@ -176,7 +176,7 @@ class AnalysisPipeline(_PipelineBase):
             transformed = self._fit_transform(latents, profiler=profiler)
         else:
             latents = self._cached_encode(data, profiler=profiler)
-            transformed = self._cached_fit_transform(latents, profiler=profiler)
+            transformed = self._fit_transform(latents, profiler=profiler)
         return PipelineResult(
             latents=latents,
             transformed=transformed,
@@ -190,7 +190,7 @@ class AnalysisPipeline(_PipelineBase):
             transformed = await self._fit_transform_async(latents, profiler=profiler)
         else:
             latents = await self._cached_encode_async(data, profiler=profiler)
-            transformed = await self._cached_fit_transform_async(latents, profiler=profiler)
+            transformed = await self._fit_transform_async(latents, profiler=profiler)
         return PipelineResult(
             latents=latents,
             transformed=transformed,
@@ -252,36 +252,6 @@ class AnalysisPipeline(_PipelineBase):
         latents = await self._encode_async(data, profiler=profiler)
         self._cache_set(key, latents, profiler=profiler)
         return latents
-
-    def _cached_fit_transform(self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
-        key = make_cache_key(
-            namespace="analysis_pipeline",
-            operation="method.fit_transform",
-            component=self.method,
-            data=latents,
-        )
-        cached = self._cache_get(key, profiler=profiler)
-        if cached is not None:
-            return cached
-        transformed = self._fit_transform(latents, profiler=profiler)
-        self._cache_set(key, transformed, profiler=profiler)
-        return transformed
-
-    async def _cached_fit_transform_async(
-        self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None
-    ) -> np.ndarray:
-        key = make_cache_key(
-            namespace="analysis_pipeline",
-            operation="method.fit_transform",
-            component=self.method,
-            data=latents,
-        )
-        cached = self._cache_get(key, profiler=profiler)
-        if cached is not None:
-            return cached
-        transformed = await self._fit_transform_async(latents, profiler=profiler)
-        self._cache_set(key, transformed, profiler=profiler)
-        return transformed
 
     def _cache_get(self, key: CacheKey, *, profiler: RuntimeProfiler | None = None) -> np.ndarray | None:
         if self.cache is None:
@@ -558,9 +528,13 @@ class ManipulationPipeline(_PipelineBase):
         """
         # Latent-only BMethods (Lerp, SteeringVector) return Trajectory.
         # ActivationPatch returns np.ndarray — use run_data in that case.
+        apply_trajectory = cast(
+            Callable[..., np.ndarray | Trajectory],
+            self._method.apply_trajectory,
+        )
         return self._profile_sync(
             "method",
-            lambda: self._method.apply_trajectory(trajectory, **kwargs),  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            lambda: apply_trajectory(trajectory, **kwargs),
             profiler=profiler,
             component=type(self._method).__name__,
         )
@@ -573,9 +547,13 @@ class ManipulationPipeline(_PipelineBase):
         **kwargs: object,
     ) -> np.ndarray | Trajectory:
         """Asynchronously apply the BMethod to every point in a trajectory."""
+        apply_trajectory = cast(
+            Callable[..., np.ndarray | Trajectory],
+            self._method.apply_trajectory,
+        )
         return await self._profile_async(
             "method",
-            lambda: self._method.apply_trajectory(trajectory, **kwargs),  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            lambda: apply_trajectory(trajectory, **kwargs),
             profiler=profiler,
             component=type(self._method).__name__,
         )

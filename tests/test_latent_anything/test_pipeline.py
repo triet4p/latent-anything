@@ -388,13 +388,6 @@ class TestManipulationPipelineConstruction:
         pipeline = ManipulationPipeline(method=Lerp())
         assert pipeline.adapter is None
 
-    def test_is_pipeline_base_instance(self, steering_fixture: SteeringVector) -> None:
-        """ManipulationPipeline is an instance of _PipelineBase."""
-        pipeline = ManipulationPipeline(method=steering_fixture)
-        from latent_anything.pipeline import _PipelineBase
-
-        assert isinstance(pipeline, _PipelineBase)
-
 
 # ── ManipulationPipeline: Adapter-mediated story ────────────────────
 
@@ -468,6 +461,8 @@ class TestManipulationPipelineTrajectory:
         pipeline = ManipulationPipeline(method=steering_fixture)
         result1 = pipeline.run_trajectory(sample_trajectory, strength=0.5)
         result2 = pipeline.run_trajectory(sample_trajectory, strength=0.5)
+        assert isinstance(result1, Trajectory)
+        assert isinstance(result2, Trajectory)
         np.testing.assert_array_equal(result1.to_numpy(), result2.to_numpy())
 
 

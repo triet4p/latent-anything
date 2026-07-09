@@ -13,6 +13,7 @@ from latent_anything.runtime.cache import CacheStats as CacheStats
 from latent_anything.runtime.cache import InMemoryCache as InMemoryCache
 from latent_anything.runtime.cache import hash_array as hash_array
 from latent_anything.runtime.cache import hash_component_config as hash_component_config
+from latent_anything.runtime.cache import hash_component_state as hash_component_state
 from latent_anything.runtime.cache import make_cache_key as make_cache_key
 from latent_anything.runtime.profiling import ProfileEvent as ProfileEvent
 from latent_anything.runtime.profiling import RuntimeProfile as RuntimeProfile
@@ -28,5 +29,6 @@ __all__ = [
     "RuntimeProfiler",
     "hash_array",
     "hash_component_config",
+    "hash_component_state",
     "make_cache_key",
 ]

@@ -29,7 +29,9 @@ that reproduce and extend the Sprint 13 showcase path:
 from __future__ import annotations
 
 import sys
+from math import sqrt
 from pathlib import Path
+from typing import cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -107,16 +109,20 @@ patched_output = pipeline_patch.run_data(held_source)
 
 # Compare original vs patched (before/after metric)
 original_recon = vae.decode(vae.encode(held_source))
-before_rmse = np.sqrt(np.mean((original_recon - held_source) ** 2))
-after_rmse = np.sqrt(np.mean((patched_output - held_source) ** 2))
+reconstruction_error: np.ndarray = original_recon - held_source
+patch_error: np.ndarray = patched_output - held_source
+before_rmse = sqrt(cast(float, np.mean(reconstruction_error**2)))
+after_rmse = sqrt(cast(float, np.mean(patch_error**2)))
 print(f"  Before (recon) RMSE: {before_rmse:.4f}")
 print(f"  After  (patched) RMSE: {after_rmse:.4f}")
 print(f"  Change: {(after_rmse - before_rmse) / before_rmse * 100:+.1f}%")
 
 # Also show distance to target cluster
 target_centroid = train_data[labels[:200] == 1].mean(axis=0)
-orig_dist = np.mean(np.linalg.norm(original_recon - target_centroid, axis=1))
-patch_dist = np.mean(np.linalg.norm(patched_output - target_centroid, axis=1))
+original_distances: np.ndarray = np.linalg.norm(original_recon - target_centroid, axis=1)
+patch_distances: np.ndarray = np.linalg.norm(patched_output - target_centroid, axis=1)
+orig_dist = cast(float, np.mean(original_distances))
+patch_dist = cast(float, np.mean(patch_distances))
 print(f"  Mean dist to target centroid (original): {orig_dist:.4f}")
 print(f"  Mean dist to target centroid (patched):  {patch_dist:.4f}")
 
@@ -150,11 +156,17 @@ print(f"  Input trajectory: n_points={len(traj_in)}, dim={traj_in.dim}")
 
 # Steer the trajectory
 traj_out = pipeline_steer.run_trajectory(traj_in, strength=1.5)
+if not isinstance(traj_out, Trajectory):
+    msg = f"SteeringVector must return Trajectory, got {type(traj_out).__name__}"
+    raise TypeError(msg)
 print(f"  Output trajectory: n_points={len(traj_out)}, dim={traj_out.dim}")
 
 # Steer at multiple strengths for comparison
 traj_mild = pipeline_steer.run_trajectory(traj_in, strength=0.5)
 traj_strong = pipeline_steer.run_trajectory(traj_in, strength=2.0)
+if not isinstance(traj_mild, Trajectory) or not isinstance(traj_strong, Trajectory):
+    msg = "SteeringVector trajectory runs must return Trajectory"
+    raise TypeError(msg)
 
 # Measure trajectory spread (standard deviation across points)
 spread_in = float(np.std(traj_in.to_numpy()))
@@ -214,8 +226,12 @@ ax_d.set_ylabel("Standard deviation")
 for i, v in enumerate(spreads):
     ax_d.text(i, v + 0.001, f"{v:.4f}", ha="center", fontsize=9)
 
-plt.suptitle("Pipeline #2 (ManipulationPipeline) — Sprint 21 Demo", fontsize=14, y=0.98)
+plt.suptitle(  # pyright: ignore[reportUnknownMemberType]
+    "Pipeline #2 (ManipulationPipeline) — Sprint 21 Demo", fontsize=14, y=0.98
+)
 plt.tight_layout()
-plt.savefig("artifacts/manipulation_demo_plot.png", dpi=150, bbox_inches="tight")
+plt.savefig(  # pyright: ignore[reportUnknownMemberType]
+    "artifacts/manipulation_demo_plot.png", dpi=150, bbox_inches="tight"
+)
 print("\nPlot saved to artifacts/manipulation_demo_plot.png")
-plt.show()
+plt.show()  # pyright: ignore[reportUnknownMemberType]
