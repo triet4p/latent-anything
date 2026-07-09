@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Async runtime wrappers** — Added `AnalysisPipeline.run_async()`, `ManipulationPipeline.run_data_async()` / `run_trajectory_async()`, and `BatchExecutor.encode_async()` / `decode_async()` / `transform_async()` as thread-backed `asyncio` wrappers over the existing concrete runtime paths. Sync APIs remain available for current scripts and notebooks. (#sprint-24)
+- **Runtime profiling hooks** — Added `RuntimeProfiler`, `RuntimeProfile`, and `ProfileEvent` for stage-level timing across `cache`, `encode`, `method`, and `decode` operations. `AnalysisPipeline`, `ManipulationPipeline`, and `BatchExecutor` accept optional profiling hooks without changing their return types. (#sprint-24)
+- **Async runtime demo script** — `scripts/end_to_end_async_runtime_demo.py` runs one `AnalysisPipeline` job and one `ManipulationPipeline` job concurrently and writes `artifacts/async_runtime_demo_summary.txt`. Local snapshot: concurrent wall time 98.607 ms with per-stage breakdowns for both jobs. (#sprint-24)
+
 - **`InMemoryCache` — cache backend #1** — `src/latent_anything/runtime/cache.py` with memory-only `get`, `set`, `clear`, and stats. Stores defensive copies of numpy arrays so callers cannot mutate cached values by accident. (#sprint-23)
 - **Stable `CacheKey` structure** — Records namespace, operation, component name, component config hash, input data hash, and framework version when available. Data/config hashes use SHA-256 over numpy array shape/dtype/content and JSON-normalized public config fields; no pickle or disk format decision introduced. (#sprint-23)
 - **AnalysisPipeline cache integration** — `AnalysisPipeline(adapter, method, cache=InMemoryCache())` caches adapter `encode` latents and Layer A method fit-transform outputs for repeated identical runs. (#sprint-23)
@@ -21,6 +25,10 @@
 - **New public exports** — `ManipulationPipeline`, `ManipulationPipelineSpec`, `build_manipulation_pipeline_from_config` exported from top-level `latent_anything` package. (#sprint-21)
 
 ### Changed
+
+- **`ActivationPatch` and `ManipulationPipeline` staged path** — `ActivationPatch` now exposes `apply_latent()`, allowing `ManipulationPipeline.run_data()` and `run_data_async()` to profile `encode → method → decode` as separate runtime stages instead of one opaque method call. (#sprint-24)
+- **New public runtime exports** — `RuntimeProfiler`, `RuntimeProfile`, and `ProfileEvent` are exported from both `latent_anything.runtime` and the top-level `latent_anything` package. (#sprint-24)
+- Test suite: 594 total tests (589 existing + 4 runtime async/profiling + 1 demo smoke). (#sprint-24)
 
 - Test suite: 589 total tests (575 existing + 13 cache + 1 demo smoke). (#sprint-23)
 - Test suite: 575 total tests (551 existing + 23 batch executor + 1 demo smoke). (#sprint-22)

@@ -1,0 +1,15 @@
+Sprint 24 async runtime demo
+analysis_latents_shape=(1000, 4)
+analysis_transformed_shape=(1000, 4)
+manipulation_output_shape=(800, 4)
+concurrent_wall_time=98.607 ms
+AnalysisPipeline breakdown
+  cache: 0.039 ms
+  encode: 32.335 ms
+  method: 61.045 ms
+  total_recorded: 93.419 ms
+ManipulationPipeline breakdown
+  encode: 32.743 ms
+  method: 30.799 ms
+  decode: 30.489 ms
+  total_recorded: 94.031 ms

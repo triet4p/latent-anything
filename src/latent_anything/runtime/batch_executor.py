@@ -11,13 +11,16 @@ introduced in this sprint.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable, Iterator
+from time import perf_counter
 from typing import cast
 
 import numpy as np
 
 from latent_anything.adapters.protocols import DecodableAdapter, ModelAdapter
 from latent_anything.methods.protocols import Method
+from latent_anything.runtime.profiling import RuntimeProfiler
 
 
 class BatchExecutor:
@@ -87,17 +90,102 @@ class BatchExecutor:
         outputs = [self._call_operation(operation, chunk) for chunk in self.iter_chunks(data)]
         return self._concatenate_outputs(outputs, expected_rows=data.shape[0])
 
-    def encode(self, adapter: ModelAdapter, data: np.ndarray) -> np.ndarray:
+    async def map_array_async(self, operation: Callable[[np.ndarray], object], data: np.ndarray) -> np.ndarray:
+        """Asynchronously apply ``operation`` to each chunk and concatenate outputs."""
+        return await asyncio.to_thread(self.map_array, operation, data)
+
+    def encode(
+        self,
+        adapter: ModelAdapter,
+        data: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
         """Batch an adapter ``encode`` call."""
-        return self.map_array(adapter.encode, data)
+        if profiler is None:
+            return self.map_array(adapter.encode, data)
+        return profiler.measure(
+            "encode",
+            lambda: self.map_array(adapter.encode, data),
+            component=type(adapter).__name__,
+        )
 
-    def decode(self, adapter: DecodableAdapter, latent: np.ndarray) -> np.ndarray:
+    async def encode_async(
+        self,
+        adapter: ModelAdapter,
+        data: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
+        """Asynchronously batch an adapter ``encode`` call."""
+        if profiler is None:
+            return await self.map_array_async(adapter.encode, data)
+        start = perf_counter()
+        result = await self.map_array_async(adapter.encode, data)
+        profiler.record("encode", perf_counter() - start, component=type(adapter).__name__)
+        return result
+
+    def decode(
+        self,
+        adapter: DecodableAdapter,
+        latent: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
         """Batch an adapter ``decode`` call."""
-        return self.map_array(adapter.decode, latent)
+        if profiler is None:
+            return self.map_array(adapter.decode, latent)
+        return profiler.measure(
+            "decode",
+            lambda: self.map_array(adapter.decode, latent),
+            component=type(adapter).__name__,
+        )
 
-    def transform(self, method: Method, data: np.ndarray) -> np.ndarray:
+    async def decode_async(
+        self,
+        adapter: DecodableAdapter,
+        latent: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
+        """Asynchronously batch an adapter ``decode`` call."""
+        if profiler is None:
+            return await self.map_array_async(adapter.decode, latent)
+        start = perf_counter()
+        result = await self.map_array_async(adapter.decode, latent)
+        profiler.record("decode", perf_counter() - start, component=type(adapter).__name__)
+        return result
+
+    def transform(
+        self,
+        method: Method,
+        data: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
         """Batch a fitted Layer A method ``transform`` call."""
-        return self.map_array(method.transform, data)
+        if profiler is None:
+            return self.map_array(method.transform, data)
+        return profiler.measure(
+            "method",
+            lambda: self.map_array(method.transform, data),
+            component=type(method).__name__,
+        )
+
+    async def transform_async(
+        self,
+        method: Method,
+        data: np.ndarray,
+        *,
+        profiler: RuntimeProfiler | None = None,
+    ) -> np.ndarray:
+        """Asynchronously batch a fitted Layer A method ``transform`` call."""
+        if profiler is None:
+            return await self.map_array_async(method.transform, data)
+        start = perf_counter()
+        result = await self.map_array_async(method.transform, data)
+        profiler.record("method", perf_counter() - start, component=type(method).__name__)
+        return result
 
     @staticmethod
     def _validate_batchable(data: np.ndarray) -> None:

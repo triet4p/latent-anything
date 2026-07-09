@@ -38,6 +38,9 @@ from latent_anything.runtime import BatchExecutor as BatchExecutor
 from latent_anything.runtime import CacheKey as CacheKey
 from latent_anything.runtime import CacheStats as CacheStats
 from latent_anything.runtime import InMemoryCache as InMemoryCache
+from latent_anything.runtime import ProfileEvent as ProfileEvent
+from latent_anything.runtime import RuntimeProfile as RuntimeProfile
+from latent_anything.runtime import RuntimeProfiler as RuntimeProfiler
 from latent_anything.trajectory import Trajectory as Trajectory
 
 __version__ = "0.1.0"
@@ -56,8 +59,11 @@ __all__ = [
     "ObjectSpec",
     "PipelineResult",
     "PipelineSpec",
+    "ProfileEvent",
     "Registry",
     "RegistryEntry",
+    "RuntimeProfile",
+    "RuntimeProfiler",
     "Trajectory",
     "build_from_config",
     "build_from_dict",

@@ -159,13 +159,35 @@ class ActivationPatch:
         RuntimeError
             If ``fit()`` has not been called yet.
         """
+        latent: np.ndarray = self._adapter.encode(input_data)
+        patched = self.apply_latent(latent)
+        return self._adapter.decode(patched)
+
+    def apply_latent(self, latent: np.ndarray) -> np.ndarray:
+        """Apply the learned latent delta without decoding.
+
+        Parameters
+        ----------
+        latent : np.ndarray
+            Latent batch of shape ``(n_samples, dim)``.
+
+        Returns
+        -------
+        np.ndarray
+            Patched latent batch with the learned delta broadcast across
+            samples.
+
+        Raises
+        ------
+        RuntimeError
+            If ``fit()`` has not been called yet.
+        """
         if self._delta is None:
             msg = "ActivationPatch not fitted. Call fit() first."
             raise RuntimeError(msg)
 
-        latent: np.ndarray = self._adapter.encode(input_data)
         patched: np.ndarray = latent + self._delta  # broadcast delta across samples
-        return self._adapter.decode(patched)
+        return patched
 
     def apply_trajectory(self, trajectory: Trajectory, **kwargs: float) -> np.ndarray:
         """Patch each latent point in trajectory, decode, return data-space outputs.
@@ -192,10 +214,6 @@ class ActivationPatch:
             If ``fit()`` has not been called yet.
         """
         _ = kwargs
-        if self._delta is None:
-            msg = "ActivationPatch not fitted. Call fit() first."
-            raise RuntimeError(msg)
-
         data = trajectory.to_numpy()  # (n_points, dim)
-        patched = data + self._delta  # broadcast delta
+        patched = self.apply_latent(data)
         return self._adapter.decode(patched)

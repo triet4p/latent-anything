@@ -25,7 +25,11 @@ Design constraints:
 
 from __future__ import annotations
 
+import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
+from time import perf_counter
+from typing import TypeVar, cast
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -39,8 +43,11 @@ from latent_anything.latent_space import LatentSpace
 from latent_anything.methods.b_protocols import BMethod
 from latent_anything.methods.protocols import Method
 from latent_anything.registry import Registry
-from latent_anything.runtime.cache import InMemoryCache, make_cache_key
+from latent_anything.runtime.cache import CacheKey, InMemoryCache, make_cache_key
+from latent_anything.runtime.profiling import RuntimeProfiler, RuntimeStage
 from latent_anything.trajectory import Trajectory
+
+_T = TypeVar("_T")
 
 # ── Shared base (sketch) ────────────────────────────────────────────
 
@@ -146,7 +153,7 @@ class AnalysisPipeline(_PipelineBase):
 
     # ── Run ─────────────────────────────────────────────────────
 
-    def run(self, data: np.ndarray) -> PipelineResult:
+    def run(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> PipelineResult:
         """Execute the pipeline: encode → fit → transform.
 
         Encodes *data* through the adapter, then fits the Layer A
@@ -165,45 +172,141 @@ class AnalysisPipeline(_PipelineBase):
             method-transformed data, and the latent space descriptor.
         """
         if self.cache is None:
-            latents = self.adapter.encode(data)
-            self.method.fit(latents)
-            transformed = self.method.transform(latents)
+            latents = self._encode(data, profiler=profiler)
+            transformed = self._fit_transform(latents, profiler=profiler)
         else:
-            latents = self._cached_encode(data)
-            transformed = self._cached_fit_transform(latents)
+            latents = self._cached_encode(data, profiler=profiler)
+            transformed = self._cached_fit_transform(latents, profiler=profiler)
         return PipelineResult(
             latents=latents,
             transformed=transformed,
             latent_space=self._latent_space,
         )
 
-    def _cached_encode(self, data: np.ndarray) -> np.ndarray:
+    async def run_async(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> PipelineResult:
+        """Asynchronously execute the pipeline via thread-backed wrappers."""
+        if self.cache is None:
+            latents = await self._encode_async(data, profiler=profiler)
+            transformed = await self._fit_transform_async(latents, profiler=profiler)
+        else:
+            latents = await self._cached_encode_async(data, profiler=profiler)
+            transformed = await self._cached_fit_transform_async(latents, profiler=profiler)
+        return PipelineResult(
+            latents=latents,
+            transformed=transformed,
+            latent_space=self._latent_space,
+        )
+
+    def _encode(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        if profiler is None:
+            return self.adapter.encode(data)
+        return profiler.measure("encode", lambda: self.adapter.encode(data), component=type(self.adapter).__name__)
+
+    async def _encode_async(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        if profiler is None:
+            return await asyncio.to_thread(self.adapter.encode, data)
+        start = perf_counter()
+        latents = await asyncio.to_thread(self.adapter.encode, data)
+        profiler.record("encode", perf_counter() - start, component=type(self.adapter).__name__)
+        return latents
+
+    def _fit_transform(self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        if profiler is None:
+            return self._fit_transform_impl(latents)
+        return profiler.measure(
+            "method",
+            lambda: self._fit_transform_impl(latents),
+            component=type(self.method).__name__,
+        )
+
+    async def _fit_transform_async(self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        if profiler is None:
+            return await asyncio.to_thread(self._fit_transform_impl, latents)
+        start = perf_counter()
+        transformed = await asyncio.to_thread(self._fit_transform_impl, latents)
+        profiler.record("method", perf_counter() - start, component=type(self.method).__name__)
+        return transformed
+
+    def _fit_transform_impl(self, latents: np.ndarray) -> np.ndarray:
+        self.method.fit(latents)
+        return self.method.transform(latents)
+
+    def _cached_encode(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
         key = make_cache_key(
             namespace="analysis_pipeline", operation="adapter.encode", component=self.adapter, data=data
         )
-        cached = self.cache.get(key) if self.cache is not None else None
+        cached = self._cache_get(key, profiler=profiler)
         if cached is not None:
             return cached
-        latents = self.adapter.encode(data)
-        if self.cache is not None:
-            self.cache.set(key, latents)
+        latents = self._encode(data, profiler=profiler)
+        self._cache_set(key, latents, profiler=profiler)
         return latents
 
-    def _cached_fit_transform(self, latents: np.ndarray) -> np.ndarray:
+    async def _cached_encode_async(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        key = make_cache_key(
+            namespace="analysis_pipeline", operation="adapter.encode", component=self.adapter, data=data
+        )
+        cached = self._cache_get(key, profiler=profiler)
+        if cached is not None:
+            return cached
+        latents = await self._encode_async(data, profiler=profiler)
+        self._cache_set(key, latents, profiler=profiler)
+        return latents
+
+    def _cached_fit_transform(self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
         key = make_cache_key(
             namespace="analysis_pipeline",
             operation="method.fit_transform",
             component=self.method,
             data=latents,
         )
-        cached = self.cache.get(key) if self.cache is not None else None
+        cached = self._cache_get(key, profiler=profiler)
         if cached is not None:
             return cached
-        self.method.fit(latents)
-        transformed = self.method.transform(latents)
-        if self.cache is not None:
-            self.cache.set(key, transformed)
+        transformed = self._fit_transform(latents, profiler=profiler)
+        self._cache_set(key, transformed, profiler=profiler)
         return transformed
+
+    async def _cached_fit_transform_async(
+        self, latents: np.ndarray, *, profiler: RuntimeProfiler | None = None
+    ) -> np.ndarray:
+        key = make_cache_key(
+            namespace="analysis_pipeline",
+            operation="method.fit_transform",
+            component=self.method,
+            data=latents,
+        )
+        cached = self._cache_get(key, profiler=profiler)
+        if cached is not None:
+            return cached
+        transformed = await self._fit_transform_async(latents, profiler=profiler)
+        self._cache_set(key, transformed, profiler=profiler)
+        return transformed
+
+    def _cache_get(self, key: CacheKey, *, profiler: RuntimeProfiler | None = None) -> np.ndarray | None:
+        if self.cache is None:
+            return None
+        if profiler is None:
+            return self.cache.get(key)
+        start = perf_counter()
+        cached = self.cache.get(key)
+        profiler.record(
+            "cache",
+            perf_counter() - start,
+            operation="get",
+            cache_hit=cached is not None,
+        )
+        return cached
+
+    def _cache_set(self, key: CacheKey, value: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> None:
+        if self.cache is None:
+            return
+        if profiler is None:
+            self.cache.set(key, value)
+            return
+        start = perf_counter()
+        self.cache.set(key, value)
+        profiler.record("cache", perf_counter() - start, operation="set", cache_hit=False)
 
 
 # ── ManipulationPipeline (Pipeline #2) ──────────────────────────────
@@ -324,7 +427,7 @@ class ManipulationPipeline(_PipelineBase):
 
     # ── Adapter-mediated story: data-space output ───────────────
 
-    def run_data(self, data: np.ndarray) -> np.ndarray:
+    def run_data(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
         """Encode → BMethod → decode → data-space output.
 
         For adapter-mediated BMethods (e.g. ``ActivationPatch``):
@@ -355,17 +458,75 @@ class ManipulationPipeline(_PipelineBase):
                 "Provide a FlatBatchDecodableAdapter at construction."
             )
             raise RuntimeError(msg)
-        # BMethod.__call__ handles encode → manipulate → decode internally
-        # (e.g. ActivationPatch.__call__(input_data)).
-        # __call__ is deliberately NOT part of the BMethod Protocol because
-        # signatures differ across instances (see b_protocols.py docstring).
-        return self._method(data)  # pyright: ignore[reportCallIssue, reportUnknownArgumentType, reportUnknownMemberType, reportUnknownVariableType]
+        adapter = self._adapter
+        if hasattr(self._method, "apply_latent"):
+            latents = self._profile_sync(
+                "encode",
+                lambda: adapter.encode(data),
+                profiler=profiler,
+                component=type(adapter).__name__,
+            )
+            patched = self._profile_sync(
+                "method",
+                lambda: self._apply_method_latent(latents),
+                profiler=profiler,
+                component=type(self._method).__name__,
+            )
+            return self._profile_sync(
+                "decode",
+                lambda: adapter.decode(patched),
+                profiler=profiler,
+                component=type(adapter).__name__,
+            )
+        return self._profile_sync(
+            "method",
+            lambda: self._call_data_method(data),
+            profiler=profiler,
+            component=type(self._method).__name__,
+        )
+
+    async def run_data_async(self, data: np.ndarray, *, profiler: RuntimeProfiler | None = None) -> np.ndarray:
+        """Asynchronously execute the adapter-mediated data-space story."""
+        if self._adapter is None:
+            msg = (
+                "No adapter provided — cannot run data-space pipeline. "
+                "Provide a FlatBatchDecodableAdapter at construction."
+            )
+            raise RuntimeError(msg)
+        adapter = self._adapter
+        if hasattr(self._method, "apply_latent"):
+            latents = await self._profile_async(
+                "encode",
+                lambda: adapter.encode(data),
+                profiler=profiler,
+                component=type(adapter).__name__,
+            )
+            patched = await self._profile_async(
+                "method",
+                lambda: self._apply_method_latent(latents),
+                profiler=profiler,
+                component=type(self._method).__name__,
+            )
+            return await self._profile_async(
+                "decode",
+                lambda: adapter.decode(patched),
+                profiler=profiler,
+                component=type(adapter).__name__,
+            )
+        return await self._profile_async(
+            "method",
+            lambda: self._call_data_method(data),
+            profiler=profiler,
+            component=type(self._method).__name__,
+        )
 
     # ── Latent-only story: trajectory output ────────────────────
 
     def run_trajectory(
         self,
         trajectory: Trajectory,
+        *,
+        profiler: RuntimeProfiler | None = None,
         **kwargs: object,
     ) -> np.ndarray | Trajectory:
         """Apply the BMethod to every point in a trajectory.
@@ -397,7 +558,27 @@ class ManipulationPipeline(_PipelineBase):
         """
         # Latent-only BMethods (Lerp, SteeringVector) return Trajectory.
         # ActivationPatch returns np.ndarray — use run_data in that case.
-        return self._method.apply_trajectory(trajectory, **kwargs)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return self._profile_sync(
+            "method",
+            lambda: self._method.apply_trajectory(trajectory, **kwargs),  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            profiler=profiler,
+            component=type(self._method).__name__,
+        )
+
+    async def run_trajectory_async(
+        self,
+        trajectory: Trajectory,
+        *,
+        profiler: RuntimeProfiler | None = None,
+        **kwargs: object,
+    ) -> np.ndarray | Trajectory:
+        """Asynchronously apply the BMethod to every point in a trajectory."""
+        return await self._profile_async(
+            "method",
+            lambda: self._method.apply_trajectory(trajectory, **kwargs),  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            profiler=profiler,
+            component=type(self._method).__name__,
+        )
 
     # ── Combined story: fit → apply_data → data-space output ───
 
@@ -463,8 +644,48 @@ class ManipulationPipeline(_PipelineBase):
         """
         self.fit(*fit_args, **(fit_kwargs or {}))
         if trajectory is not None:
-            return self.run_trajectory(trajectory, **apply_kwargs)
+            profiler = cast(RuntimeProfiler | None, apply_kwargs.pop("profiler", None))
+            return self.run_trajectory(trajectory, profiler=profiler, **apply_kwargs)
         return None
+
+    def _apply_method_latent(self, latents: np.ndarray) -> np.ndarray:
+        apply_latent = getattr(self._method, "apply_latent", None)
+        if not callable(apply_latent):
+            msg = f"{type(self._method).__name__} does not expose apply_latent()"
+            raise RuntimeError(msg)
+        typed_apply_latent = cast(Callable[[np.ndarray], np.ndarray], apply_latent)
+        return typed_apply_latent(latents)
+
+    def _call_data_method(self, data: np.ndarray) -> np.ndarray:
+        call_method = cast(Callable[[np.ndarray], np.ndarray], self._method)
+        return call_method(data)
+
+    @staticmethod
+    def _profile_sync(
+        stage: RuntimeStage,
+        operation: Callable[[], _T],
+        *,
+        profiler: RuntimeProfiler | None,
+        component: str,
+    ) -> _T:
+        if profiler is None:
+            return operation()
+        return profiler.measure(stage, operation, component=component)
+
+    @staticmethod
+    async def _profile_async(
+        stage: RuntimeStage,
+        operation: Callable[[], _T],
+        *,
+        profiler: RuntimeProfiler | None,
+        component: str,
+    ) -> _T:
+        if profiler is None:
+            return await asyncio.to_thread(operation)
+        start = perf_counter()
+        result = await asyncio.to_thread(operation)
+        profiler.record(stage, perf_counter() - start, component=component)
+        return result
 
 
 # ── Config-backed construction ──────────────────────────────────────

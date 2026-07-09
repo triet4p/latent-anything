@@ -10,12 +10,13 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 * [x] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16). **Complete — all three 2026-06-16 ADRs fully validated with all modes confirmed by running code.**
 * [x] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19). **Complete — all 10 built-in classes registered with registry-first pattern; behavior parity proven by 22 parity tests; infrastructure remains entry-point-free pending external plugin demand.**
 * [x] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21). **Complete — two pipeline instances (Analysis + Manipulation) with shared `_PipelineBase` sketch. Freeze waits for Pipeline #3 (runtime/streaming).**
-* [~] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24). **Sprint 23 completed — in-memory cache #1 added for `AnalysisPipeline`; disk cache and async remain future increments.**
+* [x] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24). **Complete — `BatchExecutor`, `InMemoryCache`, async pipeline/executor wrappers, and runtime profiling hooks are now all present without freezing a runtime Protocol prematurely.**
 
 ## Active Sprints
-* [Sprint 24](sprint-plans/sprint-24.md) - *Status: Planned* — Add async execution and profiling hooks.
+* No active sprint file at the moment. Sprint 24 is complete.
 
 ## Completed Sprints
+* [Sprint 24](sprint-plans/sprint-24.md) - *Status: Completed* — Add async wrappers for `AnalysisPipeline`, `ManipulationPipeline`, and `BatchExecutor`, plus runtime profiling hooks (`RuntimeProfiler`, `RuntimeProfile`, `ProfileEvent`) with stage timings for cache/encode/method/decode. Includes concurrent async demo artifact and 5 new runtime coverage tests. Final gate: 594 tests pass. Runtime stays concrete — no `RuntimeExecutor` Protocol extracted. (Round 21).
 * [Sprint 23](sprint-plans/sprint-23.md) - *Status: Completed* — Add `InMemoryCache` Runtime #2 with stable `CacheKey`, SHA-256 data/config hashing, defensive-copy `get`/`set`, `clear`, and stats. Integrated as optional cache on `AnalysisPipeline` for adapter encode and method fit-transform outputs. Memory-only; no diskcache/pickle/async/cache Protocol. 13 new cache tests + 1 demo smoke, 589 total. (Round 20).
 * [Sprint 22](sprint-plans/sprint-22.md) - *Status: Completed* — Add `BatchExecutor` Runtime #1 for deterministic first-axis numpy batching. Supports adapter `encode`/`decode` and Layer A `transform` paths, preserves output order/shape, includes synthetic direct-vs-batched timing snapshot, and stays eager/sync with no cache or async. 23 new tests, 575 total. (Round 19).
 * [Sprint 21](sprint-plans/sprint-21.md) - *Status: Completed* — Add concrete Pipeline #2 (`ManipulationPipeline`) for Layer B manipulation (adapter-mediated data-space + latent-only trajectory stories). Sketch `_PipelineBase` shared with `AnalysisPipeline`. Config-backed construction via `ManipulationPipelineSpec`. 28 new tests, 551 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 18).
@@ -45,8 +46,7 @@ Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/
 
 **Pipeline foundation:** *(Complete — two pipeline instances validate shared shape sketch.)*
 
-**Layer C runtime foundation:**
-* [Sprint 24](sprint-plans/sprint-24.md) - *Status: Planned* — Add async execution and profiling hooks.
+**Layer C runtime foundation:** *(Sprint 22–24 complete — next runtime work should be evidence-driven follow-up, not a predeclared abstraction freeze.)*
 
 **Later ecosystem expansion, not yet sprint-filed:**
 * Add label-aware probing / TCAV work from theory tầng 5.

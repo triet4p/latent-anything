@@ -165,3 +165,9 @@ class TestOtherDemoSmokes:
         from latent_anything.runtime import InMemoryCache
 
         assert InMemoryCache is not None
+
+    def test_async_runtime_demo_imports(self) -> None:
+        """Async runtime demo imports work."""
+        from latent_anything.runtime import RuntimeProfiler
+
+        assert RuntimeProfiler is not None

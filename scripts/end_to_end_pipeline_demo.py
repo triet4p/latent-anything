@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from latent_anything import LatentSpace
 from latent_anything.adapters import VAE
 from latent_anything.config import ObjectSpec
 from latent_anything.methods import PCA
@@ -68,7 +67,7 @@ pca = PCA(n_components=2)
 pipeline_direct = AnalysisPipeline(adapter=vae, method=pca)
 
 print(f"  Adapter: VAE(input_dim={input_dim}, latent_dim={latent_dim})")
-print(f"  Method:  PCA(n_components=2)")
+print("  Method:  PCA(n_components=2)")
 print(f"  Latent space: {pipeline_direct.latent_space}")
 
 # Train VAE (separate from pipeline.run — VAE needs fit called before encode)
