@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+- `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
+
+### Fixed
+- `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
+
 ## [0.1.0-beta.1] - 2026-07-10
 
 ### Release Summary

@@ -6,6 +6,7 @@
 #     "scikit-learn>=1.6,<2.0",
 #     "matplotlib>=3.9,<4.0",
 #     "torch>=2.5,<3.0",
+#     "pydantic>=2.0,<3.0",
 # ]
 # ///
 
@@ -655,6 +656,8 @@ def _print_summary(
 
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding='utf-8')  # Windows: allow Unicode →, — etc.
+
     cfg = SHOWCASE_CONFIG
     output_paths = cfg["output"]
 
