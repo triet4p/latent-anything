@@ -7,7 +7,7 @@ def test_package_imports() -> None:
     """Verify the package imports and exposes expected attributes."""
     assert hasattr(latent_anything, "__version__")
     assert isinstance(latent_anything.__version__, str)
-    assert latent_anything.__version__ == "0.1.0"
+    assert latent_anything.__version__ == "0.1.0b1"
 
 
 def test_package_docstring() -> None:

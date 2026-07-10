@@ -111,3 +111,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The fit-transform cache stored only the output array, not the state learned during `fit()`, so a cache hit skipped the state transition required by the method contract.
 **Fix / workaround:** Cache adapter encode outputs only and always execute Layer A fit-transform on the current method instance. Do not cache a state-producing operation unless its state can also be restored coherently.
 **Watch out for:** Caching any operation that both returns a value and mutates reusable component state; output parity alone is not enough.
+
+## [2026-07-10] Dataclass script imports fail when importlib modules are not registered
+
+**Symptom:** A pytest module that loaded `scripts/extract_release_notes.py` with `importlib.util.module_from_spec()` failed during collection at the `@dataclass` decorator with `AttributeError: 'NoneType' object has no attribute '__dict__'`.
+**Root cause:** The manually created module was executed without first registering it in `sys.modules`. During dataclass processing, Python looks up `sys.modules[cls.__module__]`; because the module name was missing, the lookup returned `None`.
+**Fix / workaround:** Insert the module before execution: `sys.modules[spec.name] = module`, then call `spec.loader.exec_module(module)`.
+**Watch out for:** Tests that import standalone scripts via `importlib.util.spec_from_file_location()` and those scripts define dataclasses or other decorators that inspect the module namespace during import.

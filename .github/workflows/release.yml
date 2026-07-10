@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+      - "[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release gate and GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync environment
+        run: uv sync --locked
+
+      - name: Ruff check
+        run: uv run ruff check src tests scripts
+
+      - name: Ruff format check
+        run: uv run ruff format --check src tests scripts
+
+      - name: Pyright
+        run: uv run pyright
+
+      - name: Pytest
+        run: uv run pytest -v
+
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          uv run python scripts/extract_release_notes.py \
+            "${GITHUB_REF_NAME}" \
+            --body-file "${RUNNER_TEMP}/release-body.md" \
+            --github-output "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.release_notes.outputs.title }}
+          body_path: ${{ steps.release_notes.outputs.body_path }}
+          prerelease: ${{ steps.release_notes.outputs.prerelease }}

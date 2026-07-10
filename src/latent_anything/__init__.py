@@ -43,7 +43,7 @@ from latent_anything.runtime import RuntimeProfile as RuntimeProfile
 from latent_anything.runtime import RuntimeProfiler as RuntimeProfiler
 from latent_anything.trajectory import Trajectory as Trajectory
 
-__version__ = "0.1.0"
+__version__ = "0.1.0b1"
 
 __all__ = [
     "AnalysisPipeline",

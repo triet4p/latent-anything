@@ -1,6 +1,6 @@
 [project]
 name = "latent-anything"
-version = "0.1.0"
+version = "0.1.0b1"
 description = "Latent Understanding, Manipulation & Execution Network — a Python framework that treats latent space as a first-class object"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
