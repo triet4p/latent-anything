@@ -656,7 +656,7 @@ def _print_summary(
 
 
 def main() -> None:
-    sys.stdout.reconfigure(encoding='utf-8')  # Windows: allow Unicode →, — etc.
+    sys.stdout.reconfigure(encoding="utf-8")  # Windows: allow Unicode →, — etc.
 
     cfg = SHOWCASE_CONFIG
     output_paths = cfg["output"]

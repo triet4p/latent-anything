@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Evidence-ledger validation now inventories all theory capabilities, verifies local evidence links in CI, and reports the D2/D3 stable-coverage denominator without downloading optional models. (#sprint-27)
+
 ### Changed
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
 

@@ -353,3 +353,10 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Require every implementation to accept `**kwargs: object`; make `BMethod` generic over a parameter specification; or split each argument shape into another public Protocol.
 **Reason:** Lerp, SteeringVector, and ActivationPatch prove that trajectory application is shared, but their optional arguments are genuinely different. Requiring `**kwargs: object` made the frozen Protocol statically incompatible with two of its three validating implementations, while additional public Protocols would invent abstractions without new concrete instances.
 **Consequences:** Static conformance now matches all three validated B-Methods. Generic callers may forward method-specific arguments only at a deliberate callable-dispatch boundary, while direct users retain precise concrete signatures.
+
+## [2026-07-11] Count only D2/D3 capability evidence toward the stable-release gate
+
+**Decision:** Track every THEORY topic through a versioned evidence ledger, and calculate the 1.0 core/overall denominators from implementation-applicable or benchmark-only topics; only D2/D3 entries qualify.
+**Alternatives considered:** Count research notes or D1 source/test coverage as stable evidence; maintain an unvalidated prose matrix; or require an optional-model integration test for every ledger check.
+**Reason:** Sprint 26 established that the beta is theory-informed rather than theory-complete. Counting documentation or a focused unit test as product proof would let the project meet the percentage target without a reproducible evaluation, while mandatory model acquisition would make the base CI gate flaky and expensive.
+**Consequences:** Every future sprint must update the ledger when it changes a theory-led capability, retain local evidence links, and provide a benchmark plus reproducible artifact before promoting a stable-coverage claim. The read-only validator remains safe for the base installation.

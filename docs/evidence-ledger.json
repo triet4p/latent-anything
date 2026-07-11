@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "status_levels": ["D0", "D1", "D2", "D3"],
+  "coverage_policy": {
+    "core_tiers": ["T01", "T02", "T03", "T03B", "T04", "T05", "T06", "T07", "T08", "T09"],
+    "qualifying_statuses": ["D2", "D3"],
+    "core_threshold": 0.95,
+    "overall_threshold": 0.9
+  },
+  "contextual_background": [
+    "THY-T01-CURSE-OF-DIMENSIONALITY",
+    "THY-T01-INTRINSIC-VS-EXTRINSIC-DIMENSION",
+    "THY-T02-INFORMATION-BOTTLENECK-PRINCIPLE",
+    "THY-T02-VARIATIONAL-INFERENCE",
+    "THY-T02-KL-DIVERGENCE",
+    "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+    "THY-T03B-NEURAL-IMPLICIT-REPRESENTATION",
+    "THY-T03B-NERF-MILDENHALL-ET-AL-2020",
+    "THY-T03B-VOLUME-RENDERING-VA-RAY-MARCHING",
+    "THY-T03B-POSITIONAL-ENCODING-TRONG-NERF",
+    "THY-T03B-INSTANT-NGP-MULLER-ET-AL-2022",
+    "THY-T03B-COVARIANCE-MATRIX-TRONG-3DGS",
+    "THY-T03B-SPHERICAL-HARMONICS",
+    "THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT",
+    "THY-T05-SUPERPOSITION-HYPOTHESIS",
+    "THY-T06-MARKOV-PROPERTY-VA-STATE-SPACE",
+    "THY-T06-KALMAN-FILTER-VA-VARIANTS",
+    "THY-T07-MODEL-BASED-VS-MODEL-FREE-RL",
+    "THY-T08-MASKED-AUTOENCODER-MAE-HE-ET-AL-2021",
+    "THY-T08-REPRESENTATION-COLLAPSE",
+    "THY-T08-STOP-GRADIENT-VA-ASYMMETRIC-ARCHITECTURE",
+    "THY-T08-CONTRASTIVE-LEARNING",
+    "THY-T08-EMA-TARGET-ENCODER",
+    "THY-T08-TAI-SAO-LATENT-PREDICTION-TOT-HON-PIXEL-PREDICTION",
+    "THY-X01-DREAMERV1-HAFNER-ET-AL-2019",
+    "THY-X01-DREAMERV2-HAFNER-ET-AL-2020",
+    "THY-X01-DREAMERV3-HAFNER-ET-AL-2023",
+    "THY-X01-TD-MPC2-HANSEN-ET-AL-2023",
+    "THY-X01-MUZERO-SCHRITTWIESER-ET-AL-2019",
+    "THY-X01-OPENVLA",
+    "THY-X01-0-PHYSICAL-INTELLIGENCE-BLACK-ET-AL-2024",
+    "THY-X01-LEWM-LEWORLDMODEL-2026",
+    "THY-X01-UNISIM-YANG-ET-AL-2023",
+    "THY-X02-MECHANISTIC-INTERPRETABILITY-OVERVIEW",
+    "THY-X02-TOWARDS-MONOSEMANTICITY-ANTHROPIC-2023",
+    "THY-X02-SCALING-MONOSEMANTICITY-ANTHROPIC-2024",
+    "THY-X02-PROBING-CLASSIFIERS-SURVEY-BELINKOV-2022",
+    "THY-X02-UMAP-THEORY-MCINNES-ET-AL-2018",
+    "THY-X02-PACMAP",
+    "THY-X03-OPTIMAL-TRANSPORT-CO-BAN",
+    "THY-X03-LIE-GROUPS-VA-LIE-ALGEBRA",
+    "THY-X03-SPHERICAL-HARMONICS",
+    "THY-X04-COLMAP-SFM-MVS-CO-IEN",
+    "THY-X04-DUST3R-MUST3R-VGGT",
+    "THY-X04-IMAGE-TO-POINT-CLOUD-FEATURE-BACK-PROJECTION",
+    "THY-X04-CVPR-2026-TU-NHIN-THAY-GI-EN-LAM-GI",
+    "THY-T14-JIT-LET-DENOISING-GENERATIVE-MODELS-DENOISE-LI-HE-2025"
+  ],
+  "benchmark_only": [
+    "THY-T03-DISENTANGLEMENT",
+    "THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY",
+    "THY-T05-LOGIT-LENS-TUNED-LENS",
+    "THY-T06-ROLLOUT-LATENT-IMAGINATION",
+    "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
+    "THY-T07-LATENT-IMAGINATION-HORIZON"
+  ],
+  "overrides": {
+    "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T01-MANIFOLD-HYPOTHESIS": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T01-GEODESIC": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T02-AUTOENCODER": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/adapters/vae.py", "tests/test_latent_anything/test_vae.py"]
+    },
+    "THY-T02-VAE-KINGMA-WELLING-2013": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/adapters/vae.py", "tests/test_latent_anything/test_vae.py"]
+    },
+    "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/methods/pca.py", "tests/test_latent_anything/test_pca.py"]
+    },
+    "THY-T03-ISOTROPY-VS-ANISOTROPY": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/adapters/gaussian_renderer.py", "tests/test_latent_anything/test_gaussian_renderer.py"]
+    },
+    "THY-T03B-GAUSSIAN-RASTERIZATION": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/adapters/gaussian_renderer.py", "tests/test_latent_anything/test_gaussian_renderer.py"]
+    },
+    "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/adapters/gaussian_renderer.py", "tests/test_latent_anything/test_gaussian_renderer.py"]
+    },
+    "THY-T04-LERP-LINEAR-INTERPOLATION": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/methods/lerp.py", "tests/test_latent_anything/test_lerp.py"]
+    },
+    "THY-T04-SLERP": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/latent_space.py", "tests/test_latent_anything/test_latent_space.py"]
+    },
+    "THY-T05-ACTIVATION-PATCHING": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/methods/activation_patch.py", "tests/test_latent_anything/test_activation_patch.py"]
+    },
+    "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/methods/sae.py", "tests/test_latent_anything/test_sae.py"]
+    },
+    "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/methods/steering.py", "tests/test_latent_anything/test_steering.py"]
+    },
+    "THY-T06-LATENT-TRAJECTORY": {
+      "status": "D1",
+      "evidence": ["src/latent_anything/trajectory.py", "tests/test_latent_anything/test_trajectory.py"]
+    }
+  }
+}
