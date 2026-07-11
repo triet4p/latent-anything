@@ -8,7 +8,7 @@ A Python framework that treats latent space as a first-class object: load latent
 
 `0.1.0-beta.1` is a pre-1.0 core-framework beta. It includes:
 
-- Core primitives: `LatentSpace` and `Trajectory`
+- Core primitives: `LatentSpace`, `LatentValue`, and `Trajectory`
 - Layer A introspection methods: PCA, UMAP, and SAE
 - Layer B manipulation methods: Lerp, SteeringVector, and ActivationPatch
 - Built-in adapters: VAE, RandomProjection, HiddenStateAdapter, and GaussianRendererAdapter

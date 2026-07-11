@@ -20,6 +20,7 @@ from latent_anything.config import ObjectSpec as ObjectSpec
 from latent_anything.config import build_from_config as build_from_config
 from latent_anything.config import build_from_dict as build_from_dict
 from latent_anything.latent_space import LatentSpace as LatentSpace
+from latent_anything.latent_value import LatentValue as LatentValue
 from latent_anything.methods import Method as Method
 from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
@@ -53,6 +54,7 @@ __all__ = [
     "GLOBAL_REGISTRY",
     "InMemoryCache",
     "LatentSpace",
+    "LatentValue",
     "ManipulationPipeline",
     "ManipulationPipelineSpec",
     "Method",

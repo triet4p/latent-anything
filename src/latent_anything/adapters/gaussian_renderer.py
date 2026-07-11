@@ -30,6 +30,7 @@ from __future__ import annotations
 import numpy as np
 
 from latent_anything.latent_space import LatentSpace
+from latent_anything.latent_value import LatentValue
 
 # Default Gaussian parameter layout for 2D image rendering.
 # position(2) + scale(2) + opacity(1) + color(3) = 8 columns.
@@ -329,6 +330,11 @@ class GaussianRendererAdapter:
             raise ValueError(msg)
 
         return self._encode_grid(data)
+
+    def encode_value(self, data: np.ndarray) -> LatentValue:
+        """Encode an image into one immutable structured Gaussian-set value."""
+
+        return LatentValue(self.encode(data), self.latent_space)
 
     def _encode_grid(self, data: np.ndarray) -> np.ndarray:
         """Grid-based heuristic encoding.

@@ -16,6 +16,7 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "GLOBAL_REGISTRY",
         "InMemoryCache",
         "LatentSpace",
+        "LatentValue",
         "ManipulationPipeline",
         "ManipulationPipelineSpec",
         "Method",

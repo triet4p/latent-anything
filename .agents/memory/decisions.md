@@ -367,3 +367,10 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Keep `Method`, `BMethod`, and `method_a`/`method_b`; call every mutating operation a transform; or rename all pipeline and runtime classes immediately.
 **Reason:** The beta has three analysis implementations and three materially different manipulations. Their behavior is understandable to users and plugin authors, while generic letters describe only the original roadmap. `Transform` would incorrectly imply that model-mediated activation patching is a simple latent-to-latent map, and broad immediate renames would create compatibility churn before the config migration path exists.
 **Consequences:** Sprint 31 must make `analysis` and `intervention` the canonical registry/config terms with diagnostics for beta aliases. `Method`, `BMethod`, and `ManipulationPipeline` remain compatibility names only until the RFC's scheduled removal window; future families use semantic names but remain concrete until Rule-of-Three evidence justifies an interface.
+
+## [2026-07-11] Keep latent data concrete as `LatentValue` until a third storage philosophy exists
+
+**Decision:** Add immutable `LatentValue` as the concrete container for flat batches and structured states, with `LatentSpace` remaining the schema/geometry handle; do not introduce a latent-data Protocol.
+**Alternatives considered:** Extend `Trajectory` to arbitrary shapes, continue exposing raw arrays only, or extract a generic storage interface now.
+**Reason:** VAE batches, hidden-state sequences, and Gaussian sets share ownership and space association but not temporal semantics or shape. A small concrete value preserves that distinction while a Protocol would have fewer than three differing storage implementations.
+**Consequences:** New adapters may offer value-returning convenience paths while existing NumPy APIs remain compatible. Re-evaluate a storage interface only after a third distinct representation demands operations that cannot live on `LatentValue`.

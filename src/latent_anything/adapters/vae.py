@@ -22,6 +22,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from latent_anything.latent_space import LatentSpace
+from latent_anything.latent_value import LatentValue
 
 
 class VAE:
@@ -193,6 +194,11 @@ class VAE:
             mu, _logvar = self._encoder(data_tensor)  # type: ignore[union-attr]
             result = mu.detach().cpu().numpy()
         return np.asarray(result, dtype=np.float64)
+
+    def encode_value(self, data: np.ndarray) -> LatentValue:
+        """Encode data into a space-associated immutable latent batch."""
+
+        return LatentValue(self.encode(data), self.latent_space)
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
         """Decode latent vectors back to data space.
