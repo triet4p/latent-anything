@@ -43,7 +43,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Active Sprints
 
-None. Sprint 28 is the next sprint to activate.
+None. Sprint 29 is the next sprint to activate.
 
 ## Planned Sprints
 
@@ -134,6 +134,7 @@ None. Sprint 28 is the next sprint to activate.
 - [Sprint 25](sprint-plans/sprint-25.md) - Cross-sprint review corrections and strict gate restoration.
 - [Sprint 26](sprint-plans/sprint-26.md) - `0.1.0-beta.1` release readiness, architecture audit, and theory coverage audit.
 - [Sprint 27](sprint-plans/sprint-27.md) - Evidence-ledger contract, stable-coverage denominator, and read-only CI validation.
+- [Sprint 28](sprint-plans/sprint-28.md) - Semantic API vocabulary, beta-name snapshot, and compatibility migration contract.
 
 ## Planning Rules
 

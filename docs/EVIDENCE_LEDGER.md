@@ -43,6 +43,13 @@ The two release percentages are exact:
 The current beta inventory is intentionally below these gates. D1 is useful
 evidence but is not a stable-release claim.
 
+## Contract-change evidence
+
+Non-theory API contracts are linked here rather than misclassified as theory
+capabilities. [RFC 0001](rfcs/0001-semantic-api-vocabulary.md) and
+`tests/test_api_surface.py` define the Sprint 28 semantic-vocabulary baseline;
+Sprint 31 will attach migration evidence to this section.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;
