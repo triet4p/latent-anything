@@ -7,6 +7,15 @@ from typing import Any
 
 import numpy as np
 
+from latent_anything.geometry import (
+    discrete_distance,
+    discrete_interpolate,
+    gaussian_distance,
+    gaussian_interpolate,
+    validate_discrete_code,
+    validate_gaussian_set,
+)
+
 # Internal: slice layout of a Gaussian parameter vector.
 # Default: position(3) + scale(3) + opacity(1) + color(3) = 10 columns.
 _GAUSSIAN_PARAM_NAMES = ("position", "scale", "opacity", "color")
@@ -65,7 +74,7 @@ class LatentSpace:
         Color channels per Gaussian (default 3).
     """
 
-    _GEOMETRIES: frozenset[str] = frozenset({"euclidean", "unit_norm", "gaussian_set"})
+    _GEOMETRIES: frozenset[str] = frozenset({"euclidean", "unit_norm", "gaussian_set", "discrete_code"})
 
     def __init__(
         self,
@@ -77,6 +86,7 @@ class LatentSpace:
         position_dim: int = 3,
         scale_dim: int = 3,
         color_dim: int = 3,
+        codebook_size: int | None = None,
     ) -> None:
         if dim < 1:
             msg = f"dim must be >= 1, got {dim}"
@@ -96,6 +106,7 @@ class LatentSpace:
         self._scale_dim: int = scale_dim
         self._color_dim: int = color_dim
         self._opacity_dim: int = 1
+        self._codebook_size: int | None = None
 
         if geometry == "gaussian_set":
             if n_gaussians is None or n_gaussians < 1:
@@ -114,11 +125,23 @@ class LatentSpace:
             # Populate metadata with param layout
             layout = _build_gaussian_layout(position_dim, scale_dim, 1, color_dim)
             self.metadata.setdefault("gaussian_set_param_layout", layout)
+        elif geometry == "discrete_code":
+            if codebook_size is None or codebook_size < 2:
+                raise ValueError(f"discrete_code requires codebook_size >= 2, got {codebook_size!r}")
+            self._codebook_size = codebook_size
+            self.metadata.setdefault("codebook_size", codebook_size)
+            self.metadata.setdefault("interpolation", "unsupported")
 
     @property
     def n_gaussians(self) -> int | None:
         """Number of Gaussians in the set (``None`` for non-set geometries)."""
         return self._n_gaussians
+
+    @property
+    def codebook_size(self) -> int | None:
+        """Declared categorical codebook size for ``discrete_code`` geometry."""
+
+        return self._codebook_size
 
     @property
     def param_dim(self) -> int:
@@ -166,31 +189,19 @@ class LatentSpace:
                 msg = f"unit_norm requires ||point|| = 1, got {norm}"
                 raise ValueError(msg)
         elif self.geometry == "gaussian_set":
-            self._validate_gaussian_set_point(point)
+            validate_gaussian_set(
+                point, position_dim=self._position_dim, scale_dim=self._scale_dim, color_dim=self._color_dim
+            )
+        elif self.geometry == "discrete_code":
+            validate_discrete_code(point, codebook_size=self._codebook_size)  # type: ignore[arg-type]
 
-    # ── Gaussian-set internal helpers ──────────────────────────────────
+    # ── Backwards-compatible Gaussian helpers ──────────────────────────
 
     def _validate_gaussian_set_point(self, point: np.ndarray) -> None:
         """Validate numeric constraints for a Gaussian-set point."""
-        pdim = self._position_dim
-        sdim = self._scale_dim
-        cdim = self._color_dim
-
-        # Scale must be positive (log-scale in storage → positive after exp)
-        scale_slice = slice(pdim, pdim + sdim)
-        if np.any(point[:, scale_slice] <= 0):
-            msg = "gaussian_set requires scale components > 0"
-            raise ValueError(msg)
-        # Opacity must be in [0, 1]
-        opacity_idx = pdim + sdim
-        if np.any((point[:, opacity_idx] < 0) | (point[:, opacity_idx] > 1)):
-            msg = "gaussian_set requires opacity in [0, 1]"
-            raise ValueError(msg)
-        # Color must be in [0, 1]
-        color_slice = slice(pdim + sdim + 1, pdim + sdim + 1 + cdim)
-        if np.any((point[:, color_slice] < 0) | (point[:, color_slice] > 1)):
-            msg = "gaussian_set requires color channels in [0, 1]"
-            raise ValueError(msg)
+        validate_gaussian_set(
+            point, position_dim=self._position_dim, scale_dim=self._scale_dim, color_dim=self._color_dim
+        )
 
     def _gaussian_set_sort_indices(self, point: np.ndarray) -> np.ndarray:
         """Return lexicographic sort indices by position columns."""
@@ -203,9 +214,7 @@ class LatentSpace:
         Sorts both sets by position (lexicographic), then computes the
         Frobenius norm of the difference between corresponding Gaussians.
         """
-        a_idx = self._gaussian_set_sort_indices(a)
-        b_idx = self._gaussian_set_sort_indices(b)
-        return float(np.sqrt(np.sum((a[a_idx] - b[b_idx]) ** 2)))
+        return gaussian_distance(a, b, position_dim=self._position_dim)
 
     def _gaussian_set_interpolate(self, a: np.ndarray, b: np.ndarray, t: float) -> np.ndarray:
         """Interpolate between two Gaussian-set points.
@@ -216,45 +225,9 @@ class LatentSpace:
         - opacity → lerp + clamp to [0, 1]
         - color → lerp + clamp to [0, 1]
         """
-        pdim = self._position_dim
-        sdim = self._scale_dim
-        cdim = self._color_dim
-        opacity_dim = 1
-
-        a_idx = self._gaussian_set_sort_indices(a)
-        b_idx = self._gaussian_set_sort_indices(b)
-        a_sorted = a[a_idx]
-        b_sorted = b[b_idx]
-
-        result = np.empty_like(a_sorted)
-
-        # Position: standard lerp
-        result[:, :pdim] = (1.0 - t) * a_sorted[:, :pdim] + t * b_sorted[:, :pdim]
-
-        # Scale: lerp in log-space → exp
-        scale_end = pdim + sdim
-        log_a = np.log(np.maximum(a_sorted[:, pdim:scale_end], 1e-10))
-        log_b = np.log(np.maximum(b_sorted[:, pdim:scale_end], 1e-10))
-        result[:, pdim:scale_end] = np.exp((1.0 - t) * log_a + t * log_b)
-
-        # Opacity: lerp + clamp [0, 1]
-        opacity_idx = scale_end
-        result[:, opacity_idx] = np.clip(
-            (1.0 - t) * a_sorted[:, opacity_idx] + t * b_sorted[:, opacity_idx],
-            0.0,
-            1.0,
+        return gaussian_interpolate(
+            a, b, t, position_dim=self._position_dim, scale_dim=self._scale_dim, color_dim=self._color_dim
         )
-
-        # Color: lerp + clamp [0, 1]
-        color_start = opacity_idx + opacity_dim
-        color_end = color_start + cdim
-        result[:, color_start:color_end] = np.clip(
-            (1.0 - t) * a_sorted[:, color_start:color_end] + t * b_sorted[:, color_start:color_end],
-            0.0,
-            1.0,
-        )
-
-        return result
 
     # ── Public API ────────────────────────────────────────────────────
 
@@ -287,6 +260,8 @@ class LatentSpace:
             return float(np.arccos(cos_angle))
         elif self.geometry == "gaussian_set":
             return self._gaussian_set_distance(a, b)
+        elif self.geometry == "discrete_code":
+            return discrete_distance(a, b)
         else:
             msg = f"No distance implementation for geometry {self.geometry!r}"
             raise ValueError(msg)
@@ -329,6 +304,8 @@ class LatentSpace:
             return np.sin((1.0 - t) * omega) / sin_omega * a + np.sin(t * omega) / sin_omega * b
         elif self.geometry == "gaussian_set":
             return self._gaussian_set_interpolate(a, b, t)
+        elif self.geometry == "discrete_code":
+            return discrete_interpolate(a, b, t)
         else:
             msg = f"No interpolate implementation for geometry {self.geometry!r}"
             raise ValueError(msg)
@@ -357,6 +334,9 @@ class LatentSpace:
             If geometry is ``unit_norm`` and the point is a zero vector.
         """
         if self.geometry == "euclidean" or self.geometry == "gaussian_set":
+            return point.copy()
+        elif self.geometry == "discrete_code":
+            validate_discrete_code(point, codebook_size=self._codebook_size)  # type: ignore[arg-type]
             return point.copy()
         elif self.geometry == "unit_norm":
             norm = np.linalg.norm(point)

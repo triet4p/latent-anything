@@ -677,3 +677,58 @@ class TestLatentSpaceGaussianSetBackwardCompat:
         a = np.array([1.0, 0.0, 0.0])
         b = np.array([0.0, 1.0, 0.0])
         assert space.distance(a, b) == pytest.approx(np.pi / 2)
+
+
+class TestLatentSpaceDiscreteCode:
+    """Fourth geometry case: categorical codebook vectors."""
+
+    def test_requires_a_codebook_and_records_policy_metadata(self) -> None:
+        with pytest.raises(ValueError, match="codebook_size"):
+            LatentSpace(dim=3, geometry="discrete_code")
+        space = LatentSpace(dim=3, geometry="discrete_code", codebook_size=8)
+        assert space.codebook_size == 8
+        assert space.metadata["interpolation"] == "unsupported"
+
+    def test_validates_integer_codebook_bounds(self) -> None:
+        space = LatentSpace(dim=3, geometry="discrete_code", codebook_size=4)
+        space.validate_point(np.array([0, 2, 3], dtype=np.int64))
+        with pytest.raises(ValueError, match="codes in"):
+            space.validate_point(np.array([0, 4, 1], dtype=np.int64))
+        with pytest.raises(TypeError, match="integer"):
+            space.validate_point(np.array([0.0, 1.0, 2.0]))
+
+    def test_hamming_distance_and_normalization(self) -> None:
+        space = LatentSpace(dim=4, geometry="discrete_code", codebook_size=3)
+        a = np.array([0, 1, 2, 0], dtype=np.int64)
+        b = np.array([0, 2, 2, 1], dtype=np.int64)
+        assert space.distance(a, b) == pytest.approx(0.5)
+        normalized = space.normalize(a)
+        np.testing.assert_array_equal(normalized, a)
+        assert normalized is not a
+
+    def test_rejects_continuous_interpolation(self) -> None:
+        space = LatentSpace(dim=2, geometry="discrete_code", codebook_size=4)
+        with pytest.raises(ValueError, match="no continuous interpolation"):
+            space.interpolate(np.array([0, 1]), np.array([2, 3]), 0.5)
+
+
+@pytest.mark.parametrize(
+    ("space", "a", "b"),
+    [
+        (LatentSpace(dim=2), np.array([0.0, 1.0]), np.array([1.0, 1.0])),
+        (LatentSpace(dim=2, geometry="unit_norm"), np.array([1.0, 0.0]), np.array([0.0, 1.0])),
+        (
+            LatentSpace(dim=8, geometry="gaussian_set", n_gaussians=1, position_dim=2, scale_dim=2, color_dim=3),
+            np.array([[0.0, 0.0, 1.0, 1.0, 1.0, 0.2, 0.3, 0.4]]),
+            np.array([[1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.3, 0.4]]),
+        ),
+        (LatentSpace(dim=2, geometry="discrete_code", codebook_size=4), np.array([0, 1]), np.array([0, 2])),
+    ],
+)
+def test_geometry_conformance_matrix(space: LatentSpace, a: np.ndarray, b: np.ndarray) -> None:
+    """Every supported geometry validates points, returns a distance, and normalizes safely."""
+
+    space.validate_point(a)
+    space.validate_point(b)
+    assert isinstance(space.distance(a, b), float)
+    np.testing.assert_array_equal(space.normalize(a), a)

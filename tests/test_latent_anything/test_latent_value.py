@@ -75,3 +75,9 @@ def test_vae_encode_value_preserves_existing_numerical_path() -> None:
     vae = VAE(input_dim=4, latent_dim=2, random_state=1, n_epochs=1)
     vae.fit(data)
     assert_array_equal(vae.encode_value(data).to_numpy(), vae.encode(data))
+
+
+def test_discrete_value_preserves_integer_codes() -> None:
+    space = LatentSpace(dim=3, geometry="discrete_code", codebook_size=4)
+    value = LatentValue(np.array([[0, 1, 3], [2, 2, 0]], dtype=np.int64), space)
+    assert value.to_numpy().dtype == np.int64

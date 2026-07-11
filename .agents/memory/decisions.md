@@ -374,3 +374,10 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Extend `Trajectory` to arbitrary shapes, continue exposing raw arrays only, or extract a generic storage interface now.
 **Reason:** VAE batches, hidden-state sequences, and Gaussian sets share ownership and space association but not temporal semantics or shape. A small concrete value preserves that distinction while a Protocol would have fewer than three differing storage implementations.
 **Consequences:** New adapters may offer value-returning convenience paths while existing NumPy APIs remain compatible. Re-evaluate a storage interface only after a third distinct representation demands operations that cannot live on `LatentValue`.
+
+## [2026-07-11] Extract focused geometry functions after the fourth concrete case
+
+**Decision:** Keep `LatentSpace` as the public facade but move Gaussian-set and discrete-code algorithms into a focused function module.
+**Alternatives considered:** Retain all four branches in `LatentSpace`; introduce a Protocol/ABC hierarchy; or treat categorical code vectors as Euclidean values.
+**Reason:** Four materially distinct validation/distance/interpolation policies now prove an algorithm boundary, while an interface hierarchy would still add speculative extension machinery. Continuous interpolation of codes would fabricate invalid semantic states.
+**Consequences:** New geometry cases add focused functions and a facade branch; `discrete_code` uses normalized Hamming distance and rejects interpolation until a real codebook-aware operation is introduced.
