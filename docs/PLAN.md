@@ -43,7 +43,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Active Sprints
 
-None. Sprint 32 is the next sprint to activate.
+None. Sprint 33 is the next sprint to activate.
 
 ## Planned Sprints
 
@@ -138,6 +138,7 @@ None. Sprint 32 is the next sprint to activate.
 - [Sprint 29](sprint-plans/sprint-29.md) - Immutable `LatentValue` for flat batches and structured states.
 - [Sprint 30](sprint-plans/sprint-30.md) - Discrete-code geometry and focused geometry algorithm extraction.
 - [Sprint 31](sprint-plans/sprint-31.md) - Canonical semantic registry kinds and beta config migration diagnostics.
+- [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
 
 ## Planning Rules
 

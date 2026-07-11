@@ -8,6 +8,7 @@
 - `LatentValue` carries immutable flat batches and structured latent states with explicit `LatentSpace` association, safe NumPy conversion, and beta `Trajectory` compatibility. (#sprint-29)
 - `LatentSpace` now supports categorical `discrete_code` geometry with codebook validation, normalized Hamming distance, and an explicit no-continuous-interpolation policy. (#sprint-30)
 - Registry and config construction now use canonical `analysis` and `intervention` kinds; legacy beta kinds remain aliases with migration diagnostics until `0.9.0`. (#sprint-31)
+- Added internal PyTorch activation capture sessions with safe hook lifecycle, NumPy outputs, provenance metadata, and intervention callbacks. (#sprint-32)
 
 ### Changed
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
