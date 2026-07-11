@@ -381,3 +381,10 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Retain all four branches in `LatentSpace`; introduce a Protocol/ABC hierarchy; or treat categorical code vectors as Euclidean values.
 **Reason:** Four materially distinct validation/distance/interpolation policies now prove an algorithm boundary, while an interface hierarchy would still add speculative extension machinery. Continuous interpolation of codes would fabricate invalid semantic states.
 **Consequences:** New geometry cases add focused functions and a facade branch; `discrete_code` uses normalized Hamming distance and rejects interpolation until a real codebook-aware operation is introduced.
+
+## [2026-07-11] Canonicalize registry configuration at the construction boundary
+
+**Decision:** Store built-ins under `analysis` and `intervention`, while legacy `method_a` and `method_b` spellings normalize with a deprecation diagnostic when a config constructs an object.
+**Alternatives considered:** Store duplicate registry entries; silently accept old kinds forever; or immediately reject every beta config.
+**Reason:** Duplicate entries obscure one semantic capability and silent normalization prevents users from discovering the scheduled 0.9 removal. Construction is the one boundary that sees all nested specs without turning plain registry lookup into a warning source.
+**Consequences:** Plugin authors register canonical kinds; repository config can be audited with the migration report; old configs retain exact factory behavior until the documented removal window.

@@ -48,7 +48,7 @@ from latent_anything.methods.pca import PCA
 from latent_anything.methods.sae import SAE
 from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
-from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B
+from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
 
 # ── Register adapters ───────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ GLOBAL_REGISTRY.register(
 # ── Register Layer A methods ────────────────────────────────────────
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
+    KIND_ANALYSIS,
     "pca",
     PCA,
     description="Principal Component Analysis — linear dimensionality reduction",
@@ -100,7 +100,7 @@ GLOBAL_REGISTRY.register(
 )
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
+    KIND_ANALYSIS,
     "sae",
     SAE,
     description="Sparse Autoencoder — neural/trained with L1 sparsity",
@@ -109,7 +109,7 @@ GLOBAL_REGISTRY.register(
 )
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_A,
+    KIND_ANALYSIS,
     "umap",
     UMAP,
     description="Uniform Manifold Approximation and Projection — nonlinear dim-reduction",
@@ -120,7 +120,7 @@ GLOBAL_REGISTRY.register(
 # ── Register Layer B methods ────────────────────────────────────────
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
+    KIND_INTERVENTION,
     "activation_patch",
     ActivationPatch,
     description="Activation patching — B-Method #3 (model-mediated data→data)",
@@ -129,7 +129,7 @@ GLOBAL_REGISTRY.register(
 )
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
+    KIND_INTERVENTION,
     "lerp",
     Lerp,
     description="Linear/geodesic interpolation — B-Method #1 (stateless latent→latent)",
@@ -138,7 +138,7 @@ GLOBAL_REGISTRY.register(
 )
 
 GLOBAL_REGISTRY.register(
-    KIND_METHOD_B,
+    KIND_INTERVENTION,
     "steering",
     SteeringVector,
     description="Steering vector — B-Method #2 (stateful latent→latent via contrast)",

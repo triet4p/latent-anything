@@ -21,6 +21,11 @@ This beta does not claim the full Latent Anything thesis is implemented. Probing
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
 
+Registry configs now use `adapter`, `analysis`, and `intervention` kinds.
+The beta `method_a` and `method_b` spellings remain supported with a migration
+warning until `0.9.0`; run `uv run python scripts/report_config_migration.py <config.json>`
+to inspect repository-owned JSON configs without rewriting them.
+
 ## Installation
 
 The package is not published yet. Clone and install locally using [uv](https://docs.astral.sh/uv/):

@@ -53,4 +53,4 @@ def test_method_and_adapter_protocol_snapshot() -> None:
 
 
 def test_registry_kind_snapshot() -> None:
-    assert (KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B) == ("adapter", "method_a", "method_b")
+    assert (KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B) == ("adapter", "analysis", "intervention")

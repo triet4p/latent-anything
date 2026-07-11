@@ -18,8 +18,8 @@ class TestRegistryDemoSmoke:
 
         assert GLOBAL_REGISTRY.name == "global"
         assert KIND_ADAPTER == "adapter"
-        assert KIND_METHOD_A == "method_a"
-        assert KIND_METHOD_B == "method_b"
+        assert KIND_METHOD_A == "analysis"
+        assert KIND_METHOD_B == "intervention"
 
     def test_registry_listing_grouping_works(self) -> None:
         """Listing by kind gives the expected counts (core of the demo)."""

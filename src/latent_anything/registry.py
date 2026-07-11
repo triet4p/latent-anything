@@ -40,16 +40,38 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from latent_anything.registry_aliases import (
+    KIND_ADAPTER,
+    KIND_ANALYSIS,
+    KIND_INTERVENTION,
+    KIND_PLANNER,
+    KIND_RUNTIME,
+    canonical_kind,
+)
+
+__all__ = [
+    "GLOBAL_REGISTRY",
+    "KIND_ADAPTER",
+    "KIND_ANALYSIS",
+    "KIND_INTERVENTION",
+    "KIND_METHOD_A",
+    "KIND_METHOD_B",
+    "KIND_PLANNER",
+    "KIND_RUNTIME",
+    "Registry",
+    "RegistryEntry",
+    "list_entries",
+    "lookup",
+    "register",
+]
+
 # ── Kind constants ──────────────────────────────────────────────────
 
-KIND_ADAPTER = "adapter"
-"""ModelAdapter / DecodableAdapter — Layer 0 model adapters."""
+KIND_METHOD_A = KIND_ANALYSIS
+"""Deprecated compatibility constant; use ``KIND_ANALYSIS``."""
 
-KIND_METHOD_A = "method_a"
-"""Layer A introspection methods (dimensionality reduction)."""
-
-KIND_METHOD_B = "method_b"
-"""Layer B manipulation methods."""
+KIND_METHOD_B = KIND_INTERVENTION
+"""Deprecated compatibility constant; use ``KIND_INTERVENTION``."""
 
 # ── Registry records ────────────────────────────────────────────────
 
@@ -131,6 +153,7 @@ class Registry:
         ValueError
             If ``name`` is already registered in this instance.
         """
+        kind = canonical_kind(kind)
         if name in self._entries:
             msg = f"Duplicate registry entry {name!r}" + (f" in registry {self._name!r}" if self._name else "")
             raise ValueError(msg)
@@ -185,7 +208,8 @@ class Registry:
         """
         if kind is None:
             return list(self._entries.values())
-        return [e for e in self._entries.values() if e.kind == kind]
+        target_kind = canonical_kind(kind)
+        return [e for e in self._entries.values() if e.kind == target_kind]
 
     # ── Convenience ─────────────────────────────────────────────
 

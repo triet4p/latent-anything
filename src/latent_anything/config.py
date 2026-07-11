@@ -41,6 +41,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from latent_anything.registry import GLOBAL_REGISTRY, Registry
+from latent_anything.registry_aliases import canonical_kind
 
 # ── Public type alias ───────────────────────────────────────────────
 
@@ -183,10 +184,11 @@ def build_from_config(
         raise KeyError(msg) from None
 
     # ── 2. Kind check ───────────────────────────────────────────
-    if entry.kind != spec.kind:
+    requested_kind = canonical_kind(spec.kind, warn=True)
+    if entry.kind != requested_kind:
         msg = (
             f"build_from_config: kind mismatch for {spec.name!r} — "
-            f"spec says {spec.kind!r} but registry entry has kind {entry.kind!r}"
+            f"spec says {spec.kind!r} (canonical {requested_kind!r}) but registry entry has kind {entry.kind!r}"
         )
         raise ValueError(msg)
 
