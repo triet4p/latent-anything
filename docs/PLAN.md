@@ -43,7 +43,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Active Sprints
 
-None. Sprint 33 is the next sprint to activate.
+Sprint 33 — optional integration dependency boundaries.
 
 ## Planned Sprints
 

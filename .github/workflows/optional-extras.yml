@@ -1,0 +1,23 @@
+name: Optional extras
+
+on:
+  pull_request:
+    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**"]
+  workflow_dispatch:
+
+jobs:
+  resolve-extra:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+        extra: [diffusers, transformers, "3d", lerobot]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked --extra ${{ matrix.extra }}
+      - run: uv run python -c "import latent_anything"
