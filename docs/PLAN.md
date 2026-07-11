@@ -1,57 +1,143 @@
 # Global Project Plan
 
 ## Overview
-Xây dựng `src` của Latent-Anything theo quy trình incremental trong [docs/INCREMENTAL.md](INCREMENTAL.md): mỗi sprint là **một increment-round** (một việc lớn — thêm đúng một instance cụ thể chạy end-to-end), mỗi task là **một concern nhỏ**. Interface được *extract từ working code*, freeze theo Rule of Three; ba ADR ngày 2026-06-16 được coi là giả thuyết để code validate/đảo. Nền lý thuyết (tầng 1–14) coi như đã đủ để khởi động Giai đoạn 1.
+
+Latent Anything will reach `1.0.0` by proving the framework on real models and tasks, not by accumulating attractive visualizations. The roadmap keeps the incremental Rule of Three from [INCREMENTAL.md](INCREMENTAL.md), but adds an explicit evidence contract for theory coverage, explanation validity, integration quality, and API stability.
+
+Sprints 1-26 established the beta foundation. Sprints 27-80 are the planned path from `0.1.0-beta.1` to `1.0.0`. Future sprint details are provisional: a sprint may revise later plans when running code disproves an assumption, but it must record that revision in the ADR log and keep this file synchronized.
+
+## Definition of Stable
+
+`1.0.0` is allowed only when all gates below pass.
+
+1. **Theory evidence:** at least 95% of implementation-applicable topics in core tiers 1-9, and at least 90% across the complete theory index, have code or benchmark evidence. Research notes and notebooks alone do not count toward this gate.
+2. **Meaningful explanations:** every headline explanation method has fidelity, stability, selectivity/control, and causal-intervention evidence where applicable. A visually clean projection is not accepted as an explanation by itself.
+3. **Real-model matrix:** the supported matrix includes a real VAE, a pretrained generative-image model, a transformer hidden-state model, a structured 3D representation, at least two LeRobot policies including one VLA, and a temporal/world-model path.
+4. **LeRobot bridge:** `latent_anything[lerobot]` can consume LeRobotDataset data, capture policy representations, apply supported interventions, and return metrics through LeRobot evaluation without reimplementing LeRobot policies, datasets, or environments.
+5. **API quality:** public names describe domain behavior rather than roadmap layers; entry classes delegate feature logic to focused modules; deprecated beta aliases have a documented migration path; the public signature and serialization compatibility suites pass.
+6. **Extension quality:** optional integrations are isolated, external plugins work through Python entry points, a hello-world plugin is documented, and plugin/config artifacts are versioned and reproducible.
+7. **Release quality:** strict lint/type/test gates pass, core coverage meets the threshold set in Sprint 27, integration tests are version-pinned, documentation builds strictly, and the package is publishable from a clean environment.
+
+## Coverage Vocabulary
+
+Each theory-led capability has one of four evidence levels:
+
+- **D0 - documented:** research note or notebook only; does not count as implemented coverage.
+- **D1 - implemented:** production code and focused tests exist.
+- **D2 - validated:** D1 plus an end-to-end benchmark on non-trivial data with quantitative acceptance criteria.
+- **D3 - model-proven:** D2 plus evidence on at least one real pretrained/trained model and a reproducible artifact.
+
+The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration claims require D3.
 
 ## Milestones
-* [x] **Milestone 0:** Theory foundation — tầng 1–14 research + notebook (Sprint 1–2).
-* [x] **Milestone 1 — Giai đoạn 1:** Core primitives (`LatentSpace`, `Trajectory`, Layer A `Method`) + first adapters and geometry dispatch (Sprint 3–9). **Complete — 2 ADRs validated; `ModelAdapter` remains intentionally pending.**
-* [x] **Milestone 2 — Giai đoạn 2:** Layer B foundation (lerp → steering → activation patching) + showcase edit-latent story (Sprint 10–13). **Sprint 13 completed — VAE-based end-to-end showcase proven.** The showcase composes existing primitives (VAE, PCA, ActivationPatch, Lerp) into a coherent edit story with 68.2% distance improvement. Real VLA showcase remains future ecosystem work when a VLA adapter exists in the codebase.
-* [x] **Milestone 3 — Adapter/geometry closure:** Close the remaining `ModelAdapter` ADR evidence gap with no-explicit-latent and deterministic-renderer modes; add the first structured Gaussian-set geometry (Sprint 14–16). **Complete — all three 2026-06-16 ADRs fully validated with all modes confirmed by running code.**
-* [x] **Milestone 4 — Plugin extraction:** Introduce registry + config-driven instantiation and convert existing built-ins without changing behavior (Sprint 17–19). **Complete — all 10 built-in classes registered with registry-first pattern; behavior parity proven by 22 parity tests; infrastructure remains entry-point-free pending external plugin demand.**
-* [x] **Milestone 5 — Pipeline foundation:** Add concrete `Pipeline` composition rounds, then freeze only after enough distinct execution stories exist (Sprint 20–21). **Complete — two pipeline instances (Analysis + Manipulation) with shared `_PipelineBase` sketch. Freeze waits for Pipeline #3 (runtime/streaming).**
-* [x] **Milestone 6 — Layer C runtime foundation:** Add batching, cache, async execution, and profiling in small evidence-backed increments (Sprint 22–24). **Complete — `BatchExecutor`, `InMemoryCache`, async pipeline/executor wrappers, and runtime profiling hooks are now all present without freezing a runtime Protocol prematurely.**
+
+- [x] **Milestones 0-6 - Beta foundation (Sprints 1-26):** theory research, core primitives, first adapters/methods, registry/config, concrete pipelines, runtime helpers, and `0.1.0-beta.1` release.
+- [ ] **Milestone 7 - Stable contract and semantic API (Sprints 27-31):** measurable 1.0 gates, domain vocabulary, structured latent values, geometry decomposition, and registry migration.
+- [ ] **Milestone 8 - Real generative-model proof (Sprints 32-38):** activation capture, optional backend isolation, real VAE and diffusion integrations, and explanation-validity benchmarks.
+- [ ] **Milestone 9 - Meaningful introspection (Sprints 39-47):** probes, concepts, clustering, density/OOD, attribution, transformer inspection, SAE evaluation, and interactive exploration.
+- [ ] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
+- [ ] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
+- [ ] **Milestone 12 - World models and planning (Sprints 63-72):** transition models, rollout, reward/value evaluation, CEM/MPPI, discrete latents, JEPA/LeWM, and tokenized-world-model evidence.
+- [ ] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** external plugins, portable artifacts/disk cache, streaming, tracking backends, and an evidence-based Rust decision.
+- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** `0.9`, release-candidate matrix, and `1.0.0` publication.
 
 ## Active Sprints
-* None currently.
+
+None. Sprint 27 is the next sprint to activate.
+
+## Planned Sprints
+
+### Milestone 7 - Stable contract and semantic API
+
+- [Sprint 27](sprint-plans/sprint-27.md) - Define the 1.0 evidence ledger, coverage denominator, and acceptance gates.
+- [Sprint 28](sprint-plans/sprint-28.md) - Decide domain vocabulary and the beta-to-stable deprecation map.
+- [Sprint 29](sprint-plans/sprint-29.md) - Add a first-class latent value container proven across flat and structured representations.
+- [Sprint 30](sprint-plans/sprint-30.md) - Add discrete geometry and extract geometry-specific logic when the fourth case proves the seam.
+- [Sprint 31](sprint-plans/sprint-31.md) - Replace `method_a`/`method_b` registry vocabulary with semantic kinds and compatibility aliases.
+
+### Milestone 8 - Real generative-model proof
+
+- [Sprint 32](sprint-plans/sprint-32.md) - Add safe PyTorch activation capture and intervention lifecycle.
+- [Sprint 33](sprint-plans/sprint-33.md) - Isolate optional ML integrations and define the extras/version test matrix.
+- [Sprint 34](sprint-plans/sprint-34.md) - Integrate and evaluate a convolutional VAE on a real image dataset.
+- [Sprint 35](sprint-plans/sprint-35.md) - Add a pretrained Diffusers `AutoencoderKL` adapter.
+- [Sprint 36](sprint-plans/sprint-36.md) - Validate VAE explanations with reconstruction, factor, stability, and causal metrics.
+- [Sprint 37](sprint-plans/sprint-37.md) - Add a real diffusion pipeline adapter with timestep-aware latent capture.
+- [Sprint 38](sprint-plans/sprint-38.md) - Prove diffusion latent editing with task metrics and decoded outputs.
+
+### Milestone 9 - Meaningful introspection
+
+- [Sprint 39](sprint-plans/sprint-39.md) - Add a label-aware linear probe with controlled evaluation.
+- [Sprint 40](sprint-plans/sprint-40.md) - Add a nonlinear probe as an information upper bound with capacity controls.
+- [Sprint 41](sprint-plans/sprint-41.md) - Add concept activation vectors and TCAV sensitivity scoring.
+- [Sprint 42](sprint-plans/sprint-42.md) - Add K-means structure discovery with stability diagnostics.
+- [Sprint 43](sprint-plans/sprint-43.md) - Add Gaussian-mixture density and out-of-distribution scoring.
+- [Sprint 44](sprint-plans/sprint-44.md) - Add Integrated Gradients through the capture/intervention seam.
+- [Sprint 45](sprint-plans/sprint-45.md) - Add a real transformer hidden-state/logit-lens integration.
+- [Sprint 46](sprint-plans/sprint-46.md) - Add SAE feature-quality evaluation and a feature atlas artifact.
+- [Sprint 47](sprint-plans/sprint-47.md) - Add interactive Plotly/notebook exploration backed by typed analysis results.
+
+### Milestone 10 - Geometry, trajectory, and 3D depth
+
+- [Sprint 48](sprint-plans/sprint-48.md) - Add anisotropic geometry and Mahalanobis-aware operations.
+- [Sprint 49](sprint-plans/sprint-49.md) - Add latent projection, removal, and arithmetic with coordinate-system checks.
+- [Sprint 50](sprint-plans/sprint-50.md) - Add density-aware or pullback-metric geodesic interpolation.
+- [Sprint 51](sprint-plans/sprint-51.md) - Add SO(3)/SE(3) pose geometry and valid interpolation.
+- [Sprint 52](sprint-plans/sprint-52.md) - Add DTW trajectory similarity for unequal-length sequences.
+- [Sprint 53](sprint-plans/sprint-53.md) - Add trajectory smoothing and change-point segmentation.
+- [Sprint 54](sprint-plans/sprint-54.md) - Integrate a real 3D Gaussian splatting renderer backend.
+- [Sprint 55](sprint-plans/sprint-55.md) - Validate 3D Gaussian manipulation with multi-view rendering metrics.
+
+### Milestone 11 - LeRobot and VLA bridge
+
+- [Sprint 56](sprint-plans/sprint-56.md) - Ship the `latent_anything[lerobot]` dependency boundary and compatibility smoke tests.
+- [Sprint 57](sprint-plans/sprint-57.md) - Bridge LeRobotDataset v3 episodes and streaming samples into typed latent inputs.
+- [Sprint 58](sprint-plans/sprint-58.md) - Capture and analyze ACT policy representations.
+- [Sprint 59](sprint-plans/sprint-59.md) - Capture and analyze LeRobot Diffusion Policy representations.
+- [Sprint 60](sprint-plans/sprint-60.md) - Capture and intervene on SmolVLA representations.
+- [Sprint 61](sprint-plans/sprint-61.md) - Run a causal policy-explanation benchmark through LeRobot simulation evaluation.
+- [Sprint 62](sprint-plans/sprint-62.md) - Add reproducible experiment records and LeRobot-facing inspection commands.
+
+### Milestone 12 - World models and planning
+
+- [Sprint 63](sprint-plans/sprint-63.md) - Add a deterministic latent transition instance.
+- [Sprint 64](sprint-plans/sprint-64.md) - Add a stochastic Gaussian transition instance.
+- [Sprint 65](sprint-plans/sprint-65.md) - Add an RSSM-style third transition and extract the proven transition contract.
+- [Sprint 66](sprint-plans/sprint-66.md) - Add a rollout pipeline as Pipeline #3 and decompose pipeline responsibilities from evidence.
+- [Sprint 67](sprint-plans/sprint-67.md) - Add reward/value evaluation over imagined trajectories.
+- [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
+- [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
+- [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
+- [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
+- [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
+
+### Milestone 13 - Ecosystem and runtime hardening
+
+- [Sprint 73](sprint-plans/sprint-73.md) - Add external plugin discovery and a separately installed hello-world plugin.
+- [Sprint 74](sprint-plans/sprint-74.md) - Add Arrow-backed portable artifacts and a coherent disk cache.
+- [Sprint 75](sprint-plans/sprint-75.md) - Add bounded-memory streaming execution.
+- [Sprint 76](sprint-plans/sprint-76.md) - Add MLflow and Weights & Biases tracking backends behind a small recorder contract.
+- [Sprint 77](sprint-plans/sprint-77.md) - Run performance gates and make the Rust core go/no-go decision.
+
+### Milestone 14 - API freeze and stable release
+
+- [Sprint 78](sprint-plans/sprint-78.md) - Cut `0.9.0`, freeze the public API, and remove scheduled beta aliases.
+- [Sprint 79](sprint-plans/sprint-79.md) - Run the full real-model/integration release-candidate matrix.
+- [Sprint 80](sprint-plans/sprint-80.md) - Publish `1.0.0` with migration, plugin, model-integration, and reproducibility documentation.
 
 ## Completed Sprints
-* [Sprint 26](sprint-plans/sprint-26.md) - *Status: Completed* — Prepared the `0.1.0-beta.1` release with a tag-driven GitHub Release workflow, tested changelog-based release title/body extraction, demo/probe/visualization readiness audits, architecture/SRP audit, theory coverage matrix, beta README/CHANGELOG scope, final release gate, and tag-ready readiness artifact. Final gate: `uv sync --locked`, `ruff check`, `ruff format --check`, `pyright`, release-note extraction, and 601 passing tests with 9 existing UMAP warnings.
-* [Sprint 25](sprint-plans/sprint-25.md) - *Status: Completed* — Resolved the Sprint 17–24 review findings: state-aware cache identity, coherent stateful-method execution, type-valid `BMethod` invariant, strict typing across the complete changed scope, consolidated changelog structure, and 596 passing tests.
-* [Sprint 24](sprint-plans/sprint-24.md) - *Status: Completed* — Add async wrappers for `AnalysisPipeline`, `ManipulationPipeline`, and `BatchExecutor`, plus runtime profiling hooks (`RuntimeProfiler`, `RuntimeProfile`, `ProfileEvent`) with stage timings for cache/encode/method/decode. Includes concurrent async demo artifact and 5 new runtime coverage tests. Final gate: 594 tests pass. Runtime stays concrete — no `RuntimeExecutor` Protocol extracted. (Round 21).
-* [Sprint 23](sprint-plans/sprint-23.md) - *Status: Completed* — Add `InMemoryCache` Runtime #2 with stable `CacheKey`, SHA-256 data/config hashing, defensive-copy `get`/`set`, `clear`, and stats. Integrated as optional cache on `AnalysisPipeline` for adapter encode and method fit-transform outputs. Memory-only; no diskcache/pickle/async/cache Protocol. 13 new cache tests + 1 demo smoke, 589 total. (Round 20).
-* [Sprint 22](sprint-plans/sprint-22.md) - *Status: Completed* — Add `BatchExecutor` Runtime #1 for deterministic first-axis numpy batching. Supports adapter `encode`/`decode` and Layer A `transform` paths, preserves output order/shape, includes synthetic direct-vs-batched timing snapshot, and stays eager/sync with no cache or async. 23 new tests, 575 total. (Round 19).
-* [Sprint 21](sprint-plans/sprint-21.md) - *Status: Completed* — Add concrete Pipeline #2 (`ManipulationPipeline`) for Layer B manipulation (adapter-mediated data-space + latent-only trajectory stories). Sketch `_PipelineBase` shared with `AnalysisPipeline`. Config-backed construction via `ManipulationPipelineSpec`. 28 new tests, 551 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 18).
-* [Sprint 20](sprint-plans/sprint-20.md) - *Status: Completed* — Add concrete Pipeline #1 (`AnalysisPipeline`) for adapter → encode → Layer A method → typed `PipelineResult`. Config-backed construction via `PipelineSpec` + `build_pipeline_from_config`. 21 pipeline tests, 523 total. Pipeline stays concrete — no DAG/executor abstraction. (Round 17).
-* [Sprint 19](sprint-plans/sprint-19.md) - *Status: Completed* — Convert built-in adapters/methods to registry-first built-ins with separate `_plugin_builtins.py` module, proving behavior parity via 22 parity tests + 15 demo smoke tests. Infrastructure-only round — no new adapter/method/geometry instances. 502 total tests. (Round 16).
-* [Sprint 18](sprint-plans/sprint-18.md) - *Status: Completed* — Registry-backed config instantiation using pydantic v2. ObjectSpec model with kind/name/params, build_from_config resolver, nested spec resolution for adapter-in-method (ActivationPatch), clear validation errors, and 36 config tests. 465 total tests. (Round 15).
-* [Sprint 17](sprint-plans/sprint-17.md) - *Status: Completed* — In-process registry for adapters and methods. Registry class with register/lookup/list APIs, kind constants, convenience helpers, and all 10 built-in classes registered (4 adapters + 3 method_a + 3 method_b). 48 registry tests. 429 total tests. (Round 14).
-* [Sprint 16](sprint-plans/sprint-16.md) - *Status: Completed* — GaussianRendererAdapter (ModelAdapter #4, mode iii: deterministic renderer). Closes the last evidence gap for the 3-mode ModelAdapter ADR — all three 2026-06-16 ADRs now fully validated. 52 GaussianRenderer tests, 381 total. (Round 13).
-* [Sprint 15](sprint-plans/sprint-15.md) - *Status: Completed* — Add structured `gaussian_set` latent geometry as geometry case #3. Geometry-keyed and geometry-dispatch ADRs exercised by set-like structured shape. Inline `if/elif` dispatch survives 3 geometries (Rule of Three §4a: instance #3 → keep hardcoded). 78 LatentSpace tests pass. (Round 12).
-* [Sprint 14](sprint-plans/sprint-14.md) - *Status: Completed* — HiddenStateAdapter (ModelAdapter #3, mode ii: no-explicit-latent); freeze `ModelAdapter` + `DecodableAdapter` Protocols; remove `_ModelAdapterBase`. ModelAdapter 3-mode ADR gains mode ii evidence, with full validation still pending the deterministic renderer mode iii later completed in Sprint 16. (Round 11).
-* [Sprint 13](sprint-plans/sprint-13.md) - *Status: Completed* — End-to-end VAE-based showcase: adapter → latent inspection (PCA Layer A) → latent edit (ActivationPatch Layer B) → decode → before/after metric (68.2% improvement) → trajectory panel (Lerp). Reproducible from config lightweight; no new abstraction added. (Round 10 — composition/validation round).
-* [Sprint 12](sprint-plans/sprint-12.md) - *Status: Completed* — Layer B: activation patching (B-Method #3, model-mediated) → **freeze BMethod Protocol**, migrate Lerp + SteeringVector (Round 9).
-* [Sprint 9](sprint-plans/sprint-9.md) - *Status: Completed* — Geometry case #2 (unit-norm/spherical) → validate ADR `LatentSpace` + ADR geometry-dispatch (Round 6). **Two ADRs validated.** Last sprint of Giai đoạn 1.
-* [Sprint 1](sprint-plans/sprint-1.md) - *Status: Completed* — Hoàn tất tầng 11 + 2 mục tầng 12.
-* [Sprint 2](sprint-plans/sprint-2.md) - *Status: Completed* — Thêm tầng "Mô hình dựng 3D thực tiễn".
-* [Sprint 3](sprint-plans/sprint-3.md) - *Status: Completed* — Scaffold package `latent_anything` + tooling/CI (Round 0).
-* [Sprint 4](sprint-plans/sprint-4.md) - *Status: Completed* — Increment đầu: `LatentSpace`+`Trajectory`+PCA hardcoded, end-to-end (Round 1).
-* [Sprint 5](sprint-plans/sprint-5.md) - *Status: Completed* — Layer A: UMAP (Method #2) + phác `_MethodBase` unstable internal (Round 2).
-* [Sprint 6](sprint-plans/sprint-6.md) - *Status: Completed* — Layer A: SAE (Method #3) + freeze `Method` Protocol (Round 3).
-* [Sprint 7](sprint-plans/sprint-7.md) - *Status: Completed* — Adapter VAE (ModelAdapter #1, explicit learned latent), end-to-end (Round 4).
-* [Sprint 8](sprint-plans/sprint-8.md) - *Status: Completed* — Adapter RandomProjection (ModelAdapter #2, stateless/fixed-weight), phác `_ModelAdapterBase` unstable (Round 5).
-* [Sprint 11](sprint-plans/sprint-11.md) - *Status: Completed* — Layer B: steering vector (B-Method #2, stateful), sketch `_BMethodBase` internal UNSTABLE, end-to-end (Round 8).
-* [Sprint 10](sprint-plans/sprint-10.md) - *Status: Completed* — Layer B: lerp (B-Method #1, stateless), trajectory blending, end-to-end (Round 7). **Giai đoạn 2 begins.**
 
-## Backlog / Future Work
-*Mỗi dòng là một sprint tương lai = một increment-round trong [INCREMENTAL.md §6](INCREMENTAL.md). Các sprint tương lai là plan có chủ đích, nhưng vẫn provisional: nếu code trong sprint trước phản bác giả định, sprint sau phải được sửa thay vì bám máy móc.*
+- [Sprints 1-2](sprint-plans/sprint-1.md) - Theory foundation and practical 3D research expansion.
+- [Sprints 3-16](sprint-plans/sprint-3.md) - Core primitives, geometry cases, adapters, Layer A/B methods, and the first end-to-end showcase.
+- [Sprints 17-21](sprint-plans/sprint-17.md) - Registry/config extraction and two concrete pipelines.
+- [Sprints 22-24](sprint-plans/sprint-22.md) - Batch, cache, async, and profiling runtime foundation.
+- [Sprint 25](sprint-plans/sprint-25.md) - Cross-sprint review corrections and strict gate restoration.
+- [Sprint 26](sprint-plans/sprint-26.md) - `0.1.0-beta.1` release readiness, architecture audit, and theory coverage audit.
 
-**Pipeline foundation:** *(Complete — two pipeline instances validate shared shape sketch.)*
+## Planning Rules
 
-**Layer C runtime foundation:** *(Sprint 22–24 complete — next runtime work should be evidence-driven follow-up, not a predeclared abstraction freeze.)*
-
-**Later ecosystem expansion, not yet sprint-filed:**
-* Add label-aware probing / TCAV work from theory tầng 5.
-* Add trajectory similarity, rollout, and transition-model methods from tầng 6.
-* Add MPC/CEM planning methods from tầng 7.
-* Add discrete/tokenized world-model adapters from tầng 9.
+- Every sprint adds one primary evidence-bearing concern. Supporting tests, docs, artifacts, and migrations belong to that concern.
+- Every sprint ends with the Rule of Three check, ADR reconciliation, evidence-ledger update, changelog update for user-visible changes, and the strict project gate.
+- Real integrations must pin a tested upstream version range and include an import-isolation test so optional extras do not burden the base package.
+- A model demo must include quantitative acceptance criteria and a failure analysis. Screenshot-only success is insufficient.
+- Later sprint files are planning hypotheses. When upstream APIs or running code invalidate one, update the affected sprint files and this plan before implementation continues.

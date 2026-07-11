@@ -137,7 +137,19 @@ Các dòng dưới đây map trực tiếp sang `docs/sprint-plans/sprint-<N>.md
 | 23 | In-memory cache #1. | Runtime #2 | Chốt cache key trước khi disk backend |
 | 24 | Async execution + profiling hooks. | Runtime #3-ish | Freeze runtime protocol chỉ nếu BatchExecutor + Cache + Async lộ invariant thật |
 
-Sau Sprint 24, các hướng theory-backed tiếp theo được mở nhưng chưa sprint-filed: probing/TCAV (tầng 5), trajectory similarity và rollout (tầng 6), MPC/CEM planning (tầng 7), discrete/tokenized world-model adapters (tầng 9).
+Sau Sprint 24, các hướng theory-backed tiếp theo ban đầu được mở nhưng chưa sprint-filed: probing/TCAV (tầng 5), trajectory similarity và rollout (tầng 6), MPC/CEM planning (tầng 7), discrete/tokenized world-model adapters (tầng 9). Trạng thái lịch sử này đã được thay thế bởi roadmap 1.0 chi tiết trong [PLAN.md](PLAN.md).
+
+## 8. Roadmap dài hạn — Sprint 27 → 80
+
+Từ Sprint 27, dự án có roadmap đến `1.0.0` gồm nhiều milestone và sprint plan chi tiết trong [PLAN.md](PLAN.md). Roadmap dài không thay đổi đơn vị increment hay Rule of Three:
+
+- Mỗi sprint vẫn có đúng một concern/evidence chính; test, benchmark, docs, migration và artifact là phần hỗ trợ concern đó.
+- Sprint ở xa là **planning hypothesis**, không phải interface spec. Khi code hoặc upstream integration phản bác giả định, phải cập nhật sprint liên quan + `PLAN.md` và ghi ADR trước khi tiếp tục.
+- Theory coverage chỉ được tính vào gate stable khi đạt evidence D2/D3 theo định nghĩa trong `PLAN.md`; research note/notebook đơn thuần không được tính là implementation coverage.
+- Các điểm extract lớn đã được gắn với evidence cụ thể: geometry thứ tư (Sprint 30), transition thứ ba (Sprint 65), Pipeline thứ ba (Sprint 66), streaming runtime thật (Sprint 75).
+- Bridge LeRobot dùng dataset/policy/processor/evaluation surface của LeRobot qua optional extra; không build lại framework VLA/robot policy.
+
+`PLAN.md` là single source of truth cho milestone, thứ tự và trạng thái sprint. File này tiếp tục là source of truth cho cách thực thi từng increment.
 
 ---
 
