@@ -10,6 +10,7 @@
 - Registry and config construction now use canonical `analysis` and `intervention` kinds; legacy beta kinds remain aliases with migration diagnostics until `0.9.0`. (#sprint-31)
 - Added internal PyTorch activation capture sessions with safe hook lifecycle, NumPy outputs, provenance metadata, and intervention callbacks. (#sprint-32)
 - Added a CPU-reproducible convolutional VAE integration evaluated on sklearn digits image data. (#sprint-34)
+- Added a lazy, revision-pinned Diffusers `AutoencoderKL` integration with explicit network acquisition gating and reproducible interpolation diagnostics. (#sprint-35)
 
 ### Changed
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.

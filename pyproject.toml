@@ -66,6 +66,10 @@ pythonPlatform = "All"
 minversion = "9.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "network: test deliberately permitted to access a remote model host",
+    "large_download: test needs a pretrained checkpoint and is off by default",
+]
 
 [dependency-groups]
 dev = [
