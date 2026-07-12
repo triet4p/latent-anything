@@ -1,0 +1,30 @@
+{
+  "evidence_level": "D1",
+  "dataset": "sklearn digits (first 240 images)",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "evaluation": {
+    "reconstruction_mse": 0.18849572285808638,
+    "factor_predictability": 0.5616438356164384,
+    "shuffled_label_predictability": 0.4794520547945205,
+    "input_feature_predictability": 0.7808219178082192,
+    "stability_mean": 0.6210045662100456,
+    "stability_ci95": 0.014614915969117289,
+    "locality": 0.09979794178417668,
+    "intervention_effect": {
+      "target_factor_change": 0.16003089409319685,
+      "off_target_change": 0.06023295230902016,
+      "decode_degradation": 0.000965581445292973
+    },
+    "accepts_explanation": false
+  },
+  "representation_comparison": {
+    "pca_probe_accuracy": 0.5616438356164384,
+    "sae_probe_accuracy": 0.5068493150684932,
+    "steering_probe_accuracy": 0.5616438356164384
+  },
+  "conclusion": "Acceptance is controlled by baselines and intervention locality, not plot readability."
+}

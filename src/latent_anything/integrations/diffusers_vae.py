@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 import numpy as np
+from numpy.typing import DTypeLike
 
 from latent_anything.integrations import require_optional
 from latent_anything.latent_space import LatentSpace
@@ -21,7 +22,7 @@ class DiffusersAutoencoderKLAdapter:
         *,
         device: str = "cpu",
         latent_mode: Literal["mean", "sample"] = "mean",
-        dtype: Any = np.float32,
+        dtype: DTypeLike = np.float32,
     ) -> None:
         if latent_mode not in {"mean", "sample"}:
             raise ValueError("latent_mode must be 'mean' or 'sample'")

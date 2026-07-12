@@ -11,6 +11,7 @@
 - Added internal PyTorch activation capture sessions with safe hook lifecycle, NumPy outputs, provenance metadata, and intervention callbacks. (#sprint-32)
 - Added a CPU-reproducible convolutional VAE integration evaluated on sklearn digits image data. (#sprint-34)
 - Added a lazy, revision-pinned Diffusers `AutoencoderKL` integration with explicit network acquisition gating and reproducible interpolation diagnostics. (#sprint-35)
+- Added a control-aware VAE explanation benchmark with held-out probes, negative controls, seed intervals, and decoded steering effects. (#sprint-36)
 
 ### Changed
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.

@@ -43,7 +43,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Active Sprints
 
-None. Sprint 35 is the next sprint to activate.
+None. Sprint 37 is the next sprint to activate.
 
 ## Planned Sprints
 
@@ -141,6 +141,8 @@ None. Sprint 35 is the next sprint to activate.
 - [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
 - [Sprint 33](sprint-plans/sprint-33.md) - Optional dependency boundaries and resolver smoke matrix.
 - [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE real-image smoke evidence on reproducible digits data.
+- [Sprint 35](sprint-plans/sprint-35.md) - Pinned Diffusers `AutoencoderKL` integration and interpolation diagnostics.
+- [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
 
 ## Planning Rules
 
