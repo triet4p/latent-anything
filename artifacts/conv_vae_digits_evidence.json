@@ -1,0 +1,21 @@
+{
+  "dataset": "sklearn-digits-8x8",
+  "seed": 42,
+  "samples": 32,
+  "metrics": {
+    "reconstruction_mse": 0.2018396258354187,
+    "posterior_kl": 0.034777432680130005,
+    "latent_utilization": 0.004888212773948908
+  },
+  "pca_shape": [
+    32,
+    2
+  ],
+  "sae_shape": [
+    32,
+    3
+  ],
+  "steering_norm": 0.9999999999999999,
+  "reconstruction_mae": 0.3958948196232086,
+  "failure_case": "Three-epoch CPU smoke training is not a quality claim; use the full benchmark before D2 promotion."
+}

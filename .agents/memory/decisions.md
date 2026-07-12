@@ -388,3 +388,10 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Store duplicate registry entries; silently accept old kinds forever; or immediately reject every beta config.
 **Reason:** Duplicate entries obscure one semantic capability and silent normalization prevents users from discovering the scheduled 0.9 removal. Construction is the one boundary that sees all nested specs without turning plain registry lookup into a warning source.
 **Consequences:** Plugin authors register canonical kinds; repository config can be audited with the migration report; old configs retain exact factory behavior until the documented removal window.
+
+## [2026-07-12] Keep flat VAE and ConvVAE as separate adapter implementations
+
+**Decision:** Retain the flat-vector `VAE` and add `ConvVAE` as a distinct image adapter without extracting another adapter protocol.
+**Alternatives considered:** Replace the beta VAE, make one adapter branch on tensor rank, or immediately redesign the frozen adapter surface.
+**Reason:** The flat synthetic adapter remains a fast deterministic test fixture, whereas ConvVAE proves image layout and convolutional behavior. Both already conform through the existing numpy encode/decode and latent-space shape without a new invariant being required.
+**Consequences:** Future image adapters may follow ConvVAE's NumPy boundary; an interface change needs evidence from a third adapter philosophy, not merely another architecture.

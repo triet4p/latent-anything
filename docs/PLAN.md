@@ -43,7 +43,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Active Sprints
 
-Sprint 33 — optional integration dependency boundaries.
+None. Sprint 35 is the next sprint to activate.
 
 ## Planned Sprints
 
@@ -139,6 +139,8 @@ Sprint 33 — optional integration dependency boundaries.
 - [Sprint 30](sprint-plans/sprint-30.md) - Discrete-code geometry and focused geometry algorithm extraction.
 - [Sprint 31](sprint-plans/sprint-31.md) - Canonical semantic registry kinds and beta config migration diagnostics.
 - [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
+- [Sprint 33](sprint-plans/sprint-33.md) - Optional dependency boundaries and resolver smoke matrix.
+- [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE real-image smoke evidence on reproducible digits data.
 
 ## Planning Rules
 
