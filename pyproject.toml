@@ -64,6 +64,7 @@ include = [
     "scripts/conv_vae_digits_evidence.py",
     "scripts/diffusers_vae_interpolation.py",
     "scripts/diffusers_conditional_timestep_trajectory.py",
+    "scripts/diffusers_conditional_intervention_experiment.py",
     "scripts/end_to_end_showcase_demo.py",
     "scripts/report_config_migration.py",
     "scripts/vae_explanation_benchmark.py",

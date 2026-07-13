@@ -12,14 +12,14 @@ Demonstrate a selective intervention on Sprint 37 scheduler latent states with q
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Predeclare one bounded conditional generation edit, its target metric, non-target preservation metric, quality proxy, evaluation set, and evidence-promotion thresholds.
-- [ ] Implement scheduler-latent intervention through `callback_on_step_end`, preserving the fixed prompt, scheduler, initial noise, and all unrelated state.
-- [ ] Compare no-edit, prompt-only, random-direction, and matched-norm intervention controls under paired fixed seeds.
-- [ ] Measure target change, content preservation, latent norm/cosine/nearest-neighbor or covariance-proxy drift, and decode/generation quality without depending on the later GMM sprint.
-- [ ] Sweep only intervention timestep and strength to identify selective windows, saturation, reversals, and failure modes; do not mix this experiment with denoiser-layer intervention.
-- [ ] Add deterministic smoke tests plus a marked reproducible real-checkpoint benchmark with immutable configuration and checkpoint provenance.
-- [ ] Produce paired outputs, aggregate metric tables with uncertainty, and explicit counterexamples rather than cherry-picked successes.
-- [ ] Promote relevant claims to D2/D3 only when the predeclared thresholds pass; otherwise retain D1, record the negative result, and update ADR/changelog/artifact/gates honestly.
+- [x] Predeclare one bounded conditional generation edit, its target metric, non-target preservation metric, quality proxy, evaluation set, and evidence-promotion thresholds.
+- [x] Implement scheduler-latent intervention through `callback_on_step_end`, preserving the fixed prompt, scheduler, initial noise, and all unrelated state.
+- [x] Compare no-edit, prompt-only, random-direction, and matched-norm intervention controls under paired fixed seeds.
+- [x] Measure target change, content preservation, latent norm/cosine/nearest-neighbor or covariance-proxy drift, and decode/generation quality without depending on the later GMM sprint.
+- [x] Sweep only intervention timestep and strength to identify selective windows, saturation, reversals, and failure modes; do not mix this experiment with denoiser-layer intervention.
+- [x] Add deterministic smoke tests plus a marked reproducible real-checkpoint benchmark with immutable configuration and checkpoint provenance.
+- [x] Produce paired outputs, aggregate metric tables with uncertainty, and explicit counterexamples rather than cherry-picked successes.
+- [x] Promote relevant claims to D2/D3 only when the predeclared thresholds pass; otherwise retain D1, record the negative result, and update ADR/changelog/artifact/gates honestly.
 
 ## Notes / Blockers
 

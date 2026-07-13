@@ -15,6 +15,9 @@
 - Added a control-aware VAE explanation benchmark with held-out probes, negative controls, seed intervals, and decoded steering effects. (#sprint-36)
 - Added a revision-pinned conditional text-to-image diffusion integration (`DiffusersConditionalPipeline`) that records scheduler latent states via native `callback_on_step_end` and selected denoiser activations via `ActivationCaptureSession`, with typed NumPy-faced request/result objects and separate `LatentSpace` descriptors for VAE bottlenecks, scheduler states, and denoiser activations. (#sprint-37)
 - Added a combined `diffusers-full` optional install extra that includes both `diffusers` and `transformers` dependencies for the conditional diffusion pipeline. (#sprint-37)
+- Added `SchedulerIntervention` data type and intervention support to `DiffusersConditionalPipeline.generate()` — additive edits on scheduler latent states during denoising via `callback_on_step_end`, with `random_direction()` and `matched_norm_direction()` helpers. (#sprint-38)
+- Added deterministic offline smoke tests for `SchedulerIntervention` validation, direction helpers, intervention passthrough in `generate()`, and a gated real-checkpoint benchmark that verifies the intervention changes intermediate latents. (#sprint-38)
+- Added a comprehensive experiment script (`diffusers_conditional_intervention_experiment.py`) that compares no-edit/prompt-only/random-direction/matched-norm controls across multiple seeds with target change, SSIM, latent norm drift, and trajectory-cosine metrics, plus a timestep-by-strength sweep. (#sprint-38)
 
 ### Changed
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.

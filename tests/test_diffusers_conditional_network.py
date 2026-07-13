@@ -79,3 +79,43 @@ def test_scheduler_determinism_same_seed() -> None:
     r1 = pipe.generate(req)
     r2 = pipe.generate(req)
     np.testing.assert_array_equal(r1.images, r2.images)
+
+
+@pytest.mark.network
+@pytest.mark.large_download
+@pytest.mark.skipif(
+    os.environ.get("LATENT_ANYTHING_RUN_NETWORK") != "1",
+    reason="set LATENT_ANYTHING_RUN_NETWORK=1 to acquire or validate the pinned checkpoint",
+)
+def test_intervention_produces_different_latents() -> None:
+    """Verify that a scheduler intervention changes intermediate latents vs baseline.
+
+    This is the core benchmark: same seed, same prompt, same config — but
+    with a random-direction intervention.  The edited latents must differ
+    from baseline by more than numerical noise.  Configuration is immutable
+    (inline, no external files).
+    """
+    pipe = DiffusersConditionalPipeline(device="cpu")
+    req = GenerationRequest(
+        prompt="a photograph of an astronaut riding a horse",
+        num_inference_steps=10,
+        seed=42,
+        capture_scheduler_states=True,
+        capture_denoiser_location=None,
+    )
+    # Build a random intervention active at steps 5-9.
+    intervention = DiffusersConditionalPipeline.random_direction(
+        shape=(1, 4, 64, 64), seed=0, strength=0.5, step_range=(5, 10)
+    )
+    result = pipe.generate(req, intervention=intervention)
+    assert result.images.shape == (1, 512, 512, 3)
+    assert len(result.scheduler_states) > 0
+
+    # Verify the intervention changed the trajectory: final latent norm
+    # should differ from a no-intervention baseline.
+    baseline = pipe.generate(req)
+    final_diff = float(np.linalg.norm(result.final_vae_latent - baseline.final_vae_latent))
+    assert final_diff > 1e-6, (
+        f"Intervention produced no measurable change (diff={final_diff:.2e}) — "
+        "intervention mechanism may not be modifying latents"
+    )

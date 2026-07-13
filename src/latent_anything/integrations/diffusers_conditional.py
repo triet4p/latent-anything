@@ -1,5 +1,5 @@
 """Revision-pinned conditional diffusion integration with scheduler latent
-state and denoiser activation capture.
+state and denoiser activation capture, plus scheduler latent intervention.
 
 Design
 ------
@@ -19,6 +19,11 @@ Scheduler latent states are captured via Diffusers' native
 ``callback_on_step_end``.  Denoiser activations are captured via
 :class:`~latent_anything.capture.ActivationCaptureSession` (PyTorch
 forward hooks).  Both paths produce NumPy arrays for the public surface.
+
+Scheduler latent intervention is an optional additive edit applied to
+the scheduler's latent state during denoising.  It reuses the same
+``callback_on_step_end`` hook but returns the modified latents so the
+pipeline uses the edited state at the next step.
 """
 
 from __future__ import annotations
@@ -164,6 +169,37 @@ class GenerationResult:
     denoiser_captures: tuple[DenoiserCapture, ...]
     final_vae_latent: np.ndarray
     request: GenerationRequest
+
+
+@dataclass(frozen=True)
+class SchedulerIntervention:
+    """Additive intervention on scheduler latent states during denoising.
+
+    Applies ``latents ← latents + strength * direction`` at every step
+    in ``step_range``.  The direction is a fixed 4D ``(1, C, H, W)``
+    numpy array — for example a concept direction or random vector.
+
+    Parameters
+    ----------
+    direction:
+        Direction vector as ``(1, C, H, W)`` non-writable NumPy array.
+    strength:
+        Strength multiplier (>= 0).  Zero means no effect.
+    step_range:
+        ``(start, end)`` — apply at steps ``[start, end)``.
+    """
+
+    direction: np.ndarray
+    strength: float
+    step_range: tuple[int, int]
+
+    def __post_init__(self) -> None:
+        if self.direction.ndim != 4:
+            raise ValueError(f"direction must be 4D (NCHW), got {self.direction.ndim}D")
+        if self.strength < 0:
+            raise ValueError(f"strength must be >= 0, got {self.strength}")
+        if self.step_range[0] < 0 or self.step_range[1] <= self.step_range[0]:
+            raise ValueError(f"invalid step_range: {self.step_range}")
 
 
 # ---------------------------------------------------------------------------
@@ -314,13 +350,21 @@ class DiffusersConditionalPipeline:
 
     # -- generation + capture (Tasks 3, 4) ---------------------------------
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self,
+        request: GenerationRequest,
+        intervention: SchedulerIntervention | None = None,
+    ) -> GenerationResult:
         """Run conditional diffusion generation with optional capture.
 
         Parameters
         ----------
         request:
             Typed generation parameters (prompt, seed, scheduler, …).
+        intervention:
+            Optional scheduler latent intervention to apply during
+            denoising.  When provided, scheduler states are always
+            captured so the before-intervention state is recorded.
 
         Returns
         -------
@@ -351,8 +395,9 @@ class DiffusersConditionalPipeline:
         scheduler_states: list[SchedulerLatentState] = []
         denoiser_captures: list[DenoiserCapture] = []
 
-        # -- Scheduler state capture via callback_on_step_end (Task 3) --
-        if request.capture_scheduler_states:
+        # -- Scheduler state capture + intervention via callback_on_step_end --
+        need_scheduler_callback = request.capture_scheduler_states or intervention is not None
+        if need_scheduler_callback:
 
             def _scheduler_callback(
                 pipe: Any,  # noqa: ARG001  # callback signature required by diffusers
@@ -362,10 +407,29 @@ class DiffusersConditionalPipeline:
             ) -> dict[str, Any]:
                 latents = callback_kwargs.get("latents")
                 if latents is not None:
-                    captured = latents.detach().cpu().numpy().copy()
-                    captured.setflags(write=False)
-                    scheduler_states.append(SchedulerLatentState(step=step_index, timestep=timestep, latent=captured))
-                return {}
+                    # Always capture the pre-intervention state.
+                    if request.capture_scheduler_states:
+                        captured = latents.detach().cpu().numpy().copy()
+                        captured.setflags(write=False)
+                        scheduler_states.append(
+                            SchedulerLatentState(step=step_index, timestep=timestep, latent=captured)
+                        )
+
+                    # Apply intervention if configured for this step.
+                    if intervention is not None and (
+                        intervention.step_range[0] <= step_index < intervention.step_range[1]
+                    ):
+                        import torch
+
+                        direction_t = torch.tensor(
+                            intervention.direction,
+                            dtype=latents.dtype,
+                            device=latents.device,
+                        )
+                        latents = latents + intervention.strength * direction_t
+                        callback_kwargs["latents"] = latents
+
+                return callback_kwargs
 
             pipe.callback_on_step_end = _scheduler_callback
 
@@ -452,6 +516,68 @@ class DiffusersConditionalPipeline:
         if cls is None:
             raise ValueError(f"Unknown scheduler {name!r}; supported: {list(_schedulers)}")
         return cls
+
+    # -- intervention direction helpers -----------------------------------
+
+    @staticmethod
+    def random_direction(
+        shape: tuple[int, int, int, int],
+        seed: int | None = None,
+        *,
+        strength: float = 1.0,
+        step_range: tuple[int, int] = (0, 1),
+    ) -> SchedulerIntervention:
+        """Create an intervention with a random normal direction.
+
+        Parameters
+        ----------
+        shape:
+            ``(N, C, H, W)`` — must match the scheduler latent shape.
+        seed:
+            Optional RNG seed for reproducibility.
+        strength:
+            Intervention strength multiplier.
+        step_range:
+            Denoising step range ``[start, end)``.
+        """
+        rng = np.random.default_rng(seed)
+        direction = rng.normal(0, 1, size=shape).astype(np.float32)
+        direction.setflags(write=False)
+        return SchedulerIntervention(direction=direction, strength=strength, step_range=step_range)
+
+    @staticmethod
+    def matched_norm_direction(
+        source: np.ndarray,
+        seed: int | None = None,
+        *,
+        strength: float = 1.0,
+        step_range: tuple[int, int] = (0, 1),
+    ) -> SchedulerIntervention:
+        """Create a random direction with the same per-sample norm as *source*.
+
+        Draws a random normal vector, scales each sample to match the
+        norm of *source*, then returns a frozen ``SchedulerIntervention``.
+
+        Parameters
+        ----------
+        source:
+            Reference latent ``(N, C, H, W)`` whose norm to match.
+        seed:
+            Optional RNG seed for reproducibility.
+        strength:
+            Intervention strength multiplier.
+        step_range:
+            Denoising step range ``[start, end)``.
+        """
+        rng = np.random.default_rng(seed)
+        direction = rng.normal(0, 1, size=source.shape).astype(np.float32)
+        # Scale each sample to match source norm.
+        for i in range(source.shape[0]):
+            src_norm = np.linalg.norm(source[i])
+            if src_norm > 1e-15:
+                direction[i] *= src_norm / np.linalg.norm(direction[i])
+        direction.setflags(write=False)
+        return SchedulerIntervention(direction=direction, strength=strength, step_range=step_range)
 
     # -- convenience descriptors (Task 5) ----------------------------------
 

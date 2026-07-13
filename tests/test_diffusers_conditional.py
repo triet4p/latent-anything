@@ -20,6 +20,7 @@ from latent_anything.integrations.diffusers_conditional import (
     DiffusersConditionalPipeline,
     GenerationRequest,
     GenerationResult,
+    SchedulerIntervention,
     SchedulerLatentState,
 )
 
@@ -299,3 +300,140 @@ class TestFakeBackendPipeline:
         assert pipe.resolve_scheduler(fake_diffusers, "euler_a").__name__ == "EulerA"
         with pytest.raises(ValueError, match="Unknown scheduler"):
             pipe.resolve_scheduler(fake_diffusers, "nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# Scheduler intervention tests
+# ---------------------------------------------------------------------------
+
+
+class TestSchedulerIntervention:
+    def test_valid_intervention(self) -> None:
+        direction = np.zeros((1, 4, 64, 64), dtype=np.float32)
+        direction.setflags(write=False)
+        intervention = SchedulerIntervention(direction=direction, strength=1.0, step_range=(5, 15))
+        assert intervention.strength == 1.0
+        assert intervention.step_range == (5, 15)
+        assert intervention.direction.shape == (1, 4, 64, 64)
+
+    def test_rejects_non_4d_direction(self) -> None:
+        with pytest.raises(ValueError, match="must be 4D"):
+            SchedulerIntervention(direction=np.zeros((64, 64)), strength=1.0, step_range=(0, 1))
+
+    def test_rejects_negative_strength(self) -> None:
+        with pytest.raises(ValueError, match="strength must be >= 0"):
+            SchedulerIntervention(direction=np.zeros((1, 4, 8, 8)), strength=-1.0, step_range=(0, 1))
+
+    def test_rejects_invalid_step_range(self) -> None:
+        with pytest.raises(ValueError, match="invalid step_range"):
+            SchedulerIntervention(direction=np.zeros((1, 4, 8, 8)), strength=1.0, step_range=(10, 5))
+
+    def test_zero_strength_is_acceptable(self) -> None:
+        """Zero strength is a valid (no-op) intervention."""
+        intervention = SchedulerIntervention(direction=np.zeros((1, 4, 8, 8)), strength=0.0, step_range=(0, 1))
+        assert intervention.strength == 0.0
+
+
+class TestInterventionDirectionHelpers:
+    def test_random_direction_has_correct_shape(self) -> None:
+        intervention = DiffusersConditionalPipeline.random_direction(
+            shape=(1, 4, 64, 64), seed=42, strength=2.0, step_range=(0, 5)
+        )
+        assert intervention.direction.shape == (1, 4, 64, 64)
+        assert intervention.strength == 2.0
+        assert intervention.step_range == (0, 5)
+
+    def test_random_direction_is_deterministic(self) -> None:
+        a = DiffusersConditionalPipeline.random_direction((1, 4, 8, 8), seed=99)
+        b = DiffusersConditionalPipeline.random_direction((1, 4, 8, 8), seed=99)
+        np.testing.assert_array_equal(a.direction, b.direction)
+
+    def test_matched_norm_matches_source_norm(self) -> None:
+        source = np.random.RandomState(42).randn(1, 4, 8, 8).astype(np.float32)
+        src_norm = np.linalg.norm(source)
+        intervention = DiffusersConditionalPipeline.matched_norm_direction(
+            source, seed=0, strength=1.0, step_range=(0, 1)
+        )
+        dir_norm = np.linalg.norm(intervention.direction)
+        assert abs(dir_norm - src_norm) < 1e-5
+
+    def test_matched_norm_respects_zeros(self) -> None:
+        source = np.zeros((1, 4, 8, 8), dtype=np.float32)
+        intervention = DiffusersConditionalPipeline.matched_norm_direction(source, seed=0)
+        # When source norm is ~0, no scaling happens — direction stays as drawn.
+        assert intervention.direction.shape == (1, 4, 8, 8)
+
+
+class TestFakeBackendIntervention:
+    def test_generate_with_intervention_returns_result(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import types
+
+        pipe = DiffusersConditionalPipeline()
+        monkeypatch.setattr(pipe, "_backend", lambda: FakePipeline())
+        monkeypatch.setattr(pipe, "_scheduler_name", "FakeScheduler")
+        monkeypatch.setattr(
+            pipe,
+            "_diffusers_module",
+            types.SimpleNamespace(
+                DDIMScheduler=FakeScheduler,
+                PNDMScheduler=FakeScheduler,
+                LMSDiscreteScheduler=FakeScheduler,
+                EulerDiscreteScheduler=FakeScheduler,
+                EulerAncestralDiscreteScheduler=FakeScheduler,
+            ),
+        )
+
+        req = GenerationRequest(
+            prompt="test",
+            num_inference_steps=5,
+            capture_scheduler_states=False,
+            capture_denoiser_location=None,
+        )
+        intervention = SchedulerIntervention(
+            direction=np.zeros((1, 4, 64, 64), dtype=np.float32),
+            strength=0.5,
+            step_range=(1, 4),
+        )
+        # FakePipeline does not invoke callbacks, so the intervention
+        # mechanism is not exercised here.  This test verifies the
+        # generate() method accepts the intervention parameter and
+        # returns a properly typed result without errors.
+        result = pipe.generate(req, intervention=intervention)
+        assert isinstance(result, GenerationResult)
+        # The final latent should exist (zeros from the fallback path).
+        assert result.final_vae_latent.shape == (1, 4, 64, 64)
+
+    def test_intervention_without_explicit_capture(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """generate() accepts intervention even when capture_scheduler_states is False."""
+        import types
+
+        pipe = DiffusersConditionalPipeline()
+        monkeypatch.setattr(pipe, "_backend", lambda: FakePipeline())
+        monkeypatch.setattr(pipe, "_scheduler_name", "FakeScheduler")
+        monkeypatch.setattr(
+            pipe,
+            "_diffusers_module",
+            types.SimpleNamespace(
+                DDIMScheduler=FakeScheduler,
+                PNDMScheduler=FakeScheduler,
+                LMSDiscreteScheduler=FakeScheduler,
+                EulerDiscreteScheduler=FakeScheduler,
+                EulerAncestralDiscreteScheduler=FakeScheduler,
+            ),
+        )
+
+        req = GenerationRequest(
+            prompt="test",
+            num_inference_steps=3,
+            capture_scheduler_states=False,
+            capture_denoiser_location=None,
+        )
+        intervention = SchedulerIntervention(
+            direction=np.zeros((1, 4, 64, 64), dtype=np.float32),
+            strength=1.0,
+            step_range=(0, 3),
+        )
+        # FakePipeline doesn't invoke callbacks, so we verify only that
+        # generate() accepts the intervention parameter without error.
+        result = pipe.generate(req, intervention=intervention)
+        assert isinstance(result, GenerationResult)
