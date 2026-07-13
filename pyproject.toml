@@ -57,7 +57,29 @@ line-ending = "auto"
 
 [tool.pyright]
 typeCheckingMode = "strict"
-include = ["src"]
+include = [
+    "src",
+    "scripts/benchmark_geometry_dispatch.py",
+    "scripts/conv_vae_digits_evidence.py",
+    "scripts/diffusers_vae_interpolation.py",
+    "scripts/end_to_end_showcase_demo.py",
+    "scripts/report_config_migration.py",
+    "scripts/vae_explanation_benchmark.py",
+    "scripts/validate_evidence_ledger.py",
+    "tests/test_api_surface.py",
+    "tests/test_diffusers_vae.py",
+    "tests/test_diffusers_vae_network.py",
+    "tests/test_evaluation.py",
+    "tests/test_integrations.py",
+    "tests/test_latent_anything/test_capture.py",
+    "tests/test_latent_anything/test_conv_vae.py",
+    "tests/test_latent_anything/test_conv_vae_evidence.py",
+    "tests/test_latent_anything/test_demo_smoke.py",
+    "tests/test_latent_anything/test_latent_space.py",
+    "tests/test_latent_anything/test_latent_value.py",
+    "tests/test_registry_migration.py",
+    "tests/test_scripts/test_validate_evidence_ledger.py",
+]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.12"
 pythonPlatform = "All"

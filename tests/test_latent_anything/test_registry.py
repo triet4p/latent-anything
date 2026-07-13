@@ -317,14 +317,14 @@ class TestGlobalRegistryBuiltins:
     """Verifying that GLOBAL_REGISTRY has the expected built-in entries."""
 
     def test_global_registry_has_all_adapters(self) -> None:
-        """GLOBAL_REGISTRY contains all four built-in adapters."""
+        """GLOBAL_REGISTRY contains all built-in adapters."""
         adapter_names = {e.name for e in GLOBAL_REGISTRY.list(KIND_ADAPTER)}
         assert "vae" in adapter_names
         assert "random_projection" in adapter_names
         assert "hidden_state" in adapter_names
         assert "gaussian_renderer" in adapter_names
-        # Only these four — no extra entries from built-in registration
-        assert len(adapter_names) == 4
+        assert "conv_vae" in adapter_names
+        assert len(adapter_names) == 5
 
     def test_global_registry_has_all_method_a(self) -> None:
         """GLOBAL_REGISTRY contains all three Layer A methods."""
@@ -337,12 +337,12 @@ class TestGlobalRegistryBuiltins:
         assert method_b_names == {"lerp", "steering", "activation_patch"}
 
     def test_global_registry_total_entries(self) -> None:
-        """GLOBAL_REGISTRY has exactly 10 entries (4 adapters + 3 method_a + 3 method_b)."""
-        assert len(GLOBAL_REGISTRY) >= 10
+        """GLOBAL_REGISTRY has 11 entries (5 adapters + 3 analysis + 3 intervention)."""
+        assert len(GLOBAL_REGISTRY) >= 11
         n_adapters = len(GLOBAL_REGISTRY.list(KIND_ADAPTER))
         n_method_a = len(GLOBAL_REGISTRY.list(KIND_METHOD_A))
         n_method_b = len(GLOBAL_REGISTRY.list(KIND_METHOD_B))
-        assert n_adapters == 4
+        assert n_adapters == 5
         assert n_method_a == 3
         assert n_method_b == 3
 

@@ -9,7 +9,9 @@ allowed to make a decoded intervention claim.
 
 The acceptance flag is deliberately conservative: a latent probe must beat the
 shuffled-label control by 0.05, not lose to input pixels, increase its target
-score, and keep mean off-target change at or below 0.1. A readable projection
+score, keep mean off-target change at or below 0.1, keep reconstruction and
+decoded-intervention MSE at or below 0.1, and keep the 95% seed confidence
+interval at or below 0.05. A readable projection
 that fails those controls remains D1.
 
 Run `uv run python scripts/vae_explanation_benchmark.py` to overwrite the

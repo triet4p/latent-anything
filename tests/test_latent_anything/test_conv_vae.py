@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+from typing import Protocol, cast
+
 import numpy as np
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits  # pyright: ignore[reportMissingTypeStubs]
 
 from latent_anything.adapters.conv_vae import ConvVAE
+
+
+class _DigitsDataset(Protocol):
+    images: np.ndarray
 
 
 def test_conv_vae_roundtrip_shapes_and_numpy_boundary() -> None:
@@ -19,7 +25,7 @@ def test_conv_vae_roundtrip_shapes_and_numpy_boundary() -> None:
 
 
 def test_conv_vae_trains_on_real_digits_cpu_smoke_subset() -> None:
-    digits = load_digits()
+    digits = cast(_DigitsDataset, load_digits())
     images = (digits.images[:16] / 16.0).astype(np.float64)[:, None, :, :]
     adapter = ConvVAE(latent_dim=3, n_epochs=1)
     adapter.fit(images)

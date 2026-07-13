@@ -16,7 +16,11 @@ intentional capability migration: update its ledger key in the same change.
 | D2 | D1 plus a non-trivial benchmark, quantitative acceptance criterion, and reproducible configuration. |
 | D3 | D2 plus a reproducible artifact from a real trained or pretrained model. |
 
-The validator checks that every D1+ item links to versioned local evidence.
+Each evidence item is a typed record with a `role` (`source`, `test`,
+`benchmark`, `config`, or `artifact`) and a local `path`. The validator checks
+that every D1+ item links to versioned local evidence; D2 requires source,
+test, benchmark, and config records, while D3 also requires an artifact. D1
+requires source and test records.
 It deliberately does not download optional models or resolve optional extras.
 
 ## Classification and denominator
@@ -30,7 +34,7 @@ Every THEORY topic is exactly one of:
   or D3 through a benchmark.
 - `contextual-background`: theory, historical model survey, or prerequisite
   knowledge that informs decisions without becoming a product capability. It
-  is explicitly excluded, with its rationale recorded in the ledger policy.
+  is explicitly excluded only as an `{id: rationale}` ledger record.
 
 The two release percentages are exact:
 
@@ -68,5 +72,5 @@ Sprint 31 will attach migration evidence to this section.
 
 Run `uv run python scripts/validate_evidence_ledger.py`. It rejects missing,
 duplicated, or stale IDs; invalid status/classification; absent D1+ evidence;
-and evidence paths that do not exist. CI runs the same read-only command before
-the Python quality gate.
+malformed typed records; missing level-specific roles; and evidence paths that
+do not exist. CI runs the same read-only command before the Python quality gate.

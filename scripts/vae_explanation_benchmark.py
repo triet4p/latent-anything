@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Protocol, Self, cast
 
 import numpy as np
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression  # pyright: ignore[reportMissingTypeStubs]
 
 from latent_anything.adapters.conv_vae import ConvVAE
 from latent_anything.evaluation import evaluate_explanation, intervention_effect, probe_accuracy
@@ -18,15 +19,27 @@ ARTIFACT = Path("artifacts/vae_explanation_benchmark.json")
 SEEDS = (0, 1, 2)
 
 
+class _DigitsDataset(Protocol):
+    images: np.ndarray
+    target: np.ndarray
+
+
+class _ProbabilityProbe(Protocol):
+    def fit(self, features: np.ndarray, labels: np.ndarray) -> Self: ...
+
+    def predict_proba(self, values: np.ndarray) -> np.ndarray: ...
+
+
 def _probability(features: np.ndarray, labels: np.ndarray, values: np.ndarray, seed: int) -> np.ndarray:
-    probe = LogisticRegression(max_iter=500, random_state=seed).fit(features, labels)
+    probe = cast(_ProbabilityProbe, LogisticRegression(max_iter=500, random_state=seed))
+    probe.fit(features, labels)
     return probe.predict_proba(values)[:, 1]
 
 
 def main() -> None:
-    from sklearn.datasets import load_digits
+    from sklearn.datasets import load_digits  # pyright: ignore[reportMissingTypeStubs]
 
-    digits = load_digits()
+    digits = cast(_DigitsDataset, load_digits())
     images = (digits.images[:240] / 16.0)[:, None, :, :].astype(np.float32)
     labels = (digits.target[:240] >= 5).astype(int)
     nuisance = (digits.target[:240] % 2).astype(int)

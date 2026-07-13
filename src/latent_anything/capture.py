@@ -40,7 +40,11 @@ Intervention = Callable[[torch.Tensor, CaptureMetadata], torch.Tensor]
 
 
 class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"]):
-    """Exception-safe session for ordered capture at named module locations."""
+    """Exception-safe session for captures in model forward execution order.
+
+    Axis semantics are adapter-provided; this hook layer records only the
+    universally meaningful batch axis.
+    """
 
     def __init__(
         self,
@@ -73,7 +77,7 @@ class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"
 
     @property
     def captures(self) -> tuple[CapturedActivation, ...]:
-        """Return captured records in declared-location then call order."""
+        """Return captured records in forward execution order."""
 
         return tuple(self._captures)
 
@@ -87,6 +91,12 @@ class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"
         for handle in self._handles:
             handle.remove()
         self._handles.clear()
+
+    @property
+    def is_active(self) -> bool:
+        """Whether this session currently owns registered hooks."""
+
+        return bool(self._handles)
 
     def _hook(self, location: str) -> Callable[[nn.Module, tuple[object, ...], object], object]:
         def callback(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
@@ -122,7 +132,7 @@ class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"
             call_index=call_index,
             shape=shape,
             batch_axis=0 if tensor.ndim >= 1 else None,
-            sequence_axis=1 if tensor.ndim >= 3 else None,
+            sequence_axis=None,
             device=str(tensor.device),
             dtype=str(tensor.dtype).removeprefix("torch."),
             source_model_version=self._source_model_version,

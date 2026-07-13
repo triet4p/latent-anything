@@ -38,10 +38,14 @@ def test_capture_records_declared_locations_numpy_metadata_and_no_hooks_leak() -
     assert session.captures[0].metadata.batch_axis == 0
     assert session.captures[0].metadata.dtype == "float32"
     assert session.captures[0].metadata.source_model_version == "tiny-v1"
-    assert len(model.first._forward_hooks) == 0
+    assert not session.is_active
+    capture_count = len(session.captures)
+    model(values)
+    assert len(session.captures) == capture_count
     with ActivationCaptureSession(model, ["first"]) as repeated:
         model(values)
     assert len(repeated.captures) == 1
+    assert not repeated.is_active
 
 
 def test_capture_supports_nested_modules_and_intervention_without_mutating_input() -> None:
@@ -66,6 +70,8 @@ def test_capture_selection_and_shape_errors_remove_hooks_on_exception() -> None:
         ActivationCaptureSession(model, ["missing"])
     with pytest.raises(ValueError, match="duplicates"):
         ActivationCaptureSession(model, ["first", "first"])
-    with pytest.raises(RuntimeError), ActivationCaptureSession(model, ["first"]):
+    failed_session = ActivationCaptureSession(model, ["first"])
+    with pytest.raises(RuntimeError), failed_session:
         raise RuntimeError("boom")
-    assert len(model.first._forward_hooks) == 0
+    model(torch.ones((1, 3)))
+    assert failed_session.captures == ()

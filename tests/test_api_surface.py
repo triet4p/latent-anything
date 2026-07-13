@@ -42,6 +42,7 @@ def test_top_level_public_beta_export_snapshot() -> None:
 def test_method_and_adapter_protocol_snapshot() -> None:
     assert methods.__all__ == ["ActivationPatch", "BMethod", "Method", "PCA", "SAE", "UMAP", "Lerp", "SteeringVector"]
     assert adapters.__all__ == [
+        "ConvVAE",
         "DecodableAdapter",
         "FlatBatchDecodableAdapter",
         "GaussianRendererAdapter",

@@ -5,13 +5,14 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 
 from latent_anything.integrations.diffusers_vae import DiffusersAutoencoderKLAdapter
 
 
 class FakeBackend:
-    config = SimpleNamespace(scaling_factor=0.5)
+    config = SimpleNamespace(scaling_factor=0.5, latent_channels=4)
 
     def encode(self, values: torch.Tensor) -> object:
         latent = torch.cat((values, values[:, :1]), dim=1)
@@ -22,7 +23,7 @@ class FakeBackend:
         return SimpleNamespace(sample=latent[:, :3] * 2)
 
 
-def test_scaling_and_mean_round_trip_match_direct_fake_backend(monkeypatch) -> None:
+def test_scaling_and_mean_round_trip_match_direct_fake_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     adapter = DiffusersAutoencoderKLAdapter("fake/model", "revision", latent_mode="mean")
     monkeypatch.setattr(adapter, "_backend", lambda: FakeBackend())
     images = np.zeros((2, 3, 4, 4), dtype=np.float64)
@@ -35,7 +36,7 @@ def test_scaling_and_mean_round_trip_match_direct_fake_backend(monkeypatch) -> N
     assert latent_value.metadata == {"layout": "NHWC", "scaled": True}
 
 
-def test_sample_mode_matches_direct_backend_and_validation(monkeypatch) -> None:
+def test_sample_mode_matches_direct_backend_and_validation(monkeypatch: pytest.MonkeyPatch) -> None:
     adapter = DiffusersAutoencoderKLAdapter("fake/model", "revision", latent_mode="sample")
     monkeypatch.setattr(adapter, "_backend", lambda: FakeBackend())
     np.testing.assert_array_equal(adapter.encode(np.zeros((1, 3, 2, 2))), 0.5)
@@ -48,3 +49,5 @@ def test_constructor_rejects_invalid_latent_mode_or_dtype() -> None:
         DiffusersAutoencoderKLAdapter("fake/model", "revision", latent_mode="invalid")  # type: ignore[arg-type]
     with np.testing.assert_raises(TypeError):
         DiffusersAutoencoderKLAdapter("fake/model", "revision", dtype=np.int64)
+    with np.testing.assert_raises(TypeError):
+        DiffusersAutoencoderKLAdapter("fake/model", "revision", dtype=np.float64)

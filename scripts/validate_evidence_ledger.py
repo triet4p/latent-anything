@@ -7,18 +7,28 @@ import json
 import re
 import sys
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal, cast
 
 Classification = Literal["implementation-applicable", "benchmark-only", "contextual-background"]
 Status = Literal["D0", "D1", "D2", "D3"]
+EvidenceRole = Literal["source", "test", "benchmark", "config", "artifact"]
 
 ROOT = Path(__file__).resolve().parents[1]
 THEORY_PATH = ROOT / "docs" / "THEORY.md"
 LEDGER_PATH = ROOT / "docs" / "evidence-ledger.json"
 _TIER_PATTERN = re.compile(r"^#{2,} Tầng (?P<number>\d+|bổ sung)(?P<suffix>[A-Z]?)")
 _TOPIC_PATTERN = re.compile(r"^- \[[ x~]\] \*\*(?P<title>.+?)\*\*")
+
+
+@dataclass(frozen=True)
+class EvidenceRecord:
+    """One typed local evidence link from the schema-v2 ledger."""
+
+    role: str
+    path: str
+    error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -31,7 +41,7 @@ class Capability:
     source_line: int
     classification: Classification
     status: Status
-    evidence: tuple[str, ...]
+    evidence: tuple[EvidenceRecord, ...]
 
 
 def _slug(value: str) -> str:
@@ -44,13 +54,47 @@ def _read_ledger() -> dict[str, object]:
 
 
 def _classification(capability_id: str, ledger: dict[str, object]) -> Classification:
-    contextual = set(cast(list[str], ledger["contextual_background"]))
+    contextual = set(cast(dict[str, str], ledger["contextual_background"]))
     benchmark = set(cast(list[str], ledger["benchmark_only"]))
     if capability_id in contextual:
         return "contextual-background"
     if capability_id in benchmark:
         return "benchmark-only"
     return "implementation-applicable"
+
+
+def parse_evidence_records(capability_id: str, raw_evidence: object) -> tuple[EvidenceRecord, ...]:
+    """Parse evidence without letting malformed ledger data crash validation."""
+
+    if not isinstance(raw_evidence, list):
+        return (EvidenceRecord(role="", path="", error=f"{capability_id} evidence must be a list."),)
+    evidence_items = cast(list[object], raw_evidence)
+    records: list[EvidenceRecord] = []
+    valid_roles: set[str] = {"source", "test", "benchmark", "config", "artifact"}
+    for index, item in enumerate(evidence_items):
+        prefix = f"{capability_id} evidence[{index}]"
+        if not isinstance(item, dict):
+            records.append(EvidenceRecord(role="", path="", error=f"{prefix} must be an object with role and path."))
+            continue
+        record = cast(dict[object, object], item)
+        role = record.get("role")
+        path = record.get("path")
+        errors: list[str] = []
+        if not isinstance(role, str) or role not in valid_roles:
+            errors.append(f"role must be one of {sorted(valid_roles)}")
+        if not isinstance(path, str) or not path.strip():
+            errors.append("path must be a non-empty string")
+        unexpected = sorted(str(key) for key in record if key not in {"role", "path"})
+        if unexpected:
+            errors.append(f"unexpected fields: {unexpected}")
+        records.append(
+            EvidenceRecord(
+                role=role if isinstance(role, str) else "",
+                path=path if isinstance(path, str) else "",
+                error=f"{prefix} {'; '.join(errors)}." if errors else None,
+            )
+        )
+    return tuple(records)
 
 
 def load_capabilities() -> tuple[Capability, ...]:
@@ -76,7 +120,7 @@ def load_capabilities() -> tuple[Capability, ...]:
             capability_id = f"THY-{current_tier}-{_slug(title)}"
             override = overrides.get(capability_id, {})
             status = cast(Status, override.get("status", "D0"))
-            evidence = tuple(cast(list[str], override.get("evidence", [])))
+            evidence = parse_evidence_records(capability_id, override.get("evidence", []))
             capabilities.append(
                 Capability(
                     capability_id=capability_id,
@@ -97,13 +141,19 @@ def validate_capabilities(capabilities: tuple[Capability, ...]) -> list[str]:
     ledger = _read_ledger()
     known_ids = {capability.capability_id for capability in capabilities}
     errors: list[str] = []
+    if ledger.get("schema_version") != 2:
+        errors.append("Evidence ledger schema_version must be 2.")
     if len(known_ids) != len(capabilities):
         errors.append("Duplicate capability IDs were derived from docs/THEORY.md.")
-    all_configured_ids = set(cast(list[str], ledger["contextual_background"]))
+    contextual = cast(dict[str, str], ledger["contextual_background"])
+    all_configured_ids = set(contextual)
     all_configured_ids.update(cast(list[str], ledger["benchmark_only"]))
     all_configured_ids.update(cast(dict[str, object], ledger["overrides"]).keys())
     for stale_id in sorted(all_configured_ids - known_ids):
         errors.append(f"Ledger references a stale capability ID: {stale_id}")
+    for capability_id, rationale in contextual.items():
+        if not rationale.strip():
+            errors.append(f"{capability_id} has no contextual-background rationale.")
     for capability in capabilities:
         if capability.status not in {"D0", "D1", "D2", "D3"}:
             errors.append(f"{capability.capability_id} has invalid status {capability.status!r}.")
@@ -111,9 +161,22 @@ def validate_capabilities(capabilities: tuple[Capability, ...]) -> list[str]:
             errors.append(f"{capability.capability_id} is contextual background and must remain D0.")
         if capability.status != "D0" and not capability.evidence:
             errors.append(f"{capability.capability_id} is {capability.status} but has no evidence links.")
-        for relative_path in capability.evidence:
-            if not (ROOT / relative_path).is_file():
-                errors.append(f"{capability.capability_id} links to missing evidence: {relative_path}")
+        for record in capability.evidence:
+            if record.error is not None:
+                errors.append(record.error)
+            elif not (ROOT / record.path).is_file():
+                errors.append(f"{capability.capability_id} links to missing evidence: {record.path}")
+        required_roles: set[str] = set()
+        if capability.status in {"D1", "D2", "D3"}:
+            required_roles.update({"source", "test"})
+        if capability.status in {"D2", "D3"}:
+            required_roles.update({"benchmark", "config"})
+        if capability.status == "D3":
+            required_roles.add("artifact")
+        roles = {record.role for record in capability.evidence if record.error is None}
+        missing_roles = required_roles - roles
+        if missing_roles:
+            errors.append(f"{capability.capability_id} is {capability.status} but lacks roles: {sorted(missing_roles)}")
     return errors
 
 
@@ -138,8 +201,9 @@ def coverage_summary(capabilities: tuple[Capability, ...]) -> dict[str, tuple[in
 def main() -> int:
     """Print the current coverage and fail non-zero when ledger integrity is broken."""
 
+    # TextIO's platform-specific ``reconfigure`` is not present in typeshed.
     if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdout.reconfigure(encoding="utf-8")  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Emit the derived inventory and coverage as JSON.")
     args = parser.parse_args()
@@ -150,7 +214,7 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "capabilities": [capability.__dict__ for capability in capabilities],
+                    "capabilities": [asdict(capability) for capability in capabilities],
                     "coverage": summary,
                     "errors": errors,
                 },

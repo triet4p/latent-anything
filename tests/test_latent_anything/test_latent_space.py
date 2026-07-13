@@ -706,6 +706,13 @@ class TestLatentSpaceDiscreteCode:
         np.testing.assert_array_equal(normalized, a)
         assert normalized is not a
 
+    def test_distance_rejects_invalid_codes_before_metric(self) -> None:
+        space = LatentSpace(dim=2, geometry="discrete_code", codebook_size=4)
+        with pytest.raises(TypeError, match="integer"):
+            space.distance(np.array([0.0, 1.0]), np.array([0.0, 1.0]))
+        with pytest.raises(ValueError, match="codes in"):
+            space.distance(np.array([0, 4]), np.array([0, 1]))
+
     def test_rejects_continuous_interpolation(self) -> None:
         space = LatentSpace(dim=2, geometry="discrete_code", codebook_size=4)
         with pytest.raises(ValueError, match="no continuous interpolation"):

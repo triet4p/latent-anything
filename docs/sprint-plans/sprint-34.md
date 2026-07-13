@@ -13,7 +13,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Train a reproducible CPU smoke checkpoint and record architecture, seed, dataset revision, and loss configuration.
 - [x] Measure reconstruction quality, posterior KL, latent utilization, sample quality proxy, and interpolation validity caveat.
 - [x] Route encoded values through the new latent container, two analysis methods, and one manipulation method.
-- [x] Add unit tests with a tiny model and a reproducible end-to-end integration test with quantitative non-negativity thresholds.
+- [~] Add unit tests with a tiny model and a reproducible end-to-end integration test with meaningful held-out thresholds and baseline comparison.
 - [x] Produce before/after decoded artifacts plus a failure-case section, not only a best-case plot.
 - [x] Apply the adapter Rule of Three check and update evidence/changelog/artifact/gates.
 

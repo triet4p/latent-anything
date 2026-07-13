@@ -7,7 +7,7 @@ or via direct import. This proves "registry-first" does not change behavior.
 
 from __future__ import annotations
 
-from latent_anything.adapters import VAE, GaussianRendererAdapter, HiddenStateAdapter, RandomProjection
+from latent_anything.adapters import VAE, ConvVAE, GaussianRendererAdapter, HiddenStateAdapter, RandomProjection
 from latent_anything.methods import PCA, SAE, UMAP, ActivationPatch, Lerp, SteeringVector
 from latent_anything.registry import GLOBAL_REGISTRY
 
@@ -49,6 +49,12 @@ class TestAdapterParity:
         params = {"n_gaussians": 10, "img_height": 28, "img_width": 28}
         via_registry = entry.factory(**params)
         via_direct = GaussianRendererAdapter(**params)
+        assert type(via_registry) is type(via_direct)
+
+    def test_conv_vae_parity(self) -> None:
+        """Registry-constructed ConvVAE has the direct-import type."""
+        via_registry = GLOBAL_REGISTRY.lookup("conv_vae").factory(latent_dim=3)
+        via_direct = ConvVAE(latent_dim=3)
         assert type(via_registry) is type(via_direct)
 
 

@@ -38,6 +38,7 @@ Internal plugin extraction contract
 
 from __future__ import annotations
 
+from latent_anything.adapters.conv_vae import ConvVAE
 from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
@@ -51,6 +52,15 @@ from latent_anything.methods.umap import UMAP
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
 
 # ── Register adapters ───────────────────────────────────────────────
+
+GLOBAL_REGISTRY.register(
+    KIND_ADAPTER,
+    "conv_vae",
+    ConvVAE,
+    description="Convolutional VAE for image batches — explicit learned latent (mode i)",
+    protocol="ModelAdapter, DecodableAdapter, FlatBatchDecodableAdapter",
+    source="built-in",
+)
 
 GLOBAL_REGISTRY.register(
     KIND_ADAPTER,

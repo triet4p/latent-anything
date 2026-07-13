@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -31,20 +31,30 @@ class DiffusersAutoencoderKLAdapter:
         self.device = device
         self.latent_mode = latent_mode
         self.dtype = np.dtype(dtype)
-        if self.dtype.kind != "f":
-            raise TypeError("dtype must be a floating NumPy dtype")
+        if self.dtype not in {np.dtype(np.float16), np.dtype(np.float32)}:
+            raise TypeError("dtype must be float16 or float32 to match supported Diffusers checkpoints")
         self._model: Any | None = None
+
+    def _torch_dtype(self) -> Any:
+        """Map the supported NumPy boundary dtypes to the backend dtypes."""
+        import torch
+
+        return torch.float16 if self.dtype == np.dtype(np.float16) else torch.float32
 
     def _backend(self) -> Any:
         if self._model is None:
             diffusers = require_optional("diffusers", extra="diffusers")
             autoencoder = diffusers.AutoencoderKL
-            self._model = autoencoder.from_pretrained(self.model_id, revision=self.revision).to(self.device)
+            self._model = autoencoder.from_pretrained(self.model_id, revision=self.revision).to(
+                device=self.device, dtype=self._torch_dtype()
+            )
         return self._model
 
     @property
     def latent_space(self) -> LatentSpace:
-        return LatentSpace(dim=4, source_model=self.model_id, metadata={"revision": self.revision})
+        model = self._backend()
+        latent_channels = cast(int, model.config.latent_channels)
+        return LatentSpace(dim=latent_channels, source_model=self.model_id, metadata={"revision": self.revision})
 
     def encode(self, images: np.ndarray) -> np.ndarray:
         if (
@@ -60,7 +70,9 @@ class DiffusersAutoencoderKLAdapter:
 
         model = self._backend()
         with torch.no_grad():
-            tensor = torch.from_numpy(images.astype(self.dtype, copy=False)).to(self.device)  # pyright: ignore[reportUnknownMemberType]
+            tensor = torch.from_numpy(images.astype(self.dtype, copy=False)).to(  # pyright: ignore[reportUnknownMemberType] # torch's NumPy boundary is untyped
+                device=self.device, dtype=self._torch_dtype()
+            )  # pyright: ignore[reportUnknownMemberType] # third-party torch stub boundary
             distribution = model.encode(tensor).latent_dist
             latent = distribution.mean if self.latent_mode == "mean" else distribution.sample()
             return (latent * model.config.scaling_factor).detach().cpu().numpy()
@@ -80,6 +92,8 @@ class DiffusersAutoencoderKLAdapter:
 
         model = self._backend()
         with torch.no_grad():
-            tensor = torch.from_numpy(latent.astype(self.dtype, copy=False)).to(self.device)  # pyright: ignore[reportUnknownMemberType]
+            tensor = torch.from_numpy(latent.astype(self.dtype, copy=False)).to(  # pyright: ignore[reportUnknownMemberType] # torch's NumPy boundary is untyped
+                device=self.device, dtype=self._torch_dtype()
+            )  # pyright: ignore[reportUnknownMemberType] # third-party torch stub boundary
             output = model.decode(tensor / model.config.scaling_factor).sample
             return output.detach().cpu().numpy()

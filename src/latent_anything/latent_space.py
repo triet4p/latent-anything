@@ -1,5 +1,4 @@
-"""A concrete geometry-aware latent space with Euclidean, spherical,
-and Gaussian-set support."""
+"""A concrete geometry-aware latent space with four validated geometries."""
 
 from __future__ import annotations
 
@@ -40,12 +39,12 @@ def _build_gaussian_layout(
 class LatentSpace:
     """Represents a latent space with concrete geometry-aware operations.
 
-    This is a concrete implementation supporting three validated geometry
+    This is a concrete implementation supporting four validated geometry
     cases: Euclidean flat vectors (``"euclidean"``), unit-norm spherical
     vectors (``"unit_norm"``), and fixed-size Gaussian-set structured
-    points (``"gaussian_set"``). It will be generalized to an interface
-    once instance #4 of a different philosophy appears (Rule of Three,
-    see INCREMENTAL.md §4a).
+    points (``"gaussian_set"``), and categorical code vectors
+    (``"discrete_code"``). The fourth case extracted focused algorithms,
+    not a speculative geometry hierarchy.
 
     Parameters
     ----------
@@ -56,7 +55,8 @@ class LatentSpace:
         validated against that sum.
     geometry : str, optional
         Geometry hint for dispatch. Supported values are
-        ``"euclidean"``, ``"unit_norm"``, and ``"gaussian_set"``.
+        ``"euclidean"``, ``"unit_norm"``, ``"gaussian_set"``, and
+        ``"discrete_code"``.
     source_model : str, optional
         Name or identifier of the source model.
     metadata : dict, optional
@@ -253,6 +253,9 @@ class LatentSpace:
         float
             Distance value.
         """
+        if self.geometry == "discrete_code":
+            self.validate_point(a)
+            self.validate_point(b)
         if self.geometry == "euclidean":
             return float(np.linalg.norm(a - b))
         elif self.geometry == "unit_norm":
@@ -293,6 +296,11 @@ class LatentSpace:
         np.ndarray
             Interpolated point.
         """
+        if self.geometry == "discrete_code":
+            self.validate_point(a)
+            self.validate_point(b)
+        if not 0.0 <= t <= 1.0:
+            raise ValueError("t must be in [0, 1]")
         if self.geometry == "euclidean":
             return (1.0 - t) * a + t * b
         elif self.geometry == "unit_norm":

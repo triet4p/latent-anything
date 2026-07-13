@@ -50,6 +50,30 @@ def test_numpy_and_metadata_cannot_mutate_value() -> None:
     assert_array_equal(value.to_numpy(), np.array([1.0, 2.0]))
     with pytest.raises(TypeError):
         value.metadata["new"] = "value"  # type: ignore[index]
+    with pytest.raises(TypeError):
+        value.metadata["nested"]["name"] = "changed"  # type: ignore[index]
+
+
+def test_value_snapshots_the_space_and_nested_metadata() -> None:
+    space = LatentSpace(dim=2, metadata={"origin": {"name": "initial"}})
+    metadata = {"nested": {"items": [1, 2]}}
+    value = LatentValue(np.array([1.0, 2.0]), space, metadata=metadata)
+    space.metadata["origin"]["name"] = "changed"
+    metadata["nested"]["items"].append(3)
+    assert value.space.metadata["origin"]["name"] == "initial"
+    assert value.metadata["nested"]["items"] == (1, 2)
+
+
+def test_metadata_array_cannot_mutate_internal_snapshot() -> None:
+    value = LatentValue(
+        np.array([1.0, 2.0]),
+        LatentSpace(dim=2),
+        metadata={"array": np.array([1.0, 2.0])},
+    )
+    exposed = value.metadata["array"]
+    exposed.setflags(write=True)
+    exposed[0] = 99.0
+    assert_array_equal(value.metadata["array"], np.array([1.0, 2.0]))
 
 
 def test_structured_gaussian_value_validates_shape_and_geometry() -> None:

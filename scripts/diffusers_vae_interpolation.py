@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Protocol, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits  # pyright: ignore[reportMissingTypeStubs]
 
 from latent_anything.integrations.diffusers_vae import DiffusersAutoencoderKLAdapter
 
@@ -20,8 +21,12 @@ MODEL_REVISION = "31f26fdeee1355a5c34592e401dd41e45d25a493"
 ARTIFACT_DIR = Path("artifacts")
 
 
+class _DigitsDataset(Protocol):
+    images: np.ndarray
+
+
 def main() -> None:
-    digits = load_digits()
+    digits = cast(_DigitsDataset, load_digits())
     images = np.stack([digits.images[0], digits.images[1]])
     nchw = np.repeat(np.kron(images, np.ones((4, 4)))[:, None, :, :], 3, axis=1).astype(np.float32)
     nchw = nchw / 8.0 - 1.0
@@ -40,7 +45,9 @@ def main() -> None:
         axis.set_title(f"t={weight:.2f}")
         axis.axis("off")
     figure.tight_layout()
-    figure.savefig(ARTIFACT_DIR / "diffusers_vae_digits_interpolation.png", dpi=150)
+    figure.savefig(  # pyright: ignore[reportUnknownMemberType] # matplotlib kwargs are untyped
+        ARTIFACT_DIR / "diffusers_vae_digits_interpolation.png", dpi=150
+    )
     plt.close(figure)
     payload = {
         "evidence_level": "D1",

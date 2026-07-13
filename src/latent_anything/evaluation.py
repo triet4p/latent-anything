@@ -92,6 +92,9 @@ def evaluate_explanation(
     random_state: int = 0,
     min_probe_gain: float = 0.05,
     max_off_target_change: float = 0.1,
+    max_reconstruction_mse: float = 0.1,
+    max_decode_degradation: float = 0.1,
+    max_stability_ci95: float = 0.05,
 ) -> ExplanationEvaluation:
     """Evaluate a claim against shuffled-label/input baselines and thresholds."""
     if not seed_probe_scores:
@@ -103,14 +106,28 @@ def evaluate_explanation(
     score_array = np.asarray(seed_probe_scores, dtype=float)
     ci95 = float(1.96 * score_array.std(ddof=0) / np.sqrt(len(score_array)))
     locality = float(max(0.0, effect.target_factor_change - effect.off_target_change))
-    accepted = (
+    reconstruction_mse = float(np.mean((reconstructions - originals) ** 2))
+    values_to_check = (
+        predictability,
+        shuffled_score,
+        input_score,
+        reconstruction_mse,
+        ci95,
+        effect.target_factor_change,
+        effect.off_target_change,
+        effect.decode_degradation,
+    )
+    accepted = all(np.isfinite(values_to_check)) and (
         predictability >= shuffled_score + min_probe_gain
         and predictability >= input_score
         and effect.target_factor_change > 0
         and effect.off_target_change <= max_off_target_change
+        and reconstruction_mse <= max_reconstruction_mse
+        and effect.decode_degradation <= max_decode_degradation
+        and ci95 <= max_stability_ci95
     )
     return ExplanationEvaluation(
-        reconstruction_mse=float(np.mean((reconstructions - originals) ** 2)),
+        reconstruction_mse=reconstruction_mse,
         factor_predictability=predictability,
         shuffled_label_predictability=shuffled_score,
         input_feature_predictability=input_score,

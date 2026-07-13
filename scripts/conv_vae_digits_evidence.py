@@ -4,19 +4,25 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Protocol, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits  # pyright: ignore[reportMissingTypeStubs]
 
 from latent_anything.adapters.conv_vae import ConvVAE
 from latent_anything.methods import PCA, SAE, SteeringVector
 
 
+class _DigitsDataset(Protocol):
+    images: np.ndarray
+    target: np.ndarray
+
+
 def main() -> None:
     """Train a compact ConvVAE and record metrics plus an explicit failure caveat."""
 
-    digits = load_digits()
+    digits = cast(_DigitsDataset, load_digits())
     images = (digits.images[:32] / 16.0).astype(np.float64)[:, None, :, :]
     labels = digits.target[:32]
     adapter = ConvVAE(latent_dim=3, random_state=42, n_epochs=3)
@@ -53,9 +59,13 @@ def main() -> None:
     for index, axis in enumerate(axes[1]):
         axis.imshow(reconstructed[index, 0], cmap="gray", vmin=0, vmax=1)
         axis.axis("off")
-    figure.suptitle("ConvVAE digits: source (top), reconstruction (bottom)")
+    figure.suptitle(  # pyright: ignore[reportUnknownMemberType] # matplotlib kwargs are untyped
+        "ConvVAE digits: source (top), reconstruction (bottom)"
+    )
     figure.tight_layout()
-    figure.savefig(output.with_suffix(".png"), dpi=120)
+    figure.savefig(  # pyright: ignore[reportUnknownMemberType] # matplotlib kwargs are untyped
+        output.with_suffix(".png"), dpi=120
+    )
     plt.close(figure)
 
 

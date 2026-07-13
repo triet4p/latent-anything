@@ -5,12 +5,30 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 from types import MappingProxyType
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
+
+
+def _freeze_metadata(value: Any) -> Any:
+    """Recursively copy metadata into immutable containers."""
+    if isinstance(value, Mapping):
+        mapping = cast(Mapping[str, Any], value)
+        return MappingProxyType({key: _freeze_metadata(item) for key, item in mapping.items()})
+    if isinstance(value, list | tuple):
+        sequence = cast(list[Any] | tuple[Any, ...], value)
+        return tuple(_freeze_metadata(item) for item in sequence)
+    if isinstance(value, set | frozenset):
+        values = cast(set[Any] | frozenset[Any], value)
+        return frozenset(_freeze_metadata(item) for item in values)
+    if isinstance(value, np.ndarray):
+        copied = cast(np.ndarray[Any, Any], value).copy()
+        copied.setflags(write=False)
+        return copied
+    return deepcopy(value)
 
 
 class LatentValue:
@@ -38,20 +56,20 @@ class LatentValue:
         stored = data.copy()
         stored.setflags(write=False)
         self._data = stored
-        self._space = space
-        self._metadata = MappingProxyType(deepcopy(dict(metadata)) if metadata is not None else {})
+        self._space = deepcopy(space)
+        self._metadata = _freeze_metadata(dict(metadata) if metadata is not None else {})
 
     @property
     def space(self) -> LatentSpace:
         """Return the explicitly associated latent space."""
 
-        return self._space
+        return deepcopy(self._space)
 
     @property
     def metadata(self) -> Mapping[str, Any]:
-        """Return immutable value metadata."""
+        """Return an immutable defensive snapshot of value metadata."""
 
-        return self._metadata
+        return cast(Mapping[str, Any], _freeze_metadata(self._metadata))
 
     @property
     def is_batch(self) -> bool:

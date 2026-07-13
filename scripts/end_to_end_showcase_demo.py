@@ -656,7 +656,10 @@ def _print_summary(
 
 
 def main() -> None:
-    sys.stdout.reconfigure(encoding="utf-8")  # Windows: allow Unicode →, — etc.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue] # Windows TextIO extension
+            encoding="utf-8"
+        )
 
     cfg = SHOWCASE_CONFIG
     output_paths = cfg["output"]

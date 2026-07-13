@@ -9,6 +9,7 @@
 - `LatentSpace` now supports categorical `discrete_code` geometry with codebook validation, normalized Hamming distance, and an explicit no-continuous-interpolation policy. (#sprint-30)
 - Registry and config construction now use canonical `analysis` and `intervention` kinds; legacy beta kinds remain aliases with migration diagnostics until `0.9.0`. (#sprint-31)
 - Added internal PyTorch activation capture sessions with safe hook lifecycle, NumPy outputs, provenance metadata, and intervention callbacks. (#sprint-32)
+- Added optional `transformers`, `3d`, and `lerobot` installation extras alongside the Diffusers integration. (#sprint-33)
 - Added a CPU-reproducible convolutional VAE integration evaluated on sklearn digits image data. (#sprint-34)
 - Added a lazy, revision-pinned Diffusers `AutoencoderKL` integration with explicit network acquisition gating and reproducible interpolation diagnostics. (#sprint-35)
 - Added a control-aware VAE explanation benchmark with held-out probes, negative controls, seed intervals, and decoded steering effects. (#sprint-36)
@@ -17,6 +18,9 @@
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
 
 ### Fixed
+
+- Evidence-ledger schema-v2 validation now enforces typed `role`/`path` records and the required evidence roles for every D1, D2, and D3 claim.
+- `LatentValue.metadata` now returns defensive immutable snapshots, including NumPy metadata that callers attempt to make writable again.
 - `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
 
 ## [0.1.0-beta.1] - 2026-07-10
