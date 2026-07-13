@@ -2,22 +2,27 @@
 
 ## Sprint Goal
 
-Add K-means latent structure discovery with stability and external-validity diagnostics.
+Add concept activation vectors and TCAV-style directional sensitivity with target-specific gradients, statistical controls, and intervention cross-checks.
+
+## Entry Criteria
+
+- Sprint 39 provides a gradient-preserving transformer intervention seam.
+- Real VAE/generative and transformer representation datasets have documented concept/reference provenance.
 
 ## Atomic Tasks
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Implement K-means fit/predict/results on flat latent batches with explicit preprocessing and seed behavior.
-- [ ] Report inertia, silhouette, cluster sizes, empty-cluster behavior, and assignment confidence proxies.
-- [ ] Add bootstrap/seed stability and cluster-label alignment before comparing runs.
-- [ ] Compare discovered clusters with known factors where labels exist without training on those labels.
-- [ ] Add geometry compatibility checks and reject misleading use on unsupported structured/discrete spaces.
-- [ ] Add registry/config support and tests for degenerate, imbalanced, and high-dimensional inputs.
-- [ ] Produce a real-model clustering artifact that includes unstable and failed settings.
-- [ ] Update evidence/ADR/changelog/artifact and gates.
+- [ ] Define deterministic concept/reference dataset handling with sampling, split, source, representation-space, and model-version provenance.
+- [ ] Learn concept directions using both mean difference and a regularized linear separator baseline, reporting direction stability and held-out separability.
+- [ ] Define one scalar model target per integration and compute directional gradients at a declared activation location.
+- [ ] Implement a typed TCAV result with target, layer, concept direction, per-example sensitivities, aggregate score, uncertainty, and provenance.
+- [ ] Add repeated random-concept baselines, multiple seeds, significance testing, and correction for the declared family of comparisons.
+- [ ] Validate on one real VAE/generative factor and one Sprint 39 transformer representation.
+- [ ] Cross-check observational sensitivity with a bounded matched-norm intervention along the learned direction and report agreements and contradictions.
+- [ ] Support direct/config registry construction, add failure/control tests, and update evidence/ADR/changelog/artifact/gates without extracting a generic probe/concept protocol prematurely.
 
 ## Notes / Blockers
 
-The result should communicate uncertainty and stability; colored clusters without diagnostics remain exploratory only.
+TCAV is target- and layer-specific. Concept-direction visualization or separability alone is insufficient, and statistical significance does not by itself establish causal meaning.
 

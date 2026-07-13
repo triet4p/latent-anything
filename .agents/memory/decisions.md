@@ -395,3 +395,17 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Replace the beta VAE, make one adapter branch on tensor rank, or immediately redesign the frozen adapter surface.
 **Reason:** The flat synthetic adapter remains a fast deterministic test fixture, whereas ConvVAE proves image layout and convolutional behavior. Both already conform through the existing numpy encode/decode and latent-space shape without a new invariant being required.
 **Consequences:** Future image adapters may follow ConvVAE's NumPy boundary; an interface change needs evidence from a third adapter philosophy, not merely another architecture.
+
+## [2026-07-13] Keep full generative execution outside `ModelAdapter.encode()` until repeated integrations prove a contract
+
+**Decision:** Implement the first full diffusion generation lifecycle as a concrete integration with typed request/result values, native scheduler callbacks, and focused activation capture; do not force it into `ModelAdapter.encode()` or create a generative protocol in Sprint 37.
+**Alternatives considered:** Treat prompt-to-image generation as another `encode()` call; expand the frozen `ModelAdapter` protocol before implementation; or introduce a general diffusion/generative pipeline protocol from the first concrete integration.
+**Reason:** The current adapter contract accepts an array and exposes a representation, while conditional diffusion execution also owns prompts, tokenizer state, scheduler state, initial noise, iterative callbacks, multiple non-homogeneous representation spaces, and generated outputs. Collapsing that lifecycle into `encode()` would hide meaningful semantics, and one pipeline is insufficient Rule-of-Three evidence for a stable generative interface.
+**Consequences:** Sprint 37 uses backend-native `callback_on_step_end` for scheduler latents and hooks only for selected internal activations. VAE component adapters may continue conforming to `ModelAdapter`; a shared generative interface may be extracted later only after differing diffusion, policy, or world-model executions prove common invariants.
+
+## [2026-07-13] Treat registry analysis kinds as taxonomy, not a shared execution lifecycle
+
+**Decision:** Register new probes, concept analyses, clustering, density estimators, and attributions under the semantic `analysis` kind while keeping direct/config construction and payload-specific typed results; do not force them through `Method` or `AnalysisPipeline` solely because they share a registry kind.
+**Alternatives considered:** Make every analysis implement the existing unlabeled `fit`/`transform` lifecycle; broaden `AnalysisPipeline` immediately to labels, targets, calibration data, and gradients; or freeze a new generic analysis protocol before the concrete analyses exist.
+**Reason:** The accepted semantic vocabulary groups capabilities for discovery, but their required inputs and outputs differ materially: supervised probes need labels and split integrity, TCAV needs concepts and scalar targets, density estimators need fit/calibration partitions, and attribution needs a differentiable model target. The current pipeline cannot express those lifecycles without optional-argument accumulation and misleading invariants.
+**Consequences:** Sprints 40-45 may reuse concrete data/result conventions where proven, but each analysis owns its valid lifecycle. A broader analysis protocol or pipeline extension requires repeated working implementations with genuinely shared behavior under the Rule of Three.

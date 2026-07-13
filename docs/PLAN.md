@@ -34,16 +34,24 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestones 0-6 - Beta foundation (Sprints 1-26):** theory research, core primitives, first adapters/methods, registry/config, concrete pipelines, runtime helpers, and `0.1.0-beta.1` release.
 - [ ] **Milestone 7 - Stable contract and semantic API (Sprints 27-31):** measurable 1.0 gates, domain vocabulary, structured latent values, geometry decomposition, and registry migration.
 - [ ] **Milestone 8 - Real generative-model proof (Sprints 32-38):** activation capture, optional backend isolation, real VAE and diffusion integrations, and explanation-validity benchmarks.
-- [ ] **Milestone 9 - Meaningful introspection (Sprints 39-47):** probes, concepts, clustering, density/OOD, attribution, transformer inspection, SAE evaluation, and interactive exploration.
+- [ ] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
 - [ ] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
 - [ ] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [ ] **Milestone 12 - World models and planning (Sprints 63-72):** transition models, rollout, reward/value evaluation, CEM/MPPI, discrete latents, JEPA/LeWM, and tokenized-world-model evidence.
 - [ ] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** external plugins, portable artifacts/disk cache, streaming, tracking backends, and an evidence-based Rust decision.
 - [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** `0.9`, release-candidate matrix, and `1.0.0` publication.
 
+## Carryover Evidence Gates
+
+- [ ] Close the Sprint 35 real, revision-pinned checkpoint fidelity evidence before activating Sprint 37.
+- [ ] Close the Sprint 35 real-checkpoint interpolation artifact before activating Sprint 37.
+- [ ] Close the Sprint 34 held-out meaningful-integration benchmark before declaring Milestone 8 complete.
+
+These items do not reopen already delivered implementation. They keep the evidence status honest and prevent downstream real-model claims from being built on unverified prerequisites.
+
 ## Active Sprints
 
-None. Sprint 37 is the next sprint to activate.
+None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
 
 ## Planned Sprints
 
@@ -62,18 +70,18 @@ None. Sprint 37 is the next sprint to activate.
 - [Sprint 34](sprint-plans/sprint-34.md) - Integrate and evaluate a convolutional VAE on a real image dataset.
 - [Sprint 35](sprint-plans/sprint-35.md) - Add a pretrained Diffusers `AutoencoderKL` adapter.
 - [Sprint 36](sprint-plans/sprint-36.md) - Validate VAE explanations with reconstruction, factor, stability, and causal metrics.
-- [Sprint 37](sprint-plans/sprint-37.md) - Add a real diffusion pipeline adapter with timestep-aware latent capture.
-- [Sprint 38](sprint-plans/sprint-38.md) - Prove diffusion latent editing with task metrics and decoded outputs.
+- [Sprint 37](sprint-plans/sprint-37.md) - Add a concrete conditional diffusion integration with native scheduler-state capture and separate denoiser-activation semantics.
+- [Sprint 38](sprint-plans/sprint-38.md) - Test selective scheduler-latent intervention against paired controls and predeclared promotion thresholds.
 
 ### Milestone 9 - Meaningful introspection
 
-- [Sprint 39](sprint-plans/sprint-39.md) - Add a label-aware linear probe with controlled evaluation.
-- [Sprint 40](sprint-plans/sprint-40.md) - Add a nonlinear probe as an information upper bound with capacity controls.
-- [Sprint 41](sprint-plans/sprint-41.md) - Add concept activation vectors and TCAV sensitivity scoring.
-- [Sprint 42](sprint-plans/sprint-42.md) - Add K-means structure discovery with stability diagnostics.
-- [Sprint 43](sprint-plans/sprint-43.md) - Add Gaussian-mixture density and out-of-distribution scoring.
-- [Sprint 44](sprint-plans/sprint-44.md) - Add Integrated Gradients through the capture/intervention seam.
-- [Sprint 45](sprint-plans/sprint-45.md) - Add a real transformer hidden-state/logit-lens integration.
+- [Sprint 39](sprint-plans/sprint-39.md) - Add a real decoder-only transformer integration and direct logit lens as the hidden-state foundation for later analyses.
+- [Sprint 40](sprint-plans/sprint-40.md) - Add a label-aware linear classification probe with controlled evaluation on real VAE and transformer representations.
+- [Sprint 41](sprint-plans/sprint-41.md) - Add a bounded nonlinear classification probe with capacity and memorization controls.
+- [Sprint 42](sprint-plans/sprint-42.md) - Add concept activation vectors and target-specific TCAV sensitivity with statistical and intervention controls.
+- [Sprint 43](sprint-plans/sprint-43.md) - Add K-means structure discovery with geometry, uncertainty, and stability diagnostics.
+- [Sprint 44](sprint-plans/sprint-44.md) - Add representation-bound Gaussian-mixture density and calibrated out-of-distribution scoring.
+- [Sprint 45](sprint-plans/sprint-45.md) - Add activation-space Integrated Gradients on the real transformer seam with completeness and sensitivity checks.
 - [Sprint 46](sprint-plans/sprint-46.md) - Add SAE feature-quality evaluation and a feature atlas artifact.
 - [Sprint 47](sprint-plans/sprint-47.md) - Add interactive Plotly/notebook exploration backed by typed analysis results.
 
@@ -140,8 +148,8 @@ None. Sprint 37 is the next sprint to activate.
 - [Sprint 31](sprint-plans/sprint-31.md) - Canonical semantic registry kinds and beta config migration diagnostics.
 - [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
 - [Sprint 33](sprint-plans/sprint-33.md) - Optional dependency boundaries and resolver smoke matrix.
-- [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE real-image smoke evidence on reproducible digits data.
-- [Sprint 35](sprint-plans/sprint-35.md) - Pinned Diffusers `AutoencoderKL` integration and interpolation diagnostics.
+- [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE implementation and real-image smoke evidence delivered; the held-out meaningful-integration benchmark remains a carryover gate.
+- [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter delivered; real-checkpoint fidelity and interpolation evidence remain Sprint 37 entry gates.
 - [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
 
 ## Planning Rules
@@ -150,4 +158,6 @@ None. Sprint 37 is the next sprint to activate.
 - Every sprint ends with the Rule of Three check, ADR reconciliation, evidence-ledger update, changelog update for user-visible changes, and the strict project gate.
 - Real integrations must pin a tested upstream version range and include an import-isolation test so optional extras do not burden the base package.
 - A model demo must include quantitative acceptance criteria and a failure analysis. Screenshot-only success is insufficient.
+- Evidence promotion is conditional on predeclared thresholds. A failed threshold keeps the claim at its prior tier and must produce a negative-result or counterexample artifact rather than being promoted by judgment after the run.
+- Registry kinds are semantic taxonomy, not automatic execution protocols. New analyses must not be forced through `Method` or `AnalysisPipeline` when their inputs, fitting lifecycle, or result semantics differ.
 - Later sprint files are planning hypotheses. When upstream APIs or running code invalidate one, update the affected sprint files and this plan before implementation continues.
