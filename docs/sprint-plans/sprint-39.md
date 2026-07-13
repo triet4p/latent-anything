@@ -13,15 +13,15 @@ Add a real, revision-pinned decoder-only transformer integration and a direct lo
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Select and revision-pin a compact causal language model and tokenizer with a clear final normalization and language-model head.
-- [ ] Define typed input, hidden-state, token-mask, layer-index, and lens-result values with NumPy-facing public payloads and full model/tokenizer provenance.
-- [ ] Use native `output_hidden_states=True` as the canonical observation path and verify embedding/residual/final hidden-state indexing and shapes.
-- [ ] Implement a direct logit lens only, with explicit final-normalization and output-head assumptions; defer learned/tuned translators to a later sprint.
-- [ ] Validate native hidden states and final logits against direct backend execution, including padded-token masking and final-layer parity.
-- [ ] Use the capture/hook seam only for one bounded activation intervention, then verify hook cleanup and unchanged execution outside the target layer/token.
-- [ ] Measure selected-token rank/probability trajectories and their stability under predeclared prompt perturbations.
-- [ ] Add tiny/offline tests, marked real-checkpoint tests, explicit cache/download behavior, and a reproducible artifact.
-- [ ] Keep `HiddenStateAdapter` as a synthetic fixture, reconcile the integration ADR, and update evidence/changelog/artifact/gates.
+- [x] Select and revision-pin a compact causal language model and tokenizer with a clear final normalization and language-model head.
+- [x] Define typed input, hidden-state, token-mask, layer-index, and lens-result values with NumPy-facing public payloads and full model/tokenizer provenance.
+- [x] Use native `output_hidden_states=True` as the canonical observation path and verify embedding/residual/final hidden-state indexing and shapes.
+- [x] Implement a direct logit lens only, with explicit final-normalization and output-head assumptions; defer learned/tuned translators to a later sprint.
+- [x] Validate native hidden states and final logits against direct backend execution, including padded-token masking and final-layer parity.
+- [x] Use the capture/hook seam only for one bounded activation intervention, then verify hook cleanup and unchanged execution outside the target layer/token.
+- [x] Measure selected-token rank/probability trajectories and their stability under predeclared prompt perturbations.
+- [x] Add tiny/offline tests, marked real-checkpoint tests, explicit cache/download behavior, and a reproducible artifact.
+- [x] Keep `HiddenStateAdapter` as a synthetic fixture, reconcile the integration ADR, and update evidence/changelog/artifact/gates.
 
 ## Notes / Blockers
 

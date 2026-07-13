@@ -4,6 +4,15 @@
 
 ### Added
 
+- Added a revision-pinned decoder-only transformer integration (`TransformerLMIntegration`) with direct logit lens, typed input/hidden-state/lens-result values with NumPy-facing public payloads and full model/tokenizer provenance. (#sprint-39)
+- Added native `output_hidden_states=True` as the canonical observation path for transformer hidden states, with verified embedding/residual/final hidden-state indexing and shapes. (#sprint-39)
+- Added a direct logit lens implementation with explicit final-normalization (LayerNorm) and output-head (LM head) assumptions; learned/tuned translators deferred. (#sprint-39)
+- Added validation of native hidden states and final logits against direct backend execution, including padded-token masking and final-layer parity checks. (#sprint-39)
+- Added hook-based activation intervention support via `ActivationCaptureSession` for one bounded activation intervention at a specified layer, with hook cleanup verification. (#sprint-39)
+- Added token rank/probability trajectory measurement across layers, with stability tracking under predeclared prompt perturbations. (#sprint-39)
+- Added comprehensive test suite: 38 offline tests with fake backend + 11 marked real-checkpoint tests, plus a reproducible artifact demo script. (#sprint-39)
+- Added a `transformers` optional install extra with pinned GPT-2 (`gpt2` model at revision `e7da7f2`, 124M parameters) for the transformer integration. (#sprint-39)
+
 - Evidence-ledger validation now inventories all theory capabilities, verifies local evidence links in CI, and reports the D2/D3 stable-coverage denominator without downloading optional models. (#sprint-27)
 - `LatentValue` carries immutable flat batches and structured latent states with explicit `LatentSpace` association, safe NumPy conversion, and beta `Trajectory` compatibility. (#sprint-29)
 - `LatentSpace` now supports categorical `discrete_code` geometry with codebook validation, normalized Hamming distance, and an explicit no-continuous-interpolation policy. (#sprint-30)
