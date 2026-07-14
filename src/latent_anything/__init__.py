@@ -29,6 +29,13 @@ from latent_anything.pipeline import PipelineResult as PipelineResult
 from latent_anything.pipeline import PipelineSpec as PipelineSpec
 from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
+from latent_anything.probes import ControlBaselines as ControlBaselines
+from latent_anything.probes import CrossSeedReport as CrossSeedReport
+from latent_anything.probes import LinearProbe as LinearProbe
+from latent_anything.probes import LinearProbeConfig as LinearProbeConfig
+from latent_anything.probes import LinearProbeResult as LinearProbeResult
+from latent_anything.probes import cross_seed_evaluation as cross_seed_evaluation
+from latent_anything.probes import evaluate_layers as evaluate_layers
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -51,10 +58,15 @@ __all__ = [
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
+    "ControlBaselines",
+    "CrossSeedReport",
     "GLOBAL_REGISTRY",
     "InMemoryCache",
     "LatentSpace",
     "LatentValue",
+    "LinearProbe",
+    "LinearProbeConfig",
+    "LinearProbeResult",
     "ManipulationPipeline",
     "ManipulationPipelineSpec",
     "Method",
@@ -71,6 +83,8 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "cross_seed_evaluation",
+    "evaluate_layers",
     "list_entries",
     "lookup_entry",
     "register_entry",

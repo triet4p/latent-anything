@@ -38,7 +38,7 @@ def test_evaluation_rejects_nonlocal_effect_and_invalid_probe_shape() -> None:
     )
     result = evaluate_explanation(latents, labels, inputs, inputs, inputs, [0.5], effect, random_state=2)
     assert not result.accepts_explanation
-    with pytest.raises(ValueError, match="matching 1D"):
+    with pytest.raises(ValueError, match="labels must be 1D"):
         probe_accuracy(latents, labels[:, None], random_state=0)
 
 

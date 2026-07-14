@@ -13,6 +13,15 @@
 - Added comprehensive test suite: 38 offline tests with fake backend + 11 marked real-checkpoint tests, plus a reproducible artifact demo script. (#sprint-39)
 - Added a `transformers` optional install extra with pinned GPT-2 (`gpt2` model at revision `e7da7f2`, 124M parameters) for the transformer integration. (#sprint-39)
 
+- Added a label-aware `LinearProbe` class with leakage-guarded train/val/test splitting, training-only feature standardization, regularization, and class-balance controls. (#sprint-40)
+- Added `LinearProbeConfig` (pydantic v2) and `LinearProbeResult` (frozen dataclass) with labels, predictions, probabilities, coefficients, split metadata, and provenance. (#sprint-40)
+- Added `compute_controls()` for majority-class, shuffled-label, and raw-input baselines evaluated on the same train/test split as the probe. (#sprint-40)
+- Added `cross_seed_evaluation()` with 95 % confidence intervals and `evaluate_layers()` for probing across multiple representation layers. (#sprint-40)
+- Added `control_baselines`, `cross_seed_report`, and `evaluate_layers` public exports. (#sprint-40)
+- Registered `LinearProbe` under the `"analysis"` registry kind for config-driven construction. (#sprint-40)
+- Reconciled the Sprint 36 centroid-based `probe_accuracy` helper: renamed to `_centroid_probe_accuracy` (internal fast path for `evaluate_explanation`); public `probe_accuracy` now delegates to `LinearProbe`. (#sprint-40)
+- Added 42 offline tests covering unit, leakage, degenerate-class, config-construction, and 3 marked real-integration tests for the VAE and transformer integrations. (#sprint-40)
+
 - Evidence-ledger validation now inventories all theory capabilities, verifies local evidence links in CI, and reports the D2/D3 stable-coverage denominator without downloading optional models. (#sprint-27)
 - `LatentValue` carries immutable flat batches and structured latent states with explicit `LatentSpace` association, safe NumPy conversion, and beta `Trajectory` compatibility. (#sprint-29)
 - `LatentSpace` now supports categorical `discrete_code` geometry with codebook validation, normalized Hamming distance, and an explicit no-continuous-interpolation policy. (#sprint-30)

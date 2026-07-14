@@ -62,6 +62,8 @@ include = [
     "src",
     "scripts/benchmark_geometry_dispatch.py",
     "scripts/conv_vae_digits_evidence.py",
+    "src/latent_anything/probes.py",
+    "tests/test_probes.py",
     "scripts/diffusers_vae_interpolation.py",
     "scripts/diffusers_conditional_timestep_trajectory.py",
     "scripts/diffusers_conditional_intervention_experiment.py",

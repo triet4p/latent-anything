@@ -49,6 +49,7 @@ from latent_anything.methods.pca import PCA
 from latent_anything.methods.sae import SAE
 from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
+from latent_anything.probes import LinearProbe
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
 
 # ── Register adapters ───────────────────────────────────────────────
@@ -124,6 +125,15 @@ GLOBAL_REGISTRY.register(
     UMAP,
     description="Uniform Manifold Approximation and Projection — nonlinear dim-reduction",
     protocol="Method",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ANALYSIS,
+    "linear_probe",
+    LinearProbe,
+    description="Label-aware linear classification probe — logistic regression with leakage-guarded split",
+    protocol="LinearProbe",
     source="built-in",
 )
 

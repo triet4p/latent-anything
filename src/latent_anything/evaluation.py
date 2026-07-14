@@ -7,6 +7,8 @@ from typing import Any
 
 import numpy as np
 
+from latent_anything.probes import LinearProbe, LinearProbeConfig
+
 
 @dataclass(frozen=True)
 class InterventionEffect:
@@ -36,8 +38,15 @@ class ExplanationEvaluation:
         return asdict(self)
 
 
-def probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: int) -> float:
-    """Fit one held-out linear probe; labels must have at least two classes."""
+# ── Legacy centroid-based probe (fast, internal) ─────────────────────────
+
+
+def _centroid_probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: int) -> float:
+    """Fast nearest-centroid probe accuracy (legacy, used by evaluate_explanation).
+
+    The project's canonical linear-probing tool is :class:`~latent_anything.probes.LinearProbe`.
+    This function remains as a lightweight internal helper for :func:`evaluate_explanation`.
+    """
     if features.ndim != 2 or labels.ndim != 1 or len(features) != len(labels):
         raise ValueError("features must be 2D and labels a matching 1D array")
     if len(np.unique(labels)) < 2:
@@ -58,6 +67,18 @@ def probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: in
     predicted = np.asarray(classes[np.argmin(distances, axis=1)])
     matches = np.asarray(predicted == test_y, dtype=np.float64)
     return float(matches.mean())
+
+
+def probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: int) -> float:
+    """Fit one held-out linear probe (logistic regression); labels must have at least two classes.
+
+    This is the project's canonical accuracy function, backed by :class:`~latent_anything.probes.LinearProbe`.
+    For the legacy centroid-based version use :func:`_centroid_probe_accuracy`.
+    """
+    config = LinearProbeConfig(random_state=random_state)
+    probe = LinearProbe(config)
+    result = probe.fit(features, labels)
+    return float(result.accuracy)
 
 
 def intervention_effect(

@@ -327,9 +327,9 @@ class TestGlobalRegistryBuiltins:
         assert len(adapter_names) == 5
 
     def test_global_registry_has_all_method_a(self) -> None:
-        """GLOBAL_REGISTRY contains all three Layer A methods."""
+        """GLOBAL_REGISTRY contains all four Layer A methods."""
         method_a_names = {e.name for e in GLOBAL_REGISTRY.list(KIND_METHOD_A)}
-        assert method_a_names == {"pca", "umap", "sae"}
+        assert method_a_names == {"pca", "umap", "sae", "linear_probe"}
 
     def test_global_registry_has_all_method_b(self) -> None:
         """GLOBAL_REGISTRY contains all three Layer B methods."""
@@ -337,13 +337,13 @@ class TestGlobalRegistryBuiltins:
         assert method_b_names == {"lerp", "steering", "activation_patch"}
 
     def test_global_registry_total_entries(self) -> None:
-        """GLOBAL_REGISTRY has 11 entries (5 adapters + 3 analysis + 3 intervention)."""
-        assert len(GLOBAL_REGISTRY) >= 11
+        """GLOBAL_REGISTRY has 12 entries (5 adapters + 4 analysis + 3 intervention)."""
+        assert len(GLOBAL_REGISTRY) >= 12
         n_adapters = len(GLOBAL_REGISTRY.list(KIND_ADAPTER))
         n_method_a = len(GLOBAL_REGISTRY.list(KIND_METHOD_A))
         n_method_b = len(GLOBAL_REGISTRY.list(KIND_METHOD_B))
         assert n_adapters == 5
-        assert n_method_a == 3
+        assert n_method_a == 4
         assert n_method_b == 3
 
     def test_vae_entry_factory_is_callable_class(self) -> None:
