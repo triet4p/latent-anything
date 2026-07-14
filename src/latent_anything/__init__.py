@@ -36,6 +36,12 @@ from latent_anything.probes import LinearProbeConfig as LinearProbeConfig
 from latent_anything.probes import LinearProbeResult as LinearProbeResult
 from latent_anything.probes import cross_seed_evaluation as cross_seed_evaluation
 from latent_anything.probes import evaluate_layers as evaluate_layers
+from latent_anything.mlp_probe import MLPProbe as MLPProbe
+from latent_anything.mlp_probe import MLPProbeConfig as MLPProbeConfig
+from latent_anything.mlp_probe import MLPProbeResult as MLPProbeResult
+from latent_anything.mlp_probe import ProbeComparison as ProbeComparison
+from latent_anything.mlp_probe import compare_probes as compare_probes
+from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_memorization_test
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -67,12 +73,16 @@ __all__ = [
     "LinearProbe",
     "LinearProbeConfig",
     "LinearProbeResult",
+    "MLPProbe",
+    "MLPProbeConfig",
+    "MLPProbeResult",
     "ManipulationPipeline",
     "ManipulationPipelineSpec",
     "Method",
     "ObjectSpec",
     "PipelineResult",
     "PipelineSpec",
+    "ProbeComparison",
     "ProfileEvent",
     "Registry",
     "RegistryEntry",
@@ -83,9 +93,11 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "compare_probes",
     "cross_seed_evaluation",
     "evaluate_layers",
     "list_entries",
     "lookup_entry",
+    "nonlinear_memorization_test",
     "register_entry",
 ]
