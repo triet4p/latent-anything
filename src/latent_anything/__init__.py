@@ -42,6 +42,17 @@ from latent_anything.mlp_probe import MLPProbeResult as MLPProbeResult
 from latent_anything.mlp_probe import ProbeComparison as ProbeComparison
 from latent_anything.mlp_probe import compare_probes as compare_probes
 from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_memorization_test
+from latent_anything.tcav import ConceptDataset as ConceptDataset
+from latent_anything.tcav import ConceptDirectionResult as ConceptDirectionResult
+from latent_anything.tcav import TCAV as TCAV
+from latent_anything.tcav import TCAVConfig as TCAVConfig
+from latent_anything.tcav import TCAVResult as TCAVResult
+from latent_anything.tcav import TCAVScore as TCAVScore
+from latent_anything.tcav import TransformerLogitTarget as TransformerLogitTarget
+from latent_anything.tcav import compute_tcav as compute_tcav
+from latent_anything.tcav import intervention_agreement as intervention_agreement
+from latent_anything.tcav import learn_linear_separator_direction as learn_linear_separator_direction
+from latent_anything.tcav import learn_mean_diff_direction as learn_mean_diff_direction
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -64,6 +75,8 @@ __all__ = [
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
+    "ConceptDataset",
+    "ConceptDirectionResult",
     "ControlBaselines",
     "CrossSeedReport",
     "GLOBAL_REGISTRY",
@@ -83,6 +96,11 @@ __all__ = [
     "PipelineResult",
     "PipelineSpec",
     "ProbeComparison",
+    "TCAV",
+    "TCAVConfig",
+    "TCAVResult",
+    "TCAVScore",
+    "TransformerLogitTarget",
     "ProfileEvent",
     "Registry",
     "RegistryEntry",
@@ -94,8 +112,12 @@ __all__ = [
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
     "compare_probes",
+    "compute_tcav",
     "cross_seed_evaluation",
     "evaluate_layers",
+    "intervention_agreement",
+    "learn_linear_separator_direction",
+    "learn_mean_diff_direction",
     "list_entries",
     "lookup_entry",
     "nonlinear_memorization_test",

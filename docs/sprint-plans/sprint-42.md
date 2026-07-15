@@ -13,14 +13,14 @@ Add concept activation vectors and TCAV-style directional sensitivity with targe
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Define deterministic concept/reference dataset handling with sampling, split, source, representation-space, and model-version provenance.
-- [ ] Learn concept directions using both mean difference and a regularized linear separator baseline, reporting direction stability and held-out separability.
-- [ ] Define one scalar model target per integration and compute directional gradients at a declared activation location.
-- [ ] Implement a typed TCAV result with target, layer, concept direction, per-example sensitivities, aggregate score, uncertainty, and provenance.
-- [ ] Add repeated random-concept baselines, multiple seeds, significance testing, and correction for the declared family of comparisons.
-- [ ] Validate on one real VAE/generative factor and one Sprint 39 transformer representation.
-- [ ] Cross-check observational sensitivity with a bounded matched-norm intervention along the learned direction and report agreements and contradictions.
-- [ ] Support direct/config registry construction, add failure/control tests, and update evidence/ADR/changelog/artifact/gates without extracting a generic probe/concept protocol prematurely.
+- [x] Define deterministic concept/reference dataset handling with sampling, split, source, representation-space, and model-version provenance.
+- [x] Learn concept directions using both mean difference and a regularized linear separator baseline, reporting direction stability and held-out separability.
+- [x] Define one scalar model target per integration and compute directional gradients at a declared activation location.
+- [x] Implement a typed TCAV result with target, layer, concept direction, per-example sensitivities, aggregate score, uncertainty, and provenance.
+- [x] Add repeated random-concept baselines, multiple seeds, significance testing, and correction for the declared family of comparisons.
+- [x] Validate on one real VAE/generative factor and one Sprint 39 transformer representation.
+- [x] Cross-check observational sensitivity with a bounded matched-norm intervention along the learned direction and report agreements and contradictions.
+- [x] Support direct/config registry construction, add failure/control tests, and update evidence/ADR/changelog/artifact/gates without extracting a generic probe/concept protocol prematurely.
 
 ## Notes / Blockers
 

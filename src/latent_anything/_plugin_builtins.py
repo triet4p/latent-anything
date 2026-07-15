@@ -51,6 +51,7 @@ from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
 from latent_anything.probes import LinearProbe
+from latent_anything.tcav import TCAV
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
 
 # ── Register adapters ───────────────────────────────────────────────
@@ -144,6 +145,15 @@ GLOBAL_REGISTRY.register(
     MLPProbe,
     description="Bounded nonlinear MLP probe — bounded-capacity MLP with early stopping",
     protocol="MLPProbe",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ANALYSIS,
+    "tcav",
+    TCAV,
+    description="TCAV analysis — concept-sensitivity via directional derivatives",
+    protocol="TCAV",
     source="built-in",
 )
 

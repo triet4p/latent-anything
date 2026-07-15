@@ -4,6 +4,16 @@
 
 ### Added
 
+- Added concept/reference dataset handling (`ConceptDataset`) with deterministic sampling, train/test split, per-class stratification, and full provenance (source, representation-space, model-version). (#sprint-42)
+- Added concept-direction learning via both mean difference (`learn_mean_diff_direction`) and regularised linear separator (`learn_linear_separator_direction`), with direction stability (bootstrap cosine similarity) and held-out separability reporting. (#sprint-42)
+- Added scalar model target specification (`TransformerLogitTarget`) and internal gradient computation that differentiates a specific token logit w.r.t. activations at a declared layer in decoder-only transformers. (#sprint-42)
+- Added typed TCAV result types (`TCAVScore`, `TCAVResult`) with per-example directional sensitivities, aggregate TCAV score, uncertainty (multi-seed CI95), and full provenance. (#sprint-42)
+- Added repeated random-concept baselines with binomial significance testing and Bonferroni correction for the declared family of comparisons. (#sprint-42)
+- Added intervention cross-check (`intervention_agreement`) that compares observational TCAV sensitivity with bounded matched-norm interventions along the learned direction. (#sprint-42)
+- Added `TCAVConfig` / `TCAV` class supporting both direct use and config-driven construction via `ObjectSpec`/`build_from_config`. (#sprint-42)
+- Registered `tcav` under the `"analysis"` registry kind for config-driven construction. (#sprint-42)
+- Added 58 tests covering ConceptDataset validation, direction learning, gradient computation (synthetic model), full `compute_tcav` pipeline, intervention cross-check, registry construction, edge cases, and 2 marked real-integration tests for VAE and transformer representations. (#sprint-42)
+
 - Added a revision-pinned decoder-only transformer integration (`TransformerLMIntegration`) with direct logit lens, typed input/hidden-state/lens-result values with NumPy-facing public payloads and full model/tokenizer provenance. (#sprint-39)
 - Added native `output_hidden_states=True` as the canonical observation path for transformer hidden states, with verified embedding/residual/final hidden-state indexing and shapes. (#sprint-39)
 - Added a direct logit lens implementation with explicit final-normalization (LayerNorm) and output-head (LM head) assumptions; learned/tuned translators deferred. (#sprint-39)
