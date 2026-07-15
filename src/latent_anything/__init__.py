@@ -16,12 +16,25 @@ Plugin-first architecture with three pillars:
 # Trigger built-in registration into GLOBAL_REGISTRY before any
 # registry-dependent imports (like config).
 from latent_anything import _plugin_builtins as _plugin_builtins  # noqa: F401  # trigger registration
+from latent_anything.clustering import ClusterStabilityReport as ClusterStabilityReport
+from latent_anything.clustering import KMeans as KMeans
+from latent_anything.clustering import KMeansConfig as KMeansConfig
+from latent_anything.clustering import KMeansResult as KMeansResult
+from latent_anything.clustering import check_clustering_geometry as check_clustering_geometry
+from latent_anything.clustering import cluster_stability_analysis as cluster_stability_analysis
+from latent_anything.clustering import compare_with_labels as compare_with_labels
 from latent_anything.config import ObjectSpec as ObjectSpec
 from latent_anything.config import build_from_config as build_from_config
 from latent_anything.config import build_from_dict as build_from_dict
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.latent_value import LatentValue as LatentValue
 from latent_anything.methods import Method as Method
+from latent_anything.mlp_probe import MLPProbe as MLPProbe
+from latent_anything.mlp_probe import MLPProbeConfig as MLPProbeConfig
+from latent_anything.mlp_probe import MLPProbeResult as MLPProbeResult
+from latent_anything.mlp_probe import ProbeComparison as ProbeComparison
+from latent_anything.mlp_probe import compare_probes as compare_probes
+from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_memorization_test
 from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
 from latent_anything.pipeline import ManipulationPipelineSpec as ManipulationPipelineSpec
@@ -36,23 +49,6 @@ from latent_anything.probes import LinearProbeConfig as LinearProbeConfig
 from latent_anything.probes import LinearProbeResult as LinearProbeResult
 from latent_anything.probes import cross_seed_evaluation as cross_seed_evaluation
 from latent_anything.probes import evaluate_layers as evaluate_layers
-from latent_anything.mlp_probe import MLPProbe as MLPProbe
-from latent_anything.mlp_probe import MLPProbeConfig as MLPProbeConfig
-from latent_anything.mlp_probe import MLPProbeResult as MLPProbeResult
-from latent_anything.mlp_probe import ProbeComparison as ProbeComparison
-from latent_anything.mlp_probe import compare_probes as compare_probes
-from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_memorization_test
-from latent_anything.tcav import ConceptDataset as ConceptDataset
-from latent_anything.tcav import ConceptDirectionResult as ConceptDirectionResult
-from latent_anything.tcav import TCAV as TCAV
-from latent_anything.tcav import TCAVConfig as TCAVConfig
-from latent_anything.tcav import TCAVResult as TCAVResult
-from latent_anything.tcav import TCAVScore as TCAVScore
-from latent_anything.tcav import TransformerLogitTarget as TransformerLogitTarget
-from latent_anything.tcav import compute_tcav as compute_tcav
-from latent_anything.tcav import intervention_agreement as intervention_agreement
-from latent_anything.tcav import learn_linear_separator_direction as learn_linear_separator_direction
-from latent_anything.tcav import learn_mean_diff_direction as learn_mean_diff_direction
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -66,6 +62,17 @@ from latent_anything.runtime import InMemoryCache as InMemoryCache
 from latent_anything.runtime import ProfileEvent as ProfileEvent
 from latent_anything.runtime import RuntimeProfile as RuntimeProfile
 from latent_anything.runtime import RuntimeProfiler as RuntimeProfiler
+from latent_anything.tcav import TCAV as TCAV
+from latent_anything.tcav import ConceptDataset as ConceptDataset
+from latent_anything.tcav import ConceptDirectionResult as ConceptDirectionResult
+from latent_anything.tcav import TCAVConfig as TCAVConfig
+from latent_anything.tcav import TCAVResult as TCAVResult
+from latent_anything.tcav import TCAVScore as TCAVScore
+from latent_anything.tcav import TransformerLogitTarget as TransformerLogitTarget
+from latent_anything.tcav import compute_tcav as compute_tcav
+from latent_anything.tcav import intervention_agreement as intervention_agreement
+from latent_anything.tcav import learn_linear_separator_direction as learn_linear_separator_direction
+from latent_anything.tcav import learn_mean_diff_direction as learn_mean_diff_direction
 from latent_anything.trajectory import Trajectory as Trajectory
 
 __version__ = "0.1.0b1"
@@ -75,12 +82,16 @@ __all__ = [
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
+    "ClusterStabilityReport",
     "ConceptDataset",
     "ConceptDirectionResult",
     "ControlBaselines",
     "CrossSeedReport",
     "GLOBAL_REGISTRY",
     "InMemoryCache",
+    "KMeans",
+    "KMeansConfig",
+    "KMeansResult",
     "LatentSpace",
     "LatentValue",
     "LinearProbe",
@@ -111,7 +122,10 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "check_clustering_geometry",
+    "cluster_stability_analysis",
     "compare_probes",
+    "compare_with_labels",
     "compute_tcav",
     "cross_seed_evaluation",
     "evaluate_layers",

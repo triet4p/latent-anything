@@ -43,6 +43,7 @@ from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
+from latent_anything.clustering import KMeans
 from latent_anything.methods.activation_patch import ActivationPatch
 from latent_anything.methods.lerp import Lerp
 from latent_anything.methods.pca import PCA
@@ -51,8 +52,8 @@ from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
 from latent_anything.probes import LinearProbe
-from latent_anything.tcav import TCAV
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
+from latent_anything.tcav import TCAV
 
 # ── Register adapters ───────────────────────────────────────────────
 
@@ -127,6 +128,15 @@ GLOBAL_REGISTRY.register(
     UMAP,
     description="Uniform Manifold Approximation and Projection — nonlinear dim-reduction",
     protocol="Method",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ANALYSIS,
+    "kmeans",
+    KMeans,
+    description="K-means clustering — latent structure discovery with geometry checks and diagnostics",
+    protocol="KMeans",
     source="built-in",
 )
 

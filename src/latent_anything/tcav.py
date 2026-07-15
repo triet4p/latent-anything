@@ -44,7 +44,7 @@ from pydantic import BaseModel, Field
 
 from latent_anything.probes import _stratified_split  # type: ignore[reportPrivateUsage]
 
-# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
+# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingTypeStubs=false
 # (torch has incomplete type stubs — these warnings are noise)
 
 # ---------------------------------------------------------------------------
@@ -572,7 +572,7 @@ def _compute_transformer_layer_gradient(
 
     def _make_hook(name: str):
         def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            output = output if isinstance(output, torch.Tensor) else output[0]
+            output = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
             output.retain_grad()
             activation[name] = output
 
@@ -669,7 +669,7 @@ def _extract_layer_activation(
 
     def _make_hook(name: str):
         def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            out = output if isinstance(output, torch.Tensor) else output[0]
+            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
             activation[name] = out.detach().cpu()
 
         return _hook
@@ -1007,7 +1007,7 @@ def intervention_agreement(
 
         # ── Positive intervention ────────────────────────────────────
         def _pos_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]
+            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
             delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
             modified = out + delta
             return modified
@@ -1031,7 +1031,7 @@ def intervention_agreement(
 
         # ── Negative intervention ────────────────────────────────────
         def _neg_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]
+            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
             delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
             modified = out - delta
             return modified

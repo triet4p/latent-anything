@@ -4,6 +4,14 @@
 
 ### Added
 
+- Added K-means clustering module (`KMeans`) for latent structure discovery with explicit geometry compatibility checks, typed cluster results (`KMeansResult`), silhouette diagnostics, and a nearest-versus-second-nearest distance-margin confidence proxy. (#sprint-43)
+- Added bootstrap/seed stability analysis (`cluster_stability_analysis`) with Hungarian label alignment and adjusted Rand index for quantifying cluster robustness. (#sprint-43)
+- Added external validation (`compare_with_labels`) using adjusted Rand index, mutual information, homogeneity, completeness, and V-measure against known ground-truth labels. (#sprint-43)
+- Added geometry compatibility checks (`check_clustering_geometry`) that reject clustering on unsupported structured (`gaussian_set`) and discrete (`discrete_code`) latent spaces while allowing `euclidean` and `unit_norm` geometries. (#sprint-43)
+- Added `KMeansConfig` / `KMeans` class supporting both direct use and config-driven construction via `ObjectSpec`/`build_from_config`. (#sprint-43)
+- Registered `kmeans` under the `"analysis"` registry kind for config-driven construction. (#sprint-43)
+- Added 50 tests covering config validation, result serialization, fit-predict lifecycle, input validation, standardization, silhouette/confidence diagnostics, geometry checks, stability analysis, external validation, degenerate/edge-case inputs, registry construction, and 2 marked real-integration tests for VAE and transformer representations. (#sprint-43)
+
 - Added concept/reference dataset handling (`ConceptDataset`) with deterministic sampling, train/test split, per-class stratification, and full provenance (source, representation-space, model-version). (#sprint-42)
 - Added concept-direction learning via both mean difference (`learn_mean_diff_direction`) and regularised linear separator (`learn_linear_separator_direction`), with direction stability (bootstrap cosine similarity) and held-out separability reporting. (#sprint-42)
 - Added scalar model target specification (`TransformerLogitTarget`) and internal gradient computation that differentiates a specific token logit w.r.t. activations at a declared layer in decoder-only transformers. (#sprint-42)
