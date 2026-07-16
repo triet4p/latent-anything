@@ -70,6 +70,19 @@ class FakeTransformer(nn.Module):
         self.ln_f = nn.LayerNorm(hidden_dim)
 
 
+class FakeConfig:
+    """Fake model configuration with typed attributes."""
+
+    def __init__(self, num_layers: int = 12, hidden_dim: int = 768, vocab_size: int = 50257) -> None:
+        self.num_hidden_layers = num_layers
+        self.hidden_size = hidden_dim
+        self.vocab_size = vocab_size
+        self.n_positions = 1024
+        self.n_embd = hidden_dim
+        self.n_layer = num_layers
+        self.n_head = 12
+
+
 class FakeGPT2Model(nn.Module):
     """Fake GPT-2 model that mimics the HuggingFace interface."""
 
@@ -77,19 +90,7 @@ class FakeGPT2Model(nn.Module):
         super().__init__()
         self.transformer = FakeTransformer(hidden_dim, num_layers)
         self.lm_head = FakeLMHead(vocab_size, hidden_dim)
-        self.config = type(
-            "FakeConfig",
-            (),
-            {
-                "num_hidden_layers": num_layers,
-                "hidden_size": hidden_dim,
-                "vocab_size": vocab_size,
-                "n_positions": 1024,
-                "n_embd": hidden_dim,
-                "n_layer": num_layers,
-                "n_head": 12,
-            },
-        )()
+        self.config = FakeConfig(num_layers, hidden_dim, vocab_size)
 
     def forward(  # type: ignore[reportUnknownMemberType]
         self,
@@ -97,27 +98,28 @@ class FakeGPT2Model(nn.Module):
         attention_mask: object | None = None,  # noqa: ARG002
         output_hidden_states: bool = False,
     ) -> object:
-        batch_size, seq_len = input_ids.shape  # type: ignore[union-attr]
-        hidden_dim = self.transformer.wte.embedding_dim
+        batch_size = int(input_ids.shape[0])  # type: ignore[union-attr]
+        seq_len = int(input_ids.shape[1])  # type: ignore[union-attr]
+        hidden_dim = int(self.transformer.wte.embedding_dim)
 
         # Generate deterministic fake hidden states.
         rng = np.random.RandomState(42)
         hs_shape = (batch_size, seq_len, hidden_dim)
 
         # Embedding output (layer 0).
-        embedded = torch.tensor(rng.randn(*hs_shape).astype(np.float32))  # noqa: F821
+        embedded = torch.tensor(rng.randn(*hs_shape).astype(np.float32))  # type: ignore[reportUnknownArgumentType]
 
         # Block outputs (layers 1..num_layers).
-        num_layers = self.config.num_hidden_layers
+        num_layers = int(self.config.num_hidden_layers)
         block_outputs = []
         for _ in range(num_layers):
-            block_outputs.append(torch.tensor(rng.randn(*hs_shape).astype(np.float32)))  # noqa: F821
+            block_outputs.append(torch.tensor(rng.randn(*hs_shape).astype(np.float32)))  # type: ignore[reportUnknownMemberType,reportUnknownArgumentType]
 
         # Final logits.
-        logits_tensor = torch.tensor(rng.randn(batch_size, seq_len, self.config.vocab_size).astype(np.float32))  # noqa: F821
+        logits_tensor = torch.tensor(rng.randn(batch_size, seq_len, int(self.config.vocab_size)).astype(np.float32))  # type: ignore[reportUnknownArgumentType]
 
         result_logits = logits_tensor
-        result_hs = (embedded, *block_outputs) if output_hidden_states else None
+        result_hs = (embedded, *block_outputs) if output_hidden_states else None  # type: ignore[reportUnknownVariableType]
 
         # Use SimpleNamespace to avoid Python class-scope closure issues.
         return type("FakeOutput", (), {"logits": result_logits, "hidden_states": result_hs})()
@@ -144,7 +146,7 @@ class FakeTokenizer:
         batch_size = len(texts) if isinstance(texts, list) else 1
         prompts = texts if isinstance(texts, list) else [texts]
 
-        input_ids_list = []
+        input_ids_list: list[list[int]] = []
         for p in prompts:
             ids = [50256] * max_length
             # Use token length proportional to prompt length, min 5.

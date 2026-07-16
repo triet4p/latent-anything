@@ -150,7 +150,7 @@ class HiddenState:
     layer: int
     values: np.ndarray
     provenance: str = ""
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)  # type: ignore[reportUnknownVariableType]
 
     def __post_init__(self) -> None:
         if self.values.ndim != 3:
@@ -187,7 +187,7 @@ class LogitLensResult:
     layer: int
     logits: np.ndarray
     probabilities: np.ndarray
-    top_tokens: list[list[list[tuple[int, float]]]] = field(default_factory=list)
+    top_tokens: list[list[list[tuple[int, float]]]] = field(default_factory=list)  # type: ignore[reportUnknownVariableType]
     top_k: int = 0
 
     def __post_init__(self) -> None:
@@ -536,10 +536,10 @@ class TransformerLMIntegration:
         # Build the list of module locations to hook.
         module_locations: list[str] = []
 
-        if need_intervention and intervention is not None:
+        if need_intervention:
             # Hook the specific transformer block for intervention.
             # GPT-2 block naming: ``transformer.h.{layer}``
-            location = f"transformer.h.{intervention.layer}"
+            location = f"transformer.h.{intervention.layer}"  # type: ignore[union-attr]
             if location not in module_locations:
                 module_locations.append(location)
 
@@ -552,8 +552,8 @@ class TransformerLMIntegration:
 
         # Build intervention callback if needed.
         intervention_fn: Any = None
-        if need_intervention and intervention is not None:
-            direction_t = torch.tensor(intervention.direction, dtype=torch.float32)
+        if need_intervention:
+            direction_t = torch.tensor(intervention.direction, dtype=torch.float32)  # type: ignore[union-attr]
             strength_val = intervention.strength
             token_indices = intervention.token_indices
             target_dtype = direction_t.dtype

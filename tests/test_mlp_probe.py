@@ -423,10 +423,10 @@ class TestRealIntegration:
 
     def test_on_transformer_hidden_states(self) -> None:
         """Evaluate MLP probe on real transformer hidden states."""
-        from latent_anything.integrations.transformer_lm import TransformerLMIntegration
+        from latent_anything.integrations.transformer_lm import TransformerGenerationRequest, TransformerLMIntegration
 
         integration = TransformerLMIntegration()
-        request = integration.make_request("The cat sat on the", max_new_tokens=1)
+        request = TransformerGenerationRequest(prompt="The cat sat on the", max_length=8)
         gen_result = integration.generate(request)
 
         hidden_states = gen_result.hidden_states

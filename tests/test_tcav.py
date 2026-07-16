@@ -474,7 +474,7 @@ class TestTCAVClass:
 
     def test_config_property(self) -> None:
         tcav = TCAV()
-        assert tcav.config is tcav._config
+        assert tcav.config is tcav._config  # type: ignore[reportPrivateUsage]
 
 
 # ---------------------------------------------------------------------------
@@ -542,7 +542,7 @@ class _SyntheticTransformer(torch.nn.Module):
         self.transformer["ln_f"] = torch.nn.LayerNorm(hidden_dim)
         self.lm_head = torch.nn.Linear(hidden_dim, vocab_size, bias=False)
         # Tie weights
-        self.lm_head.weight = self.transformer["wte"].weight
+        self.lm_head.weight = self.transformer["wte"].weight  # type: ignore[reportAttributeAccessIssue]
 
     def forward(
         self,
@@ -553,8 +553,8 @@ class _SyntheticTransformer(torch.nn.Module):
         del attention_mask
         x = self.transformer["wte"](input_ids)
         all_hidden = [x]
-        for block in self.transformer["h"]:
-            x = block(x)
+        for block in self.transformer["h"]:  # type: ignore[reportGeneralTypeIssues,reportUnknownVariableType]
+            x = block(x)  # type: ignore[reportUnknownVariableType]
             all_hidden.append(x)
         x = self.transformer["ln_f"](x)
         logits = self.lm_head(x)
@@ -595,9 +595,9 @@ class _SyntheticAttention(torch.nn.Module):
 
 
 @pytest.fixture
-def synthetic_model():
+def synthetic_model() -> _SyntheticTransformer:
     """A small synthetic transformer for gradient tests."""
-    torch.manual_seed(42)
+    torch.manual_seed(42)  # type: ignore[reportUnknownMemberType]
     model = _SyntheticTransformer(hidden_dim=8, vocab_size=32)
     model.eval()
     return model
@@ -606,9 +606,9 @@ def synthetic_model():
 class TestGradientComputation:
     """Tests for internal gradient computation via compute_tcav (synthetic model)."""
 
-    def test_gradient_returns_correct_shape(self, synthetic_model) -> None:
+    def test_gradient_returns_correct_shape(self, synthetic_model: _SyntheticTransformer) -> None:
         """Gradient should have shape matching hidden_dim."""
-        from latent_anything.tcav import _compute_transformer_layer_gradient
+        from latent_anything.tcav import _compute_transformer_layer_gradient  # type: ignore[reportPrivateUsage]
 
         model = synthetic_model
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
@@ -619,8 +619,8 @@ class TestGradientComputation:
         assert grad.shape == (8,), f"Expected (8,), got {grad.shape}"
         assert grad.dtype == np.float64
 
-    def test_gradient_is_finite(self, synthetic_model) -> None:
-        from latent_anything.tcav import _compute_transformer_layer_gradient
+    def test_gradient_is_finite(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _compute_transformer_layer_gradient  # type: ignore[reportPrivateUsage]
 
         model = synthetic_model
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
@@ -630,8 +630,8 @@ class TestGradientComputation:
         grad = _compute_transformer_layer_gradient(model, ids, mask, layer=1, target=target)
         assert np.all(np.isfinite(grad))
 
-    def test_gradient_differs_per_position(self, synthetic_model) -> None:
-        from latent_anything.tcav import _compute_transformer_layer_gradient
+    def test_gradient_differs_per_position(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _compute_transformer_layer_gradient  # type: ignore[reportPrivateUsage]
 
         model = synthetic_model
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
@@ -646,8 +646,8 @@ class TestGradientComputation:
         # Different positions should give different gradients
         assert not np.allclose(grad_last, grad_first)
 
-    def test_unknown_layer_raises(self, synthetic_model) -> None:
-        from latent_anything.tcav import _compute_transformer_layer_gradient
+    def test_unknown_layer_raises(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _compute_transformer_layer_gradient  # type: ignore[reportPrivateUsage]
 
         ids = np.array([[1, 2, 3]], dtype=np.int64)
         mask = np.array([[1, 1, 1]], dtype=np.int64)
@@ -663,8 +663,8 @@ class TestGradientComputation:
 
 
 class TestLayerActivationExtraction:
-    def test_extract_returns_correct_shape(self, synthetic_model) -> None:
-        from latent_anything.tcav import _extract_layer_activation
+    def test_extract_returns_correct_shape(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _extract_layer_activation  # type: ignore[reportPrivateUsage]
 
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
         mask = np.array([[1, 1, 1, 1, 1]], dtype=np.int64)
@@ -672,8 +672,8 @@ class TestLayerActivationExtraction:
         act = _extract_layer_activation(synthetic_model, ids, mask, layer=1)
         assert act.shape == (8,), f"Expected (8,), got {act.shape}"
 
-    def test_extract_last_position(self, synthetic_model) -> None:
-        from latent_anything.tcav import _extract_layer_activation
+    def test_extract_last_position(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _extract_layer_activation  # type: ignore[reportPrivateUsage]
 
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
         mask = np.array([[1, 1, 1, 1, 1]], dtype=np.int64)
@@ -681,8 +681,8 @@ class TestLayerActivationExtraction:
         act = _extract_layer_activation(synthetic_model, ids, mask, layer=1, position=-1)
         assert act.shape == (8,)
 
-    def test_unknown_layer_raises(self, synthetic_model) -> None:
-        from latent_anything.tcav import _extract_layer_activation
+    def test_unknown_layer_raises(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _extract_layer_activation  # type: ignore[reportPrivateUsage]
 
         ids = np.array([[1, 2, 3]], dtype=np.int64)
         mask = np.array([[1, 1, 1]], dtype=np.int64)
@@ -697,7 +697,7 @@ class TestLayerActivationExtraction:
 
 
 class TestComputeTCAV:
-    def test_compute_tcav_returns_result(self, synthetic_model) -> None:
+    def test_compute_tcav_returns_result(self, synthetic_model: _SyntheticTransformer) -> None:
         """End-to-end test with synthetic model and concept."""
         model = synthetic_model
 
@@ -742,7 +742,7 @@ class TestComputeTCAV:
         assert result.n_random_concepts == 10
         assert result.significance in ("significant", "not_significant")
 
-    def test_compute_tcav_linear_separator(self, synthetic_model) -> None:
+    def test_compute_tcav_linear_separator(self, synthetic_model: _SyntheticTransformer) -> None:
         """Same test but with linear_separator method."""
         model = synthetic_model
         rng = np.random.default_rng(42)
@@ -772,7 +772,7 @@ class TestComputeTCAV:
         assert isinstance(result, TCAVResult)
         assert isinstance(result.aggregate_score, float)
 
-    def test_tcav_class_compute(self, synthetic_model) -> None:
+    def test_tcav_class_compute(self, synthetic_model: _SyntheticTransformer) -> None:
         """TCAV class should produce the same shape as compute_tcav."""
         rng = np.random.default_rng(42)
         ds = ConceptDataset(
@@ -795,7 +795,7 @@ class TestComputeTCAV:
         assert isinstance(result, TCAVResult)
         assert isinstance(result.aggregate_score, float)
 
-    def test_batch_processing(self, synthetic_model) -> None:
+    def test_batch_processing(self, synthetic_model: _SyntheticTransformer) -> None:
         """Multiple examples in batch should produce valid scores."""
         model = synthetic_model
         rng = np.random.default_rng(42)
@@ -830,7 +830,7 @@ class TestComputeTCAV:
 
 
 class TestInterventionAgreement:
-    def test_intervention_agreement_returns_float(self, synthetic_model) -> None:
+    def test_intervention_agreement_returns_float(self, synthetic_model: _SyntheticTransformer) -> None:
         model = synthetic_model
         direction = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
         ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
@@ -849,7 +849,7 @@ class TestInterventionAgreement:
         assert isinstance(agreement, float)
         assert 0.0 <= agreement <= 1.0
 
-    def test_intervention_multiple_examples(self, synthetic_model) -> None:
+    def test_intervention_multiple_examples(self, synthetic_model: _SyntheticTransformer) -> None:
         model = synthetic_model
         direction = np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
         ids = np.array([[1, 2, 3, 4, 5], [5, 4, 3, 2, 1], [1, 3, 5, 7, 9]], dtype=np.int64)

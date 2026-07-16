@@ -124,12 +124,12 @@ def compute_ssim(a: np.ndarray, b: np.ndarray) -> float:
     mu_b = b_norm.mean()
     sigma_a_sq = a_norm.var()
     sigma_b_sq = b_norm.var()
-    sigma_ab = np.mean((a_norm - mu_a) * (b_norm - mu_b))
+    sigma_ab = np.mean((a_norm - mu_a) * (b_norm - mu_b))  # type: ignore[reportUnknownVariableType]
     c1 = 0.01**2
     c2 = 0.03**2
-    ssim_val = (2 * mu_a * mu_b + c1) * (2 * sigma_ab + c2)
-    ssim_val /= (mu_a**2 + mu_b**2 + c1) * (sigma_a_sq + sigma_b_sq + c2)
-    return float(ssim_val)
+    ssim_val = (2 * mu_a * mu_b + c1) * (2 * sigma_ab + c2)  # type: ignore[reportUnknownVariableType]
+    ssim_val /= (mu_a**2 + mu_b**2 + c1) * (sigma_a_sq + sigma_b_sq + c2)  # type: ignore[reportUnknownVariableType]
+    return float(ssim_val)  # type: ignore[reportUnknownArgumentType]
 
 
 def compute_trajectory_cosine(
@@ -157,7 +157,7 @@ def measure(baseline: Any, edited: Any, label: str, seed: int) -> Metrics:
     final_cosine_dist = 1.0 - cos_sim
 
     # Image-level metrics.
-    pixel_mse = float(np.mean((baseline.images - edited.images) ** 2))
+    pixel_mse = float(np.mean((baseline.images - edited.images) ** 2))  # type: ignore[reportUnknownArgumentType]
     ssim_val = compute_ssim(baseline.images, edited.images)
 
     # Latent norm drift (using final latent).
@@ -259,7 +259,7 @@ def aggregate_label(rows: list[Metrics]) -> str:
     mses = [r.pixel_mse for r in rows]
     drifts = [r.latent_norm_drift for r in rows]
     tmeans = [r.trajectory_cosine_mean for r in rows]
-    m = lambda vals: (float(np.mean(vals)), float(np.std(vals, ddof=1) if len(vals) > 1 else 0.0))  # noqa: E731
+    m = lambda vals: (float(np.mean(vals)), float(np.std(vals, ddof=1) if len(vals) > 1 else 0.0))  # type: ignore[reportUnknownLambdaType,reportUnknownArgumentType,reportUnknownVariableType,reportGeneralTypeIssues]  # noqa: E731
     return (
         f"{label:<22} {'agg':>5} {m(final_cd)[0]:>8.4f}±{m(final_cd)[1]:.4f} "
         f"{m(ssims)[0]:>6.3f}±{m(ssims)[1]:.3f} "
@@ -274,11 +274,11 @@ def build_controls_figure(
     baseline: Any,
     controls: dict[str, Any],
     seed: int,
-) -> plt.Figure:
+) -> Any:
     """Build a paired-output comparison figure for one seed."""
     n_controls = len(controls) + 1  # +1 for baseline
     fig, axes = plt.subplots(2, n_controls, figsize=(4 * n_controls, 8))
-    fig.suptitle(f"Intervention controls comparison  (seed={seed})", fontsize=13, fontweight="bold")
+    fig.suptitle(f"Intervention controls comparison  (seed={seed})", fontsize=13, fontweight="bold")  # type: ignore[reportUnknownMemberType]
 
     names = ["baseline"] + list(controls.keys())
     results = [baseline] + list(controls.values())
@@ -306,7 +306,7 @@ def build_controls_figure(
 
 def build_sweep_figure(
     timestep_grid: dict[int, dict[float, Metrics]],
-) -> plt.Figure:
+) -> Any:
     """Build a 2-panel sweep figure: timestep sweep + strength sweep."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -317,9 +317,9 @@ def build_sweep_figure(
         vals = []
         for s in steps:
             if strength in timestep_grid[s]:
-                vals.append(timestep_grid[s][strength].final_cosine_dist)
+                vals.append(timestep_grid[s][strength].final_cosine_dist)  # type: ignore[reportUnknownMemberType]
             else:
-                vals.append(np.nan)
+                vals.append(np.nan)  # type: ignore[reportUnknownMemberType]
         ax.plot(steps, vals, marker="o", label=f"strength={strength}")
     ax.set_xlabel("Intervention start step")
     ax.set_ylabel("Final cosine distance")
@@ -415,7 +415,7 @@ def main() -> None:
         # Build controls figure for the first seed only (to save time).
         if seed == SEEDS[0]:
             fig = build_controls_figure(baseline, controls, seed)
-            fig.savefig(str(CONTROLS_PNG), dpi=150)
+            fig.savefig(str(CONTROLS_PNG), dpi=150)  # type: ignore[reportUnknownMemberType]
             plt.close(fig)
             print(f"  Saved {CONTROLS_PNG}")
 

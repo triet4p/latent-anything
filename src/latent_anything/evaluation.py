@@ -41,7 +41,7 @@ class ExplanationEvaluation:
 # ── Legacy centroid-based probe (fast, internal) ─────────────────────────
 
 
-def _centroid_probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: int) -> float:
+def _centroid_probe_accuracy(features: np.ndarray, labels: np.ndarray, *, random_state: int) -> float:  # type: ignore[reportUnusedFunction]
     """Fast nearest-centroid probe accuracy (legacy, used by evaluate_explanation).
 
     The project's canonical linear-probing tool is :class:`~latent_anything.probes.LinearProbe`.

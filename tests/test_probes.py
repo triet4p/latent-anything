@@ -482,8 +482,8 @@ class TestCrossSeedEvaluation:
 class TestEvaluateLayers:
     def test_evaluate_layers(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
         features, labels = binary_data
-        layer_features = {"layer_0": features, "layer_1": features + 0.1}
-        reports = evaluate_layers(layer_features, labels, seeds=[0, 1])
+        layer_features: dict[str, np.ndarray] = {"layer_0": features, "layer_1": np.asarray(features + 0.1)}
+        reports = evaluate_layers(layer_features, labels, seeds=[0, 1])  # type: ignore[reportArgumentType]
         assert len(reports) == 2
         assert all(isinstance(r, CrossSeedReport) for r in reports.values())
         assert "layer_0" in reports
@@ -528,11 +528,11 @@ class TestRealIntegration:
 
     def test_on_transformer_hidden_states(self) -> None:
         """Evaluate probe on real transformer hidden states (Sprint 39)."""
-        from latent_anything.integrations.transformer_lm import TransformerLMIntegration
+        from latent_anything.integrations.transformer_lm import TransformerGenerationRequest, TransformerLMIntegration
 
         integration = TransformerLMIntegration()
         prompt = "The cat sat on the"
-        request = integration.make_request(prompt, max_new_tokens=1)
+        request = TransformerGenerationRequest(prompt=prompt, max_length=8)
         gen_result = integration.generate(request)
 
         # Collect hidden states from last layer
@@ -550,13 +550,13 @@ class TestRealIntegration:
 
     def test_on_transformer_multi_layer(self) -> None:
         """Cross-seed evaluation across multiple transformer layers."""
-        from latent_anything.integrations.transformer_lm import TransformerLMIntegration
+        from latent_anything.integrations.transformer_lm import TransformerGenerationRequest, TransformerLMIntegration
 
         integration = TransformerLMIntegration()
-        request = integration.make_request("The meaning of life is", max_new_tokens=1)
+        request = TransformerGenerationRequest(prompt="The meaning of life is", max_length=8)
         gen_result = integration.generate(request)
 
-        layer_features: dict[str, np.ndarray] = {}
+        layer_features: dict[str | int, np.ndarray] = {}
         for hs in gen_result.hidden_states:
             if hs.layer in (0, 5, 11):  # early, mid, late layers
                 # Use first token hidden states

@@ -15,6 +15,7 @@ and registered under the ``"analysis"`` kind for semantic taxonomy.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -669,7 +670,7 @@ class LinearProbe:
 
 
 def evaluate_layers(
-    layer_features: dict[str | int, np.ndarray],
+    layer_features: Mapping[str | int, np.ndarray],
     labels: np.ndarray,
     *,
     seeds: list[int] | range | None = None,

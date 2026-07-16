@@ -44,8 +44,8 @@ def well_separated_clusters() -> np.ndarray:
     for i in range(3):
         center = np.array([i * 5.0, i * 5.0])
         cluster = rng.normal(loc=center, scale=0.3, size=(20, 2))
-        clusters.append(cluster)
-    return np.concatenate(clusters, axis=0)
+        clusters.append(cluster)  # type: ignore[reportUnknownMemberType]
+    return np.concatenate(clusters, axis=0)  # type: ignore[reportUnknownArgumentType]
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def overlapping_clusters() -> np.ndarray:
 def high_dim_data() -> np.ndarray:
     """50 samples in 20D with 4 clusters."""
     rng = np.random.default_rng(42)
-    clusters = []
+    clusters: list[np.ndarray] = []
     for i in range(4):
         center = np.full(20, i * 3.0)
         cluster = rng.normal(loc=center, scale=0.5, size=(15, 20))

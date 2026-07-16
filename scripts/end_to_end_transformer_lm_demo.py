@@ -84,9 +84,9 @@ def run_demo() -> None:
     print(f"\n   Top-5 tokens at each layer (position {final_pos}):")
     for lr in result.lens_results:
         if lr.top_tokens and lr.top_tokens[0]:
-            pos_tokens = lr.top_tokens[0][final_pos]
+            pos_tokens: list[tuple[int, float]] = lr.top_tokens[0][final_pos]  # type: ignore[reportUnknownVariableType]
             top_str = ", ".join(
-                [f"'{pipe.decode_tokens(np.array([[tid]]))[0]}' ({prob:.3f})" for tid, prob in pos_tokens]
+                [f"'{pipe.decode_tokens(np.array([[tid]]))[0]}' ({prob:.3f})" for tid, prob in pos_tokens]  # type: ignore[reportUnknownVariableType]
             )
             print(f"      Layer {lr.layer:2d}: {top_str}")
 
@@ -108,9 +108,9 @@ def run_demo() -> None:
     edited_result = pipe.generate(req, intervention=intervention)
 
     # Compare baseline vs edited logits at the target layer.
-    baseline_lens = result.lens_results[7] if len(result.lens_results) > 7 else result.lens_results[-1]
+    baseline_lens = result.lens_results[7] if len(result.lens_results) > 7 else result.lens_results[-1]  # type: ignore[reportGeneralTypeIssues]
     edited_lens = (
-        edited_result.lens_results[7] if len(edited_result.lens_results) > 7 else edited_result.lens_results[-1]
+        edited_result.lens_results[7] if len(edited_result.lens_results) > 7 else edited_result.lens_results[-1]  # type: ignore[reportGeneralTypeIssues]
     )
 
     lens_diff = float(np.linalg.norm(edited_lens.logits - baseline_lens.logits))
@@ -120,48 +120,48 @@ def run_demo() -> None:
     print("\n[6/6] Generating visualizations...")
 
     # Plot 1: Token rank trajectories.
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))  # noqa: F841
 
     ax = axes[0]
     for traj in result.token_rank_trajectories[:5]:
-        ax.plot(traj.layers, traj.ranks, marker="o", label=f"'{traj.token_str}'")
-    ax.set_xlabel("Layer")
-    ax.set_ylabel("Rank (1 = most probable)")
-    ax.set_title("Token Rank Trajectories Across Layers")
-    ax.invert_yaxis()  # Rank 1 at top
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3)
+        ax.plot(traj.layers, traj.ranks, marker="o", label=f"'{traj.token_str}'")  # type: ignore[reportUnknownMemberType]
+    ax.set_xlabel("Layer")  # type: ignore[reportUnknownMemberType]
+    ax.set_ylabel("Rank (1 = most probable)")  # type: ignore[reportUnknownMemberType]
+    ax.set_title("Token Rank Trajectories Across Layers")  # type: ignore[reportUnknownMemberType]
+    ax.invert_yaxis()  # type: ignore[reportUnknownMemberType]
+    ax.legend(fontsize=8)  # type: ignore[reportUnknownMemberType]
+    ax.grid(True, alpha=0.3)  # type: ignore[reportUnknownMemberType]
 
     ax = axes[1]
     for traj in result.token_rank_trajectories[:5]:
-        ax.plot(traj.layers, traj.probabilities, marker="s", label=f"'{traj.token_str}'")
-    ax.set_xlabel("Layer")
-    ax.set_ylabel("Probability")
-    ax.set_title("Token Probability Trajectories Across Layers")
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3)
+        ax.plot(traj.layers, traj.probabilities, marker="s", label=f"'{traj.token_str}'")  # type: ignore[reportUnknownMemberType]
+    ax.set_xlabel("Layer")  # type: ignore[reportUnknownMemberType]
+    ax.set_ylabel("Probability")  # type: ignore[reportUnknownMemberType]
+    ax.set_title("Token Probability Trajectories Across Layers")  # type: ignore[reportUnknownMemberType]
+    ax.legend(fontsize=8)  # type: ignore[reportUnknownMemberType]
+    ax.grid(True, alpha=0.3)  # type: ignore[reportUnknownMemberType]
 
-    plt.tight_layout()
+    plt.tight_layout()  # type: ignore[reportUnknownMemberType]
     plot_path = OUTPUT_DIR / "transformer_lm_rank_trajectories.png"
-    plt.savefig(plot_path, dpi=150)
+    fig.savefig(plot_path, dpi=150)  # type: ignore[reportUnknownMemberType]
     print(f"   Saved: {plot_path}")
 
     # Plot 2: Layer-by-layer entropy.
-    fig, ax = plt.subplots(figsize=(8, 4))
-    entropies = []
+    fig, ax = plt.subplots(figsize=(8, 4))  # noqa: F841
+    entropies: list[float] = []
     for lr in result.lens_results:
         probs = lr.probabilities[0, final_pos]
         entropy = -np.sum(probs * np.log(probs + 1e-10))
         entropies.append(entropy)
 
-    ax.plot(list(range(len(entropies))), entropies, marker="d")
-    ax.set_xlabel("Layer")
-    ax.set_ylabel("Entropy (nats)")
-    ax.set_title("Prediction Entropy at Each Layer")
-    ax.grid(True, alpha=0.3)
+    ax.plot(list(range(len(entropies))), entropies, marker="d")  # type: ignore[reportUnknownMemberType]
+    ax.set_xlabel("Layer")  # type: ignore[reportUnknownMemberType]
+    ax.set_ylabel("Entropy (nats)")  # type: ignore[reportUnknownMemberType]
+    ax.set_title("Prediction Entropy at Each Layer")  # type: ignore[reportUnknownMemberType]
+    ax.grid(True, alpha=0.3)  # type: ignore[reportUnknownMemberType]
 
     entropy_path = OUTPUT_DIR / "transformer_lm_layer_entropy.png"
-    plt.savefig(entropy_path, dpi=150)
+    fig.savefig(entropy_path, dpi=150)  # type: ignore[reportUnknownMemberType]
     print(f"   Saved: {entropy_path}")
 
     # ── Summary ───────────────────────────────────────────────────────
