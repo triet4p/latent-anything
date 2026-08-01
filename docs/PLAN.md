@@ -34,7 +34,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestones 0-6 - Beta foundation (Sprints 1-26):** theory research, core primitives, first adapters/methods, registry/config, concrete pipelines, runtime helpers, and `0.1.0-beta.1` release.
 - [ ] **Milestone 7 - Stable contract and semantic API (Sprints 27-31):** measurable 1.0 gates, domain vocabulary, structured latent values, geometry decomposition, and registry migration.
 - [ ] **Milestone 8 - Real generative-model proof (Sprints 32-38):** activation capture, optional backend isolation, real VAE and diffusion integrations, and explanation-validity benchmarks.
-- [ ] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
+- [x] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
 - [ ] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
 - [ ] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [ ] **Milestone 12 - World models and planning (Sprints 63-72):** transition models, rollout, reward/value evaluation, CEM/MPPI, discrete latents, JEPA/LeWM, and tokenized-world-model evidence.
@@ -153,6 +153,7 @@ None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
 - [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
 - [Sprint 45](sprint-plans/sprint-45.md) - Activation-space Integrated Gradients with completeness and transformer sensitivity evidence.
 - [Sprint 46](sprint-plans/sprint-46.md) - Sparse-autoencoder feature evaluation with reconstruction, sparsity, stability, cross-check, and a queryable feature atlas.
+- [Sprint 47](sprint-plans/sprint-47.md) - Interactive Plotly/notebook exploration backed by typed analysis results (renderer inputs, 2D/3D explorer, widget path, optional `viz` extra, and a digits ConvVAE walkthrough).
 
 ## Planning Rules
 

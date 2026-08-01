@@ -4,6 +4,14 @@
 
 ### Added
 
+- Added an optional interactive visualization package (`latent_anything.visualization`, install with `uv sync --extra viz`) that renders typed analysis results without embedding plotting logic into analysis methods. (#sprint-47)
+- Added typed renderer inputs (`ProjectionView`, `TrajectoryView`, `MetricSummary`) and builders that convert probe, K-means, density, trajectory, and feature-atlas results into views (`projection_from_probe`, `projection_from_kmeans`, `projection_from_density`, `projection_from_trajectory`, `projection_from_atlas`). (#sprint-47)
+- Added a Plotly-based 2D/3D projection explorer (`projection_explorer`) with category coloring, continuous color scaling, hover metadata, trajectory overlays, and box/lasso selection. (#sprint-47)
+- Added a notebook widget path (`ProjectionExplorer`) that renders an interactive ipywidgets container with a metadata-inspection panel in Jupyter and degrades cleanly to self-contained HTML or PNG/SVG export outside a notebook. (#sprint-47)
+- Added declared responsiveness targets (`DEFAULT_POINT_LIMIT_2D = 50_000`, `DEFAULT_POINT_LIMIT_3D = 20_000`) with deterministic, category-stratified downsampling that never thins trajectory overlays. (#sprint-47)
+- Added schema/snapshot tests for renderer inputs and figures, import-isolation tests proving the base package never imports plotly/kaleido/ipywidgets, and a manual browser visual QA checklist (`docs/visual-qa-checklist.md`). (#sprint-47)
+- Added an interactive real-model walkthrough (`scripts/interactive_viz_walkthrough.py`) that renders digits ConvVAE K-means, probe, density, trajectory, and SAE feature-atlas charts with quantitative metrics and a 60k-point responsiveness check. (#sprint-47)
+
 - Added sparse-autoencoder feature evaluation (`SAEFeatureEvaluation`) covering held-out reconstruction MSE, L0/L1 activity, dead-feature detection, activation frequency, decoder/encoder norms, train/validation separation, and portable `.npz` checkpoint serialization of fitted SAE state. (#sprint-46)
 - Added cross-seed feature stability (`cross_seed_sae_stability`) that matches features by decoder-direction cosine similarity across seeds instead of comparing arbitrary feature indices. (#sprint-46)
 - Added feature example/counterexample ranking (`rank_feature_examples`) and a probe/concept/causal-steering cross-check (`cross_check_feature`) against a scalar transformer logit target. (#sprint-46)

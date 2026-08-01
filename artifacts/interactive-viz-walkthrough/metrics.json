@@ -1,0 +1,57 @@
+{
+  "metrics": {
+    "adapter": {
+      "reconstruction_mse": 0.19003766775131226,
+      "posterior_kl": 0.006494016852229834,
+      "latent_utilization": 0.004845333285629749,
+      "n_samples": 300
+    },
+    "kmeans": {
+      "n_clusters": 8,
+      "silhouette_score": 0.27573637375617227,
+      "inertia": 327.92578616125655,
+      "cluster_sizes": "54,52,41,41,29,22,25,36"
+    },
+    "probe": {
+      "accuracy": 0.5934065934065934,
+      "val_accuracy": 0.5,
+      "n_classes": 10,
+      "n_iter": 24
+    },
+    "density": {
+      "auroc": 0.7114598150782361,
+      "auprc": 0.7404540628217696,
+      "brier_score": 0.24742771487703918,
+      "n_id": 148,
+      "n_ood": 152
+    },
+    "trajectory": {
+      "n_points": 11,
+      "total_latent_path_length": 0.05539924362059062,
+      "mean_step_length": 0.005539924362059062
+    },
+    "atlas": {
+      "reconstruction_mse": 0.0017447551204358143,
+      "mean_l0": 2.316666666666667,
+      "dead_fraction": 0.5,
+      "n_features": 16
+    }
+  },
+  "responsiveness": {
+    "n_input": 60000,
+    "n_rendered": 50000,
+    "render_seconds": 1.384
+  },
+  "artifacts": [
+    "kmeans.html",
+    "kmeans.png",
+    "probe.html",
+    "probe.png",
+    "density.html",
+    "density.png",
+    "trajectory.html",
+    "trajectory.png",
+    "atlas.html",
+    "atlas.png"
+  ]
+}

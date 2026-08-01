@@ -446,3 +446,24 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Keep `sum(|latent|)` and tune `l1_coef` downward; standardize inside `SAE.fit`; or drop L1 entirely.
 **Reason:** An unnormalized `sum` makes the L1 gradient per element `l1_coef` across the whole batch, which collapsed every feature to dead even at `l1_coef = 1e-4` — the SAE was unusable for feature discovery. Per-element normalization makes the sparsity gradient comparable to the reconstruction gradient.
 **Consequences:** Existing `test_sae.py` assertions (loss trend, shape, reproducibility, L1 near-zero entries) still pass. Callers that relied on tiny `l1_coef` values must retune; `SAEConfig` defaults were raised to `l1_coef=0.1, n_epochs=500` accordingly.
+
+## [2026-08-02] Keep visualization behind an optional `viz` extra with a plotly-free renderer-input contract
+
+**Decision:** Interactive visualization lives in `latent_anything.visualization` under a new optional `viz` extra (`plotly`, `kaleido`, `ipywidgets`, `anywidget`). Renderer inputs are pure data types (`ProjectionView`, `TrajectoryView`, `MetricSummary`) built by explicit builders from analysis results; the frontends (Plotly explorer, notebook widget, static export) only render those views and never compute metrics or model logic. The base package and `visualization.data` never import plotly/kaleido/ipywidgets.
+**Alternatives considered:** Add plotting methods to every analysis result; return plotly figures directly from analysis methods; or make plotly a base dependency.
+**Reason:** Embedding plotting into analysis results would force every analysis method to know about a visualization frontend and break the isolated extras pattern already proven for diffusers/transformers. A data-view contract keeps the frontend swappable (notebook widget vs static export vs a future web app) while keeping metrics computed exactly once by the analyses. Base-dependency plotly would burden the core package for users who never open a notebook.
+**Consequences:** `import latent_anything` and `import latent_anything.visualization` never pull plotly/kaleido/ipywidgets (proven by import-isolation tests). Users install `uv sync --extra viz` to render. New analyses must add a builder in `visualization/data.py`; new frontends consume the same views. This is the first visualization instance; a shared frontend Protocol is deferred until a second differing frontend (e.g. a web viewer) demands it.
+
+## [2026-08-02] First notebook widget path uses ipywidgets + Plotly FigureWidget, not a custom anywidget
+
+**Decision:** The Sprint 47 notebook widget (`ProjectionExplorer.widget()`) is an `ipywidgets.VBox` wrapping a Plotly `FigureWidget` (selection/zoom/hover) plus an inspection `Output` panel; `ProjectionExplorer.show()` degrades to a self-contained HTML string outside a notebook, and `save()`/`to_image()` export static HTML/PNG/SVG.
+**Alternatives considered:** Build a custom `anywidget` with hand-written ESM JavaScript; reuse plotly's `_repr_html_` only, without a widget container.
+**Reason:** anywidget remains approved for custom widgets that ipywidgets cannot express, but the first concrete widget needs no custom JavaScript — plotly's `FigureWidget` already provides interactive selection/hover and ipywidgets provides the inspection panel, and this is the minimal concrete instance under the Rule of Three. A custom anywidget would add a JS build/testing surface for the first use case.
+**Consequences:** The `viz` extra still lists `anywidget` because plotly 6.x `FigureWidget` imports it. Future widget needs (custom toolbars, multi-view linking, canvas rendering) should introduce a real anywidget only when ipywidgets cannot express them.
+
+## [2026-08-02] Responsiveness is a declared deterministic downsampling contract, not a render-time guess
+
+**Decision:** The explorer renders at most `DEFAULT_POINT_LIMIT_2D = 50_000` (or `DEFAULT_POINT_LIMIT_3D = 20_000`) background points, downsampling deterministically per category (seeded, `DOWNSAMPLE_SEED = 0`) before building the figure, and never downsampling trajectory overlays. The dropped/kept counts are recorded in view metadata and surfaced as a chart annotation.
+**Alternatives considered:** Stream/decimate in the browser; leave downsampling to each caller; or downsample without preserving class balance.
+**Reason:** Interactive Plotly pan/zoom/selection degrades beyond tens of thousands of points, so a declared target makes behavior predictable and testable. Seeded per-category sampling keeps class structure and makes runs reproducible; overlays are the structure being inspected and must never be thinned.
+**Consequences:** Views already under the limit render unchanged. Callers who need more points must explicitly reduce scope or increase the limit. The 60k-point walkthrough check and the downsampling tests pin this contract.
