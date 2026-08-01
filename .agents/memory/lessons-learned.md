@@ -118,3 +118,26 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The manually created module was executed without first registering it in `sys.modules`. During dataclass processing, Python looks up `sys.modules[cls.__module__]`; because the module name was missing, the lookup returned `None`.
 **Fix / workaround:** Insert the module before execution: `sys.modules[spec.name] = module`, then call `spec.loader.exec_module(module)`.
 **Watch out for:** Tests that import standalone scripts via `importlib.util.spec_from_file_location()` and those scripts define dataclasses or other decorators that inspect the module namespace during import.
+
+## [2026-07-16] pyright strict mode catches type annotation gaps in new feature code
+
+**Symptom:** CI failed with 70+ pyright strict-mode errors after feature commits (K-means clustering, TCAV, MLP probe, LinearProbe). Errors spanned source, tests, and standalone scripts — not just the new code.
+
+**Root cause:** Feature commits focused on functionality and tests but did not update type annotations for pyright strict mode (`reportUnknownVariableType`, `reportUnknownArgumentType`, `reportUnknownMemberType`, `reportPrivateUsage`). Common patterns: missing annotations on `list` variables (pyright infers `list[Unknown]`), `field(default_factory=dict)` inferred as `dict[Unknown, Unknown]`, redundant `None` checks on already-narrowed types, `dict[str, X]` passed to `dict[str | int, X]` parameters (dict key invariance), private function access in tests, and matplotlib/numpy type stub gaps in standalone scripts.
+
+**Fix / workaround:** Targeted changes across 10 files:
+- Add `# type: ignore[error-code]` for known pyright limitations (numpy/matplotlib stubs in scripts, private function testing, `field(default_factory=...)` partial unknown types)
+- Remove redundant `intervention is not None` after `need_intervention` type guard narrows the variable
+- Change `dict[str | int, np.ndarray]` to `Mapping[str | int, np.ndarray]` to accept both `dict[str, ...]` and `dict[int, ...]` (Mapping key is invariant but the broader Union works in practice)
+- Replace `type("FakeConfig", (), {...})()` with a real `FakeConfig` class with typed attributes
+- Annotate list variables (`list[np.ndarray]`, `list[list[int]]`) to prevent `list[Unknown]`
+- Fix `integration.make_request()` → direct `TransformerGenerationRequest()` calls
+
+**Watch out for:** Every feature commit that adds new files or modifies existing ones must run `pyright` before CI. Pay special attention to: untyped `list`/`dict` variables in tests, `field(default_factory=...)` on typed dataclass fields, function signatures with missing parameter annotations, and any test that accesses private module members. Scripts under `scripts/` are included in pyright's strict check — they need the same treatment as source code (either annotate or pragma-ignore).
+
+## [2026-08-01] Network-marked tests were not actually opt-in
+
+**Symptom:** The default full pytest run attempted Diffusers and Transformers model integrations even though those tests were documented as network/offline-optional, causing failures when optional extras were absent.
+**Root cause:** Registering the `network` marker in pytest configuration only labels tests; it does not skip them.
+**Fix / workaround:** Added collection-time skipping for `network` items unless `LATENT_ANYTHING_RUN_NETWORK=1` is set. The default CI suite now remains offline while the explicit integration lane still runs.
+**Watch out for:** Any future optional integration test that relies on a marker being opt-in must be gated in `tests/conftest.py`, not merely decorated.

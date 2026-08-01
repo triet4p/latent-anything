@@ -4,6 +4,14 @@
 
 ### Added
 
+- Added representation-bound Gaussian-mixture density estimation with held-out calibration, calibrated OOD scores, responsibilities, provenance, AUROC/AUPRC diagnostics, Mahalanobis baseline comparison, and cross-seed uncertainty reports. (#sprint-44)
+
+### Fixed
+
+- Made marked model-download integration tests opt-in via `LATENT_ANYTHING_RUN_NETWORK=1`, so the default CI quality gate remains offline and reproducible.
+
+### Added
+
 - Added K-means clustering module (`KMeans`) for latent structure discovery with explicit geometry compatibility checks, typed cluster results (`KMeansResult`), silhouette diagnostics, and a nearest-versus-second-nearest distance-margin confidence proxy. (#sprint-43)
 - Added bootstrap/seed stability analysis (`cluster_stability_analysis`) with Hungarian label alignment and adjusted Rand index for quantifying cluster robustness. (#sprint-43)
 - Added external validation (`compare_with_labels`) using adjusted Rand index, mutual information, homogeneity, completeness, and V-measure against known ground-truth labels. (#sprint-43)

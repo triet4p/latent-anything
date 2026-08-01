@@ -19,6 +19,13 @@ A chronological log of *why* key choices were made in this project.
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-01] Density estimation remains bound to representation identity
+
+**Decision:** Gaussian-mixture density and Mahalanobis scoring are estimator-local and require a source representation identity; scores from different spaces are rejected rather than compared.
+**Alternatives considered:** Generalize `LatentSpace` with covariance geometry now, or silently compare likelihoods across models.
+**Reason:** Likelihood scale and covariance semantics depend on preprocessing, model revision, layer, and dimension. Sprint 44 needs a useful density estimator without prematurely expanding the geometry abstraction planned for Sprint 48.
+**Consequences:** Callers must declare identity and split provenance. Cross-space scoring fails explicitly; later geometry work can replace the estimator-local implementation behind a new contract.
+
 ## [2026-06-16] Key `LatentSpace` on geometry/manifold structure, not container shape
 
 **Decision:** `LatentSpace` is identified by its *geometry hint* (the manifold/metric structure of the representation), not by its tensor container shape. The geometry enum must treat an **unordered, permutation-invariant set** (3D Gaussian set, point cloud) as a first-class geometry alongside Euclidean vector, sequence/grid, discrete code, and manifold/Riemannian. Status: theory-supported position to validate in Giai đoạn 1, not a frozen interface.

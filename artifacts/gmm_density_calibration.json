@@ -1,0 +1,19 @@
+{
+  "artifact": "sprint-44-gmm-density-calibration",
+  "protocol": {
+    "fit": "train",
+    "calibration": "held_out_in_distribution",
+    "evaluation": ["held_out_in_distribution", "constructed_ood"],
+    "seeds": [0, 1, 2, 3, 4],
+    "preprocessing": "caller-provided representation arrays; no cross-space comparison"
+  },
+  "failure_contracts": [
+    "unsupported geometry",
+    "too few samples",
+    "full covariance dimension/sample imbalance",
+    "feature dimension mismatch",
+    "cross-space identity mismatch",
+    "singular covariance"
+  ],
+  "metrics": ["AUROC", "AUPRC", "Brier score", "mean ID/OOD calibrated score", "95% CI across seeds"]
+}

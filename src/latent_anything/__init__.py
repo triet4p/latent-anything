@@ -26,6 +26,30 @@ from latent_anything.clustering import compare_with_labels as compare_with_label
 from latent_anything.config import ObjectSpec as ObjectSpec
 from latent_anything.config import build_from_config as build_from_config
 from latent_anything.config import build_from_dict as build_from_dict
+from latent_anything.density import (
+    DensityEvaluationReport as DensityEvaluationReport,
+)
+from latent_anything.density import (
+    DensityMetrics as DensityMetrics,
+)
+from latent_anything.density import (
+    DensityResult as DensityResult,
+)
+from latent_anything.density import (
+    DensityStabilityReport as DensityStabilityReport,
+)
+from latent_anything.density import (
+    GaussianMixtureDensity as GaussianMixtureDensity,
+)
+from latent_anything.density import (
+    GMMConfig as GMMConfig,
+)
+from latent_anything.density import (
+    cross_seed_evaluation as density_cross_seed_evaluation,
+)
+from latent_anything.density import (
+    mahalanobis_baseline as mahalanobis_baseline,
+)
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.latent_value import LatentValue as LatentValue
 from latent_anything.methods import Method as Method
@@ -122,6 +146,14 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "GMMConfig",
+    "GaussianMixtureDensity",
+    "DensityResult",
+    "DensityMetrics",
+    "DensityEvaluationReport",
+    "DensityStabilityReport",
+    "density_cross_seed_evaluation",
+    "mahalanobis_baseline",
     "check_clustering_geometry",
     "cluster_stability_analysis",
     "compare_probes",

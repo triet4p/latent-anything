@@ -44,6 +44,7 @@ from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
 from latent_anything.clustering import KMeans
+from latent_anything.density import GaussianMixtureDensity
 from latent_anything.methods.activation_patch import ActivationPatch
 from latent_anything.methods.lerp import Lerp
 from latent_anything.methods.pca import PCA
@@ -137,6 +138,15 @@ GLOBAL_REGISTRY.register(
     KMeans,
     description="K-means clustering — latent structure discovery with geometry checks and diagnostics",
     protocol="KMeans",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ANALYSIS,
+    "gaussian_mixture_density",
+    GaussianMixtureDensity,
+    description="Representation-bound Gaussian-mixture density and calibrated OOD scoring",
+    protocol="GaussianMixtureDensity",
     source="built-in",
 )
 
