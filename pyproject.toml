@@ -81,6 +81,8 @@ include = [
     "tests/test_diffusers_conditional_network.py",
     "tests/test_transformer_lm.py",
     "tests/test_transformer_lm_network.py",
+    "tests/test_integrated_gradients.py",
+    "tests/test_integrated_gradients_network.py",
     "tests/test_evaluation.py",
     "tests/test_integrations.py",
     "tests/test_latent_anything/test_capture.py",

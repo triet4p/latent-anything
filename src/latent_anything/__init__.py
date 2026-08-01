@@ -50,6 +50,24 @@ from latent_anything.density import (
 from latent_anything.density import (
     mahalanobis_baseline as mahalanobis_baseline,
 )
+from latent_anything.integrated_gradients import (
+    IntegratedGradients as IntegratedGradients,
+)
+from latent_anything.integrated_gradients import (
+    IntegratedGradientsConfig as IntegratedGradientsConfig,
+)
+from latent_anything.integrated_gradients import (
+    IntegratedGradientsResult as IntegratedGradientsResult,
+)
+from latent_anything.integrated_gradients import (
+    SensitivityReport as SensitivityReport,
+)
+from latent_anything.integrated_gradients import (
+    compute_integrated_gradients as compute_integrated_gradients,
+)
+from latent_anything.integrated_gradients import (
+    evaluate_sensitivity as evaluate_sensitivity,
+)
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.latent_value import LatentValue as LatentValue
 from latent_anything.methods import Method as Method
@@ -113,6 +131,9 @@ __all__ = [
     "CrossSeedReport",
     "GLOBAL_REGISTRY",
     "InMemoryCache",
+    "IntegratedGradients",
+    "IntegratedGradientsConfig",
+    "IntegratedGradientsResult",
     "KMeans",
     "KMeansConfig",
     "KMeansResult",
@@ -141,6 +162,7 @@ __all__ = [
     "RegistryEntry",
     "RuntimeProfile",
     "RuntimeProfiler",
+    "SensitivityReport",
     "Trajectory",
     "build_from_config",
     "build_from_dict",
@@ -158,9 +180,11 @@ __all__ = [
     "cluster_stability_analysis",
     "compare_probes",
     "compare_with_labels",
+    "compute_integrated_gradients",
     "compute_tcav",
     "cross_seed_evaluation",
     "evaluate_layers",
+    "evaluate_sensitivity",
     "intervention_agreement",
     "learn_linear_separator_direction",
     "learn_mean_diff_direction",

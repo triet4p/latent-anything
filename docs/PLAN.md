@@ -151,6 +151,7 @@ None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
 - [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE implementation and real-image smoke evidence delivered; the held-out meaningful-integration benchmark remains a carryover gate.
 - [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter delivered; real-checkpoint fidelity and interpolation evidence remain Sprint 37 entry gates.
 - [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
+- [Sprint 45](sprint-plans/sprint-45.md) - Activation-space Integrated Gradients with completeness and transformer sensitivity evidence.
 
 ## Planning Rules
 

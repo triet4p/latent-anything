@@ -13,14 +13,14 @@ Add activation-space Integrated Gradients from a selected transformer residual-l
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Define one concrete attribution path from a selected residual-layer/token activation to a declared scalar next-token logit; defer input-token attribution to separate scope.
-- [ ] Define a bounded baseline family, integration rule, and step-count range with full layer/token/target/model provenance.
-- [ ] Preserve PyTorch gradients internally while returning a typed NumPy attribution result with convergence delta/completeness error.
-- [ ] Test completeness on analytic models and quantify approximation error against declared tolerances.
-- [ ] Evaluate step sensitivity, baseline sensitivity, target specificity, and parameter-randomization sanity checks.
-- [ ] Integrate through the hook/intervention seam without leaked hooks, retained graphs, or globally enabled gradients after completion.
-- [ ] Produce real-transformer positive, negative, and unstable examples and compare observational attribution with Sprint 39 intervention and Sprint 42 concept evidence.
-- [ ] Add direct/config construction, deterministic and marked integration tests, then update evidence/ADR/changelog/artifact/gates.
+- [x] Define one concrete attribution path from a selected residual-layer/token activation to a declared scalar next-token logit; defer input-token attribution to separate scope.
+- [x] Define a bounded baseline family, integration rule, and step-count range with full layer/token/target/model provenance.
+- [x] Preserve PyTorch gradients internally while returning a typed NumPy attribution result with convergence delta/completeness error.
+- [x] Test completeness on analytic models and quantify approximation error against declared tolerances.
+- [x] Evaluate step sensitivity, baseline sensitivity, target specificity, and parameter-randomization sanity checks.
+- [x] Integrate through the hook/intervention seam without leaked hooks, retained graphs, or globally enabled gradients after completion.
+- [x] Produce real-transformer positive, negative, and unstable examples and compare observational attribution with Sprint 39 intervention and Sprint 42 concept evidence.
+- [x] Add direct/config construction, deterministic and marked integration tests, then update evidence/ADR/changelog/artifact/gates.
 
 ## Notes / Blockers
 

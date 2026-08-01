@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added activation-space Integrated Gradients for a selected transformer residual-layer/token activation and scalar next-token logit, with bounded baselines, typed NumPy results, completeness/convergence diagnostics, sensitivity reporting, direct/config construction, and marked real-checkpoint evidence. (#sprint-45)
 - Added representation-bound Gaussian-mixture density estimation with held-out calibration, calibrated OOD scores, responsibilities, provenance, AUROC/AUPRC diagnostics, Mahalanobis baseline comparison, and cross-seed uncertainty reports. (#sprint-44)
 
 ### Fixed
