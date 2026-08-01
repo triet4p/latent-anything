@@ -8,14 +8,14 @@ Evaluate sparse-autoencoder features for reconstruction, sparsity, stability, an
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Define SAE evaluation results for reconstruction, L0/L1 activity, dead features, activation frequency, and decoder norms.
-- [ ] Add train/validation separation and checkpoint serialization for fitted SAE state.
-- [ ] Measure feature stability/alignment across seeds and avoid comparing arbitrary feature indices directly.
-- [ ] Rank feature examples and counterexamples from one real VAE or transformer activation dataset.
-- [ ] Cross-check selected features with probes, concepts, and causal steering/patching.
-- [ ] Generate a portable feature-atlas data artifact independent of the visualization frontend.
-- [ ] Add regression thresholds and marked full-model evaluation tests.
-- [ ] Update evidence/ADR/changelog/artifact and gates.
+- [x] Define SAE evaluation results for reconstruction, L0/L1 activity, dead features, activation frequency, and decoder norms.
+- [x] Add train/validation separation and checkpoint serialization for fitted SAE state.
+- [x] Measure feature stability/alignment across seeds and avoid comparing arbitrary feature indices directly.
+- [x] Rank feature examples and counterexamples from one real VAE or transformer activation dataset.
+- [x] Cross-check selected features with probes, concepts, and causal steering/patching.
+- [x] Generate a portable feature-atlas data artifact independent of the visualization frontend.
+- [x] Add regression thresholds and marked full-model evaluation tests.
+- [x] Update evidence/ADR/changelog/artifact and gates.
 
 ## Notes / Blockers
 

@@ -333,6 +333,7 @@ class TestGlobalRegistryBuiltins:
             "pca",
             "umap",
             "sae",
+            "sae_evaluation",
             "linear_probe",
             "mlp_probe",
             "tcav",
@@ -347,13 +348,13 @@ class TestGlobalRegistryBuiltins:
         assert method_b_names == {"lerp", "steering", "activation_patch"}
 
     def test_global_registry_total_entries(self) -> None:
-        """GLOBAL_REGISTRY has 17 entries (5 adapters + 9 analysis + 3 intervention)."""
+        """GLOBAL_REGISTRY has 18 entries (5 adapters + 10 analysis + 3 intervention)."""
         assert len(GLOBAL_REGISTRY) >= 15
         n_adapters = len(GLOBAL_REGISTRY.list(KIND_ADAPTER))
         n_method_a = len(GLOBAL_REGISTRY.list(KIND_METHOD_A))
         n_method_b = len(GLOBAL_REGISTRY.list(KIND_METHOD_B))
         assert n_adapters == 5
-        assert n_method_a == 9
+        assert n_method_a == 10
         assert n_method_b == 3
 
     def test_vae_entry_factory_is_callable_class(self) -> None:

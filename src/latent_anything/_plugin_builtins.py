@@ -55,6 +55,7 @@ from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
 from latent_anything.probes import LinearProbe
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
+from latent_anything.sae_evaluation import SAEFeatureEvaluation
 from latent_anything.tcav import TCAV
 
 # ── Register adapters ───────────────────────────────────────────────
@@ -184,6 +185,15 @@ GLOBAL_REGISTRY.register(
     IntegratedGradients,
     description="Activation-space Integrated Gradients for scalar transformer logits",
     protocol="IntegratedGradients",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ANALYSIS,
+    "sae_evaluation",
+    SAEFeatureEvaluation,
+    description="Sparse-autoencoder feature evaluation — reconstruction, sparsity, stability, cross-check, atlas",
+    protocol="SAEFeatureEvaluation",
     source="built-in",
 )
 

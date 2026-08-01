@@ -104,6 +104,54 @@ from latent_anything.runtime import InMemoryCache as InMemoryCache
 from latent_anything.runtime import ProfileEvent as ProfileEvent
 from latent_anything.runtime import RuntimeProfile as RuntimeProfile
 from latent_anything.runtime import RuntimeProfiler as RuntimeProfiler
+from latent_anything.sae_evaluation import (
+    FeatureAtlas as FeatureAtlas,
+)
+from latent_anything.sae_evaluation import (
+    FeatureAtlasEntry as FeatureAtlasEntry,
+)
+from latent_anything.sae_evaluation import (
+    FeatureCrossCheck as FeatureCrossCheck,
+)
+from latent_anything.sae_evaluation import (
+    FeatureRanking as FeatureRanking,
+)
+from latent_anything.sae_evaluation import (
+    SAEConfig as SAEConfig,
+)
+from latent_anything.sae_evaluation import (
+    SAEEvaluationResult as SAEEvaluationResult,
+)
+from latent_anything.sae_evaluation import (
+    SAEFeatureEvaluation as SAEFeatureEvaluation,
+)
+from latent_anything.sae_evaluation import (
+    SAEFeatureMetrics as SAEFeatureMetrics,
+)
+from latent_anything.sae_evaluation import (
+    SAEStabilityResult as SAEStabilityResult,
+)
+from latent_anything.sae_evaluation import (
+    build_feature_atlas as build_feature_atlas,
+)
+from latent_anything.sae_evaluation import (
+    cross_check_feature as cross_check_feature,
+)
+from latent_anything.sae_evaluation import (
+    cross_seed_sae_stability as cross_seed_sae_stability,
+)
+from latent_anything.sae_evaluation import (
+    evaluate_sae_features as evaluate_sae_features,
+)
+from latent_anything.sae_evaluation import (
+    load_feature_atlas as load_feature_atlas,
+)
+from latent_anything.sae_evaluation import (
+    rank_feature_examples as rank_feature_examples,
+)
+from latent_anything.sae_evaluation import (
+    save_feature_atlas as save_feature_atlas,
+)
 from latent_anything.tcav import TCAV as TCAV
 from latent_anything.tcav import ConceptDataset as ConceptDataset
 from latent_anything.tcav import ConceptDirectionResult as ConceptDirectionResult
@@ -129,6 +177,10 @@ __all__ = [
     "ConceptDirectionResult",
     "ControlBaselines",
     "CrossSeedReport",
+    "FeatureAtlas",
+    "FeatureAtlasEntry",
+    "FeatureCrossCheck",
+    "FeatureRanking",
     "GLOBAL_REGISTRY",
     "InMemoryCache",
     "IntegratedGradients",
@@ -162,8 +214,14 @@ __all__ = [
     "RegistryEntry",
     "RuntimeProfile",
     "RuntimeProfiler",
+    "SAEConfig",
+    "SAEEvaluationResult",
+    "SAEFeatureEvaluation",
+    "SAEFeatureMetrics",
+    "SAEStabilityResult",
     "SensitivityReport",
     "Trajectory",
+    "build_feature_atlas",
     "build_from_config",
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
@@ -182,14 +240,20 @@ __all__ = [
     "compare_with_labels",
     "compute_integrated_gradients",
     "compute_tcav",
+    "cross_check_feature",
     "cross_seed_evaluation",
+    "cross_seed_sae_stability",
     "evaluate_layers",
+    "evaluate_sae_features",
     "evaluate_sensitivity",
     "intervention_agreement",
     "learn_linear_separator_direction",
     "learn_mean_diff_direction",
     "list_entries",
+    "load_feature_atlas",
     "lookup_entry",
     "nonlinear_memorization_test",
+    "rank_feature_examples",
     "register_entry",
+    "save_feature_atlas",
 ]

@@ -4,11 +4,17 @@
 
 ### Added
 
+- Added sparse-autoencoder feature evaluation (`SAEFeatureEvaluation`) covering held-out reconstruction MSE, L0/L1 activity, dead-feature detection, activation frequency, decoder/encoder norms, train/validation separation, and portable `.npz` checkpoint serialization of fitted SAE state. (#sprint-46)
+- Added cross-seed feature stability (`cross_seed_sae_stability`) that matches features by decoder-direction cosine similarity across seeds instead of comparing arbitrary feature indices. (#sprint-46)
+- Added feature example/counterexample ranking (`rank_feature_examples`) and a probe/concept/causal-steering cross-check (`cross_check_feature`) against a scalar transformer logit target. (#sprint-46)
+- Added a portable, queryable feature-atlas JSON artifact (`build_feature_atlas`, `save_feature_atlas`, `load_feature_atlas`) independent of any visualization frontend. (#sprint-46)
+- Added offline regression-threshold tests and a marked pinned-GPT-2 full-model evaluation test for the SAE feature pipeline. (#sprint-46)
 - Added activation-space Integrated Gradients for a selected transformer residual-layer/token activation and scalar next-token logit, with bounded baselines, typed NumPy results, completeness/convergence diagnostics, sensitivity reporting, direct/config construction, and marked real-checkpoint evidence. (#sprint-45)
 - Added representation-bound Gaussian-mixture density estimation with held-out calibration, calibrated OOD scores, responsibilities, provenance, AUROC/AUPRC diagnostics, Mahalanobis baseline comparison, and cross-seed uncertainty reports. (#sprint-44)
 
 ### Fixed
 
+- Normalized the SAE L1 sparsity penalty per element so it is comparable to the reconstruction loss; an unnormalized `sum(|latent|)` collapsed every feature to dead even at small `l1_coef`. (#sprint-46)
 - Made marked model-download integration tests opt-in via `LATENT_ANYTHING_RUN_NETWORK=1`, so the default CI quality gate remains offline and reproducible.
 
 ### Added

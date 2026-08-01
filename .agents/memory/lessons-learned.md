@@ -141,3 +141,17 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** Registering the `network` marker in pytest configuration only labels tests; it does not skip them.
 **Fix / workaround:** Added collection-time skipping for `network` items unless `LATENT_ANYTHING_RUN_NETWORK=1` is set. The default CI suite now remains offline while the explicit integration lane still runs.
 **Watch out for:** Any future optional integration test that relies on a marker being opt-in must be gated in `tests/conftest.py`, not merely decorated.
+
+## [2026-08-02] Unnormalized SAE L1 penalty collapses every feature to dead
+
+**Symptom:** The linear SAE produced `mean_l0 = 0` and all features dead for any `l1_coef >= 1e-4`, and with `l1_coef = 0` it failed to recover known sparse dictionary structure (L0 ≈ 3–4 instead of the true 1–2).
+**Root cause:** The loss used `l1_coef * sum(|latent|)` over the whole batch, so the L1 gradient per element was `l1_coef` across all samples — orders of magnitude larger than the reconstruction gradient. Even a tiny coefficient starved every feature.
+**Fix / workaround:** Normalize the penalty per element: `l1_coef * mean(|latent|)`. On standardized activations, effective sparsity then needs `l1_coef` around 0.1–0.5 (retune the default; 1e-3 is now effectively pure reconstruction). Standardizing activations before fitting also dramatically improves dictionary recovery (decoder alignment 0.49 → 0.98).
+**Watch out for:** Any SAE/dictionary-learning loss that sums raw activations without normalizing by batch/element count. Also: when asserting "recovered features", compare decoder columns to source dictionary columns *after* undoing standardization (`decoder * std`), not in the raw fit space.
+
+## [2026-08-02] Re-assigning an already-registered `nn.Module` submodule breaks `named_modules()`
+
+**Symptom:** A tiny test transformer registered `self.transformer.h = self.blocks` where `self.blocks` was already a submodule of `self`. The forward worked, but `model.named_modules()` listed `blocks.0`, not `transformer.h.0`, so the hook seam ("transformer.h.{layer}") raised "Layer not found".
+**Root cause:** A PyTorch module can have only one parent; once `self.blocks` was registered under `self`, re-assigning the same object under `self.transformer.h` did not re-parent it, and `named_modules()` only surfaced the first registration.
+**Fix / workaround:** Register the `ModuleList` exactly once, under the seam name: build a typed container module (`transformer` with `h: nn.ModuleList`) and hold a typed attribute reference to it, so `named_modules()` yields `transformer.h.0` and pyright resolves `.h[0]`.
+**Watch out for:** Any test fixture that mirrors a HuggingFace `transformer.h.{layer}` hook path. Do not reuse one ModuleList under two parent names.
