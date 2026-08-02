@@ -103,10 +103,14 @@
       ]
     },
     "THY-T03-ISOTROPY-VS-ANISOTROPY": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
+        {"role": "source", "path": "src/latent_anything/covariance.py"},
+        {"role": "source", "path": "src/latent_anything/geometry.py"},
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_covariance_geometry.py"},
+        {"role": "benchmark", "path": "scripts/anisotropy_benchmark.py"},
+        {"role": "config", "path": "src/latent_anything/covariance.py"}
       ]
     },
     "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION": {
@@ -149,6 +153,17 @@
       "evidence": [
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+      ]
+    },
+    "THY-T04-MAHALANOBIS-DISTANCE": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/geometry.py"},
+        {"role": "source", "path": "src/latent_anything/covariance.py"},
+        {"role": "source", "path": "src/latent_anything/latent_space.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_covariance_geometry.py"},
+        {"role": "benchmark", "path": "scripts/anisotropy_benchmark.py"},
+        {"role": "config", "path": "src/latent_anything/covariance.py"}
       ]
     },
     "THY-T05-ACTIVATION-PATCHING": {

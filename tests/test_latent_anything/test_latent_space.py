@@ -739,3 +739,17 @@ def test_geometry_conformance_matrix(space: LatentSpace, a: np.ndarray, b: np.nd
     space.validate_point(b)
     assert isinstance(space.distance(a, b), float)
     np.testing.assert_array_equal(space.normalize(a), a)
+
+
+def test_geometry_conformance_matrix_includes_anisotropic() -> None:
+    """Anisotropic geometry conforms to the shared matrix when covariance is fitted."""
+
+    rng = np.random.default_rng(0)
+    data = rng.normal(size=(200, 3))
+    space = LatentSpace(dim=3, geometry="anisotropic").fit_covariance(data, source_representation_identity="x")
+    a = np.array([1.0, 0.0, 0.0])
+    b = np.array([0.0, 1.0, 0.0])
+    space.validate_point(a)
+    space.validate_point(b)
+    assert isinstance(space.distance(a, b), float)
+    np.testing.assert_array_equal(space.normalize(a), a)

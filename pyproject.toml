@@ -61,6 +61,7 @@ line-ending = "auto"
 typeCheckingMode = "strict"
 include = [
     "src",
+    "scripts/anisotropy_benchmark.py",
     "scripts/benchmark_geometry_dispatch.py",
     "scripts/conv_vae_digits_evidence.py",
     "src/latent_anything/mlp_probe.py",
@@ -92,6 +93,7 @@ include = [
     "tests/test_latent_anything/test_capture.py",
     "tests/test_latent_anything/test_conv_vae.py",
     "tests/test_latent_anything/test_conv_vae_evidence.py",
+    "tests/test_latent_anything/test_covariance_geometry.py",
     "tests/test_latent_anything/test_demo_smoke.py",
     "tests/test_latent_anything/test_latent_space.py",
     "tests/test_latent_anything/test_latent_value.py",

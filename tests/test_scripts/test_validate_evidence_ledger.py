@@ -39,8 +39,15 @@ def test_evidence_ledger_uses_only_d2_or_d3_for_stable_coverage() -> None:
     )
 
     payload = json.loads(result.stdout)
-    assert payload["coverage"]["core"][0] == 0
-    assert payload["coverage"]["overall"][0] == 0
+    # Stable coverage counts only D2/D3. Sprint 48 promoted the Mahalanobis and
+    # isotropy/anisotropy topics to D2; the total must remain far below the
+    # 1.0 release gate so no stable-release claim is implied.
+    core_numerator, core_denominator, _ = payload["coverage"]["core"]
+    overall_numerator, overall_denominator, _ = payload["coverage"]["overall"]
+    assert core_numerator >= 2
+    assert overall_numerator >= 2
+    assert core_numerator < core_denominator * 0.95
+    assert overall_numerator < overall_denominator * 0.9
 
 
 def _validate_level(

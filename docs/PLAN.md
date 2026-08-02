@@ -154,6 +154,7 @@ None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
 - [Sprint 45](sprint-plans/sprint-45.md) - Activation-space Integrated Gradients with completeness and transformer sensitivity evidence.
 - [Sprint 46](sprint-plans/sprint-46.md) - Sparse-autoencoder feature evaluation with reconstruction, sparsity, stability, cross-check, and a queryable feature atlas.
 - [Sprint 47](sprint-plans/sprint-47.md) - Interactive Plotly/notebook exploration backed by typed analysis results (renderer inputs, 2D/3D explorer, widget path, optional `viz` extra, and a digits ConvVAE walkthrough).
+- [Sprint 48](sprint-plans/sprint-48.md) - Anisotropic Gaussian geometry with a fitted covariance metric, Mahalanobis distance, whitening/inverse transforms, declared interpolation semantics, provenance-bound serialization, and a Euclidean-vs-Mahalanobis neighbors/OOD benchmark.
 
 ## Planning Rules
 

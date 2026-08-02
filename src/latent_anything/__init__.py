@@ -26,6 +26,9 @@ from latent_anything.clustering import compare_with_labels as compare_with_label
 from latent_anything.config import ObjectSpec as ObjectSpec
 from latent_anything.config import build_from_config as build_from_config
 from latent_anything.config import build_from_dict as build_from_dict
+from latent_anything.covariance import CovarianceConfig as CovarianceConfig
+from latent_anything.covariance import CovarianceState as CovarianceState
+from latent_anything.covariance import fit_covariance_state as fit_covariance_state
 from latent_anything.density import (
     DensityEvaluationReport as DensityEvaluationReport,
 )
@@ -176,6 +179,8 @@ __all__ = [
     "ConceptDataset",
     "ConceptDirectionResult",
     "ControlBaselines",
+    "CovarianceConfig",
+    "CovarianceState",
     "CrossSeedReport",
     "FeatureAtlas",
     "FeatureAtlasEntry",
@@ -234,6 +239,7 @@ __all__ = [
     "DensityStabilityReport",
     "density_cross_seed_evaluation",
     "mahalanobis_baseline",
+    "fit_covariance_state",
     "check_clustering_geometry",
     "cluster_stability_analysis",
     "compare_probes",

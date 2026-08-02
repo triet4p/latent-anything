@@ -1,4 +1,4 @@
-"""A concrete geometry-aware latent space with four validated geometries."""
+"""A concrete geometry-aware latent space with five validated geometries."""
 
 from __future__ import annotations
 
@@ -6,13 +6,19 @@ from typing import Any
 
 import numpy as np
 
+from latent_anything.covariance import CovarianceConfig, CovarianceState, fit_covariance_state
 from latent_anything.geometry import (
+    covariance_interpolate,
     discrete_distance,
     discrete_interpolate,
     gaussian_distance,
     gaussian_interpolate,
+    mahalanobis_distance,
+    unwhiten_point,
+    validate_covariance,
     validate_discrete_code,
     validate_gaussian_set,
+    whiten_point,
 )
 
 # Internal: slice layout of a Gaussian parameter vector.
@@ -55,14 +61,17 @@ class LatentSpace:
         validated against that sum.
     geometry : str, optional
         Geometry hint for dispatch. Supported values are
-        ``"euclidean"``, ``"unit_norm"``, ``"gaussian_set"``, and
-        ``"discrete_code"``.
+        ``"euclidean"``, ``"unit_norm"``, ``"gaussian_set"``,
+        ``"discrete_code"``, and ``"anisotropic"``.
     source_model : str, optional
         Name or identifier of the source model.
     metadata : dict, optional
         Additional metadata about the latent space. For
         ``gaussian_set`` geometry, a ``"gaussian_set_param_layout"``
         key is auto-populated.
+    covariance : CovarianceState | None, optional
+        Fitted covariance geometry for ``geometry="anisotropic"``. May be
+        attached at construction or fitted later via :meth:`fit_covariance`.
     n_gaussians : int | None, optional
         Number of Gaussians in the set. Required for
         ``geometry="gaussian_set"``, ignored otherwise.
@@ -74,7 +83,7 @@ class LatentSpace:
         Color channels per Gaussian (default 3).
     """
 
-    _GEOMETRIES: frozenset[str] = frozenset({"euclidean", "unit_norm", "gaussian_set", "discrete_code"})
+    _GEOMETRIES: frozenset[str] = frozenset({"euclidean", "unit_norm", "gaussian_set", "discrete_code", "anisotropic"})
 
     def __init__(
         self,
@@ -82,6 +91,7 @@ class LatentSpace:
         geometry: str = "euclidean",
         source_model: str = "",
         metadata: dict[str, Any] | None = None,
+        covariance: CovarianceState | None = None,
         n_gaussians: int | None = None,
         position_dim: int = 3,
         scale_dim: int = 3,
@@ -107,6 +117,8 @@ class LatentSpace:
         self._color_dim: int = color_dim
         self._opacity_dim: int = 1
         self._codebook_size: int | None = None
+        # Anisotropic covariance geometry (None until fitted or attached)
+        self._covariance: CovarianceState | None = None
 
         if geometry == "gaussian_set":
             if n_gaussians is None or n_gaussians < 1:
@@ -131,6 +143,9 @@ class LatentSpace:
             self._codebook_size = codebook_size
             self.metadata.setdefault("codebook_size", codebook_size)
             self.metadata.setdefault("interpolation", "unsupported")
+        elif geometry == "anisotropic":
+            if covariance is not None:
+                self._attach_covariance(covariance)
 
     @property
     def n_gaussians(self) -> int | None:
@@ -142,6 +157,70 @@ class LatentSpace:
         """Declared categorical codebook size for ``discrete_code`` geometry."""
 
         return self._codebook_size
+
+    @property
+    def covariance(self) -> CovarianceState | None:
+        """Return the fitted covariance geometry, or ``None`` if not attached.
+
+        Only meaningful for ``geometry="anisotropic"``. The returned value is
+        the immutable ``CovarianceState``; cross-space reuse is a caller error.
+        """
+
+        return self._covariance
+
+    def fit_covariance(
+        self,
+        data: np.ndarray,
+        *,
+        source_representation_identity: str,
+        config: CovarianceConfig | None = None,
+        provenance: dict[str, Any] | None = None,
+    ) -> LatentSpace:
+        """Fit an anisotropic covariance metric on *data* and attach it to this space.
+
+        Requires ``geometry="anisotropic"``. Fitting is bound to the supplied
+        ``source_representation_identity`` (dataset/model/layer), so a fitted
+        metric cannot be silently reused for a different representation.
+
+        Parameters
+        ----------
+        data : np.ndarray
+            2D array of shape ``(n_samples, dim)`` with ``n_samples > dim``.
+        source_representation_identity : str
+            Identity the fitted metric is valid for.
+        config : CovarianceConfig | None
+            Fitting configuration; defaults to ``CovarianceConfig()``.
+        provenance : dict[str, Any] | None
+            Free-form provenance attached to the fitted state.
+
+        Returns
+        -------
+        LatentSpace
+            This space with the covariance attached (mutates in place).
+        """
+        if self.geometry != "anisotropic":
+            msg = f"fit_covariance requires geometry='anisotropic', got {self.geometry!r}"
+            raise ValueError(msg)
+        state = fit_covariance_state(
+            data,
+            source_representation_identity=source_representation_identity,
+            config=config,
+            provenance=provenance,
+        )
+        self._attach_covariance(state)
+        return self
+
+    def _attach_covariance(self, state: CovarianceState) -> None:
+        """Validate and attach a fitted covariance, keeping metadata in sync."""
+        if state.mean.shape != (self.dim,):
+            msg = f"covariance mean shape {state.mean.shape} does not match dim {self.dim}"
+            raise ValueError(msg)
+        validate_covariance(state.covariance, dim=self.dim)
+        self._covariance = state
+        self.metadata["covariance_fitted"] = True
+        self.metadata["covariance_source_representation_identity"] = state.source_representation_identity
+        self.metadata["covariance_provenance"] = dict(state.provenance)
+        self.metadata["interpolation"] = "metric-geodesic"
 
     @property
     def param_dim(self) -> int:
@@ -183,7 +262,10 @@ class LatentSpace:
         if point.shape != expected_shape:
             msg = f"Expected shape {expected_shape}, got {point.shape}"
             raise ValueError(msg)
-        if self.geometry == "unit_norm":
+        if self.geometry == "anisotropic":
+            if not np.isfinite(point).all():
+                raise ValueError("anisotropic requires finite points")
+        elif self.geometry == "unit_norm":
             norm = np.linalg.norm(point)
             if abs(norm - 1.0) > 1e-10:
                 msg = f"unit_norm requires ||point|| = 1, got {norm}"
@@ -237,6 +319,8 @@ class LatentSpace:
         Dispatches on ``self.geometry``:
 
         - ``euclidean``: Euclidean distance ``||a - b||``.
+        - ``anisotropic``: Mahalanobis distance ``sqrt((a-b)^T C^{-1} (a-b))``
+          using the fitted covariance (requires :meth:`fit_covariance`).
         - ``unit_norm``: Angular distance ``arccos(clip(a·b, -1, 1))``.
         - ``gaussian_set``: Permutation-aware distance — sorts sets
           by position then computes Frobenius norm of the difference.
@@ -258,6 +342,9 @@ class LatentSpace:
             self.validate_point(b)
         if self.geometry == "euclidean":
             return float(np.linalg.norm(a - b))
+        elif self.geometry == "anisotropic":
+            covariance = self._require_covariance()
+            return mahalanobis_distance(a, b, covariance.covariance)
         elif self.geometry == "unit_norm":
             cos_angle = np.clip(np.dot(a, b), -1.0, 1.0)
             return float(np.arccos(cos_angle))
@@ -275,6 +362,10 @@ class LatentSpace:
         Dispatches on ``self.geometry``:
 
         - ``euclidean``: Linear interpolation ``(1-t)*a + t*b`` (lerp).
+        - ``anisotropic``: Constant-metric geodesic interpolation computed in
+          the whitened frame (requires a fitted covariance). For a constant
+          covariance this coincides with the affine coordinate lerp; it is
+          never applied silently — see :meth:`fit_covariance`.
         - ``unit_norm``: Spherical linear interpolation (slerp) along the
           geodesic on the unit sphere. Edge case ``sin(ω) ≈ 0`` falls
           back to lerp.
@@ -303,6 +394,9 @@ class LatentSpace:
             raise ValueError("t must be in [0, 1]")
         if self.geometry == "euclidean":
             return (1.0 - t) * a + t * b
+        elif self.geometry == "anisotropic":
+            covariance = self._require_covariance()
+            return covariance_interpolate(a, b, t, mean=covariance.mean, covariance=covariance.covariance)
         elif self.geometry == "unit_norm":
             cos_omega = np.clip(np.dot(a, b), -1.0, 1.0)
             omega = np.arccos(cos_omega)
@@ -343,6 +437,9 @@ class LatentSpace:
         """
         if self.geometry == "euclidean" or self.geometry == "gaussian_set":
             return point.copy()
+        elif self.geometry == "anisotropic":
+            self.validate_point(point)
+            return point.copy()
         elif self.geometry == "discrete_code":
             validate_discrete_code(point, codebook_size=self._codebook_size)  # type: ignore[arg-type]
             return point.copy()
@@ -356,11 +453,48 @@ class LatentSpace:
             msg = f"No normalize implementation for geometry {self.geometry!r}"
             raise ValueError(msg)
 
+    def _require_covariance(self) -> CovarianceState:
+        """Return the fitted covariance or raise a clear fitted-state error."""
+        if self._covariance is None:
+            msg = (
+                "anisotropic space has no fitted covariance; call fit_covariance() "
+                "with a source_representation_identity before metric operations"
+            )
+            raise ValueError(msg)
+        return self._covariance
+
+    def whiten(self, point: np.ndarray) -> np.ndarray:
+        """Whiten *point* under this space's metric (``z = C^{-1/2}(x - mean)``).
+
+        Only valid for ``geometry="anisotropic"`` with a fitted covariance.
+        """
+        covariance = self._require_covariance()
+        self.validate_point(point)
+        return whiten_point(point, covariance.mean, covariance.covariance)
+
+    def unwhiten(self, point: np.ndarray) -> np.ndarray:
+        """Invert :meth:`whiten` (``x = mean + C^{1/2} z``).
+
+        Only valid for ``geometry="anisotropic"`` with a fitted covariance.
+        """
+        covariance = self._require_covariance()
+        if point.shape != (self.dim,):
+            msg = f"Expected shape {(self.dim,)}, got {point.shape}"
+            raise ValueError(msg)
+        return unwhiten_point(point, covariance.mean, covariance.covariance)
+
     def __repr__(self) -> str:
         if self.geometry == "gaussian_set":
             return (
                 f"LatentSpace(dim={self.dim}, geometry={self.geometry!r},"
                 f" n_gaussians={self._n_gaussians},"
+                f" source_model={self.source_model!r})"
+            )
+        if self.geometry == "anisotropic":
+            fitted = self._covariance is not None
+            return (
+                f"LatentSpace(dim={self.dim}, geometry={self.geometry!r},"
+                f" covariance_fitted={fitted},"
                 f" source_model={self.source_model!r})"
             )
         return f"LatentSpace(dim={self.dim}, geometry={self.geometry!r}, source_model={self.source_model!r})"

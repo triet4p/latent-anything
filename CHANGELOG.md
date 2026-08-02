@@ -4,6 +4,13 @@
 
 ### Added
 
+- Added an anisotropic Gaussian geometry (`LatentSpace(geometry="anisotropic")`) with a fitted, positive-definite covariance metric: covariance validation, diagonal-loading regularization, Mahalanobis distance, whitening/inverse transforms, and declared metric interpolation. (#sprint-48)
+- Added the stateful covariance contract (`CovarianceState`, `CovarianceConfig`, `fit_covariance_state`) that binds a fitted metric to its source representation identity and provenance, with JSON and `.npz` serialization. (#sprint-48)
+- Routed all anisotropic algorithms through the focused `geometry.py` module while keeping `LatentSpace` as the small public facade, matching the Sprint-30 geometry extraction. (#sprint-48)
+- Documented the interpolation semantics decision: under a constant covariance the metric geodesic coincides with the affine coordinate lerp, but interpolation is routed through the declared metric and requires a fitted covariance instead of silently defaulting to Euclidean. (#sprint-48)
+- Added 55 analytic/property tests for affine invariance, singular-covariance handling, distance symmetry, whitening round-trips, serialization, and the `LatentSpace` anisotropic dispatch. (#sprint-48)
+- Added a reproducible Euclidean-vs-Mahalanobis benchmark (`scripts/anisotropy_benchmark.py`) on a controlled anisotropic dataset and real ConvVAE digits latents, with an `artifacts/anisotropy_benchmark.json` artifact. (#sprint-48)
+
 - Added an optional interactive visualization package (`latent_anything.visualization`, install with `uv sync --extra viz`) that renders typed analysis results without embedding plotting logic into analysis methods. (#sprint-47)
 - Added typed renderer inputs (`ProjectionView`, `TrajectoryView`, `MetricSummary`) and builders that convert probe, K-means, density, trajectory, and feature-atlas results into views (`projection_from_probe`, `projection_from_kmeans`, `projection_from_density`, `projection_from_trajectory`, `projection_from_atlas`). (#sprint-47)
 - Added a Plotly-based 2D/3D projection explorer (`projection_explorer`) with category coloring, continuous color scaling, hover metadata, trajectory overlays, and box/lasso selection. (#sprint-47)
