@@ -54,6 +54,7 @@ from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
 from latent_anything.probes import LinearProbe
+from latent_anything.projection import SubspaceProjection
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
 from latent_anything.sae_evaluation import SAEFeatureEvaluation
 from latent_anything.tcav import TCAV
@@ -223,5 +224,14 @@ GLOBAL_REGISTRY.register(
     SteeringVector,
     description="Steering vector — B-Method #2 (stateful latent→latent via contrast)",
     protocol="BMethod",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_INTERVENTION,
+    "subspace_projection",
+    SubspaceProjection,
+    description="Orthonormal subspace projection — project onto / remove a fitted subspace",
+    protocol="SubspaceProjection",
     source="built-in",
 )

@@ -31,6 +31,93 @@ def _freeze_metadata(value: Any) -> Any:
     return deepcopy(value)
 
 
+def coordinate_identity(space: LatentSpace, metadata: Mapping[str, Any]) -> str:
+    """Return the canonical coordinate-system identity of one latent value.
+
+    The identity is a ``"::"``-joined string built from, in order:
+    ``source_representation_identity`` (declared in space or value metadata),
+    the space's ``source_model``, and a revision token (``model_version``,
+    ``revision``, ``source_model_revision``, or ``checkpoint`` from metadata).
+    Two values are arithmetically compatible only when their identities match;
+    an empty identity means the coordinate system is not declared.
+    """
+    tokens: list[str] = []
+    for key in ("source_representation_identity", "coordinate_system"):
+        value = space.metadata.get(key) or metadata.get(key)
+        if isinstance(value, str) and value.strip():
+            tokens.append(value.strip())
+    if space.source_model.strip():
+        tokens.append(space.source_model.strip())
+    for key in ("model_version", "revision", "source_model_revision", "checkpoint"):
+        value = metadata.get(key) or space.metadata.get(key)
+        if isinstance(value, str) and value.strip():
+            tokens.append(value.strip())
+    return "::".join(tokens)
+
+
+def assert_arithmetic_compatible(a: LatentValue, b: LatentValue) -> None:
+    """Reject latent arithmetic across unrelated coordinate systems.
+
+    Raises ``ValueError`` unless both values are provably in the same
+    coordinate system: same geometry, same point shape, same stored shape, and
+    a matching, declared coordinate-system identity. This prevents silently
+    returning plausible-looking arrays from vectors that live in different
+    spaces (different models, layers, or checkpoints).
+    """
+    if a.space.geometry != b.space.geometry:
+        msg = f"latent arithmetic requires the same geometry, got {a.space.geometry!r} and {b.space.geometry!r}"
+        raise ValueError(msg)
+    if a.item_shape != b.item_shape:
+        msg = f"latent arithmetic requires the same point shape, got {a.item_shape} and {b.item_shape}"
+        raise ValueError(msg)
+    if a.shape != b.shape:
+        msg = "latent arithmetic requires the same stored shape, got {a.shape} and {b.shape}"
+        raise ValueError(msg)
+    identity_a = a.identity
+    identity_b = b.identity
+    if not identity_a or not identity_b:
+        msg = (
+            "latent arithmetic requires a declared coordinate-system identity; "
+            "set source_model on the LatentSpace or source_representation_identity "
+            "(model_version/revision) in metadata"
+        )
+        raise ValueError(msg)
+    if identity_a != identity_b:
+        msg = f"latent arithmetic across unrelated coordinate systems is not allowed: {identity_a!r} != {identity_b!r}"
+        raise ValueError(msg)
+
+
+def _arithmetic_metadata(
+    base: Mapping[str, Any],
+    *,
+    op: str,
+    operand_identity: str,
+    coefficients: tuple[float, ...] | None = None,
+) -> Mapping[str, Any]:
+    """Extend *base* metadata with the arithmetic operation and a provenance chain."""
+    provenance: list[Any] = list(cast(Any, base.get("provenance", ())))
+    provenance.append(
+        {
+            "operation": "latent_arithmetic",
+            "op": op,
+            "operand_identity": operand_identity,
+            "coefficients": list(coefficients) if coefficients is not None else None,
+        }
+    )
+    operation: dict[str, Any] = {
+        "kind": "latent_arithmetic",
+        "op": op,
+        "operand_identity": operand_identity,
+    }
+    if coefficients is not None:
+        operation["coefficients"] = list(coefficients)
+    return {
+        **dict(base),
+        "operation": operation,
+        "provenance": provenance,
+    }
+
+
 class LatentValue:
     """An immutable single latent state or batch of states in a ``LatentSpace``.
 
@@ -70,6 +157,17 @@ class LatentValue:
         """Return an immutable defensive snapshot of value metadata."""
 
         return cast(Mapping[str, Any], _freeze_metadata(self._metadata))
+
+    @property
+    def identity(self) -> str:
+        """Return the canonical coordinate-system identity of this value.
+
+        Built from the associated space's ``source_representation_identity``,
+        ``source_model``, and revision metadata (see :func:`coordinate_identity`).
+        An empty string means the coordinate system is not declared.
+        """
+
+        return coordinate_identity(self._space, self._metadata)
 
     @property
     def is_batch(self) -> bool:
@@ -135,6 +233,87 @@ class LatentValue:
             raise ValueError("Structured values cannot be converted to a flat Trajectory")
         data = self._data if self.is_batch else self._data[np.newaxis, :]
         return Trajectory(data)
+
+    # ── Latent arithmetic ─────────────────────────────────────────────
+    #
+    # Arithmetic is only meaningful when both values are provably in the same
+    # coordinate system (same geometry, shape, and declared identity). Every
+    # operation returns a new immutable ``LatentValue`` whose metadata records
+    # the operation and grows a provenance chain.
+
+    def _apply_binary(self, other: LatentValue, *, op: str) -> LatentValue:
+        assert_arithmetic_compatible(self, other)
+        if op == "add":
+            result = self._data + other._data
+            coefficients = (1.0, 1.0)
+        else:
+            result = self._data - other._data
+            coefficients = (1.0, -1.0)
+        metadata = _arithmetic_metadata(
+            self._metadata,
+            op=op,
+            operand_identity=other.identity,
+            coefficients=coefficients,
+        )
+        return LatentValue(result, self._space, metadata)
+
+    def add(self, other: LatentValue) -> LatentValue:
+        """Return a new value ``self + other`` (analogy arithmetic building block).
+
+        Both values must share geometry, point shape, stored shape, and a
+        declared, matching coordinate-system identity.
+        """
+        return self._apply_binary(other, op="add")
+
+    def subtract(self, other: LatentValue) -> LatentValue:
+        """Return a new value ``self - other`` (analogy arithmetic building block).
+
+        Both values must share geometry, point shape, stored shape, and a
+        declared, matching coordinate-system identity.
+        """
+        return self._apply_binary(other, op="subtract")
+
+    def add_scaled(self, other: LatentValue, coefficient: float) -> LatentValue:
+        """Return ``self + coefficient * other`` (steering-style addition).
+
+        Both values must share geometry, point shape, stored shape, and a
+        declared, matching coordinate-system identity.
+        """
+        assert_arithmetic_compatible(self, other)
+        result = self._data + coefficient * other._data
+        metadata = _arithmetic_metadata(
+            self._metadata,
+            op="add_scaled",
+            operand_identity=other.identity,
+            coefficients=(1.0, float(coefficient)),
+        )
+        return LatentValue(result, self._space, metadata)
+
+    def scale(self, coefficient: float) -> LatentValue:
+        """Return ``coefficient * self`` with a scaled-arith operation record."""
+        if not np.isfinite(coefficient):
+            msg = f"scale coefficient must be finite, got {coefficient!r}"
+            raise ValueError(msg)
+        result = coefficient * self._data
+        metadata = _arithmetic_metadata(
+            self._metadata,
+            op="scale",
+            operand_identity=self.identity,
+            coefficients=(float(coefficient),),
+        )
+        return LatentValue(result, self._space, metadata)
+
+    def __add__(self, other: object) -> LatentValue:
+        """Elementwise addition with coordinate-system compatibility checks."""
+        if not isinstance(other, LatentValue):
+            return NotImplemented
+        return self.add(other)
+
+    def __sub__(self, other: object) -> LatentValue:
+        """Elementwise subtraction with coordinate-system compatibility checks."""
+        if not isinstance(other, LatentValue):
+            return NotImplemented
+        return self.subtract(other)
 
     def __repr__(self) -> str:
         return f"LatentValue(shape={self.shape}, geometry={self._space.geometry!r}, is_batch={self.is_batch})"

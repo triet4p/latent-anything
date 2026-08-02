@@ -4,6 +4,15 @@
 
 ### Added
 
+- Added orthonormal subspace projection and concept removal (`OrthonormalSubspace`, `SubspaceProjection`): an immutable fitted orthonormal basis bound to one coordinate-system identity with an explicit origin (PCA / probe / concept / explicit), orthogonal projection `P z`, residual `(I - P) z`, subspace coverage, and concept transfer, each returning new immutable `LatentValue` outputs with operation/provenance metadata. (#sprint-49)
+- Added `LatentValue` latent arithmetic (`add`, `subtract`, `add_scaled`, `scale`, `+`, `-`) that is only allowed for values proven to share a coordinate system — same geometry, point shape, stored shape, and a matching declared `coordinate_identity`; arithmetic across unrelated coordinate systems or with an undeclared identity raises `ValueError` instead of returning a plausible-looking array. (#sprint-49)
+- Added a canonical coordinate-system identity (`LatentValue.identity`, `coordinate_identity`) built from `source_representation_identity`, `source_model`, and revision metadata, and an explicit compatibility check (`assert_arithmetic_compatible`). (#sprint-49)
+- Registered `subspace_projection` under the canonical `intervention` registry kind with config-driven construction (`SubspaceProjectionConfig`, `build_from_config`). (#sprint-49)
+- Added 64 analytic/property tests for idempotence, orthogonality, reconstruction, coverage, subspace serialization, basis families, non-interchangeability, and invalid cross-space arithmetic rejection. (#sprint-49)
+- Added a reproducible concept-removal benchmark (`scripts/concept_removal_benchmark.py`) measuring target suppression, off-target preservation, decode degradation, and a random-subspace control on real ConvVAE digits latents, with an `artifacts/concept_removal_benchmark.json` artifact. (#sprint-49)
+- Added a projection-basis comparison benchmark (`scripts/projection_basis_comparison.py`) showing that PCA, probe-coefficient, and concept-direction bases are not interchangeable (pairwise principal-angle alignment, different removal effects, origin recorded per basis) with an `artifacts/projection_basis_comparison.json` artifact. (#sprint-49)
+- Added a latent-arithmetic benchmark (`scripts/latent_arithmetic_benchmark.py`) demonstrating monotone in-system steering and cross-identity arithmetic rejection, with an `artifacts/latent_arithmetic_benchmark.json` artifact. (#sprint-49)
+
 - Added an anisotropic Gaussian geometry (`LatentSpace(geometry="anisotropic")`) with a fitted, positive-definite covariance metric: covariance validation, diagonal-loading regularization, Mahalanobis distance, whitening/inverse transforms, and declared metric interpolation. (#sprint-48)
 - Added the stateful covariance contract (`CovarianceState`, `CovarianceConfig`, `fit_covariance_state`) that binds a fitted metric to its source representation identity and provenance, with JSON and `.npz` serialization. (#sprint-48)
 - Routed all anisotropic algorithms through the focused `geometry.py` module while keeping `LatentSpace` as the small public facade, matching the Sprint-30 geometry extraction. (#sprint-48)

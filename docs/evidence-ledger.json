@@ -193,6 +193,26 @@
         {"role": "source", "path": "src/latent_anything/trajectory.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_trajectory.py"}
       ]
+    },
+    "THY-T04-LATENT-ARITHMETIC": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/latent_value.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_latent_arithmetic.py"},
+        {"role": "benchmark", "path": "scripts/latent_arithmetic_benchmark.py"},
+        {"role": "config", "path": "scripts/latent_arithmetic_benchmark.py"}
+      ]
+    },
+    "THY-T04-SUBSPACE-PROJECTION": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/projection.py"},
+        {"role": "source", "path": "src/latent_anything/geometry.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_projection.py"},
+        {"role": "benchmark", "path": "scripts/concept_removal_benchmark.py"},
+        {"role": "benchmark", "path": "scripts/projection_basis_comparison.py"},
+        {"role": "config", "path": "src/latent_anything/projection.py"}
+      ]
     }
   }
 }

@@ -343,19 +343,19 @@ class TestGlobalRegistryBuiltins:
         }
 
     def test_global_registry_has_all_method_b(self) -> None:
-        """GLOBAL_REGISTRY contains all three Layer B methods."""
+        """GLOBAL_REGISTRY contains all four Layer B methods."""
         method_b_names = {e.name for e in GLOBAL_REGISTRY.list(KIND_METHOD_B)}
-        assert method_b_names == {"lerp", "steering", "activation_patch"}
+        assert method_b_names == {"lerp", "steering", "activation_patch", "subspace_projection"}
 
     def test_global_registry_total_entries(self) -> None:
-        """GLOBAL_REGISTRY has 18 entries (5 adapters + 10 analysis + 3 intervention)."""
+        """GLOBAL_REGISTRY has 19 entries (5 adapters + 10 analysis + 4 intervention)."""
         assert len(GLOBAL_REGISTRY) >= 15
         n_adapters = len(GLOBAL_REGISTRY.list(KIND_ADAPTER))
         n_method_a = len(GLOBAL_REGISTRY.list(KIND_METHOD_A))
         n_method_b = len(GLOBAL_REGISTRY.list(KIND_METHOD_B))
         assert n_adapters == 5
         assert n_method_a == 10
-        assert n_method_b == 3
+        assert n_method_b == 4
 
     def test_vae_entry_factory_is_callable_class(self) -> None:
         """The VAE entry's factory is the VAE class itself."""

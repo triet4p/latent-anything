@@ -207,3 +207,120 @@ def fit_covariance(data: np.ndarray, *, reg_coef: float) -> tuple[np.ndarray, np
     centered = values - mean
     covariance = (centered.T @ centered) / (values.shape[0] - 1)
     return mean, regularize_covariance(covariance, reg_coef=reg_coef)
+
+
+# ── Orthonormal subspace projection ─────────────────────────────────
+#
+# Subspace projection decomposes a point into ``z = P z + (I - P) z`` where
+# ``P = U U^T`` is the orthogonal projection onto the span of the orthonormal
+# columns of ``U``. The concept component ``P z`` keeps the semantic directions
+# in the subspace while the residual ``(I - P) z`` keeps everything else. All
+# algorithms here are pure functions; ownership/provenance/identity binding live
+# in the ``OrthonormalSubspace`` value under ``projection.py``.
+
+
+def validate_orthonormal_basis(basis: np.ndarray, *, dim: int) -> None:
+    """Validate that *basis* has ``dim`` rows and orthonormal columns.
+
+    Checks shape ``(dim, n_basis)`` with ``1 <= n_basis < dim``, finiteness,
+    and ``U^T U = I``. A proper subspace (not the full space) is required so
+    the residual is never the zero vector for every input.
+    """
+    matrix = np.asarray(basis, dtype=np.float64)
+    if matrix.ndim != 2 or matrix.shape[0] != dim:
+        msg = f"orthonormal basis requires shape ({dim}, n_basis), got {matrix.shape}"
+        raise ValueError(msg)
+    if not np.isfinite(matrix).all():
+        raise ValueError("orthonormal basis requires finite entries")
+    n_basis = matrix.shape[1]
+    if n_basis < 1 or n_basis >= dim:
+        msg = f"orthonormal basis requires 1 <= n_basis < dim={dim}, got {n_basis}"
+        raise ValueError(msg)
+    gram = matrix.T @ matrix
+    if not np.allclose(gram, np.eye(n_basis), atol=1e-8):
+        raise ValueError("orthonormal basis requires U^T U = I")
+
+
+def orthonormalize_directions(directions: np.ndarray) -> np.ndarray:
+    """Return an orthonormal basis spanning the column space of *directions*.
+
+    ``directions`` is a 2D array whose columns are candidate directions (for
+    example stacked probe coefficients or concept directions). The result is
+    a ``(dim, rank)`` orthonormal basis computed by QR, dropping the columns
+    that correspond to numerically zero pivots.
+    """
+    matrix = np.asarray(directions, dtype=np.float64)
+    if matrix.ndim != 2 or matrix.shape[0] < 1 or matrix.shape[1] < 1:
+        msg = f"orthonormalize_directions expects a non-empty 2D array, got {matrix.shape}"
+        raise ValueError(msg)
+    if not np.isfinite(matrix).all():
+        raise ValueError("orthonormalize_directions requires finite directions")
+    q, _ = np.linalg.qr(matrix, mode="reduced")
+    rank = int(np.linalg.matrix_rank(matrix, tol=1e-9))
+    if rank < 1:
+        raise ValueError("directions span a zero-dimensional subspace")
+    basis = q[:, :rank]
+    for index in range(basis.shape[1]):
+        column = basis[:, index]
+        pivot = int(np.argmax(np.abs(column)))
+        if column[pivot] < 0:
+            basis[:, index] = -column
+    return basis
+
+
+def project_point(point: np.ndarray, basis: np.ndarray) -> np.ndarray:
+    """Return the orthogonal projection ``P z = U (U^T z)`` onto ``span(U)``.
+
+    ``basis`` must be a validated ``(dim, n_basis)`` orthonormal basis. This is
+    the closest point to ``z`` in the subspace under the Euclidean metric.
+    Accepts a single ``(dim,)`` point or a ``(..., dim)`` batch.
+    """
+    matrix = np.asarray(basis, dtype=np.float64)
+    value = np.asarray(point, dtype=np.float64)
+    if value.ndim == 1:
+        return matrix @ (matrix.T @ value)
+    return value @ matrix @ matrix.T
+
+
+def remove_point(point: np.ndarray, basis: np.ndarray) -> np.ndarray:
+    """Return the residual ``(I - P) z = z - U (U^T z)``.
+
+    This is the projection onto the orthogonal complement of ``span(U)`` and
+    removes every component along the concept directions. Accepts a single
+    ``(dim,)`` point or a ``(..., dim)`` batch.
+    """
+    value = np.asarray(point, dtype=np.float64)
+    return value - project_point(value, basis)
+
+
+def concept_coverage(point: np.ndarray, basis: np.ndarray) -> float:
+    """Return the fraction of ``||z||^2`` lying inside the subspace.
+
+    ``||P z||^2 / ||z||^2`` is the squared cosine between ``z`` and the
+    subspace and lies in ``[0, 1]``. The zero vector is treated as fully
+    covered (no structure outside the subspace).
+    """
+    value = np.asarray(point, dtype=np.float64)
+    norm_squared = float(np.dot(value, value))
+    if norm_squared < 1e-300:
+        return 1.0
+    projected = project_point(value, basis)
+    return float(np.dot(projected, projected) / norm_squared)
+
+
+def subspace_alignment(a: np.ndarray, b: np.ndarray) -> float:
+    """Return the mean squared cosine between two orthonormal subspaces.
+
+    Computes the singular values of ``U_a^T U_b`` (the principal angles) and
+    returns their mean square. ``1.0`` means the two bases span the same
+    subspace and ``0.0`` means they are orthogonal. This is a symmetric
+    comparison used to show that different basis families are *not*
+    interchangeable.
+    """
+    matrix_a = np.asarray(a, dtype=np.float64)
+    matrix_b = np.asarray(b, dtype=np.float64)
+    if matrix_a.ndim != 2 or matrix_b.ndim != 2 or matrix_a.shape[0] != matrix_b.shape[0]:
+        msg = f"subspace_alignment expects two bases with matching rows, got {matrix_a.shape} and {matrix_b.shape}"
+        raise ValueError(msg)
+    singular = np.linalg.svd(matrix_a.T @ matrix_b, compute_uv=False)
+    return float(np.mean(np.square(singular)))

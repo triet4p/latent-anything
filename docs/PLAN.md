@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 49 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 50 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -163,6 +163,7 @@ None. Sprint 49 is next; the Sprint 35 evidence items remain carryover gates for
 - [Sprint 46](sprint-plans/sprint-46.md) - Sparse-autoencoder feature evaluation with reconstruction, sparsity, stability, cross-check, and a queryable feature atlas.
 - [Sprint 47](sprint-plans/sprint-47.md) - Interactive Plotly/notebook exploration backed by typed analysis results (renderer inputs, 2D/3D explorer, widget path, optional `viz` extra, and a digits ConvVAE walkthrough).
 - [Sprint 48](sprint-plans/sprint-48.md) - Anisotropic Gaussian geometry with a fitted covariance metric, Mahalanobis distance, whitening/inverse transforms, declared interpolation semantics, provenance-bound serialization, and a Euclidean-vs-Mahalanobis neighbors/OOD benchmark.
+- [Sprint 49](sprint-plans/sprint-49.md) - Orthonormal subspace projection and concept removal with an identity-bound, origin-tagged basis; latent arithmetic gated on a proven shared coordinate system; and D2 benchmarks for concept removal and basis non-interchangeability.
 
 ## Planning Rules
 

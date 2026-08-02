@@ -1,0 +1,29 @@
+{
+  "dataset": "digits-conv-vae",
+  "n_samples": 600,
+  "latent_dim": 6,
+  "identity": "conv_vae_8x8",
+  "target_concept": "diagonal digits [1, 4, 7]",
+  "steering_strengths": [
+    0.0,
+    0.5,
+    1.0,
+    1.5,
+    2.0
+  ],
+  "concept_fraction_by_strength": {
+    "strength_0": 0.26666666666666666,
+    "strength_0.5": 1.0,
+    "strength_1": 1.0,
+    "strength_1.5": 1.0,
+    "strength_2": 1.0
+  },
+  "cross_identity_arithmetic_rejected": true,
+  "same_identity_analogy_arithmetic_finite": true,
+  "acceptance": {
+    "steering_raises_concept_fraction": true,
+    "steering_is_monotone": true,
+    "cross_identity_arithmetic_rejected": true,
+    "same_identity_arithmetic_defined": true
+  }
+}

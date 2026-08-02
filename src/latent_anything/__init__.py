@@ -73,6 +73,10 @@ from latent_anything.integrated_gradients import (
 )
 from latent_anything.latent_space import LatentSpace as LatentSpace
 from latent_anything.latent_value import LatentValue as LatentValue
+from latent_anything.latent_value import (
+    assert_arithmetic_compatible as assert_arithmetic_compatible,
+)
+from latent_anything.latent_value import coordinate_identity as coordinate_identity
 from latent_anything.methods import Method as Method
 from latent_anything.mlp_probe import MLPProbe as MLPProbe
 from latent_anything.mlp_probe import MLPProbeConfig as MLPProbeConfig
@@ -94,6 +98,9 @@ from latent_anything.probes import LinearProbeConfig as LinearProbeConfig
 from latent_anything.probes import LinearProbeResult as LinearProbeResult
 from latent_anything.probes import cross_seed_evaluation as cross_seed_evaluation
 from latent_anything.probes import evaluate_layers as evaluate_layers
+from latent_anything.projection import OrthonormalSubspace as OrthonormalSubspace
+from latent_anything.projection import SubspaceProjection as SubspaceProjection
+from latent_anything.projection import SubspaceProjectionConfig as SubspaceProjectionConfig
 from latent_anything.registry import GLOBAL_REGISTRY as GLOBAL_REGISTRY
 from latent_anything.registry import Registry as Registry
 from latent_anything.registry import RegistryEntry as RegistryEntry
@@ -206,9 +213,12 @@ __all__ = [
     "ManipulationPipelineSpec",
     "Method",
     "ObjectSpec",
+    "OrthonormalSubspace",
     "PipelineResult",
     "PipelineSpec",
     "ProbeComparison",
+    "SubspaceProjection",
+    "SubspaceProjectionConfig",
     "TCAV",
     "TCAVConfig",
     "TCAVResult",
@@ -246,6 +256,8 @@ __all__ = [
     "compare_with_labels",
     "compute_integrated_gradients",
     "compute_tcav",
+    "coordinate_identity",
+    "assert_arithmetic_compatible",
     "cross_check_feature",
     "cross_seed_evaluation",
     "cross_seed_sae_stability",

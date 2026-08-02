@@ -1,0 +1,54 @@
+{
+  "dataset": "digits-conv-vae",
+  "n_samples": 600,
+  "latent_dim": 6,
+  "identity": "conv_vae_8x8",
+  "target_concept": "diagonal digits [1, 4, 7]",
+  "target_accuracy_before_removal": 0.8555555555555555,
+  "subspaces": {
+    "pca": {
+      "origin": "pca",
+      "n_basis": 1,
+      "dim": 6
+    },
+    "probe": {
+      "origin": "probe",
+      "n_basis": 1,
+      "dim": 6
+    },
+    "concept": {
+      "origin": "concept",
+      "n_basis": 1,
+      "dim": 6
+    }
+  },
+  "pairwise_alignment": {
+    "pca_vs_probe": 0.3530463957737097,
+    "pca_vs_concept": 0.6756933543458837,
+    "probe_vs_concept": 0.7651619925074677
+  },
+  "removal_effects": {
+    "pca": {
+      "origin": "pca",
+      "target_accuracy_after": 0.7222222222222222,
+      "mean_coverage": 0.19002337437317998
+    },
+    "probe": {
+      "origin": "probe",
+      "target_accuracy_after": 0.28888888888888886,
+      "mean_coverage": 0.1897634555918984
+    },
+    "concept": {
+      "origin": "concept",
+      "target_accuracy_after": 0.3055555555555556,
+      "mean_coverage": 0.332933761276532
+    }
+  },
+  "acceptance": {
+    "bases_are_not_interchangeable": true,
+    "variance_is_not_semantics": true,
+    "probe_suppresses_target": true,
+    "concept_suppresses_target": true,
+    "supervised_bases_agree_qualitatively": true
+  }
+}
