@@ -12,9 +12,9 @@ not change the geometry abstraction.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -102,6 +102,42 @@ def _validate_batch(data: np.ndarray, *, name: str) -> np.ndarray:
     return values
 
 
+def _validate_point(
+    point: np.ndarray,
+    check_ready: Callable[[int, str | None], None],
+    source_representation_identity: str | None,
+) -> np.ndarray:
+    """Validate a flat ``(dim,)`` point and check the estimator is ready."""
+    value = np.asarray(point, dtype=np.float64)
+    if value.ndim != 1:
+        raise ValueError(f"point must be a flat 1D array, got {value.ndim}D")
+    if value.shape[0] == 0:
+        raise ValueError("point must have at least one feature")
+    if not np.isfinite(value).all():
+        raise ValueError("point must contain only finite values")
+    check_ready(value.shape[0], source_representation_identity)
+    return value
+
+
+def _component_covariance(model: Any, component: int) -> np.ndarray:
+    """Return the per-component covariance matrix for a fitted GMM.
+
+    Normalizes every ``covariance_type`` to a ``(dim, dim)`` matrix so the
+    gradient computation can solve a single linear system per component.
+    """
+    covariance_type = model.covariance_type if hasattr(model, "covariance_type") else "full"
+    covariances = np.asarray(model.covariances_)
+    if covariance_type == "tied":
+        return np.asarray(covariances, dtype=np.float64)
+    if covariance_type == "diag":
+        return np.diag(np.asarray(covariances[component], dtype=np.float64))
+    if covariance_type == "spherical":
+        variance = float(covariances[component])
+        dim = int(covariances.shape[1]) if covariances.ndim == 2 else int(model.means_.shape[1])
+        return variance * np.eye(dim)
+    return np.asarray(covariances[component], dtype=np.float64)
+
+
 def validate_density_geometry(geometry: str) -> None:
     """Reject representations whose metric is not supported by this estimator."""
     if geometry not in {"euclidean", "unit_norm"}:
@@ -130,6 +166,11 @@ class GaussianMixtureDensity:
     def is_fitted(self) -> bool:
         """Whether :meth:`fit` has completed."""
         return self._model is not None
+
+    @property
+    def source_representation_identity(self) -> str | None:
+        """Return the representation identity the estimator was fitted on."""
+        return self._source_identity
 
     def state_snapshot(self) -> dict[str, Any]:
         """Return a defensive, component-local state snapshot for reproducibility."""
@@ -214,6 +255,62 @@ class GaussianMixtureDensity:
             fit_provenance=dict(self._fit_provenance),
             calibration_provenance=dict(self._calibration_provenance),
         )
+
+    def state_digest(self) -> str:
+        """Return a stable SHA-256 digest over the fitted GMM parameters.
+
+        Two estimators with identical weights/means/covariances produce the
+        same digest, which makes it usable as a deterministic component-state
+        hash in cache keys (runtime counters and provenance are excluded).
+        """
+        if self._model is None:
+            raise RuntimeError("GaussianMixtureDensity has not been fitted")
+        import hashlib
+
+        parts: list[bytes] = []
+        for name in ("weights_", "means_", "covariances_", "precisions_cholesky_"):
+            value = getattr(self._model, name, None)
+            if value is not None:
+                parts.append(np.asarray(value, dtype=np.float64).round(8).tobytes())
+        return hashlib.sha256(b"".join(parts)).hexdigest()
+
+    def log_density(self, point: np.ndarray, *, source_representation_identity: str | None = None) -> float:
+        """Return the fitted GMM log-density at a single point.
+
+        ``point`` is a flat ``(dim,)`` vector. The identity is checked the same
+        way :meth:`score` checks batches, so cross-space scoring is rejected.
+        """
+        value = _validate_point(point, self._check_ready, source_representation_identity)
+        assert self._model is not None
+        return float(np.asarray(self._model.score_samples(value[None, :]))[0])  # pyright: ignore[reportUnknownMemberType]
+
+    def log_density_gradient(
+        self, point: np.ndarray, *, source_representation_identity: str | None = None
+    ) -> np.ndarray:
+        """Return the analytic gradient of the GMM log-density at a point.
+
+        The gradient of a Gaussian-mixture log-density is
+
+        .. math:: \\nabla \\log p(z) = \\sum_k \\gamma_k(z)\\, \\Sigma_k^{-1}(\\mu_k - z)
+
+        where :math:`\\gamma_k` are the responsibilities. The per-component
+        precision-times-vector products are solved rather than inverted for
+        numerical stability. This is the pullback-type oracle that the
+        density-penalized geodesic path optimizer consumes.
+        """
+        value = _validate_point(point, self._check_ready, source_representation_identity)
+        assert self._model is not None
+        model = cast(Any, self._model)
+        responsibilities = np.asarray(model.predict_proba(value[None, :]))[0]  # pyright: ignore[reportUnknownMemberType]
+        gradient = np.zeros(value.shape[0], dtype=np.float64)
+        for k, weight in enumerate(responsibilities):
+            mean = np.asarray(model.means_[k], dtype=np.float64)  # pyright: ignore[reportUnknownMemberType]
+            if weight <= 0.0:
+                continue
+            covariance = _component_covariance(model, k)  # pyright: ignore[reportUnknownMemberType]
+            diff = mean - value
+            gradient += float(weight) * np.linalg.solve(covariance, diff)
+        return gradient
 
     def evaluate(
         self,

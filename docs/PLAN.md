@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 50 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 51 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -88,8 +88,8 @@ None. Sprint 50 is next; the Sprint 35 evidence items remain carryover gates for
 ### Milestone 10 - Geometry, trajectory, and 3D depth
 
 - [Sprint 48](sprint-plans/sprint-48.md) - Add anisotropic geometry and Mahalanobis-aware operations.
-- [Sprint 49](sprint-plans/sprint-49.md) - Add latent projection, removal, and arithmetic with coordinate-system checks.
-- [Sprint 50](sprint-plans/sprint-50.md) - Add density-aware or pullback-metric geodesic interpolation.
+- [x] [Sprint 49](sprint-plans/sprint-49.md) - Add latent projection, removal, and arithmetic with coordinate-system checks.
+- [x] [Sprint 50](sprint-plans/sprint-50.md) - Add density-aware or pullback-metric geodesic interpolation.
 - [Sprint 51](sprint-plans/sprint-51.md) - Add SO(3)/SE(3) pose geometry and valid interpolation.
 - [Sprint 52](sprint-plans/sprint-52.md) - Add DTW trajectory similarity for unequal-length sequences.
 - [Sprint 53](sprint-plans/sprint-53.md) - Add trajectory smoothing and change-point segmentation.

@@ -75,10 +75,13 @@
       ]
     },
     "THY-T01-GEODESIC": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "source", "path": "src/latent_anything/geodesic.py"},
+        {"role": "source", "path": "src/latent_anything/geometry.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_geodesic.py"},
+        {"role": "benchmark", "path": "scripts/geodesic_benchmark.py"},
+        {"role": "config", "path": "src/latent_anything/geodesic.py"}
       ]
     },
     "THY-T02-AUTOENCODER": {

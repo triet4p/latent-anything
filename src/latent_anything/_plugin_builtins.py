@@ -45,6 +45,7 @@ from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
 from latent_anything.clustering import KMeans
 from latent_anything.density import GaussianMixtureDensity
+from latent_anything.geodesic import DensityGeodesic
 from latent_anything.integrated_gradients import IntegratedGradients
 from latent_anything.methods.activation_patch import ActivationPatch
 from latent_anything.methods.lerp import Lerp
@@ -206,6 +207,15 @@ GLOBAL_REGISTRY.register(
     ActivationPatch,
     description="Activation patching — B-Method #3 (model-mediated data→data)",
     protocol="BMethod",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_INTERVENTION,
+    "density_geodesic",
+    DensityGeodesic,
+    description="Density-penalized geodesic path interpolation — non-Euclidean path optimization",
+    protocol="DensityGeodesic",
     source="built-in",
 )
 

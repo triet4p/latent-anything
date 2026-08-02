@@ -53,6 +53,10 @@ from latent_anything.density import (
 from latent_anything.density import (
     mahalanobis_baseline as mahalanobis_baseline,
 )
+from latent_anything.geodesic import DensityGeodesic as DensityGeodesic
+from latent_anything.geodesic import GeodesicConfig as GeodesicConfig
+from latent_anything.geodesic import GeodesicPath as GeodesicPath
+from latent_anything.geodesic import PathOptimizationStatus as PathOptimizationStatus
 from latent_anything.integrated_gradients import (
     IntegratedGradients as IntegratedGradients,
 )
@@ -247,6 +251,10 @@ __all__ = [
     "DensityMetrics",
     "DensityEvaluationReport",
     "DensityStabilityReport",
+    "DensityGeodesic",
+    "GeodesicConfig",
+    "GeodesicPath",
+    "PathOptimizationStatus",
     "density_cross_seed_evaluation",
     "mahalanobis_baseline",
     "fit_covariance_state",

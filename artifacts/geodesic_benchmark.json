@@ -1,0 +1,51 @@
+{
+  "results": {
+    "ring": {
+      "track": "analytic-ring",
+      "lerp_mean_log_density": -1.8748431998796231,
+      "geodesic_mean_log_density": -0.041038077659528015,
+      "lerp_mean_radius": 1.406904984442156,
+      "geodesic_mean_radius": 1.9073081921444193,
+      "geodesic_converged": true,
+      "geodesic_n_iterations": 58
+    },
+    "real": {
+      "track": "conv-vae-digits",
+      "endpoint_labels": {
+        "a": 0,
+        "b": 4
+      },
+      "endpoint_distance": 0.37824304651670043,
+      "geodesic_converged": true,
+      "geodesic_n_iterations": 86,
+      "lerp": {
+        "mean_log_density": 3.9155728345523477,
+        "min_log_density": 1.7711943362826341,
+        "decoded_total_variation": 0.009451313266417644,
+        "decoded_plausibility": 0.017246851922443532,
+        "euclidean_length": 0.3782430465167004
+      },
+      "slerp": {
+        "mean_log_density": -133.58533465970865,
+        "min_log_density": -157.23149660298154,
+        "decoded_total_variation": 0.03962453561844966,
+        "decoded_plausibility": 0.31013342129225024,
+        "euclidean_length": 1.640660942483589
+      },
+      "density_geodesic": {
+        "mean_log_density": 7.021734040318546,
+        "min_log_density": 2.1081142289856443,
+        "decoded_total_variation": 0.011105070559791805,
+        "decoded_plausibility": 0.009831362590745978,
+        "euclidean_length": 0.4749890675142065
+      }
+    }
+  },
+  "checks": {
+    "ring_geodesic_higher_density_than_lerp": true,
+    "ring_geodesic_stays_closer_to_manifold": true,
+    "real_geodesic_density_not_below_lerp": true,
+    "real_geodesic_decoded_plausibility_not_worse_than_lerp": true,
+    "real_slerp_not_applicable_demonstrated": true
+  }
+}

@@ -9,6 +9,8 @@ distance, whitening, inverse whitening, and metric interpolation) that the
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 
 
@@ -207,6 +209,211 @@ def fit_covariance(data: np.ndarray, *, reg_coef: float) -> tuple[np.ndarray, np
     centered = values - mean
     covariance = (centered.T @ centered) / (values.shape[0] - 1)
     return mean, regularize_covariance(covariance, reg_coef=reg_coef)
+
+
+# ── Density-penalized geodesic paths ────────────────────────────────
+#
+# A density-penalized path treats the latent space as a Riemannian manifold
+# whose metric is the inverse of the learned data density: moving through
+# low-density regions is expensive, so the geodesic bends toward high-density
+# (on-manifold) regions instead of cutting across them. This realizes the
+# "Latent Space Oddity" pullback-geometry idea using only a fitted log-density
+# oracle (and its gradient), which keeps the method tractable without decoder
+# Jacobians. All algorithms here are pure functions; configuration and the
+# stateful entry point live in ``geodesic.py``.
+#
+# Discretized energy: a path of ``n_points`` values ``z_0..z_{n-1}`` with
+# ``z_0 = a`` and ``z_{n-1} = b`` minimizes
+#
+#     E = sum_i  g(z_i) * ||z_{i+1} - z_i||^2
+#
+# with the density-penalized metric ``g(z) = exp(-alpha * log p(z))``,
+# normalized by the maximum log-density along the path so the weights stay
+# bounded. ``alpha = 0`` makes ``g(z) = 1``, so the minimizer is the lerp path;
+# ``alpha > 0`` penalizes crossing low-density regions.
+
+
+def _density_weights(log_p: np.ndarray, *, exponent: float, log_p_max: float) -> np.ndarray:
+    """Return stable weights ``exp(-exponent * (log_p - log_p_max))``.
+
+    The exponent argument is capped at ``+40`` so a path that dips into an
+    extremely low-density region (very negative log-density) cannot overflow.
+    Because weights are relative (a constant scale does not change the
+    minimizer), capping preserves the penalty ordering.
+    """
+    if exponent == 0.0:
+        return np.ones_like(log_p, dtype=np.float64)
+    return np.exp(np.clip(-exponent * (log_p - log_p_max), None, 40.0))
+
+
+def lerp_path(a: np.ndarray, b: np.ndarray, n_points: int) -> np.ndarray:
+    """Return the deterministic ``n_points``-point linear interpolation of ``a`` to ``b``.
+
+    Endpoints are included: row 0 is ``a`` and row ``n_points - 1`` is ``b``.
+    """
+    if n_points < 2:
+        msg = f"lerp_path requires at least 2 points, got {n_points}"
+        raise ValueError(msg)
+    t = np.linspace(0.0, 1.0, n_points)
+    return (1.0 - t)[:, None] * np.asarray(a, dtype=np.float64)[None, :] + t[:, None] * np.asarray(b, dtype=np.float64)[
+        None, :
+    ]
+
+
+def density_path_energy(
+    path: np.ndarray,
+    log_density: Callable[[np.ndarray], float],
+    *,
+    exponent: float,
+    log_ref: float | None = None,
+) -> float:
+    """Return the density-penalized discrete energy of *path*.
+
+    ``log_density`` returns the log data-density at a flat point and
+    ``exponent`` is the density exponent ``alpha``. Weights are normalized by
+    the maximum log-density along the path so ``g(z)`` stays in ``[1, ...]``.
+    Pass a fixed ``log_ref`` (e.g. the max over the initialization path) so
+    repeated evaluations during optimization stay smooth; otherwise the max is
+    recomputed per call.
+    """
+    values = np.asarray(path, dtype=np.float64)
+    log_p = np.asarray([log_density(point) for point in values], dtype=np.float64)
+    log_p_max = log_ref if log_ref is not None else float(np.max(log_p))
+    weights = _density_weights(log_p, exponent=exponent, log_p_max=log_p_max)
+    diffs = np.diff(values, axis=0)
+    squared = np.sum(diffs * diffs, axis=1)
+    return float(np.sum(weights[:-1] * squared))
+
+
+def density_path_gradient(
+    path: np.ndarray,
+    log_density: Callable[[np.ndarray], float],
+    log_density_gradient: Callable[[np.ndarray], np.ndarray],
+    *,
+    exponent: float,
+    log_ref: float | None = None,
+) -> np.ndarray:
+    """Return the gradient of :func:`density_path_energy` w.r.t. interior points.
+
+    Endpoints stay fixed (their gradient rows are zero). The gradient of the
+    metric is ``grad g(z) = -alpha * g(z) * grad log p(z)``. Pass a fixed
+    ``log_ref`` (the max over the initialization path) so the objective stays
+    smooth; without it the max is recomputed per call and the gradient is only
+    valid when no interior point is the current density maximum.
+    """
+    values = np.asarray(path, dtype=np.float64)
+    n_points, dim = values.shape
+    log_p = np.asarray([log_density(point) for point in values], dtype=np.float64)
+    log_p_max = log_ref if log_ref is not None else float(np.max(log_p))
+    weights = _density_weights(log_p, exponent=exponent, log_p_max=log_p_max)
+    density_grads = np.asarray([log_density_gradient(point) for point in values], dtype=np.float64)
+    diffs = np.diff(values, axis=0)
+    squared = np.sum(diffs * diffs, axis=1)
+    gradient = np.zeros((n_points, dim), dtype=np.float64)
+    for j in range(1, n_points - 1):
+        gradient[j] = (
+            2.0 * weights[j - 1] * (values[j] - values[j - 1])
+            + 2.0 * weights[j] * (values[j] - values[j + 1])
+            - exponent * weights[j] * squared[j] * density_grads[j]
+        )
+    return gradient
+
+
+def optimize_density_path(
+    a: np.ndarray,
+    b: np.ndarray,
+    *,
+    log_density: Callable[[np.ndarray], float],
+    log_density_gradient: Callable[[np.ndarray], np.ndarray],
+    n_points: int,
+    max_iter: int,
+    step_size: float,
+    tol: float,
+    exponent: float,
+) -> tuple[np.ndarray, float, float, int, bool, str]:
+    """Minimize :func:`density_path_energy` between ``a`` and ``b``.
+
+    Uses gradient descent with backtracking line search on the deterministic
+    lerp initialization. Returns ``(path, initial_energy, final_energy,
+    n_iterations, converged, message)``. Compute is bounded by ``max_iter``
+    and the fixed ``n_points`` discretization.
+    """
+    point_a = np.asarray(a, dtype=np.float64)
+    point_b = np.asarray(b, dtype=np.float64)
+    if point_a.shape != point_b.shape:
+        msg = f"endpoints must share shape, got {point_a.shape} and {point_b.shape}"
+        raise ValueError(msg)
+    if n_points < 3:
+        msg = f"optimize_density_path requires at least 3 points, got {n_points}"
+        raise ValueError(msg)
+    if max_iter < 1 or step_size <= 0 or tol <= 0 or exponent < 0:
+        msg = "max_iter >= 1, step_size > 0, tol > 0 and exponent >= 0 are required"
+        raise ValueError(msg)
+
+    path = lerp_path(point_a, point_b, n_points)
+    log_ref = float(np.max([log_density(point) for point in path]))
+    initial_energy = density_path_energy(path, log_density, exponent=exponent, log_ref=log_ref)
+    energy = initial_energy
+    converged = False
+    n_iterations = 0
+    message = f"reached max_iter={max_iter} without meeting tol={tol}"
+
+    for iteration in range(max_iter):
+        n_iterations = iteration + 1
+        gradient = density_path_gradient(path, log_density, log_density_gradient, exponent=exponent, log_ref=log_ref)
+        interior_norm = float(np.max(np.linalg.norm(gradient[1:-1], axis=1))) if n_points > 2 else 0.0
+        if interior_norm < tol:
+            converged = True
+            message = f"gradient norm {interior_norm:.3e} below tol={tol}"
+            break
+
+        step = step_size
+        previous_energy = energy
+        accepted = False
+        for _ in range(60):
+            candidate = path.copy()
+            candidate[1:-1] = candidate[1:-1] - step * gradient[1:-1]
+            candidate_energy = density_path_energy(candidate, log_density, exponent=exponent, log_ref=log_ref)
+            if candidate_energy < energy:
+                path = candidate
+                energy = candidate_energy
+                accepted = True
+                break
+            step *= 0.5
+        if not accepted:
+            converged = True
+            message = "line search found no descent direction (flat energy)"
+            break
+        if abs(previous_energy - energy) <= tol * max(1.0, abs(previous_energy)):
+            converged = True
+            message = f"relative energy change {abs(previous_energy - energy):.3e} below tol={tol}"
+            break
+
+    return path, initial_energy, energy, n_iterations, converged, message
+
+
+def density_path_length(
+    path: np.ndarray,
+    log_density: Callable[[np.ndarray], float],
+    *,
+    exponent: float,
+    log_ref: float | None = None,
+) -> tuple[float, float]:
+    """Return ``(density_penalized_length, euclidean_length)`` of *path*.
+
+    The density-penalized length is ``sum_i sqrt(g(z_i)) * ||z_{i+1}-z_i||``,
+    the discrete arc length under the density metric; the Euclidean length is
+    the plain summed segment norm. Pass a fixed ``log_ref`` to stay consistent
+    with the optimizer's normalization.
+    """
+    values = np.asarray(path, dtype=np.float64)
+    log_p = np.asarray([log_density(point) for point in values], dtype=np.float64)
+    log_p_max = log_ref if log_ref is not None else float(np.max(log_p))
+    weights = _density_weights(log_p, exponent=exponent, log_p_max=log_p_max)
+    segment_norms = np.linalg.norm(np.diff(values, axis=0), axis=1)
+    density_length = float(np.sum(np.sqrt(weights[:-1]) * segment_norms))
+    euclidean_length = float(np.sum(segment_norms))
+    return density_length, euclidean_length
 
 
 # ── Orthonormal subspace projection ─────────────────────────────────
