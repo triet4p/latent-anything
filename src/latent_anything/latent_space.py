@@ -45,7 +45,7 @@ def _build_gaussian_layout(
 class LatentSpace:
     """Represents a latent space with concrete geometry-aware operations.
 
-    This is a concrete implementation supporting four validated geometry
+    This is a concrete implementation supporting five validated geometry
     cases: Euclidean flat vectors (``"euclidean"``), unit-norm spherical
     vectors (``"unit_norm"``), and fixed-size Gaussian-set structured
     points (``"gaussian_set"``), and categorical code vectors
@@ -337,9 +337,8 @@ class LatentSpace:
         float
             Distance value.
         """
-        if self.geometry == "discrete_code":
-            self.validate_point(a)
-            self.validate_point(b)
+        self.validate_point(a)
+        self.validate_point(b)
         if self.geometry == "euclidean":
             return float(np.linalg.norm(a - b))
         elif self.geometry == "anisotropic":
@@ -387,9 +386,8 @@ class LatentSpace:
         np.ndarray
             Interpolated point.
         """
-        if self.geometry == "discrete_code":
-            self.validate_point(a)
-            self.validate_point(b)
+        self.validate_point(a)
+        self.validate_point(b)
         if not 0.0 <= t <= 1.0:
             raise ValueError("t must be in [0, 1]")
         if self.geometry == "euclidean":

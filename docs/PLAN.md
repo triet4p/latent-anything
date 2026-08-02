@@ -43,15 +43,15 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 ## Carryover Evidence Gates
 
-- [ ] Close the Sprint 35 real, revision-pinned checkpoint fidelity evidence before activating Sprint 37.
-- [ ] Close the Sprint 35 real-checkpoint interpolation artifact before activating Sprint 37.
+- [ ] Close the Sprint 35 real, revision-pinned checkpoint fidelity evidence before declaring the related Milestone 8 claims complete.
+- [ ] Close the Sprint 35 real-checkpoint interpolation artifact before declaring the related Milestone 8 claims complete.
 - [ ] Close the Sprint 34 held-out meaningful-integration benchmark before declaring Milestone 8 complete.
 
 These items do not reopen already delivered implementation. They keep the evidence status honest and prevent downstream real-model claims from being built on unverified prerequisites.
 
 ## Active Sprints
 
-None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
+None. Sprint 49 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -149,8 +149,16 @@ None. Sprint 37 is next after both Sprint 35 entry gates above are complete.
 - [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
 - [Sprint 33](sprint-plans/sprint-33.md) - Optional dependency boundaries and resolver smoke matrix.
 - [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE implementation and real-image smoke evidence delivered; the held-out meaningful-integration benchmark remains a carryover gate.
-- [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter delivered; real-checkpoint fidelity and interpolation evidence remain Sprint 37 entry gates.
+- [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter delivered; real-checkpoint fidelity and interpolation evidence remain Milestone 8 carryover gates.
 - [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
+- [Sprint 37](sprint-plans/sprint-37.md) - Conditional diffusion scheduler-state and denoiser-activation capture.
+- [Sprint 38](sprint-plans/sprint-38.md) - Selective scheduler-latent intervention benchmark.
+- [Sprint 39](sprint-plans/sprint-39.md) - Real decoder-only transformer integration and direct logit lens.
+- [Sprint 40](sprint-plans/sprint-40.md) - Label-aware linear classification probe on real representations.
+- [Sprint 41](sprint-plans/sprint-41.md) - Bounded nonlinear classification probe.
+- [Sprint 42](sprint-plans/sprint-42.md) - Concept activation vectors and target-specific TCAV intervention controls.
+- [Sprint 43](sprint-plans/sprint-43.md) - K-means structure discovery with geometry and stability diagnostics.
+- [Sprint 44](sprint-plans/sprint-44.md) - Representation-bound density estimation and calibrated OOD scoring.
 - [Sprint 45](sprint-plans/sprint-45.md) - Activation-space Integrated Gradients with completeness and transformer sensitivity evidence.
 - [Sprint 46](sprint-plans/sprint-46.md) - Sparse-autoencoder feature evaluation with reconstruction, sparsity, stability, cross-check, and a queryable feature atlas.
 - [Sprint 47](sprint-plans/sprint-47.md) - Interactive Plotly/notebook exploration backed by typed analysis results (renderer inputs, 2D/3D explorer, widget path, optional `viz` extra, and a digits ConvVAE walkthrough).

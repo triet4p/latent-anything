@@ -151,7 +151,7 @@ Latent-Anything build trên một chuỗi lý thuyết liên kết chặt chẽ.
 
 **Spherical harmonics cho view-dependent color.** Mỗi Gaussian encode color bằng spherical harmonics basis function — màu thay đổi theo góc nhìn một cách smooth và compact. Cần hiểu SH basis và tại sao nó hiệu quả hơn MLP cho color encoding.
 
-**Gaussian parameters là latent variable.** Đây là điểm kết nối với Latent-Anything. Trong context world model, các parameter (μ, Σ, α, SH coefficients) là latent state của thế giới 3D. Encoder học map observation → tập Gaussian. Transition model predict tập Gaussian mới từ tập cũ và action. Decoder là Gaussian rasterizer — deterministic, không cần learn. Đây là cách LeWM tổ chức latent space.
+**Gaussian parameters là latent variable.** Đây là điểm kết nối với Latent-Anything. Trong context 3D Gaussian Splatting, các parameter (μ, Σ, α, SH coefficients) là latent state của scene. Encoder học map observation → tập Gaussian. Transition model predict tập Gaussian mới từ tập cũ và action. Decoder là Gaussian rasterizer — deterministic, không cần learn. Đây là hướng 3DGS riêng; LeWM là JEPA decoder-free và không dùng latent 3DGS.
 
 **Tại sao 3DGS tốt hơn NeRF cho world model.** NeRF latent khó manipulate vì implicit — không có "object handle". 3DGS explicit: mỗi Gaussian là một entity, có thể move, rotate, add, remove. World model có thể learn transition trên *tập Gaussian* — cấu trúc này amenable hơn nhiều với transition model và planning.
 

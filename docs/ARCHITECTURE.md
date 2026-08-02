@@ -13,7 +13,7 @@ Toàn bộ framework xây trên năm primitive. Nếu các primitive này đúng
 
 **`Trajectory`** — sequence latent state qua thời gian hoặc qua step, với operation cơ bản (slice, interpolate, compare, concat, rollout). Cầu nối tự nhiên đến world model rollout, agent execution, và bất kỳ thứ gì có temporal/sequential structure. Trajectory một điểm vẫn hợp lệ cho static latent analysis. Immutable — mọi operation trả về `Trajectory` mới.
 
-**`ModelAdapter`** — interface để bất kỳ model nào expose latent space của nó. Tối thiểu: `encode`, `decode`, `latent_space`. Một file = một adapter. Stress-test: VAE, VLA, world model (LeWM), diffusion, LLM hidden state, 3DGS-based model phải fit cùng interface.
+**`ModelAdapter`** — interface để bất kỳ model nào expose latent space của nó. Tối thiểu: `encode`, `latent_space`. Adapter có decoder implement thêm `DecodableAdapter` với `decode`; decoder-free adapters như hidden-state và JEPA/LeWM không bị buộc phải giả tạo decoder. Một file = một adapter.
 
 **`Method`** — interface chung cho mọi A/B/C method. Stateful method có thêm `fit`, `save`, `load`. Stateless method chỉ có `__call__`. Cả hai là first-class.
 
@@ -172,7 +172,9 @@ Mỗi model family là một file adapter. Tất cả implement cùng `ModelAdap
 
 **Giai đoạn 6:** World model (LeWM hoặc tương đương), diffusion model, LLM hidden state. Mỗi cái là stress test thêm cho `LatentSpace` abstraction.
 
-**Lưu ý đặc biệt cho 3DGS-based world model.** Adapter cho LeWM cần handle `LatentSpace` với geometry là "set of 3D Gaussians" — mỗi latent state là một tập {μ_i, Σ_i, α_i, sh_i}. `encode` map observation → Gaussian set. `decode` là Gaussian rasterizer (deterministic). `latent_space` metadata cần mô tả Gaussian parameterization. Interface `LatentSpace` phải đủ flexible để represent cả flat vector lẫn structured Gaussian set — đây là stress test quan trọng cho primitive design.
+**Lưu ý đặc biệt cho 3DGS adapter.** Adapter cho một model 3D Gaussian Splatting có thể expose `LatentSpace` với geometry là "set of 3D Gaussians" — mỗi latent state là một tập {μ_i, Σ_i, α_i, sh_i}. `encode` map observation → Gaussian set; `decode` có thể là Gaussian rasterizer deterministic. `latent_space` metadata mô tả Gaussian parameterization.
+
+**Lưu ý đặc biệt cho JEPA/LeWM adapter.** LeWM là world model decoder-free theo kiểu JEPA: adapter expose predicted/observed embeddings và transition semantics qua `ModelAdapter`, không gán geometry 3DGS và không bịa ra `decode`.
 
 ---
 
@@ -222,7 +224,7 @@ Tiêu chí: cache hit speedup đo được, async throughput tốt hơn sync đo
 
 **Giai đoạn 6 — Ecosystem expansion.**
 
-Thêm adapter cho world model (LeWM), diffusion, LLM hidden state. Mỗi cái stress test thêm cho `LatentSpace`. Đặc biệt: LeWM adapter với Gaussian set latent là test quan trọng nhất cho flexibility của primitive.
+Thêm adapter cho world model (JEPA/LeWM), diffusion, LLM hidden state, và một 3DGS adapter riêng. Mỗi cái stress test thêm cho `LatentSpace`; LeWM giữ decoder-free, còn Gaussian-set latent và rasterizer thuộc 3DGS.
 
 Thêm method theo demand từ user thật.
 
@@ -250,7 +252,7 @@ Khi interface không còn muốn refactor, freeze API, release 1.0. Cam kết ba
 
 **Core (giai đoạn 1–5).**
 
-- Python 3.11+.
+- Python 3.12+.
 - `numpy`, `torch`, `einops` cho numerical.
 - `pydantic` cho config và data contract.
 - `typing.Protocol` + `runtime_checkable` cho plugin interface.
@@ -276,7 +278,7 @@ Khi interface không còn muốn refactor, freeze API, release 1.0. Cam kết ba
 - `matplotlib` cho static.
 - `anywidget` cho notebook widget custom.
 
-**3D / Gaussian (giai đoạn 6+, khi tích hợp LeWM).**
+**3D / Gaussian (giai đoạn 6+, khi tích hợp 3DGS).**
 
 - `gsplat` hoặc tự implement Gaussian rasterizer cho adapter decode.
 - `open3d` cho point cloud operation nếu cần.
@@ -340,8 +342,8 @@ Khi interface không còn muốn refactor, freeze API, release 1.0. Cam kết ba
          ┌───────────────┼────────────────────────┐
          ▼               ▼               ▼         ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────┐ ┌──────────┐
-│     VAE      │ │     VLA      │ │   LeWM   │ │ Diffusion│
-│   Adapter    │ │   Adapter    │ │ (3DGS)   │ │  / LLM   │
+│     VAE      │ │     VLA      │ │   3DGS   │ │ JEPA/LeWM│
+│   Adapter    │ │   Adapter    │ │ (Gaussian)│ │ / Diffusion│
 └──────────────┘ └──────────────┘ └──────────┘ └──────────┘
                          │
 ┌─────────────────────────────────────────────────────────┐

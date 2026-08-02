@@ -332,11 +332,90 @@ class TestFitCovarianceState:
         with pytest.raises(ValueError, match="at least 8 samples"):
             fit_covariance_state(data, source_representation_identity="x")
 
-    def test_empty_identity_rejected_by_policy(self) -> None:
-        # An empty identity is allowed structurally but the metric is bound to
-        # it; cross-space scoring must never reuse a fitted covariance.
-        state = fit_covariance_state(np.random.default_rng(0).normal(size=(30, 2)), source_representation_identity="")
-        assert state.source_representation_identity == ""
+    @pytest.mark.parametrize("identity", ["", "   "])
+    def test_empty_identity_rejected_by_policy(self, identity: str) -> None:
+        with pytest.raises(ValueError, match="source_representation_identity"):
+            fit_covariance_state(np.random.default_rng(0).normal(size=(30, 2)), source_representation_identity=identity)
+
+    def test_state_owns_read_only_arrays_and_nested_provenance(self) -> None:
+        provenance = {"nested": {"labels": ["train"]}}
+        state = CovarianceState(
+            mean=np.zeros(2),
+            covariance=np.eye(2),
+            n_samples=10,
+            source_representation_identity="x",
+            reg_coef=1e-6,
+            provenance=provenance,
+        )
+        provenance["nested"]["labels"].append("mutated")
+        assert state.provenance["nested"]["labels"] == ("train",)
+        with pytest.raises(ValueError):
+            state.mean[0] = 1.0
+        with pytest.raises(TypeError):
+            state.provenance["new"] = True  # type: ignore[index]
+        with pytest.raises(ValueError):
+            state.mean.setflags(write=True)
+        with pytest.raises(ValueError):
+            state.covariance.setflags(write=True)
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("source_representation_identity", None),
+            ("source_representation_identity", 42),
+            ("n_samples", 1.9),
+            ("n_samples", True),
+        ],
+    )
+    def test_from_dict_rejects_each_raw_field_type_independently(self, field: str, value: object) -> None:
+        payload: dict[str, object] = {
+            "mean": [0.0, 0.0],
+            "covariance": [[1.0, 0.0], [0.0, 1.0]],
+            "n_samples": 5,
+            "source_representation_identity": "x",
+            "reg_coef": 1e-6,
+            "provenance": {},
+        }
+        payload[field] = value
+        with pytest.raises(ValueError, match="missing or malformed"):
+            CovarianceState.from_dict(payload)
+
+    @pytest.mark.parametrize("field", ["n_samples", "reg_coef"])
+    def test_direct_construction_rejects_boolean_numeric_fields(self, field: str) -> None:
+        n_samples: int | bool = True if field == "n_samples" else 5
+        reg_coef: float | bool = True if field == "reg_coef" else 1e-6
+        with pytest.raises(ValueError):
+            CovarianceState(
+                mean=np.zeros(2),
+                covariance=np.eye(2),
+                n_samples=n_samples,
+                source_representation_identity="x",
+                reg_coef=reg_coef,
+                provenance={},
+            )
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("n_samples", -1),
+            ("reg_coef", -1e-6),
+            ("mean", [0.0, float("nan")]),
+            ("covariance", [[1.0, 2.0], [2.0, 1.0]]),
+            ("source_representation_identity", " "),
+        ],
+    )
+    def test_direct_construction_enforces_invariants(self, field: str, value: object) -> None:
+        payload: dict[str, object] = {
+            "mean": [0.0, 0.0],
+            "covariance": [[1.0, 0.0], [0.0, 1.0]],
+            "n_samples": 5,
+            "source_representation_identity": "x",
+            "reg_coef": 1e-6,
+            "provenance": {},
+        }
+        payload[field] = value
+        with pytest.raises(ValueError):
+            CovarianceState.from_dict(payload)
 
 
 class TestCovarianceStateSerialization:
@@ -448,6 +527,17 @@ class TestLatentSpaceAnisotropic:
         with pytest.raises(ValueError, match="t must be in"):
             space.interpolate(np.ones(3), np.ones(3), 1.5)
 
+    @pytest.mark.parametrize("operation", ["distance", "interpolate"])
+    @pytest.mark.parametrize("bad_point", [np.ones(2), np.array([0.0, 1.0, np.nan])])
+    def test_geometry_operations_validate_both_endpoints(self, operation: str, bad_point: np.ndarray) -> None:
+        data = np.random.default_rng(54).normal(size=(60, 3))
+        space = LatentSpace(dim=3, geometry="anisotropic").fit_covariance(data, source_representation_identity="x")
+        with pytest.raises(ValueError):
+            if operation == "distance":
+                space.distance(bad_point, np.zeros(3))
+            else:
+                space.interpolate(np.zeros(3), bad_point, 0.5)
+
     def test_whiten_unwhiten_public_api(self) -> None:
         rng = np.random.default_rng(59)
         data = rng.normal(size=(200, 3))
@@ -494,13 +584,12 @@ class TestLatentSpaceAnisotropic:
             LatentSpace(dim=3, geometry="anisotropic", covariance=state)
 
     def test_non_pd_covariance_rejected_at_construction(self) -> None:
-        state = CovarianceState(
-            mean=np.zeros(3),
-            covariance=np.diag([1.0, -1.0, 1.0]),
-            n_samples=60,
-            source_representation_identity="x",
-            reg_coef=1e-6,
-            provenance={},
-        )
         with pytest.raises(ValueError, match="positive-definite"):
-            LatentSpace(dim=3, geometry="anisotropic", covariance=state)
+            CovarianceState(
+                mean=np.zeros(3),
+                covariance=np.diag([1.0, -1.0, 1.0]),
+                n_samples=60,
+                source_representation_identity="x",
+                reg_coef=1e-6,
+                provenance={},
+            )

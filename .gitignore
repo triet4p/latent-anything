@@ -22,3 +22,5 @@
 
 # Skill eval workspaces (regenerable benchmark/fixture artifacts)
 **/*-workspace/
+
+graphify-out

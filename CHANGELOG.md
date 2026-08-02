@@ -29,6 +29,8 @@
 
 ### Fixed
 
+- Fixed anisotropic covariance states to defensively own immutable arrays and provenance, enforce invariants consistently across construction and loading, reject blank representation identities, and validate both endpoints before geometry operations.
+
 - Normalized the SAE L1 sparsity penalty per element so it is comparable to the reconstruction loss; an unnormalized `sum(|latent|)` collapsed every feature to dead even at small `l1_coef`. (#sprint-46)
 - Made marked model-download integration tests opt-in via `LATENT_ANYTHING_RUN_NETWORK=1`, so the default CI quality gate remains offline and reproducible.
 

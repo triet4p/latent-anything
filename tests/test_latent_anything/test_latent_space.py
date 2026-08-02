@@ -529,6 +529,9 @@ class TestLatentSpaceGaussianSetDistance:
         rng = np.random.default_rng(1)
         b_small = a + 0.01 * rng.normal(size=(10, 10))
         b_big = a + 10.0 * rng.normal(size=(10, 10))
+        b_big[:, 3:6] = np.abs(b_big[:, 3:6]) + 1e-3
+        b_big[:, 6] = np.clip(b_big[:, 6], 0.0, 1.0)
+        b_big[:, 7:10] = np.clip(b_big[:, 7:10], 0.0, 1.0)
         assert space.distance(a, b_small) < space.distance(a, b_big)
 
 
