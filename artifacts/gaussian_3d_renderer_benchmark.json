@@ -2,14 +2,30 @@
   "backend": "reference",
   "width": 64,
   "height": 48,
-  "n_gaussians": 32,
-  "seconds": 0.0027911000070162117,
-  "image_min": 2.14878234920696e-135,
-  "image_max": 1.0,
+  "n_gaussians": 8,
+  "seconds": 0.0016889999969862401,
+  "image_min": 1.2755395988609156e-93,
+  "image_max": 0.6163983166119472,
   "shape": [
     48,
     64,
     3
   ],
-  "gpu_backend": "not measured: CUDA/gsplat unavailable"
+  "gpu_backend": "not measured: CUDA/gsplat unavailable",
+  "intervention": "rigid_transform + bounded opacity edit",
+  "held_out_views": 2,
+  "metrics": {
+    "target_position_change": 0.08453789700535325,
+    "off_target_drift": 0.0,
+    "multi_view_image_consistency": 0.9996429603048994,
+    "render_quality_degradation": 0.0005376435791932343,
+    "per_view_effect": [
+      0.0028093973538997046,
+      0.002811404203173863
+    ]
+  },
+  "naive_arithmetic": {
+    "status": "rejected by schema",
+    "reason": "unconstrained opacity arithmetic exceeds [0, 1]"
+  }
 }

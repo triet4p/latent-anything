@@ -19,6 +19,13 @@ A chronological log of *why* key choices were made in this project.
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-03] Keep 3D Gaussian interventions constrained and index-local
+
+**Decision:** Expose 3D Gaussian edits as pure NumPy operations outside the renderer adapter: index-local SE(3) rigid transforms, bounded opacity/color edits, non-empty removal, and opacity-weighted merge. Evaluate edits from held-out cameras with target-change, off-target-drift, multi-view consistency, and render-degradation metrics.
+**Alternatives considered:** Add raw parameter arithmetic to the adapter, transform every Gaussian for every intervention, or compare only one rendered view.
+**Reason:** The 3D Gaussian schema has manifold-like constraints (valid rotations, positive scales, bounded appearance values), and per-Gaussian indices are the explicit manipulation handle. Keeping operations outside the adapter preserves the backend boundary; held-out views catch view-specific artifacts that a single image can hide.
+**Consequences:** Naive arithmetic is retained only as a negative control. Real-scene/CUDA evidence remains opt-in; the deterministic reference backend is the reproducible D2 lane and does not promote a D3 real-model claim.
+
 ## [2026-08-03] 3DGS uses a lazy gsplat backend behind a NumPy adapter boundary
 
 **Decision:** Use the maintained `gsplat>=1.4,<2.0` optional extra for real 3D Gaussian rasterization, load it lazily, and expose only NumPy latent/camera values through `Gaussian3DRendererAdapter`. Keep a deterministic CPU reference backend for tests.

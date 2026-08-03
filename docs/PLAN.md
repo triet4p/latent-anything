@@ -35,7 +35,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestone 7 - Stable contract and semantic API (Sprints 27-31):** measurable 1.0 gates, domain vocabulary, structured latent values, geometry decomposition, and registry migration.
 - [x] **Milestone 8 - Real generative-model proof (Sprints 32-38):** activation capture, optional backend isolation, real VAE and diffusion integrations, and explanation-validity benchmarks.
 - [x] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
-- [ ] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
+- [x] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
 - [ ] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [ ] **Milestone 12 - World models and planning (Sprints 63-72):** transition models, rollout, reward/value evaluation, CEM/MPPI, discrete latents, JEPA/LeWM, and tokenized-world-model evidence.
 - [ ] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** external plugins, portable artifacts/disk cache, streaming, tracking backends, and an evidence-based Rust decision.
@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 54 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 56 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -94,7 +94,7 @@ None. Sprint 54 is next; the Sprint 35 evidence items remain carryover gates for
 - [x] [Sprint 52](sprint-plans/sprint-52.md) - Add DTW trajectory similarity for unequal-length sequences.
 - [x] [Sprint 53](sprint-plans/sprint-53.md) - Add trajectory smoothing and change-point segmentation.
 - [Sprint 54](sprint-plans/sprint-54.md) - Integrate a real 3D Gaussian splatting renderer backend.
-- [Sprint 55](sprint-plans/sprint-55.md) - Validate 3D Gaussian manipulation with multi-view rendering metrics.
+- [x] [Sprint 55](sprint-plans/sprint-55.md) - Validate 3D Gaussian manipulation with multi-view rendering metrics.
 
 ### Milestone 11 - LeRobot and VLA bridge
 
@@ -165,6 +165,7 @@ None. Sprint 54 is next; the Sprint 35 evidence items remain carryover gates for
 - [Sprint 48](sprint-plans/sprint-48.md) - Anisotropic Gaussian geometry with a fitted covariance metric, Mahalanobis distance, whitening/inverse transforms, declared interpolation semantics, provenance-bound serialization, and a Euclidean-vs-Mahalanobis neighbors/OOD benchmark.
 - [Sprint 49](sprint-plans/sprint-49.md) - Orthonormal subspace projection and concept removal with an identity-bound, origin-tagged basis; latent arithmetic gated on a proven shared coordinate system; and D2 benchmarks for concept removal and basis non-interchangeability.
 - [Sprint 51](sprint-plans/sprint-51.md) - Matrix-backed SO(3)/SE(3) pose geometry, valid group interpolation, pose trajectories, explicit frame metadata, and controlled interpolation evidence.
+- [Sprint 55](sprint-plans/sprint-55.md) - Constrained 3D Gaussian manipulation with held-out multi-view metrics and deterministic failure evidence.
 
 ## Planning Rules
 
