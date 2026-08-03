@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from latent_anything.covariance import CovarianceConfig, CovarianceState, fit_covariance_state
+from latent_anything.gaussian_3d import GAUSSIAN_3D_PARAM_DIM, validate_gaussian_3d
 from latent_anything.geometry import (
     covariance_interpolate,
     discrete_distance,
@@ -148,6 +149,8 @@ class LatentSpace:
         elif geometry == "gaussian_3d":
             if n_gaussians is None or n_gaussians < 1:
                 raise ValueError(f"gaussian_3d requires n_gaussians >= 1, got {n_gaussians!r}")
+            if dim != GAUSSIAN_3D_PARAM_DIM:
+                raise ValueError(f"gaussian_3d requires dim={GAUSSIAN_3D_PARAM_DIM}, got {dim}")
             self._n_gaussians = n_gaussians
             self.metadata.setdefault("representation", "3d_gaussian_splat")
         elif geometry == "discrete_code":
@@ -243,6 +246,8 @@ class LatentSpace:
     def param_dim(self) -> int:
         """Total parameter dimensionality per Gaussian (only meaningful for
         ``gaussian_set``)."""
+        if self.geometry == "gaussian_3d":
+            return GAUSSIAN_3D_PARAM_DIM
         return self._position_dim + self._scale_dim + self._opacity_dim + self._color_dim
 
     @property
@@ -296,8 +301,7 @@ class LatentSpace:
                 msg = f"unit_norm requires ||point|| = 1, got {norm}"
                 raise ValueError(msg)
         elif self.geometry == "gaussian_3d":
-            if not np.isfinite(point).all():
-                raise ValueError("gaussian_3d requires finite points")
+            validate_gaussian_3d(point)
         elif self.geometry == "gaussian_set":
             validate_gaussian_set(
                 point, position_dim=self._position_dim, scale_dim=self._scale_dim, color_dim=self._color_dim

@@ -13,11 +13,14 @@ _ROTATION = slice(3, 7)
 _SCALE = slice(7, 10)
 _OPACITY = 10
 _COLOR = slice(11, 14)
+GAUSSIAN_3D_PARAM_DIM = 14
 
 
-def _check_latent(latent: np.ndarray) -> np.ndarray:
+def validate_gaussian_3d(latent: np.ndarray) -> None:
+    """Validate the fixed 14-field 3D Gaussian schema."""
+
     value = np.asarray(latent, dtype=np.float64)
-    if value.ndim != 2 or value.shape[1] != 14:
+    if value.ndim != 2 or value.shape[1] != GAUSSIAN_3D_PARAM_DIM or value.shape[0] < 1:
         raise ValueError("3D Gaussian latent must have shape (n, 14)")
     if not np.isfinite(value).all() or np.any(value[:, _SCALE] <= 0):
         raise ValueError("3D Gaussian latent must be finite with positive scales")
@@ -27,6 +30,11 @@ def _check_latent(latent: np.ndarray) -> np.ndarray:
         raise ValueError("3D Gaussian opacity must be in [0, 1]")
     if np.any((value[:, _COLOR] < 0) | (value[:, _COLOR] > 1)):
         raise ValueError("3D Gaussian colors must be in [0, 1]")
+
+
+def _check_latent(latent: np.ndarray) -> np.ndarray:
+    value = np.asarray(latent, dtype=np.float64)
+    validate_gaussian_3d(value)
     return value.copy()
 
 
@@ -152,11 +160,13 @@ def merge_gaussians(latent: np.ndarray, groups: Sequence[Sequence[int]]) -> np.n
         weights = value[list(indices), _OPACITY]
         total = float(weights.sum())
         weights = np.full(len(indices), 1.0 / len(indices)) if total <= 1e-12 else weights / total
-        merged = np.zeros(14, dtype=np.float64)
+        merged = np.zeros(GAUSSIAN_3D_PARAM_DIM, dtype=np.float64)
         merged[_POSITION] = weights @ value[list(indices), _POSITION]
-        merged[_ROTATION] = _quaternion_from_rotation(
-            SO3.from_quaternion(weights @ value[list(indices), _ROTATION], order="xyzw")
-        )
+        quaternions = value[list(indices), _ROTATION].copy()
+        reference = quaternions[0]
+        signs = np.where((quaternions @ reference) < 0.0, -1.0, 1.0)
+        aligned_quaternions = quaternions * signs[:, None]
+        merged[_ROTATION] = _quaternion_from_rotation(SO3.from_quaternion(weights @ aligned_quaternions, order="xyzw"))
         merged[_SCALE] = np.exp(weights @ np.log(value[list(indices), _SCALE]))
         merged[_OPACITY] = min(1.0, float(weights @ value[list(indices), _OPACITY]))
         merged[_COLOR] = np.clip(weights @ value[list(indices), _COLOR], 0.0, 1.0)

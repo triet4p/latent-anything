@@ -111,6 +111,12 @@ include = [
     "tests/test_visualization_isolation.py",
     "tests/test_visualization_render.py",
     "tests/test_visualization_walkthrough.py",
+    "tests/test_dtw.py",
+    "tests/test_temporal.py",
+    "tests/test_latent_anything/test_gaussian_3d_manipulation.py",
+    "tests/test_latent_anything/test_gaussian_3d_renderer.py",
+    "tests/test_latent_anything/test_gaussian_3d_renderer_network.py",
+    "tests/test_latent_anything/test_pose.py",
 ]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.12"

@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from latent_anything.adapters import GaussianCamera
 from latent_anything.gaussian_3d import (
     edit_color,
     edit_opacity,
@@ -23,6 +24,10 @@ def scene() -> np.ndarray:
     value[:, 10] = [0.8, 0.5, 0.3]
     value[:, 11:14] = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
     return value
+
+
+def camera() -> GaussianCamera:
+    return GaussianCamera(4, 4, np.eye(3), np.eye(4))
 
 
 def test_rigid_transform_preserves_scales_and_applies_se3_to_positions() -> None:
@@ -59,7 +64,7 @@ def test_multiview_metrics_report_target_change_and_zero_off_target_drift() -> N
     baseline = scene()
     edited = edit_opacity(baseline, [0], value=0.2)
 
-    def render(value: np.ndarray, camera: object) -> np.ndarray:
+    def render(value: np.ndarray, camera: GaussianCamera) -> np.ndarray:
         del camera
         return value[:, 10:11].sum() * np.ones((4, 4, 3))
 
@@ -67,10 +72,18 @@ def test_multiview_metrics_report_target_change_and_zero_off_target_drift() -> N
         baseline,
         edited,
         target_indices=[0],
-        cameras=[object(), object()],
+        cameras=[camera(), camera()],
         render=render,
     )
     assert result.target_position_change == 0.0
     assert result.off_target_drift == 0.0
     assert result.multi_view_image_consistency == 1.0
     assert result.render_quality_degradation > 0.0
+
+
+def test_merge_aligns_antipodal_equivalent_quaternions() -> None:
+    value = scene()[:2].copy()
+    value[1, 3:7] *= -1.0
+    merged = merge_gaussians(value, [[0, 1]])
+    assert np.isclose(np.linalg.norm(merged[0, 3:7]), 1.0)
+    np.testing.assert_allclose(merged[0, 3:7], value[0, 3:7], atol=1e-8)

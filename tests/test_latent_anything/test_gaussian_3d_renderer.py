@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from latent_anything import LatentValue
 from latent_anything.adapters import Gaussian3DRendererAdapter, GaussianCamera
 from latent_anything.integrations.gsplat_renderer import ReferenceGaussianBackend
 
@@ -22,6 +23,13 @@ def test_3d_renderer_metadata_and_decode_shape() -> None:
     assert image.min() >= 0 and image.max() <= 1
     assert adapter.latent_space.geometry == "gaussian_3d"
     assert adapter.latent_space.metadata["parameter_layout"]["spherical_harmonics"] == (11, 3)
+
+
+def test_adapter_latent_value_round_trip_uses_the_14_field_space() -> None:
+    adapter = Gaussian3DRendererAdapter(1, camera(), backend=ReferenceGaussianBackend())
+    value = LatentValue(latent(), adapter.latent_space)
+    assert value.space.shape == (1, 14)
+    assert adapter.decode(value.to_numpy()).shape == (24, 32, 3)
 
 
 def test_3d_renderer_camera_transform_changes_projection() -> None:

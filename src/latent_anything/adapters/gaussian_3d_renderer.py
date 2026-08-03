@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from latent_anything.integrations.gsplat_renderer import GaussianRasterizerBackend, GsplatBackend
+from latent_anything.gaussian_3d import GAUSSIAN_3D_PARAM_DIM, validate_gaussian_3d
+from latent_anything.integrations.gsplat_renderer import GsplatBackend, ReferenceGaussianBackend
 from latent_anything.latent_space import LatentSpace
 
 
@@ -31,10 +32,13 @@ class GaussianCamera:
 class Gaussian3DRendererAdapter:
     """Decode one fixed-size 3D Gaussian latent set into an RGB image."""
 
-    PARAM_DIM = 14
+    PARAM_DIM = GAUSSIAN_3D_PARAM_DIM
 
     def __init__(
-        self, n_gaussians: int, camera: GaussianCamera, backend: GaussianRasterizerBackend | None = None
+        self,
+        n_gaussians: int,
+        camera: GaussianCamera,
+        backend: GsplatBackend | ReferenceGaussianBackend | None = None,
     ) -> None:
         if n_gaussians < 1:
             raise ValueError("n_gaussians must be >= 1")
@@ -83,11 +87,4 @@ class Gaussian3DRendererAdapter:
     def _validate(self, latent: np.ndarray) -> None:
         if latent.shape != (self._n_gaussians, self.PARAM_DIM):
             raise ValueError(f"expected latent shape {(self._n_gaussians, self.PARAM_DIM)}, got {latent.shape}")
-        if not np.isfinite(latent).all():
-            raise ValueError("3D Gaussian latent must be finite")
-        if np.any(latent[:, 7:10] <= 0):
-            raise ValueError("3D Gaussian scales must be positive")
-        if np.any(np.linalg.norm(latent[:, 3:7], axis=1) < 1e-8):
-            raise ValueError("3D Gaussian rotations require non-zero quaternions")
-        if np.any((latent[:, 10] < 0) | (latent[:, 10] > 1)):
-            raise ValueError("3D Gaussian opacity must be in [0, 1]")
+        validate_gaussian_3d(latent)

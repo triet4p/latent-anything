@@ -162,3 +162,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** A PyTorch module can have only one parent; once `self.blocks` was registered under `self`, re-assigning the same object under `self.transformer.h` did not re-parent it, and `named_modules()` only surfaced the first registration.
 **Fix / workaround:** Register the `ModuleList` exactly once, under the seam name: build a typed container module (`transformer` with `h: nn.ModuleList`) and hold a typed attribute reference to it, so `named_modules()` yields `transformer.h.0` and pyright resolves `.h[0]`.
 **Watch out for:** Any test fixture that mirrors a HuggingFace `transformer.h.{layer}` hook path. Do not reuse one ModuleList under two parent names.
+
+## [2026-08-03] An unstable docstring does not make a premature Protocol concrete-first
+
+**Symptom:** The M10 review still failed the Rule-of-Three gate after the renderer camera and backend Protocols were documented as unstable internal sketches.
+**Root cause:** `INCREMENTAL.md` section 4a permits a tentative internal shared shape at two instances, but explicitly does not permit freezing that shape as a `Protocol`; the camera had one concrete implementation and the rasterizer backend had only two.
+**Fix / workaround:** Remove the Protocols, annotate renderer methods with the existing concrete `GaussianCamera` through a `TYPE_CHECKING` import, and type the adapter against the concrete `GsplatBackend | ReferenceGaussianBackend` union.
+**Watch out for:** Any first or second implementation where adding an "unstable" marker is mistaken for satisfying the Rule of Three. Keep concrete types until a third genuinely differing implementation exists.

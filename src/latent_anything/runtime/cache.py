@@ -12,6 +12,7 @@ introduced in this sprint.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from hashlib import sha256
 from importlib import metadata
@@ -47,7 +48,7 @@ class InMemoryCache:
     """Small numpy-array cache backed by a process-local dictionary."""
 
     def __init__(self) -> None:
-        self._store: dict[CacheKey, np.ndarray] = {}
+        self._store: dict[CacheKey, object] = {}
         self._hits = 0
         self._misses = 0
         self._sets = 0
@@ -59,11 +60,27 @@ class InMemoryCache:
             self._misses += 1
             return None
         self._hits += 1
-        return value.copy()
+        return cast(np.ndarray, value).copy()
 
     def set(self, key: CacheKey, value: np.ndarray) -> None:
         """Store a defensive copy of ``value`` under ``key``."""
         self._store[key] = value.copy()
+        self._sets += 1
+
+    def get_object(self, key: CacheKey) -> object | None:
+        """Return a defensive copy for a non-array cache payload."""
+
+        value = self._store.get(key)
+        if value is None:
+            self._misses += 1
+            return None
+        self._hits += 1
+        return deepcopy(value)
+
+    def set_object(self, key: CacheKey, value: object) -> None:
+        """Store a defensive copy for a non-array cache payload."""
+
+        self._store[key] = deepcopy(value)
         self._sets += 1
 
     def clear(self) -> None:

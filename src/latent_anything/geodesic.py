@@ -72,6 +72,20 @@ def _freeze_provenance(value: Any) -> Any:
     return deepcopy(value)
 
 
+def _thaw_provenance(value: Any) -> Any:
+    """Return ordinary JSON-friendly dictionaries/lists from frozen data."""
+
+    if isinstance(value, Mapping):
+        mapping = cast(Mapping[Any, Any], value)
+        return {str(key): _thaw_provenance(item) for key, item in mapping.items()}
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, (list, tuple, set, frozenset)):
+        items = cast(list[Any] | tuple[Any, ...] | set[Any] | frozenset[Any], value)
+        return [_thaw_provenance(item) for item in items]
+    return deepcopy(value)
+
+
 class GeodesicConfig(BaseModel):
     """Validated, deterministic configuration for density-penalized paths.
 
@@ -124,6 +138,14 @@ class PathOptimizationStatus:
     initial_energy: float
     final_energy: float
     message: str
+
+
+@dataclass(frozen=True)
+class _CachedOptimization:
+    """Complete optimization payload retained by the runtime cache."""
+
+    path: np.ndarray
+    status: PathOptimizationStatus
 
 
 @dataclass(frozen=True)
@@ -255,7 +277,7 @@ class GeodesicPath:
                 "message": self.status.message,
             },
             "source_representation_identity": self.source_representation_identity,
-            "provenance": _freeze_provenance(self.provenance),
+            "provenance": _thaw_provenance(self.provenance),
         }
 
 
@@ -468,21 +490,18 @@ class DensityGeodesic:
 
         key = self._cache_key(point_a, point_b)
         if cache is not None:
-            cached_path: np.ndarray | None = (
-                profiler.measure("cache", lambda: cache.get(key)) if profiler is not None else cache.get(key)
+            cached_value: object | None = (
+                profiler.measure("cache", lambda: cache.get_object(key))
+                if profiler is not None
+                else cache.get_object(key)
             )
         else:
-            cached_path = None
+            cached_value = None
 
-        if cached_path is not None:
-            path = cached_path
-            status = PathOptimizationStatus(
-                converged=True,
-                n_iterations=0,
-                initial_energy=0.0,
-                final_energy=0.0,
-                message="served from cache",
-            )
+        cached = cached_value if isinstance(cached_value, _CachedOptimization) else None
+        if cached is not None:
+            path = np.asarray(cached.path, dtype=np.float64)
+            status = cached.status
         else:
             log_density = self._require_oracle()
             gradient_oracle = self._log_density_gradient
@@ -516,7 +535,7 @@ class DensityGeodesic:
                 message=message,
             )
             if cache is not None:
-                cache.set(key, path)
+                cache.set_object(key, _CachedOptimization(path=path, status=status))
 
         assert self._log_density is not None
         log_density_values = np.asarray([float(self._log_density(point)) for point in path], dtype=np.float64)

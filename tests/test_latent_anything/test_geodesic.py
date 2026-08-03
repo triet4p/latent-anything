@@ -328,6 +328,13 @@ class TestGeodesicPath:
         with pytest.raises(TypeError):
             result.provenance["new"] = True  # type: ignore[index]
 
+    def test_to_dict_thaws_provenance_to_json_friendly_values(self) -> None:
+        a, b = _ring_endpoints()
+        result = _make_geodesic(GeodesicConfig(n_points=8, max_iter=20)).optimize(a, b)
+        payload = result.to_dict()
+        assert isinstance(payload["provenance"], dict)
+        assert isinstance(payload["provenance"]["config"], dict)
+
     def test_reconstruction_diagnostics_with_decoder(self) -> None:
         a, b = _ring_endpoints()
         config = GeodesicConfig(n_points=8, max_iter=50)
@@ -404,10 +411,21 @@ class TestDensityGeodesic:
         second = geodesic.optimize(a, b, cache=cache, profiler=profiler)
         assert cache.stats.hits == 1
         np.testing.assert_allclose(first.path, second.path, atol=1e-12)
-        assert second.status.message == "served from cache"
+        assert second.status == first.status
         stages = profiler.snapshot().stage_totals()
         assert "cache" in stages
         assert "method" in stages
+
+    def test_cache_preserves_non_convergence_diagnostics(self) -> None:
+        a, b = _ring_endpoints()
+        cache = InMemoryCache()
+        geodesic = _make_geodesic(GeodesicConfig(n_points=32, max_iter=1, tol=1e-15))
+        first = geodesic.optimize(a, b, cache=cache)
+        second = geodesic.optimize(a, b, cache=cache)
+        assert not first.status.converged
+        assert second.status == first.status
+        assert second.status.initial_energy == pytest.approx(first.status.initial_energy)
+        assert second.status.final_energy == pytest.approx(first.status.final_energy)
 
     def test_cache_key_changes_with_config(self) -> None:
         a, b = _ring_endpoints()

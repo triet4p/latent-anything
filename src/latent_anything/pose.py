@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from types import MappingProxyType
+from typing import Any, cast
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -19,6 +20,44 @@ from pydantic import BaseModel, Field
 def _skew(vector: np.ndarray) -> np.ndarray:
     x, y, z = vector
     return np.array([[0.0, -z, y], [z, 0.0, -x], [-y, x, 0.0]])
+
+
+def _immutable_array(array: np.ndarray) -> np.ndarray:
+    """Return an array whose read-only flag cannot be re-enabled by callers."""
+
+    immutable = np.frombuffer(array.tobytes(), dtype=array.dtype).reshape(array.shape)
+    immutable.setflags(write=False)
+    return immutable
+
+
+def _freeze_metadata(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        mapping = cast(Mapping[Any, Any], value)
+        return MappingProxyType({str(key): _freeze_metadata(item) for key, item in mapping.items()})
+    if isinstance(value, (list, tuple)):
+        sequence = cast(list[Any] | tuple[Any, ...], value)
+        return tuple(_freeze_metadata(item) for item in sequence)
+    if isinstance(value, (set, frozenset)):
+        items = cast(set[Any] | frozenset[Any], value)
+        return frozenset(_freeze_metadata(item) for item in items)
+    if isinstance(value, np.ndarray):
+        return _immutable_array(np.asarray(value, dtype=np.float64))
+    return value
+
+
+def _thaw_metadata(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        mapping = cast(Mapping[Any, Any], value)
+        return {str(key): _thaw_metadata(item) for key, item in mapping.items()}
+    if isinstance(value, (list, tuple)):
+        sequence = cast(list[Any] | tuple[Any, ...], value)
+        return [_thaw_metadata(item) for item in sequence]
+    if isinstance(value, (set, frozenset)):
+        items = cast(set[Any] | frozenset[Any], value)
+        return [_thaw_metadata(item) for item in items]
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    return value
 
 
 def _validate_rotation(matrix: np.ndarray) -> np.ndarray:
@@ -133,6 +172,24 @@ class SO3:
                     (self._matrix[1, 0] - self._matrix[0, 1]) / 2,
                 ]
             )
+        if np.pi - theta < 1e-6:
+            symmetric = 0.5 * (self._matrix + np.eye(3))
+            eigenvalues, eigenvectors = np.linalg.eigh(symmetric)
+            axis = np.asarray(eigenvectors[:, int(np.argmax(eigenvalues))], dtype=np.float64)
+            skew_vector = 0.5 * np.array(
+                [
+                    self._matrix[2, 1] - self._matrix[1, 2],
+                    self._matrix[0, 2] - self._matrix[2, 0],
+                    self._matrix[1, 0] - self._matrix[0, 1],
+                ]
+            )
+            if float(np.dot(axis, skew_vector)) < 0.0:
+                axis = -axis
+            if float(np.linalg.norm(skew_vector)) < 1e-8:
+                pivot = int(np.argmax(np.abs(axis)))
+                if axis[pivot] < 0.0:
+                    axis = -axis
+            return theta * axis / np.linalg.norm(axis)
         return (
             theta
             / (2 * np.sin(theta))
@@ -165,10 +222,22 @@ class SE3:
         metadata: PoseMetadata | None = None,
     ) -> None:
         self.rotation = rotation if isinstance(rotation, SO3) else SO3(rotation)
-        self.translation = np.zeros(3) if translation is None else np.asarray(translation, dtype=np.float64).copy()
-        if self.translation.shape != (3,) or not np.isfinite(self.translation).all():
+        self._translation = np.zeros(3) if translation is None else np.asarray(translation, dtype=np.float64).copy()
+        if self._translation.shape != (3,) or not np.isfinite(self._translation).all():
             raise ValueError("translation must be finite with shape (3,) and use metres")
-        self.metadata = metadata or PoseMetadata()
+        self._metadata = metadata or PoseMetadata()
+
+    @property
+    def translation(self) -> np.ndarray:
+        """Return a read-only defensive copy of the translation."""
+
+        return _immutable_array(self._translation)
+
+    @property
+    def metadata(self) -> PoseMetadata:
+        """Return the immutable frame and unit metadata."""
+
+        return self._metadata
 
     @classmethod
     def identity(cls, *, metadata: PoseMetadata | None = None) -> SE3:
@@ -277,11 +346,12 @@ class PoseTrajectory:
         first = self._poses[0].metadata
         if any(p.metadata != first for p in self._poses):
             raise ValueError("all poses in a trajectory must share frame and unit metadata")
-        self.metadata = dict(metadata or {})
-        self.metadata.setdefault("observation.frame_id", first.child_frame)
-        self.metadata.setdefault("observation.parent_frame", first.parent_frame)
-        self.metadata.setdefault("observation.position_unit", first.position_unit)
-        self.metadata.setdefault("observation.angle_unit", first.angle_unit)
+        trajectory_metadata = dict(metadata or {})
+        trajectory_metadata.setdefault("observation.frame_id", first.child_frame)
+        trajectory_metadata.setdefault("observation.parent_frame", first.parent_frame)
+        trajectory_metadata.setdefault("observation.position_unit", first.position_unit)
+        trajectory_metadata.setdefault("observation.angle_unit", first.angle_unit)
+        self._metadata = _freeze_metadata(trajectory_metadata)
 
     def __len__(self) -> int:
         return len(self._poses)
@@ -295,6 +365,12 @@ class PoseTrajectory:
     def poses(self) -> tuple[SE3, ...]:
         return self._poses
 
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        """Return immutable trajectory metadata."""
+
+        return self._metadata
+
     def to_numpy(self) -> np.ndarray:
         return np.stack([pose.matrix for pose in self._poses])
 
@@ -304,11 +380,11 @@ class PoseTrajectory:
     def lerobot_metadata(self) -> dict[str, Any]:
         return {
             "features": {"observation.state": {"dtype": "float64", "shape": [4, 4], "names": ["pose_matrix"]}},
-            **self.metadata,
+            **_thaw_metadata(self.metadata),
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return {"poses": [pose.to_dict() for pose in self._poses], "metadata": self.metadata}
+        return {"poses": [pose.to_dict() for pose in self._poses], "metadata": _thaw_metadata(self.metadata)}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PoseTrajectory:

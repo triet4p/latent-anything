@@ -1,38 +1,13 @@
-"""Internal 3D Gaussian rasterizer backends."""
+"""Internal concrete 3D Gaussian rasterizer backends."""
 
 from __future__ import annotations
 
-from typing import Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
-
-class GaussianCamera(Protocol):
-    @property
-    def width(self) -> int: ...
-
-    @property
-    def height(self) -> int: ...
-
-    @property
-    def intrinsics(self) -> np.ndarray: ...
-
-    @property
-    def world_to_camera(self) -> np.ndarray: ...
-
-
-class GaussianRasterizerBackend(Protocol):
-    name: str
-
-    def render(
-        self,
-        means: np.ndarray,
-        quaternions: np.ndarray,
-        scales: np.ndarray,
-        opacities: np.ndarray,
-        colors: np.ndarray,
-        camera: GaussianCamera,
-    ) -> np.ndarray: ...
+if TYPE_CHECKING:
+    from latent_anything.adapters.gaussian_3d_renderer import GaussianCamera
 
 
 class GsplatBackend:
