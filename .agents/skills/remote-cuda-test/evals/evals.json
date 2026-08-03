@@ -1,0 +1,41 @@
+{
+  "skill_name": "remote-cuda-test",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I committed my latest feature locally. Push it to GitHub, clone that exact revision on trietlm@192.168.30.244, run the CUDA integration test, and remove all temporary server outputs afterward.",
+      "expected_output": "The skill requires a clean local worktree, pushes before SSH, verifies the clone SHA, uses a temporary server checkout, runs CUDA checks/tests, and cleans up.",
+      "files": [],
+      "expectations": [
+        "Does not test an uncommitted local worktree",
+        "Clones from GitHub and verifies the exact commit SHA",
+        "Uses Bash/SSH rather than direct PowerShell execution",
+        "Restores the server by deleting only its temporary checkout and caches"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The remote machine has an NVIDIA GPU but gsplat JIT compilation fails. Diagnose the remote CUDA test without editing the existing checkout or hiding compiler errors.",
+      "expected_output": "The skill separates driver, torch CUDA, compiler/toolchain, and test failures; it recommends an existing GCC 12 toolchain for CUDA 12.1 and stops before unauthorized system changes.",
+      "files": [],
+      "expectations": [
+        "Checks nvidia-smi and torch CUDA independently",
+        "Reports compiler incompatibility as distinct from a test failure",
+        "Does not recommend suppressing the error with an unsafe compiler override",
+        "Leaves the persistent server checkout unchanged"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run the full project suite remotely with the 3d and viz extras, plus a focused GPU renderer command, but make sure no generated artifacts remain on the server.",
+      "expected_output": "The skill syncs the requested extras inside the disposable clone, runs the focused GPU command and broader suite, reports skipped optional requirements honestly, and removes clone/cache/output state.",
+      "files": [],
+      "expectations": [
+        "Passes both requested extras to uv sync",
+        "Runs the GPU command before the broader test command",
+        "Reports optional failures such as missing Chrome rather than misclassifying them",
+        "Uses traps and isolated caches for cleanup"
+      ]
+    }
+  ]
+}
