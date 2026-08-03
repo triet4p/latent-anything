@@ -32,6 +32,7 @@ from latent_anything.density import DensityEvaluationReport, DensityResult, Dens
 from latent_anything.dtw import DTWResult
 from latent_anything.probes import CrossSeedReport, LinearProbeResult
 from latent_anything.sae_evaluation import FeatureAtlas, SAEEvaluationResult
+from latent_anything.temporal import ChangePointResult
 from latent_anything.trajectory import Trajectory
 
 # Declared responsiveness targets for interactive rendering. Above these the
@@ -95,6 +96,8 @@ class TrajectoryView:
 
     points: tuple[PointView, ...]
     name: str | None = None
+    boundaries: tuple[int, ...] = ()
+    boundary_scores: tuple[float, ...] = ()
 
     @property
     def ndim(self) -> int:
@@ -105,7 +108,11 @@ class TrajectoryView:
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible dict for schema/snapshot testing."""
-        return {"name": self.name, "points": [point.to_dict() for point in self.points]}
+        result: dict[str, Any] = {"name": self.name, "points": [point.to_dict() for point in self.points]}
+        if self.boundaries:
+            result["boundaries"] = list(self.boundaries)
+            result["boundary_scores"] = list(self.boundary_scores)
+        return result
 
 
 @dataclass(frozen=True)
@@ -255,6 +262,7 @@ def trajectory_view(
     *,
     name: str | None = None,
     labels: Sequence[str | None] | None = None,
+    segmentation: ChangePointResult | None = None,
 ) -> TrajectoryView:
     """Project a :class:`Trajectory` into a renderer overlay.
 
@@ -266,7 +274,14 @@ def trajectory_view(
     if values.shape[0] != len(trajectory):
         msg = f"trajectory has {len(trajectory)} points but only {values.shape[0]} coordinates were given"
         raise ValueError(msg)
-    return TrajectoryView(points=points_view(values, labels=labels), name=name)
+    if segmentation is not None and len(segmentation.velocity) + 1 != len(trajectory):
+        raise ValueError("segmentation length does not match trajectory")
+    return TrajectoryView(
+        points=points_view(values, labels=labels),
+        name=name,
+        boundaries=segmentation.boundaries if segmentation is not None else (),
+        boundary_scores=segmentation.scores if segmentation is not None else (),
+    )
 
 
 def build_projection(
@@ -414,6 +429,7 @@ def projection_from_trajectory(
     *,
     title: str = "Trajectory projection",
     step_labels: Sequence[str | None] | None = None,
+    segmentation: ChangePointResult | None = None,
     extra_metadata: Mapping[str, Any] | None = None,
 ) -> ProjectionView:
     """Build a projection view whose points are one trajectory's steps.
@@ -425,8 +441,12 @@ def projection_from_trajectory(
     if values.shape[0] != len(trajectory):
         msg = f"trajectory has {len(trajectory)} points but only {values.shape[0]} coordinates were given"
         raise ValueError(msg)
-    overlay = trajectory_view(trajectory, values, name="trajectory", labels=step_labels)
-    metadata = {"n_trajectory_points": len(trajectory)}
+    overlay = trajectory_view(trajectory, values, name="trajectory", labels=step_labels, segmentation=segmentation)
+    metadata: dict[str, Any] = {"n_trajectory_points": len(trajectory)}
+    if segmentation is not None:
+        metadata["segmentation_boundaries"] = list(segmentation.boundaries)
+        metadata["segmentation_scores"] = list(segmentation.scores)
+        metadata["segmentation_provenance"] = dict(segmentation.provenance)
     metadata.update(dict(extra_metadata or {}))
     return build_projection(
         values,

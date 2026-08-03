@@ -187,6 +187,36 @@ from latent_anything.tcav import compute_tcav as compute_tcav
 from latent_anything.tcav import intervention_agreement as intervention_agreement
 from latent_anything.tcav import learn_linear_separator_direction as learn_linear_separator_direction
 from latent_anything.tcav import learn_mean_diff_direction as learn_mean_diff_direction
+from latent_anything.temporal import (
+    BoundaryMetrics as BoundaryMetrics,
+)
+from latent_anything.temporal import (
+    ChangePointResult as ChangePointResult,
+)
+from latent_anything.temporal import (
+    Segment as Segment,
+)
+from latent_anything.temporal import (
+    SegmentationConfig as SegmentationConfig,
+)
+from latent_anything.temporal import (
+    SmoothedTrajectory as SmoothedTrajectory,
+)
+from latent_anything.temporal import (
+    SmoothingConfig as SmoothingConfig,
+)
+from latent_anything.temporal import (
+    detect_change_points as detect_change_points,
+)
+from latent_anything.temporal import (
+    evaluate_boundaries as evaluate_boundaries,
+)
+from latent_anything.temporal import (
+    smooth_trajectory as smooth_trajectory,
+)
+from latent_anything.temporal import (
+    smoothing_distortion as smoothing_distortion,
+)
 from latent_anything.trajectory import Trajectory as Trajectory
 
 __version__ = "0.1.0b1"
@@ -255,6 +285,12 @@ __all__ = [
     "SO3",
     "SensitivityReport",
     "Trajectory",
+    "BoundaryMetrics",
+    "ChangePointResult",
+    "Segment",
+    "SegmentationConfig",
+    "SmoothedTrajectory",
+    "SmoothingConfig",
     "build_feature_atlas",
     "build_from_config",
     "build_from_dict",
@@ -278,6 +314,10 @@ __all__ = [
     "fit_covariance_state",
     "compute_dtw",
     "indexwise_distance",
+    "detect_change_points",
+    "evaluate_boundaries",
+    "smooth_trajectory",
+    "smoothing_distortion",
     "check_clustering_geometry",
     "cluster_stability_analysis",
     "compare_probes",

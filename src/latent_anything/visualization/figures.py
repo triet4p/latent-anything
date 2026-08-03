@@ -283,3 +283,19 @@ def _add_trajectory_overlay(figure: Any, ndim: int, trajectory: TrajectoryView, 
         figure.add_scatter3d(**trace_kwargs)
     else:
         figure.add_scatter(**trace_kwargs)
+    if trajectory.boundaries:
+        boundary_points = [trajectory.points[boundary] for boundary in trajectory.boundaries]
+        boundary_kwargs: dict[str, Any] = {
+            "x": _coordinates_for(boundary_points, 0),
+            "y": _coordinates_for(boundary_points, 1),
+            "mode": "markers",
+            "name": f"{name} boundaries",
+            "marker": {"color": color, "symbol": "x", "size": 12},
+            "customdata": [[score] for score in trajectory.boundary_scores],
+            "hovertemplate": "change point score=%{customdata[0]:.4g}<extra></extra>",
+        }
+        if ndim == 3:
+            boundary_kwargs["z"] = _coordinates_for(boundary_points, 2)
+            figure.add_scatter3d(**boundary_kwargs)
+        else:
+            figure.add_scatter(**boundary_kwargs)

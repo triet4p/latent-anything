@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Any
+
 import numpy as np
 
 
@@ -20,7 +24,7 @@ class Trajectory:
         2D array of shape ``(n_points, dim)`` containing latent states.
     """
 
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, *, metadata: Mapping[str, Any] | None = None) -> None:
         if data.ndim != 2:
             msg = f"Expected 2D array (n_points, dim), got {data.ndim}D"
             raise ValueError(msg)
@@ -29,6 +33,12 @@ class Trajectory:
             raise ValueError(msg)
         # Store a copy to guarantee immutability.
         self._data = data.copy()
+        self._metadata = MappingProxyType(dict(metadata or {}))
+
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        """Immutable source metadata carried by derived trajectories."""
+        return self._metadata
 
     def __len__(self) -> int:
         """Return the number of points in this trajectory."""
@@ -55,7 +65,7 @@ class Trajectory:
             if key < -len(self) or key >= len(self):
                 raise IndexError(f"Index {key} out of range for Trajectory with {len(self)} points")
             key = slice(key, key + 1)
-        return Trajectory(self._data[key])
+        return Trajectory(self._data[key], metadata=self._metadata)
 
     def to_numpy(self) -> np.ndarray:
         """Return a copy of the underlying data array.

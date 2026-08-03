@@ -191,10 +191,15 @@
       ]
     },
     "THY-T06-LATENT-TRAJECTORY": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/trajectory.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_trajectory.py"}
+        {"role": "source", "path": "src/latent_anything/temporal.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_trajectory.py"},
+        {"role": "test", "path": "tests/test_temporal.py"},
+        {"role": "benchmark", "path": "scripts/trajectory_temporal_benchmark.py"},
+        {"role": "config", "path": "src/latent_anything/temporal.py"},
+        {"role": "artifact", "path": "artifacts/trajectory_temporal_benchmark.json"}
       ]
     },
     "THY-T04-LATENT-ARITHMETIC": {

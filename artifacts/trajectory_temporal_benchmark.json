@@ -1,0 +1,59 @@
+{
+  "representation": "2D latent policy trajectory with proxy phase annotations",
+  "n_steps": 70,
+  "truth_boundaries": [
+    15,
+    35,
+    55
+  ],
+  "predicted_boundaries": [
+    17,
+    35,
+    49,
+    54
+  ],
+  "boundary_metrics_tolerance_2": {
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1": 0.8571428571428571,
+    "mean_tolerance": 1.0
+  },
+  "smoothing": {
+    "config": {
+      "method": "centered_geometry_aware_moving_average",
+      "window": 5,
+      "weighting": "uniform",
+      "geometry": "euclidean",
+      "source_metadata": {
+        "source": "synthetic_policy_proxy",
+        "phase_labels": "proxy_annotations"
+      }
+    },
+    "mean_distortion": 0.016858146803058725,
+    "maximum_distortion": 0.14278273433960706
+  },
+  "segmentation": {
+    "threshold": 0.010832580558639063,
+    "scores": [
+      0.029761316541273477,
+      0.11315789473684196,
+      0.013303664607236337,
+      0.13967739962150655
+    ],
+    "confidence": [
+      0.21307181134471118,
+      0.810137467073941,
+      0.09524564921230057,
+      1.0
+    ],
+    "provenance": {
+      "signal": "latent_velocity",
+      "sensitivity": 1.0,
+      "min_segment_length": 5,
+      "context": 4,
+      "threshold": null,
+      "robust_center": 0.004363401497880889,
+      "robust_scale": 0.006469179060758174
+    }
+  }
+}

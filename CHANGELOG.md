@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added geometry-aware trajectory smoothing and robust latent-velocity change-point segmentation with immutable source metadata, confidence/provenance results, tolerance-aware boundary metrics, and typed visualization overlays. (#sprint-53)
+
 - Added geometry-aware dynamic time warping for unequal-length latent trajectories, with typed alignment results and interactive renderer overlays.
 
 ### Added

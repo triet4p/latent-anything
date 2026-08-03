@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from latent_anything import LatentSpace, Trajectory, compute_dtw
+from latent_anything import LatentSpace, SegmentationConfig, Trajectory, compute_dtw, detect_change_points
 from latent_anything.clustering import ClusterStabilityReport, KMeansConfig, KMeansResult
 from latent_anything.density import (
     DensityEvaluationReport,
@@ -318,6 +318,21 @@ class TestProjectionBuilders:
         trajectory = Trajectory(_coords(8, ndim=4, seed=3))
         with pytest.raises(ValueError, match="only 5 coordinates"):
             trajectory_view(trajectory, _coords(5, ndim=2, seed=4))
+
+    def test_trajectory_view_carries_segmentation_boundaries(self) -> None:
+        trajectory = Trajectory(np.arange(20, dtype=float)[:, None])
+        segmentation = detect_change_points(
+            trajectory,
+            LatentSpace(dim=1),
+            config=SegmentationConfig(threshold=0.0, min_segment_length=5),
+        )
+        view = trajectory_view(trajectory, _coords(20, ndim=2, seed=4), segmentation=segmentation)
+        assert view.boundaries == segmentation.boundaries
+        serialized = view.to_dict()
+        if segmentation.boundaries:
+            assert serialized["boundaries"] == list(segmentation.boundaries)
+        else:
+            assert "boundaries" not in serialized
 
     def test_projection_from_atlas(self) -> None:
         view = projection_from_atlas(_atlas())
