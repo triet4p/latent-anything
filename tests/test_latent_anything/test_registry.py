@@ -324,7 +324,8 @@ class TestGlobalRegistryBuiltins:
         assert "hidden_state" in adapter_names
         assert "gaussian_renderer" in adapter_names
         assert "conv_vae" in adapter_names
-        assert len(adapter_names) == 5
+        assert "gaussian_3d_renderer" in adapter_names
+        assert len(adapter_names) == 6
 
     def test_global_registry_has_all_method_a(self) -> None:
         """GLOBAL_REGISTRY contains all four Layer A methods."""
@@ -354,12 +355,12 @@ class TestGlobalRegistryBuiltins:
         }
 
     def test_global_registry_total_entries(self) -> None:
-        """GLOBAL_REGISTRY has 20 entries (5 adapters + 10 analysis + 5 intervention)."""
+        """GLOBAL_REGISTRY has 21 entries (6 adapters + 10 analysis + 5 intervention)."""
         assert len(GLOBAL_REGISTRY) >= 15
         n_adapters = len(GLOBAL_REGISTRY.list(KIND_ADAPTER))
         n_method_a = len(GLOBAL_REGISTRY.list(KIND_METHOD_A))
         n_method_b = len(GLOBAL_REGISTRY.list(KIND_METHOD_B))
-        assert n_adapters == 5
+        assert n_adapters == 6
         assert n_method_a == 10
         assert n_method_b == 5
 

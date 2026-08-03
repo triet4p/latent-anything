@@ -39,6 +39,7 @@ Internal plugin extraction contract
 from __future__ import annotations
 
 from latent_anything.adapters.conv_vae import ConvVAE
+from latent_anything.adapters.gaussian_3d_renderer import Gaussian3DRendererAdapter
 from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
@@ -68,6 +69,15 @@ GLOBAL_REGISTRY.register(
     ConvVAE,
     description="Convolutional VAE for image batches — explicit learned latent (mode i)",
     protocol="ModelAdapter, DecodableAdapter, FlatBatchDecodableAdapter",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ADAPTER,
+    "gaussian_3d_renderer",
+    Gaussian3DRendererAdapter,
+    description="3D Gaussian splat renderer backed by optional gsplat",
+    protocol="ModelAdapter, DecodableAdapter",
     source="built-in",
 )
 

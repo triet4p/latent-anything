@@ -126,22 +126,28 @@
     "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023": {
       "status": "D1",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/adapters/gaussian_renderer.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_renderer.py"}
+        {"role": "source", "path": "src/latent_anything/adapters/gaussian_3d_renderer.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/gsplat_renderer.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_3d_renderer.py"},
+        {"role": "artifact", "path": "artifacts/task_sprint54_task03_summary.md"}
       ]
     },
     "THY-T03B-GAUSSIAN-RASTERIZATION": {
       "status": "D1",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/adapters/gaussian_renderer.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_renderer.py"}
+        {"role": "source", "path": "src/latent_anything/adapters/gaussian_3d_renderer.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/gsplat_renderer.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_3d_renderer.py"}
       ]
     },
     "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE": {
       "status": "D1",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/adapters/gaussian_renderer.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_renderer.py"}
+        {"role": "source", "path": "src/latent_anything/adapters/gaussian_3d_renderer.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_gaussian_3d_renderer.py"},
+        {"role": "artifact", "path": "artifacts/task_sprint54_task04_summary.md"},
+        {"role": "benchmark", "path": "scripts/gaussian_3d_renderer_benchmark.py"},
+        {"role": "artifact", "path": "artifacts/gaussian_3d_renderer_benchmark.json"}
       ]
     },
     "THY-T04-LERP-LINEAR-INTERPOLATION": {

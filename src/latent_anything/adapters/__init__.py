@@ -21,6 +21,8 @@ Sprint 14). Three instances with differing philosophies validate the
 from __future__ import annotations
 
 from latent_anything.adapters.conv_vae import ConvVAE as ConvVAE
+from latent_anything.adapters.gaussian_3d_renderer import Gaussian3DRendererAdapter as Gaussian3DRendererAdapter
+from latent_anything.adapters.gaussian_3d_renderer import GaussianCamera as GaussianCamera
 from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter as GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter as HiddenStateAdapter
 from latent_anything.adapters.protocols import DecodableAdapter as DecodableAdapter
@@ -34,6 +36,8 @@ __all__ = [
     "DecodableAdapter",
     "FlatBatchDecodableAdapter",
     "GaussianRendererAdapter",
+    "Gaussian3DRendererAdapter",
+    "GaussianCamera",
     "HiddenStateAdapter",
     "ModelAdapter",
     "RandomProjection",

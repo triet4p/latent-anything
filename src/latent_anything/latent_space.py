@@ -86,7 +86,7 @@ class LatentSpace:
     """
 
     _GEOMETRIES: frozenset[str] = frozenset(
-        {"euclidean", "unit_norm", "gaussian_set", "discrete_code", "anisotropic", "so3", "se3"}
+        {"euclidean", "unit_norm", "gaussian_set", "gaussian_3d", "discrete_code", "anisotropic", "so3", "se3"}
     )
 
     def __init__(
@@ -145,6 +145,11 @@ class LatentSpace:
             # Populate metadata with param layout
             layout = _build_gaussian_layout(position_dim, scale_dim, 1, color_dim)
             self.metadata.setdefault("gaussian_set_param_layout", layout)
+        elif geometry == "gaussian_3d":
+            if n_gaussians is None or n_gaussians < 1:
+                raise ValueError(f"gaussian_3d requires n_gaussians >= 1, got {n_gaussians!r}")
+            self._n_gaussians = n_gaussians
+            self.metadata.setdefault("representation", "3d_gaussian_splat")
         elif geometry == "discrete_code":
             if codebook_size is None or codebook_size < 2:
                 raise ValueError(f"discrete_code requires codebook_size >= 2, got {codebook_size!r}")
@@ -248,7 +253,7 @@ class LatentSpace:
         ``(dim,)``. For ``gaussian_set`` returns
         ``(n_gaussians, param_dim)``.
         """
-        if self.geometry == "gaussian_set":
+        if self.geometry in {"gaussian_set", "gaussian_3d"}:
             return (self._n_gaussians, self.param_dim)  # type: ignore[arg-type]
         if self.geometry == "so3":
             return (3, 3)
@@ -290,6 +295,9 @@ class LatentSpace:
             if abs(norm - 1.0) > 1e-10:
                 msg = f"unit_norm requires ||point|| = 1, got {norm}"
                 raise ValueError(msg)
+        elif self.geometry == "gaussian_3d":
+            if not np.isfinite(point).all():
+                raise ValueError("gaussian_3d requires finite points")
         elif self.geometry == "gaussian_set":
             validate_gaussian_set(
                 point, position_dim=self._position_dim, scale_dim=self._scale_dim, color_dim=self._color_dim
@@ -461,7 +469,10 @@ class LatentSpace:
         ValueError
             If geometry is ``unit_norm`` and the point is a zero vector.
         """
-        if self.geometry in {"euclidean", "gaussian_set", "so3", "se3"} or self.geometry == "anisotropic":
+        if (
+            self.geometry in {"euclidean", "gaussian_set", "gaussian_3d", "so3", "se3"}
+            or self.geometry == "anisotropic"
+        ):
             self.validate_point(point)
             return point.copy()
         elif self.geometry == "discrete_code":

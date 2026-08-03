@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added a real 3D Gaussian splat renderer facade backed by optional `gsplat>=1.4,<2.0`, with typed camera transforms, 3D Gaussian latent metadata, deterministic CPU fixtures, strict parameter validation, and an opt-in GPU/public-scene lane. (#sprint-54)
+
 - Added geometry-aware trajectory smoothing and robust latent-velocity change-point segmentation with immutable source metadata, confidence/provenance results, tolerance-aware boundary metrics, and typed visualization overlays. (#sprint-53)
 
 - Added geometry-aware dynamic time warping for unequal-length latent trajectories, with typed alignment results and interactive renderer overlays.

@@ -19,6 +19,13 @@ A chronological log of *why* key choices were made in this project.
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-03] 3DGS uses a lazy gsplat backend behind a NumPy adapter boundary
+
+**Decision:** Use the maintained `gsplat>=1.4,<2.0` optional extra for real 3D Gaussian rasterization, load it lazily, and expose only NumPy latent/camera values through `Gaussian3DRendererAdapter`. Keep a deterministic CPU reference backend for tests.
+**Alternatives considered:** Make gsplat a mandatory dependency, expose torch tensors publicly, or retain the simplified 2D renderer as the headline evidence.
+**Reason:** CUDA and checkpoint redistribution are environment-specific; lazy loading preserves base-package import isolation, while the reference backend makes shape/constraint/camera tests reproducible offline.
+**Consequences:** Real render-quality and performance evidence requires an opt-in CUDA runner; the 2D renderer remains a fixture rather than the 3D claim.
+
 ## [2026-08-03] DTW uses exact traceback with explicit normalization and cell guard
 
 **Decision:** Implement DTW with point costs delegated to `LatentSpace.distance`, deterministic diagonal/vertical/horizontal tie-breaking, explicit normalization policy, and an exact traceback guarded by `max_cells`.
