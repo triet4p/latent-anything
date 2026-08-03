@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added matrix-backed SO(3)/SE(3) pose geometry with group operations, valid interpolation, frame/unit metadata, trajectory slicing, serialization, and LeRobot-compatible state metadata.
+
+### Added
+
 - Added density-penalized geodesic path interpolation (`DensityGeodesic`, registered under `intervention` as `density_geodesic`): a non-Euclidean path method that treats the latent space as a Riemannian manifold whose metric is the inverse of a learned density, so the geodesic bends toward high-density on-manifold regions instead of cutting across low-density gaps. Config-driven via `GeodesicConfig`/`build_from_config`. (#sprint-50)
 - Added `GeodesicPath` result with the full optimized path, density-penalized and Euclidean lengths, per-point log-density diagnostics, optional decoded images with a reconstruction diagnostic, and a `PathOptimizationStatus` (converged, iterations, initial/final energy, message). (#sprint-50)
 - Added a deterministic, bounded path optimizer (lerp initialization, `max_iter`/`n_points` bounds, backtracking line search, gradient-norm/relative-energy convergence) in `geometry.py`, with `density_exponent = 0` provably recovering the lerp path. (#sprint-50)

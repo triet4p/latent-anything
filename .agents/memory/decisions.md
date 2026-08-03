@@ -19,6 +19,13 @@ A chronological log of *why* key choices were made in this project.
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-03] Pose geometry uses matrix-backed SO(3)/SE(3) values
+
+**Decision:** Represent rotations as validated 3x3 matrices and rigid poses as validated 4x4 homogeneous matrices; use explicit frame/unit metadata and Lie-group operations.
+**Alternatives considered:** Euler-angle vectors, unconstrained 16-element affine vectors, or element-wise interpolation.
+**Reason:** Matrix validation makes group closure observable, avoids Euler singularities and convention ambiguity, and preserves valid rotations during interpolation.
+**Consequences:** Quaternion imports require an explicit component order; translations use metres and rotational logarithms use radians; later LeRobot bridges can consume the stable homogeneous-matrix metadata contract.
+
 ## [2026-08-01] Density estimation remains bound to representation identity
 
 **Decision:** Gaussian-mixture density and Mahalanobis scoring are estimator-local and require a source representation identity; scores from different spaces are rejected rather than compared.

@@ -1,0 +1,14 @@
+{
+  "representation": "SE3 homogeneous matrix with SO3 matrix rotation",
+  "frames": {
+    "parent_frame": "world",
+    "child_frame": "tool",
+    "position_unit": "m",
+    "angle_unit": "rad"
+  },
+  "n_steps": 21,
+  "group_distance_endpoint": 2.0179263584042286,
+  "group_distance_monotonic": true,
+  "max_elementwise_rotation_orthogonality_error": 0.7071067811865476,
+  "group_interpolation_max_rotation_orthogonality_error": 3.197625428141064e-16
+}

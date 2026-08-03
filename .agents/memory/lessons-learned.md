@@ -37,6 +37,13 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-03] Element-wise pose averaging leaves SO(3)
+
+**Symptom:** Averaging corresponding homogeneous-matrix elements produced a rotation orthogonality error of `0.7071` in the controlled pose benchmark.
+**Root cause:** SO(3) is a nonlinear group; its matrix entries cannot be interpolated independently.
+**Fix / workaround:** Interpolate rotations with `R_a exp(t log(R_a^-1 R_b))` and translations in their declared metre coordinates.
+**Watch out for:** Any future robot pose interpolation or smoothing code that treats 3x3 rotation matrices as ordinary Euclidean vectors.
+
 ## [2026-06-10] PowerShell here-string `@'...'@` leaves literal `@` lines when run via the Bash tool
 
 **Symptom:** A `git commit` made through the **Bash** tool produced a malformed message — a lone `@` as the subject line and a trailing `@`, e.g. `git log -1 --format=%B` showed `@\ndocs(theory): ...\n...\n@`. The intended subject got pushed to line 2.

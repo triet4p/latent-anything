@@ -95,6 +95,11 @@ from latent_anything.pipeline import PipelineResult as PipelineResult
 from latent_anything.pipeline import PipelineSpec as PipelineSpec
 from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
+from latent_anything.pose import SE3 as SE3
+from latent_anything.pose import SO3 as SO3
+from latent_anything.pose import PoseConfig as PoseConfig
+from latent_anything.pose import PoseMetadata as PoseMetadata
+from latent_anything.pose import PoseTrajectory as PoseTrajectory
 from latent_anything.probes import ControlBaselines as ControlBaselines
 from latent_anything.probes import CrossSeedReport as CrossSeedReport
 from latent_anything.probes import LinearProbe as LinearProbe
@@ -220,6 +225,9 @@ __all__ = [
     "OrthonormalSubspace",
     "PipelineResult",
     "PipelineSpec",
+    "PoseConfig",
+    "PoseMetadata",
+    "PoseTrajectory",
     "ProbeComparison",
     "SubspaceProjection",
     "SubspaceProjectionConfig",
@@ -238,6 +246,8 @@ __all__ = [
     "SAEFeatureEvaluation",
     "SAEFeatureMetrics",
     "SAEStabilityResult",
+    "SE3",
+    "SO3",
     "SensitivityReport",
     "Trajectory",
     "build_feature_atlas",

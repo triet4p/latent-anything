@@ -1,4 +1,4 @@
-"""A concrete geometry-aware latent space with five validated geometries."""
+"""A concrete geometry-aware latent space with validated latent geometries."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ from latent_anything.geometry import (
     validate_gaussian_set,
     whiten_point,
 )
+from latent_anything.pose import SE3, SO3
 
 # Internal: slice layout of a Gaussian parameter vector.
 # Default: position(3) + scale(3) + opacity(1) + color(3) = 10 columns.
@@ -45,11 +46,12 @@ def _build_gaussian_layout(
 class LatentSpace:
     """Represents a latent space with concrete geometry-aware operations.
 
-    This is a concrete implementation supporting five validated geometry
+    This is a concrete implementation supporting validated geometry
     cases: Euclidean flat vectors (``"euclidean"``), unit-norm spherical
     vectors (``"unit_norm"``), and fixed-size Gaussian-set structured
     points (``"gaussian_set"``), and categorical code vectors
-    (``"discrete_code"``). The fourth case extracted focused algorithms,
+    (``"discrete_code"``), SO(3) matrices (``"so3"``), and SE(3) homogeneous
+    matrices (``"se3"``). The geometry-specific cases use focused algorithms,
     not a speculative geometry hierarchy.
 
     Parameters
@@ -83,7 +85,9 @@ class LatentSpace:
         Color channels per Gaussian (default 3).
     """
 
-    _GEOMETRIES: frozenset[str] = frozenset({"euclidean", "unit_norm", "gaussian_set", "discrete_code", "anisotropic"})
+    _GEOMETRIES: frozenset[str] = frozenset(
+        {"euclidean", "unit_norm", "gaussian_set", "discrete_code", "anisotropic", "so3", "se3"}
+    )
 
     def __init__(
         self,
@@ -104,6 +108,10 @@ class LatentSpace:
         if geometry not in self._GEOMETRIES:
             msg = f"Unknown geometry {geometry!r}, expected one of {sorted(self._GEOMETRIES)}"
             raise ValueError(msg)
+        if geometry == "so3" and dim != 9:
+            raise ValueError("so3 LatentSpace uses flattened 3x3 rotation matrices and requires dim=9")
+        if geometry == "se3" and dim != 16:
+            raise ValueError("se3 LatentSpace uses flattened 4x4 pose matrices and requires dim=16")
 
         self.geometry = geometry
         self.dim = dim
@@ -146,6 +154,10 @@ class LatentSpace:
         elif geometry == "anisotropic":
             if covariance is not None:
                 self._attach_covariance(covariance)
+        elif geometry in {"so3", "se3"}:
+            self.metadata.setdefault("representation", "rotation_matrix" if geometry == "so3" else "homogeneous_matrix")
+            self.metadata.setdefault("angle_unit", "rad")
+            self.metadata.setdefault("position_unit", "m")
 
     @property
     def n_gaussians(self) -> int | None:
@@ -238,6 +250,10 @@ class LatentSpace:
         """
         if self.geometry == "gaussian_set":
             return (self._n_gaussians, self.param_dim)  # type: ignore[arg-type]
+        if self.geometry == "so3":
+            return (3, 3)
+        if self.geometry == "se3":
+            return (4, 4)
         return (self.dim,)
 
     def validate_point(self, point: np.ndarray) -> None:
@@ -262,7 +278,11 @@ class LatentSpace:
         if point.shape != expected_shape:
             msg = f"Expected shape {expected_shape}, got {point.shape}"
             raise ValueError(msg)
-        if self.geometry == "anisotropic":
+        if self.geometry == "so3":
+            SO3(point)
+        elif self.geometry == "se3":
+            SE3.from_matrix(point)
+        elif self.geometry == "anisotropic":
             if not np.isfinite(point).all():
                 raise ValueError("anisotropic requires finite points")
         elif self.geometry == "unit_norm":
@@ -339,7 +359,11 @@ class LatentSpace:
         """
         self.validate_point(a)
         self.validate_point(b)
-        if self.geometry == "euclidean":
+        if self.geometry == "so3":
+            return SO3(a).distance(SO3(b))
+        elif self.geometry == "se3":
+            return SE3.from_matrix(a).distance(SE3.from_matrix(b))
+        elif self.geometry == "euclidean":
             return float(np.linalg.norm(a - b))
         elif self.geometry == "anisotropic":
             covariance = self._require_covariance()
@@ -390,7 +414,11 @@ class LatentSpace:
         self.validate_point(b)
         if not 0.0 <= t <= 1.0:
             raise ValueError("t must be in [0, 1]")
-        if self.geometry == "euclidean":
+        if self.geometry == "so3":
+            return SO3(a).interpolate(SO3(b), t).matrix
+        elif self.geometry == "se3":
+            return SE3.from_matrix(a).interpolate(SE3.from_matrix(b), t).matrix
+        elif self.geometry == "euclidean":
             return (1.0 - t) * a + t * b
         elif self.geometry == "anisotropic":
             covariance = self._require_covariance()
@@ -433,9 +461,7 @@ class LatentSpace:
         ValueError
             If geometry is ``unit_norm`` and the point is a zero vector.
         """
-        if self.geometry == "euclidean" or self.geometry == "gaussian_set":
-            return point.copy()
-        elif self.geometry == "anisotropic":
+        if self.geometry in {"euclidean", "gaussian_set", "so3", "se3"} or self.geometry == "anisotropic":
             self.validate_point(point)
             return point.copy()
         elif self.geometry == "discrete_code":
