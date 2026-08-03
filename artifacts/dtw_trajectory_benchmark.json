@@ -1,0 +1,39 @@
+{
+  "controlled": {
+    "kind": "controlled_stretch",
+    "query_length": 24,
+    "reference_length": 48,
+    "dtw_distance": 0.0,
+    "indexwise_distance": null,
+    "path_length": 48,
+    "elapsed_seconds": 0.01872890000231564
+  },
+  "pose_policy_like": {
+    "kind": "se3_policy_like",
+    "query_length": 16,
+    "reference_length": 22,
+    "dtw_distance": 0.005942230207970515,
+    "geometry": "se3",
+    "provenance": {
+      "query_length": 16,
+      "reference_length": 22,
+      "window": null,
+      "max_step_distance": null,
+      "space_dim": 16,
+      "source_model": "controlled_policy_pose",
+      "space_metadata": {
+        "representation": "homogeneous_matrix",
+        "angle_unit": "rad",
+        "position_unit": "m"
+      }
+    },
+    "path_length": 22,
+    "metadata_contract": {
+      "parent_frame": "world",
+      "child_frame": "tool",
+      "position_unit": "m",
+      "angle_unit": "rad"
+    }
+  },
+  "max_cells": 2000000
+}

@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added geometry-aware dynamic time warping for unequal-length latent trajectories, with typed alignment results and interactive renderer overlays.
+
+### Added
+
 - Added matrix-backed SO(3)/SE(3) pose geometry with group operations, valid interpolation, frame/unit metadata, trajectory slicing, serialization, and LeRobot-compatible state metadata.
 
 ### Added

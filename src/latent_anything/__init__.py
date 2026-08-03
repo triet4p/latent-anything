@@ -53,6 +53,11 @@ from latent_anything.density import (
 from latent_anything.density import (
     mahalanobis_baseline as mahalanobis_baseline,
 )
+from latent_anything.dtw import DTWConfig as DTWConfig
+from latent_anything.dtw import DTWCostSummary as DTWCostSummary
+from latent_anything.dtw import DTWResult as DTWResult
+from latent_anything.dtw import compute_dtw as compute_dtw
+from latent_anything.dtw import indexwise_distance as indexwise_distance
 from latent_anything.geodesic import DensityGeodesic as DensityGeodesic
 from latent_anything.geodesic import GeodesicConfig as GeodesicConfig
 from latent_anything.geodesic import GeodesicPath as GeodesicPath
@@ -261,6 +266,9 @@ __all__ = [
     "DensityMetrics",
     "DensityEvaluationReport",
     "DensityStabilityReport",
+    "DTWConfig",
+    "DTWCostSummary",
+    "DTWResult",
     "DensityGeodesic",
     "GeodesicConfig",
     "GeodesicPath",
@@ -268,6 +276,8 @@ __all__ = [
     "density_cross_seed_evaluation",
     "mahalanobis_baseline",
     "fit_covariance_state",
+    "compute_dtw",
+    "indexwise_distance",
     "check_clustering_geometry",
     "cluster_stability_analysis",
     "compare_probes",

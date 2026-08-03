@@ -57,6 +57,7 @@ from latent_anything.visualization.data import (
 from latent_anything.visualization.data import (
     projection_from_density as projection_from_density,
 )
+from latent_anything.visualization.data import projection_from_dtw as projection_from_dtw
 from latent_anything.visualization.data import (
     projection_from_kmeans as projection_from_kmeans,
 )
@@ -99,6 +100,7 @@ __all__ = [
     "prepare_view",
     "projection_explorer",
     "projection_from_atlas",
+    "projection_from_dtw",
     "projection_from_density",
     "projection_from_kmeans",
     "projection_from_probe",

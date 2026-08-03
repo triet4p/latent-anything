@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from latent_anything import Trajectory
+from latent_anything import LatentSpace, Trajectory, compute_dtw
 from latent_anything.clustering import ClusterStabilityReport, KMeansConfig, KMeansResult
 from latent_anything.density import (
     DensityEvaluationReport,
@@ -47,6 +47,7 @@ from latent_anything.visualization import (
     points_view,
     projection_from_atlas,
     projection_from_density,
+    projection_from_dtw,
     projection_from_kmeans,
     projection_from_probe,
     projection_from_trajectory,
@@ -303,6 +304,15 @@ class TestProjectionBuilders:
         assert view.ndim == 3
         assert view.points[0].label == "0"
         assert view.metadata["n_trajectory_points"] == 8
+
+    def test_projection_from_dtw_adds_query_and_reference_overlays(self) -> None:
+        query = np.array([[0.0], [1.0], [2.0]])
+        reference = np.array([[0.0], [0.0], [1.0], [2.0]])
+        result = compute_dtw(query, reference, LatentSpace(dim=1))
+        view = projection_from_dtw(result, _coords(3, ndim=2), _coords(4, ndim=2, seed=4))
+        assert [overlay.name for overlay in view.trajectories] == ["query", "reference"]
+        assert view.metadata["dtw_normalization"] == "path_length"
+        assert view.metadata["dtw_path"] == [list(pair) for pair in result.path]
 
     def test_trajectory_view_rejects_point_mismatch(self) -> None:
         trajectory = Trajectory(_coords(8, ndim=4, seed=3))

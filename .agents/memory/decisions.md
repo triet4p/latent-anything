@@ -19,6 +19,13 @@ A chronological log of *why* key choices were made in this project.
 
 <!-- Add new entries below, newest at the bottom -->
 
+## [2026-08-03] DTW uses exact traceback with explicit normalization and cell guard
+
+**Decision:** Implement DTW with point costs delegated to `LatentSpace.distance`, deterministic diagonal/vertical/horizontal tie-breaking, explicit normalization policy, and an exact traceback guarded by `max_cells`.
+**Alternatives considered:** Unnormalized cost only, index-wise comparison, or an unbounded full matrix.
+**Reason:** Geometry dispatch preserves the declared latent metric; normalization makes lengths comparable; deterministic ties make artifacts reproducible; the cell guard prevents accidental unbounded allocations.
+**Consequences:** Very large exact alignments must be chunked or downsampled by callers until a future linear-memory traceback algorithm is justified by a real workload.
+
 ## [2026-08-03] Pose geometry uses matrix-backed SO(3)/SE(3) values
 
 **Decision:** Represent rotations as validated 3x3 matrices and rigid poses as validated 4x4 homogeneous matrices; use explicit frame/unit metadata and Lie-group operations.

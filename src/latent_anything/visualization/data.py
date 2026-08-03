@@ -29,6 +29,7 @@ import numpy as np
 
 from latent_anything.clustering import ClusterStabilityReport, KMeansResult
 from latent_anything.density import DensityEvaluationReport, DensityResult, DensityStabilityReport
+from latent_anything.dtw import DTWResult
 from latent_anything.probes import CrossSeedReport, LinearProbeResult
 from latent_anything.sae_evaluation import FeatureAtlas, SAEEvaluationResult
 from latent_anything.trajectory import Trajectory
@@ -432,6 +433,57 @@ def projection_from_trajectory(
         labels=step_labels,
         metadata=[{"step": i} for i in range(values.shape[0])],
         trajectories=[overlay],
+        title=title,
+        extra_metadata=metadata,
+    )
+
+
+def projection_from_dtw(
+    result: DTWResult,
+    query_coordinates: np.ndarray,
+    reference_coordinates: np.ndarray,
+    *,
+    title: str = "DTW trajectory alignment",
+    extra_metadata: Mapping[str, Any] | None = None,
+) -> ProjectionView:
+    """Build a renderer view containing the two trajectories in a DTW result.
+
+    The coordinate arrays must already share the same 2D/3D projection. The
+    renderer draws both ordered paths and exposes the alignment path and
+    normalized/raw costs in view metadata for hover/inspection consumers.
+    """
+    query_values = _validate_coordinates(query_coordinates)
+    reference_values = _validate_coordinates(reference_coordinates)
+    if len(query_values) != result.provenance["query_length"]:
+        raise ValueError("query_coordinates length does not match the DTW result")
+    if len(reference_values) != result.provenance["reference_length"]:
+        raise ValueError("reference_coordinates length does not match the DTW result")
+    if query_values.shape[1] != reference_values.shape[1]:
+        raise ValueError("query and reference coordinates must have the same projection dimension")
+    points = np.concatenate([query_values, reference_values], axis=0)
+    query_view = trajectory_view(
+        Trajectory(query_values), query_values, name="query", labels=[f"q{i}" for i in range(len(query_values))]
+    )
+    reference_view = trajectory_view(
+        Trajectory(reference_values),
+        reference_values,
+        name="reference",
+        labels=[f"r{i}" for i in range(len(reference_values))],
+    )
+    metadata: dict[str, Any] = {
+        "dtw_distance": result.distance,
+        "dtw_raw_distance": result.raw_distance,
+        "dtw_normalization": result.normalization,
+        "dtw_geometry": result.geometry,
+        "dtw_path": [list(pair) for pair in result.path],
+    }
+    metadata.update(dict(extra_metadata or {}))
+    return build_projection(
+        points,
+        categories=["query"] * len(query_values) + ["reference"] * len(reference_values),
+        metadata=[{"sequence": "query", "step": i} for i in range(len(query_values))]
+        + [{"sequence": "reference", "step": i} for i in range(len(reference_values))],
+        trajectories=[query_view, reference_view],
         title=title,
         extra_metadata=metadata,
     )
