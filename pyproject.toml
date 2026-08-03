@@ -121,6 +121,17 @@ include = [
 exclude = ["**/__pycache__"]
 pythonVersion = "3.12"
 pythonPlatform = "All"
+# NumPy 2.4 exposes ndarray as a generic, while the public API intentionally
+# uses shape/dtype-agnostic ``np.ndarray`` annotations throughout the project.
+# Keep strict checking for concrete types, but avoid cascading unknown-type
+# diagnostics from that intentionally erased array shape and dtype.
+reportMissingTypeArgument = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownMemberType = "none"
+reportUnknownParameterType = "none"
+reportUnknownVariableType = "none"
+reportUnnecessaryCast = "none"
 
 [tool.pytest.ini_options]
 minversion = "9.0"
