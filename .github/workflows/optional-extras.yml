@@ -2,7 +2,7 @@ name: Optional extras
 
 on:
   pull_request:
-    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "docs/LEROBOT_INTEGRATION.md"]
+    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "tests/test_lerobot_dataset_bridge.py", "scripts/lerobot_dataset_inspection.py", "docs/LEROBOT_INTEGRATION.md"]
   workflow_dispatch:
 
 jobs:
@@ -38,4 +38,4 @@ jobs:
       - name: Check the supported runtime and raw upstream seams
         run: uv run --locked --extra lerobot python -c "from latent_anything.integrations.lerobot import check_lerobot_compatibility, load_lerobot_api; report = check_lerobot_compatibility(); assert report.supported, report.diagnostic; api = load_lerobot_api(); assert api.dataset_type.__name__ == 'LeRobotDataset'"
       - name: Run CPU compatibility smoke tests
-        run: uv run --locked --extra lerobot pytest tests/test_lerobot_integration.py -v
+        run: uv run --locked --extra lerobot pytest tests/test_lerobot_integration.py tests/test_lerobot_dataset_bridge.py -v

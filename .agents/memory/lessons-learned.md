@@ -169,3 +169,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** `INCREMENTAL.md` section 4a permits a tentative internal shared shape at two instances, but explicitly does not permit freezing that shape as a `Protocol`; the camera had one concrete implementation and the rasterizer backend had only two.
 **Fix / workaround:** Remove the Protocols, annotate renderer methods with the existing concrete `GaussianCamera` through a `TYPE_CHECKING` import, and type the adapter against the concrete `GsplatBackend | ReferenceGaussianBackend` union.
 **Watch out for:** Any first or second implementation where adding an "unstable" marker is mistaken for satisfying the Rule of Three. Keep concrete types until a third genuinely differing implementation exists.
+
+## [2026-08-04] LeRobot falls back from TorchCodec to PyAV on this Windows environment
+
+**Symptom:** A real `LeRobotDataset` episode smoke emitted a long TorchCodec DLL load traceback before successfully reading the sample.
+**Root cause:** The installed CPU PyTorch/TorchCodec combination does not have loadable FFmpeg-backed TorchCodec DLLs on Windows.
+**Fix / workaround:** No bridge change was needed; LeRobot selected its supported PyAV fallback automatically. Keep video-disabled metadata/state/action smoke tests independent of TorchCodec, and treat a successful PyAV fallback as an environment note rather than a bridge failure.
+**Watch out for:** Windows runs that instantiate video-backed LeRobot datasets with TorchCodec installed but without matching FFmpeg shared libraries; avoid interpreting the warning as evidence that the canonical dataset API is unavailable.

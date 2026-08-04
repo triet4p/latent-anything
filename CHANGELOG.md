@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added a typed LeRobot v3 dataset bridge with schema/normalization/task descriptors, lazy episode readers, bounded streaming samples, alignment provenance, explicit captured-latent conversion, an offline fixture, and a pinned public metadata inspection artifact. (#sprint-57)
 - Added the optional `latent_anything[lerobot]` boundary with a pinned LeRobot 0.6.x compatibility window, lazy raw upstream seams, bridge-owned context/evaluation types, CPU smoke tests, and a dedicated compatibility CI lane. (#sprint-56)
 - Added constrained 3D Gaussian manipulation (localized SE(3) rigid edits, bounded opacity/color changes, removal, and opacity-weighted merge) with held-out multi-view geometric/rendering metrics and a deterministic naive-arithmetic failure control. (#sprint-55)
 - Added a real 3D Gaussian splat renderer facade backed by optional `gsplat>=1.4,<2.0`, with typed camera transforms, 3D Gaussian latent metadata, deterministic CPU fixtures, strict parameter validation, and an opt-in GPU/public-scene lane. (#sprint-54)

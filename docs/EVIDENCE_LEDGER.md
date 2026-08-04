@@ -54,6 +54,13 @@ capabilities. [RFC 0001](rfcs/0001-semantic-api-vocabulary.md) and
 `tests/test_api_surface.py` define the Sprint 28 semantic-vocabulary baseline;
 Sprint 31 will attach migration evidence to this section.
 
+Sprint 57 adds the LeRobot dataset bridge contract. Its evidence is the
+bridge source (`src/latent_anything/integrations/lerobot_dataset.py`), focused
+offline alignment tests (`tests/test_lerobot_dataset_bridge.py`), the pinned
+public metadata inspection (`scripts/lerobot_dataset_inspection.py` and
+`artifacts/lerobot_dataset_inspection.json`), and the integration constraints
+in `docs/LEROBOT_INTEGRATION.md`.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

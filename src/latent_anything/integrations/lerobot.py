@@ -139,6 +139,7 @@ class LeRobotAPI:
     make_policy: Callable[..., object]
     make_pre_post_processors: Callable[..., object]
     dataset_type: type[object]
+    streaming_dataset_type: type[object]
     policy_processor_pipeline_type: type[object]
     make_env: Callable[..., object]
     evaluation_main: Callable[..., object]
@@ -163,7 +164,7 @@ def load_lerobot_api() -> LeRobotAPI:
     load_lerobot()
     policies = import_module("lerobot.policies")
     processor = import_module("lerobot.processor")
-    dataset = import_module("lerobot.datasets.lerobot_dataset")
+    dataset = import_module("lerobot.datasets")
     environments = import_module("lerobot.envs")
     evaluation = import_module("lerobot.scripts.lerobot_eval")
     import_utils = import_module("lerobot.utils.import_utils")
@@ -171,6 +172,7 @@ def load_lerobot_api() -> LeRobotAPI:
         make_policy=_required_symbol(policies, "make_policy"),
         make_pre_post_processors=_required_symbol(policies, "make_pre_post_processors"),
         dataset_type=_required_symbol(dataset, "LeRobotDataset"),
+        streaming_dataset_type=_required_symbol(dataset, "StreamingLeRobotDataset"),
         policy_processor_pipeline_type=_required_symbol(processor, "PolicyProcessorPipeline"),
         make_env=_required_symbol(environments, "make_env"),
         evaluation_main=_required_symbol(evaluation, "main"),
@@ -228,4 +230,41 @@ __all__ = [
     "check_lerobot_compatibility",
     "load_lerobot",
     "load_lerobot_api",
+]
+
+# Dataset views are imported only after the raw boundary definitions above.
+# They import this module for ``LeRobotAPI`` and therefore must not be moved to
+# the top of the file without recreating an import cycle.
+from latent_anything.integrations.lerobot_dataset import (  # noqa: E402, I001
+    LeRobotCapturedLatent as LeRobotCapturedLatent,
+    LeRobotDatasetDescriptor as LeRobotDatasetDescriptor,
+    LeRobotDatasetReader as LeRobotDatasetReader,
+    LeRobotEpisodeSlice as LeRobotEpisodeSlice,
+    LeRobotFeatureDescriptor as LeRobotFeatureDescriptor,
+    LeRobotSample as LeRobotSample,
+    LeRobotSampleProvenance as LeRobotSampleProvenance,
+    LeRobotStreamingReader as LeRobotStreamingReader,
+    captured_latent as captured_latent,
+    captured_latent_to_numpy as captured_latent_to_numpy,
+    describe_lerobot_dataset as describe_lerobot_dataset,
+    load_streaming_lerobot_dataset as load_streaming_lerobot_dataset,
+    read_lerobot_episode as read_lerobot_episode,
+    stream_lerobot_samples as stream_lerobot_samples,
+)
+
+__all__ += [
+    "LeRobotCapturedLatent",
+    "LeRobotDatasetDescriptor",
+    "LeRobotDatasetReader",
+    "LeRobotEpisodeSlice",
+    "LeRobotFeatureDescriptor",
+    "LeRobotSample",
+    "LeRobotSampleProvenance",
+    "LeRobotStreamingReader",
+    "captured_latent",
+    "captured_latent_to_numpy",
+    "describe_lerobot_dataset",
+    "load_streaming_lerobot_dataset",
+    "read_lerobot_episode",
+    "stream_lerobot_samples",
 ]

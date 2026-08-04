@@ -54,6 +54,39 @@ The bridge consumes these LeRobot-owned objects and entry points:
 objects with bridge metadata. `LeRobotEvaluationResult` owns only the compact
 episode and metric summary that latent-anything needs for downstream evidence.
 
+## Dataset bridge
+
+`describe_lerobot_dataset(dataset)` reads the canonical `dataset.meta` object
+and returns typed feature, normalization, task, episode-range, camera, and
+provenance descriptors. It reads metadata only; it does not open Parquet or
+video files.
+
+`read_lerobot_episode(dataset, episode_index, start_frame=..., stop_frame=...)`
+returns a lazy iterator. Each `LeRobotSample.values` mapping is the original
+processor-ready mapping returned by LeRobot, including its PyTorch tensors.
+The sample's `LeRobotSampleProvenance` records the dataset revision, episode
+and frame indices, timestamp, task index, and task label.
+
+For streaming datasets, wrap the upstream `StreamingLeRobotDataset` with
+`LeRobotStreamingReader` or use `stream_lerobot_samples`. The upstream class
+continues to own shard iteration, video decoding, temporal windows, and its
+shuffle buffer; the bridge retains only a bounded recent sample window for
+inspection. A captured policy latent crosses into latent-anything only through
+`captured_latent_to_numpy` / `captured_latent`, which makes the copy and NumPy
+conversion explicit.
+
+The offline alignment fixture is in
+`tests/test_lerobot_dataset_bridge.py`. To inspect a public v3 dataset's
+schema and episode provenance without downloading data or videos, run:
+
+```text
+uv run python scripts/lerobot_dataset_inspection.py lerobot/aloha_sim_insertion_human --revision v3.0
+```
+
+The checked-in result is
+`artifacts/lerobot_dataset_inspection.json`. It is an inspection record only;
+it makes no policy-quality or model-performance claim.
+
 ## Explicitly rejected scope
 
 The bridge does not:
