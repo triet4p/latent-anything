@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 56 is next; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 56 is complete; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -170,6 +170,7 @@ None. Sprint 56 is next; the Sprint 35 evidence items remain carryover gates for
 - [Sprint 53](sprint-plans/sprint-53.md) - Geometry-aware trajectory smoothing and change-point segmentation.
 - [Sprint 54](sprint-plans/sprint-54.md) - Optional real 3D Gaussian splatting renderer backend with deterministic CPU fixtures and GPU evidence.
 - [Sprint 55](sprint-plans/sprint-55.md) - Constrained 3D Gaussian manipulation with held-out multi-view metrics and deterministic failure evidence.
+- [Sprint 56](sprint-plans/sprint-56.md) - LeRobot 0.6.x optional dependency boundary, lazy raw seams, bridge-owned results, and CPU compatibility smoke tests.
 
 ## Planning Rules
 
