@@ -87,6 +87,41 @@ The checked-in result is
 `artifacts/lerobot_dataset_inspection.json`. It is an inspection record only;
 it makes no policy-quality or model-performance claim.
 
+## ACT representation capture
+
+Sprint 58 pins the public ACT checkpoint
+`lerobot/act_aloha_sim_insertion_human` at revision
+`33259aa86eb45fdf85350280044a33d9d50e40c3` and its paired dataset
+`lerobot/aloha_sim_insertion_human` at revision
+`cc571a3c661df81b566dbfde3d5c1e85fcdf7884`. The pair is represented by
+`ACTCheckpointSpec` in `src/latent_anything/integrations/lerobot_act.py`.
+
+`load_act_policy()` loads `ACTConfig` and `LeRobotDatasetMetadata` through
+LeRobot, then delegates policy construction and official pre/post-processor
+construction to the raw factories exposed by `LeRobotAPI`. The
+`ACTPolicyAdapter` calls the normal preprocessor → `policy.select_action()` →
+postprocessor path. Its single observational capture point is `model.decoder`;
+the first decoder query token is retained because it directly feeds ACT's
+first selected action through `action_head`.
+
+`capture_episode()` preserves LeRobot's action queue and records only calls
+that actually query the policy. `analyze_act_traces()` runs PCA projection,
+linear outcome probing, majority/shuffled-label/raw-input controls, and
+Euclidean trajectory-length/velocity summaries. These are observational
+analyses only; intervention and environment-level causal effects are reserved
+for Sprint 61.
+
+The deterministic offline evidence command is:
+
+```text
+uv run python scripts/act_policy_representation_benchmark.py
+```
+
+It writes `artifacts/act_policy_representation_benchmark.json`. The pinned
+checkpoint smoke is marked `network` and `large_download`; opt into it with
+`LATENT_ANYTHING_RUN_NETWORK=1` in an environment containing the `lerobot`
+extra.
+
 ## Explicitly rejected scope
 
 The bridge does not:

@@ -61,6 +61,16 @@ public metadata inspection (`scripts/lerobot_dataset_inspection.py` and
 `artifacts/lerobot_dataset_inspection.json`), and the integration constraints
 in `docs/LEROBOT_INTEGRATION.md`.
 
+Sprint 58 extends that contract with observational ACT representation capture.
+Its evidence is the ACT adapter and pinned factory loader
+(`src/latent_anything/integrations/lerobot_act.py`), focused lifecycle and
+lazy-import tests (`tests/test_lerobot_act.py`), the deterministic projection,
+probe, trajectory, and control benchmark (`scripts/act_policy_representation_benchmark.py`
+and `artifacts/act_policy_representation_benchmark.json`), and the opt-in
+public checkpoint smoke marked `network`/`large_download`. This evidence does
+not promote a causal-intervention claim; Sprint 61 owns environment-level
+effects.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

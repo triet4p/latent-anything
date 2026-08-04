@@ -73,7 +73,11 @@ def test_base_import_does_not_load_lerobot_modules() -> None:
 
 def test_extra_install_loads_supported_upstream_seams_on_cpu() -> None:
     pytest.importorskip("lerobot")
-    from latent_anything.integrations.lerobot import load_lerobot_api
+    from latent_anything.integrations.lerobot import check_lerobot_compatibility, load_lerobot_api
+
+    report = check_lerobot_compatibility()
+    if not report.supported:
+        pytest.skip(f"installed LeRobot runtime is outside the optional compatibility window: {report.diagnostic}")
 
     api = load_lerobot_api()
 

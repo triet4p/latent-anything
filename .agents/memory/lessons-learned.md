@@ -176,3 +176,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The installed CPU PyTorch/TorchCodec combination does not have loadable FFmpeg-backed TorchCodec DLLs on Windows.
 **Fix / workaround:** No bridge change was needed; LeRobot selected its supported PyAV fallback automatically. Keep video-disabled metadata/state/action smoke tests independent of TorchCodec, and treat a successful PyAV fallback as an environment note rather than a bridge failure.
 **Watch out for:** Windows runs that instantiate video-backed LeRobot datasets with TorchCodec installed but without matching FFmpeg shared libraries; avoid interpreting the warning as evidence that the canonical dataset API is unavailable.
+
+## [2026-08-04] Optional LeRobot smoke can fail in a base environment with a newer NumPy
+
+**Symptom:** The existing LeRobot factory smoke failed during the default full pytest run because the workspace had LeRobot 0.6.1 installed alongside NumPy 2.4.6, outside the bridge's declared `<2.3` compatibility window.
+**Root cause:** Optional packages can remain installed in the base environment, while `uv run` without `--extra lerobot` resolves the base NumPy profile. The test checked only that LeRobot was importable, not that the complete optional runtime was compatible.
+**Fix / workaround:** The smoke now skips with the compatibility diagnostic when the installed optional runtime is outside the supported window; the strict bridge loader still raises, and the optional CI lane runs the test in `uv sync --locked --extra lerobot`, which resolves NumPy 2.2.6.
+**Watch out for:** Any optional integration test guarded only by `importorskip` can still fail when a stale/incompatible extra is installed locally. Check the bridge compatibility report before invoking upstream factories.
