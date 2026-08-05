@@ -1,0 +1,294 @@
+{
+  "acceptance": {
+    "axes_are_explicit": true,
+    "both_outcomes_present": true,
+    "controls": [
+      "majority_class",
+      "shuffled_label",
+      "raw_input_not_used"
+    ],
+    "density_auroc_in_range": true,
+    "probe_beats_majority_control": true
+  },
+  "analysis": {
+    "conditioning_controls": {
+      "majority_class": 0.5,
+      "raw_input": 0.625,
+      "shuffled_label": 0.625
+    },
+    "conditioning_density_auroc": 0.7777777777777778,
+    "conditioning_probe": {
+      "accuracy": 0.625,
+      "classes": [
+        0,
+        1
+      ],
+      "coefficients": [
+        1.0997001673762277,
+        0.0,
+        0.0
+      ],
+      "config": {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "fit_intercept": true,
+        "max_iter": 1000,
+        "random_state": 0,
+        "solver": "lbfgs",
+        "standardize": true,
+        "test_size": 0.3,
+        "val_size": 0.1
+      },
+      "feature_means": [
+        4.37142859186445,
+        1.0,
+        2.0
+      ],
+      "feature_stds": [
+        2.959109128245972,
+        1.0,
+        1.0
+      ],
+      "intercept": [
+        -0.020817558324707535
+      ],
+      "n_iter": 4,
+      "predictions": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "probabilities": [
+        [
+          0.6295961188310919,
+          0.37040388116890816
+        ],
+        [
+          0.6208885493503166,
+          0.37911145064968343
+        ],
+        [
+          0.14509087889295358,
+          0.8549091211070464
+        ],
+        [
+          0.1405416795384773,
+          0.8594583204615227
+        ],
+        [
+          0.7113842966892695,
+          0.2886157033107305
+        ],
+        [
+          0.8746470205499453,
+          0.12535297945005472
+        ],
+        [
+          0.42871247243547483,
+          0.5712875275645252
+        ],
+        [
+          0.6879659637874563,
+          0.31203403621254366
+        ]
+      ],
+      "provenance": {
+        "analysis": "diffusion_observational",
+        "label": "episode_outcome",
+        "n_classes": 2,
+        "n_features": 3,
+        "n_samples": 24
+      },
+      "test_indices": [
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false,
+        true,
+        false
+      ],
+      "train_indices": [
+        false,
+        false,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        false,
+        true,
+        false,
+        true,
+        false,
+        true,
+        true,
+        false,
+        true,
+        false,
+        true,
+        false,
+        true
+      ],
+      "val_accuracy": 1.0,
+      "val_indices": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "episode_time_lengths": {
+      "failure-0": 6.0,
+      "failure-1": 6.0,
+      "failure-2": 5.999999761581421,
+      "failure-3": 6.000000238418579,
+      "success-0": 6.0,
+      "success-1": 6.000000476837158,
+      "success-2": 5.999999761581421,
+      "success-3": 6.000000238418579
+    },
+    "metadata": {
+      "analysis": "observational_diffusion_representation",
+      "axes": [
+        "episode_time",
+        "action_chunk_position",
+        "diffusion_timestep"
+      ],
+      "causal_intervention": false,
+      "negative_controls": [
+        "majority_class",
+        "shuffled_label",
+        "raw_input_not_used"
+      ]
+    },
+    "projected_conditioning_shape": [
+      24,
+      2
+    ],
+    "projection_explained_variance": [
+      1.0,
+      0.0
+    ],
+    "timestep_time_lengths": {
+      "failure-0": {
+        "0": 36.0,
+        "4": 24.0,
+        "9": 12.0
+      },
+      "failure-1": {
+        "0": 36.0,
+        "4": 24.0,
+        "9": 12.0
+      },
+      "failure-2": {
+        "0": 35.99999809265137,
+        "4": 23.999999046325684,
+        "9": 11.999999523162842
+      },
+      "failure-3": {
+        "0": 36.00000190734863,
+        "4": 24.000000953674316,
+        "9": 12.000000476837158
+      },
+      "success-0": {
+        "0": 36.0,
+        "4": 24.0,
+        "9": 12.0
+      },
+      "success-1": {
+        "0": 36.000003814697266,
+        "4": 24.000001907348633,
+        "9": 12.000000953674316
+      },
+      "success-2": {
+        "0": 35.999996185302734,
+        "4": 23.999999046325684,
+        "9": 11.999999523162842
+      },
+      "success-3": {
+        "0": 36.000003814697266,
+        "4": 24.000000953674316,
+        "9": 12.000000476837158
+      }
+    }
+  },
+  "capture_metadata": {
+    "checkpoint": {
+      "dataset_repo_id": "lerobot/aloha_sim_insertion_human_image",
+      "dataset_revision": "d93d36a",
+      "environment_task": "AlohaInsertion-v0",
+      "environment_type": "aloha",
+      "lerobot_version": "0.6.x",
+      "policy_repo_id": "LeTau/diffusion_aloha_insertion",
+      "policy_revision": "6126e33"
+    },
+    "conditioning_dim": 3,
+    "conditioning_location": "diffusion.unet.global_cond",
+    "coordinate_identity": "diffusion:LeTau/diffusion_aloha_insertion@6126e33:conditioning+denoising:3+2",
+    "denoising_dim": 2,
+    "denoising_location": "diffusion.unet"
+  },
+  "causal_intervention": false,
+  "checkpoint_pair": {
+    "dataset_repo_id": "lerobot/aloha_sim_insertion_human_image",
+    "dataset_revision": "d93d36a",
+    "environment_task": "AlohaInsertion-v0",
+    "environment_type": "aloha",
+    "lerobot_version": "0.6.x",
+    "policy_repo_id": "LeTau/diffusion_aloha_insertion",
+    "policy_revision": "6126e33"
+  },
+  "claim_scope": "offline fixture evidence for observational LeRobot Diffusion representation analysis",
+  "episodes": {
+    "failure": 4,
+    "success": 4,
+    "total": 8
+  }
+}

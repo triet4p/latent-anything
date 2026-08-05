@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added a pinned LeRobot Diffusion Policy adapter for official normalization/factory loading, conditioning and per-timestep denoising capture, queue-aware action parity, explicit multi-axis trajectories, density/probe/control analysis, and an offline benchmark plus opt-in public checkpoint smoke. (#sprint-59)
 - Added a pinned ACT LeRobot adapter that captures first-action decoder queries through official preprocessing/action-selection/postprocessing, preserves action-queue semantics, and provides observational projection, probing, control, and trajectory evidence with an opt-in public checkpoint smoke. (#sprint-58)
 - Added a typed LeRobot v3 dataset bridge with schema/normalization/task descriptors, lazy episode readers, bounded streaming samples, alignment provenance, explicit captured-latent conversion, an offline fixture, and a pinned public metadata inspection artifact. (#sprint-57)
 - Added the optional `latent_anything[lerobot]` boundary with a pinned LeRobot 0.6.x compatibility window, lazy raw upstream seams, bridge-owned context/evaluation types, CPU smoke tests, and a dedicated compatibility CI lane. (#sprint-56)

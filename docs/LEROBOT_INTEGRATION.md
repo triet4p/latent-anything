@@ -13,9 +13,10 @@ uv sync --extra lerobot
 
 The extra activates LeRobot's `dataset` and `evaluation` feature extras so
 the v3 dataset and evaluation seams are available. Policy-specific features
-remain upstream-selected. For example, ACT is part of the base policy
-surface, while Diffusion and SmolVLA require their corresponding LeRobot
-policy extras in a consuming environment.
+remain upstream-selected. ACT is part of the base policy surface. Diffusion
+is available through the dedicated `latent_anything[lerobot-diffusion]` profile,
+which adds LeRobot's upstream `diffusion` extra and keeps its Diffusers
+dependency isolated from the legacy `transformers`/`diffusers-full` profiles.
 
 ## Lazy boundary
 
@@ -121,6 +122,45 @@ It writes `artifacts/act_policy_representation_benchmark.json`. The pinned
 checkpoint smoke is marked `network` and `large_download`; opt into it with
 `LATENT_ANYTHING_RUN_NETWORK=1` in an environment containing the `lerobot`
 extra.
+
+## Diffusion Policy representation capture
+
+Sprint 59 pins the public Diffusion Policy checkpoint
+`LeTau/diffusion_aloha_insertion` at model revision `6126e33` and its paired
+image dataset `lerobot/aloha_sim_insertion_human_image` at dataset revision
+`d93d36a`. The compatible environment/task is `aloha` / `AlohaInsertion-v0`,
+as recorded in `DiffusionCheckpointSpec`.
+
+Install the policy profile with:
+
+```text
+uv sync --extra lerobot-diffusion
+```
+
+`load_diffusion_policy()` loads `DiffusionConfig` and
+`LeRobotDatasetMetadata` through LeRobot, then delegates policy construction
+and official pre/post-processor construction to the raw factories exposed by
+`LeRobotAPI`. The `DiffusionPolicyAdapter` does not reimplement denoising or
+normalization. It observes the global conditioning tensor entering
+`policy.diffusion.unet` and the U-Net output at every scheduler timestep while
+the normal LeRobot action queue remains in control.
+
+`DiffusionEpisodeTrace` keeps environment/episode time, action-chunk position,
+and diffusion timestep explicit. Conditioning trajectories are analyzed in
+their own space; denoising trajectories are grouped by the recorded
+`diffusion_timestep`. The analysis is observational and includes PCA, a linear
+probe, majority/shuffled-label controls, and a held-out Gaussian-mixture
+density comparison. It does not claim causal policy or environment effects.
+
+The deterministic offline evidence command is:
+
+```text
+uv run python scripts/diffusion_policy_representation_benchmark.py
+```
+
+It writes `artifacts/diffusion_policy_representation_benchmark.json`. The
+marked public checkpoint smoke is in `tests/test_lerobot_diffusion.py` and is
+opt-in with `LATENT_ANYTHING_RUN_NETWORK=1`.
 
 ## Explicitly rejected scope
 

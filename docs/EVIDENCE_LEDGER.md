@@ -71,6 +71,16 @@ public checkpoint smoke marked `network`/`large_download`. This evidence does
 not promote a causal-intervention claim; Sprint 61 owns environment-level
 effects.
 
+Sprint 59 extends that contract with observational LeRobot Diffusion Policy
+capture. Its evidence is the Diffusion adapter and official factory loader
+(`src/latent_anything/integrations/lerobot_diffusion.py`), focused offline
+axis/queue/parity/analysis tests (`tests/test_lerobot_diffusion.py`), the
+deterministic benchmark (`scripts/diffusion_policy_representation_benchmark.py`
+and `artifacts/diffusion_policy_representation_benchmark.json`), and the
+revision-pinned `lerobot-diffusion` optional profile. The marked public
+checkpoint smoke is separate and does not promote causal policy or environment
+effects; Sprint 61 owns those claims.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;
