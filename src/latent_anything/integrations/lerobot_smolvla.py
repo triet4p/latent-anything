@@ -539,6 +539,12 @@ class SmolVLAPolicyAdapter:
         return self._chunk_size
 
     @property
+    def device(self) -> str:
+        """Return the device the pinned policy lives on."""
+
+        return str(_policy_device(self.context.policy))
+
+    @property
     def num_steps(self) -> int:
         """Return the denoising step count of the pinned policy."""
 
@@ -703,7 +709,7 @@ class SmolVLAPolicyAdapter:
             },
         )
         with session:
-            raw_action = select(prepared, noise=_noise_to_tensor(noise))
+            raw_action = select(prepared, noise=_noise_to_tensor(noise, device=_policy_device(policy)))
         action = postprocess(raw_action)
         return SmolVLAActionSelection(
             action=action,
@@ -713,14 +719,25 @@ class SmolVLAPolicyAdapter:
         )
 
 
-def _noise_to_tensor(value: np.ndarray | None) -> Tensor | None:
+def _policy_device(policy: nn.Module) -> torch.device:
+    """Return the device of the policy's first parameter."""
+
+    try:
+        first = next(policy.parameters())
+    except StopIteration:
+        raise TypeError("SmolVLA policy must own at least one parameter") from None
+    return first.device
+
+
+def _noise_to_tensor(value: np.ndarray | None, *, device: torch.device) -> Tensor | None:
     """Convert the public NumPy noise boundary to the upstream tensor type.
 
-    LeRobot's default action-chunk noise is float32; the action expert is
-    created in float32, so a fixed seed noise must match that dtype.
+    LeRobot's default action-chunk noise is float32 on the policy device; the
+    action expert is created in float32, so a fixed seed noise must match both
+    the dtype and the device of the model.
     """
 
-    return None if value is None else Tensor(value).to(dtype=torch.float32)
+    return None if value is None else Tensor(value).to(dtype=torch.float32, device=device)
 
 
 def load_smolvla_policy(

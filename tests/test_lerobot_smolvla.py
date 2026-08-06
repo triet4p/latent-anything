@@ -547,7 +547,12 @@ def test_smolvla_gpu_checkpoint_intervention_lane() -> None:
     postprocessor = cast(Callable[[object], Mapping[str, object]], adapter.context.postprocessor)
     policy = cast(_ActionSelectingPolicy, adapter.context.policy)
     prepared = preprocessor(sample)
-    direct_action = postprocessor(policy.select_action(prepared, noise=torch.as_tensor(noise)))
+    direct_action = postprocessor(
+        policy.select_action(
+            prepared,
+            noise=torch.as_tensor(noise, dtype=torch.float32, device=adapter.device),
+        )
+    )
     np.testing.assert_array_equal(
         np.asarray(direct_action["action"]).reshape(-1),
         np.asarray(baseline.action_array).reshape(-1),
