@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 59 is complete; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 60 is complete; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -174,6 +174,7 @@ None. Sprint 59 is complete; the Sprint 35 evidence items remain carryover gates
 - [Sprint 57](sprint-plans/sprint-57.md) - LeRobot v3 schema/episode descriptors, lazy episode reads, bounded streaming samples, alignment provenance, and explicit captured-latent conversion.
 - [Sprint 58](sprint-plans/sprint-58.md) - Pinned ACT policy/dataset capture through LeRobot's official factories, decoder-query representations, observational analysis controls, and an opt-in public checkpoint smoke.
 - [Sprint 59](sprint-plans/sprint-59.md) - Pinned Diffusion Policy capture through LeRobot's official factories, explicit conditioning/denoising axes, observational outcome analysis, and an opt-in public checkpoint smoke.
+- [Sprint 60](sprint-plans/sprint-60.md) - Pinned SmolVLA capture through LeRobot's official factories, vision/language/state/action-expert representation seams with token metadata, one bounded strength-controlled action-expert intervention with bit-exact identity, quantitative change/drift/sensitivity measurements, and a marked CUDA checkpoint lane.
 
 ## Planning Rules
 

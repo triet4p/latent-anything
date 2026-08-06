@@ -2,7 +2,7 @@ name: Optional extras
 
 on:
   pull_request:
-    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "tests/test_lerobot_dataset_bridge.py", "tests/test_lerobot_act.py", "tests/test_lerobot_diffusion.py", "scripts/lerobot_dataset_inspection.py", "scripts/act_policy_representation_benchmark.py", "scripts/diffusion_policy_representation_benchmark.py", "docs/LEROBOT_INTEGRATION.md"]
+    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "tests/test_lerobot_dataset_bridge.py", "tests/test_lerobot_act.py", "tests/test_lerobot_diffusion.py", "tests/test_lerobot_smolvla.py", "scripts/lerobot_dataset_inspection.py", "scripts/act_policy_representation_benchmark.py", "scripts/diffusion_policy_representation_benchmark.py", "scripts/smolvla_policy_representation_benchmark.py", "docs/LEROBOT_INTEGRATION.md"]
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.13"]
-        extra: [diffusers, transformers, "3d", lerobot, lerobot-diffusion]
+        extra: [diffusers, transformers, "3d", lerobot, lerobot-diffusion, lerobot-smolvla]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,3 +54,18 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --locked --extra lerobot-diffusion
       - run: uv run --locked --extra lerobot-diffusion pytest tests/test_lerobot_diffusion.py -v
+
+  lerobot-smolvla:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked --extra lerobot-smolvla
+      - run: uv run --locked --extra lerobot-smolvla pytest tests/test_lerobot_smolvla.py -v

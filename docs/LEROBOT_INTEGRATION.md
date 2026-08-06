@@ -17,6 +17,9 @@ remain upstream-selected. ACT is part of the base policy surface. Diffusion
 is available through the dedicated `latent_anything[lerobot-diffusion]` profile,
 which adds LeRobot's upstream `diffusion` extra and keeps its Diffusers
 dependency isolated from the legacy `transformers`/`diffusers-full` profiles.
+SmolVLA is available through the dedicated
+`latent_anything[lerobot-smolvla]` profile, which adds LeRobot's upstream
+`smolvla` extra and keeps its Transformers 5.x dependency isolated the same way.
 
 ## Lazy boundary
 
@@ -161,6 +164,75 @@ uv run python scripts/diffusion_policy_representation_benchmark.py
 It writes `artifacts/diffusion_policy_representation_benchmark.json`. The
 marked public checkpoint smoke is in `tests/test_lerobot_diffusion.py` and is
 opt-in with `LATENT_ANYTHING_RUN_NETWORK=1`.
+
+## SmolVLA representation capture and bounded intervention
+
+Sprint 60 pins the public SmolVLA checkpoint `lerobot/smolvla_libero` at model
+revision `31d453f7edd78c839a8bbc39744a292686daf0de` and its documented training
+dataset `lerobot/libero` at dataset revision
+`a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4` (LIBERO-10 `libero_spatial`, action
+dimension 7, state dimension 8). The model card's `train_config.json` records
+this exact pair. The compatible environment/task is `libero` /
+`libero_spatial`, as recorded in `SmolVLACheckpointSpec` together with the
+reproducible hardware profile (`SMOLVLA_HARDWARE_PROFILE`: SmolVLM2-500M
+backbone, 16 VLM + 16 expert layers at 75% width, bfloat16, ~450M parameters,
+16 GB GPU recommended for the intervention lane).
+
+Install the policy profile with:
+
+```text
+uv sync --extra lerobot-smolvla
+```
+
+`load_smolvla_policy()` loads `SmolVLAConfig` and `LeRobotDatasetMetadata`
+through LeRobot, then delegates policy construction (with the model card's
+official camera `rename_map`) and pre/post-processor construction to the raw
+factories exposed by `LeRobotAPI`. The device step of the loaded processor
+pipelines is overridden to the requested device. The `SmolVLAPolicyAdapter`
+does not reimplement image preparation, flow-matching denoising, normalization,
+or action queueing; it observes the official `preprocess → select_action →
+postprocess` path.
+
+Four module seams are captured per executed action query with token/modality
+metadata:
+
+| Representation | Hook location | Token metadata |
+| --- | --- | --- |
+| Vision context | `model.vlm_with_expert.vlm.model.vision_model` (SigLIP) | patch-token count, camera name, prefix offset |
+| Language context | `model.vlm_with_expert.vlm.model.text_model.embed_tokens` | token count, prefix offset |
+| State context | `model.state_proj` | single token, prefix offset |
+| Action expert | `model.vlm_with_expert.lm_expert.norm` | chunk-token count, denoising step |
+
+The context captures reproduce the model's own prefix layout (vision tokens,
+then language tokens, then the projected state token); expert captures are
+recorded once per denoising step (10 steps for the pinned checkpoint) in the
+suffix. Queue hits execute no model query and produce no captures.
+
+`SmolVLAIntervention` is one bounded additive intervention on the action-expert
+representation: `z <- z + strength * direction` at every denoising step, with
+finite direction, shape, and bounded-strength validation. Strength zero
+short-circuits and returns the unchanged output, so baseline and intervened
+actions are bit-identical. Hooks live only for the duration of one
+`select_action` call (exception-safe lifecycle).
+
+`measure_smolvla_intervention()` reports the immediate action change
+(per-dimension), the on-target/off-target decomposition of that change against
+the action-space direction induced by the expert direction through the policy's
+own `action_out_proj`, per-token representation drift over denoising steps,
+and prompt/camera-order sensitivity of the baseline policy.
+
+The deterministic offline evidence command is:
+
+```text
+uv run python scripts/smolvla_policy_representation_benchmark.py
+```
+
+It writes `artifacts/smolvla_policy_representation_benchmark.json`. The marked
+public checkpoint lane is in `tests/test_lerobot_smolvla.py` and requires a
+CUDA device plus `LATENT_ANYTHING_RUN_NETWORK=1` in an environment containing
+the `lerobot-smolvla` extra. The SmolVLA claim is an observational and
+bounded-intervention claim; environment-level causal effects remain Sprint 61
+scope.
 
 ## Explicitly rejected scope
 

@@ -27,6 +27,10 @@ diffusers-full = ["diffusers>=0.30,<1.0", "safetensors>=0.4,<1.0", "transformers
 # checklist and smoke lane in docs/LEROBOT_INTEGRATION.md.
 lerobot = ["lerobot[dataset,evaluation]>=0.6.0,<0.7.0"]
 lerobot-diffusion = ["lerobot[dataset,evaluation,diffusion]>=0.6.0,<0.7.0"]
+# Sprint 60 adds the SmolVLA policy profile. LeRobot's `smolvla` extra pulls
+# the Transformers 5.x line and accelerate; keep it isolated from the legacy
+# 4.x profiles exactly like the Diffusion profile.
+lerobot-smolvla = ["lerobot[dataset,evaluation,smolvla]>=0.6.0,<0.7.0"]
 viz = ["plotly>=5.24,<7.0", "kaleido>=1.0.0", "ipywidgets>=8.0,<9.0", "anywidget>=0.9,<1.0"]
 
 [build-system]
@@ -43,6 +47,8 @@ conflicts = [
     [{ extra = "lerobot" }, { extra = "diffusers-full" }],
     [{ extra = "lerobot-diffusion" }, { extra = "transformers" }],
     [{ extra = "lerobot-diffusion" }, { extra = "diffusers-full" }],
+    [{ extra = "lerobot-smolvla" }, { extra = "transformers" }],
+    [{ extra = "lerobot-smolvla" }, { extra = "diffusers-full" }],
 ]
 
 [tool.setuptools.packages.find]
@@ -99,6 +105,7 @@ include = [
     "scripts/validate_evidence_ledger.py",
     "scripts/act_policy_representation_benchmark.py",
     "scripts/diffusion_policy_representation_benchmark.py",
+    "scripts/smolvla_policy_representation_benchmark.py",
     "tests/test_api_surface.py",
     "tests/test_diffusers_vae.py",
     "tests/test_diffusers_vae_network.py",
@@ -125,6 +132,7 @@ include = [
     "tests/test_registry_migration.py",
     "tests/test_lerobot_act.py",
     "tests/test_lerobot_diffusion.py",
+    "tests/test_lerobot_smolvla.py",
     "tests/test_scripts/test_validate_evidence_ledger.py",
     "tests/test_visualization_data.py",
     "tests/test_visualization_figures.py",

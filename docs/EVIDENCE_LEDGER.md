@@ -81,6 +81,19 @@ revision-pinned `lerobot-diffusion` optional profile. The marked public
 checkpoint smoke is separate and does not promote causal policy or environment
 effects; Sprint 61 owns those claims.
 
+Sprint 60 extends that contract with SmolVLA capture and one bounded
+action-expert intervention. Its evidence is the SmolVLA adapter and official
+factory loader (`src/latent_anything/integrations/lerobot_smolvla.py`), the
+revision-pinned `lerobot-smolvla` optional profile, focused offline
+capture/parity/queue/intervention/measurement tests
+(`tests/test_lerobot_smolvla.py`), the deterministic intervention benchmark
+(`scripts/smolvla_policy_representation_benchmark.py` and
+`artifacts/smolvla_policy_representation_benchmark.json`), and a marked CUDA
+checkpoint lane for the pinned public pair. The intervention claim is bounded
+and observational (strength-controlled additive edits on the action-expert
+representation with bit-exact identity at strength zero); it does not promote
+environment-level causal effects, which remain Sprint 61 scope.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

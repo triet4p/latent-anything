@@ -1,0 +1,120 @@
+{
+  "acceptance": {
+    "action_change_norm_positive": true,
+    "camera_order_sensitivity_positive": true,
+    "decomposition_bounds_consistent": true,
+    "identity_at_zero_strength_is_bit_exact": true,
+    "off_target_fraction_below_fixture_bound": true,
+    "on_target_fraction_above_linear_fixture_bound": true,
+    "prompt_sensitivity_positive": true,
+    "representation_drift_positive": true
+  },
+  "capture_kinds": {
+    "action_expert": 3,
+    "language_context": 1,
+    "state_context": 1,
+    "vision_context": 2
+  },
+  "capture_metadata": {
+    "action_dim": 2,
+    "checkpoint": {
+      "dataset_repo_id": "lerobot/libero",
+      "dataset_revision": "a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+      "environment_task": "libero_spatial",
+      "environment_type": "libero",
+      "lerobot_version": "0.6.1",
+      "policy_repo_id": "lerobot/smolvla_libero",
+      "policy_revision": "31d453f7edd78c839a8bbc39744a292686daf0de"
+    },
+    "chunk_size": 4,
+    "context_dim": 8,
+    "coordinate_identity": "smolvla:lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de:context+expert:8+6",
+    "expert_dim": 6,
+    "expert_location": "model.vlm_with_expert.lm_expert.norm",
+    "hardware_profile": {
+      "cpu_feasible": true,
+      "dtype": "bfloat16",
+      "expert_width_multiplier": 0.75,
+      "notes": [
+        "SmolVLM2-500M-Video-Instruct backbone with SigLIP vision encoder; the 16-layer action expert runs at 75% of the VLM hidden width.",
+        "CPU inference is feasible for single queries but not realtime; the marked checkpoint intervention lane requires a CUDA device.",
+        "Checkpoint and dataset revisions are immutable pins; the model must run in the same bfloat16 coordinate system it was trained in."
+      ],
+      "num_expert_layers": 16,
+      "num_vlm_layers": 16,
+      "recommended_min_gpu_memory_gb": 16,
+      "vlm_backbone": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+    },
+    "language_location": "model.vlm_with_expert.vlm.model.text_model.embed_tokens",
+    "max_action_dim": 4,
+    "num_steps": 3,
+    "state_location": "model.state_proj",
+    "vision_location": "model.vlm_with_expert.vlm.model.vision_model"
+  },
+  "causal_environment_effect": false,
+  "checkpoint_pair": {
+    "dataset_repo_id": "lerobot/libero",
+    "dataset_revision": "a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+    "environment_task": "libero_spatial",
+    "environment_type": "libero",
+    "lerobot_version": "0.6.1",
+    "policy_repo_id": "lerobot/smolvla_libero",
+    "policy_revision": "31d453f7edd78c839a8bbc39744a292686daf0de"
+  },
+  "claim_scope": "offline fixture evidence for bounded SmolVLA action-expert intervention: the official-pipeline capture seams, bit-exact identity at strength zero, and on-target/off-target/drift/prompt/camera measurements are deterministic",
+  "denoising_steps_per_query": 3,
+  "hardware_profile": {
+    "cpu_feasible": true,
+    "dtype": "bfloat16",
+    "expert_width_multiplier": 0.75,
+    "notes": [
+      "SmolVLM2-500M-Video-Instruct backbone with SigLIP vision encoder; the 16-layer action expert runs at 75% of the VLM hidden width.",
+      "CPU inference is feasible for single queries but not realtime; the marked checkpoint intervention lane requires a CUDA device.",
+      "Checkpoint and dataset revisions are immutable pins; the model must run in the same bfloat16 coordinate system it was trained in."
+    ],
+    "num_expert_layers": 16,
+    "num_vlm_layers": 16,
+    "recommended_min_gpu_memory_gb": 16,
+    "vlm_backbone": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+  },
+  "intervention": {
+    "applied_norm": 1.606237840420901,
+    "direction_norm": 0.8031189202104505,
+    "direction_shape": [
+      6
+    ],
+    "location": "model.vlm_with_expert.lm_expert.norm",
+    "max_strength": 100.0,
+    "strength": 2.0
+  },
+  "measurement": {
+    "action_change_norm": 0.07855454832315445,
+    "action_change_per_dim": [
+      0.015952378511428833,
+      0.07691773772239685
+    ],
+    "camera_order_sensitivity": 0.03332607075572014,
+    "first_step_drift": 1.606237769126892,
+    "metadata": {
+      "causal_environment_effect": false,
+      "intervention": {
+        "applied_norm": 1.606237840420901,
+        "direction_norm": 0.8031189202104505,
+        "direction_shape": [
+          6
+        ],
+        "location": "model.vlm_with_expert.lm_expert.norm",
+        "max_strength": 100.0,
+        "strength": 2.0
+      },
+      "measurement": "smolvla_action_expert_intervention",
+      "off_target_definition": "component of the action change orthogonal to the direction induced by the expert direction through action_out_proj",
+      "samples": 3
+    },
+    "off_target_norm": 0.00032170703876411596,
+    "on_target_fraction": 0.99592133612262,
+    "on_target_norm": 0.07855388762553091,
+    "prompt_sensitivity": 0.14743229746818542,
+    "representation_drift": 1.5976771513621013
+  }
+}

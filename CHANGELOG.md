@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added a pinned LeRobot SmolVLA adapter (`latent_anything[lerobot-smolvla]`) that captures vision/language/state context and action-expert representations with token/modality metadata through LeRobot's official factories, plus one bounded strength-controlled intervention on the action-expert representation with bit-exact no-change identity at strength zero and quantitative action-change, off-target, drift, and prompt/camera-sensitivity measurements. (#sprint-60)
 - Added a pinned LeRobot Diffusion Policy adapter for official normalization/factory loading, conditioning and per-timestep denoising capture, queue-aware action parity, explicit multi-axis trajectories, density/probe/control analysis, and an offline benchmark plus opt-in public checkpoint smoke. (#sprint-59)
 - Added a pinned ACT LeRobot adapter that captures first-action decoder queries through official preprocessing/action-selection/postprocessing, preserves action-queue semantics, and provides observational projection, probing, control, and trajectory evidence with an opt-in public checkpoint smoke. (#sprint-58)
 - Added a typed LeRobot v3 dataset bridge with schema/normalization/task descriptors, lazy episode readers, bounded streaming samples, alignment provenance, explicit captured-latent conversion, an offline fixture, and a pinned public metadata inspection artifact. (#sprint-57)
