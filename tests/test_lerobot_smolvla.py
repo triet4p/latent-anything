@@ -270,6 +270,21 @@ def make_noise() -> np.ndarray:
     return np.full((1, CHUNK, MAX_ACTION), 0.25)
 
 
+def _postprocessed_action_numpy(value: object) -> np.ndarray:
+    """Extract the action from a real or fixture post-processor result."""
+
+    if isinstance(value, Mapping):
+        for key in ("action", "actions"):
+            if key in value:
+                value = value[key]
+                break
+        else:
+            raise TypeError("post-processor mapping must contain 'action' or 'actions'")
+    if isinstance(value, Tensor):
+        return value.detach().cpu().numpy().reshape(-1)
+    return np.asarray(value).reshape(-1)
+
+
 def test_smolvla_module_import_stays_lazy_in_base_install() -> None:
     completed = subprocess.run(
         [
@@ -550,7 +565,7 @@ def test_smolvla_gpu_checkpoint_intervention_lane() -> None:
         )
     )
     np.testing.assert_array_equal(
-        np.asarray(direct_action["action"]).reshape(-1),
+        _postprocessed_action_numpy(direct_action),
         np.asarray(baseline.action_array).reshape(-1),
     )
     adapter.reset()
