@@ -451,7 +451,7 @@ def test_smolvla_measurement_reports_change_drift_and_sensitivity() -> None:
 def test_load_smolvla_policy_uses_supported_upstream_factories(monkeypatch: pytest.MonkeyPatch) -> None:
     config_calls: list[tuple[str, str]] = []
     policy_calls: list[tuple[object, object, object]] = []
-    processor_calls: list[tuple[object, str, str, object, object]] = []
+    processor_calls: list[tuple[object, str, str, object]] = []
 
     class FakeSmolVLAConfig:
         @classmethod
@@ -475,13 +475,10 @@ def test_load_smolvla_policy_uses_supported_upstream_factories(monkeypatch: pyte
         pretrained_path: str,
         pretrained_revision: str,
         preprocessor_overrides: object,
-        postprocessor_overrides: object,
         **kwargs: object,
     ) -> tuple[TinySmolVLAPreprocessor, TinySmolVLAPostprocessor]:
         del kwargs
-        processor_calls.append(
-            (config, pretrained_path, pretrained_revision, preprocessor_overrides, postprocessor_overrides)
-        )
+        processor_calls.append((config, pretrained_path, pretrained_revision, preprocessor_overrides))
         return TinySmolVLAPreprocessor(), TinySmolVLAPostprocessor()
 
     api = LeRobotAPI(
@@ -511,7 +508,6 @@ def test_load_smolvla_policy_uses_supported_upstream_factories(monkeypatch: pyte
     assert processor_calls[0][1] == "fixture/smolvla"
     assert processor_calls[0][2] == "policy-revision"
     assert processor_calls[0][3] == {"device_processor": {"device": "cpu"}}
-    assert processor_calls[0][4] == {"device_processor": {"device": "cpu"}}
     assert adapter.context.policy is policy
     assert adapter.context.metadata["dataset_revision"] == "dataset-revision"
     assert adapter.context.metadata["environment_task"] == "libero_spatial"

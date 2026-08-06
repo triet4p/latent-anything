@@ -783,7 +783,6 @@ def load_smolvla_policy(
         dataset_stats=getattr(resolved_meta, "stats", None),
         dataset_meta=resolved_meta,
         preprocessor_overrides={"device_processor": {"device": device}},
-        postprocessor_overrides={"device_processor": {"device": device}},
     )
     preprocessor, postprocessor = cast(tuple[object, object], processors)
     context = LeRobotPolicyContext(
