@@ -404,12 +404,17 @@ def build_libero_benchmark_environment(
     del env_postprocessor
     envs = upstream_api.make_env(env_config, n_envs=1)
     suite_map = cast(Mapping[str, Mapping[int, object]], envs)
-    if config.env_type not in suite_map or not suite_map[config.env_type]:
-        raise ValueError(f"environment factory returned no {config.env_type!r} suite: {sorted(suite_map)}")
+    suite_key = next((key for key in (config.task, config.env_type) if key in suite_map), None)
+    if suite_key is None:
+        raise ValueError(
+            f"environment factory returned no {config.env_type!r}/{config.task!r} suite: {sorted(suite_map)}"
+        )
     task_id = config.task_ids[0] if config.task_ids else 0
-    task_map = suite_map[config.env_type]
+    task_map = suite_map[suite_key]
     if task_id not in task_map:
-        raise ValueError(f"environment factory returned no task {task_id} for {config.env_type!r}: {sorted(task_map)}")
+        raise ValueError(
+            f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}"
+        )
     env = task_map[task_id]
 
     utils_module = import_module("lerobot.envs.utils")
@@ -425,6 +430,7 @@ def build_libero_benchmark_environment(
         metadata={
             "env_type": config.env_type,
             "task": config.task,
+            "suite_key": suite_key,
             "task_id": task_id,
             "task_description": task_description,
             "max_episode_steps": max_steps,

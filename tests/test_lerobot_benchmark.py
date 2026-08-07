@@ -411,7 +411,7 @@ def test_build_libero_benchmark_environment_uses_upstream_factories(monkeypatch:
     def make_env(env_config: object, n_envs: int) -> dict[str, dict[int, object]]:
         del env_config
         assert n_envs == 1
-        return {"libero": {2: fake_env}}
+        return {"libero_spatial": {2: fake_env}}
 
     def make_processors(*args: object, **kwargs: object) -> tuple[object, object]:
         del args, kwargs
