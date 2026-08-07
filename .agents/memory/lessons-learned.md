@@ -198,3 +198,24 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** `uv run` auto-syncs the default (extra-less) profile when no `--extra` flag is passed, replacing the lerobot-resolved NumPy with the base profile's 2.4.6.
 **Fix / workaround:** Always pass the same `--extra` flags to `uv run` as to `uv sync` when the command needs the optional runtime (e.g. `uv run --extra lerobot-smolvla python ...`).
 **Watch out for:** Any command mixing `uv sync --extra <profile>` and plain `uv run`; the environment silently changes between the two invocations.
+
+## [2026-08-07] LIBERO advances its initial-state index per reset — conditions must create a fresh environment per cell
+
+**Symptom:** The causal benchmark's baseline was not bit-exact with the no-hook control on the real LIBERO environment (mean action deviation 0.35, success mismatches) even though both used the same seed and fixed noise.
+**Root cause:** `LiberoEnv` selects its initial state from `init_state_id`, an env-instance counter incremented on every reset; the seed only drives the sim RNG. Reusing one vector environment across conditions silently moved each condition to a different initial state, so trajectories were not comparable.
+**Fix / workaround:** The benchmark environment bundle now owns an `env_factory`; `run_episode` creates and closes a fresh vector environment per (seed, condition) cell so every cell starts from initial state 0 with the same seed.
+**Watch out for:** Any rollout harness that resets one gym env multiple times expecting identical starts. Check whether the env consumes a per-instance state counter (LIBERO init states, some wrappers) before comparing trajectories across resets.
+
+## [2026-08-07] `hf-libero` prompts on stdin at import when `~/.libero/config.yaml` is missing or stale
+
+**Symptom:** Two remote failures: first a `FileNotFoundError` for a `.pruned_init` path under a deleted temporary clone, then `OSError: pytest: reading from stdin while output is captured` inside the statistical lane.
+**Root cause:** `libero.libero.__init__` runs `input()` when `~/.libero/config.yaml` is absent, and the config records absolute asset paths. The remote-cuda-test workflow deletes its temporary clone, so the config written by a previous run pointed at a vanished venv; under pytest's captured stdin the same `input()` raises instead of accepting the default.
+**Fix / workaround:** `build_libero_benchmark_environment` bootstraps `~/.libero/config.yaml` itself before any upstream import: it resolves the installed package paths via `importlib.util.find_spec` (without executing the module) and rewrites the config whenever the recorded `init_states` path no longer exists.
+**Watch out for:** Any upstream package that writes absolute install paths into a user config at first run. Under ephemeral environments (temp clones, container rebuilds) such configs go stale; bootstrap them from the current install instead of relying on upstream's interactive init.
+
+## [2026-08-07] LeRobot env factories key LIBERO suites by the suite name, not the registered env type
+
+**Symptom:** `make_env(libero_config, n_envs=1)` returned `{"libero_spatial": {0: <vec env>}}`, and the harness looking for the `libero` key raised "environment factory returned no 'libero' suite".
+**Root cause:** `create_libero_envs` keys its return mapping by the LIBERO suite (task) name (`libero_spatial`, `libero_10`, ...), while the registered env-config type is `libero`; `env_cfg.type` returns the choice name only for the config itself.
+**Fix / workaround:** Resolve the suite key as `config.task` first, falling back to `config.env_type`.
+**Watch out for:** Upstream factories that return suite/task-keyed mappings whose keys are not the registered type name; assert against the real factory output, not the config class name.

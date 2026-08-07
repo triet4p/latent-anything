@@ -15,7 +15,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Correlate offline explanation scores with environment-level causal effects and report disagreements.
 - [x] Add regression smoke tests and a separately marked statistical benchmark.
 - [x] Produce complete configs, episode summaries, videos/plots where license permits, and failure analysis.
-- [~] Promote ACT/Diffusion/SmolVLA claims to D3 only where evidence passes; update ADR/changelog/artifact/gates.
+- [x] Promote ACT/Diffusion/SmolVLA claims to D3 only where evidence passes; update ADR/changelog/artifact/gates.
 
 ## Notes / Blockers
 
@@ -32,3 +32,5 @@ Predeclared acceptance gate (D3 promotion requires all checks):
 Declared disagreement rules: overstatement (on-target >= 0.8 but |success delta| < 0.2), understatement (on-target < 0.5 but |success delta| >= 0.2), reversal (success delta <= -0.2).
 
 ACT and Diffusion have no intervention surface; their claims remain observational. Only the causal-intervention capability (THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY) can be promoted to D3, and only if the CUDA statistical lane passes; otherwise a negative-result artifact is committed instead.
+
+Resolved: the CUDA statistical lane PASSED on the remote server (RTX 4060 Ti, LeRobot 0.6.1, torch 2.10) and the artifact is committed. The final grid (seeds 1–3, strengths 1/5/10) demonstrates all three outcomes: baseline is bit-exact; the targeted intervention leaves behavior unchanged at strength 1 (offline on-target 0.86, success delta 0.00 — recorded overstatement disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10 (recorded reversal disagreements, all 6 episodes maxed at 280 steps), while the random control never changes success. Acceptance passed; THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY promoted to D3.

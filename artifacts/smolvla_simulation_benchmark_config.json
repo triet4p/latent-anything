@@ -1,0 +1,29 @@
+{
+  "action_axis": 0,
+  "conditions": [
+    "no_hook",
+    "baseline",
+    "random",
+    "targeted"
+  ],
+  "env_type": "libero",
+  "episode_length": null,
+  "intervention_seed": 0,
+  "max_episode_steps": null,
+  "noise_value": 0.0,
+  "observation_height": 256,
+  "observation_width": 256,
+  "probe_queries": 2,
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "strengths": [
+    1.0,
+    5.0,
+    10.0
+  ],
+  "task": "libero_spatial",
+  "task_ids": null
+}

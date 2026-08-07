@@ -284,6 +284,15 @@ observational — only the SmolVLA environment-level evidence can promote the
 causal-intervention capability, and only when the predeclared acceptance gate
 passes.
 
+The committed artifact (seeds 1–3, strengths 1/5/10) passed the gate on the
+pinned public pair and promoted `THY-T05-CAUSAL-INTERVENTION-VS-
+OBSERVATIONAL-STUDY` to D3. It demonstrates all three outcomes: the baseline
+is bit-exact; the targeted intervention leaves behavior unchanged at strength
+1 (offline on-target 0.86 with zero success delta — a recorded overstatement
+disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10
+(recorded reversal disagreements; all six episodes max out at 280 steps),
+while the random control never changes success.
+
 ## Explicitly rejected scope
 
 The bridge does not:

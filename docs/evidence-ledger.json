@@ -243,6 +243,16 @@
         {"role": "benchmark", "path": "scripts/projection_basis_comparison.py"},
         {"role": "config", "path": "src/latent_anything/projection.py"}
       ]
+    },
+    "THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/integrations/lerobot_benchmark.py"},
+        {"role": "test", "path": "tests/test_lerobot_benchmark.py"},
+        {"role": "benchmark", "path": "scripts/smolvla_simulation_benchmark.py"},
+        {"role": "config", "path": "src/latent_anything/integrations/lerobot_benchmark.py"},
+        {"role": "artifact", "path": "artifacts/smolvla_simulation_benchmark.json"}
+      ]
     }
   }
 }

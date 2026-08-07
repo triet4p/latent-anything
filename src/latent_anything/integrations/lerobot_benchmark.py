@@ -474,9 +474,7 @@ def build_libero_benchmark_environment(
             )
         task_map = suite_map[suite_key]
         if task_id not in task_map:
-            raise ValueError(
-                f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}"
-            )
+            raise ValueError(f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}")
         return task_map[task_id]
 
     utils_module = import_module("lerobot.envs.utils")
