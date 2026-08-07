@@ -542,7 +542,10 @@ class SmolVLAPolicyAdapter:
     def device(self) -> str:
         """Return the device the pinned policy lives on."""
 
-        return str(_policy_device(self.context.policy))
+        policy = self.context.policy
+        if not isinstance(policy, nn.Module):
+            raise TypeError("SmolVLA policy must be a torch.nn.Module for device resolution")
+        return str(_policy_device(policy))
 
     @property
     def num_steps(self) -> int:
