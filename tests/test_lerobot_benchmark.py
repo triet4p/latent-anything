@@ -9,6 +9,7 @@ observations per seed, so the default suite stays offline and deterministic.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
 
@@ -401,6 +402,42 @@ def test_benchmark_creates_a_fresh_environment_per_cell() -> None:
     expected_cells = 2 * 4  # two seeds x four conditions
     assert len(created) == expected_cells
     assert all(env.closed for env in created)
+
+
+def test_libero_config_bootstrap_is_non_interactive_and_idempotent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    import importlib.util
+
+    from latent_anything.integrations import lerobot_benchmark as benchmark_module
+
+    package_dir = tmp_path / "site-packages" / "libero" / "libero"
+    package_dir.mkdir(parents=True)
+    (package_dir / "init_files").mkdir()
+    (package_dir / "__init__.py").write_text("", encoding="utf-8")
+    fake_spec = importlib.util.spec_from_file_location("libero.libero", package_dir / "__init__.py")
+    assert fake_spec is not None and fake_spec.origin is not None
+    monkeypatch.setattr(benchmark_module, "_find_spec", lambda name: fake_spec if name == "libero.libero" else None)
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+
+    benchmark_module._bootstrap_libero_config()
+    config_path = tmp_path / ".libero" / "config.yaml"
+    assert config_path.is_file()
+    content = config_path.read_text(encoding="utf-8")
+    assert "init_states:" in content
+    assert str(package_dir / "init_files") in content
+    first_mtime = config_path.stat().st_mtime_ns
+
+    benchmark_module._bootstrap_libero_config()
+    assert config_path.stat().st_mtime_ns == first_mtime  # valid config is preserved
+
+    stale = "init_states: /nowhere/that/exists\n"
+    config_path.write_text(stale, encoding="utf-8")
+    benchmark_module._bootstrap_libero_config()
+    refreshed = config_path.read_text(encoding="utf-8")
+    assert "init_states: /nowhere/that/exists" not in refreshed
+    assert str(package_dir / "init_files") in refreshed
 
 
 def test_build_libero_benchmark_environment_uses_upstream_factories(monkeypatch: pytest.MonkeyPatch) -> None:

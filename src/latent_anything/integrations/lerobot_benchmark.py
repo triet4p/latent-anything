@@ -27,10 +27,12 @@ imported lazily by :func:`build_libero_benchmark_environment`.
 
 from __future__ import annotations
 
+import importlib.util
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from importlib import import_module
+from pathlib import Path
 from typing import Literal, cast
 
 import numpy as np
@@ -379,6 +381,58 @@ class SimulationBenchmarkResult:
         }
 
 
+def _find_spec(name: str) -> importlib.machinery.ModuleSpec | None:
+    """Resolve a module spec without executing the module (importlib indirection)."""
+
+    return importlib.util.find_spec(name)
+
+
+def _bootstrap_libero_config() -> None:
+    """Pre-create LIBERO's user config so its import never prompts interactively.
+
+    ``hf-libero`` 0.1.4 runs ``input()`` at import time when
+    ``~/.libero/config.yaml`` is missing, which raises under captured stdin
+    (pytest) and blocks headless lanes. The benchmark resolves the installed
+    package paths and writes the same default config upstream would, so first
+    use stays non-interactive. An existing config is preserved only while its
+    recorded ``init_states`` path still exists; a stale config (for example
+    from a previous temporary clone that has since been deleted) is refreshed.
+    """
+
+    config_path = Path.home() / ".libero" / "config.yaml"
+    if config_path.exists() and _recorded_init_states_exist(config_path):
+        return
+    try:
+        spec = _find_spec("libero.libero")
+    except (ImportError, ModuleNotFoundError):
+        spec = None
+    if spec is None or spec.origin is None:
+        return
+    package_root = Path(spec.origin).resolve().parent
+    entries = {
+        "benchmark_root": package_root,
+        "bddl_files": package_root / "bddl_files",
+        "init_states": package_root / "init_files",
+        "datasets": package_root.parent / "datasets",
+        "assets": package_root / "assets",
+    }
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        "".join(f"{key}: {value}\n" for key, value in entries.items()),
+        encoding="utf-8",
+    )
+
+
+def _recorded_init_states_exist(config_path: Path) -> bool:
+    """Return whether the recorded init_states path still points at files."""
+
+    for line in config_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("init_states:"):
+            recorded = line.split(":", 1)[1].strip()
+            return recorded and Path(recorded).is_dir()
+    return False
+
+
 def build_libero_benchmark_environment(
     config: SimulationBenchmarkConfig,
     *,
@@ -390,10 +444,12 @@ def build_libero_benchmark_environment(
     built through ``lerobot.envs.make_env_config``, the vector environment
     through ``LeRobotAPI.make_env`` with ``n_envs=1``, and the observation
     conversion through the env's own ``get_env_processors()`` plus
-    ``lerobot.envs.utils.preprocess_observation``.
+    ``lerobot.envs.utils.preprocess_observation``. LIBERO's user config is
+    bootstrapped first so the upstream import never prompts interactively.
     """
 
     upstream_api = api if api is not None else load_lerobot_api()
+    _bootstrap_libero_config()
     envs_module = import_module("lerobot.envs")
     make_env_config = getattr(envs_module, "make_env_config")  # noqa: B009 - optional upstream symbol
     env_config = make_env_config(
