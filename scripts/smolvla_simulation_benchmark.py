@@ -138,12 +138,7 @@ def main() -> None:
     args = parse_args()
     config = build_config(args)
     adapter, environment = load_runtime(args)
-    try:
-        result = run_simulation_benchmark(adapter, environment, config)
-    finally:
-        close = getattr(environment.env, "close", None)
-        if callable(close):
-            close()
+    result = run_simulation_benchmark(adapter, environment, config)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")

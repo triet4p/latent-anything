@@ -143,13 +143,17 @@ class SimulationBenchmarkConfig(BaseModel):
 
 @dataclass(frozen=True)
 class BenchmarkEnvironmentBundle:
-    """Raw LeRobot vector environment plus the official observation processors.
+    """Raw LeRobot vector-environment factory plus the official processors.
 
-    ``env`` keeps the upstream gymnasium vector environment object; the
-    harness only exercises its ``reset``/``step``/``call``/``close`` surface.
+    ``env_factory`` creates a fresh vector environment for every episode cell.
+    This is deliberate: LIBERO advances its initial-state index on each
+    ``reset``, so sharing one env instance between conditions would silently
+    change the initial state and break the comparability the benchmark
+    depends on. A fresh environment per (seed, condition) cell always starts
+    from initial state 0 with the same seed.
     """
 
-    env: object
+    env_factory: Callable[[], object]
     env_preprocessor: Callable[[Mapping[str, object]], Mapping[str, object]]
     preprocess_observation: Callable[[Mapping[str, object]], Mapping[str, object]]
     task_description: str
@@ -402,27 +406,37 @@ def build_libero_benchmark_environment(
     )
     env_preprocessor, env_postprocessor = env_config.get_env_processors()
     del env_postprocessor
-    envs = upstream_api.make_env(env_config, n_envs=1)
-    suite_map = cast(Mapping[str, Mapping[int, object]], envs)
-    suite_key = next((key for key in (config.task, config.env_type) if key in suite_map), None)
-    if suite_key is None:
-        raise ValueError(
-            f"environment factory returned no {config.env_type!r}/{config.task!r} suite: {sorted(suite_map)}"
-        )
     task_id = config.task_ids[0] if config.task_ids else 0
-    task_map = suite_map[suite_key]
-    if task_id not in task_map:
-        raise ValueError(
-            f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}"
-        )
-    env = task_map[task_id]
+
+    def create_env() -> object:
+        envs = upstream_api.make_env(env_config, n_envs=1)
+        suite_map = cast(Mapping[str, Mapping[int, object]], envs)
+        suite_key = next((key for key in (config.task, config.env_type) if key in suite_map), None)
+        if suite_key is None:
+            raise ValueError(
+                f"environment factory returned no {config.env_type!r}/{config.task!r} suite: {sorted(suite_map)}"
+            )
+        task_map = suite_map[suite_key]
+        if task_id not in task_map:
+            raise ValueError(
+                f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}"
+            )
+        return task_map[task_id]
 
     utils_module = import_module("lerobot.envs.utils")
     preprocess_observation = getattr(utils_module, "preprocess_observation")  # noqa: B009 - optional upstream symbol
-    task_description = _call_task_description(env)
-    max_steps = int(config.max_episode_steps) if config.max_episode_steps is not None else _call_max_steps(env)
+    probe_env = create_env()
+    try:
+        task_description = _call_task_description(probe_env)
+        max_steps = (
+            int(config.max_episode_steps) if config.max_episode_steps is not None else _call_max_steps(probe_env)
+        )
+    finally:
+        close = getattr(probe_env, "close", None)
+        if callable(close):
+            close()
     return BenchmarkEnvironmentBundle(
-        env=env,
+        env_factory=create_env,
         env_preprocessor=env_preprocessor,
         preprocess_observation=preprocess_observation,
         task_description=task_description,
@@ -430,7 +444,6 @@ def build_libero_benchmark_environment(
         metadata={
             "env_type": config.env_type,
             "task": config.task,
-            "suite_key": suite_key,
             "task_id": task_id,
             "task_description": task_description,
             "max_episode_steps": max_steps,
@@ -615,16 +628,17 @@ def run_episode(
 ) -> tuple[EpisodeOutcome, tuple[Mapping[str, object], ...]]:
     """Roll out one episode under one condition on the official path.
 
-    The environment is reset with ``seed`` and the action queue with
-    ``adapter.reset()``; every step goes through the official observation
-    conversion, policy preprocessing, ``select_action``, postprocessing, and
-    ``env.step``. ``record_samples`` collects the policy-ready samples of
-    executed queries (used as offline probe inputs).
+    A fresh environment is created for the cell (so LIBERO starts from the
+    same initial state as every other condition), reset with ``seed``, and
+    closed after the episode. Every step goes through the official
+    observation conversion, policy preprocessing, ``select_action``,
+    postprocessing, and ``env.step``. ``record_samples`` collects the
+    policy-ready samples of executed queries (used as offline probe inputs).
     """
 
     if condition not in VALID_CONDITIONS:
         raise ValueError(f"unknown benchmark condition {condition!r}")
-    env = environment.env
+    env = environment.env_factory()
     reset = cast(
         Callable[..., tuple[Mapping[str, object], Mapping[str, object]]],
         getattr(env, "reset", None),
@@ -634,46 +648,54 @@ def run_episode(
         getattr(env, "step", None),
     )
     if not callable(reset) or not callable(step):
+        close = getattr(env, "close", None)
+        if callable(close):
+            close()
         raise TypeError("benchmark environment must expose reset() and step()")
-    adapter.reset()
-    observation, _info = reset(seed=seed)
-    samples: list[Mapping[str, object]] = []
-    actions: list[np.ndarray] = []
-    rewards: list[float] = []
-    latencies: list[float] = []
-    success = False
-    terminated = False
-    step_index = 0
-    while step_index < environment.max_episode_steps:
-        observed = cast(Mapping[str, object], observation)
-        converted = environment.preprocess_observation(observed)
-        with_task = dict(converted)
-        with_task["task"] = [environment.task_description]
-        sample = environment.env_preprocessor(with_task)
-        is_query = step_index % adapter.chunk_size == 0
-        if record_samples and is_query:
-            samples.append(sample)
-        started = time.perf_counter()
-        if condition == "no_hook":
-            raw_action = _official_select_action(adapter, sample, noise=noise)
-        else:
-            selection = adapter.select_action(
-                sample,
-                noise=noise,
-                intervention=SmolVLAIntervention(direction=direction, strength=strength),
-                episode_step=step_index,
-            )
-            raw_action = selection.action
-        latencies.append(time.perf_counter() - started)
-        action = _action_to_numpy(raw_action)
-        actions.append(action)
-        observation, reward, done, truncated, info = step(action)
-        rewards.append(float(np.asarray(reward).reshape(-1)[0]))
-        terminated = _termination_flags(done) or _termination_flags(truncated)
-        success = _extract_success(cast(Mapping[str, object], info))
-        if terminated:
-            break
-        step_index += 1
+    try:
+        adapter.reset()
+        observation, _info = reset(seed=seed)
+        samples: list[Mapping[str, object]] = []
+        actions: list[np.ndarray] = []
+        rewards: list[float] = []
+        latencies: list[float] = []
+        success = False
+        terminated = False
+        step_index = 0
+        while step_index < environment.max_episode_steps:
+            observed = cast(Mapping[str, object], observation)
+            converted = environment.preprocess_observation(observed)
+            with_task = dict(converted)
+            with_task["task"] = [environment.task_description]
+            sample = environment.env_preprocessor(with_task)
+            is_query = step_index % adapter.chunk_size == 0
+            if record_samples and is_query:
+                samples.append(sample)
+            started = time.perf_counter()
+            if condition == "no_hook":
+                raw_action = _official_select_action(adapter, sample, noise=noise)
+            else:
+                selection = adapter.select_action(
+                    sample,
+                    noise=noise,
+                    intervention=SmolVLAIntervention(direction=direction, strength=strength),
+                    episode_step=step_index,
+                )
+                raw_action = selection.action
+            latencies.append(time.perf_counter() - started)
+            action = _action_to_numpy(raw_action)
+            actions.append(action)
+            observation, reward, done, truncated, info = step(action)
+            rewards.append(float(np.asarray(reward).reshape(-1)[0]))
+            terminated = _termination_flags(done) or _termination_flags(truncated)
+            success = _extract_success(cast(Mapping[str, object], info))
+            if terminated:
+                break
+            step_index += 1
+    finally:
+        close = getattr(env, "close", None)
+        if callable(close):
+            close()
     del _info
     outcome = _build_outcome(
         seed=seed,
@@ -864,10 +886,11 @@ def run_simulation_benchmark(
     Episode order per seed is fixed: ``no_hook`` first (it produces the
     reference trajectory every other condition is compared against), then
     ``baseline``, then the non-zero intervention conditions at every declared
-    strength. Every condition re-creates the same initial state by resetting
-    the same environment object with the same seed; the action queue and the
-    noise are identical across conditions, so the only behavioral difference
-    is the intervention.
+    strength. Every condition starts from the same initial state with the
+    same seed and identical fixed noise — the environment factory creates a
+    fresh vector environment per cell precisely so LIBERO's initial-state
+    index cannot advance between conditions — and the only behavioral
+    difference is the intervention.
     """
 
     if not isinstance(noise, np.ndarray):

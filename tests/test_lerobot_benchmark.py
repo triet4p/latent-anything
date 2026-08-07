@@ -245,9 +245,8 @@ class FakeVectorEnv:
 
 
 def make_fixture_bundle() -> BenchmarkEnvironmentBundle:
-    env = FakeVectorEnv()
     return BenchmarkEnvironmentBundle(
-        env=env,
+        env_factory=lambda: FakeVectorEnv(),
         env_preprocessor=lambda observation: observation,
         preprocess_observation=lambda observation: observation,
         task_description="fixture task",
@@ -379,6 +378,31 @@ def test_benchmark_episode_outcome_records_termination_and_actions() -> None:
     assert len(samples) == 2  # executed model queries at steps 0 and 4
 
 
+def test_benchmark_creates_a_fresh_environment_per_cell() -> None:
+    created: list[FakeVectorEnv] = []
+
+    def factory() -> FakeVectorEnv:
+        env = FakeVectorEnv()
+        created.append(env)
+        return env
+
+    adapter = make_fixture_adapter()
+    bundle = BenchmarkEnvironmentBundle(
+        env_factory=factory,
+        env_preprocessor=lambda observation: observation,
+        preprocess_observation=lambda observation: observation,
+        task_description="fixture task",
+        max_episode_steps=MAX_STEPS,
+    )
+    config = SimulationBenchmarkConfig(seeds=(1, 2), strengths=(1.0,))
+
+    run_simulation_benchmark(adapter, bundle, config, noise=make_benchmark_noise())
+
+    expected_cells = 2 * 4  # two seeds x four conditions
+    assert len(created) == expected_cells
+    assert all(env.closed for env in created)
+
+
 def test_build_libero_benchmark_environment_uses_upstream_factories(monkeypatch: pytest.MonkeyPatch) -> None:
     import sys
     from types import ModuleType
@@ -439,7 +463,8 @@ def test_build_libero_benchmark_environment_uses_upstream_factories(monkeypatch:
     assert make_calls[0]["task_ids"] == [2]
     assert make_calls[0]["observation_height"] == 256
     assert make_calls[0]["observation_width"] == 360
-    assert bundle.env is fake_env
+    created = bundle.env_factory()
+    assert created is fake_env
     assert bundle.task_description == "fixture task"
     assert bundle.max_episode_steps == MAX_STEPS
     assert bundle.metadata["task_id"] == 2
@@ -486,12 +511,7 @@ def test_smolvla_simulation_statistical_benchmark() -> None:
     )
     adapter = load_smolvla_policy(DEFAULT_SMOLVLA_CHECKPOINT, device="cuda")
     environment = build_libero_benchmark_environment(config)
-    try:
-        result = run_simulation_benchmark(adapter, environment, config)
-    finally:
-        close = getattr(environment.env, "close", None)
-        if callable(close):
-            close()
+    result = run_simulation_benchmark(adapter, environment, config)
     assert result.acceptance.passed, result.acceptance.failures
     no_hook = next(summary for summary in result.summaries if summary.condition == "no_hook")
     assert no_hook.n_episodes == 2

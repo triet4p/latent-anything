@@ -19,4 +19,4 @@ Selected the pinned SmolVLA pair (`lerobot/smolvla_libero@31d453f7…` + `lerobo
 
 ## Additional Notes
 
-Determinism: each condition resets the same env object with the same seed; LIBERO's initial-state index is consumed per reset, so conditions stay comparable because episodes replay the same init state.
+Determinism: the environment factory creates a fresh vector environment per (seed, condition) cell so LIBERO's initial-state index always starts at 0; every condition replays the same seed with identical fixed noise, keeping conditions comparable.
