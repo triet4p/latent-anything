@@ -50,6 +50,8 @@ class _ActionSelectingPolicy(Protocol):
 
     def select_action(self, batch: object, *, noise: object | None = None) -> object: ...
 
+    def reset(self) -> None: ...
+
 
 class TinyVisionModel(nn.Module):
     """Mirrors ``model.vlm_with_expert.vlm.model.vision_model`` (SigLIP)."""
@@ -558,6 +560,7 @@ def test_smolvla_gpu_checkpoint_intervention_lane() -> None:
     postprocessor = cast(Callable[[object], Mapping[str, object]], adapter.context.postprocessor)
     policy = cast(_ActionSelectingPolicy, adapter.context.policy)
     prepared = preprocessor(sample)
+    policy.reset()
     direct_action = postprocessor(
         policy.select_action(
             prepared,
