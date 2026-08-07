@@ -21,4 +21,4 @@
 
 ## Additional Notes
 
-The marked GPU lane runs on the remote CUDA server (`/remote-cuda-test`) with `LATENT_ANYTHING_RUN_NETWORK=1`; the CPU policy load, capture, parity, and intervention were verified locally as part of Task 2/4/5.
+The marked GPU lane ran successfully through `/remote-cuda-test` on the CUDA server: `test_smolvla_gpu_checkpoint_intervention_lane` PASSED on `NVIDIA GeForce RTX 4060 Ti` (torch 2.10.0+cu128, `lerobot-smolvla` profile, clone SHA `7d6d500aadf2d2041025e021b07fe66f0798a99b`), and the full `tests/test_lerobot_smolvla.py` suite passed on the server (`9 passed, 1 skipped`). The CPU policy load, capture, parity, and intervention were also verified locally.

@@ -183,3 +183,18 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** Optional packages can remain installed in the base environment, while `uv run` without `--extra lerobot` resolves the base NumPy profile. The test checked only that LeRobot was importable, not that the complete optional runtime was compatible.
 **Fix / workaround:** The smoke now skips with the compatibility diagnostic when the installed optional runtime is outside the supported window; the strict bridge loader still raises, and the optional CI lane runs the test in `uv sync --locked --extra lerobot`, which resolves NumPy 2.2.6.
 **Watch out for:** Any optional integration test guarded only by `importorskip` can still fail when a stale/incompatible extra is installed locally. Check the bridge compatibility report before invoking upstream factories.
+
+
+## [2026-08-06] SmolVLA fixed seed noise must match the policy device and dtype, and the real postprocessor returns a tensor
+
+**Symptom:** The GPU intervention lane failed twice on the CUDA server: first `RuntimeError: Expected all tensors to be on the same device, but got mat1 is on cpu, different from other tensors on cuda:0`, then `IndexError: too many indices for tensor of dimension 2` in a parity assertion.
+**Root cause:** (1) The adapter created the fixed action-chunk noise as a plain CPU float64 tensor, but the real policy lives on CUDA and its float32 action expert requires the noise on the model device. (2) The test assumed the post-processor returns a mapping with an `action` key like the fixture; LeRobot's real `PolicyProcessorPipeline` returns the action tensor itself, and `np.asarray` on the raw result failed. (3) A direct-path parity comparison without resetting the action queue compared the first and second pops of the same chunk instead of two identical queries.
+**Fix / workaround:** Place seed noise on the policy device (`_policy_device(policy)`) and cast it to float32; treat post-processor results as tensor-or-mapping through a tolerant helper; reset the policy queue before the direct parity query so both sides compute the same fresh chunk.
+**Watch out for:** Any policy adapter that forwards a caller-provided noise tensor into `select_action`; CPU-only fixtures cannot expose device-mismatch bugs, so GPU lanes are the first real check. Also keep the direct-parity pattern (reset, then compare) identical to the offline fixture tests.
+
+## [2026-08-06] `uv run` without `--extra` silently resyncs to the base profile
+
+**Symptom:** After `uv sync --extra lerobot-smolvla` installed NumPy 2.2.6, a follow-up `uv run python -c ...` reported NumPy 2.4.6 and the LeRobot compatibility check failed.
+**Root cause:** `uv run` auto-syncs the default (extra-less) profile when no `--extra` flag is passed, replacing the lerobot-resolved NumPy with the base profile's 2.4.6.
+**Fix / workaround:** Always pass the same `--extra` flags to `uv run` as to `uv sync` when the command needs the optional runtime (e.g. `uv run --extra lerobot-smolvla python ...`).
+**Watch out for:** Any command mixing `uv sync --extra <profile>` and plain `uv run`; the environment silently changes between the two invocations.
