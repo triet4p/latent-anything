@@ -231,8 +231,58 @@ It writes `artifacts/smolvla_policy_representation_benchmark.json`. The marked
 public checkpoint lane is in `tests/test_lerobot_smolvla.py` and requires a
 CUDA device plus `LATENT_ANYTHING_RUN_NETWORK=1` in an environment containing
 the `lerobot-smolvla` extra. The SmolVLA claim is an observational and
-bounded-intervention claim; environment-level causal effects remain Sprint 61
-scope.
+bounded-intervention claim; environment-level causal effects are the Sprint 61
+simulation benchmark below.
+
+## SmolVLA causal simulation benchmark
+
+Sprint 61 runs the pinned SmolVLA checkpoint inside the LIBERO simulation
+evaluation loop under four predeclared conditions and judges the explanation
+by its controlled behavioral effect:
+
+| Condition | Definition |
+| --- | --- |
+| `no_hook` | Official preprocess → `select_action` → postprocess path with no capture hooks installed. |
+| `baseline` | Capture hooks installed with an intervention at strength zero (bit-exact identity, so behavior must equal `no_hook`). |
+| `random` | A seeded unit-norm random action-expert direction added at every denoising step. |
+| `targeted` | The action-expert direction inducing the largest change along one declared action axis through the policy's own `action_out_proj` (`action_axis=0`). |
+
+The harness (`latent_anything.integrations.lerobot_benchmark`) owns the
+experiment protocol and bridge-owned results; LeRobot owns the environment
+(`make_env_config` + `make_env` with `n_envs=1`), the observation conversion
+(`get_env_processors` + `preprocess_observation`), the policy, and its
+processors. Every condition replays the same episode seeds from the same
+initial state with identical fixed noise, so the only behavioral difference
+between conditions is the intervention.
+
+Metrics per episode: success, return, episode length, per-step action
+deviation against the `no_hook` trajectory, per-query latency, and executed
+query count. Aggregates carry a Wilson 95% interval for success rate and a
+normal-approximation interval for return. Offline explanation scores (on-target
+fraction, action-change norm, representation drift from
+`measure_smolvla_intervention`) are paired with the environment-level effects
+and checked against predeclared disagreement rules (overstatement,
+understatement, reversal).
+
+The real lane requires CUDA, `LATENT_ANYTHING_RUN_NETWORK=1`, and the
+`lerobot-smolvla` profile, which since Sprint 61 also carries LeRobot's
+Linux-only `libero` environment extra. The deterministic offline fixture and
+the separately marked statistical benchmark live in
+`tests/test_lerobot_benchmark.py`. The reproducible evidence command is:
+
+```text
+uv run python scripts/smolvla_simulation_benchmark.py --seeds 1 2 3
+```
+
+It writes `artifacts/smolvla_simulation_benchmark.json` (full config, episode
+rows, condition summaries, correlation, acceptance, failure analysis), a
+standalone `artifacts/smolvla_simulation_benchmark_config.json`, and
+`artifacts/smolvla_simulation_benchmark.png` plots. Videos are intentionally
+omitted (large files; the quantitative failure analysis covers behavior).
+ACT and Diffusion have no intervention surface, so their claims remain
+observational — only the SmolVLA environment-level evidence can promote the
+causal-intervention capability, and only when the predeclared acceptance gate
+passes.
 
 ## Explicitly rejected scope
 

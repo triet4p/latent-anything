@@ -2,7 +2,7 @@ name: Optional extras
 
 on:
   pull_request:
-    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "tests/test_lerobot_dataset_bridge.py", "tests/test_lerobot_act.py", "tests/test_lerobot_diffusion.py", "tests/test_lerobot_smolvla.py", "scripts/lerobot_dataset_inspection.py", "scripts/act_policy_representation_benchmark.py", "scripts/diffusion_policy_representation_benchmark.py", "scripts/smolvla_policy_representation_benchmark.py", "docs/LEROBOT_INTEGRATION.md"]
+    paths: ["pyproject.toml", "uv.lock", "src/latent_anything/integrations/**", "tests/test_lerobot_integration.py", "tests/test_lerobot_dataset_bridge.py", "tests/test_lerobot_act.py", "tests/test_lerobot_diffusion.py", "tests/test_lerobot_smolvla.py", "tests/test_lerobot_benchmark.py", "scripts/lerobot_dataset_inspection.py", "scripts/act_policy_representation_benchmark.py", "scripts/diffusion_policy_representation_benchmark.py", "scripts/smolvla_policy_representation_benchmark.py", "scripts/smolvla_simulation_benchmark.py", "docs/LEROBOT_INTEGRATION.md"]
   workflow_dispatch:
 
 jobs:
@@ -68,4 +68,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --locked --extra lerobot-smolvla
-      - run: uv run --locked --extra lerobot-smolvla pytest tests/test_lerobot_smolvla.py -v
+      - run: uv run --locked --extra lerobot-smolvla pytest tests/test_lerobot_smolvla.py tests/test_lerobot_benchmark.py -v
