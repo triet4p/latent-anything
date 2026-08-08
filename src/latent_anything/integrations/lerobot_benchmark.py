@@ -31,7 +31,7 @@ import importlib.util
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
-from importlib import import_module
+from importlib import import_module, machinery
 from pathlib import Path
 from typing import Literal, cast
 
@@ -381,7 +381,7 @@ class SimulationBenchmarkResult:
         }
 
 
-def _find_spec(name: str) -> importlib.machinery.ModuleSpec | None:
+def _find_spec(name: str) -> machinery.ModuleSpec | None:
     """Resolve a module spec without executing the module (importlib indirection)."""
 
     return importlib.util.find_spec(name)
@@ -429,7 +429,7 @@ def _recorded_init_states_exist(config_path: Path) -> bool:
     for line in config_path.read_text(encoding="utf-8").splitlines():
         if line.startswith("init_states:"):
             recorded = line.split(":", 1)[1].strip()
-            return recorded and Path(recorded).is_dir()
+            return bool(recorded) and Path(recorded).is_dir()
     return False
 
 

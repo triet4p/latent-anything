@@ -1,0 +1,42 @@
+{
+  "claim_scope": "Offline observational comparison of the checked-in ACT and Diffusion Policy evidence artifacts; this is not a cross-policy performance ranking.",
+  "schema_version": 1,
+  "title": "LeRobot policy representation comparison",
+  "baseline": "act",
+  "runs": [
+    {
+      "name": "act",
+      "source_artifact": "artifacts/act_policy_representation_benchmark.json",
+      "policy_repo_id": "lerobot/act_aloha_sim_insertion_human",
+      "policy_revision": "33259aa86eb45fdf85350280044a33d9d50e40c3",
+      "dataset_repo_id": "lerobot/aloha_sim_insertion_human",
+      "dataset_revision": "cc571a3c661df81b566dbfde3d5c1e85fcdf7884",
+      "metrics": {
+        "outcome_probe_accuracy": 0.8888888888888888,
+        "density_auroc": null
+      },
+      "causal_intervention": false
+    },
+    {
+      "name": "diffusion",
+      "source_artifact": "artifacts/diffusion_policy_representation_benchmark.json",
+      "policy_repo_id": "LeTau/diffusion_aloha_insertion",
+      "policy_revision": "6126e33",
+      "dataset_repo_id": "lerobot/aloha_sim_insertion_human_image",
+      "dataset_revision": "d93d36a",
+      "metrics": {
+        "outcome_probe_accuracy": 0.625,
+        "density_auroc": 0.7777777777777778
+      },
+      "causal_intervention": false
+    }
+  ],
+  "metric_deltas_diffusion_minus_act": {
+    "outcome_probe_accuracy": -0.2638888888888888,
+    "density_auroc": null
+  },
+  "interpretation": [
+    "The two artifacts use different representation seams and datasets, so the values are descriptive within each declared protocol.",
+    "The comparison demonstrates that Sprint 62 can retain pinned provenance and make metric deltas explicit without claiming interchangeable policy quality."
+  ]
+}

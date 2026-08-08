@@ -110,6 +110,17 @@ success from 1.0 to 0.0 at strengths 5 and 10, while the random control never
 changes success. ACT and Diffusion have no intervention surface, so their
 claims remain observational.
 
+Sprint 62 adds the local reproducibility contract without promoting a new
+theory topic: the versioned record and atomic recorder
+(`src/latent_anything/run_record.py`), LeRobot boundary helpers
+(`src/latent_anything/integrations/lerobot_recording.py`), focused contract and
+CLI tests (`tests/test_run_record.py` and `tests/test_cli.py`), the inspection
+and comparison commands (`src/latent_anything/cli.py` and
+`scripts/lerobot_run_comparison.py`), and the pinned ACT-vs-Diffusion
+comparison (`artifacts/lerobot_policy_comparison.json`). The Rule-of-Three
+decision freezes only the local concrete contract; external tracking backends
+remain deferred to Sprint 76.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

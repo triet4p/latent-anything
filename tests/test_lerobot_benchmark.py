@@ -421,7 +421,7 @@ def test_libero_config_bootstrap_is_non_interactive_and_idempotent(
     monkeypatch.setattr(benchmark_module, "_find_spec", lambda name: fake_spec if name == "libero.libero" else None)
     monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
 
-    benchmark_module._bootstrap_libero_config()
+    benchmark_module._bootstrap_libero_config()  # pyright: ignore[reportPrivateUsage]
     config_path = tmp_path / ".libero" / "config.yaml"
     assert config_path.is_file()
     content = config_path.read_text(encoding="utf-8")
@@ -429,12 +429,12 @@ def test_libero_config_bootstrap_is_non_interactive_and_idempotent(
     assert str(package_dir / "init_files") in content
     first_mtime = config_path.stat().st_mtime_ns
 
-    benchmark_module._bootstrap_libero_config()
+    benchmark_module._bootstrap_libero_config()  # pyright: ignore[reportPrivateUsage]
     assert config_path.stat().st_mtime_ns == first_mtime  # valid config is preserved
 
     stale = "init_states: /nowhere/that/exists\n"
     config_path.write_text(stale, encoding="utf-8")
-    benchmark_module._bootstrap_libero_config()
+    benchmark_module._bootstrap_libero_config()  # pyright: ignore[reportPrivateUsage]
     refreshed = config_path.read_text(encoding="utf-8")
     assert "init_states: /nowhere/that/exists" not in refreshed
     assert str(package_dir / "init_files") in refreshed

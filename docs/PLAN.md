@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 61 is complete; the Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 62 is complete; Sprint 61 is complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -104,7 +104,6 @@ None. Sprint 61 is complete; the Sprint 35 evidence items remain carryover gates
 - [Sprint 59](sprint-plans/sprint-59.md) - Capture and analyze LeRobot Diffusion Policy representations.
 - [Sprint 60](sprint-plans/sprint-60.md) - Capture and intervene on SmolVLA representations.
 - [Sprint 61](sprint-plans/sprint-61.md) - Run a causal policy-explanation benchmark through LeRobot simulation evaluation.
-- [Sprint 62](sprint-plans/sprint-62.md) - Add reproducible experiment records and LeRobot-facing inspection commands.
 
 ### Milestone 12 - World models and planning
 
@@ -176,6 +175,7 @@ None. Sprint 61 is complete; the Sprint 35 evidence items remain carryover gates
 - [Sprint 59](sprint-plans/sprint-59.md) - Pinned Diffusion Policy capture through LeRobot's official factories, explicit conditioning/denoising axes, observational outcome analysis, and an opt-in public checkpoint smoke.
 - [Sprint 60](sprint-plans/sprint-60.md) - Pinned SmolVLA capture through LeRobot's official factories, vision/language/state/action-expert representation seams with token metadata, one bounded strength-controlled action-expert intervention with bit-exact identity, quantitative change/drift/sensitivity measurements, and a marked CUDA checkpoint lane.
 - [x] [Sprint 61](sprint-plans/sprint-61.md) - Causal policy-explanation benchmark through LIBERO simulation evaluation: four predeclared conditions (no-hook control, zero-strength baseline, random, targeted), seeded episode replay with fixed noise, success/return/action-deviation/latency metrics with Wilson intervals, offline-explanation-to-environment correlation with declared disagreement rules, an offline fixture suite plus a marked CUDA statistical lane, and a D3 promotion gated on the acceptance checks.
+- [x] [Sprint 62](sprint-plans/sprint-62.md) - Versioned local run records, atomic content-addressed artifacts, LeRobot evidence recording, inspection/replay/comparison CLI commands, and the frozen local recorder contract.
 
 ## Planning Rules
 

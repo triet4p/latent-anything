@@ -121,6 +121,14 @@ from latent_anything.registry import RegistryEntry as RegistryEntry
 from latent_anything.registry import list_entries as list_entries
 from latent_anything.registry import lookup as lookup_entry
 from latent_anything.registry import register as register_entry
+from latent_anything.run_record import ArtifactRef as ArtifactRef
+from latent_anything.run_record import DuplicateRunError as DuplicateRunError
+from latent_anything.run_record import FileSystemRunRecorder as FileSystemRunRecorder
+from latent_anything.run_record import RunComparisonReport as RunComparisonReport
+from latent_anything.run_record import RunRecord as RunRecord
+from latent_anything.run_record import build_comparison_report as build_comparison_report
+from latent_anything.run_record import compute_run_identity as compute_run_identity
+from latent_anything.run_record import migrate_run_record as migrate_run_record
 from latent_anything.runtime import BatchExecutor as BatchExecutor
 from latent_anything.runtime import CacheKey as CacheKey
 from latent_anything.runtime import CacheStats as CacheStats
@@ -276,6 +284,14 @@ __all__ = [
     "RegistryEntry",
     "RuntimeProfile",
     "RuntimeProfiler",
+    "ArtifactRef",
+    "DuplicateRunError",
+    "FileSystemRunRecorder",
+    "RunComparisonReport",
+    "RunRecord",
+    "build_comparison_report",
+    "compute_run_identity",
+    "migrate_run_record",
     "SAEConfig",
     "SAEEvaluationResult",
     "SAEFeatureEvaluation",

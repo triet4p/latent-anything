@@ -293,6 +293,48 @@ disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10
 (recorded reversal disagreements; all six episodes max out at 280 steps),
 while the random control never changes success.
 
+## Sprint 62 run records and inspection commands
+
+Sprint 62 adds a versioned local evidence contract in
+`latent_anything.run_record`. A `RunRecord` keeps the declared config,
+code/framework version, pinned model and dataset revisions, seeds, execution
+environment, metrics, content-addressed artifacts, parent/child links, runtime
+profile, and theory evidence identifiers. Its identity is a SHA-256 hash of
+the reproducible inputs; lifecycle timestamps and status are deliberately
+excluded so interrupted recovery and duplicate detection do not change the run
+identity.
+
+`FileSystemRunRecorder` stores records at `runs/<run_id>.json` and artifacts at
+`artifacts/<sha256>`. JSON and artifact writes use a temporary file followed by
+an atomic replace. A process restart can call `recover_interrupted()` to mark
+unfinished records honestly. The recorder is intentionally a concrete local
+implementation; external tracking backends remain a later sprint.
+
+The package CLI is available as `latent-anything` or
+`uv run python -m latent_anything.cli`:
+
+```text
+latent-anything capture-points
+latent-anything inspect-policy --policy act
+latent-anything inspect-dataset lerobot/aloha_sim_insertion_human --revision v3.0
+latent-anything replay-run <run-id> --record-root artifacts/runs --output replay.json
+latent-anything compare-runs <run-a> <run-b> --record-root artifacts/runs
+```
+
+`capture-points` lists the supported ACT, Diffusion, and SmolVLA seams without
+importing LeRobot. `inspect-policy` reports pinned metadata and claim scope;
+the dataset command is the only one that loads the optional dataset extra.
+The bridge helpers `record_lerobot_dataset_inspection`,
+`record_lerobot_policy_capture`, `record_lerobot_intervention`, and
+`record_lerobot_evaluation` attach JSON result artifacts while preserving
+upstream-owned policy/dataset objects.
+
+The checked-in comparison artifact
+`artifacts/lerobot_policy_comparison.json` compares the pinned ACT and
+Diffusion observational evidence. It keeps the two protocol/dataset
+identities explicit and reports metric deltas without treating different
+representation seams as a policy-quality leaderboard.
+
 ## Explicitly rejected scope
 
 The bridge does not:
