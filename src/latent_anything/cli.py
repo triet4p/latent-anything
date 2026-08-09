@@ -74,7 +74,7 @@ def _policy_snapshot(policy: str) -> dict[str, object]:
 
 
 def _inspect_dataset(args: argparse.Namespace) -> int:
-    from lerobot.datasets import (  # pyright: ignore[reportMissingTypeStubs, reportAttributeAccessIssue]
+    from lerobot.datasets import (  # pyright: ignore[reportMissingImports, reportMissingTypeStubs, reportAttributeAccessIssue]
         LeRobotDatasetMetadata,
     )
 
