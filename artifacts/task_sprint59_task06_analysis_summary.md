@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 6 — Outcome analysis and controls
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Compare successful/failure cases using probe, density, and trajectory metrics with negative controls.
 
 ## Summary of Work

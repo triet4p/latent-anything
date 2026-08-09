@@ -202,12 +202,13 @@ class SmolVLARepresentation:
 
 @dataclass(frozen=True)
 class SmolVLAActionSelection:
-    """Official post-processed action plus all captures from one query."""
+    """Official post-processed action plus the query execution signal."""
 
     action: object
     action_array: np.ndarray
     representations: tuple[SmolVLARepresentation, ...]
     denoising_steps: int
+    model_query_executed: bool
 
     def __post_init__(self) -> None:
         values = np.array(self.action_array, copy=True)
@@ -586,6 +587,11 @@ class SmolVLAPolicyAdapter:
         policy = self.context.policy
         if not isinstance(policy, nn.Module):
             raise TypeError("SmolVLA policy must be a torch.nn.Module for capture")
+        if intervention is not None and intervention.direction.shape != (self._expert_dim,):
+            raise ValueError(
+                f"intervention direction shape {intervention.direction.shape} does not match "
+                f"expert_dim={self._expert_dim}"
+            )
         prepared = cast(Mapping[str, object], preprocess(sample))
         present_cameras = [key for key in self._image_features if key in prepared]
         representations: list[SmolVLARepresentation] = []
@@ -719,6 +725,7 @@ class SmolVLAPolicyAdapter:
             action_array=_action_to_numpy(action),
             representations=tuple(representations),
             denoising_steps=expert_calls,
+            model_query_executed=expert_calls > 0,
         )
 
 

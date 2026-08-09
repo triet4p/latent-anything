@@ -177,6 +177,17 @@ def validate_capabilities(capabilities: tuple[Capability, ...]) -> list[str]:
         missing_roles = required_roles - roles
         if missing_roles:
             errors.append(f"{capability.capability_id} is {capability.status} but lacks roles: {sorted(missing_roles)}")
+        if capability.status == "D3":
+            for record in capability.evidence:
+                historical_unverified = (
+                    record.error is None
+                    and record.role == "artifact"
+                    and _is_historical_unverified_artifact(record.path)
+                )
+                if historical_unverified:
+                    errors.append(
+                        f"{capability.capability_id} cannot use historical/unverified artifact evidence: {record.path}"
+                    )
     return errors
 
 
@@ -196,6 +207,22 @@ def coverage_summary(capabilities: tuple[Capability, ...]) -> dict[str, tuple[in
     applicable = [item for item in capabilities if item.classification != "contextual-background"]
     core = [item for item in applicable if item.tier in core_tiers]
     return {"core": summarize(core), "overall": summarize(applicable)}
+
+
+def _is_historical_unverified_artifact(path: str) -> bool:
+    """Return whether a JSON artifact explicitly disclaims current evidence."""
+
+    artifact_path = ROOT / path
+    if artifact_path.suffix.lower() != ".json" or not artifact_path.is_file():
+        return False
+    try:
+        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+    status = payload.get("evidence_status")
+    return isinstance(status, str) and "historical" in status and "unverified" in status
 
 
 def main() -> int:

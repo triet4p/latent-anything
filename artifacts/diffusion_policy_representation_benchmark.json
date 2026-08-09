@@ -271,8 +271,8 @@
     },
     "conditioning_dim": 3,
     "conditioning_location": "diffusion.unet.global_cond",
-    "coordinate_identity": "diffusion:LeTau/diffusion_aloha_insertion@6126e33:conditioning+denoising:3+2",
-    "denoising_dim": 2,
+    "coordinate_identity": "diffusion:LeTau/diffusion_aloha_insertion@6126e33:conditioning+denoising:3+8",
+    "denoising_dim": 8,
     "denoising_location": "diffusion.unet"
   },
   "causal_intervention": false,

@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 2 — Official Diffusion factories
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Use official LeRobot processors and policy construction to preserve input/output normalization.
 
 ## Summary of Work

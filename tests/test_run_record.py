@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from latent_anything.integrations.lerobot import LeRobotEvaluationResult
 from latent_anything.integrations.lerobot_recording import (
+    record_lerobot_dataset_inspection,
     record_lerobot_evaluation,
     record_lerobot_intervention,
     record_lerobot_policy_capture,
@@ -65,6 +68,31 @@ def test_identity_excludes_lifecycle_timestamps_and_status() -> None:
     assert first.run_id == second.run_id
 
 
+def test_run_record_freezes_nested_inputs_and_keeps_serialized_identity_equivalent() -> None:
+    limits = {"max_steps": 3}
+    value_item = {"enabled": True}
+    values: list[object] = [1, value_item]
+    nested: dict[str, object] = {"limits": limits, "values": values}
+    record = RunRecord.create("fixture", config=nested)
+    identity = record.identity
+
+    limits["max_steps"] = 99
+    value_item["enabled"] = False
+
+    assert record.identity == identity
+    restored_limits = cast(Mapping[str, object], record.config["limits"])
+    assert restored_limits["max_steps"] == 3
+    restored = RunRecord.from_dict(record.to_dict())
+    assert restored.identity == identity
+    assert restored.to_dict() == record.to_dict()
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), object()])
+def test_run_record_rejects_non_finite_and_unsupported_inputs(value: object) -> None:
+    with pytest.raises((TypeError, ValueError), match="finite|unsupported"):
+        RunRecord.create("fixture", config={"value": value})
+
+
 def test_filesystem_recorder_writes_atomic_content_addressed_artifacts_and_recovers(tmp_path: Path) -> None:
     recorder = FileSystemRunRecorder(tmp_path / "runs")
     record = _start(recorder)
@@ -76,6 +104,20 @@ def test_filesystem_recorder_writes_atomic_content_addressed_artifacts_and_recov
     assert recovered[0].status == "interrupted"
     payload = json.loads((tmp_path / "runs" / "runs" / f"{record.run_id}.json").read_text(encoding="utf-8"))
     assert payload["status"] == "interrupted"
+
+
+def test_artifact_reference_cannot_escape_recorder_artifacts_directory(tmp_path: Path) -> None:
+    recorder = FileSystemRunRecorder(tmp_path)
+    record = _start(recorder)
+    reference = recorder.add_artifact(record.run_id, b"hello", name="hello.txt")
+
+    with pytest.raises(ValueError, match="relative_path"):
+        type(reference)(
+            name=reference.name,
+            digest=reference.digest,
+            size_bytes=reference.size_bytes,
+            relative_path=f"artifacts/{reference.digest}/../../outside",
+        )
 
 
 def test_duplicate_identity_reuses_existing_run_and_conflict_is_rejected(tmp_path: Path) -> None:
@@ -101,6 +143,40 @@ def test_legacy_record_migrates_to_schema_v1() -> None:
     assert restored.status == "completed"
 
 
+def test_filesystem_recorder_loads_windows_written_schema_v1_artifact_reference(tmp_path: Path) -> None:
+    recorder = FileSystemRunRecorder(tmp_path)
+    record = _start(recorder).transition("completed")
+    digest = "a" * 64
+    payload = record.to_dict()
+    payload["artifacts"] = [
+        {
+            "name": "legacy.bin",
+            "digest": digest,
+            "size_bytes": 3,
+            "relative_path": f"artifacts\\{digest}",
+            "media_type": "application/octet-stream",
+        }
+    ]
+    (recorder.runs_dir / f"{record.run_id}.json").write_text(json.dumps(payload), encoding="utf-8")
+
+    restored = recorder.get(record.run_id)
+
+    assert restored.artifacts[0].relative_path == f"artifacts/{digest}"
+
+    invalid_payload = dict(payload)
+    invalid_payload["artifacts"] = [
+        {
+            "name": "legacy.bin",
+            "digest": digest,
+            "size_bytes": 3,
+            "relative_path": f"artifacts\\{digest}\\extra",
+            "media_type": "application/octet-stream",
+        }
+    ]
+    with pytest.raises(ValueError, match="relative_path"):
+        RunRecord.from_dict(invalid_payload)
+
+
 def test_lerobot_record_helpers_attach_profile_theory_and_parent_metadata(tmp_path: Path) -> None:
     recorder = FileSystemRunRecorder(tmp_path)
     profiler = RuntimeProfiler()
@@ -110,6 +186,8 @@ def test_lerobot_record_helpers_attach_profile_theory_and_parent_metadata(tmp_pa
         {"capture": "action_expert"},
         config={"strength": 0.0},
         model_revisions={"policy": "repo@rev"},
+        environment={"device": "cpu"},
+        code_version="git:capture",
         runtime_profile=profiler.snapshot(),
         theory_evidence_ids=("THY-T05",),
     )
@@ -118,6 +196,8 @@ def test_lerobot_record_helpers_attach_profile_theory_and_parent_metadata(tmp_pa
         {"action_change": 0.2},
         config={"strength": 1.0},
         model_revisions={"policy": "repo@rev"},
+        environment={"device": "cpu"},
+        code_version="git:intervention",
         parent_run_ids=(capture.run_id,),
     )
     evaluation = record_lerobot_evaluation(
@@ -125,14 +205,35 @@ def test_lerobot_record_helpers_attach_profile_theory_and_parent_metadata(tmp_pa
         LeRobotEvaluationResult(episodes=2, success_rate=0.5, metrics={"mean_return": 1.25}),
         config={"condition": "targeted"},
         model_revisions={"policy": "repo@rev"},
+        environment={"device": "cpu"},
+        code_version="git:evaluation",
         parent_run_ids=(intervention.run_id,),
     )
 
     assert capture.runtime_profile["stage_totals"] == {"encode": 0.25}
     assert capture.theory_evidence_ids == ("THY-T05",)
+    assert capture.environment == {"device": "cpu"}
+    assert capture.code_version == "git:capture"
     assert intervention.parent_run_ids == (capture.run_id,)
+    assert intervention.code_version == "git:intervention"
     assert evaluation.metrics["success_rate"] == 0.5
+    assert evaluation.code_version == "git:evaluation"
     assert len(evaluation.artifacts) == 1
+
+
+def test_lerobot_dataset_record_helper_preserves_environment_and_code_version(tmp_path: Path) -> None:
+    recorder = FileSystemRunRecorder(tmp_path)
+    record = record_lerobot_dataset_inspection(
+        recorder,
+        {"episodes": 2},
+        config={"repo_id": "fixture/dataset"},
+        dataset_revisions={"fixture/dataset": "rev"},
+        environment={"device": "cpu"},
+        code_version="git:dataset",
+    )
+
+    assert record.environment == {"device": "cpu"}
+    assert record.code_version == "git:dataset"
 
 
 def test_capture_points_cover_existing_policy_seams() -> None:

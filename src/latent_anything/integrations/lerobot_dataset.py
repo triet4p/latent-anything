@@ -517,8 +517,14 @@ class LeRobotDatasetReader:
     def iter_samples(self, *, max_samples: int | None = None) -> Iterator[LeRobotSample]:
         """Iterate selected samples lazily, optionally bounded by a sample count."""
 
+        selected = getattr(self.dataset, "episodes", None)
+        episode_indices = (
+            tuple(int(value) for value in selected)
+            if selected is not None
+            else tuple(episode.episode_index for episode in self.descriptor.episodes)
+        )
         source: Iterator[LeRobotSample] = (
-            sample for episode in self.descriptor.episodes for sample in self.iter_episode(episode.episode_index)
+            sample for episode_index in episode_indices for sample in self.iter_episode(episode_index)
         )
         yield from source if max_samples is None else islice(source, max_samples)
 

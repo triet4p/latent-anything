@@ -103,7 +103,6 @@ def _inspect_dataset(args: argparse.Namespace) -> int:
             report,
             config={"repo_id": args.repo_id, "revision": args.revision},
             dataset_revisions={args.repo_id: args.revision},
-            theory_evidence_ids=("THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY",),
         )
         print(f"Recorded run {record.run_id}")
     return 0

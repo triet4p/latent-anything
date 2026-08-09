@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 3 — Multi-axis Diffusion capture
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Capture observation-conditioning and denoising/action representations with timestep metadata.
 
 ## Summary of Work

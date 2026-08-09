@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 7 — Offline and checkpoint tests
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Add offline fixtures and marked checkpoint integration tests.
 
 ## Summary of Work

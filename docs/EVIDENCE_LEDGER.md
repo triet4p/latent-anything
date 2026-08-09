@@ -94,21 +94,17 @@ and observational (strength-controlled additive edits on the action-expert
 representation with bit-exact identity at strength zero); it does not promote
 environment-level causal effects, which remain Sprint 61 scope.
 
-Sprint 61 promotes the causal-intervention capability
-(`THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY`) to **D3**. Its evidence
-is the four-condition simulation benchmark protocol and the acceptance gate
+Sprint 61 records the causal-intervention capability
+(`THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY`) at **D2** pending a
+corrected pinned CUDA rerun. Its evidence is the four-condition simulation
+benchmark protocol and acceptance gate
 (`src/latent_anything/integrations/lerobot_benchmark.py`), the offline fixture
 suite plus the marked CUDA statistical lane (`tests/test_lerobot_benchmark.py`),
 the reproducible evidence script (`scripts/smolvla_simulation_benchmark.py`),
-the frozen `SimulationBenchmarkConfig`, and the real-model artifact
-(`artifacts/smolvla_simulation_benchmark.json`) produced on
-`lerobot/smolvla_libero@31d453f7…` against `libero_spatial` (seeds 1–3,
-strengths 1/5/10). The artifact demonstrates all three outcomes: the targeted
-intervention leaves behavior unchanged at strength 1 (offline on-target 0.86
-with zero success delta — a recorded overstatement disagreement) and harms
-success from 1.0 to 0.0 at strengths 5 and 10, while the random control never
-changes success. ACT and Diffusion have no intervention surface, so their
-claims remain observational.
+and the frozen `SimulationBenchmarkConfig`. The prior real-model artifact
+(`artifacts/smolvla_simulation_benchmark.json`) is retained as historical,
+unverified context only and does not qualify as D3 evidence. ACT and Diffusion
+have no intervention surface, so their claims remain observational.
 
 Sprint 62 adds the local reproducibility contract without promoting a new
 theory topic: the versioned record and atomic recorder

@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 4 — Action-chunk parity
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Verify unmodified action chunks match direct LeRobot inference for fixed seeds/noise.
 
 ## Summary of Work

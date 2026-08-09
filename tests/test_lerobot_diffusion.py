@@ -44,8 +44,10 @@ class TinyDiffusionPolicy(nn.Module):
         super().__init__()
         self.config = SimpleNamespace(action_feature=SimpleNamespace(shape=(2,)), horizon=4)
         self.diffusion = TinyDiffusion()
+        self.anchor = nn.Parameter(torch.zeros(1, dtype=torch.float32))
         self._action_queue: list[Tensor] = []
         self.reset_calls = 0
+        self.received_noise: Tensor | None = None
 
     def reset(self) -> None:
         self._action_queue.clear()
@@ -53,6 +55,7 @@ class TinyDiffusionPolicy(nn.Module):
 
     @torch.no_grad()
     def select_action(self, batch: dict[str, Tensor], *, noise: Tensor | None = None) -> Tensor:
+        self.received_noise = noise
         if not self._action_queue:
             base = noise if noise is not None else torch.zeros((1, 4, 2))
             actions: list[Tensor] = []
@@ -103,6 +106,9 @@ def test_diffusion_capture_keeps_conditioning_and_timestep_axes_explicit() -> No
     assert all(item.episode_step == 0 for item in selected.representations)
     assert condition[0].capture_metadata.location == DIFFUSION_CONDITIONING_LOCATION
     assert denoising[0].capture_metadata.location == DIFFUSION_DENOISING_LOCATION
+    assert adapter.metadata.denoising_dim == 8
+    assert adapter.denoising_space.dim == 8
+    assert "+8" in adapter.metadata.coordinate_identity
     np.testing.assert_array_equal(condition[0].latent.values, np.array([2.0, 3.0, 4.0]))
 
 
@@ -113,12 +119,25 @@ def test_diffusion_action_matches_direct_preprocess_select_postprocess_with_fixe
     preprocessor = cast(AddOnePreprocessor, adapter.context.preprocessor)
     policy = cast(TinyDiffusionPolicy, adapter.context.policy)
     postprocessor = cast(ScalePostprocessor, adapter.context.postprocessor)
-    direct_action = postprocessor(policy.select_action(preprocessor(sample), noise=torch.as_tensor(noise)))
+    direct_action = postprocessor(
+        policy.select_action(preprocessor(sample), noise=torch.as_tensor(noise, dtype=torch.float32))
+    )
 
     policy.reset()
     selected = adapter.select_action(sample, noise=noise)
 
     np.testing.assert_array_equal(selected.action_array, direct_action["action"].numpy())
+
+
+def test_diffusion_fixed_noise_matches_policy_device_and_dtype() -> None:
+    adapter = make_fixture_adapter()
+    policy = cast(TinyDiffusionPolicy, adapter.context.policy)
+
+    adapter.select_action({"state": torch.tensor([[1.0, 2.0, 3.0]])}, noise=np.zeros((1, 4, 2)))
+
+    assert policy.received_noise is not None
+    assert policy.received_noise.device == policy.anchor.device
+    assert policy.received_noise.dtype == policy.anchor.dtype
 
 
 def test_diffusion_capture_episode_preserves_action_queue_misses() -> None:

@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 1 — Pinned Diffusion checkpoint pair
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Select and revision-pin a public Diffusion Policy checkpoint, dataset, and compatible environment/task.
 
 ## Summary of Work

@@ -219,3 +219,17 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** `create_libero_envs` keys its return mapping by the LIBERO suite (task) name (`libero_spatial`, `libero_10`, ...), while the registered env-config type is `libero`; `env_cfg.type` returns the choice name only for the config itself.
 **Fix / workaround:** Resolve the suite key as `config.task` first, falling back to `config.env_type`.
 **Watch out for:** Upstream factories that return suite/task-keyed mappings whose keys are not the registered type name; assert against the real factory output, not the config class name.
+
+## [2026-08-09] SmolVLA query cadence follows the action queue, not chunk size
+
+**Symptom:** The simulation benchmark reported queries at steps `(0, 4)` for `chunk_size=4`, while the policy executed fresh model passes at `(0, 2, 4)` with `n_action_steps=2`.
+**Root cause:** The rollout loop inferred query boundaries from `chunk_size`, even though LeRobot's action queue can be configured with a smaller `n_action_steps` value.
+**Fix / workaround:** Expose an explicit `model_query_executed` signal from the hooked adapter and use a separate action-expert execution probe on the no-hook path; drive sample capture, latency, query steps, and counts exclusively from that signal.
+**Watch out for:** Any policy where the returned action queue length differs from the model's nominal chunk size; never infer execution cadence from rollout configuration when the upstream policy owns queue state.
+
+## [2026-08-09] Windows schema-v1 artifact references use a legacy separator
+
+**Symptom:** Existing schema-v1 run records written on Windows failed to load because their artifact references contained `artifacts\\<digest>` instead of the canonical `artifacts/<digest>`.
+**Root cause:** The original serializer used `str(Path("artifacts") / digest)`, which is platform-specific; strict canonical validation correctly rejected the historical Windows spelling but did not migrate it.
+**Fix / workaround:** During schema-v1 migration, normalize only the exact legacy path whose suffix matches the record's lowercase SHA-256 digest, then validate the canonical path as usual.
+**Watch out for:** Do not replace separators generically during migration; malformed, traversal, mixed, or otherwise non-canonical paths must remain rejected.

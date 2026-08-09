@@ -364,12 +364,15 @@ def test_smolvla_action_queue_executes_a_model_query_every_chunk() -> None:
     noise = make_noise()
     first = adapter.select_action(make_sample(state=torch.zeros(MAX_STATE)), noise=noise)
     assert first.denoising_steps == NUM_STEPS
+    assert first.model_query_executed is True
     for episode_step in range(1, CHUNK):
         queued = adapter.select_action(make_sample(), noise=noise, episode_step=episode_step)
         assert queued.denoising_steps == 0
         assert queued.representations == ()
+        assert queued.model_query_executed is False
     next_query = adapter.select_action(make_sample(), noise=noise, episode_step=CHUNK)
     assert next_query.denoising_steps == NUM_STEPS
+    assert next_query.model_query_executed is True
     assert all(item.episode_step == CHUNK for item in next_query.representations)
 
 
@@ -398,6 +401,14 @@ def test_smolvla_intervention_is_bounded_and_validated() -> None:
         SmolVLAIntervention(direction=np.ones(EXPERT), strength=np.inf)
     with pytest.raises(ValueError, match="bounded maximum"):
         SmolVLAIntervention(direction=np.ones(EXPERT), strength=101.0)
+
+
+def test_smolvla_rejects_direction_that_does_not_match_expert_dimension() -> None:
+    adapter = make_fixture_adapter()
+    intervention = SmolVLAIntervention(direction=np.ones(1), strength=1.0)
+
+    with pytest.raises(ValueError, match="expert_dim"):
+        adapter.select_action(make_sample(), noise=make_noise(), intervention=intervention)
 
 
 def test_smolvla_hook_session_removes_hooks_after_policy_exception() -> None:

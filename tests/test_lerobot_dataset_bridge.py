@@ -165,6 +165,12 @@ def test_dataset_reader_maps_selected_episodes_to_relative_dataset_rows() -> Non
     assert dataset.read_indices == [0, 1]
     assert [sample.provenance.frame_index for sample in samples] == [0, 1]
 
+    dataset.read_indices.clear()
+    selected_samples = list(reader.iter_samples())
+
+    assert dataset.read_indices == [0, 1]
+    assert len(selected_samples) == 2
+
 
 def test_streaming_reader_has_bounded_recent_window_and_raw_values() -> None:
     dataset = SyntheticStreamingDataset()

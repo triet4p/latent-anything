@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 5 — Separate trajectory axes
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Analyze latent trajectories across denoising timesteps and episode time without conflating the axes.
 
 ## Summary of Work

@@ -14,6 +14,7 @@ from importlib import import_module
 from typing import Literal, cast
 
 import numpy as np
+import torch
 from torch import Tensor, nn
 
 from latent_anything.capture import CaptureMetadata
@@ -288,10 +289,10 @@ class DiffusionPolicyAdapter:
             conditioning_location=conditioning_location,
             denoising_location=denoising_location,
             conditioning_dim=conditioning_dim,
-            denoising_dim=action_dim,
+            denoising_dim=self._denoising_dim,
             coordinate_identity=(
                 f"diffusion:{checkpoint.policy_repo_id}@{checkpoint.policy_revision}:"
-                f"conditioning+denoising:{conditioning_dim}+{action_dim}"
+                f"conditioning+denoising:{conditioning_dim}+{self._denoising_dim}"
             ),
         )
 
@@ -435,7 +436,7 @@ class DiffusionPolicyAdapter:
         unet = cast(nn.Module, diffusion.unet)  # type: ignore[attr-defined]
         handle = unet.register_forward_hook(hook, with_kwargs=True)
         try:
-            raw_action = select(prepared, noise=_noise_to_tensor(noise))
+            raw_action = select(prepared, noise=_noise_to_tensor(noise, policy))
         finally:
             handle.remove()
         action = postprocess(raw_action)
@@ -470,10 +471,15 @@ def _flatten_batch(value: Tensor) -> np.ndarray:
     return _to_numpy(value).reshape(int(value.shape[0]), -1)
 
 
-def _noise_to_tensor(value: np.ndarray | None) -> Tensor | None:
-    """Convert the public NumPy noise boundary to the upstream tensor type."""
+def _noise_to_tensor(value: np.ndarray | None, policy: nn.Module) -> Tensor | None:
+    """Convert public NumPy noise to the policy parameter device and dtype."""
 
-    return None if value is None else Tensor(value)
+    if value is None:
+        return None
+    parameter = next(policy.parameters(), None)
+    device = parameter.device if parameter is not None else torch.device("cpu")
+    dtype = parameter.dtype if parameter is not None else torch.float32
+    return Tensor(value).to(device=device, dtype=dtype)
 
 
 def _scalar_timestep(value: object) -> int:

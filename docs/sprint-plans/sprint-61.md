@@ -15,7 +15,7 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Correlate offline explanation scores with environment-level causal effects and report disagreements.
 - [x] Add regression smoke tests and a separately marked statistical benchmark.
 - [x] Produce complete configs, episode summaries, videos/plots where license permits, and failure analysis.
-- [x] Promote ACT/Diffusion/SmolVLA claims to D3 only where evidence passes; update ADR/changelog/artifact/gates.
+- [x] Reconcile the ACT/Diffusion/SmolVLA evidence claims; retain the causal-intervention capability at D2 until the corrected pinned CUDA lane passes.
 
 ## Notes / Blockers
 
@@ -33,4 +33,4 @@ Declared disagreement rules: overstatement (on-target >= 0.8 but |success delta|
 
 ACT and Diffusion have no intervention surface; their claims remain observational. Only the causal-intervention capability (THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY) can be promoted to D3, and only if the CUDA statistical lane passes; otherwise a negative-result artifact is committed instead.
 
-Resolved: the CUDA statistical lane PASSED on the remote server (RTX 4060 Ti, LeRobot 0.6.1, torch 2.10) and the artifact is committed. The final grid (seeds 1–3, strengths 1/5/10) demonstrates all three outcomes: baseline is bit-exact; the targeted intervention leaves behavior unchanged at strength 1 (offline on-target 0.86, success delta 0.00 — recorded overstatement disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10 (recorded reversal disagreements, all 6 episodes maxed at 280 steps), while the random control never changes success. Acceptance passed; THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY promoted to D3.
+Historical note: the CUDA statistical lane passed on the remote server (RTX 4060 Ti, LeRobot 0.6.1, torch 2.10) before the review remediation. Its artifact remains retained as historical evidence, but the corrected baseline-length and executed-query metrics require a fresh pinned CUDA rerun before the causal-intervention capability can be promoted to D3 again.

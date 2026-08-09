@@ -11,18 +11,21 @@ import hashlib
 import json
 import math
 import os
+import re
 import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
+from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
 from latent_anything.runtime.profiling import RuntimeProfile
 
 RUN_RECORD_SCHEMA_VERSION = 1
 RunStatus = Literal["running", "completed", "failed", "interrupted"]
+_SHA256_DIGEST = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _now() -> str:
@@ -36,24 +39,60 @@ def _default_framework_version() -> str:
         return "unknown"
 
 
-def _json_value(value: object) -> object:
-    """Return a deterministic JSON-compatible representation."""
+def _freeze_json_value(value: object, *, active: set[int] | None = None) -> object:
+    """Return a deeply immutable, JSON-compatible snapshot."""
 
+    active_ids = set() if active is None else active
     if isinstance(value, Mapping):
-        return {str(key): _json_value(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
+        value_id = id(value)
+        if value_id in active_ids:
+            raise ValueError("run-record inputs must not contain cycles")
+        active_ids.add(value_id)
+        try:
+            frozen = {
+                key: _freeze_json_value(item, active=active_ids) for key, item in value.items() if isinstance(key, str)
+            }
+        finally:
+            active_ids.remove(value_id)
+        if len(frozen) != len(value):
+            raise TypeError("run-record mappings must use string keys")
+        return MappingProxyType(frozen)
     if isinstance(value, (list, tuple)):
-        return [_json_value(item) for item in value]
+        value_id = id(value)
+        if value_id in active_ids:
+            raise ValueError("run-record inputs must not contain cycles")
+        active_ids.add(value_id)
+        try:
+            return tuple(_freeze_json_value(item, active=active_ids) for item in value)
+        finally:
+            active_ids.remove(value_id)
     if isinstance(value, Path):
         return str(value)
     item = getattr(value, "item", None)
     if callable(item):
         try:
-            return _json_value(item())
-        except (TypeError, ValueError, RuntimeError):
-            pass
+            scalar = item()
+        except (TypeError, ValueError, RuntimeError) as error:
+            raise TypeError(f"unsupported run-record value: {type(value).__name__}") from error
+        if scalar is value:
+            raise TypeError(f"unsupported run-record value: {type(value).__name__}")
+        return _freeze_json_value(scalar, active=active_ids)
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("run-record inputs must contain only finite floats")
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value
-    return str(value)
+    raise TypeError(f"unsupported run-record value: {type(value).__name__}")
+
+
+def _json_value(value: object) -> object:
+    """Return a deterministic JSON-compatible representation."""
+
+    frozen = _freeze_json_value(value)
+    if isinstance(frozen, Mapping):
+        return {key: _json_value(item) for key, item in frozen.items()}
+    if isinstance(frozen, tuple):
+        return [_json_value(item) for item in frozen]
+    return frozen
 
 
 def _canonical_json(value: object) -> bytes:
@@ -153,6 +192,8 @@ class ArtifactRef:
             raise ValueError("artifact digest must be a lowercase SHA-256 hex digest")
         if self.size_bytes < 0:
             raise ValueError("artifact size must be non-negative")
+        if self.relative_path != f"artifacts/{self.digest}":
+            raise ValueError("artifact relative_path must be exactly artifacts/<digest>")
 
     def to_dict(self) -> dict[str, object]:
         return cast(dict[str, object], asdict(self))
@@ -206,6 +247,16 @@ class RunRecord:
             raise ValueError("seeds must be non-negative")
         if any(isinstance(value, bool) or not math.isfinite(value) for value in self.metrics.values()):
             raise ValueError("metrics must contain finite numeric values")
+        for field_name in (
+            "config",
+            "model_revisions",
+            "dataset_revisions",
+            "environment",
+            "metrics",
+            "runtime_profile",
+            "metadata",
+        ):
+            object.__setattr__(self, field_name, _freeze_json_value(getattr(self, field_name)))
         expected = compute_run_identity(
             name=self.name,
             config=self.config,
@@ -378,6 +429,24 @@ def migrate_run_record(payload: Mapping[str, object]) -> dict[str, object]:
     version = int(str(result.get("schema_version", 0)))
     if version > RUN_RECORD_SCHEMA_VERSION:
         raise ValueError(f"run record schema {version} is newer than supported schema {RUN_RECORD_SCHEMA_VERSION}")
+    artifacts = result.get("artifacts")
+    if version <= RUN_RECORD_SCHEMA_VERSION and isinstance(artifacts, list):
+        migrated_artifacts: list[object] = []
+        for item in artifacts:
+            if isinstance(item, Mapping):
+                migrated_item = dict(item)
+                digest = migrated_item.get("digest")
+                relative_path = migrated_item.get("relative_path")
+                if (
+                    isinstance(digest, str)
+                    and _SHA256_DIGEST.fullmatch(digest) is not None
+                    and relative_path == f"artifacts\\{digest}"
+                ):
+                    migrated_item["relative_path"] = f"artifacts/{digest}"
+                migrated_artifacts.append(migrated_item)
+            else:
+                migrated_artifacts.append(item)
+        result["artifacts"] = migrated_artifacts
     result.setdefault("name", result.get("run_name", "legacy-run"))
     result.setdefault("run_id", result.get("id", "legacy"))
     result.setdefault("status", "completed")
@@ -523,7 +592,7 @@ class FileSystemRunRecorder:
             name=name,
             digest=digest,
             size_bytes=len(data),
-            relative_path=str(Path("artifacts") / digest),
+            relative_path=f"artifacts/{digest}",
             media_type=media_type,
         )
         record = self.get(run_id)
@@ -535,7 +604,11 @@ class FileSystemRunRecorder:
         return self.add_artifact(run_id, _canonical_json(value) + b"\n", name=name, media_type="application/json")
 
     def read_artifact(self, reference: ArtifactRef) -> bytes:
-        path = self.root / reference.relative_path
+        expected_path = self.artifacts_dir / reference.digest
+        artifacts_dir = self.artifacts_dir.resolve()
+        path = expected_path.resolve()
+        if not path.is_relative_to(artifacts_dir):
+            raise ValueError("artifact path resolves outside the recorder artifacts directory")
         data = path.read_bytes()
         if hashlib.sha256(data).hexdigest() != reference.digest:
             raise ValueError(f"artifact digest mismatch for {reference.relative_path}")

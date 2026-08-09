@@ -2,10 +2,23 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Corrected LeRobot benchmark query counts and latency aggregation to report executed policy queries rather than rollout steps, migrated Windows-written schema-v1 artifact references to the canonical separator, aligned Diffusion coordinate metadata with the flattened action-chunk dimension, and preserved exact execution provenance across all LeRobot recording helpers. (#review-remediation)
+- `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
+
+### Fixed
+
+- Fixed run-record snapshots to deep-freeze canonical JSON inputs, reject unsupported or non-finite values, and keep content-addressed artifact reads inside the recorder artifact directory. (#review-remediation)
+- Fixed selected-episode dataset iteration, SmolVLA intervention-width validation, and device/dtype placement for Diffusion fixed-noise inputs. (#review-remediation)
+- Evidence-ledger schema-v2 validation now enforces typed `role`/`path` records and the required evidence roles for every D1, D2, and D3 claim.
+- `LatentValue.metadata` now returns defensive immutable snapshots, including NumPy metadata that callers attempt to make writable again.
+- `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
+
 ### Added
 
 - Added a versioned local `RunRecord` contract and atomic `FileSystemRunRecorder` with reproducible identity, interrupted-run recovery, content-addressed artifacts, runtime-profile/theory-evidence metadata, LeRobot recording helpers, inspection/replay/comparison CLI commands, and a pinned ACT-vs-Diffusion comparison artifact. (#sprint-62)
-- Added a causal policy-explanation simulation benchmark for the SmolVLA adapter (`latent_anything.integrations.lerobot_benchmark`): the official LeRobot `preprocess → select_action → postprocess` path rolled out in the LIBERO `libero_spatial` environment under four predeclared conditions (no-hook control, zero-strength hook baseline, random expert direction, and a targeted direction induced through the policy's own action head), with success rate, return, action deviation, latency, and Wilson confidence intervals over seeded episodes, an offline-explanation-to-environment correlation with declared disagreement rules, and a predeclared acceptance gate. The CUDA lane passed on the pinned public SmolVLA pair and the causal-intervention capability (`THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY`) was promoted to D3: the targeted intervention leaves behavior unchanged at strength 1 and harms success from 1.0 to 0.0 at strengths 5 and 10, while the random control never changes success. (#sprint-61)
+- Added a causal policy-explanation simulation benchmark for the SmolVLA adapter (`latent_anything.integrations.lerobot_benchmark`): the official LeRobot `preprocess → select_action → postprocess` path rolled out in the LIBERO `libero_spatial` environment under four predeclared conditions (no-hook control, zero-strength hook baseline, random expert direction, and a targeted direction induced through the policy's own action head), with success rate, return, action deviation, latency, and Wilson confidence intervals over seeded episodes, an offline-explanation-to-environment correlation with declared disagreement rules, and a predeclared acceptance gate. The committed CUDA artifact is retained as historical evidence, but the D3 promotion remains unverified until the corrected baseline-length and model-query metrics are rerun on the pinned public SmolVLA pair. (#sprint-61)
 - Added a marked CUDA statistical lane (`tests/test_lerobot_benchmark.py`) and an offline deterministic fixture suite for the simulation benchmark, plus a reproducible evidence script (`scripts/smolvla_simulation_benchmark.py`) writing config, episode summaries, plots, and failure analysis artifacts. (#sprint-61)
 - Added LeRobot's Linux-only `libero` environment extra to the `latent_anything[lerobot-smolvla]` profile so the pinned SmolVLA checkpoint can be evaluated in simulation. (#sprint-61)
 - Added a pinned LeRobot SmolVLA adapter (`latent_anything[lerobot-smolvla]`) that captures vision/language/state context and action-expert representations with token/modality metadata through LeRobot's official factories, plus one bounded strength-controlled intervention on the action-expert representation with bit-exact no-change identity at strength zero and quantitative action-change, off-target, drift, and prompt/camera-sensitivity measurements. (#sprint-60)
@@ -126,15 +139,6 @@
 - Added `SchedulerIntervention` data type and intervention support to `DiffusersConditionalPipeline.generate()` — additive edits on scheduler latent states during denoising via `callback_on_step_end`, with `random_direction()` and `matched_norm_direction()` helpers. (#sprint-38)
 - Added deterministic offline smoke tests for `SchedulerIntervention` validation, direction helpers, intervention passthrough in `generate()`, and a gated real-checkpoint benchmark that verifies the intervention changes intermediate latents. (#sprint-38)
 - Added a comprehensive experiment script (`diffusers_conditional_intervention_experiment.py`) that compares no-edit/prompt-only/random-direction/matched-norm controls across multiple seeds with target change, SSIM, latent norm drift, and trajectory-cosine metrics, plus a timestep-by-strength sweep. (#sprint-38)
-
-### Changed
-- `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
-
-### Fixed
-
-- Evidence-ledger schema-v2 validation now enforces typed `role`/`path` records and the required evidence roles for every D1, D2, and D3 claim.
-- `LatentValue.metadata` now returns defensive immutable snapshots, including NumPy metadata that callers attempt to make writable again.
-- `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
 
 ## [0.1.0-beta.1] - 2026-07-10
 

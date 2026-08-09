@@ -1,6 +1,6 @@
 # Task Summary: Sprint 59 Task 8 — Evidence and gates
 
-**Sprint:** Sprint 59  
+**Sprint:** Sprint 59
 **Task:** Update evidence/ADR/changelog/artifact and gates.
 
 ## Summary of Work

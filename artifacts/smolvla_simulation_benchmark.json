@@ -1,4 +1,6 @@
 {
+  "evidence_status": "historical_unverified_after_review_remediation",
+  "evidence_note": "This artifact predates the corrected baseline action-count gate and executed model-query latency aggregation. Retain as historical evidence only; rerun the pinned CUDA lane before D3 promotion.",
   "acceptance": {
     "checks": {
       "all_episodes_within_max_steps": true,

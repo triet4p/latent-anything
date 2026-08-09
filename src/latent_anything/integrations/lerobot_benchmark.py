@@ -164,6 +164,14 @@ class BenchmarkEnvironmentBundle:
 
 
 @dataclass(frozen=True)
+class _OfficialActionResult:
+    """Result of the no-hook path, including whether the model executed."""
+
+    action: object
+    model_query_executed: bool
+
+
+@dataclass(frozen=True)
 class EpisodeOutcome:
     """One rolled-out episode under one condition."""
 
@@ -180,6 +188,7 @@ class EpisodeOutcome:
     first_query_latency_s: float
     total_latency_s: float
     n_queries: int
+    query_steps: tuple[int, ...] = ()
     actions: tuple[np.ndarray, ...] = ()
 
     def __post_init__(self) -> None:
@@ -189,6 +198,10 @@ class EpisodeOutcome:
         object.__setattr__(self, "actions", frozen)
         if self.n_queries < 1:
             raise ValueError("n_queries must be positive")
+        if self.query_steps and len(self.query_steps) != self.n_queries:
+            raise ValueError("query_steps must contain one step for every executed model query")
+        if any(step < 0 or step >= self.length for step in self.query_steps):
+            raise ValueError("query_steps must refer to steps inside the episode")
 
     @property
     def episode_key(self) -> str:
@@ -212,6 +225,7 @@ class EpisodeOutcome:
             "first_query_latency_s": self.first_query_latency_s,
             "total_latency_s": self.total_latency_s,
             "n_queries": self.n_queries,
+            "query_steps": list(self.query_steps),
         }
 
 
@@ -559,8 +573,13 @@ def _official_select_action(
     sample: Mapping[str, object],
     *,
     noise: np.ndarray,
-) -> object:
-    """Run the official preprocess -> select_action -> postprocess path without hooks."""
+) -> _OfficialActionResult:
+    """Run the official path without capture/intervention hooks.
+
+    The execution probe is deliberately separate from the adapter's capture
+    hooks. It observes the action-expert module only to distinguish a fresh
+    model query from an action returned by LeRobot's queue.
+    """
 
     policy = adapter.context.policy
     if not isinstance(policy, nn.Module):
@@ -573,8 +592,46 @@ def _official_select_action(
     select = getattr(policy, "select_action", None)
     if not callable(select):
         raise TypeError("policy must expose LeRobot's select_action lifecycle")
-    raw_action = select(prepared, noise=_noise_to_tensor(noise, device=_policy_device(policy)))
-    return postprocessor(raw_action)
+    with _ModelExecutionProbe(policy, adapter.expert_location) as probe:
+        raw_action = select(prepared, noise=_noise_to_tensor(noise, device=_policy_device(policy)))
+    return _OfficialActionResult(
+        action=postprocessor(raw_action),
+        model_query_executed=probe.model_query_executed,
+    )
+
+
+class _ModelExecutionProbe:
+    """Observe model execution without capturing or changing model values."""
+
+    def __init__(self, policy: nn.Module, location: str) -> None:
+        modules: dict[str, nn.Module] = dict(policy.named_modules())  # pyright: ignore[reportUnknownArgumentType]
+        try:
+            self._module = modules[location]
+        except KeyError:
+            raise KeyError(f"Unknown model execution probe location {location!r}") from None
+        self._handle: torch.utils.hooks.RemovableHandle | None = None
+        self._execution_count = 0
+
+    def __enter__(self) -> _ModelExecutionProbe:
+        self._handle = self._module.register_forward_hook(self._mark_execution)
+        return self
+
+    def __exit__(self, exc_type: object, exc_value: object, traceback: object) -> None:
+        del exc_type, exc_value, traceback
+        if self._handle is not None:
+            self._handle.remove()
+            self._handle = None
+
+    @property
+    def model_query_executed(self) -> bool:
+        """Whether the observed policy call executed at least one model pass."""
+
+        return self._execution_count > 0
+
+    def _mark_execution(self, module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
+        del module, inputs
+        self._execution_count += 1
+        return output
 
 
 def _action_to_numpy(value: object) -> np.ndarray:
@@ -712,7 +769,8 @@ def run_episode(
         samples: list[Mapping[str, object]] = []
         actions: list[np.ndarray] = []
         rewards: list[float] = []
-        latencies: list[float] = []
+        query_latencies: list[float] = []
+        query_steps: list[int] = []
         success = False
         terminated = False
         step_index = 0
@@ -722,12 +780,11 @@ def run_episode(
             with_task = dict(converted)
             with_task["task"] = [environment.task_description]
             sample = environment.env_preprocessor(with_task)
-            is_query = step_index % adapter.chunk_size == 0
-            if record_samples and is_query:
-                samples.append(sample)
             started = time.perf_counter()
             if condition == "no_hook":
-                raw_action = _official_select_action(adapter, sample, noise=noise)
+                selection = _official_select_action(adapter, sample, noise=noise)
+                raw_action = selection.action
+                model_query_executed = selection.model_query_executed
             else:
                 selection = adapter.select_action(
                     sample,
@@ -736,7 +793,13 @@ def run_episode(
                     episode_step=step_index,
                 )
                 raw_action = selection.action
-            latencies.append(time.perf_counter() - started)
+                model_query_executed = selection.model_query_executed
+            elapsed = time.perf_counter() - started
+            if model_query_executed:
+                if record_samples:
+                    samples.append(sample)
+                query_latencies.append(elapsed)
+                query_steps.append(step_index)
             action = _action_to_numpy(raw_action)
             actions.append(action)
             observation, reward, done, truncated, info = step(action)
@@ -758,7 +821,8 @@ def run_episode(
         success=success,
         rewards=rewards,
         actions=actions,
-        latencies=latencies,
+        latencies=query_latencies,
+        query_steps=query_steps,
         terminated=terminated,
         max_steps=environment.max_episode_steps,
         reference_actions=reference_actions,
@@ -775,6 +839,7 @@ def _build_outcome(
     rewards: Sequence[float],
     actions: Sequence[np.ndarray],
     latencies: Sequence[float],
+    query_steps: Sequence[int],
     terminated: bool,
     max_steps: int,
     reference_actions: Sequence[np.ndarray] | None,
@@ -798,6 +863,8 @@ def _build_outcome(
             ]
             deviation = float(np.mean(deltas))
     query_latencies = np.asarray(latencies, dtype=float)
+    if not query_latencies.size:
+        raise ValueError("episode produced no model-query latency measurements")
     return EpisodeOutcome(
         seed=seed,
         condition=condition,
@@ -812,6 +879,7 @@ def _build_outcome(
         first_query_latency_s=float(query_latencies[0]),
         total_latency_s=float(np.sum(query_latencies)),
         n_queries=len(query_latencies),
+        query_steps=tuple(query_steps),
         actions=tuple(action_array),
     )
 
@@ -977,7 +1045,7 @@ def run_simulation_benchmark(
                     seed=seed,
                     condition=condition,
                     strength=strength,
-                    direction=direction_for.get(condition, np.zeros(1)),
+                    direction=direction_for.get(condition, np.zeros(adapter.expert_dim)),
                     noise=noise,
                     reference_actions=reference,
                     record_samples=collect_probes,
@@ -1096,6 +1164,8 @@ def _baseline_is_bit_exact(outcomes: Sequence[EpisodeOutcome]) -> bool:
     for outcome in baseline:
         reference = no_hook.get(outcome.seed)
         if reference is None:
+            return False
+        if len(outcome.actions) != len(reference.actions):
             return False
         aligned = min(len(outcome.actions), len(reference.actions))
         if aligned == 0:

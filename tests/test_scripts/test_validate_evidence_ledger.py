@@ -124,3 +124,33 @@ def test_malformed_typed_evidence_is_reported_without_crashing() -> None:
     )
     assert len(records) == 3
     assert all(record.error is not None for record in records)
+
+
+def test_historical_unverified_artifact_cannot_qualify_d3(monkeypatch: pytest.MonkeyPatch) -> None:
+    capability_id = "THY-T05-CAUSAL-INTERVENTION-VS-OBSERVATIONAL-STUDY"
+    payload: dict[str, object] = {
+        "schema_version": 2,
+        "contextual_background": {},
+        "benchmark_only": [],
+        "overrides": {capability_id: {"status": "D3", "evidence": []}},
+    }
+    monkeypatch.setattr(evidence_ledger, "_read_ledger", lambda: payload)
+    capability = evidence_ledger.Capability(
+        capability_id=capability_id,
+        tier="T05",
+        title="Causal intervention",
+        source_line=1,
+        classification="benchmark-only",
+        status="D3",
+        evidence=(
+            evidence_ledger.EvidenceRecord("source", "src/latent_anything/integrations/lerobot_benchmark.py"),
+            evidence_ledger.EvidenceRecord("test", "tests/test_lerobot_benchmark.py"),
+            evidence_ledger.EvidenceRecord("benchmark", "scripts/smolvla_simulation_benchmark.py"),
+            evidence_ledger.EvidenceRecord("config", "src/latent_anything/integrations/lerobot_benchmark.py"),
+            evidence_ledger.EvidenceRecord("artifact", "artifacts/smolvla_simulation_benchmark.json"),
+        ),
+    )
+
+    errors = evidence_ledger.validate_capabilities((capability,))
+
+    assert any("historical/unverified" in error for error in errors)

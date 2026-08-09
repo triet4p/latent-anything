@@ -9,6 +9,7 @@ observations per seed, so the default suite stays offline and deterministic.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -22,6 +23,7 @@ from latent_anything.integrations.lerobot import LeRobotAPI, LeRobotPolicyContex
 from latent_anything.integrations.lerobot_benchmark import (
     BenchmarkEnvironmentBundle,
     SimulationBenchmarkConfig,
+    _baseline_is_bit_exact,  # type: ignore[reportPrivateUsage]
     build_correlation,
     build_libero_benchmark_environment,
     run_episode,
@@ -121,7 +123,7 @@ class TinyBenchmarkPolicy(nn.Module):
             max_state_dim=MAX_STATE,
             chunk_size=CHUNK,
             num_steps=NUM_STEPS,
-            n_action_steps=CHUNK,
+            n_action_steps=2,
             image_features={},
         )
         self.model = TinyBenchmarkModel()
@@ -315,6 +317,21 @@ def test_benchmark_baseline_is_bit_exact_and_acceptance_passes() -> None:
     assert all(outcome.success for outcome in no_hook + baseline)
 
 
+def test_benchmark_baseline_rejects_mismatched_action_lengths() -> None:
+    result = run_simulation_benchmark(
+        make_fixture_adapter(),
+        make_fixture_bundle(),
+        SimulationBenchmarkConfig(seeds=(1,), strengths=(1.0,)),
+        noise=make_benchmark_noise(),
+    )
+    no_hook = next(outcome for outcome in result.outcomes if outcome.condition == "no_hook")
+    baseline = next(outcome for outcome in result.outcomes if outcome.condition == "baseline")
+
+    truncated = replace(baseline, actions=baseline.actions[:-1])
+
+    assert not _baseline_is_bit_exact((no_hook, truncated))
+
+
 def test_benchmark_interventions_change_actions_but_report_metrics() -> None:
     adapter = make_fixture_adapter()
     bundle = make_fixture_bundle()
@@ -327,7 +344,8 @@ def test_benchmark_interventions_change_actions_but_report_metrics() -> None:
     assert random_outcome.mean_action_deviation > 0.0
     assert targeted_outcome.mean_action_deviation > 0.0
     assert all(outcome.length == TERMINATE_AT for outcome in result.outcomes)
-    assert all(outcome.n_queries == TERMINATE_AT for outcome in result.outcomes)
+    assert all(outcome.n_queries == 3 for outcome in result.outcomes)
+    assert all(outcome.query_steps == (0, 2, 4) for outcome in result.outcomes)
     assert all(outcome.mean_query_latency_s > 0.0 for outcome in result.outcomes)
     assert all(outcome.sum_reward == 2.0 for outcome in result.outcomes)
     assert len(result.summaries) == 4
@@ -376,7 +394,7 @@ def test_benchmark_episode_outcome_records_termination_and_actions() -> None:
     assert outcome.length == TERMINATE_AT
     assert len(outcome.actions) == TERMINATE_AT
     assert all(action.shape == (ACTION_DIM,) for action in outcome.actions)
-    assert len(samples) == 2  # executed model queries at steps 0 and 4
+    assert len(samples) == 3  # executed model queries at steps 0, 2, and 4
 
 
 def test_benchmark_creates_a_fresh_environment_per_cell() -> None:
