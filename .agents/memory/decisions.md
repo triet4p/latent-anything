@@ -632,3 +632,10 @@ states, diagonal covariance, and memoryless execution remain concrete limits.
 Sprint 65 must compare this instance with a recurrent RSSM-style transition
 before deciding whether any public or internal shared contract deserves to be
 frozen.
+
+## [2026-08-11] Freeze only the mean transition surface across three instances
+
+**Decision:** Extract `LatentTransition` as a runtime-checkable structural contract containing state/action dimensions, source identity, predictive-mean `step()`, and `mean_rollout()`, while keeping fitting, uncertainty, particles, and recurrent reset concrete.
+**Alternatives considered:** Introduce a broad abstract base class covering every lifecycle; force all predictions into one distribution wrapper; or leave all three transitions completely unrelated after the Rule-of-Three review.
+**Reason:** All three instances implement the same mean one-step and recursive rollout behavior, but their training shapes, distribution-valued predictions, and state lifecycles differ materially. A smaller contract captures the reusable call-site seam without erasing temporal masks, Gaussian diagnostics, or RSSM reset semantics.
+**Consequences:** Future transition implementations may rely on the mean contract, but must not add optional-field sprawl to it. Stateful checkpoints own model parameters/configuration and reset in-flight state on load; a richer stateful or distribution contract requires new evidence.

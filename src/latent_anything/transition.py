@@ -490,6 +490,17 @@ class DeterministicLatentTransition:
             rollout_metadata.update(dict(metadata))
         return Trajectory(states, metadata=rollout_metadata)
 
+    def mean_rollout(
+        self,
+        initial_state: np.ndarray,
+        actions: np.ndarray,
+        *,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> Trajectory:
+        """Return the deterministic rollout through the shared transition surface."""
+
+        return self.rollout(initial_state, actions, metadata=metadata)
+
     def evaluate_one_step(self, states: np.ndarray, actions: np.ndarray, next_states: np.ndarray) -> OneStepMetrics:
         """Measure teacher-forced prediction error and runtime."""
 

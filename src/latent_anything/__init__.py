@@ -121,6 +121,12 @@ from latent_anything.registry import RegistryEntry as RegistryEntry
 from latent_anything.registry import list_entries as list_entries
 from latent_anything.registry import lookup as lookup_entry
 from latent_anything.registry import register as register_entry
+from latent_anything.rssm import RSSMLatentTransition as RSSMLatentTransition
+from latent_anything.rssm import RSSMOneStepMetrics as RSSMOneStepMetrics
+from latent_anything.rssm import RSSMPrediction as RSSMPrediction
+from latent_anything.rssm import RSSMRollout as RSSMRollout
+from latent_anything.rssm import RSSMRolloutMetrics as RSSMRolloutMetrics
+from latent_anything.rssm import RSSMTransitionConfig as RSSMTransitionConfig
 from latent_anything.run_record import ArtifactRef as ArtifactRef
 from latent_anything.run_record import DuplicateRunError as DuplicateRunError
 from latent_anything.run_record import FileSystemRunRecorder as FileSystemRunRecorder
@@ -236,6 +242,7 @@ from latent_anything.transition import StochasticGaussianLatentTransition as Sto
 from latent_anything.transition import StochasticOneStepMetrics as StochasticOneStepMetrics
 from latent_anything.transition import StochasticRollout as StochasticRollout
 from latent_anything.transition import StochasticRolloutMetrics as StochasticRolloutMetrics
+from latent_anything.transition_contract import LatentTransition as LatentTransition
 
 __version__ = "0.1.0b1"
 
@@ -319,6 +326,13 @@ __all__ = [
     "StochasticOneStepMetrics",
     "StochasticRollout",
     "StochasticRolloutMetrics",
+    "LatentTransition",
+    "RSSMLatentTransition",
+    "RSSMTransitionConfig",
+    "RSSMPrediction",
+    "RSSMRollout",
+    "RSSMOneStepMetrics",
+    "RSSMRolloutMetrics",
     "BoundaryMetrics",
     "ChangePointResult",
     "Segment",

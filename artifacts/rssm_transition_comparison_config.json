@@ -1,0 +1,10 @@
+{
+  "benchmark": "rssm_transition_comparison",
+  "seed": 65,
+  "episodes": 64,
+  "horizon": 16,
+  "train_fraction": 0.75,
+  "rssm_hidden_dim": 10,
+  "rssm_epochs": 90,
+  "sequence_mask": "(episodes, horizon), 0/1"
+}

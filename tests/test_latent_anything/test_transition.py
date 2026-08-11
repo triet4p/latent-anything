@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -10,6 +12,13 @@ from latent_anything import (
     DeterministicLatentTransition,
     GaussianPrediction,
     LatentSpace,
+    LatentTransition,
+    RSSMLatentTransition,
+    RSSMOneStepMetrics,
+    RSSMPrediction,
+    RSSMRollout,
+    RSSMRolloutMetrics,
+    RSSMTransitionConfig,
     StochasticGaussianLatentTransition,
     StochasticRollout,
     Trajectory,
@@ -210,3 +219,99 @@ def test_stochastic_one_step_metrics_report_nll_coverage_and_diversity() -> None
     assert metrics.interval_width > 0.0
     assert metrics.sample_diversity > 0.0
     assert metrics.mean_error < 0.4
+
+
+def _rssm_sequences(seed: int = 65, episodes: int = 12, horizon: int = 7) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(seed)
+    states = np.empty((episodes, horizon + 1, 2), dtype=np.float64)
+    actions = rng.normal(scale=0.4, size=(episodes, horizon, 1))
+    states[:, 0] = rng.normal(scale=0.5, size=(episodes, 2))
+    memory = np.zeros((episodes, 1), dtype=np.float64)
+    for index in range(horizon):
+        memory = 0.82 * memory + 0.25 * states[:, index, :1] + 0.18 * actions[:, index]
+        states[:, index + 1, 0] = 0.76 * states[:, index, 0] + 0.35 * memory[:, 0] + 0.2 * actions[:, index, 0]
+        states[:, index + 1, 1] = 0.9 * states[:, index, 1] - 0.1 * actions[:, index, 0]
+    mask = np.ones((episodes, horizon), dtype=np.float64)
+    mask[-1, -2:] = 0.0
+    return states, actions, mask
+
+
+def _rssm() -> RSSMLatentTransition:
+    return RSSMLatentTransition(
+        LatentSpace(2, source_model="synthetic-rssm"),
+        1,
+        source_space_identity="synthetic-rssm-v1",
+        config=RSSMTransitionConfig(hidden_dim=6, epochs=35, learning_rate=0.03, seed=65),
+    )
+
+
+def test_rssm_fit_supports_masked_sequences_and_reports_temporal_metrics() -> None:
+    states, actions, mask = _rssm_sequences()
+    model = _rssm().fit(states, actions, sequence_mask=mask)
+    one_step = model.evaluate_one_step(states, actions, states, sequence_mask=mask)
+
+    assert model.is_fitted
+    assert isinstance(one_step, RSSMOneStepMetrics)
+    assert one_step.n_samples == int(mask.sum())
+    assert np.isfinite(one_step.kl_divergence)
+    assert 0.0 <= one_step.coverage <= 1.0
+    assert model.fit_metadata["valid_transitions"] == int(mask.sum())
+
+
+def test_rssm_reset_makes_stateful_execution_reproducible() -> None:
+    states, actions, _ = _rssm_sequences()
+    model = _rssm().fit(states, actions)
+    first = model.step(states[0, 0], actions[0, 0])
+    model.reset()
+    second = model.step(states[0, 0], actions[0, 0])
+    assert_allclose(first, second)
+    prediction = model.predict(states[0, 1], actions[0, 1])
+    assert isinstance(prediction, RSSMPrediction)
+    assert prediction.deterministic_state.shape == model.hidden_shape
+
+
+def test_rssm_rollout_is_seeded_and_keeps_deterministic_state() -> None:
+    states, actions, _ = _rssm_sequences()
+    model = _rssm().fit(states, actions)
+    first = model.rollout(states[0, 0], actions[0], n_samples=16, seed=65)
+    second = model.rollout(states[0, 0], actions[0], n_samples=16, seed=65)
+    assert isinstance(first, RSSMRollout)
+    assert_allclose(first.samples, second.samples)
+    assert first.deterministic_states.shape == (16, actions.shape[1] + 1, model.config.hidden_dim)
+    assert first.metadata["stateful"] is True
+
+
+def test_rssm_rollout_evaluation_accepts_variable_lengths() -> None:
+    states, actions, mask = _rssm_sequences()
+    model = _rssm().fit(states, actions, sequence_mask=mask)
+    metrics = model.evaluate_rollout(states[:, 0], actions, states, sequence_mask=mask, n_samples=16, seed=65)
+    assert isinstance(metrics, RSSMRolloutMetrics)
+    assert metrics.horizon == actions.shape[1]
+    assert len(metrics.kl_by_horizon) == metrics.horizon
+    assert 0.0 <= metrics.mean_coverage <= 1.0
+
+
+def test_rssm_checkpoint_round_trip_resets_in_flight_state(tmp_path: Path) -> None:
+    states, actions, _ = _rssm_sequences()
+    model = _rssm().fit(states, actions)
+    model.step(states[0, 0], actions[0, 0])
+    path = tmp_path / "rssm.npz"
+    model.save(path)
+    restored = RSSMLatentTransition.load(path)
+    assert restored.hidden_state.shape == (restored.config.hidden_dim,)
+    assert_allclose(
+        restored.step(states[0, 0], actions[0, 0]),
+        model.mean_rollout(states[0, 0], actions[:1, 0]).to_numpy()[1],
+        atol=1e-5,
+    )
+    assert restored.to_config().model_dump() == model.to_config().model_dump()
+
+
+def test_three_transition_instances_satisfy_only_the_mean_contract() -> None:
+    states, actions, _ = _rssm_sequences()
+    rssm = _rssm().fit(states, actions)
+    deterministic = _transition().fit(states[:, 0], actions[:, 0], states[:, 1])
+    stochastic = _stochastic_transition().fit(states[:, 0], actions[:, 0], states[:, 1])
+    assert isinstance(deterministic, LatentTransition)
+    assert isinstance(stochastic, LatentTransition)
+    assert isinstance(rssm, LatentTransition)

@@ -177,6 +177,7 @@ None. Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence i
 - [x] [Sprint 61](sprint-plans/sprint-61.md) - Causal policy-explanation benchmark through LIBERO simulation evaluation: four predeclared conditions (no-hook control, zero-strength baseline, random, targeted), seeded episode replay with fixed noise, success/return/action-deviation/latency metrics with Wilson intervals, offline-explanation-to-environment correlation with declared disagreement rules, an offline fixture suite plus a marked CUDA statistical lane, and a D3 promotion gated on the acceptance checks.
 - [x] [Sprint 62](sprint-plans/sprint-62.md) - Versioned local run records, atomic content-addressed artifacts, LeRobot evidence recording, inspection/replay/comparison CLI commands, and the frozen local recorder contract.
 - [x] [Sprint 63](sprint-plans/sprint-63.md) - Deterministic latent transition, recursive rollout, horizon drift metrics, immutable trajectories, and seeded synthetic evidence.
+- [x] [Sprint 65](sprint-plans/sprint-65.md) - RSSM-style recurrent stochastic transition, masked temporal evaluation, stateful checkpointing, and the minimal three-instance transition contract.
 
 ## Planning Rules
 

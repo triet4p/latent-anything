@@ -233,3 +233,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The original serializer used `str(Path("artifacts") / digest)`, which is platform-specific; strict canonical validation correctly rejected the historical Windows spelling but did not migrate it.
 **Fix / workaround:** During schema-v1 migration, normalize only the exact legacy path whose suffix matches the record's lowercase SHA-256 digest, then validate the canonical path as usual.
 **Watch out for:** Do not replace separators generically during migration; malformed, traversal, mixed, or otherwise non-canonical paths must remain rejected.
+
+## [2026-08-11] A recurrent transition can fit one-step error but still drift in imagination
+
+**Symptom:** The RSSM-style transition improved teacher-forced one-step MSE on the partially observed benchmark, but its open-loop final error and interval coverage were worse than the deterministic and memoryless Gaussian baselines.
+**Root cause:** Teacher forcing supplies the observed latent at every fit step, while rollout feeds the model's own sampled predictions back into the recurrent state; the compact model has no learned posterior encoder, free-bits objective, or long-horizon training loss to control that distribution shift.
+**Fix / workaround:** Keep one-step, KL-proxy, calibration, and horizon-drift metrics separate; retain the negative result in the comparison artifact and do not promote recurrent state to real-model evidence.
+**Watch out for:** Any future world-model benchmark that reports only teacher-forced reconstruction or one-step prediction; require masked open-loop rollout metrics and a failure analysis before claiming useful imagination.

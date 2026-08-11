@@ -17,6 +17,7 @@
 
 ### Added
 
+- Added an RSSM-style recurrent stochastic latent transition with masked variable-length sequence fitting, explicit reset semantics, seeded particle rollouts, KL-proxy/calibration/horizon diagnostics, portable configuration/checkpoints, and a minimal mean-transition contract shared by the three transition instances. (#sprint-65)
 - Added the second concrete latent transition (`StochasticGaussianLatentTransition`) with explicit diagonal-Gaussian predictions, seeded particle rollouts, NLL/coverage/diversity diagnostics, and a controlled stochastic-dynamics uncertainty-band benchmark. (#sprint-64)
 - Added the first concrete deterministic latent transition (`DeterministicLatentTransition`) for flat Euclidean states, with action-conditioned residual fitting, immutable recursive rollout trajectories, horizon/runtime/stability metrics, and a seeded held-out synthetic benchmark artifact. (#sprint-63)
 - Added a versioned local `RunRecord` contract and atomic `FileSystemRunRecorder` with reproducible identity, interrupted-run recovery, content-addressed artifacts, runtime-profile/theory-evidence metadata, LeRobot recording helpers, inspection/replay/comparison CLI commands, and a pinned ACT-vs-Diffusion comparison artifact. (#sprint-62)

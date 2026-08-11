@@ -139,7 +139,9 @@ def run_benchmark(
             "mean_rollout_final_state": mean_path.to_numpy()[-1].tolist(),
             "sampled_rollout_final_state": sampled.mean[-1].tolist(),
             "sampled_rollout_mean_differs_from_deterministic": bool(
-                not np.allclose(sampled.mean, deterministic.rollout(initial_states[split], actions[split]).to_numpy())
+                not np.allclose(
+                    sampled.mean, deterministic.mean_rollout(initial_states[split], actions[split]).to_numpy()
+                )
             ),
         },
         "fit_runtime_seconds": fit_runtime,

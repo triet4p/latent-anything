@@ -31,5 +31,6 @@ The reproducible controlled benchmark is:
 
 The benchmark is D2 evidence on a known stochastic linear system. It does not
 claim calibration on a real model, epistemic uncertainty, multimodal support,
-or manifold-valid sampling. RSSM state and a shared transition contract remain
-Sprint 65 scope.
+or manifold-valid sampling. The third RSSM-style instance and the deliberately
+small shared mean-transition contract are documented in
+[RSSM_TRANSITION.md](RSSM_TRANSITION.md).

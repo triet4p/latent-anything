@@ -1,0 +1,110 @@
+{
+  "evidence_status": "D2",
+  "benchmark": "rssm_transition_comparison",
+  "seed": 65,
+  "source_space_identity": "synthetic-memory-system-v1",
+  "episodes": 64,
+  "horizon": 16,
+  "train_episodes": 48,
+  "test_episodes": 16,
+  "dataset": {
+    "kind": "controlled_partially_observed_temporal_system",
+    "noise": "independent Gaussian observation/process noise",
+    "variable_length_mask_supported": true
+  },
+  "deterministic": {
+    "one_step_rmse": 0.046814182847559366,
+    "rollout_mean_error": 0.6556136006668289,
+    "rollout_final_error": 1.330303056153283,
+    "rollout_stable": true
+  },
+  "stochastic_memoryless": {
+    "one_step_nll": -3.3532612012696372,
+    "one_step_coverage": 0.94140625,
+    "rollout_mean_error": 0.6522604531940295,
+    "rollout_final_error": 1.321376058236099,
+    "rollout_mean_coverage": 0.71484375,
+    "rollout_stable": true
+  },
+  "rssm": {
+    "config": {
+      "hidden_dim": 10,
+      "epochs": 90,
+      "learning_rate": 0.025,
+      "variance_floor": 1e-06,
+      "posterior_scale_factor": 0.5,
+      "stability_norm_limit": 1000000.0,
+      "seed": 65,
+      "device": "cpu"
+    },
+    "one_step_mse": 0.005261034082670645,
+    "one_step_rmse": 0.07253298616953975,
+    "one_step_nll": -2.6624691442652706,
+    "one_step_kl": 1.7756935089584487,
+    "one_step_coverage": 0.93359375,
+    "rollout_errors_by_horizon": [
+      0.23355501542323753,
+      0.3818822836191731,
+      0.46871386301401485,
+      0.5436684561009332,
+      0.6340616344200096,
+      0.7269273998841108,
+      0.8134941920206649,
+      0.9120903003731036,
+      1.0141753300204324,
+      1.1208136950380256,
+      1.244183132887871,
+      1.3717066537042855,
+      1.4797007390132586,
+      1.5884657461691967,
+      1.684054540201116,
+      1.8033395147181244
+    ],
+    "rollout_kl_by_horizon": [
+      4.874075927558337,
+      5.2071834862523865,
+      4.225185608410339,
+      3.464678535959292,
+      2.9714218706048654,
+      3.003180129305857,
+      2.7981125624172476,
+      2.8271055014290187,
+      2.8062402905306376,
+      2.8509560628068,
+      2.8944954613738627,
+      3.1492696068570494,
+      3.5533919706902344,
+      4.042023085016014,
+      5.477377501280245,
+      6.526209358167218
+    ],
+    "rollout_coverage_by_horizon": [
+      0.625,
+      0.625,
+      0.6875,
+      0.6875,
+      0.71875,
+      0.625,
+      0.6875,
+      0.71875,
+      0.6875,
+      0.6875,
+      0.6875,
+      0.6875,
+      0.65625,
+      0.625,
+      0.65625,
+      0.59375
+    ],
+    "rollout_mean_error": 1.0013020310379723,
+    "rollout_final_error": 1.8033395147181244,
+    "rollout_mean_kl": 3.7919316849162126,
+    "rollout_mean_coverage": 0.666015625,
+    "rollout_stable": true
+  },
+  "failure_analysis": [
+    "The deterministic and memoryless stochastic baselines do not receive recurrent history, so this benchmark is intentionally partially observed.",
+    "RSSM KL is against an observation-centred posterior proxy; a learned posterior encoder and free-bits objective remain outside this compact NumPy-facing instance.",
+    "All claims are synthetic D2 evidence; no real pretrained world-model or CUDA claim is promoted."
+  ]
+}
