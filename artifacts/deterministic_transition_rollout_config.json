@@ -1,0 +1,8 @@
+{
+  "benchmark": "deterministic_latent_transition_rollout",
+  "seed": 63,
+  "episodes": 64,
+  "horizon": 24,
+  "train_fraction": 0.75,
+  "source_space_identity": "synthetic-linear-system-v1"
+}

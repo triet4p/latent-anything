@@ -117,6 +117,16 @@ comparison (`artifacts/lerobot_policy_comparison.json`). The Rule-of-Three
 decision freezes only the local concrete contract; external tracking backends
 remain deferred to Sprint 76.
 
+Sprint 63 promotes the first deterministic latent-transition and rollout
+evidence to D2 for `THY-T06-LATENT-TRANSITION-MODEL`,
+`THY-T06-ROLLOUT-LATENT-IMAGINATION`, and
+`THY-T07-LATENT-IMAGINATION-HORIZON`. The concrete source is
+`src/latent_anything/transition.py`, with focused offline tests in
+`tests/test_latent_anything/test_transition.py` and the seeded held-out
+benchmark/config/artifacts from `scripts/deterministic_transition_benchmark.py`.
+This is a flat Euclidean affine-residual baseline only; stochastic and
+recurrent transitions remain unimplemented until Sprints 64–65.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

@@ -222,6 +222,11 @@ from latent_anything.temporal import (
 from latent_anything.temporal import (
     smooth_trajectory as smooth_trajectory,
 )
+from latent_anything.transition import (
+    DeterministicLatentTransition as DeterministicLatentTransition,
+)
+from latent_anything.transition import OneStepMetrics as OneStepMetrics
+from latent_anything.transition import RolloutMetrics as RolloutMetrics
 from latent_anything.temporal import (
     smoothing_distortion as smoothing_distortion,
 )
@@ -301,6 +306,9 @@ __all__ = [
     "SO3",
     "SensitivityReport",
     "Trajectory",
+    "DeterministicLatentTransition",
+    "OneStepMetrics",
+    "RolloutMetrics",
     "BoundaryMetrics",
     "ChangePointResult",
     "Segment",

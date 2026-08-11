@@ -224,6 +224,36 @@
         {"role": "artifact", "path": "artifacts/trajectory_temporal_benchmark.json"}
       ]
     },
+    "THY-T06-LATENT-TRANSITION-MODEL": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/transition.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+      ]
+    },
+    "THY-T06-ROLLOUT-LATENT-IMAGINATION": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/transition.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+      ]
+    },
+    "THY-T07-LATENT-IMAGINATION-HORIZON": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/transition.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+      ]
+    },
     "THY-T04-LATENT-ARITHMETIC": {
       "status": "D2",
       "evidence": [
