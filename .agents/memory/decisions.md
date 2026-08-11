@@ -639,3 +639,10 @@ frozen.
 **Alternatives considered:** Introduce a broad abstract base class covering every lifecycle; force all predictions into one distribution wrapper; or leave all three transitions completely unrelated after the Rule-of-Three review.
 **Reason:** All three instances implement the same mean one-step and recursive rollout behavior, but their training shapes, distribution-valued predictions, and state lifecycles differ materially. A smaller contract captures the reusable call-site seam without erasing temporal masks, Gaussian diagnostics, or RSSM reset semantics.
 **Consequences:** Future transition implementations may rely on the mean contract, but must not add optional-field sprawl to it. Stateful checkpoints own model parameters/configuration and reset in-flight state on load; a richer stateful or distribution contract requires new evidence.
+
+## [2026-08-11] Keep pipeline execution contracts story-specific
+
+**Decision:** Freeze only a shared `PipelineContract` metadata surface (`pipeline_kind` and optional `latent_space`) while keeping `run`/async execution methods specific to Analysis, Manipulation, and Rollout.
+**Alternatives considered:** Force all three stories through one generic `run` signature, retain the old private base sketch, or expose no shared contract at all.
+**Reason:** The three proven stories have different inputs and lifecycle semantics: analysis fits a Layer A method, manipulation supports method-specific data/trajectory calls, and rollout consumes an initial state plus actions. Their common metadata is useful for discovery and experiment records, but a generic executor would hide meaningful differences and recreate the brittle dispatch problem Sprint 21 explicitly avoided.
+**Consequences:** New pipeline stories must justify any additional shared surface with evidence from their real execution path. Callers can inspect pipeline kind and latent space uniformly, but must use story-specific execution methods; streaming in Sprint 75 must not silently widen this contract.

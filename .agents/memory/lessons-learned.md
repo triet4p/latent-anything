@@ -240,3 +240,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** Teacher forcing supplies the observed latent at every fit step, while rollout feeds the model's own sampled predictions back into the recurrent state; the compact model has no learned posterior encoder, free-bits objective, or long-horizon training loss to control that distribution shift.
 **Fix / workaround:** Keep one-step, KL-proxy, calibration, and horizon-drift metrics separate; retain the negative result in the comparison artifact and do not promote recurrent state to real-model evidence.
 **Watch out for:** Any future world-model benchmark that reports only teacher-forced reconstruction or one-step prediction; require masked open-loop rollout metrics and a failure analysis before claiming useful imagination.
+
+## [2026-08-11] Trajectory metadata cannot be deep-copied through InMemoryCache
+
+**Symptom:** Caching a rollout by passing its `Trajectory` directly to `InMemoryCache.set_object()` raised `TypeError: cannot pickle 'mappingproxy' object`.
+**Root cause:** `Trajectory.metadata` is intentionally immutable via `MappingProxyType`, while the generic object cache uses `deepcopy`, which cannot pickle that proxy.
+**Fix / workaround:** Rollout caching stores a plain dictionary containing the trajectory array and copied metadata, then reconstructs a fresh `Trajectory` on a cache hit.
+**Watch out for:** Any future object cached through `InMemoryCache` that contains immutable proxy-backed metadata; cache a plain serialization payload or extend the cache with an explicit copy protocol.

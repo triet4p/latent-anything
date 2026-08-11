@@ -57,9 +57,11 @@ from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
 from latent_anything.probes import LinearProbe
 from latent_anything.projection import SubspaceProjection
-from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION
+from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION, KIND_RUNTIME
+from latent_anything.rssm import RSSMLatentTransition
 from latent_anything.sae_evaluation import SAEFeatureEvaluation
 from latent_anything.tcav import TCAV
+from latent_anything.transition import DeterministicLatentTransition, StochasticGaussianLatentTransition
 
 # ── Register adapters ───────────────────────────────────────────────
 
@@ -253,5 +255,34 @@ GLOBAL_REGISTRY.register(
     SubspaceProjection,
     description="Orthonormal subspace projection — project onto / remove a fitted subspace",
     protocol="SubspaceProjection",
+    source="built-in",
+)
+
+# ── Register runtime transitions ───────────────────────────────────
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "deterministic_transition",
+    DeterministicLatentTransition,
+    description="Action-conditioned deterministic latent transition",
+    protocol="LatentTransition",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "stochastic_transition",
+    StochasticGaussianLatentTransition,
+    description="Diagonal-Gaussian latent transition with predictive uncertainty",
+    protocol="LatentTransition",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "rssm_transition",
+    RSSMLatentTransition,
+    description="Compact recurrent stochastic latent transition",
+    protocol="LatentTransition",
     source="built-in",
 )

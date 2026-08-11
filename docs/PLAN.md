@@ -178,6 +178,7 @@ None. Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence i
 - [x] [Sprint 62](sprint-plans/sprint-62.md) - Versioned local run records, atomic content-addressed artifacts, LeRobot evidence recording, inspection/replay/comparison CLI commands, and the frozen local recorder contract.
 - [x] [Sprint 63](sprint-plans/sprint-63.md) - Deterministic latent transition, recursive rollout, horizon drift metrics, immutable trajectories, and seeded synthetic evidence.
 - [x] [Sprint 65](sprint-plans/sprint-65.md) - RSSM-style recurrent stochastic transition, masked temporal evaluation, stateful checkpointing, and the minimal three-instance transition contract.
+- [x] [Sprint 66](sprint-plans/sprint-66.md) - Rollout Pipeline #3, story-specific pipeline modules, the shared metadata contract, cache/profiling/async parity, and compatibility migration evidence.
 
 ## Planning Rules
 

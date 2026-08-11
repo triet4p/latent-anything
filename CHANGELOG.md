@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Decomposed the beta pipeline implementation into focused Analysis, Manipulation, Rollout, result-model, contract, and config modules while preserving `latent_anything.pipeline` imports. (#sprint-66)
 - Corrected LeRobot benchmark query counts and latency aggregation to report executed policy queries rather than rollout steps, migrated Windows-written schema-v1 artifact references to the canonical separator, aligned Diffusion coordinate metadata with the flattened action-chunk dimension, and preserved exact execution provenance across all LeRobot recording helpers. (#review-remediation)
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
 
@@ -17,6 +18,7 @@
 
 ### Added
 
+- Added `RolloutPipeline` with typed results, initial-latent/action composition, optional in-memory caching, transition profiling, sync/async parity, cancellation/error propagation, runtime config construction, and built-in transition registry entries. (#sprint-66)
 - Added an RSSM-style recurrent stochastic latent transition with masked variable-length sequence fitting, explicit reset semantics, seeded particle rollouts, KL-proxy/calibration/horizon diagnostics, portable configuration/checkpoints, and a minimal mean-transition contract shared by the three transition instances. (#sprint-65)
 - Added the second concrete latent transition (`StochasticGaussianLatentTransition`) with explicit diagonal-Gaussian predictions, seeded particle rollouts, NLL/coverage/diversity diagnostics, and a controlled stochastic-dynamics uncertainty-band benchmark. (#sprint-64)
 - Added the first concrete deterministic latent transition (`DeterministicLatentTransition`) for flat Euclidean states, with action-conditioned residual fitting, immutable recursive rollout trajectories, horizon/runtime/stability metrics, and a seeded held-out synthetic benchmark artifact. (#sprint-63)

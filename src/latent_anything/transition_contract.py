@@ -18,9 +18,23 @@ class LatentTransition(Protocol):
     differ across the three concrete implementations.
     """
 
-    state_dim: int
-    action_dim: int
-    source_space_identity: str
+    @property
+    def state_dim(self) -> int:
+        """Return the flat latent state width."""
+
+        ...
+
+    @property
+    def action_dim(self) -> int:
+        """Return the action width."""
+
+        ...
+
+    @property
+    def source_space_identity(self) -> str:
+        """Return the transition's source-space identity."""
+
+        ...
 
     def step(self, state: np.ndarray, action: np.ndarray) -> np.ndarray:
         """Return the predictive mean for one state/action pair."""

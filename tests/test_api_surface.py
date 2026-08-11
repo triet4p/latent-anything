@@ -10,6 +10,7 @@ from latent_anything.registry import KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B
 def test_top_level_public_beta_export_snapshot() -> None:
     assert latent_anything.__all__ == [
         "AnalysisPipeline",
+        "PipelineContract",
         "BatchExecutor",
         "CacheKey",
         "CacheStats",
@@ -47,6 +48,9 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "OrthonormalSubspace",
         "PipelineResult",
         "PipelineSpec",
+        "RolloutPipeline",
+        "RolloutPipelineSpec",
+        "RolloutResult",
         "PoseConfig",
         "PoseMetadata",
         "PoseTrajectory",
@@ -106,6 +110,7 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "build_from_dict",
         "build_manipulation_pipeline_from_config",
         "build_pipeline_from_config",
+        "build_rollout_pipeline_from_config",
         "GMMConfig",
         "GaussianMixtureDensity",
         "DensityResult",

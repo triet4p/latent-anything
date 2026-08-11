@@ -96,10 +96,15 @@ from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_m
 from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
 from latent_anything.pipeline import ManipulationPipelineSpec as ManipulationPipelineSpec
+from latent_anything.pipeline import PipelineContract as PipelineContract
 from latent_anything.pipeline import PipelineResult as PipelineResult
 from latent_anything.pipeline import PipelineSpec as PipelineSpec
+from latent_anything.pipeline import RolloutPipeline as RolloutPipeline
+from latent_anything.pipeline import RolloutPipelineSpec as RolloutPipelineSpec
+from latent_anything.pipeline import RolloutResult as RolloutResult
 from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
+from latent_anything.pipeline import build_rollout_pipeline_from_config as build_rollout_pipeline_from_config
 from latent_anything.pose import SE3 as SE3
 from latent_anything.pose import SO3 as SO3
 from latent_anything.pose import PoseConfig as PoseConfig
@@ -248,6 +253,7 @@ __version__ = "0.1.0b1"
 
 __all__ = [
     "AnalysisPipeline",
+    "PipelineContract",
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
@@ -285,6 +291,9 @@ __all__ = [
     "OrthonormalSubspace",
     "PipelineResult",
     "PipelineSpec",
+    "RolloutPipeline",
+    "RolloutPipelineSpec",
+    "RolloutResult",
     "PoseConfig",
     "PoseMetadata",
     "PoseTrajectory",
@@ -344,6 +353,7 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "build_rollout_pipeline_from_config",
     "GMMConfig",
     "GaussianMixtureDensity",
     "DensityResult",

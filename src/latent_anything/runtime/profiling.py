@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Literal, TypeVar, cast
 
-RuntimeStage = Literal["cache", "decode", "encode", "method"]
+RuntimeStage = Literal["cache", "decode", "encode", "method", "transition"]
 ProfileMetadataValue = str | int | float | bool | None
 _T = TypeVar("_T")
 

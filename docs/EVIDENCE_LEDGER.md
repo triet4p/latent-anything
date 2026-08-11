@@ -125,7 +125,18 @@ evidence to D2 for `THY-T06-LATENT-TRANSITION-MODEL`,
 `tests/test_latent_anything/test_transition.py` and the seeded held-out
 benchmark/config/artifacts from `scripts/deterministic_transition_benchmark.py`.
 This is a flat Euclidean affine-residual baseline only; stochastic and
-recurrent transitions remain unimplemented until Sprints 64–65.
+recurrent transition variants are separately evidenced by Sprints 64–65.
+
+Sprint 66 adds the non-theory pipeline composition contract. Its evidence is
+the focused pipeline modules (`src/latent_anything/analysis_pipeline.py`,
+`src/latent_anything/manipulation_pipeline.py`, and
+`src/latent_anything/rollout_pipeline.py`), the shared metadata contract
+(`src/latent_anything/pipeline_contract.py`), focused behavior/config/cache/
+async tests (`tests/test_latent_anything/test_rollout_pipeline.py` plus the
+existing pipeline/runtime regression suites), and the migration/ownership
+documentation in `docs/PIPELINES.md`. This does not promote a new model or
+planning claim; it makes the existing latent-transition rollout evidence
+available through Pipeline #3.
 
 ## Quality gates for a D2/D3 promotion
 
