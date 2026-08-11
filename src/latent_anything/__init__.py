@@ -15,7 +15,7 @@ Plugin-first architecture with three pillars:
 
 # Trigger built-in registration into GLOBAL_REGISTRY before any
 # registry-dependent imports (like config).
-from latent_anything import _plugin_builtins as _plugin_builtins  # noqa: F401  # trigger registration
+from latent_anything import _plugin_builtins as _plugin_builtins  # noqa: F401, I001  # trigger registration
 from latent_anything.clustering import ClusterStabilityReport as ClusterStabilityReport
 from latent_anything.clustering import KMeans as KMeans
 from latent_anything.clustering import KMeansConfig as KMeansConfig
@@ -102,8 +102,12 @@ from latent_anything.pipeline import PipelineSpec as PipelineSpec
 from latent_anything.pipeline import RolloutPipeline as RolloutPipeline
 from latent_anything.pipeline import RolloutPipelineSpec as RolloutPipelineSpec
 from latent_anything.pipeline import RolloutResult as RolloutResult
+from latent_anything.pipeline import RewardValueEvaluationSpec as RewardValueEvaluationSpec
 from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
+from latent_anything.pipeline import (
+    build_reward_value_evaluator_from_config as build_reward_value_evaluator_from_config,
+)
 from latent_anything.pipeline import build_rollout_pipeline_from_config as build_rollout_pipeline_from_config
 from latent_anything.pose import SE3 as SE3
 from latent_anything.pose import SO3 as SO3
@@ -126,6 +130,16 @@ from latent_anything.registry import RegistryEntry as RegistryEntry
 from latent_anything.registry import list_entries as list_entries
 from latent_anything.registry import lookup as lookup_entry
 from latent_anything.registry import register as register_entry
+from latent_anything.reward_value import HoldoutEvaluation as HoldoutEvaluation
+from latent_anything.reward_value import LinearRewardScorer as LinearRewardScorer
+from latent_anything.reward_value import MonteCarloValueEstimator as MonteCarloValueEstimator
+from latent_anything.reward_value import RewardValueDiagnostics as RewardValueDiagnostics
+from latent_anything.reward_value import RewardValueEvaluationResult as RewardValueEvaluationResult
+from latent_anything.reward_value import RewardValueEvaluator as RewardValueEvaluator
+from latent_anything.reward_value import TrajectoryScoreComparison as TrajectoryScoreComparison
+from latent_anything.reward_value import ValueCalibration as ValueCalibration
+from latent_anything.reward_value import compare_real_imagined_scores as compare_real_imagined_scores
+from latent_anything.reward_value import compute_discounted_returns as compute_discounted_returns
 from latent_anything.rssm import RSSMLatentTransition as RSSMLatentTransition
 from latent_anything.rssm import RSSMOneStepMetrics as RSSMOneStepMetrics
 from latent_anything.rssm import RSSMPrediction as RSSMPrediction
@@ -294,6 +308,7 @@ __all__ = [
     "RolloutPipeline",
     "RolloutPipelineSpec",
     "RolloutResult",
+    "RewardValueEvaluationSpec",
     "PoseConfig",
     "PoseMetadata",
     "PoseTrajectory",
@@ -336,6 +351,16 @@ __all__ = [
     "StochasticRollout",
     "StochasticRolloutMetrics",
     "LatentTransition",
+    "HoldoutEvaluation",
+    "LinearRewardScorer",
+    "MonteCarloValueEstimator",
+    "RewardValueDiagnostics",
+    "RewardValueEvaluationResult",
+    "RewardValueEvaluator",
+    "TrajectoryScoreComparison",
+    "ValueCalibration",
+    "compare_real_imagined_scores",
+    "compute_discounted_returns",
     "RSSMLatentTransition",
     "RSSMTransitionConfig",
     "RSSMPrediction",
@@ -353,6 +378,7 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "build_reward_value_evaluator_from_config",
     "build_rollout_pipeline_from_config",
     "GMMConfig",
     "GaussianMixtureDensity",

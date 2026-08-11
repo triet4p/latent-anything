@@ -18,6 +18,7 @@
 
 ### Added
 
+- Added latent reward/value evaluation with a fitted state/action reward scorer, declared-discount Monte-Carlo value estimator, terminal/padding-aware returns, typed uncertainty/provenance results, held-out calibration and Bellman diagnostics, real-versus-imagined bias comparison, rollout config integration, and content-addressed run-record evidence. (#sprint-67)
 - Added `RolloutPipeline` with typed results, initial-latent/action composition, optional in-memory caching, transition profiling, sync/async parity, cancellation/error propagation, runtime config construction, and built-in transition registry entries. (#sprint-66)
 - Added an RSSM-style recurrent stochastic latent transition with masked variable-length sequence fitting, explicit reset semantics, seeded particle rollouts, KL-proxy/calibration/horizon diagnostics, portable configuration/checkpoints, and a minimal mean-transition contract shared by the three transition instances. (#sprint-65)
 - Added the second concrete latent transition (`StochasticGaussianLatentTransition`) with explicit diagonal-Gaussian predictions, seeded particle rollouts, NLL/coverage/diversity diagnostics, and a controlled stochastic-dynamics uncertainty-band benchmark. (#sprint-64)

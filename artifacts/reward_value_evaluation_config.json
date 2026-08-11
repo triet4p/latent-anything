@@ -1,0 +1,10 @@
+{
+  "benchmark": "reward_value_evaluation",
+  "seed": 67,
+  "episodes": 96,
+  "horizon": 8,
+  "discount": 0.85,
+  "train_fraction": 0.75,
+  "reward_head": "linear_state_action",
+  "value_head": "linear_monte_carlo"
+}

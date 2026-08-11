@@ -138,6 +138,18 @@ documentation in `docs/PIPELINES.md`. This does not promote a new model or
 planning claim; it makes the existing latent-transition rollout evidence
 available through Pipeline #3.
 
+Sprint 67 promotes the first reward/value evaluation evidence to D2 for
+`THY-T07-REWARD-MODEL-TRONG-LATENT` and
+`THY-T07-VALUE-FUNCTION-TRONG-LATENT`. The focused NumPy implementation
+(`src/latent_anything/reward_value.py`) provides masked discounted returns,
+terminal/padding semantics, linear reward scoring, finite-horizon Monte-Carlo
+value estimation, held-out calibration, Bellman residuals, and
+real-versus-imagined score bias. Its integration evidence is the configured
+rollout evaluator and run-record artifact path, the deterministic tests in
+`tests/test_reward_value.py`, and the controlled benchmark/config/artifact
+from `scripts/reward_value_benchmark.py`. This remains synthetic D2 evidence;
+it does not claim a real pretrained world-model or CUDA result.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

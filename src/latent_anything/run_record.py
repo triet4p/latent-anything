@@ -21,6 +21,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
+from latent_anything.reward_value import HoldoutEvaluation, RewardValueEvaluationResult
 from latent_anything.runtime.profiling import RuntimeProfile
 
 RUN_RECORD_SCHEMA_VERSION = 1
@@ -559,6 +560,22 @@ class FileSystemRunRecorder:
     ) -> RunRecord:
         record = self.get(run_id).transition("completed", metrics=metrics, artifacts=artifacts)
         return self.save(record)
+
+    def complete_evaluation(
+        self,
+        run_id: str,
+        evaluation: RewardValueEvaluationResult | HoldoutEvaluation,
+        *,
+        artifact_name: str = "reward_value_evaluation.json",
+    ) -> RunRecord:
+        """Persist reward/value evidence and complete the associated run.
+
+        The full typed result is stored as a content-addressed JSON artifact;
+        its flat metrics are copied into the run record for comparisons.
+        """
+
+        self.add_json_artifact(run_id, evaluation.to_dict(), name=artifact_name)
+        return self.complete(run_id, metrics=evaluation.to_metrics())
 
     def fail(self, run_id: str, error: str) -> RunRecord:
         record = self.get(run_id).transition("failed", error=error)

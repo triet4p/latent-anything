@@ -1,0 +1,65 @@
+{
+  "evidence_status": "D2",
+  "benchmark": "reward_value_evaluation",
+  "seed": 67,
+  "source_space_identity": "synthetic-reward-value-system-v1",
+  "episodes": 96,
+  "horizon": 8,
+  "train_episodes": 72,
+  "test_episodes": 24,
+  "discount": 0.85,
+  "policy_id": "gaussian-behavior-v1",
+  "data_distribution": "synthetic-held-out-dynamics",
+  "heldout": {
+    "reward_rmse": 4.022415113831237e-11,
+    "reward_mae": 3.283699557383134e-11,
+    "reward_bias": 5.227914699453343e-12,
+    "value_calibration": {
+      "rmse": 0.46173020645441737,
+      "mae": 0.3628149749399261,
+      "bias": -0.0008209057360288319,
+      "mean_prediction": 0.01945614722958723,
+      "mean_target": 0.02027705296561605,
+      "coverage": null
+    },
+    "bellman_residual_rmse": 0.3907308125170763,
+    "bellman_residual_mae": 0.3081076146009833,
+    "bellman_residual_bias": -0.0015737694770944731,
+    "n_steps": 192,
+    "source": "real-holdout"
+  },
+  "real_trajectory": {
+    "reward_mean": 0.3449262456702644,
+    "return_mean": 1.1132159520051308,
+    "value_mean": 0.8137721717189832,
+    "bellman_residual_rmse": 0.37329522247521896,
+    "valid_steps": 8.0
+  },
+  "imagined_trajectory": {
+    "reward_mean": 0.30403766865752446,
+    "return_mean": 0.9484576090954219,
+    "value_mean": 0.6964380840361437,
+    "bellman_residual_rmse": 0.32047176827318463,
+    "valid_steps": 8.0
+  },
+  "real_vs_imagined": {
+    "reward_mae": 0.040888577012739916,
+    "reward_bias": -0.040888577012739916,
+    "return_mae": 0.16475834290970884,
+    "return_bias": -0.16475834290970884,
+    "value_mae": 0.11733408768283948,
+    "value_bias": -0.11733408768283948,
+    "bellman_residual_mae_delta": -0.038361587677922526,
+    "valid_steps": 8,
+    "provenance": {
+      "real_source": "real",
+      "imagined_source": "imagined",
+      "discount": 0.85
+    }
+  },
+  "failure_analysis": [
+    "This is a controlled synthetic D2 benchmark, not evidence on a real pretrained world model.",
+    "The reward and value heads are linear NumPy baselines; nonlinear and distributional heads remain future work.",
+    "Value targets are finite-horizon Monte-Carlo returns under the declared behavior policy and discount."
+  ]
+}

@@ -266,6 +266,26 @@
         {"role": "artifact", "path": "artifacts/rssm_transition_comparison.json"}
       ]
     },
+    "THY-T07-REWARD-MODEL-TRONG-LATENT": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/reward_value.py"},
+        {"role": "test", "path": "tests/test_reward_value.py"},
+        {"role": "benchmark", "path": "scripts/reward_value_benchmark.py"},
+        {"role": "config", "path": "artifacts/reward_value_evaluation_config.json"},
+        {"role": "artifact", "path": "artifacts/reward_value_evaluation.json"}
+      ]
+    },
+    "THY-T07-VALUE-FUNCTION-TRONG-LATENT": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/reward_value.py"},
+        {"role": "test", "path": "tests/test_reward_value.py"},
+        {"role": "benchmark", "path": "scripts/reward_value_benchmark.py"},
+        {"role": "config", "path": "artifacts/reward_value_evaluation_config.json"},
+        {"role": "artifact", "path": "artifacts/reward_value_evaluation.json"}
+      ]
+    },
     "THY-T07-LATENT-IMAGINATION-HORIZON": {
       "status": "D2",
       "evidence": [

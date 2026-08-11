@@ -13,6 +13,9 @@ from latent_anything.pipeline_config import (
     PipelineSpec as PipelineSpec,
 )
 from latent_anything.pipeline_config import (
+    RewardValueEvaluationSpec as RewardValueEvaluationSpec,
+)
+from latent_anything.pipeline_config import (
     RolloutPipelineSpec as RolloutPipelineSpec,
 )
 from latent_anything.pipeline_config import (
@@ -20,6 +23,9 @@ from latent_anything.pipeline_config import (
 )
 from latent_anything.pipeline_config import (
     build_pipeline_from_config as build_pipeline_from_config,
+)
+from latent_anything.pipeline_config import (
+    build_reward_value_evaluator_from_config as build_reward_value_evaluator_from_config,
 )
 from latent_anything.pipeline_config import (
     build_rollout_pipeline_from_config as build_rollout_pipeline_from_config,
@@ -37,9 +43,11 @@ __all__ = [
     "PipelineSpec",
     "RolloutPipeline",
     "RolloutPipelineSpec",
+    "RewardValueEvaluationSpec",
     "RolloutResult",
     "ManipulationPipelineSpec",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
+    "build_reward_value_evaluator_from_config",
     "build_rollout_pipeline_from_config",
 ]

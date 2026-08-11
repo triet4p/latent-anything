@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
+
+if TYPE_CHECKING:
+    from latent_anything.reward_value import RewardValueEvaluationResult
 
 
 @dataclass(frozen=True)
@@ -33,6 +37,7 @@ class RolloutResult:
     trajectory: Trajectory
     latent_space: LatentSpace
     cache_hit: bool = False
+    evaluation: RewardValueEvaluationResult | None = None
 
     @property
     def states(self) -> Trajectory:

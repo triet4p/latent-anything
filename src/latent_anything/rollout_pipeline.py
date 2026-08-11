@@ -13,6 +13,7 @@ from latent_anything.latent_space import LatentSpace
 from latent_anything.latent_value import LatentValue
 from latent_anything.pipeline_contract import PipelineContract, PipelineKind
 from latent_anything.pipeline_models import RolloutResult
+from latent_anything.reward_value import RewardValueEvaluationResult, RewardValueEvaluator
 from latent_anything.runtime.cache import CacheKey, InMemoryCache, make_cache_key
 from latent_anything.runtime.profiling import RuntimeProfiler
 from latent_anything.trajectory import Trajectory
@@ -30,9 +31,15 @@ class RolloutPipeline(PipelineContract):
 
     pipeline_kind: PipelineKind = "rollout"
 
-    def __init__(self, transition: LatentTransition, cache: InMemoryCache | None = None) -> None:
+    def __init__(
+        self,
+        transition: LatentTransition,
+        cache: InMemoryCache | None = None,
+        evaluator: RewardValueEvaluator | None = None,
+    ) -> None:
         self.transition = transition
         self.cache = cache
+        self.evaluator = evaluator
         latent_space = getattr(transition, "latent_space", None)
         if not isinstance(latent_space, LatentSpace):
             latent_space = LatentSpace(dim=transition.state_dim, source_model=transition.source_space_identity)
@@ -64,13 +71,32 @@ class RolloutPipeline(PipelineContract):
                     metadata=cached.get("metadata") if isinstance(cached.get("metadata"), Mapping) else None,
                 )
                 return RolloutResult(
-                    initial.copy(), action_values.copy(), cached_trajectory, self._latent_space, cache_hit=True
+                    initial.copy(),
+                    action_values.copy(),
+                    cached_trajectory,
+                    self._latent_space,
+                    cache_hit=True,
+                    evaluation=self._evaluate(cached_trajectory, action_values),
                 )
 
         trajectory = self._execute(initial, action_values, profiler=profiler, metadata=metadata)
         if key is not None:
             self._cache_set(key, trajectory, profiler=profiler)
-        return RolloutResult(initial.copy(), action_values.copy(), trajectory, self._latent_space, cache_hit=False)
+        return RolloutResult(
+            initial.copy(),
+            action_values.copy(),
+            trajectory,
+            self._latent_space,
+            cache_hit=False,
+            evaluation=self._evaluate(trajectory, action_values),
+        )
+
+    def evaluate(self, result: RolloutResult, *, source: str = "imagined") -> RewardValueEvaluationResult:
+        """Score an existing rollout result with the configured evaluator."""
+
+        if self.evaluator is None:
+            raise RuntimeError("rollout pipeline has no reward/value evaluator configured")
+        return self.evaluator.evaluate(result.trajectory, result.actions, source=source)
 
     async def run_async(
         self,
@@ -119,6 +145,11 @@ class RolloutPipeline(PipelineContract):
         result = operation()
         profiler.record("transition", perf_counter() - start, component=type(self.transition).__name__)
         return result
+
+    def _evaluate(self, trajectory: Trajectory, actions: np.ndarray) -> RewardValueEvaluationResult | None:
+        if self.evaluator is None:
+            return None
+        return self.evaluator.evaluate(trajectory, actions, source="imagined")
 
     def _validate_inputs(
         self, initial_state: np.ndarray | LatentValue, actions: np.ndarray
