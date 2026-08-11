@@ -222,15 +222,20 @@ from latent_anything.temporal import (
 from latent_anything.temporal import (
     smooth_trajectory as smooth_trajectory,
 )
-from latent_anything.transition import (
-    DeterministicLatentTransition as DeterministicLatentTransition,
-)
-from latent_anything.transition import OneStepMetrics as OneStepMetrics
-from latent_anything.transition import RolloutMetrics as RolloutMetrics
 from latent_anything.temporal import (
     smoothing_distortion as smoothing_distortion,
 )
 from latent_anything.trajectory import Trajectory as Trajectory
+from latent_anything.transition import (
+    DeterministicLatentTransition as DeterministicLatentTransition,
+)
+from latent_anything.transition import GaussianPrediction as GaussianPrediction
+from latent_anything.transition import OneStepMetrics as OneStepMetrics
+from latent_anything.transition import RolloutMetrics as RolloutMetrics
+from latent_anything.transition import StochasticGaussianLatentTransition as StochasticGaussianLatentTransition
+from latent_anything.transition import StochasticOneStepMetrics as StochasticOneStepMetrics
+from latent_anything.transition import StochasticRollout as StochasticRollout
+from latent_anything.transition import StochasticRolloutMetrics as StochasticRolloutMetrics
 
 __version__ = "0.1.0b1"
 
@@ -307,8 +312,13 @@ __all__ = [
     "SensitivityReport",
     "Trajectory",
     "DeterministicLatentTransition",
+    "GaussianPrediction",
     "OneStepMetrics",
     "RolloutMetrics",
+    "StochasticGaussianLatentTransition",
+    "StochasticOneStepMetrics",
+    "StochasticRollout",
+    "StochasticRolloutMetrics",
     "BoundaryMetrics",
     "ChangePointResult",
     "Segment",

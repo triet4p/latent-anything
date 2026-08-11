@@ -113,6 +113,7 @@ include = [
     "scripts/smolvla_policy_representation_benchmark.py",
     "scripts/smolvla_simulation_benchmark.py",
     "scripts/deterministic_transition_benchmark.py",
+    "scripts/stochastic_transition_benchmark.py",
     "tests/test_api_surface.py",
     "tests/test_diffusers_vae.py",
     "tests/test_diffusers_vae_network.py",

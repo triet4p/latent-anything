@@ -6,7 +6,14 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from latent_anything import DeterministicLatentTransition, LatentSpace, Trajectory
+from latent_anything import (
+    DeterministicLatentTransition,
+    GaussianPrediction,
+    LatentSpace,
+    StochasticGaussianLatentTransition,
+    StochasticRollout,
+    Trajectory,
+)
 
 
 def _transition(state_dim: int = 2, action_dim: int = 1) -> DeterministicLatentTransition:
@@ -99,3 +106,107 @@ def test_fit_and_rollout_are_repeatable() -> None:
     first = _transition().fit(states, actions, next_states).rollout(states[0], action_sequence)
     second = _transition().fit(states, actions, next_states).rollout(states[0], action_sequence)
     assert_allclose(first.to_numpy(), second.to_numpy())
+
+
+def _stochastic_transition(
+    state_dim: int = 2, action_dim: int = 1, *, variance_floor: float = 1e-8
+) -> StochasticGaussianLatentTransition:
+    return StochasticGaussianLatentTransition(
+        LatentSpace(state_dim, source_model="synthetic-stochastic"),
+        action_dim,
+        source_space_identity="synthetic-stochastic-v1",
+        variance_floor=variance_floor,
+        ridge=1e-10,
+    )
+
+
+def _noisy_samples(seed: int = 640) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(seed)
+    states = rng.normal(size=(500, 2))
+    actions = rng.normal(size=(500, 1))
+    mean = states @ np.array([[0.88, 0.06], [-0.12, 0.91]]) + actions @ np.array([[0.25, -0.35]])
+    next_states = mean + rng.normal(scale=[0.08, 0.18], size=mean.shape)
+    return states, actions, next_states
+
+
+def test_stochastic_prediction_exposes_positive_scale_and_covariance() -> None:
+    states, actions, next_states = _noisy_samples()
+    model = _stochastic_transition().fit(states, actions, next_states)
+
+    prediction = model.predict(np.array([0.2, -0.4]), np.array([0.7]))
+    assert isinstance(prediction, GaussianPrediction)
+    assert prediction.mean.shape == (2,)
+    assert np.all(prediction.scale > 0)
+    assert_allclose(prediction.covariance, np.diag(prediction.variance))
+    assert model.fit_metadata["distribution_family"] == "diagonal_gaussian"
+    assert model.fit_metadata["covariance_parameterization"] == "diagonal_scale"
+
+
+def test_stochastic_sampling_is_seeded_and_keeps_distribution_explicit() -> None:
+    states, actions, next_states = _noisy_samples()
+    model = _stochastic_transition().fit(states, actions, next_states)
+    prediction = model.predict(np.zeros(2), np.zeros(1))
+
+    first = prediction.sample(seed=64, n_samples=12)
+    second = prediction.sample(seed=64, n_samples=12)
+    third = prediction.sample(seed=65, n_samples=12)
+    assert_allclose(first, second)
+    assert not np.array_equal(first, third)
+    assert np.std(first, axis=0).mean() > 0
+    assert np.isfinite(prediction.log_prob(np.zeros(2)))
+    assert np.isfinite(prediction.log_prob(first)).all()
+
+
+def test_stochastic_degenerate_noise_is_reproducibly_deterministic() -> None:
+    states = np.array([[0.0], [1.0], [2.0], [3.0]])
+    actions = np.ones((4, 1))
+    next_states = states + 1.0
+    model = StochasticGaussianLatentTransition(LatentSpace(1), 1, variance_floor=0.0, ridge=0).fit(
+        states, actions, next_states
+    )
+    prediction = model.predict(np.array([4.0]), np.array([1.0]))
+    assert_allclose(prediction.scale, [0.0], atol=1e-12)
+    assert_allclose(prediction.sample(seed=10, n_samples=20), np.full((20, 1), prediction.mean))
+    assert np.isfinite(prediction.log_prob(prediction.mean))
+
+
+def test_stochastic_rollout_supports_batch_shaped_targets_and_uncertainty_bands() -> None:
+    states, actions, next_states = _noisy_samples()
+    model = _stochastic_transition().fit(states, actions, next_states)
+    rng = np.random.default_rng(6401)
+    initial_states = rng.normal(size=(4, 2))
+    rollout_actions = rng.normal(size=(4, 5, 1))
+    target_states = np.empty((4, 6, 2))
+    target_states[:, 0] = initial_states
+    for step in range(5):
+        mean = np.vstack(
+            [model.predict(target_states[index, step], rollout_actions[index, step]).mean for index in range(4)]
+        )
+        target_states[:, step + 1] = mean + rng.normal(scale=model.scale, size=(4, 2))
+
+    rollout = model.rollout(initial_states[0], rollout_actions[0], n_samples=32, seed=64)
+    assert isinstance(rollout, StochasticRollout)
+    assert rollout.samples.shape == (32, 6, 2)
+    assert rollout.lower.shape == rollout.upper.shape == (6, 2)
+    assert np.all(rollout.lower <= rollout.upper)
+
+    metrics = model.evaluate_rollout(initial_states, rollout_actions, target_states, n_samples=96, seed=64)
+    assert metrics.horizon == 5
+    assert len(metrics.nll_by_horizon) == 5
+    assert len(metrics.coverage_by_horizon) == 5
+    assert len(metrics.sample_diversity_by_horizon) == 5
+    assert metrics.mean_sample_diversity > 0
+    assert metrics.stable
+
+
+def test_stochastic_one_step_metrics_report_nll_coverage_and_diversity() -> None:
+    states, actions, next_states = _noisy_samples()
+    model = _stochastic_transition().fit(states, actions, next_states)
+    metrics = model.evaluate_one_step(states, actions, next_states, n_diversity_samples=32, seed=64)
+
+    assert metrics.nll == pytest.approx(metrics.negative_log_likelihood)
+    assert metrics.nll < 0.0
+    assert 0.85 < metrics.coverage < 1.0
+    assert metrics.interval_width > 0.0
+    assert metrics.sample_diversity > 0.0
+    assert metrics.mean_error < 0.4

@@ -603,3 +603,32 @@ The split into two Protocols (base `ModelAdapter` for `encode` + `latent_space`,
 **Alternatives considered:** Start with a generic transition protocol, fit a neural residual MLP, or expose structured/stochastic/recurrent state support in the first instance.
 **Reason:** The project’s incremental rule requires the first transition to remain hardcoded, while affine residual dynamics are sufficient to prove action conditioning, exact shape/identity metadata, one-step fitting, recursive rollout, and horizon drift on controlled synthetic systems without adding an optional training stack or hiding unsupported semantics behind a wide interface.
 **Consequences:** The public concrete class is intentionally vector-only and deterministic; Sprint 64 may add Gaussian uncertainty and Sprint 65 may add recurrent state. Only after those materially different instances are evaluated may a shared transition contract be extracted.
+
+## [2026-08-11] Keep stochastic transition uncertainty explicit and diagonal for Sprint 64
+
+**Decision:** Add `StochasticGaussianLatentTransition` as a second concrete,
+memoryless transition. It fits the same affine residual mean as Sprint 63 and
+estimates a diagonal residual scale. `GaussianPrediction` owns mean, scale,
+covariance, seeded sampling, log probability, and intervals; `StochasticRollout`
+owns particles and uncertainty bands. The only shared transition sketch is an
+unstable internal vocabulary of mean plus optional uncertainty summaries; no
+public transition protocol is introduced.
+
+**Alternatives considered:** Hide variance in rollout metadata, use a full
+covariance matrix before correlation evidence exists, introduce a probabilistic
+protocol after only two instances, or use a neural density head that would add
+an unproven training dependency.
+
+**Reason:** A diagonal Gaussian is enough to test whether uncertainty is
+calibrated, reproducible, numerically valid, and useful over horizon on a
+controlled stochastic system. Keeping the distribution-valued prediction
+explicit prevents callers from confusing a deterministic mean path with a
+predictive distribution, while the affine family keeps the comparison with
+Sprint 63 controlled.
+
+**Consequences:** The implementation expresses aleatoric residual uncertainty
+only; it does not claim epistemic or multimodal coverage. Flat Euclidean
+states, diagonal covariance, and memoryless execution remain concrete limits.
+Sprint 65 must compare this instance with a recurrent RSSM-style transition
+before deciding whether any public or internal shared contract deserves to be
+frozen.

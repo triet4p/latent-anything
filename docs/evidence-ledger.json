@@ -231,7 +231,12 @@
         {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
         {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
         {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
-        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"},
+        {"role": "source", "path": "docs/STOCHASTIC_TRANSITION.md"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/stochastic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/stochastic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/stochastic_transition_rollout.json"}
       ]
     },
     "THY-T06-ROLLOUT-LATENT-IMAGINATION": {
@@ -241,7 +246,12 @@
         {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
         {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
         {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
-        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"},
+        {"role": "source", "path": "docs/STOCHASTIC_TRANSITION.md"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/stochastic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/stochastic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/stochastic_transition_rollout.json"}
       ]
     },
     "THY-T07-LATENT-IMAGINATION-HORIZON": {
@@ -251,7 +261,12 @@
         {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
         {"role": "benchmark", "path": "scripts/deterministic_transition_benchmark.py"},
         {"role": "config", "path": "artifacts/deterministic_transition_rollout_config.json"},
-        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"}
+        {"role": "artifact", "path": "artifacts/deterministic_transition_rollout.json"},
+        {"role": "source", "path": "docs/STOCHASTIC_TRANSITION.md"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/stochastic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/stochastic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/stochastic_transition_rollout.json"}
       ]
     },
     "THY-T04-LATENT-ARITHMETIC": {
