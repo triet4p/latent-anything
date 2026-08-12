@@ -70,6 +70,16 @@ def test_jepa_fit_keeps_target_encoder_stop_gradient_and_beats_collapsed_baselin
     assert metrics.improvement_over_collapsed > 0.0
     assert metrics.target_health.collapsed_fraction < 1.0
     assert np.isfinite(adapter.scale).all()
+    assert adapter.fit_metadata["variance_regularizer_source"] == "trainable_context_encoder"
+
+
+def test_jepa_encode_accepts_the_frozen_model_adapter_keyword() -> None:
+    adapter = _adapter()
+    observations, _ = _sequences()
+
+    encoded = adapter.encode(data=observations[:, 0])
+
+    assert encoded.shape == (observations.shape[0], adapter.latent_dim)
 
 
 def test_jepa_rollout_integrates_with_rollout_and_analysis_pipelines() -> None:

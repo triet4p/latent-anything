@@ -10,6 +10,9 @@
 
 ### Fixed
 
+- Fixed rollout metadata cache collisions, transition Protocol/pipeline signature drift, explicit CEM/MPPI evaluator precedence, reward source-space validation, JEPA variance regularization gradients, VQ-VAE codebook acceptance thresholds, and tokenizer-bound world-model evidence.
+- Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and downgraded collapsed Sprint 72 token dynamics from D2 to D1 with measured evidence gates.
+
 - Fixed run-record snapshots to deep-freeze canonical JSON inputs, reject unsupported or non-finite values, and keep content-addressed artifact reads inside the recorder artifact directory. (#review-remediation)
 - Fixed selected-episode dataset iteration, SmolVLA intervention-width validation, and device/dtype placement for Diffusion fixed-noise inputs. (#review-remediation)
 - Evidence-ledger schema-v2 validation now enforces typed `role`/`path` records and the required evidence roles for every D1, D2, and D3 claim.

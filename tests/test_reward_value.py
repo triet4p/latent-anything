@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from latent_anything import (
     FileSystemRunRecorder,
@@ -79,8 +80,10 @@ def test_holdout_evaluation_reports_calibration_and_bellman_consistency() -> Non
 def test_evaluation_result_contains_per_step_scores_and_real_imagined_bias() -> None:
     evaluator = _fitted_evaluator()
     actions = np.zeros((1, 1), dtype=np.float64)
-    real = Trajectory(np.zeros((2, 1)), metadata={"state_source": "observed"})
-    imagined = Trajectory(np.ones((2, 1)), metadata={"state_source": "predicted"})
+    real = Trajectory(np.zeros((2, 1)), metadata={"state_source": "observed", "source_space_identity": "analytic-mdp"})
+    imagined = Trajectory(
+        np.ones((2, 1)), metadata={"state_source": "predicted", "source_space_identity": "analytic-mdp"}
+    )
     real_result = evaluator.evaluate(real, actions, source="real")
     assert real_result.rewards.shape == (1,)
     assert real_result.returns.shape == (1,)
@@ -89,6 +92,14 @@ def test_evaluation_result_contains_per_step_scores_and_real_imagined_bias() -> 
     comparison = evaluator.compare_real_imagined(real, imagined, actions)
     assert comparison.reward_mae > 0.0
     assert comparison.valid_steps == 1
+
+
+def test_evaluator_rejects_trajectory_from_another_source_space() -> None:
+    evaluator = _fitted_evaluator()
+    trajectory = Trajectory(np.zeros((2, 1)), metadata={"source_space_identity": "wrong-space"})
+
+    with pytest.raises(ValueError, match="source_space_identity"):
+        evaluator.evaluate(trajectory, np.zeros((1, 1)))
 
 
 def test_rollout_config_builds_reward_value_evaluator_and_scores_imagination() -> None:

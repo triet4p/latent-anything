@@ -13,6 +13,16 @@ from latent_anything.mppi import MPPIConfig, MPPIPlanner
 from latent_anything.reward_value import RewardValueEvaluator
 
 
+class _TrackingEvaluator(RewardValueEvaluator):
+    def __init__(self, base: RewardValueEvaluator) -> None:
+        super().__init__(base.reward_scorer, base.value_estimator)
+        self.calls = 0
+
+    def evaluate(self, *args: object, **kwargs: object):  # type: ignore[no-untyped-def]
+        self.calls += 1
+        return super().evaluate(*args, **kwargs)  # type: ignore[arg-type]
+
+
 def _pipeline() -> RolloutPipeline:
     space = LatentSpace(1, source_model="mppi-rollout")
     states = np.arange(10.0)[:, None]
@@ -47,6 +57,25 @@ def test_mppi_rollout_planning_reuses_pipeline_and_reward_evaluator() -> None:
     assert result.predicted_return > 0.0
     assert len(result.convergence_history) == 4
     assert result.runtime_profile.stage_totals()["transition"] > 0.0
+
+
+def test_mppi_explicit_evaluator_overrides_pipeline_evaluation() -> None:
+    pipeline = _pipeline()
+    explicit = _TrackingEvaluator(pipeline.evaluator)  # type: ignore[arg-type]
+
+    MPPIPlanner(
+        MPPIConfig(
+            horizon=2,
+            action_dim=1,
+            lower_bounds=(0.0,),
+            upper_bounds=(1.0,),
+            population_size=8,
+            iterations=1,
+            seed=69,
+        )
+    ).plan_rollouts(np.zeros(1), pipeline, evaluator=explicit)
+
+    assert explicit.calls > 0
 
 
 def test_mppi_receding_horizon_shifts_and_executes_actions() -> None:

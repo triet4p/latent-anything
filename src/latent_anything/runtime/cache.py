@@ -108,6 +108,7 @@ def make_cache_key(
     data: np.ndarray,
     framework_version: str | None = None,
     include_component_state: bool = True,
+    extra: object | None = None,
 ) -> CacheKey:
     """Build a cache key for a component operation over numpy input data.
 
@@ -116,13 +117,16 @@ def make_cache_key(
     parameters. It may be disabled only when an operation deliberately depends
     on construction configuration and input data alone.
     """
+    data_hash = hash_array(data)
+    if extra is not None:
+        data_hash = hash_jsonable_pair(data_hash, extra)
     return CacheKey(
         namespace=namespace,
         operation=operation,
         component_name=_component_name(component),
         config_hash=hash_component_config(component),
         state_hash=hash_component_state(component) if include_component_state else "",
-        data_hash=hash_array(data),
+        data_hash=data_hash,
         framework_version=framework_version if framework_version is not None else _framework_version(),
     )
 
@@ -135,6 +139,13 @@ def hash_array(data: np.ndarray) -> str:
     digest.update(str(contiguous.dtype).encode("utf-8"))
     digest.update(contiguous.tobytes())
     return digest.hexdigest()
+
+
+def hash_jsonable_pair(data_hash: str, extra: object) -> str:
+    """Combine an array hash with stable auxiliary operation inputs."""
+
+    encoded = json.dumps(_jsonable(extra), sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    return sha256(f"{data_hash}:".encode() + encoded).hexdigest()
 
 
 def hash_component_config(component: object) -> str:

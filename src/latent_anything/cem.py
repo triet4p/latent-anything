@@ -289,10 +289,10 @@ class CEMPlanner:
                     profiler=active_profiler,
                     metadata=metadata,
                 )
-                evaluation = result.evaluation or active_evaluator.evaluate(
-                    result.trajectory,
-                    actions,
-                    source="imagined",
+                evaluation = (
+                    active_evaluator.evaluate(result.trajectory, actions, source="imagined")
+                    if evaluator is not None
+                    else result.evaluation or active_evaluator.evaluate(result.trajectory, actions, source="imagined")
                 )
                 weights = np.power(discount, np.arange(len(evaluation.rewards), dtype=np.float64))
                 reward_return = float(np.sum(weights * evaluation.rewards))

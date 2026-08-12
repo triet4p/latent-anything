@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 71, Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -107,16 +107,16 @@ None. Sprint 71, Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 6
 
 ### Milestone 12 - World models and planning
 
-- [Sprint 63](sprint-plans/sprint-63.md) - Add a deterministic latent transition instance.
-- [Sprint 64](sprint-plans/sprint-64.md) - Add a stochastic Gaussian transition instance.
-- [Sprint 65](sprint-plans/sprint-65.md) - Add an RSSM-style third transition and extract the proven transition contract.
-- [Sprint 66](sprint-plans/sprint-66.md) - Add a rollout pipeline as Pipeline #3 and decompose pipeline responsibilities from evidence.
+- [x] [Sprint 63](sprint-plans/sprint-63.md) - Add a deterministic latent transition instance.
+- [x] [Sprint 64](sprint-plans/sprint-64.md) - Add a stochastic Gaussian transition instance.
+- [x] [Sprint 65](sprint-plans/sprint-65.md) - Add an RSSM-style third transition and extract the proven transition contract.
+- [x] [Sprint 66](sprint-plans/sprint-66.md) - Add a rollout pipeline as Pipeline #3 and decompose pipeline responsibilities from evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Add reward/value evaluation over imagined trajectories.
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
 - [x] [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
-- [x] [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
+- [x] [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout from encoded image observations.
 
 ### Milestone 13 - Ecosystem and runtime hardening
 

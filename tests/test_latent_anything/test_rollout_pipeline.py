@@ -67,6 +67,21 @@ def test_rollout_pipeline_cache_and_profile_record_distinct_stages() -> None:
     assert cache.stats.misses == 1
 
 
+def test_rollout_pipeline_cache_key_includes_metadata_provenance() -> None:
+    cache = InMemoryCache()
+    pipeline = RolloutPipeline(_fitted_transition(), cache=cache)
+    initial = np.array([0.0, 0.0])
+    actions = np.ones((2, 1))
+
+    first = pipeline.run(initial, actions, metadata={"episode": "first"})
+    second = pipeline.run(initial, actions, metadata={"episode": "second"})
+
+    assert first.cache_hit is False
+    assert second.cache_hit is False
+    assert first.trajectory.metadata["episode"] == "first"
+    assert second.trajectory.metadata["episode"] == "second"
+
+
 def test_rollout_pipeline_sync_and_async_results_match() -> None:
     pipeline = RolloutPipeline(_fitted_transition())
     initial = np.array([2.0, 0.0])

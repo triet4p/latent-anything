@@ -56,21 +56,21 @@ class DiffusersAutoencoderKLAdapter:
         latent_channels = cast(int, model.config.latent_channels)
         return LatentSpace(dim=latent_channels, source_model=self.model_id, metadata={"revision": self.revision})
 
-    def encode(self, images: np.ndarray) -> np.ndarray:
+    def encode(self, data: np.ndarray) -> np.ndarray:
         if (
-            images.ndim != 4
-            or images.shape[1] not in {1, 3}
-            or images.shape[2] < 1
-            or images.shape[3] < 1
-            or not np.isfinite(images).all()
-            or np.any((images < -1) | (images > 1))
+            data.ndim != 4
+            or data.shape[1] not in {1, 3}
+            or data.shape[2] < 1
+            or data.shape[3] < 1
+            or not np.isfinite(data).all()
+            or np.any((data < -1) | (data > 1))
         ):
             raise ValueError("Expected NCHW images in [-1, 1] with one or three channels")
         import torch
 
         model = self._backend()
         with torch.no_grad():
-            tensor = torch.from_numpy(images.astype(self.dtype, copy=False)).to(  # pyright: ignore[reportUnknownMemberType] # torch's NumPy boundary is untyped
+            tensor = torch.from_numpy(data.astype(self.dtype, copy=False)).to(  # pyright: ignore[reportUnknownMemberType] # torch's NumPy boundary is untyped
                 device=self.device, dtype=self._torch_dtype()
             )  # pyright: ignore[reportUnknownMemberType] # third-party torch stub boundary
             distribution = model.encode(tensor).latent_dist

@@ -254,3 +254,17 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The public prediction path accepts both a one-dimensional transition state and a batched two-dimensional context, but the validator treated the `allow_single` flag as exactly one dimensional. The temporal image fixture is `(episodes, time, channels, height, width)`, not an extra-dimensional batch.
 **Fix / workaround:** Let `allow_single` accept either one- or two-dimensional token contexts and only add a batch axis for a one-dimensional state; validate raw sequences as five-dimensional arrays and reshape only the episode/time prefix for tokenizer calls.
 **Watch out for:** Any future token sampler or rollout adapter that receives both direct `step()` states and batched `predict_next()` contexts; keep the shape normalization at the public boundary and retain integer-ID validation after normalization.
+
+## [2026-08-12] Pipeline metadata must participate in rollout cache identity
+
+**Symptom:** Repeating identical initial states and actions with different provenance metadata returned the first run's metadata on a cache hit.
+**Root cause:** The rollout cache key covered only numeric inputs and transition state even though metadata is part of the returned trajectory contract.
+**Fix / workaround:** Include a stable hash of caller metadata in the cache key and add a regression test that requires separate entries for distinct episode metadata.
+**Watch out for:** Any cached operation whose result includes provenance, sampling, or configuration metadata; every result-affecting input must be represented in the key.
+
+## [2026-08-12] Keyword Protocol conformance requires matching parameter names
+
+**Symptom:** Runtime-checkable adapter Protocol checks passed while generic `encode(data=...)` calls failed for structured adapters.
+**Root cause:** Runtime Protocol checks inspect attribute presence, not parameter names or keyword compatibility.
+**Fix / workaround:** Align public adapter parameter names with the frozen Protocol and test keyword calls for JEPA, VQ-VAE, and tokenized adapters.
+**Watch out for:** New structural implementations of a public Protocol; verify both `isinstance` conformance and representative keyword-based calls.

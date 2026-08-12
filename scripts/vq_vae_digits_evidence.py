@@ -52,6 +52,7 @@ def main() -> None:
         "dataset": "sklearn.datasets.load_digits",
         "dataset_revision": VQVAE.dataset_revision,
         "model_revision": VQVAE.model_revision,
+        "codebook_version": discrete.codebook_version,
         "seed": 42,
         "train_samples": len(train_images),
         "test_samples": len(test_images),
@@ -68,7 +69,7 @@ def main() -> None:
         "acceptance": {
             "reconstruction_mse_finite": bool(np.isfinite(discrete_reconstruction).all()),
             "codebook_perplexity_above_one": bool(
-                discrete.codebook_diagnostics(discrete_train_codes)["codebook_perplexity"] >= 1.0
+                discrete.codebook_diagnostics(discrete_train_codes)["codebook_perplexity"] > 1.0
             ),
             "dead_code_rate_bounded": bool(
                 0.0 <= discrete.codebook_diagnostics(discrete_train_codes)["dead_code_rate"] <= 1.0
@@ -88,6 +89,7 @@ def main() -> None:
         "dataset": payload["dataset"],
         "dataset_revision": payload["dataset_revision"],
         "model_revision": payload["model_revision"],
+        "codebook_version": payload["codebook_version"],
         "seed": 42,
         "train_slice": [0, 256],
         "test_slice": [256, 320],

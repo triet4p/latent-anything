@@ -104,6 +104,7 @@
   },
   "failure_analysis": [
     "The deterministic and memoryless stochastic baselines do not receive recurrent history, so this benchmark is intentionally partially observed.",
+    "RSSM does not outperform either baseline on open-loop rollout error: its mean error is 1.001 versus 0.656 and 0.652; no superiority claim is made.",
     "RSSM KL is against an observation-centred posterior proxy; a learned posterior encoder and free-bits objective remain outside this compact NumPy-facing instance.",
     "All claims are synthetic D2 evidence; no real pretrained world-model or CUDA claim is promoted."
   ]

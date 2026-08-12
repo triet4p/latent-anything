@@ -5,7 +5,7 @@
 
 ## Summary of Work
 
-Documented the tokenized world-model contract and benchmark, added the D2
+Documented the tokenized world-model contract and benchmark, recorded the D1
 `THY-T09-TOKENIZED-WORLD-MODEL` evidence override, updated the evidence
 ledger/changelog/global plan/sprint plan, and recorded the architectural
 decision plus shape-validation lesson in project memory.
@@ -13,7 +13,7 @@ decision plus shape-validation lesson in project memory.
 ## Files Modified
 
 * [docs/TOKENIZED_WORLD_MODEL.md](../docs/TOKENIZED_WORLD_MODEL.md) - User-facing contract and benchmark guide.
-* [docs/evidence-ledger.json](../docs/evidence-ledger.json) - D2 evidence links.
+* [docs/evidence-ledger.json](../docs/evidence-ledger.json) - D1 evidence links.
 * [docs/EVIDENCE_LEDGER.md](../docs/EVIDENCE_LEDGER.md) - Evidence narrative.
 * [CHANGELOG.md](../CHANGELOG.md) - User-visible Sprint 72 entry.
 * [docs/PLAN.md](../docs/PLAN.md) - Sprint completion state.
@@ -29,4 +29,4 @@ decision plus shape-validation lesson in project memory.
 
 ## Additional Notes
 
-The evidence remains D2 synthetic CPU and explicitly does not promote a real checkpoint or CUDA result.
+The benchmark wiring is end-to-end, but measured one-code tokenizer collapse makes its perfect token metrics degenerate. The evidence remains D1 synthetic CPU and explicitly does not promote a real checkpoint or CUDA result.

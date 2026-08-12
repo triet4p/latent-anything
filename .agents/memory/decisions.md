@@ -768,3 +768,10 @@ semantics before any broader protocol or checkpoint loader is considered.
 **Alternatives considered:** Add a generic token-transition protocol, force categorical predictions into a new distribution wrapper, or build a separate token-only rollout pipeline.
 **Reason:** The existing adapter and rollout seams already express the needed composition, while token sampling, codebook-version binding, padding, and teacher-forced/free-running metrics have lifecycle semantics that are specific to this first tokenized instance. Keeping those details concrete preserves integer categorical IDs and makes the benchmark expose, rather than hide, compounding error.
 **Consequences:** `RolloutPipeline` can execute greedy token rollouts through the proven mean surface, but seeded sampling and categorical evaluation remain concrete methods. A future second tokenized implementation must prove materially shared semantics before another protocol or pipeline abstraction is introduced.
+
+## [2026-08-12] Bind tokenized dynamics to the fitted tokenizer checkpoint
+
+**Decision:** Identify a tokenized world-model tokenizer with a deterministic checkpoint/schema digest, not only a human-readable model revision.
+**Alternatives considered:** Keep the revision string as the version, bind only the codebook tensor, or require callers to pass an opaque version manually.
+**Reason:** Two independently trained VQ-VAEs can share the default revision while producing different token semantics; a full checkpoint digest plus representation schema prevents silent cross-tokenizer training and rollout.
+**Consequences:** Replacing or mutating the tokenizer after world-model construction is rejected, and evidence/config artifacts carry the digest so token IDs remain reproducible and auditable.

@@ -20,6 +20,8 @@ def test_vq_vae_evidence_script_writes_reproducible_metrics(monkeypatch: pytest.
     payload = json.loads(artifact.read_text(encoding="utf-8"))
     assert payload["dataset_revision"] == "sklearn-digits-8x8@scikit-learn==1.9.0"
     assert payload["model_revision"] == "compact-vq-vae-v1"
+    assert "@" in payload["codebook_version"]
     assert payload["acceptance"]["reconstruction_mse_finite"] is True
+    assert payload["acceptance"]["codebook_perplexity_above_one"] is False
     assert payload["acceptance"]["continuous_path_is_comparison_only"] is True
     assert json.loads(config.read_text(encoding="utf-8"))["offline"] is True

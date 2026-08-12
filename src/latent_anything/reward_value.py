@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Protocol, cast
+from typing import cast
 
 import numpy as np
 
@@ -128,34 +128,6 @@ def compute_discounted_returns(
                 running = float(episodes[episode, step]) + gamma * running
             result[episode, step] = running
     return result[0] if was_vector else result
-
-
-class _RewardScorer(Protocol):
-    """Unfrozen internal shape for the first reward scorer instance."""
-
-    state_dim: int
-    action_dim: int
-    source_space_identity: str
-
-    def predict(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
-        """Predict one scalar reward per state/action pair."""
-
-        ...
-
-
-class _ValueEstimator(Protocol):
-    """Unfrozen internal shape for the first value estimator instance."""
-
-    state_dim: int
-    discount: float
-    horizon: int | None
-    policy_id: str
-    data_distribution: str
-
-    def predict(self, states: np.ndarray) -> np.ndarray:
-        """Predict one scalar value per state."""
-
-        ...
 
 
 class LinearRewardScorer:
@@ -566,7 +538,7 @@ class HoldoutEvaluation:
 class RewardValueEvaluator:
     """Evaluate a fitted reward scorer and value estimator together."""
 
-    def __init__(self, reward_scorer: _RewardScorer, value_estimator: _ValueEstimator) -> None:
+    def __init__(self, reward_scorer: LinearRewardScorer, value_estimator: MonteCarloValueEstimator) -> None:
         if reward_scorer.state_dim != value_estimator.state_dim:
             raise ValueError("reward scorer and value estimator state dimensions must match")
         self.reward_scorer = reward_scorer
@@ -588,6 +560,12 @@ class RewardValueEvaluator:
         """Score one trajectory using predicted rewards and values."""
 
         states = _matrix(trajectory.to_numpy(), name="trajectory", width=self.value_estimator.state_dim)
+        trajectory_identity = trajectory.metadata.get("source_space_identity")
+        if trajectory_identity != self.reward_scorer.source_space_identity:
+            raise ValueError(
+                "trajectory source_space_identity does not match the reward scorer: "
+                f"expected {self.reward_scorer.source_space_identity!r}, got {trajectory_identity!r}"
+            )
         if len(states) < 2:
             raise ValueError("trajectory must contain an initial state and at least one transition")
         action_values = _matrix(actions, name="actions", width=self.reward_scorer.action_dim)

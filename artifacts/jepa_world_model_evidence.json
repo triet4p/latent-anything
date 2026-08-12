@@ -9,7 +9,7 @@
     "episodes": 24,
     "epochs": 80,
     "exposure_mode": "no_explicit_latent",
-    "final_training_loss": 0.00021726355771534145,
+    "final_training_loss": 0.0002509764162823558,
     "latent_shape": [
       2
     ],
@@ -25,42 +25,43 @@
       2
     ],
     "target_collapsed_fraction": 0.0,
-    "target_effective_rank": 1.0090879024170976,
+    "target_effective_rank": 1.0142760295476874,
     "target_encoder": "stop_gradient_ema",
     "target_encoder_updates": 80,
-    "valid_transitions": 144
+    "valid_transitions": 144,
+    "variance_regularizer_source": "trainable_context_encoder"
   },
   "heldout_target_health": {
-    "collapse_score": 0.4932596244927193,
+    "collapse_score": 0.49048318342012376,
     "collapsed_fraction": 0.0,
-    "covariance_condition": 148.35294624069266,
-    "effective_rank": 1.0134807510145614,
+    "covariance_condition": 105.06763617911524,
+    "effective_rank": 1.0190336331597525,
     "latent_dim": 2,
-    "max_variance": 0.12746991994878523,
-    "mean_variance": 0.07838028330129611,
-    "min_variance": 0.029290646653806984,
+    "max_variance": 0.15259548140266604,
+    "mean_variance": 0.0918941793242016,
+    "min_variance": 0.03119287724573716,
     "n_samples": 72,
-    "participation_ratio": 1.0134807510145614
+    "participation_ratio": 1.0190336331597525
   },
   "prediction": {
-    "collapsed_baseline_mse": 0.07838028330129612,
-    "improvement_over_collapsed": 0.9881348034533618,
-    "mean_error": 0.02706502757611191,
-    "mse": 0.0009299974667510667,
+    "collapsed_baseline_mse": 0.09189417932420162,
+    "improvement_over_collapsed": 0.9848895935020963,
+    "mean_error": 0.03147339847821971,
+    "mse": 0.0013885584043799458,
     "n_samples": 72,
-    "rmse": 0.030495859829673056,
-    "runtime_seconds": 0.009301499929279089,
+    "rmse": 0.03726336544623883,
+    "runtime_seconds": 0.009844999993219972,
     "target_health": {
-      "collapse_score": 0.4932596244927193,
+      "collapse_score": 0.49048318342012376,
       "collapsed_fraction": 0.0,
-      "covariance_condition": 148.35294624069266,
-      "effective_rank": 1.0134807510145614,
+      "covariance_condition": 105.06763617911524,
+      "effective_rank": 1.0190336331597525,
       "latent_dim": 2,
-      "max_variance": 0.12746991994878523,
-      "mean_variance": 0.07838028330129611,
-      "min_variance": 0.029290646653806984,
+      "max_variance": 0.15259548140266604,
+      "mean_variance": 0.0918941793242016,
+      "min_variance": 0.03119287724573716,
       "n_samples": 72,
-      "participation_ratio": 1.0134807510145614
+      "participation_ratio": 1.0190336331597525
     }
   },
   "provenance": {
@@ -73,32 +74,32 @@
     "train_seed": 71
   },
   "rollout": {
-    "error_growth_ratio": 3.796447443055274,
+    "error_growth_ratio": 2.9926445634124073,
     "errors_by_horizon": [
-      0.0647023512545399,
-      0.15892276985154163,
-      0.20565387940445368,
-      0.22765472033575426,
-      0.22931914373330523,
-      0.24563907597996218
+      0.07623836129002708,
+      0.16166167566907572,
+      0.20100267596725094,
+      0.21876161479684128,
+      0.21788811382247494,
+      0.22815431743807044
     ],
-    "final_error": 0.24563907597996218,
-    "horizon_drift": 0.18093672472542227,
-    "mean_error": 0.18864865675992615,
+    "final_error": 0.22815431743807044,
+    "horizon_drift": 0.15191595614804337,
+    "mean_error": 0.18395112649729006,
     "n_episodes": 12,
-    "runtime_seconds": 0.00936669996008277,
+    "runtime_seconds": 0.010229999898001552,
     "stable": true
   },
   "train_target_health": {
-    "collapse_score": 0.4955709721222257,
+    "collapse_score": 0.4930012960474278,
     "collapsed_fraction": 0.0,
-    "covariance_condition": 225.778751212045,
-    "effective_rank": 1.0088580557555487,
+    "covariance_condition": 142.87659865595745,
+    "effective_rank": 1.0139974079051444,
     "latent_dim": 2,
-    "max_variance": 0.06044197679103239,
-    "mean_variance": 0.03775579248114189,
-    "min_variance": 0.015069608171251383,
+    "max_variance": 0.06844385753440414,
+    "mean_variance": 0.04213125560244659,
+    "min_variance": 0.015818653670489038,
     "n_samples": 144,
-    "participation_ratio": 1.0088580557555487
+    "participation_ratio": 1.0139974079051444
   }
 }

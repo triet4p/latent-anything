@@ -52,7 +52,8 @@ The reproducible comparison is available as:
 - [comparison plot](../artifacts/rssm_transition_comparison.png)
 
 The benchmark is synthetic D2 evidence. On the committed partially observed
-system, RSSM improves teacher-forced one-step MSE over the baselines but still
-shows substantial open-loop drift and under-coverage. The failure is retained
-as evidence: recurrent state alone does not establish a reliable long-horizon
-world model.
+system, RSSM improves teacher-forced one-step MSE over the baselines but does
+not outperform either baseline on open-loop rollout error (approximately 1.00
+versus approximately 0.66). It also shows substantial drift and under-coverage.
+No superiority claim is made; the failure is retained as evidence that recurrent
+state alone does not establish a reliable long-horizon world model.

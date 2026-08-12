@@ -22,6 +22,7 @@ dependencies = [
 latent-anything = "latent_anything.cli:main"
 
 [project.optional-dependencies]
+docs = ["mkdocs-material>=9.6,<10.0", "mkdocs-jupyter>=0.25,<1.0"]
 diffusers = ["diffusers>=0.30,<1.0", "safetensors>=0.4,<1.0"]
 transformers = ["transformers>=4.45,<5.0", "tokenizers>=0.20,<1.0"]
 diffusers-full = ["diffusers>=0.30,<1.0", "safetensors>=0.4,<1.0", "transformers>=4.45,<5.0", "tokenizers>=0.20,<1.0"]

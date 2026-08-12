@@ -82,10 +82,18 @@ def run_benchmark(*, seed: int = 67, episodes: int = 96, horizon: int = 8) -> di
     if imagined is None:
         raise RuntimeError("configured rollout evaluator did not produce an imagined score")
     real = evaluator.evaluate(
-        Trajectory(states[split], metadata={"state_source": "observed"}), actions[split], source="real"
+        Trajectory(
+            states[split],
+            metadata={"state_source": "observed", "source_space_identity": identity},
+        ),
+        actions[split],
+        source="real",
     )
     comparison = evaluator.compare_real_imagined(
-        Trajectory(states[split], metadata={"state_source": "observed"}),
+        Trajectory(
+            states[split],
+            metadata={"state_source": "observed", "source_space_identity": identity},
+        ),
         imagined_result.trajectory,
         actions[split],
     )

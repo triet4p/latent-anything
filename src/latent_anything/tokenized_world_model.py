@@ -205,7 +205,7 @@ class TokenizedWorldModel:
     ) -> None:
         if action_dim < 1 or hidden_dim < 2 or epochs < 1 or learning_rate <= 0.0:
             raise ValueError("action_dim and hidden_dim must be positive; epochs and learning_rate must be positive")
-        tokenizer_version = tokenizer.model_revision
+        tokenizer_version = tokenizer.codebook_version
         if codebook_version is not None and codebook_version != tokenizer_version:
             raise ValueError(f"codebook_version {codebook_version!r} does not match tokenizer {tokenizer_version!r}")
         self.tokenizer = tokenizer
@@ -227,6 +227,7 @@ class TokenizedWorldModel:
     def latent_space(self) -> LatentSpace:
         """Return the discrete frame-token geometry and version binding."""
 
+        self._validate_tokenizer_version()
         return LatentSpace(
             dim=self.tokens_per_frame,
             geometry="discrete_code",
@@ -265,6 +266,7 @@ class TokenizedWorldModel:
 
     @property
     def source_space_identity(self) -> str:
+        self._validate_tokenizer_version()
         return f"{self.tokenizer.model_revision}:{self.codebook_version}:{self.tokens_per_frame}tokens"
 
     @property
@@ -286,16 +288,18 @@ class TokenizedWorldModel:
             codebook_version=self.codebook_version,
         )
 
-    def encode(self, observations: np.ndarray) -> np.ndarray:
+    def encode(self, data: np.ndarray) -> np.ndarray:
         """Tokenize a batch of raw observations with the frozen VQ-VAE."""
 
-        return self.tokenizer.encode(observations)
+        self._validate_tokenizer_version()
+        return self.tokenizer.encode(data)
 
-    def decode(self, tokens: np.ndarray) -> np.ndarray:
+    def decode(self, latent: np.ndarray) -> np.ndarray:
         """Decode an integer token batch through the frozen VQ-VAE."""
 
-        self._validate_tokens(tokens, name="tokens")
-        return self.tokenizer.decode(tokens)
+        self._validate_tokenizer_version()
+        self._validate_tokens(latent, name="latent")
+        return self.tokenizer.decode(latent)
 
     def fit(
         self,
@@ -307,6 +311,7 @@ class TokenizedWorldModel:
     ) -> None:
         """Fit next-frame dynamics from raw image or integer-token sequences."""
 
+        self._validate_tokenizer_version()
         if observations.ndim == 3:
             self.fit_tokens(observations, actions, sequence_mask=sequence_mask, codebook_version=codebook_version)
             return
@@ -315,6 +320,7 @@ class TokenizedWorldModel:
         flattened = observations.reshape((-1, *observations.shape[2:]))
         tokens = self.encode(flattened).reshape(observations.shape[0], observations.shape[1], self.tokens_per_frame)
         self.fit_tokens(tokens, actions, sequence_mask=sequence_mask, codebook_version=codebook_version)
+        self._fit_metadata["input_representation"] = "raw_observations"
 
     def fit_tokens(
         self,
@@ -326,6 +332,7 @@ class TokenizedWorldModel:
     ) -> None:
         """Fit teacher-forced next-token prediction on a masked sequence batch."""
 
+        self._validate_tokenizer_version()
         tokens = self._validate_sequence_tokens(token_sequences, allow_padding=True)
         action_values, mask = self._validate_training_actions(actions, sequence_mask, tokens.shape[:2])
         if codebook_version is not None and codebook_version != self.codebook_version:
@@ -364,6 +371,7 @@ class TokenizedWorldModel:
             "last_cross_entropy": last_loss,
             "last_token_accuracy": last_accuracy,
             "codebook_version": self.codebook_version,
+            "input_representation": "token_sequences",
         }
 
     def predict_next(
@@ -444,6 +452,7 @@ class TokenizedWorldModel:
     ) -> Trajectory:
         """Roll out a token sequence with a deterministic or seeded sampler."""
 
+        self._require_fitted()
         state = self._validate_tokens(initial_state, name="initial_state", allow_single=True)[0]
         action_values = _finite_array(actions, name="actions")
         if action_values.ndim != 2 or action_values.shape[1] != self.action_dim:
@@ -483,6 +492,7 @@ class TokenizedWorldModel:
     ) -> TokenizedEvaluationReport:
         """Compare teacher-forced likelihood with free-running drift."""
 
+        self._require_fitted()
         token_sequences, decoded_targets = self._prepare_evaluation_observations(observations)
         action_values, mask = self._validate_training_actions(actions, sequence_mask, token_sequences.shape[:2])
         teacher = self._teacher_forced_metrics(token_sequences, action_values, mask)
@@ -505,12 +515,14 @@ class TokenizedWorldModel:
                 "tokenizer_revision": self.tokenizer.model_revision,
                 "codebook_version": self.codebook_version,
                 "source_space_identity": self.source_space_identity,
+                "input_representation": "token_sequences" if observations.ndim == 3 else "raw_observations",
             },
         )
 
     def code_usage(self, tokens: np.ndarray) -> dict[str, object]:
         """Return code counts, perplexity, and dead-code rate for token IDs."""
 
+        self._validate_tokenizer_version()
         values = self._validate_tokens(tokens, name="tokens", allow_sequence=True)
         counts = np.bincount(values.reshape(-1), minlength=self.vocab_size).astype(np.int64)
         probabilities = counts / max(float(counts.sum()), 1.0)
@@ -673,8 +685,13 @@ class TokenizedWorldModel:
         return values.astype(np.float64, copy=False), mask
 
     def _require_fitted(self) -> None:
+        self._validate_tokenizer_version()
         if not self._fitted:
             raise RuntimeError("TokenizedWorldModel must be fitted before prediction")
+
+    def _validate_tokenizer_version(self) -> None:
+        if self.tokenizer.codebook_version != self.codebook_version:
+            raise ValueError("tokenizer checkpoint changed after TokenizedWorldModel construction")
 
 
 __all__ = [

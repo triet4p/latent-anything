@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
 import numpy as np
@@ -41,7 +42,13 @@ class LatentTransition(Protocol):
 
         ...
 
-    def mean_rollout(self, initial_state: np.ndarray, actions: np.ndarray) -> Trajectory:
-        """Return a recursive predictive-mean trajectory."""
+    def mean_rollout(
+        self,
+        initial_state: np.ndarray,
+        actions: np.ndarray,
+        *,
+        metadata: Mapping[str, object] | None = None,
+    ) -> Trajectory:
+        """Return a recursive predictive-mean trajectory with provenance metadata."""
 
         ...

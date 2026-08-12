@@ -46,6 +46,17 @@ def test_tokenized_world_model_composes_adapter_and_transition_seams() -> None:
     assert model.is_fitted
 
 
+def test_tokenized_world_model_adapter_keywords_follow_the_public_protocol() -> None:
+    model = _model()
+    images = np.zeros((2, 1, 8, 8), dtype=np.float64)
+
+    tokens = model.encode(data=images)
+    decoded = model.decode(latent=tokens)
+
+    assert tokens.shape == (2, model.tokens_per_frame)
+    assert decoded.shape == images.shape
+
+
 def test_tokenized_world_model_predicts_integer_tokens_with_seeded_sampling() -> None:
     model = _model()
     token_sequences, actions = _tokens()
@@ -76,6 +87,23 @@ def test_tokenized_world_model_rejects_invalid_padding_and_codebook_versions() -
     mask[-1, -1] = 0
     model.fit_tokens(padded, actions, sequence_mask=mask)
     assert model.fit_metadata["masked_transitions"] == 1
+
+
+def test_tokenized_world_model_rejects_tokenizer_mutation_before_fit_and_rollout() -> None:
+    model = _model()
+    model.tokenizer._codebook.weight.detach().numpy()[0, 0] += 1.0
+    token_sequences, actions = _tokens()
+
+    with pytest.raises(ValueError, match="checkpoint changed"):
+        model.step(token_sequences[0, 0], actions[0, 0])
+    with pytest.raises(ValueError, match="checkpoint changed"):
+        model.rollout(token_sequences[0, 0], actions[0])
+
+    tokenizer = VQVAE(codebook_size=4, embedding_dim=3, n_epochs=1)
+    unfitted = TokenizedWorldModel(tokenizer, action_dim=1, hidden_dim=8, epochs=1, seed=72)
+    tokenizer._codebook.weight.detach().numpy()[0, 0] += 1.0
+    with pytest.raises(ValueError, match="checkpoint changed"):
+        unfitted.fit_tokens(token_sequences, actions)
 
 
 def test_tokenized_world_model_rollout_preserves_discrete_states_and_pipeline_contract() -> None:

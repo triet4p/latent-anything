@@ -30,11 +30,11 @@ class ConvVAE:
     def latent_space(self) -> LatentSpace:
         return LatentSpace(dim=self.latent_dim, source_model="conv_vae_8x8")
 
-    def encode(self, images: np.ndarray) -> np.ndarray:
-        if images.ndim != 4 or images.shape[1:] != (1, 8, 8):
-            raise ValueError(f"Expected images shaped (n, 1, 8, 8), got {images.shape}")
+    def encode(self, data: np.ndarray) -> np.ndarray:
+        if data.ndim != 4 or data.shape[1:] != (1, 8, 8):
+            raise ValueError(f"Expected images shaped (n, 1, 8, 8), got {data.shape}")
         with torch.no_grad():
-            values = self._mu(self._encoder(torch.from_numpy(images.astype(np.float32))))  # pyright: ignore[reportUnknownMemberType]
+            values = self._mu(self._encoder(torch.from_numpy(data.astype(np.float32))))  # pyright: ignore[reportUnknownMemberType]
         return values.detach().cpu().numpy().astype(np.float64)
 
     def fit(self, images: np.ndarray) -> None:

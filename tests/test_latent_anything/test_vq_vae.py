@@ -46,6 +46,21 @@ def test_encode_preserves_integer_code_sequence(adapter: VQVAE) -> None:
     assert value.space.metadata["representation"] == "integer_code_sequence"
 
 
+def test_vq_vae_encode_and_decode_accept_protocol_keywords(adapter: VQVAE) -> None:
+    codes = adapter.encode(data=_images(2))
+
+    decoded = adapter.decode(latent=codes)
+
+    assert decoded.shape == (2, 1, 8, 8)
+
+
+def test_vq_vae_codebook_version_binds_checkpoint_state() -> None:
+    first = VQVAE(codebook_size=8, embedding_dim=4, random_state=7, n_epochs=1)
+    second = VQVAE(codebook_size=8, embedding_dim=4, random_state=8, n_epochs=1)
+
+    assert first.codebook_version != second.codebook_version
+
+
 def test_code_embeddings_are_an_explicit_conversion(adapter: VQVAE) -> None:
     """Continuous codebook vectors require an explicit caller opt-in."""
 

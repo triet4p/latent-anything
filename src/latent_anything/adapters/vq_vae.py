@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from copy import deepcopy
+from hashlib import sha256
 from typing import Any
 
 import numpy as np
@@ -71,6 +73,35 @@ class VQVAE:
         return 16
 
     @property
+    def codebook_version(self) -> str:
+        """Return a digest binding the tokenizer checkpoint and code schema."""
+
+        digest = sha256()
+        schema = {
+            "codebook_size": self.codebook_size,
+            "embedding_dim": self.embedding_dim,
+            "input_shape": self.input_shape,
+            "sequence_length": self.sequence_length,
+            "model_revision": self.model_revision,
+        }
+        digest.update(json.dumps(schema, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+        for name, value in sorted(self._state_dict_numpy().items()):
+            digest.update(name.encode("utf-8"))
+            digest.update(str(value.dtype).encode("utf-8"))
+            digest.update(str(value.shape).encode("utf-8"))
+            digest.update(np.ascontiguousarray(value).tobytes())
+        return f"{self.model_revision}@{digest.hexdigest()}"
+
+    def _state_dict_numpy(self) -> dict[str, np.ndarray]:
+        return {name: value.detach().cpu().numpy() for name, value in self._full_state_dict().items()}
+
+    def _full_state_dict(self) -> dict[str, torch.Tensor]:
+        state: dict[str, torch.Tensor] = {}
+        for prefix, module in (("encoder", self._encoder), ("codebook", self._codebook), ("decoder", self._decoder)):
+            state.update({f"{prefix}.{name}": value for name, value in module.state_dict().items()})
+        return state
+
+    @property
     def latent_space(self) -> LatentSpace:
         """Return the declared discrete code-sequence geometry."""
 
@@ -85,6 +116,7 @@ class VQVAE:
                 "codebook_embedding_dim": self.embedding_dim,
                 "dataset_revision": self.dataset_revision,
                 "model_revision": self.model_revision,
+                "codebook_version": self.codebook_version,
                 "interpolation": "unsupported",
             },
         )
@@ -169,11 +201,11 @@ class VQVAE:
             "dead_code_rate": diagnostics["dead_code_rate"],
         }
 
-    def encode(self, images: np.ndarray) -> np.ndarray:
+    def encode(self, data: np.ndarray) -> np.ndarray:
         """Encode images to integer code IDs, preserving categorical semantics."""
 
         with torch.no_grad():
-            _, indices, _ = self._encode_tensors(images)
+            _, indices, _ = self._encode_tensors(data)
         return indices.detach().cpu().numpy().astype(np.int64)
 
     def encode_value(self, images: np.ndarray) -> LatentValue:
@@ -193,12 +225,12 @@ class VQVAE:
             values = self._codebook(torch.from_numpy(codes.astype(np.int64)))  # pyright: ignore[reportUnknownMemberType]
         return values.detach().cpu().numpy().astype(np.float64)
 
-    def decode(self, codes: np.ndarray) -> np.ndarray:
+    def decode(self, latent: np.ndarray) -> np.ndarray:
         """Decode integer code sequences; continuous latent vectors are rejected."""
 
-        self._validate_codes(codes)
+        self._validate_codes(latent)
         with torch.no_grad():
-            embeddings = self._codebook(torch.from_numpy(codes.astype(np.int64)))  # pyright: ignore[reportUnknownMemberType]
+            embeddings = self._codebook(torch.from_numpy(latent.astype(np.int64)))  # pyright: ignore[reportUnknownMemberType]
             quantized = embeddings.reshape(-1, 4, 4, self.embedding_dim).permute(0, 3, 1, 2)
             values = self._decoder(quantized)
         return values.detach().cpu().numpy().astype(np.float64)
@@ -245,6 +277,7 @@ class VQVAE:
             "grid_shape": [4, 4],
             "dataset_revision": self.dataset_revision,
             "model_revision": self.model_revision,
+            "codebook_version": self.codebook_version,
             "counts": self.codebook_counts_.tolist(),
         }
         metadata.update(self.codebook_diagnostics())

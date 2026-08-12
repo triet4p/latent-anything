@@ -143,6 +143,9 @@ def run_benchmark(*, seed: int = 65, episodes: int = 64, horizon: int = 16) -> d
         "failure_analysis": [
             "The deterministic and memoryless stochastic baselines do not receive recurrent history, "
             "so this benchmark is intentionally partially observed.",
+            "RSSM does not outperform either baseline on open-loop rollout error: its mean error is "
+            f"{rssm_rollout.mean_error:.3f} versus {deterministic_rollout.mean_error:.3f} and "
+            f"{stochastic_rollout.mean_error:.3f}; no superiority claim is made.",
             "RSSM KL is against an observation-centred posterior proxy; a learned posterior encoder "
             "and free-bits objective remain outside this compact NumPy-facing instance.",
             "All claims are synthetic D2 evidence; no real pretrained world-model or CUDA claim is promoted.",

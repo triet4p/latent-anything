@@ -168,11 +168,7 @@ class GaussianPrediction:
         # prediction while sample() still preserves exact zero-noise behavior.
         effective_scale = np.maximum(self.scale, 1e-12)
         standardized = np.clip(difference / effective_scale, -1e150, 1e150)
-        return -0.5 * (
-            np.square(standardized)
-            + np.log(2.0 * np.pi)
-            + 2.0 * np.log(effective_scale)
-        )
+        return -0.5 * (np.square(standardized) + np.log(2.0 * np.pi) + 2.0 * np.log(effective_scale))
 
 
 @dataclass(frozen=True, slots=True)
@@ -853,9 +849,7 @@ class StochasticGaussianLatentTransition:
             means = np.vstack([prediction.mean for prediction in predictions])
             # Keeping the one-point distribution API as the source of scale
             # ensures sample() and rollout() have identical semantics.
-            samples[:, index + 1, :] = means + self.scale * generator.normal(
-                size=(n_samples, self.state_dim)
-            )
+            samples[:, index + 1, :] = means + self.scale * generator.normal(size=(n_samples, self.state_dim))
         rollout_metadata: dict[str, Any] = {
             "state_source": "sampled",
             "source_space_identity": self.source_space_identity,
@@ -957,9 +951,7 @@ class StochasticGaussianLatentTransition:
         effective_scales = np.maximum(scales, max(self.variance_floor**0.5, np.finfo(np.float64).eps))
         differences = targets - means
         log_density = -0.5 * (
-            np.square(differences / effective_scales)
-            + np.log(2.0 * np.pi)
-            + 2.0 * np.log(effective_scales)
+            np.square(differences / effective_scales) + np.log(2.0 * np.pi) + 2.0 * np.log(effective_scales)
         )
         quantile = NormalDist().inv_cdf(0.5 + interval_level / 2.0)
         lower = means - quantile * scales

@@ -372,10 +372,10 @@ class JEPAWorldModelAdapter:
 
         return any(parameter.grad is not None for parameter in self._target_encoder.parameters())
 
-    def encode(self, observations: np.ndarray) -> np.ndarray:
-        """Encode observations with the trainable context encoder."""
+    def encode(self, data: np.ndarray) -> np.ndarray:
+        """Encode input data with the trainable context encoder."""
 
-        values = self._validate_observations(observations, name="observations")
+        values = self._validate_observations(data, name="data")
         return self._encode_tensor(values, self._context_encoder)
 
     def encode_target(self, observations: np.ndarray) -> np.ndarray:
@@ -419,8 +419,10 @@ class JEPAWorldModelAdapter:
             valid_predicted = predicted[mask_tensor]
             valid_target = target[mask_tensor]
             prediction_loss = torch.mean(torch.square(valid_predicted - valid_target))
-            target_std = torch.sqrt(torch.var(valid_target, dim=0, unbiased=False) + self.config.variance_floor)
-            variance_penalty = torch.mean(torch.relu(self.config.minimum_latent_std - target_std))
+            context_std = torch.sqrt(
+                torch.var(context[mask_tensor], dim=0, unbiased=False) + self.config.variance_floor
+            )
+            variance_penalty = torch.mean(torch.relu(self.config.minimum_latent_std - context_std))
             loss = prediction_loss + self.config.variance_loss_weight * variance_penalty
             loss.backward()
             optimizer.step()
@@ -456,6 +458,7 @@ class JEPAWorldModelAdapter:
                 "final_training_loss": final_loss,
                 "target_effective_rank": health.effective_rank,
                 "target_collapsed_fraction": health.collapsed_fraction,
+                "variance_regularizer_source": "trainable_context_encoder",
             }
         )
         return self
@@ -643,7 +646,7 @@ class JEPAWorldModelAdapter:
             "config": self.to_config().model_dump(mode="json"),
             "fit_metadata": dict(self._fit_metadata),
         }
-        arrays: dict[str, object] = {"metadata_json": json.dumps(payload), "scale": self.scale}
+        arrays: dict[str, np.ndarray] = {"scale": self.scale}
         for prefix, module in (
             ("context", self._context_encoder),
             ("target", self._target_encoder),
@@ -651,7 +654,7 @@ class JEPAWorldModelAdapter:
         ):
             for name, value in module.state_dict().items():
                 arrays[f"{prefix}_{name.replace('.', '_')}"] = value.detach().cpu().numpy()
-        np.savez(path, **arrays)
+        np.savez(path, **cast(dict[str, Any], {"metadata_json": np.asarray(json.dumps(payload)), **arrays}))
 
     @classmethod
     def load(cls, path: str, *, device: str | None = None) -> JEPAWorldModelAdapter:

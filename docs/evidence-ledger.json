@@ -109,7 +109,7 @@
       ]
     },
     "THY-T02-VQ-VAE-OORD-ET-AL-2017": {
-      "status": "D3",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
@@ -119,7 +119,7 @@
       ]
     },
     "THY-T09-VECTOR-QUANTIZATION": {
-      "status": "D3",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
@@ -129,7 +129,7 @@
       ]
     },
     "THY-T09-COMMITMENT-LOSS": {
-      "status": "D3",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
@@ -149,7 +149,7 @@
       ]
     },
     "THY-T09-TOKENIZED-WORLD-MODEL": {
-      "status": "D2",
+      "status": "D1",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/tokenized_world_model.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_tokenized_world_model.py"},

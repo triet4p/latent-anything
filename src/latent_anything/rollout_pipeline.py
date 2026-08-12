@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from time import perf_counter
-from typing import cast
 
 import numpy as np
 
@@ -62,7 +61,7 @@ class RolloutPipeline(PipelineContract):
         """Run one rollout and return its trajectory plus provenance."""
 
         initial, action_values = self._validate_inputs(initial_state, actions)
-        key = self._cache_key(initial, action_values) if self.cache is not None else None
+        key = self._cache_key(initial, action_values, metadata=metadata) if self.cache is not None else None
         if key is not None:
             cached = self._cache_get(key, profiler=profiler)
             if isinstance(cached, dict) and isinstance(cached.get("data"), np.ndarray):
@@ -136,8 +135,7 @@ class RolloutPipeline(PipelineContract):
         )
 
         def operation() -> Trajectory:
-            mean_rollout = cast(Callable[..., Trajectory], self.transition.mean_rollout)
-            return mean_rollout(initial, actions, metadata=values)
+            return self.transition.mean_rollout(initial, actions, metadata=values)
 
         if profiler is None:
             return operation()
@@ -180,13 +178,20 @@ class RolloutPipeline(PipelineContract):
             raise ValueError("actions must contain finite numeric values")
         return np.asarray(initial, dtype=np.float64), np.asarray(action_values, dtype=np.float64)
 
-    def _cache_key(self, initial: np.ndarray, actions: np.ndarray) -> CacheKey:
+    def _cache_key(
+        self,
+        initial: np.ndarray,
+        actions: np.ndarray,
+        *,
+        metadata: Mapping[str, object] | None,
+    ) -> CacheKey:
         payload = np.concatenate([initial.ravel(), actions.ravel()])
         return make_cache_key(
             namespace="rollout_pipeline",
             operation="transition.mean_rollout",
             component=self.transition,
             data=payload,
+            extra=dict(metadata or {}),
         )
 
     def _cache_get(self, key: CacheKey, *, profiler: RuntimeProfiler | None) -> object | None:
