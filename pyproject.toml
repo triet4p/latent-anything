@@ -108,6 +108,7 @@ include = [
     "scripts/report_config_migration.py",
     "scripts/vae_explanation_benchmark.py",
     "scripts/validate_evidence_ledger.py",
+    "scripts/vq_vae_digits_evidence.py",
     "scripts/act_policy_representation_benchmark.py",
     "scripts/diffusion_policy_representation_benchmark.py",
     "scripts/smolvla_policy_representation_benchmark.py",
@@ -155,7 +156,9 @@ include = [
     "tests/test_latent_anything/test_gaussian_3d_renderer.py",
     "tests/test_latent_anything/test_gaussian_3d_renderer_network.py",
     "tests/test_latent_anything/test_pose.py",
-]
+    "tests/test_latent_anything/test_vq_vae.py",
+    "tests/test_vq_vae_benchmark.py",
+  ]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.12"
 pythonPlatform = "All"

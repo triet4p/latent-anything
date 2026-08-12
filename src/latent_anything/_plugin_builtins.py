@@ -44,6 +44,7 @@ from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
+from latent_anything.adapters.vq_vae import VQVAE
 from latent_anything.cem import CEMPlanner
 from latent_anything.clustering import KMeans
 from latent_anything.density import GaussianMixtureDensity
@@ -119,6 +120,15 @@ GLOBAL_REGISTRY.register(
     VAE,
     description="Variational Autoencoder — explicit learned latent (mode i)",
     protocol="ModelAdapter, DecodableAdapter, FlatBatchDecodableAdapter",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ADAPTER,
+    "vq_vae",
+    VQVAE,
+    description="Vector-quantized VAE — integer code sequence and codebook diagnostics",
+    protocol="ModelAdapter, DecodableAdapter",
     source="built-in",
 )
 

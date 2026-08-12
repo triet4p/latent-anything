@@ -1,0 +1,26 @@
+{
+  "dataset": "sklearn.datasets.load_digits",
+  "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+  "model_revision": "compact-vq-vae-v1",
+  "seed": 42,
+  "train_slice": [
+    0,
+    256
+  ],
+  "test_slice": [
+    256,
+    320
+  ],
+  "vq_vae": {
+    "codebook_size": 16,
+    "embedding_dim": 8,
+    "commitment_cost": 0.25,
+    "n_epochs": 4,
+    "learning_rate": 0.001
+  },
+  "continuous_baseline": {
+    "latent_dim": 4,
+    "n_epochs": 4
+  },
+  "offline": true
+}

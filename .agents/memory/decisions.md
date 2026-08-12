@@ -708,3 +708,31 @@ and `MPPIPlannerSpec` are public configuration/result surfaces; no generic
 planner protocol is frozen. The D2 claim is synthetic CPU evidence. A future
 third planner or materially shared consumer should trigger a fresh Rule of
 Three review rather than widening either planner today.
+## [2026-08-12] Keep VQ-VAE adapter outputs categorical and make codebook health failures visible
+
+**Decision:** Sprint 70 adds one compact trainable `VQVAE` adapter using the
+existing `ModelAdapter`/`DecodableAdapter` split. Its public `encode` output is
+an integer `(batch, sequence)` code array described by
+`LatentSpace(geometry="discrete_code")`; codebook vectors are exposed only by
+the explicitly named `code_embeddings` method. Categorical edits use
+`replace_codes`, while continuous interpolation is rejected. The adapter
+records reconstruction, codebook, commitment, perplexity, dead-code, and
+train/test frequency-drift metrics.
+
+**Alternatives considered:** Return codebook vectors from `encode` and treat
+them as Euclidean latents; add a generic discrete-latent Protocol; silently
+round continuous interpolation; or use a network-fetched pretrained VQGAN.
+
+**Reason:** Sprint 30 already established that categorical IDs are not
+continuous Euclidean values and that unsupported interpolation must fail. A
+fifth adapter validates the existing concrete Protocol split without needing
+a new hierarchy. A small CPU-trained model on the locked sklearn digits data
+gives reproducible model evidence and keeps the integration offline. The first
+run exposes severe codebook collapse, so the artifact deliberately records the
+negative health result instead of hiding it behind a tuning-only success claim.
+
+**Consequences:** Discrete consumers can preserve token identity through
+`LatentValue` and use explicit codebook-aware operations. The current evidence
+supports the adapter and diagnostics, not a claim of healthy large-scale VQGAN
+usage or tokenized world-model performance. A future EMA/restart policy needs a
+separate experiment and acceptance criterion.

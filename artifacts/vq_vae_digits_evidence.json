@@ -1,0 +1,25 @@
+{
+  "dataset": "sklearn.datasets.load_digits",
+  "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+  "model_revision": "compact-vq-vae-v1",
+  "seed": 42,
+  "train_samples": 256,
+  "test_samples": 64,
+  "metrics": {
+    "discrete_reconstruction_mse": 0.1758503940495371,
+    "continuous_reconstruction_mse": 0.1673701584678573,
+    "codebook_perplexity": 1.0,
+    "dead_code_rate": 0.9375,
+    "commitment_distance": 0.18121248483657837,
+    "code_frequency_drift": 0.0,
+    "discrete_mean_pair_distance": 0.0,
+    "continuous_mean_pair_distance": 0.1964755358596684
+  },
+  "acceptance": {
+    "reconstruction_mse_finite": true,
+    "codebook_perplexity_above_one": true,
+    "dead_code_rate_bounded": true,
+    "continuous_path_is_comparison_only": true
+  },
+  "failure_case": "The compact run exhibits codebook collapse (perplexity 1.0 and a high dead-code rate). It is useful for validating diagnostics and discrete API semantics, not evidence for a healthy large pretrained VQGAN or tokenized world-model prior."
+}

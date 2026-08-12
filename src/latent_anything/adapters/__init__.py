@@ -16,6 +16,8 @@ Sprint 14). Three instances with differing philosophies validate the
   to ``ModelAdapter`` only (no ``decode``).
 - ``GaussianRendererAdapter`` (#4) — deterministic renderer (mode iii),
   conforms to ``DecodableAdapter`` but not ``FlatBatchDecodableAdapter``.
+- ``VQVAE`` (#5) — explicit learned discrete latent (mode i), conforms to
+  ``ModelAdapter`` and ``DecodableAdapter`` but preserves integer code IDs.
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ from latent_anything.adapters.protocols import FlatBatchDecodableAdapter as Flat
 from latent_anything.adapters.protocols import ModelAdapter as ModelAdapter
 from latent_anything.adapters.random_projection import RandomProjection as RandomProjection
 from latent_anything.adapters.vae import VAE as VAE
+from latent_anything.adapters.vq_vae import VQVAE as VQVAE
 
 __all__ = [
     "ConvVAE",
@@ -42,4 +45,5 @@ __all__ = [
     "ModelAdapter",
     "RandomProjection",
     "VAE",
+    "VQVAE",
 ]

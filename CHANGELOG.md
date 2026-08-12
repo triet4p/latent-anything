@@ -18,6 +18,13 @@
 
 ### Added
 
+- Added a compact CPU-trainable VQ-VAE adapter with integer code-sequence
+  output, explicit codebook embeddings, categorical replacement semantics,
+  discrete-geometry integration, reconstruction/commitment/codebook health
+  metrics, train/test frequency drift, and an offline ConvVAE comparison
+  artifact. The pinned evidence records codebook collapse as a negative result
+  rather than presenting it as healthy usage. (#sprint-70)
+
 - Added bounded continuous-action MPPI planning over latent rollouts with
   stable temperature weighting, seeded noise, action constraints,
   receding-horizon execution, soft-weight diagnostics, config/registry

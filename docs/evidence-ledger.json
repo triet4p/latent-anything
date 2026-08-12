@@ -91,6 +91,46 @@
         {"role": "test", "path": "tests/test_latent_anything/test_vae.py"}
       ]
     },
+    "THY-T02-VQ-VAE-OORD-ET-AL-2017": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
+        {"role": "benchmark", "path": "scripts/vq_vae_digits_evidence.py"},
+        {"role": "config", "path": "artifacts/vq_vae_digits_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/vq_vae_digits_evidence.json"}
+      ]
+    },
+    "THY-T09-VECTOR-QUANTIZATION": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
+        {"role": "benchmark", "path": "scripts/vq_vae_digits_evidence.py"},
+        {"role": "config", "path": "artifacts/vq_vae_digits_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/vq_vae_digits_evidence.json"}
+      ]
+    },
+    "THY-T09-COMMITMENT-LOSS": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
+        {"role": "benchmark", "path": "scripts/vq_vae_digits_evidence.py"},
+        {"role": "config", "path": "artifacts/vq_vae_digits_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/vq_vae_digits_evidence.json"}
+      ]
+    },
+    "THY-T09-CODEBOOK-COLLAPSE": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
+        {"role": "benchmark", "path": "scripts/vq_vae_digits_evidence.py"},
+        {"role": "config", "path": "artifacts/vq_vae_digits_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/vq_vae_digits_evidence.json"}
+      ]
+    },
     "THY-T02-VAE-KINGMA-WELLING-2013": {
       "status": "D1",
       "evidence": [

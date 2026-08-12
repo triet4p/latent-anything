@@ -199,6 +199,7 @@ def test_method_and_adapter_protocol_snapshot() -> None:
         "ModelAdapter",
         "RandomProjection",
         "VAE",
+        "VQVAE",
     ]
 
 

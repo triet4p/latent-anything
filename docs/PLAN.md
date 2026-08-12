@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -113,8 +113,8 @@ None. Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Spri
 - [Sprint 66](sprint-plans/sprint-66.md) - Add a rollout pipeline as Pipeline #3 and decompose pipeline responsibilities from evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Add reward/value evaluation over imagined trajectories.
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
-- [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
-- [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
+- [x] [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
+- [x] [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
 - [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
 - [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
 

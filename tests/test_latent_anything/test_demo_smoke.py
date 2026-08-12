@@ -28,7 +28,7 @@ class TestRegistryDemoSmoke:
         adapters = GLOBAL_REGISTRY.list(KIND_ADAPTER)
         methods_a = GLOBAL_REGISTRY.list(KIND_METHOD_A)
         methods_b = GLOBAL_REGISTRY.list(KIND_METHOD_B)
-        assert len(adapters) == 6
+        assert len(adapters) == 7
         assert len(methods_a) == 10
         assert len(methods_b) == 5
         assert len(GLOBAL_REGISTRY) >= 12
