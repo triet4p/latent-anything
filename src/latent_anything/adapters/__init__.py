@@ -27,6 +27,13 @@ from latent_anything.adapters.gaussian_3d_renderer import Gaussian3DRendererAdap
 from latent_anything.adapters.gaussian_3d_renderer import GaussianCamera as GaussianCamera
 from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter as GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter as HiddenStateAdapter
+from latent_anything.adapters.jepa import JEPAEvaluationReport as JEPAEvaluationReport
+from latent_anything.adapters.jepa import JEPALatentHealth as JEPALatentHealth
+from latent_anything.adapters.jepa import JEPAPrediction as JEPAPrediction
+from latent_anything.adapters.jepa import JEPAPredictionMetrics as JEPAPredictionMetrics
+from latent_anything.adapters.jepa import JEPARolloutMetrics as JEPARolloutMetrics
+from latent_anything.adapters.jepa import JEPAWorldModelAdapter as JEPAWorldModelAdapter
+from latent_anything.adapters.jepa import JEPAWorldModelConfig as JEPAWorldModelConfig
 from latent_anything.adapters.protocols import DecodableAdapter as DecodableAdapter
 from latent_anything.adapters.protocols import FlatBatchDecodableAdapter as FlatBatchDecodableAdapter
 from latent_anything.adapters.protocols import ModelAdapter as ModelAdapter
@@ -42,6 +49,13 @@ __all__ = [
     "Gaussian3DRendererAdapter",
     "GaussianCamera",
     "HiddenStateAdapter",
+    "JEPAWorldModelAdapter",
+    "JEPAWorldModelConfig",
+    "JEPALatentHealth",
+    "JEPAEvaluationReport",
+    "JEPAPrediction",
+    "JEPAPredictionMetrics",
+    "JEPARolloutMetrics",
     "ModelAdapter",
     "RandomProjection",
     "VAE",

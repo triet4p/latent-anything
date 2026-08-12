@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 71, Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -115,7 +115,7 @@ None. Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 6
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
 - [x] [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
-- [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
+- [x] [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
 - [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
 
 ### Milestone 13 - Ecosystem and runtime hardening
@@ -182,6 +182,7 @@ None. Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 6
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Reward/value scoring, masked discounted returns, held-out calibration and Bellman diagnostics, imagined-trajectory bias comparison, and run-record evidence.
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Bounded CEM planning over latent rollouts, controlled random/fixed baselines, model-bias comparison, and reproducible run-record evidence.
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - MPPI planning with stable temperature weighting, receding-horizon execution, CEM/random comparison, smoothness/latency/robustness metrics, and reproducible run-record evidence.
+- [x] [Sprint 71](sprint-plans/sprint-71.md) - Compact decoder-free JEPA/LeWM-style prediction, target-encoder health diagnostics, rollout/record integration, and marked public I-JEPA checkpoint smoke.
 
 ## Planning Rules
 

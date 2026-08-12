@@ -175,6 +175,19 @@ shooting, CEM, and MPPI on the same task, reporting return, action smoothness,
 sample count, latency, and robustness to a deliberate transition error. This
 remains synthetic D2 evidence and does not claim real-model or CUDA evidence.
 
+Sprint 71 promotes the compact decoder-free JEPA/LeWM-style prediction lane
+to D2 for `THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022`
+and to D1 for `THY-X01-LEWM-LEWORLDMODEL-2026`. The source is
+`src/latent_anything/adapters/jepa.py`, with stop-gradient, no-decoder,
+pipeline, health, baseline, checkpoint, and run-record coverage in
+`tests/test_latent_anything/test_jepa.py`. The reproducible CPU benchmark is
+`scripts/jepa_world_model_benchmark.py` with the pinned config and artifact
+under `artifacts/jepa_world_model_evidence*`. The artifact reports strong
+held-out one-step improvement over a collapsed predictor, but also records
+anisotropic covariance and open-loop drift; this is not real LeWM or CUDA
+evidence. The public I-JEPA checkpoint smoke is separately marked
+`network`/`large_download`.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

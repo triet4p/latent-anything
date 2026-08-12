@@ -18,6 +18,12 @@
 
 ### Added
 
+- Added a compact decoder-free JEPA/LeWM-style world-model adapter with
+  stop-gradient EMA target encoding, action-conditioned latent prediction,
+  latent health/collapse diagnostics, horizon-drift evaluation, rollout and
+  run-record integration, a reproducible held-out CPU artifact, and an
+  opt-in pinned public I-JEPA checkpoint smoke. (#sprint-71)
+
 - Added a compact CPU-trainable VQ-VAE adapter with integer code-sequence
   output, explicit codebook embeddings, categorical replacement semantics,
   discrete-geometry integration, reconstruction/commitment/codebook health

@@ -10,3 +10,4 @@ Now, our projects include:
 4. [THEORY](THEORY.md): List of theories i have researched and plan to research. (Write in Vietnamese).
 5. [INCREMENTAL](INCREMENTAL.md): Incremental development process for `src` and the generalization rule (Rule of Three) applied after each increment. (Write in Vietnamese).
 6. [PIPELINES](PIPELINES.md): Pipeline story ownership, the shared metadata contract, and the rollout migration path.
+7. [JEPA_WORLD_MODEL](JEPA_WORLD_MODEL.md): Decoder-free JEPA/LeWM-style adapter, diagnostics, and reproducible evidence lane.

@@ -1,0 +1,21 @@
+{
+  "action_dim": 1,
+  "dataset_revision": "synthetic-controlled-latent-dynamics-v1",
+  "fit_config": {
+    "device": "cpu",
+    "ema_momentum": 0.95,
+    "epochs": 80,
+    "hidden_dim": 12,
+    "learning_rate": 0.03,
+    "minimum_latent_std": 0.05,
+    "seed": 71,
+    "stability_norm_limit": 1000000.0,
+    "variance_floor": 1e-06,
+    "variance_loss_weight": 0.01
+  },
+  "heldout_episodes": 12,
+  "heldout_horizon": 6,
+  "latent_dim": 2,
+  "model_revision": "compact-jepa-lewm-v1",
+  "observation_dim": 3
+}

@@ -1,0 +1,104 @@
+{
+  "fit_metadata": {
+    "action_shape": [
+      1
+    ],
+    "dataset_revision": "synthetic-controlled-latent-dynamics-v1",
+    "decoder": "absent",
+    "device": "cpu",
+    "episodes": 24,
+    "epochs": 80,
+    "exposure_mode": "no_explicit_latent",
+    "final_training_loss": 0.00021726355771534145,
+    "latent_shape": [
+      2
+    ],
+    "model_family": "jepa_lewm_style",
+    "model_revision": "compact-jepa-lewm-v1",
+    "observation_shape": [
+      3
+    ],
+    "seed": 71,
+    "sequence_length": 6,
+    "source_space_identity": "compact-jepa-lewm-v1:synthetic-controlled-latent-dynamics-v1",
+    "state_shape": [
+      2
+    ],
+    "target_collapsed_fraction": 0.0,
+    "target_effective_rank": 1.0090879024170976,
+    "target_encoder": "stop_gradient_ema",
+    "target_encoder_updates": 80,
+    "valid_transitions": 144
+  },
+  "heldout_target_health": {
+    "collapse_score": 0.4932596244927193,
+    "collapsed_fraction": 0.0,
+    "covariance_condition": 148.35294624069266,
+    "effective_rank": 1.0134807510145614,
+    "latent_dim": 2,
+    "max_variance": 0.12746991994878523,
+    "mean_variance": 0.07838028330129611,
+    "min_variance": 0.029290646653806984,
+    "n_samples": 72,
+    "participation_ratio": 1.0134807510145614
+  },
+  "prediction": {
+    "collapsed_baseline_mse": 0.07838028330129612,
+    "improvement_over_collapsed": 0.9881348034533618,
+    "mean_error": 0.02706502757611191,
+    "mse": 0.0009299974667510667,
+    "n_samples": 72,
+    "rmse": 0.030495859829673056,
+    "runtime_seconds": 0.009301499929279089,
+    "target_health": {
+      "collapse_score": 0.4932596244927193,
+      "collapsed_fraction": 0.0,
+      "covariance_condition": 148.35294624069266,
+      "effective_rank": 1.0134807510145614,
+      "latent_dim": 2,
+      "max_variance": 0.12746991994878523,
+      "mean_variance": 0.07838028330129611,
+      "min_variance": 0.029290646653806984,
+      "n_samples": 72,
+      "participation_ratio": 1.0134807510145614
+    }
+  },
+  "provenance": {
+    "dataset_revision": "synthetic-controlled-latent-dynamics-v1",
+    "decoder": "absent",
+    "evidence_tier": "D2_synthetic_cpu",
+    "heldout_seed": 1701,
+    "implementation": "latent_anything.adapters.jepa.JEPAWorldModelAdapter",
+    "model_revision": "compact-jepa-lewm-v1",
+    "train_seed": 71
+  },
+  "rollout": {
+    "error_growth_ratio": 3.796447443055274,
+    "errors_by_horizon": [
+      0.0647023512545399,
+      0.15892276985154163,
+      0.20565387940445368,
+      0.22765472033575426,
+      0.22931914373330523,
+      0.24563907597996218
+    ],
+    "final_error": 0.24563907597996218,
+    "horizon_drift": 0.18093672472542227,
+    "mean_error": 0.18864865675992615,
+    "n_episodes": 12,
+    "runtime_seconds": 0.00936669996008277,
+    "stable": true
+  },
+  "train_target_health": {
+    "collapse_score": 0.4955709721222257,
+    "collapsed_fraction": 0.0,
+    "covariance_condition": 225.778751212045,
+    "effective_rank": 1.0088580557555487,
+    "latent_dim": 2,
+    "max_variance": 0.06044197679103239,
+    "mean_variance": 0.03775579248114189,
+    "min_variance": 0.015069608171251383,
+    "n_samples": 144,
+    "participation_ratio": 1.0088580557555487
+  }
+}

@@ -174,7 +174,7 @@ Mỗi model family là một file adapter. Tất cả implement cùng `ModelAdap
 
 **Lưu ý đặc biệt cho 3DGS adapter.** Adapter cho một model 3D Gaussian Splatting có thể expose `LatentSpace` với geometry là "set of 3D Gaussians" — mỗi latent state là một tập {μ_i, Σ_i, α_i, sh_i}. `encode` map observation → Gaussian set; `decode` có thể là Gaussian rasterizer deterministic. `latent_space` metadata mô tả Gaussian parameterization.
 
-**Lưu ý đặc biệt cho JEPA/LeWM adapter.** LeWM là world model decoder-free theo kiểu JEPA: adapter expose predicted/observed embeddings và transition semantics qua `ModelAdapter`, không gán geometry 3DGS và không bịa ra `decode`.
+**Lưu ý đặc biệt cho JEPA/LeWM adapter.** LeWM là world model decoder-free theo kiểu JEPA: adapter expose predicted/observed embeddings và transition semantics qua `ModelAdapter`, không gán geometry 3DGS và không bịa ra `decode`. Sprint 71 đã cung cấp implementation tham chiếu CPU nhỏ (`JEPAWorldModelAdapter`), chọn `jepa_transition` cho rollout config, và giữ public checkpoint I-JEPA ở một smoke lane có đánh dấu network/large-download.
 
 ---
 

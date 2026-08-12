@@ -60,6 +60,23 @@
     "THY-T07-LATENT-IMAGINATION-HORIZON"
   ],
   "overrides": {
+    "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/jepa.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_jepa.py"},
+        {"role": "benchmark", "path": "scripts/jepa_world_model_benchmark.py"},
+        {"role": "config", "path": "artifacts/jepa_world_model_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/jepa_world_model_evidence.json"}
+      ]
+    },
+    "THY-X01-LEWM-LEWORLDMODEL-2026": {
+      "status": "D1",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/jepa.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_jepa.py"}
+      ]
+    },
     "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE": {
       "status": "D1",
       "evidence": [

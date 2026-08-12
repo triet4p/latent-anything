@@ -21,6 +21,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
+from latent_anything.adapters.jepa import JEPAEvaluationReport
 from latent_anything.cem import CEMPlanResult
 from latent_anything.mppi import MPPIPlanResult
 from latent_anything.reward_value import HoldoutEvaluation, RewardValueEvaluationResult
@@ -614,6 +615,18 @@ class FileSystemRunRecorder:
             "planning_seconds": plan.runtime_profile.total_seconds,
         }
         return self.complete(run_id, metrics=metrics)
+
+    def complete_jepa_evaluation(
+        self,
+        run_id: str,
+        evaluation: JEPAEvaluationReport,
+        *,
+        artifact_name: str = "jepa_evaluation.json",
+    ) -> RunRecord:
+        """Persist decoder-free JEPA prediction/rollout evidence."""
+
+        self.add_json_artifact(run_id, evaluation.to_dict(), name=artifact_name)
+        return self.complete(run_id, metrics=evaluation.to_metrics())
 
     def fail(self, run_id: str, error: str) -> RunRecord:
         record = self.get(run_id).transition("failed", error=error)

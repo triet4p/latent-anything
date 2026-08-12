@@ -42,6 +42,7 @@ from latent_anything.adapters.conv_vae import ConvVAE
 from latent_anything.adapters.gaussian_3d_renderer import Gaussian3DRendererAdapter
 from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
+from latent_anything.adapters.jepa import JEPAWorldModelAdapter
 from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
 from latent_anything.adapters.vq_vae import VQVAE
@@ -129,6 +130,15 @@ GLOBAL_REGISTRY.register(
     VQVAE,
     description="Vector-quantized VAE — integer code sequence and codebook diagnostics",
     protocol="ModelAdapter, DecodableAdapter",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_ADAPTER,
+    "jepa_world_model",
+    JEPAWorldModelAdapter,
+    description="Decoder-free JEPA/LeWM-style latent predictor with action conditioning",
+    protocol="ModelAdapter, LatentTransition",
     source="built-in",
 )
 
@@ -296,6 +306,15 @@ GLOBAL_REGISTRY.register(
     "rssm_transition",
     RSSMLatentTransition,
     description="Compact recurrent stochastic latent transition",
+    protocol="LatentTransition",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "jepa_transition",
+    JEPAWorldModelAdapter,
+    description="Decoder-free JEPA/LeWM-style latent transition",
     protocol="LatentTransition",
     source="built-in",
 )

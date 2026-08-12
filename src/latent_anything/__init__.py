@@ -75,6 +75,13 @@ from latent_anything.geodesic import PathOptimizationStatus as PathOptimizationS
 from latent_anything.integrated_gradients import (
     IntegratedGradients as IntegratedGradients,
 )
+from latent_anything.adapters.jepa import JEPAWorldModelAdapter as JEPAWorldModelAdapter
+from latent_anything.adapters.jepa import JEPAWorldModelConfig as JEPAWorldModelConfig
+from latent_anything.adapters.jepa import JEPALatentHealth as JEPALatentHealth
+from latent_anything.adapters.jepa import JEPAEvaluationReport as JEPAEvaluationReport
+from latent_anything.adapters.jepa import JEPAPrediction as JEPAPrediction
+from latent_anything.adapters.jepa import JEPAPredictionMetrics as JEPAPredictionMetrics
+from latent_anything.adapters.jepa import JEPARolloutMetrics as JEPARolloutMetrics
 from latent_anything.integrated_gradients import (
     IntegratedGradientsConfig as IntegratedGradientsConfig,
 )
@@ -310,6 +317,13 @@ __all__ = [
     "IntegratedGradients",
     "IntegratedGradientsConfig",
     "IntegratedGradientsResult",
+    "JEPAWorldModelAdapter",
+    "JEPAWorldModelConfig",
+    "JEPALatentHealth",
+    "JEPAEvaluationReport",
+    "JEPAPrediction",
+    "JEPAPredictionMetrics",
+    "JEPARolloutMetrics",
     "KMeans",
     "KMeansConfig",
     "KMeansResult",

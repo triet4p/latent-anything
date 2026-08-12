@@ -736,3 +736,28 @@ negative health result instead of hiding it behind a tuning-only success claim.
 supports the adapter and diagnostics, not a claim of healthy large-scale VQGAN
 usage or tokenized world-model performance. A future EMA/restart policy needs a
 separate experiment and acceptance criterion.
+
+## [2026-08-12] Keep Sprint 71 JEPA evidence decoder-free and compact
+
+**Decision:** Implement Sprint 71 as one concrete `JEPAWorldModelAdapter`
+reference lane. It trains a context encoder and action-conditioned predictor
+against a stop-gradient EMA target encoder, exposes Euclidean latent metadata,
+and reuses the existing `LatentTransition`, `AnalysisPipeline`,
+`RolloutPipeline`, and local run-record contracts. It does not expose `decode`
+or invent a new JEPA protocol.
+
+**Alternatives considered:** Wrap the public 0.6B I-JEPA image checkpoint as
+the base adapter, add a generic JEPA/LeWM protocol after one implementation,
+or fabricate a pixel decoder so the adapter would look like a VAE.
+
+**Reason:** The sprint needs a deterministic implementation that can test
+target-state semantics, action conditioning, collapse controls, and open-loop
+drift offline. A compact reference isolates those behaviors from a large
+checkpoint and preserves the already-validated no-explicit-latent adapter
+mode. The public I-JEPA model remains an explicit opt-in smoke lane.
+
+**Consequences:** Sprint 71 evidence is D2 synthetic CPU for generic JEPA
+latent prediction and D1 for the LeWM-specific anchor; it is not D3 or CUDA
+evidence. The artifact records one-step success alongside anisotropy and
+horizon drift. A future real LeWM/image adapter must add its own concrete
+semantics before any broader protocol or checkpoint loader is considered.
