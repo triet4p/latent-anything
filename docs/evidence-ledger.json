@@ -148,6 +148,16 @@
         {"role": "artifact", "path": "artifacts/vq_vae_digits_evidence.json"}
       ]
     },
+    "THY-T09-TOKENIZED-WORLD-MODEL": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/tokenized_world_model.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_tokenized_world_model.py"},
+        {"role": "benchmark", "path": "scripts/tokenized_world_model_benchmark.py"},
+        {"role": "config", "path": "artifacts/tokenized_world_model_evidence_config.json"},
+        {"role": "artifact", "path": "artifacts/tokenized_world_model_evidence.json"}
+      ]
+    },
     "THY-T02-VAE-KINGMA-WELLING-2013": {
       "status": "D1",
       "evidence": [

@@ -244,6 +244,24 @@ from latent_anything.tcav import learn_mean_diff_direction as learn_mean_diff_di
 from latent_anything.temporal import (
     BoundaryMetrics as BoundaryMetrics,
 )
+from latent_anything.tokenized_world_model import (
+    TokenPrediction as TokenPrediction,
+)
+from latent_anything.tokenized_world_model import (
+    TokenPredictionMetrics as TokenPredictionMetrics,
+)
+from latent_anything.tokenized_world_model import (
+    TokenRolloutMetrics as TokenRolloutMetrics,
+)
+from latent_anything.tokenized_world_model import (
+    TokenizedEvaluationReport as TokenizedEvaluationReport,
+)
+from latent_anything.tokenized_world_model import (
+    TokenizedWorldModel as TokenizedWorldModel,
+)
+from latent_anything.tokenized_world_model import (
+    TokenizedWorldModelConfig as TokenizedWorldModelConfig,
+)
 from latent_anything.temporal import (
     ChangePointResult as ChangePointResult,
 )
@@ -390,6 +408,12 @@ __all__ = [
     "StochasticRollout",
     "StochasticRolloutMetrics",
     "LatentTransition",
+    "TokenPrediction",
+    "TokenPredictionMetrics",
+    "TokenRolloutMetrics",
+    "TokenizedEvaluationReport",
+    "TokenizedWorldModel",
+    "TokenizedWorldModelConfig",
     "HoldoutEvaluation",
     "LinearRewardScorer",
     "MonteCarloValueEstimator",

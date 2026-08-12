@@ -66,6 +66,7 @@ from latent_anything.reward_value import LinearRewardScorer, MonteCarloValueEsti
 from latent_anything.rssm import RSSMLatentTransition
 from latent_anything.sae_evaluation import SAEFeatureEvaluation
 from latent_anything.tcav import TCAV
+from latent_anything.tokenized_world_model import TokenizedWorldModel
 from latent_anything.transition import DeterministicLatentTransition, StochasticGaussianLatentTransition
 
 # ── Register adapters ───────────────────────────────────────────────
@@ -307,6 +308,15 @@ GLOBAL_REGISTRY.register(
     RSSMLatentTransition,
     description="Compact recurrent stochastic latent transition",
     protocol="LatentTransition",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "tokenized_world_model",
+    TokenizedWorldModel,
+    description="Autoregressive action-conditioned dynamics over discrete VQ token frames",
+    protocol="ModelAdapter, LatentTransition",
     source="built-in",
 )
 

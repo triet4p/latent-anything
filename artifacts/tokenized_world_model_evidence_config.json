@@ -1,0 +1,28 @@
+{
+  "codebook_version": "compact-vq-vae-v1",
+  "dataset": "sklearn.datasets.load_digits",
+  "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+  "dynamics": {
+    "action_dim": 1,
+    "codebook_version": "compact-vq-vae-v1",
+    "epochs": 180,
+    "hidden_dim": 32,
+    "learning_rate": 0.01,
+    "model_revision": "compact-tokenized-world-model-v1",
+    "seed": 72
+  },
+  "heldout_episodes": 32,
+  "heldout_horizon": 8,
+  "heldout_seed": 1702,
+  "model_revision": "compact-tokenized-world-model-v1",
+  "offline": true,
+  "seed": 72,
+  "tokenizer": {
+    "codebook_size": 8,
+    "embedding_dim": 6,
+    "learning_rate": 0.001,
+    "n_epochs": 4
+  },
+  "train_episodes": 128,
+  "train_horizon": 6
+}

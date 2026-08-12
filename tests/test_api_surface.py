@@ -112,6 +112,12 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "StochasticRollout",
         "StochasticRolloutMetrics",
         "LatentTransition",
+        "TokenPrediction",
+        "TokenPredictionMetrics",
+        "TokenRolloutMetrics",
+        "TokenizedEvaluationReport",
+        "TokenizedWorldModel",
+        "TokenizedWorldModelConfig",
         "HoldoutEvaluation",
         "LinearRewardScorer",
         "MonteCarloValueEstimator",
@@ -214,6 +220,12 @@ def test_method_and_adapter_protocol_snapshot() -> None:
         "RandomProjection",
         "VAE",
         "VQVAE",
+        "TokenPrediction",
+        "TokenPredictionMetrics",
+        "TokenRolloutMetrics",
+        "TokenizedEvaluationReport",
+        "TokenizedWorldModel",
+        "TokenizedWorldModelConfig",
     ]
 
 

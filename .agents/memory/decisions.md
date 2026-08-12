@@ -761,3 +761,10 @@ latent prediction and D1 for the LeWM-specific anchor; it is not D3 or CUDA
 evidence. The artifact records one-step success alongside anisotropy and
 horizon drift. A future real LeWM/image adapter must add its own concrete
 semantics before any broader protocol or checkpoint loader is considered.
+
+## [2026-08-12] Keep tokenized dynamics concrete and reuse the mean-transition seam
+
+**Decision:** Implement Sprint 72 as one concrete `TokenizedWorldModel` that composes a frozen `VQVAE` tokenizer with an action-conditioned autoregressive GRU and conforms to the existing `ModelAdapter`/`LatentTransition` surfaces without widening either protocol.
+**Alternatives considered:** Add a generic token-transition protocol, force categorical predictions into a new distribution wrapper, or build a separate token-only rollout pipeline.
+**Reason:** The existing adapter and rollout seams already express the needed composition, while token sampling, codebook-version binding, padding, and teacher-forced/free-running metrics have lifecycle semantics that are specific to this first tokenized instance. Keeping those details concrete preserves integer categorical IDs and makes the benchmark expose, rather than hide, compounding error.
+**Consequences:** `RolloutPipeline` can execute greedy token rollouts through the proven mean surface, but seeded sampling and categorical evaluation remain concrete methods. A future second tokenized implementation must prove materially shared semantics before another protocol or pipeline abstraction is introduced.

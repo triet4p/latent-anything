@@ -188,6 +188,19 @@ anisotropic covariance and open-loop drift; this is not real LeWM or CUDA
 evidence. The public I-JEPA checkpoint smoke is separately marked
 `network`/`large_download`.
 
+Sprint 72 adds the compact tokenized-world-model lane at D2 for
+`THY-T09-TOKENIZED-WORLD-MODEL`. The source is
+`src/latent_anything/tokenized_world_model.py`, with integer-token adapter and
+mean-transition composition, autoregressive sampling, masking/padding/version
+validation, and teacher-forced/free-running tests in
+`tests/test_latent_anything/test_tokenized_world_model.py`. The reproducible
+offline benchmark is `scripts/tokenized_world_model_benchmark.py` with
+configuration and rollout evidence under
+`artifacts/tokenized_world_model_evidence*`. The artifact includes decoder and
+task-proxy metrics plus failure horizons; it also keeps the Sprint 70
+tokenizer's dead-code result visible and makes no real-checkpoint or CUDA
+claim.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

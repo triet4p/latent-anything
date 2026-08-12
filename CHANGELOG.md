@@ -18,6 +18,12 @@
 
 ### Added
 
+- Added a compact tokenized world-model lane that composes the frozen VQ-VAE
+  tokenizer with action-conditioned autoregressive next-token prediction,
+  seeded categorical rollout, codebook-version/padding validation, decoded
+  consistency and task-proxy metrics, teacher-forced versus free-running
+  drift, and a reproducible offline evidence artifact. (#sprint-72)
+
 - Added a compact decoder-free JEPA/LeWM-style world-model adapter with
   stop-gradient EMA target encoding, action-conditioned latent prediction,
   latent health/collapse diagnostics, horizon-drift evaluation, rollout and

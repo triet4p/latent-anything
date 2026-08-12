@@ -40,6 +40,24 @@ from latent_anything.adapters.protocols import ModelAdapter as ModelAdapter
 from latent_anything.adapters.random_projection import RandomProjection as RandomProjection
 from latent_anything.adapters.vae import VAE as VAE
 from latent_anything.adapters.vq_vae import VQVAE as VQVAE
+from latent_anything.tokenized_world_model import (
+    TokenizedEvaluationReport as TokenizedEvaluationReport,
+)
+from latent_anything.tokenized_world_model import (
+    TokenizedWorldModel as TokenizedWorldModel,
+)
+from latent_anything.tokenized_world_model import (
+    TokenizedWorldModelConfig as TokenizedWorldModelConfig,
+)
+from latent_anything.tokenized_world_model import (
+    TokenPrediction as TokenPrediction,
+)
+from latent_anything.tokenized_world_model import (
+    TokenPredictionMetrics as TokenPredictionMetrics,
+)
+from latent_anything.tokenized_world_model import (
+    TokenRolloutMetrics as TokenRolloutMetrics,
+)
 
 __all__ = [
     "ConvVAE",
@@ -60,4 +78,10 @@ __all__ = [
     "RandomProjection",
     "VAE",
     "VQVAE",
+    "TokenPrediction",
+    "TokenPredictionMetrics",
+    "TokenRolloutMetrics",
+    "TokenizedEvaluationReport",
+    "TokenizedWorldModel",
+    "TokenizedWorldModelConfig",
 ]

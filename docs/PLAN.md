@@ -116,7 +116,7 @@ None. Sprint 71, Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 6
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
 - [x] [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
-- [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
+- [x] [Sprint 72](sprint-plans/sprint-72.md) - Validate tokenized world-model prediction and rollout.
 
 ### Milestone 13 - Ecosystem and runtime hardening
 
@@ -183,6 +183,7 @@ None. Sprint 71, Sprint 70, Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 6
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Bounded CEM planning over latent rollouts, controlled random/fixed baselines, model-bias comparison, and reproducible run-record evidence.
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - MPPI planning with stable temperature weighting, receding-horizon execution, CEM/random comparison, smoothness/latency/robustness metrics, and reproducible run-record evidence.
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Compact decoder-free JEPA/LeWM-style prediction, target-encoder health diagnostics, rollout/record integration, and marked public I-JEPA checkpoint smoke.
+- [x] [Sprint 72](sprint-plans/sprint-72.md) - Tokenized world-model next-token prediction, seeded rollout, codebook/likelihood/drift metrics, and reproducible synthetic evidence.
 
 ## Planning Rules
 

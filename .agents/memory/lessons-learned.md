@@ -247,3 +247,10 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** `Trajectory.metadata` is intentionally immutable via `MappingProxyType`, while the generic object cache uses `deepcopy`, which cannot pickle that proxy.
 **Fix / workaround:** Rollout caching stores a plain dictionary containing the trajectory array and copied metadata, then reconstructs a fresh `Trajectory` on a cache hit.
 **Watch out for:** Any future object cached through `InMemoryCache` that contains immutable proxy-backed metadata; cache a plain serialization payload or extend the cache with an explicit copy protocol.
+
+## [2026-08-12] Token rollout boundaries must distinguish single frames from batches
+
+**Symptom:** The first tokenized-world-model smoke test rejected a valid `(1, tokens_per_frame)` batch as an invalid single-frame input, and raw temporal images were initially checked against a six-dimensional shape.
+**Root cause:** The public prediction path accepts both a one-dimensional transition state and a batched two-dimensional context, but the validator treated the `allow_single` flag as exactly one dimensional. The temporal image fixture is `(episodes, time, channels, height, width)`, not an extra-dimensional batch.
+**Fix / workaround:** Let `allow_single` accept either one- or two-dimensional token contexts and only add a batch axis for a one-dimensional state; validate raw sequences as five-dimensional arrays and reshape only the episode/time prefix for tokenizer calls.
+**Watch out for:** Any future token sampler or rollout adapter that receives both direct `step()` states and batched `predict_next()` contexts; keep the shape normalization at the public boundary and retain integer-ID validation after normalization.

@@ -1,0 +1,330 @@
+{
+  "acceptance": {
+    "decoded_consistency_available": true,
+    "free_running_horizon_complete": true,
+    "seeded_rollout_reproducible": true,
+    "task_proxy_available": true,
+    "teacher_forced_perplexity_finite": true
+  },
+  "codebook": {
+    "codebook_perplexity": 1.0,
+    "codebook_size": 8,
+    "codebook_version": "compact-vq-vae-v1",
+    "counts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      4096
+    ],
+    "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+    "dead_code_rate": 0.875,
+    "embedding_dim": 6,
+    "grid_shape": [
+      4,
+      4
+    ],
+    "model_revision": "compact-vq-vae-v1",
+    "sequence_length": 16
+  },
+  "dataset": "sklearn.datasets.load_digits",
+  "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+  "decoded_consistency_mse_by_horizon": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "evidence_tier": "D2_synthetic_cpu",
+  "failure_analysis": "Teacher-forced likelihood is local to ground-truth contexts, while free-running drift feeds each predicted frame back into the next query. The recorded failure_horizon and per-horizon decoded/task metrics are the acceptance evidence; this compact CPU run does not claim real-model or CUDA scale.",
+  "fit_metadata": {
+    "codebook_version": "compact-vq-vae-v1",
+    "last_cross_entropy": 0.000959588389378041,
+    "last_token_accuracy": 1.0,
+    "masked_transitions": 0,
+    "valid_transitions": 768
+  },
+  "free_running": {
+    "decoded_mse_by_horizon": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "exact_frame_accuracy_by_horizon": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "failure_horizon": null,
+    "task_proxy_accuracy_by_horizon": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "token_error_by_horizon": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "heldout_code_usage": {
+    "counts": [
+      528,
+      544,
+      528,
+      672,
+      512,
+      592,
+      672,
+      560
+    ],
+    "dead_code_rate": 0.0,
+    "perplexity": 7.957854618137201
+  },
+  "provenance": {
+    "codebook_version": "compact-vq-vae-v1",
+    "model_revision": "compact-tokenized-world-model-v1",
+    "source_space_identity": "compact-vq-vae-v1:compact-vq-vae-v1:16tokens",
+    "tokenizer_revision": "compact-vq-vae-v1"
+  },
+  "rollout_example": [
+    [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ]
+  ],
+  "sampled_rollout": {
+    "failure_horizon": null,
+    "temperature": 1.8,
+    "token_error_by_horizon": [
+      0.07421875,
+      0.076171875,
+      0.115234375,
+      0.12890625,
+      0.12109375,
+      0.169921875,
+      0.1640625,
+      0.228515625
+    ]
+  },
+  "seeded_rollout_bit_exact": true,
+  "task_proxy_accuracy_by_horizon": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "teacher_forced": {
+    "cross_entropy": 0.0009484972106292844,
+    "n_tokens": 4096,
+    "perplexity": 1.000948947176361,
+    "token_accuracy": 1.0
+  },
+  "tokenizer_code_usage": {
+    "codebook_perplexity": 1.0,
+    "dead_code_rate": 0.875
+  },
+  "train_code_usage": {
+    "counts": [
+      1808,
+      1792,
+      1664,
+      1840,
+      1728,
+      1824,
+      1840,
+      1840
+    ],
+    "dead_code_rate": 0.0,
+    "perplexity": 7.995476798285081
+  }
+}
