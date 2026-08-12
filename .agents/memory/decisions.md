@@ -681,3 +681,30 @@ configuration/result surfaces; `CEMIteration` exposes summary statistics but
 not an unfrozen planner protocol. The D2 claim is synthetic and bounded. Future
 MPPI may reuse the rollout/evaluator integration only after its weighting,
 warm-start, and covariance semantics are independently evidenced.
+
+## [2026-08-12] Keep MPPI concrete, soft-weighted, and rollout-owned
+
+**Decision:** Sprint 69 adds one concrete `MPPIPlanner` for bounded continuous
+action sequences. It owns seeded Gaussian perturbations, numerically stable
+temperature weighting, bounded nominal updates, soft-weight diagnostics, and a
+receding-horizon execution helper. Candidate transitions and reward/value
+evaluation remain owned by `RolloutPipeline` and `RewardValueEvaluator`.
+
+**Alternatives considered:** Introduce a shared planner `Protocol` after only
+CEM and MPPI, let MPPI mutate transition or evaluator internals, adapt
+covariance before evidence exists, or treat a weighted candidate return as
+realized task success.
+
+**Reason:** MPPI and CEM share a proven consumer path but have materially
+different update semantics: MPPI retains all candidates and updates only the
+nominal sequence with exponential importance weights, while CEM hard-selects
+elites and adapts mean and standard deviation. Keeping both concrete preserves
+those semantics and follows the Sprint 69 Rule-of-Three gate. The controlled
+benchmark must still replay selected actions under a deliberately mismatched
+transition to expose model bias.
+
+**Consequences:** `MPPIConfig`, `MPPIPlanResult`, `MPPIRecedingHorizonResult`,
+and `MPPIPlannerSpec` are public configuration/result surfaces; no generic
+planner protocol is frozen. The D2 claim is synthetic CPU evidence. A future
+third planner or materially shared consumer should trigger a fresh Rule of
+Three review rather than widening either planner today.

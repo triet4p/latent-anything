@@ -10,6 +10,7 @@ from latent_anything.analysis_pipeline import AnalysisPipeline
 from latent_anything.cem import CEMConfig, CEMPlanner
 from latent_anything.config import ObjectSpec, build_from_config
 from latent_anything.manipulation_pipeline import ManipulationPipeline
+from latent_anything.mppi import MPPIConfig, MPPIPlanner
 from latent_anything.registry import Registry
 from latent_anything.reward_value import RewardValueEvaluator
 from latent_anything.rollout_pipeline import RolloutPipeline
@@ -109,3 +110,13 @@ def build_cem_planner_from_config(spec: CEMPlannerSpec) -> CEMPlanner:
     """Build a bounded CEM planner from validated configuration."""
 
     return CEMPlanner(spec)
+
+
+class MPPIPlannerSpec(MPPIConfig):
+    """Config schema for a registry- or application-built MPPI planner."""
+
+
+def build_mppi_planner_from_config(spec: MPPIPlannerSpec) -> MPPIPlanner:
+    """Build a bounded MPPI planner from validated configuration."""
+
+    return MPPIPlanner(spec)

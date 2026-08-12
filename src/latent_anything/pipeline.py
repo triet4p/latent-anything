@@ -13,6 +13,9 @@ from latent_anything.pipeline_config import (
     ManipulationPipelineSpec as ManipulationPipelineSpec,
 )
 from latent_anything.pipeline_config import (
+    MPPIPlannerSpec as MPPIPlannerSpec,
+)
+from latent_anything.pipeline_config import (
     PipelineSpec as PipelineSpec,
 )
 from latent_anything.pipeline_config import (
@@ -26,6 +29,9 @@ from latent_anything.pipeline_config import (
 )
 from latent_anything.pipeline_config import (
     build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config,
+)
+from latent_anything.pipeline_config import (
+    build_mppi_planner_from_config as build_mppi_planner_from_config,
 )
 from latent_anything.pipeline_config import (
     build_pipeline_from_config as build_pipeline_from_config,
@@ -53,7 +59,9 @@ __all__ = [
     "RolloutResult",
     "ManipulationPipelineSpec",
     "CEMPlannerSpec",
+    "MPPIPlannerSpec",
     "build_cem_planner_from_config",
+    "build_mppi_planner_from_config",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
     "build_reward_value_evaluator_from_config",

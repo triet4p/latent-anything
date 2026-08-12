@@ -56,6 +56,7 @@ from latent_anything.methods.sae import SAE
 from latent_anything.methods.steering import SteeringVector
 from latent_anything.methods.umap import UMAP
 from latent_anything.mlp_probe import MLPProbe
+from latent_anything.mppi import MPPIPlanner
 from latent_anything.probes import LinearProbe
 from latent_anything.projection import SubspaceProjection
 from latent_anything.registry import GLOBAL_REGISTRY, KIND_ADAPTER, KIND_ANALYSIS, KIND_INTERVENTION, KIND_RUNTIME
@@ -313,5 +314,14 @@ GLOBAL_REGISTRY.register(
     CEMPlanner,
     description="Bounded continuous-action Cross-Entropy Method planner",
     protocol="CEMPlanner",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "mppi_planner",
+    MPPIPlanner,
+    description="Bounded continuous-action Model Predictive Path Integral planner",
+    protocol="MPPIPlanner",
     source="built-in",
 )

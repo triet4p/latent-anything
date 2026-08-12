@@ -30,6 +30,12 @@ from latent_anything.cem import CEMConfig as CEMConfig
 from latent_anything.cem import CEMIteration as CEMIteration
 from latent_anything.cem import CEMPlanResult as CEMPlanResult
 from latent_anything.cem import CEMPlanner as CEMPlanner
+from latent_anything.mppi import MPPIConfig as MPPIConfig
+from latent_anything.mppi import MPPIIteration as MPPIIteration
+from latent_anything.mppi import MPPIPlanResult as MPPIPlanResult
+from latent_anything.mppi import MPPIPlanner as MPPIPlanner
+from latent_anything.mppi import MPPIRecedingHorizonResult as MPPIRecedingHorizonResult
+from latent_anything.mppi import compute_mppi_weights as compute_mppi_weights
 from latent_anything.covariance import CovarianceConfig as CovarianceConfig
 from latent_anything.covariance import CovarianceState as CovarianceState
 from latent_anything.covariance import fit_covariance_state as fit_covariance_state
@@ -99,6 +105,7 @@ from latent_anything.mlp_probe import compare_probes as compare_probes
 from latent_anything.mlp_probe import nonlinear_memorization_test as nonlinear_memorization_test
 from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.pipeline import CEMPlannerSpec as CEMPlannerSpec
+from latent_anything.pipeline import MPPIPlannerSpec as MPPIPlannerSpec
 from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
 from latent_anything.pipeline import ManipulationPipelineSpec as ManipulationPipelineSpec
 from latent_anything.pipeline import PipelineContract as PipelineContract
@@ -110,6 +117,7 @@ from latent_anything.pipeline import RolloutResult as RolloutResult
 from latent_anything.pipeline import RewardValueEvaluationSpec as RewardValueEvaluationSpec
 from latent_anything.pipeline import build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config
 from latent_anything.pipeline import build_cem_planner_from_config as build_cem_planner_from_config
+from latent_anything.pipeline import build_mppi_planner_from_config as build_mppi_planner_from_config
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
 from latent_anything.pipeline import (
     build_reward_value_evaluator_from_config as build_reward_value_evaluator_from_config,
@@ -277,6 +285,11 @@ __all__ = [
     "CEMIteration",
     "CEMPlanResult",
     "CEMPlanner",
+    "MPPIConfig",
+    "MPPIIteration",
+    "MPPIPlanResult",
+    "MPPIPlanner",
+    "MPPIRecedingHorizonResult",
     "PipelineContract",
     "BatchExecutor",
     "CacheKey",
@@ -311,6 +324,7 @@ __all__ = [
     "ManipulationPipeline",
     "ManipulationPipelineSpec",
     "CEMPlannerSpec",
+    "MPPIPlannerSpec",
     "Method",
     "ObjectSpec",
     "OrthonormalSubspace",
@@ -372,6 +386,7 @@ __all__ = [
     "ValueCalibration",
     "compare_real_imagined_scores",
     "compute_discounted_returns",
+    "compute_mppi_weights",
     "RSSMLatentTransition",
     "RSSMTransitionConfig",
     "RSSMPrediction",
@@ -389,6 +404,7 @@ __all__ = [
     "build_from_dict",
     "build_manipulation_pipeline_from_config",
     "build_cem_planner_from_config",
+    "build_mppi_planner_from_config",
     "build_pipeline_from_config",
     "build_reward_value_evaluator_from_config",
     "build_rollout_pipeline_from_config",

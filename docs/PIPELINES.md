@@ -68,3 +68,26 @@ uv run python scripts/cem_planning_benchmark.py
 The benchmark reports fixed-zero, random-shooting, and CEM returns in both
 model space and a deliberately action-mismatched environment. A positive
 predicted-minus-realized gap is model exploitation evidence, not task success.
+
+## MPPI planning
+
+`MPPIPlanner` samples bounded action perturbations around a nominal sequence
+and updates that sequence with numerically stable exponential return weights.
+The temperature controls how concentrated the weights are; every candidate is
+retained in the update, and the result records effective sample size and weight
+entropy. `plan_receding_horizon()` executes an action prefix, shifts the
+nominal sequence, and repeats the plan. Rollout candidates still use the same
+`RolloutPipeline` and `RewardValueEvaluator` components as CEM.
+
+The planner is configured with `MPPIPlannerSpec`, built with
+`build_mppi_planner_from_config`, and registered as the `KIND_RUNTIME` entry
+`mppi_planner`. The controlled CPU reproduction is:
+
+```text
+uv run python scripts/mppi_planning_benchmark.py
+```
+
+The benchmark compares fixed-zero, random shooting, CEM, and MPPI on the same
+continuous-control task. It reports predicted and realized return, action
+smoothness, sample count, latency, and robustness to a deliberate transition
+scale error. This is synthetic D2 evidence, not real-model or CUDA evidence.

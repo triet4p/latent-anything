@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 69, Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -181,6 +181,7 @@ None. Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are c
 - [x] [Sprint 66](sprint-plans/sprint-66.md) - Rollout Pipeline #3, story-specific pipeline modules, the shared metadata contract, cache/profiling/async parity, and compatibility migration evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Reward/value scoring, masked discounted returns, held-out calibration and Bellman diagnostics, imagined-trajectory bias comparison, and run-record evidence.
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Bounded CEM planning over latent rollouts, controlled random/fixed baselines, model-bias comparison, and reproducible run-record evidence.
+- [x] [Sprint 69](sprint-plans/sprint-69.md) - MPPI planning with stable temperature weighting, receding-horizon execution, CEM/random comparison, smoothness/latency/robustness metrics, and reproducible run-record evidence.
 
 ## Planning Rules
 

@@ -1,0 +1,19 @@
+{
+  "horizon": 6,
+  "action_dim": 1,
+  "population_size": 96,
+  "iterations": 6,
+  "lower_bounds": [
+    -1.0
+  ],
+  "upper_bounds": [
+    1.0
+  ],
+  "mppi_temperature": 0.25,
+  "mppi_noise_std": [
+    0.45
+  ],
+  "discount": 0.95,
+  "model_action_scale": 1.0,
+  "environment_action_scale": 0.8
+}

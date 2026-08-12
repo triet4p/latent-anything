@@ -1,0 +1,153 @@
+{
+  "benchmark": "mppi_vs_cem_latent_control",
+  "seed": 69,
+  "config": {
+    "horizon": 6,
+    "action_dim": 1,
+    "population_size": 96,
+    "iterations": 6,
+    "lower_bounds": [
+      -1.0
+    ],
+    "upper_bounds": [
+      1.0
+    ],
+    "mppi_temperature": 0.25,
+    "mppi_noise_std": [
+      0.45
+    ],
+    "discount": 0.95,
+    "model_action_scale": 1.0,
+    "environment_action_scale": 0.8
+  },
+  "results": [
+    {
+      "method": "fixed_zero",
+      "actions": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "predicted_return": 4.3256689452085265e-16,
+      "realized_return": 0.0,
+      "model_bias": 4.3256689452085265e-16,
+      "action_smoothness": 0.0,
+      "sample_count": 0,
+      "latency_seconds": 0.0,
+      "transition_error_robustness": 0.0
+    },
+    {
+      "method": "random_shooting",
+      "actions": [
+        [
+          0.6621054697295887
+        ],
+        [
+          -0.04955849439458038
+        ],
+        [
+          0.8576509319869974
+        ],
+        [
+          0.9540201527694865
+        ],
+        [
+          0.011764349200951152
+        ],
+        [
+          -0.1692490796011783
+        ]
+      ],
+      "predicted_return": 6.510355114985102,
+      "realized_return": 5.249996660693124,
+      "model_bias": 1.2603584542919783,
+      "action_smoothness": 0.4518786857256064,
+      "sample_count": 96,
+      "latency_seconds": 0.0,
+      "transition_error_robustness": 0.699034410532469
+    },
+    {
+      "method": "cem",
+      "actions": [
+        [
+          0.980878584608713
+        ],
+        [
+          0.945743471979899
+        ],
+        [
+          0.9712596056880457
+        ],
+        [
+          0.8966977808116171
+        ],
+        [
+          1.0
+        ],
+        [
+          1.0
+        ]
+      ],
+      "predicted_return": 16.726692563679304,
+      "realized_return": 10.075975172886197,
+      "model_bias": 6.6507173907931065,
+      "action_smoothness": 0.0036232726873998743,
+      "sample_count": 576,
+      "latency_seconds": 1.373677698429674,
+      "transition_error_robustness": 0.5684069454406364
+    },
+    {
+      "method": "mppi",
+      "actions": [
+        [
+          0.9968180375222331
+        ],
+        [
+          0.989343155235523
+        ],
+        [
+          0.9785394372001199
+        ],
+        [
+          0.9835066601673281
+        ],
+        [
+          0.9547973473225995
+        ],
+        [
+          0.9762571352682128
+        ]
+      ],
+      "predicted_return": 17.132452244850505,
+      "realized_return": 10.352446829810766,
+      "model_bias": 6.780005415039739,
+      "action_smoothness": 0.0002964029270563637,
+      "sample_count": 576,
+      "latency_seconds": 1.3683998996857554,
+      "transition_error_robustness": 0.5709347356892002
+    }
+  ],
+  "acceptance": {
+    "mppi_model_return_gt_random": true,
+    "mppi_realized_return_gt_random": true,
+    "mppi_smoothness_reported": true,
+    "mppi_sample_count_reported": true,
+    "mppi_latency_reported": true,
+    "mppi_transition_robustness_reported": true
+  }
+}

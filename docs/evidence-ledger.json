@@ -297,6 +297,18 @@
         {"role": "artifact", "path": "artifacts/cem_planning_benchmark.json"}
       ]
     },
+    "THY-T07-MPPI-MODEL-PREDICTIVE-PATH-INTEGRAL": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/mppi.py"},
+        {"role": "test", "path": "tests/test_mppi.py"},
+        {"role": "test", "path": "tests/test_mppi_rollout.py"},
+        {"role": "test", "path": "tests/test_mppi_integration.py"},
+        {"role": "benchmark", "path": "scripts/mppi_planning_benchmark.py"},
+        {"role": "config", "path": "artifacts/mppi_planning_benchmark_config.json"},
+        {"role": "artifact", "path": "artifacts/mppi_planning_benchmark.json"}
+      ]
+    },
     "THY-T07-LATENT-IMAGINATION-HORIZON": {
       "status": "D2",
       "evidence": [

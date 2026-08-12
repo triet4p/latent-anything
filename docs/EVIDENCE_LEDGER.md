@@ -162,6 +162,19 @@ random-shooting, and CEM on model-predicted and environment-realized return.
 The action-scale mismatch intentionally exposes a positive model-bias gap, so
 this remains synthetic D2 planning evidence rather than real-model evidence.
 
+Sprint 69 promotes the first MPPI planning evidence to D2 for
+`THY-T07-MPPI-MODEL-PREDICTIVE-PATH-INTEGRAL`. `src/latent_anything/mppi.py`
+implements bounded noise sampling, stable temperature weighting, seeded
+nominal updates, receding-horizon execution, soft-weight diagnostics, and
+runtime profiling. The planner reuses `RolloutPipeline` and
+`RewardValueEvaluator`; focused tests cover weighting, numerical stability,
+zero-noise behavior, bounds, seeding, rollout integration, configuration,
+registry construction, and run-record artifacts. The reproducible CPU
+benchmark in `scripts/mppi_planning_benchmark.py` compares fixed-zero, random
+shooting, CEM, and MPPI on the same task, reporting return, action smoothness,
+sample count, latency, and robustness to a deliberate transition error. This
+remains synthetic D2 evidence and does not claim real-model or CUDA evidence.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

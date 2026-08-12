@@ -22,6 +22,7 @@ from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
 from latent_anything.cem import CEMPlanResult
+from latent_anything.mppi import MPPIPlanResult
 from latent_anything.reward_value import HoldoutEvaluation, RewardValueEvaluationResult
 from latent_anything.runtime.profiling import RuntimeProfile
 
@@ -591,6 +592,25 @@ class FileSystemRunRecorder:
         metrics = {
             "predicted_return": plan.predicted_return,
             "cem_iterations": float(len(plan.candidate_statistics)),
+            "planning_seconds": plan.runtime_profile.total_seconds,
+        }
+        return self.complete(run_id, metrics=metrics)
+
+    def complete_mppi_plan(
+        self,
+        run_id: str,
+        plan: MPPIPlanResult,
+        *,
+        artifact_name: str = "mppi_plan.json",
+    ) -> RunRecord:
+        """Persist an MPPI plan and its weighting/runtime metrics."""
+
+        self.add_json_artifact(run_id, plan.to_dict(), name=artifact_name)
+        metrics = {
+            "predicted_return": plan.predicted_return,
+            "mppi_iterations": float(len(plan.candidate_statistics)),
+            "mppi_samples": float(plan.sample_count),
+            "mppi_effective_sample_size": plan.effective_sample_size,
             "planning_seconds": plan.runtime_profile.total_seconds,
         }
         return self.complete(run_id, metrics=metrics)
