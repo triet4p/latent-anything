@@ -10,6 +10,10 @@ from latent_anything.registry import KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B
 def test_top_level_public_beta_export_snapshot() -> None:
     assert latent_anything.__all__ == [
         "AnalysisPipeline",
+        "CEMConfig",
+        "CEMIteration",
+        "CEMPlanResult",
+        "CEMPlanner",
         "PipelineContract",
         "BatchExecutor",
         "CacheKey",
@@ -43,6 +47,7 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "MLPProbeResult",
         "ManipulationPipeline",
         "ManipulationPipelineSpec",
+        "CEMPlannerSpec",
         "Method",
         "ObjectSpec",
         "OrthonormalSubspace",
@@ -120,6 +125,7 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "build_from_config",
         "build_from_dict",
         "build_manipulation_pipeline_from_config",
+        "build_cem_planner_from_config",
         "build_pipeline_from_config",
         "build_reward_value_evaluator_from_config",
         "build_rollout_pipeline_from_config",

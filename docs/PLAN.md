@@ -51,7 +51,7 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Sprint 68, Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -112,7 +112,7 @@ None. Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. Th
 - [Sprint 65](sprint-plans/sprint-65.md) - Add an RSSM-style third transition and extract the proven transition contract.
 - [Sprint 66](sprint-plans/sprint-66.md) - Add a rollout pipeline as Pipeline #3 and decompose pipeline responsibilities from evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Add reward/value evaluation over imagined trajectories.
-- [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
+- [x] [Sprint 68](sprint-plans/sprint-68.md) - Add CEM planning over latent rollouts.
 - [Sprint 69](sprint-plans/sprint-69.md) - Add MPPI planning for continuous control.
 - [Sprint 70](sprint-plans/sprint-70.md) - Add a VQ/discrete-latent model adapter with codebook health metrics.
 - [Sprint 71](sprint-plans/sprint-71.md) - Add a JEPA/LeWM-style decoder-free world-model adapter.
@@ -180,6 +180,7 @@ None. Sprint 67, Sprint 66, Sprint 63, Sprint 62, and Sprint 61 are complete. Th
 - [x] [Sprint 65](sprint-plans/sprint-65.md) - RSSM-style recurrent stochastic transition, masked temporal evaluation, stateful checkpointing, and the minimal three-instance transition contract.
 - [x] [Sprint 66](sprint-plans/sprint-66.md) - Rollout Pipeline #3, story-specific pipeline modules, the shared metadata contract, cache/profiling/async parity, and compatibility migration evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Reward/value scoring, masked discounted returns, held-out calibration and Bellman diagnostics, imagined-trajectory bias comparison, and run-record evidence.
+- [x] [Sprint 68](sprint-plans/sprint-68.md) - Bounded CEM planning over latent rollouts, controlled random/fixed baselines, model-bias comparison, and reproducible run-record evidence.
 
 ## Planning Rules
 

@@ -18,6 +18,7 @@
 
 ### Added
 
+- Added bounded continuous-action CEM planning over latent rollouts with seeded populations, elite refitting, smoothing, convergence/runtime evidence, config and registry construction, content-addressed plan records, and a controlled random/fixed baseline benchmark that reports model-predicted versus environment-realized return. (#sprint-68)
 - Added latent reward/value evaluation with a fitted state/action reward scorer, declared-discount Monte-Carlo value estimator, terminal/padding-aware returns, typed uncertainty/provenance results, held-out calibration and Bellman diagnostics, real-versus-imagined bias comparison, rollout config integration, and content-addressed run-record evidence. (#sprint-67)
 - Added `RolloutPipeline` with typed results, initial-latent/action composition, optional in-memory caching, transition profiling, sync/async parity, cancellation/error propagation, runtime config construction, and built-in transition registry entries. (#sprint-66)
 - Added an RSSM-style recurrent stochastic latent transition with masked variable-length sequence fitting, explicit reset semantics, seeded particle rollouts, KL-proxy/calibration/horizon diagnostics, portable configuration/checkpoints, and a minimal mean-transition contract shared by the three transition instances. (#sprint-65)

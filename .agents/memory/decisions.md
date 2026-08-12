@@ -653,3 +653,31 @@ frozen.
 **Alternatives considered:** Introduce a broad actor-critic protocol, hide terminal/padding behavior in rollout metadata, or promote a neural/distributional reward/value API after one implementation each.
 **Reason:** The sprint needs a reproducible scoring contract for CEM/MPPI consumers, but the first NumPy heads do not establish the training lifecycle, uncertainty semantics, or continuation behavior of future Dreamer/MuZero-style heads. Explicit finite-horizon diagnostics make model bias visible without claiming real-model evidence.
 **Consequences:** `RewardValueEvaluationResult` and `RewardValueDiagnostics` are stable consumer-facing artifacts; head fitting remains concrete. Future heads must preserve declared return semantics or add an explicit compatibility layer rather than silently comparing incompatible value targets.
+
+## [2026-08-12] Keep CEM bounded, rollout-owned, and bias-visible
+
+**Decision:** Sprint 68 adds one concrete `CEMPlanner` for bounded continuous
+action sequences. It owns seeded diagonal-Gaussian sampling, elite refitting,
+smoothing, minimum standard deviation, convergence summaries, and runtime
+profiling. Candidate execution remains owned by `RolloutPipeline`, while the
+planner consumes the existing `RewardValueEvaluator` objective with terminal
+value bootstrap.
+
+**Alternatives considered:** Introduce a broad planner protocol after one
+planner, let CEM mutate transitions directly, optimize only the final Gaussian
+mean without retaining the best evaluated candidate, or treat model-space
+return as task success.
+
+**Reason:** The first planner proves a reusable optimizer-to-rollout seam but
+does not establish the lifecycle or uncertainty semantics of MPPI, tree search,
+or differentiable Dreamer planning. Keeping the seam concrete avoids optional
+field sprawl. Returning the best evaluated candidate is safer than assuming the
+smoothed mean is itself evaluated, and the controlled benchmark must replay the
+selected sequence in an environment because CEM can exploit optimistic model or
+value errors.
+
+**Consequences:** `CEMConfig`, `CEMPlanResult`, and `CEMPlannerSpec` are public
+configuration/result surfaces; `CEMIteration` exposes summary statistics but
+not an unfrozen planner protocol. The D2 claim is synthetic and bounded. Future
+MPPI may reuse the rollout/evaluator integration only after its weighting,
+warm-start, and covariance semantics are independently evidenced.

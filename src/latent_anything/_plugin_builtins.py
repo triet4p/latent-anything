@@ -44,6 +44,7 @@ from latent_anything.adapters.gaussian_renderer import GaussianRendererAdapter
 from latent_anything.adapters.hidden_state import HiddenStateAdapter
 from latent_anything.adapters.random_projection import RandomProjection
 from latent_anything.adapters.vae import VAE
+from latent_anything.cem import CEMPlanner
 from latent_anything.clustering import KMeans
 from latent_anything.density import GaussianMixtureDensity
 from latent_anything.geodesic import DensityGeodesic
@@ -303,5 +304,14 @@ GLOBAL_REGISTRY.register(
     MonteCarloValueEstimator,
     description="Discounted-return linear latent value estimator",
     protocol="ValueEstimator",
+    source="built-in",
+)
+
+GLOBAL_REGISTRY.register(
+    KIND_RUNTIME,
+    "cem_planner",
+    CEMPlanner,
+    description="Bounded continuous-action Cross-Entropy Method planner",
+    protocol="CEMPlanner",
     source="built-in",
 )

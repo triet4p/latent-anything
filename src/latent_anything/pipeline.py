@@ -7,6 +7,9 @@ into analysis, manipulation, rollout, models, and config modules.
 from latent_anything.analysis_pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.manipulation_pipeline import ManipulationPipeline as ManipulationPipeline
 from latent_anything.pipeline_config import (
+    CEMPlannerSpec as CEMPlannerSpec,
+)
+from latent_anything.pipeline_config import (
     ManipulationPipelineSpec as ManipulationPipelineSpec,
 )
 from latent_anything.pipeline_config import (
@@ -17,6 +20,9 @@ from latent_anything.pipeline_config import (
 )
 from latent_anything.pipeline_config import (
     RolloutPipelineSpec as RolloutPipelineSpec,
+)
+from latent_anything.pipeline_config import (
+    build_cem_planner_from_config as build_cem_planner_from_config,
 )
 from latent_anything.pipeline_config import (
     build_manipulation_pipeline_from_config as build_manipulation_pipeline_from_config,
@@ -46,6 +52,8 @@ __all__ = [
     "RewardValueEvaluationSpec",
     "RolloutResult",
     "ManipulationPipelineSpec",
+    "CEMPlannerSpec",
+    "build_cem_planner_from_config",
     "build_manipulation_pipeline_from_config",
     "build_pipeline_from_config",
     "build_reward_value_evaluator_from_config",

@@ -21,6 +21,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
+from latent_anything.cem import CEMPlanResult
 from latent_anything.reward_value import HoldoutEvaluation, RewardValueEvaluationResult
 from latent_anything.runtime.profiling import RuntimeProfile
 
@@ -576,6 +577,23 @@ class FileSystemRunRecorder:
 
         self.add_json_artifact(run_id, evaluation.to_dict(), name=artifact_name)
         return self.complete(run_id, metrics=evaluation.to_metrics())
+
+    def complete_cem_plan(
+        self,
+        run_id: str,
+        plan: CEMPlanResult,
+        *,
+        artifact_name: str = "cem_plan.json",
+    ) -> RunRecord:
+        """Persist a CEM plan and its optimization/runtime metrics."""
+
+        self.add_json_artifact(run_id, plan.to_dict(), name=artifact_name)
+        metrics = {
+            "predicted_return": plan.predicted_return,
+            "cem_iterations": float(len(plan.candidate_statistics)),
+            "planning_seconds": plan.runtime_profile.total_seconds,
+        }
+        return self.complete(run_id, metrics=metrics)
 
     def fail(self, run_id: str, error: str) -> RunRecord:
         record = self.get(run_id).transition("failed", error=error)

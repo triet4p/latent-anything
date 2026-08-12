@@ -1,0 +1,19 @@
+{
+  "horizon": 6,
+  "action_dim": 1,
+  "population_size": 96,
+  "elite_count": 20,
+  "elite_fraction": 0.2,
+  "iterations": 6,
+  "smoothing": 0.1,
+  "min_std": 0.02,
+  "lower_bounds": [
+    -1.0
+  ],
+  "upper_bounds": [
+    1.0
+  ],
+  "discount": 0.95,
+  "model_action_scale": 1.0,
+  "environment_action_scale": 0.8
+}

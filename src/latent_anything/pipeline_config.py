@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from latent_anything.analysis_pipeline import AnalysisPipeline
+from latent_anything.cem import CEMConfig, CEMPlanner
 from latent_anything.config import ObjectSpec, build_from_config
 from latent_anything.manipulation_pipeline import ManipulationPipeline
 from latent_anything.registry import Registry
@@ -98,3 +99,13 @@ def build_rollout_pipeline_from_config(
         else build_reward_value_evaluator_from_config(spec.reward_value, registry=registry)
     )
     return RolloutPipeline(transition=transition, cache=cache, evaluator=evaluator)
+
+
+class CEMPlannerSpec(CEMConfig):
+    """Config schema for a registry- or application-built CEM planner."""
+
+
+def build_cem_planner_from_config(spec: CEMPlannerSpec) -> CEMPlanner:
+    """Build a bounded CEM planner from validated configuration."""
+
+    return CEMPlanner(spec)

@@ -1,0 +1,124 @@
+{
+  "benchmark": "cem_latent_control",
+  "seed": 68,
+  "config": {
+    "horizon": 6,
+    "action_dim": 1,
+    "population_size": 96,
+    "elite_count": 20,
+    "elite_fraction": 0.2,
+    "iterations": 6,
+    "smoothing": 0.1,
+    "min_std": 0.02,
+    "lower_bounds": [
+      -1.0
+    ],
+    "upper_bounds": [
+      1.0
+    ],
+    "discount": 0.95,
+    "model_action_scale": 1.0,
+    "environment_action_scale": 0.8
+  },
+  "results": [
+    {
+      "method": "fixed_zero",
+      "actions": [
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ],
+        [
+          0.0
+        ]
+      ],
+      "predicted_return": -9.765232273457764e-09,
+      "realized_return": 0.0,
+      "model_bias": -9.765232273457764e-09
+    },
+    {
+      "method": "random_shooting",
+      "actions": [
+        [
+          0.8597125688459226
+        ],
+        [
+          0.7464706970554007
+        ],
+        [
+          -0.3467621511994361
+        ],
+        [
+          0.921430021942665
+        ],
+        [
+          0.8123045061378436
+        ],
+        [
+          0.5968758036883528
+        ]
+      ],
+      "predicted_return": 7.755406771387676,
+      "realized_return": 6.267713358330979,
+      "model_bias": 1.4876934130566974
+    },
+    {
+      "method": "cem",
+      "actions": [
+        [
+          1.0
+        ],
+        [
+          0.9685654815861486
+        ],
+        [
+          1.0
+        ],
+        [
+          1.0
+        ],
+        [
+          1.0
+        ],
+        [
+          -0.22534752568637084
+        ]
+      ],
+      "predicted_return": 12.780821674872259,
+      "realized_return": 10.311060341033368,
+      "model_bias": 2.469761333838891
+    }
+  ],
+  "cem_convergence_history": [
+    10.11033528647808,
+    12.189609324466833,
+    12.510071907887795,
+    12.780821674872259,
+    12.780821674872259,
+    12.780821674872259
+  ],
+  "cem_runtime_profile": {
+    "total_seconds": 2.288093901006505,
+    "stage_totals": {
+      "transition": 0.386473000748083,
+      "evaluation": 0.9481553002260625,
+      "planning": 0.9534656000323594
+    }
+  },
+  "acceptance": {
+    "cem_model_return_gt_random": true,
+    "cem_realized_return_gt_random": true,
+    "cem_model_bias_is_reported": true
+  }
+}

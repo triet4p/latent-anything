@@ -47,3 +47,24 @@ Configuration uses `RolloutPipelineSpec` with a runtime `ObjectSpec`. Built-in
 deterministic, stochastic-Gaussian, and RSSM transitions are registered under
 `KIND_RUNTIME` as `deterministic_transition`, `stochastic_transition`, and
 `rssm_transition`.
+
+## CEM planning
+
+`CEMPlanner` optimizes bounded continuous action sequences through a diagonal
+Gaussian population. Each iteration samples candidates, evaluates them through
+`RolloutPipeline` and its optional `RewardValueEvaluator`, retains the elite
+set, and smoothly refits the mean and standard deviation. `CEMPlanResult`
+returns the selected sequence, model-predicted return, per-iteration candidate
+statistics, convergence history, and a `RuntimeProfile`.
+
+The planner is configured with `CEMPlannerSpec`, built with
+`build_cem_planner_from_config`, and registered as the `KIND_RUNTIME` entry
+`cem_planner`. The controlled CPU reproduction is:
+
+```text
+uv run python scripts/cem_planning_benchmark.py
+```
+
+The benchmark reports fixed-zero, random-shooting, and CEM returns in both
+model space and a deliberately action-mismatched environment. A positive
+predicted-minus-realized gap is model exploitation evidence, not task success.

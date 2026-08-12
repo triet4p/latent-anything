@@ -150,6 +150,18 @@ rollout evaluator and run-record artifact path, the deterministic tests in
 from `scripts/reward_value_benchmark.py`. This remains synthetic D2 evidence;
 it does not claim a real pretrained world-model or CUDA result.
 
+Sprint 68 promotes the first CEM planning evidence to D2 for
+`THY-T07-CROSS-ENTROPY-METHOD-CEM`. `src/latent_anything/cem.py` implements bounded
+continuous-action sampling, elite refitting, smoothing, seeded execution,
+convergence summaries, and runtime profiling. The planner composes candidates
+through `RolloutPipeline` and `RewardValueEvaluator`; focused tests cover an
+analytic objective, invalid bounds/population/horizon settings, config and
+registry construction, and run-record persistence. The reproducible CPU
+benchmark in `scripts/cem_planning_benchmark.py` compares fixed-zero,
+random-shooting, and CEM on model-predicted and environment-realized return.
+The action-scale mismatch intentionally exposes a positive model-bias gap, so
+this remains synthetic D2 planning evidence rather than real-model evidence.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

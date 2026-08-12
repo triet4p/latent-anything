@@ -286,6 +286,17 @@
         {"role": "artifact", "path": "artifacts/reward_value_evaluation.json"}
       ]
     },
+    "THY-T07-CROSS-ENTROPY-METHOD-CEM": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/cem.py"},
+        {"role": "test", "path": "tests/test_cem.py"},
+        {"role": "test", "path": "tests/test_cem_rollout.py"},
+        {"role": "benchmark", "path": "scripts/cem_planning_benchmark.py"},
+        {"role": "config", "path": "artifacts/cem_planning_benchmark_config.json"},
+        {"role": "artifact", "path": "artifacts/cem_planning_benchmark.json"}
+      ]
+    },
     "THY-T07-LATENT-IMAGINATION-HORIZON": {
       "status": "D2",
       "evidence": [
