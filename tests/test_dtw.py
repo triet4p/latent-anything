@@ -70,3 +70,14 @@ def test_stretched_sequence_beats_indexwise_baseline() -> None:
 def test_memory_guard_rejects_oversized_exact_traceback() -> None:
     with pytest.raises(ValueError, match="max_cells"):
         compute_dtw(np.zeros((3, 1)), np.zeros((3, 1)), _space(), config=DTWConfig(max_cells=8))
+
+
+def test_euclidean_vectorized_point_costs_preserve_window_and_traceback() -> None:
+    query = np.array([[0.0, 0.0], [1.0, 0.5], [2.0, 1.0]])
+    reference = np.array([[0.0, 0.0], [0.1, 0.1], [1.0, 0.5], [2.0, 1.0]])
+    result = compute_dtw(query, reference, _space(dim=2), config=DTWConfig(window=2, return_cost_matrix=True))
+    assert result.cost_matrix is not None
+    assert np.isinf(result.cost_matrix[0, 3])
+    assert result.path[0] == (0, 0)
+    assert result.path[-1] == (2, 3)
+    assert result.distance == pytest.approx(0.03535533905932738)

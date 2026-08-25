@@ -1,0 +1,368 @@
+{
+  "benchmark": "sprint77_phase_a",
+  "cases": [
+    {
+      "attribution": "framework: LatentSpace.distance",
+      "category": "geometry",
+      "correctness_digest": "4e34185f5b3fcbede82ff6e832e5eae610dd7531ed094babdd6e2f3f54890426",
+      "latency_us": {
+        "mean": 10.8875,
+        "median": 9.45,
+        "p95": 18.1,
+        "samples": [
+          18.1,
+          13.1,
+          9.9,
+          9.0,
+          9.3,
+          9.1,
+          9.6,
+          9.0
+        ],
+        "stdev": 3.215781398043095
+      },
+      "name": "geometry_distance",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 772,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: compute_dtw; NumPy point costs and Python traceback",
+      "category": "trajectory_alignment",
+      "correctness_digest": "f833ee0ae3ba0c9b037f0414394a45406d2924c3ec5da226f33cc8a73e038de5",
+      "latency_us": {
+        "mean": 27958.2,
+        "median": 27478.199999999997,
+        "p95": 34190.5,
+        "samples": [
+          28546.3,
+          27916.1,
+          31207.8,
+          25870.3,
+          34190.5,
+          27040.3,
+          24054.4,
+          24839.9
+        ],
+        "stdev": 3378.8081926704776
+      },
+      "name": "trajectory_dtw",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 24008,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: bounded density path optimizer",
+      "category": "geometry",
+      "correctness_digest": "9a01f67e9616c8392615a7c411c2fd22622b4848da32f91323e2ad14ed4a21d3",
+      "latency_us": {
+        "mean": 88096.6875,
+        "median": 87838.4,
+        "p95": 99269.0,
+        "samples": [
+          99269.0,
+          90838.3,
+          81583.5,
+          84838.5,
+          82264.1,
+          77541.0,
+          91358.1,
+          97081.0
+        ],
+        "stdev": 7765.957773962223
+      },
+      "name": "density_geodesic",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 7696,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: hook and NumPy capture; model forward excluded from attribution",
+      "category": "activation",
+      "correctness_digest": "ecf26468eec9709909fd7f1805c2cba41ea5326a43bdd2146c92d571e31b9283",
+      "latency_us": {
+        "mean": 167.85,
+        "median": 168.35000000000002,
+        "p95": 195.3,
+        "samples": [
+          189.0,
+          195.3,
+          174.9,
+          161.8,
+          148.7,
+          175.9,
+          156.1,
+          141.1
+        ],
+        "stdev": 19.169469774320092
+      },
+      "name": "activation_capture",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 9288,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: RolloutPipeline and transition execution",
+      "category": "rollout",
+      "correctness_digest": "fab148133d132eafee890bd3ea765430e760fcdfe63e7a8f2cb059ccf3ea71cb",
+      "latency_us": {
+        "mean": 1499.0875,
+        "median": 1231.2,
+        "p95": 2566.5,
+        "samples": [
+          2566.5,
+          1848.0,
+          1214.7,
+          1218.6,
+          1476.5,
+          1237.7,
+          1224.7,
+          1206.0
+        ],
+        "stdev": 485.6043758260716
+      },
+      "name": "rollout",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 4436,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: CEM sampling/update; vectorized objective fixture",
+      "category": "planning",
+      "correctness_digest": "c6fe635aa2e0d5a718936c3e126c60888daa8f62a7a4769507b419f95b207b88",
+      "latency_us": {
+        "mean": 1400.0125,
+        "median": 1373.25,
+        "p95": 1892.8,
+        "samples": [
+          1397.8,
+          1300.2,
+          1892.8,
+          1362.5,
+          1384.0,
+          1249.3,
+          1228.8,
+          1384.7
+        ],
+        "stdev": 209.32987935996414
+      },
+      "name": "cem_planning",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 46364,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: MPPI sampling/update; vectorized objective fixture",
+      "category": "planning",
+      "correctness_digest": "baefe897d6c6aac89ab3d0e6f8db1c2e6f701e41cb20d8817844e22696bdcc9e",
+      "latency_us": {
+        "mean": 1302.1375,
+        "median": 1225.35,
+        "p95": 1727.8,
+        "samples": [
+          1216.6,
+          1210.4,
+          1182.9,
+          1253.5,
+          1204.5,
+          1234.1,
+          1387.3,
+          1727.8
+        ],
+        "stdev": 183.19350376426715
+      },
+      "name": "mppi_planning",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 66380,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: Arrow portable codec",
+      "category": "portable",
+      "correctness_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "latency_us": {
+        "mean": 1192.0375,
+        "median": 1080.1,
+        "p95": 1543.4,
+        "samples": [
+          1493.4,
+          1524.6,
+          1543.4,
+          988.5,
+          939.9,
+          943.6,
+          931.2,
+          1171.7
+        ],
+        "stdev": 282.8539801861428
+      },
+      "name": "portable_encode_decode",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 36434,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: ArtifactStore plus SQLiteDiskCache; filesystem/SQLite included",
+      "category": "serialization_cache",
+      "correctness_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "latency_us": {
+        "mean": 83272.8875,
+        "median": 78655.9,
+        "p95": 119155.6,
+        "samples": [
+          82235.8,
+          89920.1,
+          119155.6,
+          99458.8,
+          75076.0,
+          64793.0,
+          70080.8,
+          65463.0
+        ],
+        "stdev": 18878.303027507343
+      },
+      "name": "artifact_and_disk_cache",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 35444,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: RolloutPipeline.stream; one chunk in flight",
+      "category": "streaming",
+      "correctness_digest": "d875632a4dcaaceda815c5bbb3b41b0c46b970947bfb1cfc5a74ba921ce76c1a",
+      "latency_us": {
+        "mean": 1421.1,
+        "median": 1392.3,
+        "p95": 1588.7,
+        "samples": [
+          1588.7,
+          1453.4,
+          1432.6,
+          1366.8,
+          1383.5,
+          1359.2,
+          1394.0,
+          1390.6
+        ],
+        "stdev": 74.76039822564582
+      },
+      "name": "bounded_streaming",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 7120,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: LocalExperimentRecorder filesystem lifecycle",
+      "category": "recorder",
+      "correctness_digest": "47cf980ac4ad84f13a0b67d4835e3c78edfd6a3df5843fc049f45248ed66a98e",
+      "latency_us": {
+        "mean": 87371.8375,
+        "median": 85774.6,
+        "p95": 93665.1,
+        "samples": [
+          83483.2,
+          85622.6,
+          85926.6,
+          85531.2,
+          90860.6,
+          83427.5,
+          90457.9,
+          93665.1
+        ],
+        "stdev": 3789.387210519665
+      },
+      "name": "local_recorder",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 145264,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: metadata-only importlib entry-point listing",
+      "category": "plugins",
+      "correctness_digest": "fb2c3dcbe52aa287c413879a8d1b4564c5058391ae4d64f361b5b0caae9397ca",
+      "latency_us": {
+        "mean": 28.9,
+        "median": 27.35,
+        "p95": 35.0,
+        "samples": [
+          34.4,
+          35.0,
+          25.9,
+          26.4,
+          27.4,
+          27.2,
+          27.6,
+          27.3
+        ],
+        "stdev": 3.6272776096051507
+      },
+      "name": "plugin_listing",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 1152,
+      "repetitions": 8,
+      "warmups": 2
+    },
+    {
+      "attribution": "framework: offline LeRobot captured-latent NumPy boundary; no policy/model claim",
+      "category": "lerobot",
+      "correctness_digest": "0893a839d56fea20bc26808d6c79173a9152d5b42ca09fe93e0280591ef9c654",
+      "latency_us": {
+        "mean": 5.8125,
+        "median": 5.2,
+        "p95": 8.9,
+        "samples": [
+          8.9,
+          6.6,
+          5.6,
+          5.2,
+          5.2,
+          5.0,
+          5.1,
+          4.9
+        ],
+        "stdev": 1.3600814051267036
+      },
+      "name": "lerobot_numpy_boundary",
+      "peak_rss_bytes": null,
+      "peak_tracemalloc_bytes": 1340,
+      "repetitions": 8,
+      "warmups": 2
+    }
+  ],
+  "environment": {
+    "cpu_count": 8,
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 140 Stepping 2, GenuineIntel",
+    "python": "3.13.3",
+    "schema_version": "sprint77-phase-a-v1",
+    "seed": 771,
+    "thread_environment": {},
+    "torch_threads": 1,
+    "versions": {
+      "latent-anything": "0.1.0b1",
+      "numpy": "2.4.6",
+      "pyarrow": "24.0.0",
+      "torch": "2.10.0"
+    }
+  },
+  "schema_version": "sprint77-phase-a-v1",
+  "workload_contract": {
+    "default_ci_policy": "semantic digest checks only; latency is advisory and environment-scoped",
+    "offline": true,
+    "repetitions": 8,
+    "seed": 771,
+    "warmups": 2
+  }
+}

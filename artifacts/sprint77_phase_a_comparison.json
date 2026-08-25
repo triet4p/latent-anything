@@ -1,0 +1,144 @@
+{
+  "after": "artifacts\\sprint77_phase_a_benchmark_after_dtw.json",
+  "before": "artifacts\\sprint77_phase_a_benchmark.json",
+  "environment_equal_except_runtime": {
+    "numpy": true,
+    "python": true,
+    "seed": true,
+    "torch": true
+  },
+  "rows": [
+    {
+      "after_digest": "ecf26468eec9709909fd7f1805c2cba41ea5326a43bdd2146c92d571e31b9283",
+      "after_median_us": 168.35000000000002,
+      "before_digest": "ecf26468eec9709909fd7f1805c2cba41ea5326a43bdd2146c92d571e31b9283",
+      "before_median_us": 176.8,
+      "median_delta_percent": -4.779411764705876,
+      "median_ratio_after_over_before": 0.9522058823529412,
+      "name": "activation_capture",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "after_median_us": 78655.9,
+      "before_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "before_median_us": 100891.65,
+      "median_delta_percent": -22.03923714202315,
+      "median_ratio_after_over_before": 0.7796076285797685,
+      "name": "artifact_and_disk_cache",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "d875632a4dcaaceda815c5bbb3b41b0c46b970947bfb1cfc5a74ba921ce76c1a",
+      "after_median_us": 1392.3,
+      "before_digest": "d875632a4dcaaceda815c5bbb3b41b0c46b970947bfb1cfc5a74ba921ce76c1a",
+      "before_median_us": 1493.6,
+      "median_delta_percent": -6.782271023031599,
+      "median_ratio_after_over_before": 0.9321772897696841,
+      "name": "bounded_streaming",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "c6fe635aa2e0d5a718936c3e126c60888daa8f62a7a4769507b419f95b207b88",
+      "after_median_us": 1373.25,
+      "before_digest": "c6fe635aa2e0d5a718936c3e126c60888daa8f62a7a4769507b419f95b207b88",
+      "before_median_us": 1520.4,
+      "median_delta_percent": -9.678374112075774,
+      "median_ratio_after_over_before": 0.9032162588792423,
+      "name": "cem_planning",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "9a01f67e9616c8392615a7c411c2fd22622b4848da32f91323e2ad14ed4a21d3",
+      "after_median_us": 87838.4,
+      "before_digest": "9a01f67e9616c8392615a7c411c2fd22622b4848da32f91323e2ad14ed4a21d3",
+      "before_median_us": 111285.95,
+      "median_delta_percent": -21.069640866614343,
+      "median_ratio_after_over_before": 0.7893035913338565,
+      "name": "density_geodesic",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "4e34185f5b3fcbede82ff6e832e5eae610dd7531ed094babdd6e2f3f54890426",
+      "after_median_us": 9.45,
+      "before_digest": "4e34185f5b3fcbede82ff6e832e5eae610dd7531ed094babdd6e2f3f54890426",
+      "before_median_us": 13.649999999999999,
+      "median_delta_percent": -30.769230769230766,
+      "median_ratio_after_over_before": 0.6923076923076923,
+      "name": "geometry_distance",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "0893a839d56fea20bc26808d6c79173a9152d5b42ca09fe93e0280591ef9c654",
+      "after_median_us": 5.2,
+      "before_digest": "0893a839d56fea20bc26808d6c79173a9152d5b42ca09fe93e0280591ef9c654",
+      "before_median_us": 6.05,
+      "median_delta_percent": -14.049586776859499,
+      "median_ratio_after_over_before": 0.859504132231405,
+      "name": "lerobot_numpy_boundary",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "47cf980ac4ad84f13a0b67d4835e3c78edfd6a3df5843fc049f45248ed66a98e",
+      "after_median_us": 85774.6,
+      "before_digest": "47cf980ac4ad84f13a0b67d4835e3c78edfd6a3df5843fc049f45248ed66a98e",
+      "before_median_us": 118684.35,
+      "median_delta_percent": -27.728803334222246,
+      "median_ratio_after_over_before": 0.7227119666577776,
+      "name": "local_recorder",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "baefe897d6c6aac89ab3d0e6f8db1c2e6f701e41cb20d8817844e22696bdcc9e",
+      "after_median_us": 1225.35,
+      "before_digest": "baefe897d6c6aac89ab3d0e6f8db1c2e6f701e41cb20d8817844e22696bdcc9e",
+      "before_median_us": 1745.1999999999998,
+      "median_delta_percent": -29.787416914966762,
+      "median_ratio_after_over_before": 0.7021258308503323,
+      "name": "mppi_planning",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "fb2c3dcbe52aa287c413879a8d1b4564c5058391ae4d64f361b5b0caae9397ca",
+      "after_median_us": 27.35,
+      "before_digest": "fb2c3dcbe52aa287c413879a8d1b4564c5058391ae4d64f361b5b0caae9397ca",
+      "before_median_us": 31.25,
+      "median_delta_percent": -12.479999999999995,
+      "median_ratio_after_over_before": 0.8752000000000001,
+      "name": "plugin_listing",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "after_median_us": 1080.1,
+      "before_digest": "49645ca9d45e1d253d3f641944918cb4385e08d0c4e9aa6085fb812cc8fb32d8",
+      "before_median_us": 1188.4499999999998,
+      "median_delta_percent": -9.116916992721606,
+      "median_ratio_after_over_before": 0.908830830072784,
+      "name": "portable_encode_decode",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "fab148133d132eafee890bd3ea765430e760fcdfe63e7a8f2cb059ccf3ea71cb",
+      "after_median_us": 1231.2,
+      "before_digest": "fab148133d132eafee890bd3ea765430e760fcdfe63e7a8f2cb059ccf3ea71cb",
+      "before_median_us": 1459.35,
+      "median_delta_percent": -15.6336725254394,
+      "median_ratio_after_over_before": 0.843663274745606,
+      "name": "rollout",
+      "semantic_digest_preserved": true
+    },
+    {
+      "after_digest": "f833ee0ae3ba0c9b037f0414394a45406d2924c3ec5da226f33cc8a73e038de5",
+      "after_median_us": 27478.199999999997,
+      "before_digest": "f833ee0ae3ba0c9b037f0414394a45406d2924c3ec5da226f33cc8a73e038de5",
+      "before_median_us": 38297.3,
+      "median_delta_percent": -28.250294407177545,
+      "median_ratio_after_over_before": 0.7174970559282245,
+      "name": "trajectory_dtw",
+      "semantic_digest_preserved": true
+    }
+  ],
+  "schema_version": "sprint77-phase-a-comparison-v1",
+  "workload_contract_equal": true
+}

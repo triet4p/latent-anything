@@ -114,18 +114,31 @@ def compute_dtw(
         raise ValueError(f"DTW cost matrix has {n_query * n_reference} cells; max_cells={options.max_cells}")
 
     point_costs = np.full((n_query, n_reference), np.inf, dtype=np.float64)
-    for i in range(n_query):
-        for j in range(n_reference):
-            if options.window is not None and abs(i - j) > options.window:
-                continue
-            left = query_points[i]
-            right = reference_points[j]
-            if len(expected_shape) > 1:
-                left = left.reshape(expected_shape)
-                right = right.reshape(expected_shape)
-            cost = space.distance(left, right)
-            if options.max_step_distance is None or cost <= options.max_step_distance:
-                point_costs[i, j] = cost
+    if space.geometry == "euclidean":
+        # Euclidean point costs are independent across rows.  Compute one
+        # bounded reference slice at a time while retaining the exact matrix
+        # and traceback contract; non-Euclidean spaces keep the validated
+        # geometry dispatch below.
+        for i in range(n_query):
+            start = 0 if options.window is None else max(0, i - options.window)
+            stop = n_reference if options.window is None else min(n_reference, i + options.window + 1)
+            costs = np.linalg.norm(reference_points[start:stop] - query_points[i], axis=1)
+            if options.max_step_distance is not None:
+                costs = np.where(costs <= options.max_step_distance, costs, np.inf)
+            point_costs[i, start:stop] = costs
+    else:
+        for i in range(n_query):
+            for j in range(n_reference):
+                if options.window is not None and abs(i - j) > options.window:
+                    continue
+                left = query_points[i]
+                right = reference_points[j]
+                if len(expected_shape) > 1:
+                    left = left.reshape(expected_shape)
+                    right = right.reshape(expected_shape)
+                cost = space.distance(left, right)
+                if options.max_step_distance is None or cost <= options.max_step_distance:
+                    point_costs[i, j] = cost
 
     accumulated = np.full_like(point_costs, np.inf)
     predecessor = np.full((n_query, n_reference), -1, dtype=np.int8)
