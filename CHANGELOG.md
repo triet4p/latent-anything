@@ -12,6 +12,7 @@
 
 - Fixed Sprint 35 fidelity evidence to use a repository-relative checkpoint
   label instead of a machine-local absolute snapshot path. (#sprint-35)
+- Hardened Sprint 76 tracking remediation with fail-closed lexical local-root validation for `str` and `Path`, exact provider-ID resume continuity, required W&B resume provenance, provider-state commit atomicity, bounded pre-allocation-safe reads, privacy-safe provenance, private SDK boundaries, cumulative payload limits, and real offline checksum/network/cleanup evidence. W&B offline resume is rejected when the provider drops adapter identity or returns a newly-created run rather than being presented as continuation. (#sprint-76-remediation)
 - Fixed rollout metadata cache collisions, transition Protocol/pipeline signature drift, explicit CEM/MPPI evaluator precedence, reward source-space validation, JEPA variance regularization gradients, VQ-VAE codebook acceptance thresholds, and tokenizer-bound world-model evidence.
 - Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and remediated the collapsed Sprint 72 token dynamics with non-degenerate D2 synthetic CPU evidence and explicit early-rollout failure metrics.
 
@@ -55,6 +56,8 @@
 - Added Sprint 74 portable `LatentValue`/`Trajectory` NumPy nodes and allowlisted typed-result/config envelopes on versioned Arrow IPC, checksummed atomic artifact storage, a state-aware SQLite disk cache, run-record/plugin provenance integration, and offline cross-process CPU evidence. (#sprint-74)
 
 - Added concrete bounded-memory `RolloutPipeline.stream()` and `stream_async()` execution over ordered action chunks, preserving state carry, eager output order, one-chunk backpressure, profiling, cancellation, and source cleanup with an offline CPU benchmark. The stream now requires exact NumPy chunks and an explicit/reset state contract before execution. (#sprint-75)
+
+- Added a validated `ExperimentRecorder` contract with a local filesystem adapter plus lazy MLflow local-file and W&B offline/disabled backends, bounded canonical inputs, stable resume identity, ordered metrics, checksummed artifacts, parent linkage, optional extras, and offline parity tests. Remote tracking and hosted UI workflows remain out of scope. (#sprint-76)
 - Added a compact tokenized world-model lane that composes the frozen VQ-VAE
   tokenizer with action-conditioned autoregressive next-token prediction,
   seeded categorical rollout, codebook-version/padding validation, decoded
