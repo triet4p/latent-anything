@@ -1,0 +1,100 @@
+{
+  "evidence_level": "D2",
+  "model_id": "stabilityai/sd-vae-ft-mse",
+  "model_revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "license": "mit",
+  "weights_sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+  "input_layout": "NCHW",
+  "input_range": [
+    -1.0,
+    1.0
+  ],
+  "coefficients": [
+    0.0,
+    0.1666666716337204,
+    0.3333333432674408,
+    0.5,
+    0.6666666865348816,
+    0.8333333134651184,
+    1.0
+  ],
+  "endpoint_order": [
+    "digit_0",
+    "digit_1"
+  ],
+  "latent_shape": [
+    7,
+    4,
+    4,
+    4
+  ],
+  "decoded_shape": [
+    7,
+    3,
+    32,
+    32
+  ],
+  "latent_dtype": "float32",
+  "decoded_dtype": "float32",
+  "latent_range": [
+    -1.8914406299591064,
+    1.7538995742797852
+  ],
+  "decoded_range": [
+    -1.363335132598877,
+    1.1833686828613281
+  ],
+  "movement": {
+    "endpoint_latent_l2": 8.393665313720703,
+    "min_adjacent_latent_l2": 1.3989439010620117,
+    "endpoint_decoded_l2": 51.79863357543945,
+    "min_adjacent_decoded_l2": 9.11085033416748
+  },
+  "endpoint_reconstruction": {
+    "max_abs_error": 0.0,
+    "rmse": 0.0
+  },
+  "thresholds": {
+    "min_endpoint_latent_l2": 0.001,
+    "min_adjacent_latent_l2": 0.0001,
+    "min_endpoint_decoded_l2": 0.001,
+    "min_adjacent_decoded_l2": 0.0001
+  },
+  "remote_code": false,
+  "deterministic_content_sha256": "b3887f0e4b13e5942011275dac77da3d7f92bfb8203d67a46f119d61abeaf0dd",
+  "png_sha256": "65245a9c171106dc33ce63c3687738721985917aafa7fec9f4751355e3cbfe40",
+  "png_width": 2100,
+  "png_height": 360,
+  "png_channels": 4,
+  "network_attempts": [],
+  "runtime_seconds": 3.5648020999506116,
+  "max_peak_rss_bytes": 1150750720,
+  "memory_samples": [
+    {
+      "rss_bytes": 430546944,
+      "peak_rss_bytes": 430546944,
+      "available_physical_bytes": 3631845376
+    },
+    {
+      "rss_bytes": 1120595968,
+      "peak_rss_bytes": 1142353920,
+      "available_physical_bytes": 2924564480
+    },
+    {
+      "rss_bytes": 1144008704,
+      "peak_rss_bytes": 1150750720,
+      "available_physical_bytes": 2909577216
+    },
+    {
+      "rss_bytes": 1144008704,
+      "peak_rss_bytes": 1150750720,
+      "available_physical_bytes": 2909577216
+    }
+  ],
+  "bounded_cpu": {
+    "max_runtime_seconds": 60.0,
+    "max_peak_rss_bytes": 2147483648
+  },
+  "json_path": "diffusers_vae_digits_interpolation.json",
+  "png_path": "diffusers_vae_digits_interpolation.png"
+}

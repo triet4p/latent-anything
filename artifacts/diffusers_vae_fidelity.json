@@ -1,0 +1,148 @@
+{
+  "evidence_level": "D2",
+  "accepted": true,
+  "model_id": "stabilityai/sd-vae-ft-mse",
+  "model_revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "snapshot": ".cache/hf-sd-vae-ft-mse-31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "license": "mit",
+  "weights": {
+    "path": "diffusion_pytorch_model.safetensors",
+    "bytes": 334643276,
+    "sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815"
+  },
+  "config": {
+    "class_name": "AutoencoderKL",
+    "diffusers_version": "0.4.2",
+    "scaling_factor": 0.18215,
+    "auto_map": false
+  },
+  "versions": {
+    "diffusers": "0.39.0",
+    "safetensors": "0.8.0",
+    "torch": "2.10.0+cpu"
+  },
+  "input": {
+    "shape": [
+      2,
+      3,
+      32,
+      32
+    ],
+    "dtype": "float32",
+    "range": [
+      -1.0,
+      1.0
+    ],
+    "layout": "NCHW"
+  },
+  "tolerances": {
+    "rtol": 1e-05,
+    "atol": 1e-06
+  },
+  "modes": {
+    "mean": {
+      "seed": 1234,
+      "latent_shape": [
+        2,
+        4,
+        4,
+        4
+      ],
+      "decoded_shape": [
+        2,
+        3,
+        32,
+        32
+      ],
+      "latent_dtype": "float32",
+      "decoded_dtype": "float32",
+      "latent_metrics": {
+        "max_abs_error": 0.0,
+        "rmse": 0.0,
+        "max_relative_error": 0.0
+      },
+      "decode_metrics": {
+        "max_abs_error": 0.0,
+        "rmse": 0.0,
+        "max_relative_error": 0.0
+      },
+      "adapter_latent_space_dim": 4,
+      "adapter_metadata": {
+        "revision": "31f26fdeee1355a5c34592e401dd41e45d25a493"
+      },
+      "finite": true
+    },
+    "sample": {
+      "seed": 5678,
+      "latent_shape": [
+        2,
+        4,
+        4,
+        4
+      ],
+      "decoded_shape": [
+        2,
+        3,
+        32,
+        32
+      ],
+      "latent_dtype": "float32",
+      "decoded_dtype": "float32",
+      "latent_metrics": {
+        "max_abs_error": 0.0,
+        "rmse": 0.0,
+        "max_relative_error": 0.0
+      },
+      "decode_metrics": {
+        "max_abs_error": 0.0,
+        "rmse": 0.0,
+        "max_relative_error": 0.0
+      },
+      "adapter_latent_space_dim": 4,
+      "adapter_metadata": {
+        "revision": "31f26fdeee1355a5c34592e401dd41e45d25a493"
+      },
+      "finite": true
+    }
+  },
+  "network_attempts": [],
+  "runtime_seconds": 2.8346346000325866,
+  "max_peak_rss_bytes": 1448865792,
+  "minimum_available_physical_bytes": 3078107136,
+  "memory_samples": [
+    {
+      "rss_bytes": 443428864,
+      "peak_rss_bytes": 443428864,
+      "available_physical_bytes": 3746181120
+    },
+    {
+      "rss_bytes": 782032896,
+      "peak_rss_bytes": 782032896,
+      "available_physical_bytes": 3405705216
+    },
+    {
+      "rss_bytes": 1448828928,
+      "peak_rss_bytes": 1448828928,
+      "available_physical_bytes": 3078107136
+    },
+    {
+      "rss_bytes": 1444601856,
+      "peak_rss_bytes": 1448865792,
+      "available_physical_bytes": 3095822336
+    },
+    {
+      "rss_bytes": 1109979136,
+      "peak_rss_bytes": 1448865792,
+      "available_physical_bytes": 3095826432
+    },
+    {
+      "rss_bytes": 775356416,
+      "peak_rss_bytes": 1448865792,
+      "available_physical_bytes": 3430449152
+    }
+  ],
+  "bounded_cpu": {
+    "max_runtime_seconds": 60.0,
+    "max_peak_rss_bytes": 2147483648
+  }
+}

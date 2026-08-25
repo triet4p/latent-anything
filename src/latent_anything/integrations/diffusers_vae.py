@@ -45,8 +45,10 @@ class DiffusersAutoencoderKLAdapter:
         if self._model is None:
             diffusers = require_optional("diffusers", extra="diffusers")
             autoencoder = diffusers.AutoencoderKL
-            self._model = autoencoder.from_pretrained(self.model_id, revision=self.revision).to(
-                device=self.device, dtype=self._torch_dtype()
+            self._model = (
+                autoencoder.from_pretrained(self.model_id, revision=self.revision)
+                .to(device=self.device, dtype=self._torch_dtype())
+                .eval()
             )
         return self._model
 
@@ -56,7 +58,7 @@ class DiffusersAutoencoderKLAdapter:
         latent_channels = cast(int, model.config.latent_channels)
         return LatentSpace(dim=latent_channels, source_model=self.model_id, metadata={"revision": self.revision})
 
-    def encode(self, data: np.ndarray) -> np.ndarray:
+    def encode(self, data: np.ndarray, *, seed: int | None = None) -> np.ndarray:
         if (
             data.ndim != 4
             or data.shape[1] not in {1, 3}
@@ -74,7 +76,14 @@ class DiffusersAutoencoderKLAdapter:
                 device=self.device, dtype=self._torch_dtype()
             )  # pyright: ignore[reportUnknownMemberType] # third-party torch stub boundary
             distribution = model.encode(tensor).latent_dist
-            latent = distribution.mean if self.latent_mode == "mean" else distribution.sample()
+            if self.latent_mode == "mean":
+                latent = distribution.mean
+            elif seed is None:
+                latent = distribution.sample()
+            else:
+                generator = torch.Generator(device=self.device)
+                generator.manual_seed(seed)
+                latent = distribution.sample(generator=generator)
             return (latent * model.config.scaling_factor).detach().cpu().numpy()
 
     def encode_value(self, images: np.ndarray) -> LatentValue:

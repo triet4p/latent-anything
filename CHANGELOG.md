@@ -10,17 +10,41 @@
 
 ### Fixed
 
+- Fixed Sprint 35 fidelity evidence to use a repository-relative checkpoint
+  label instead of a machine-local absolute snapshot path. (#sprint-35)
 - Fixed rollout metadata cache collisions, transition Protocol/pipeline signature drift, explicit CEM/MPPI evaluator precedence, reward source-space validation, JEPA variance regularization gradients, VQ-VAE codebook acceptance thresholds, and tokenizer-bound world-model evidence.
 - Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and remediated the collapsed Sprint 72 token dynamics with non-degenerate D2 synthetic CPU evidence and explicit early-rollout failure metrics.
 
 - Fixed run-record snapshots to deep-freeze canonical JSON inputs, reject unsupported or non-finite values, and keep content-addressed artifact reads inside the recorder artifact directory. (#review-remediation)
 - Fixed selected-episode dataset iteration, SmolVLA intervention-width validation, and device/dtype placement for Diffusion fixed-noise inputs. (#review-remediation)
+- Fixed the Diffusers VAE adapter's revision-pinned fidelity semantics by
+  loading the backend in evaluation mode and supporting independently seeded
+  posterior samples without global RNG coupling. (#sprint-35)
 - Evidence-ledger schema-v2 validation now enforces typed `role`/`path` records and the required evidence roles for every D1, D2, and D3 claim.
 - `LatentValue.metadata` now returns defensive immutable snapshots, including NumPy metadata that callers attempt to make writable again.
 - `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
 
 ### Added
 
+- Added the Sprint 34 held-out ConvVAE meaningful-integration evidence lane:
+  deterministic train-only fitting on sklearn digits, an all-zero baseline and
+  stronger train-mean diagnostic, held-out PCA/SAE/steering composition,
+  quantitative acceptance thresholds, split/license/version provenance, and
+  reproducible CPU artifacts. This closes the Sprint 34 carryover gate only;
+  Sprint 35 fidelity and interpolation are now closed within their bounded
+  local CPU evidence scope. (#sprint-34)
+
+- Added D2 evidence for the cached, revision-pinned Diffusers `AutoencoderKL`
+  fidelity lane, including direct-versus-adapter mean and seeded sample parity,
+  exact safetensors provenance, and local-only CPU bounds. This closes the
+  Sprint 35 fidelity component; interpolation is recorded separately below.
+  (#sprint-35)
+
+- Added the separate D2 cached-checkpoint interpolation artifact with ordered
+  digit endpoints, non-degenerate latent/decoded movement gates, deterministic
+  JSON/PNG digests, and local-only CPU/resource validation. This completes the
+  Sprint 35 interpolation carryover and Milestone 8 evidence scope without
+  claiming perceptual quality or full diffusion-pipeline behavior. (#sprint-35)
 - Added a compact tokenized world-model lane that composes the frozen VQ-VAE
   tokenizer with action-conditioned autoregressive next-token prediction,
   seeded categorical rollout, codebook-version/padding validation, decoded

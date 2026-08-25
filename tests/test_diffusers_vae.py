@@ -51,3 +51,57 @@ def test_constructor_rejects_invalid_latent_mode_or_dtype() -> None:
         DiffusersAutoencoderKLAdapter("fake/model", "revision", dtype=np.int64)
     with np.testing.assert_raises(TypeError):
         DiffusersAutoencoderKLAdapter("fake/model", "revision", dtype=np.float64)
+
+
+def test_backend_sets_eval_mode_after_device_and_dtype(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    class _Model:
+        config = SimpleNamespace(scaling_factor=1.0, latent_channels=4)
+
+        def to(self, **_: object) -> _Model:
+            calls.append("to")
+            return self
+
+        def eval(self) -> _Model:
+            calls.append("eval")
+            return self
+
+    class _Autoencoder:
+        @staticmethod
+        def from_pretrained(model_id: str, revision: str) -> _Model:
+            assert model_id == "fake/model"
+            assert revision == "revision"
+            calls.append("load")
+            return _Model()
+
+    monkeypatch.setattr(
+        "latent_anything.integrations.diffusers_vae.require_optional",
+        lambda _name, **_kwargs: SimpleNamespace(AutoencoderKL=_Autoencoder),
+    )
+    adapter = DiffusersAutoencoderKLAdapter("fake/model", "revision")
+    assert adapter._backend() is adapter._backend()  # pyright: ignore[reportPrivateUsage]
+    assert calls == ["load", "to", "eval"]
+
+
+def test_sample_seed_uses_local_generator_without_global_rng(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Distribution:
+        def __init__(self, latent: torch.Tensor) -> None:
+            self.mean = latent
+
+        def sample(self, generator: torch.Generator | None = None) -> torch.Tensor:
+            assert generator is not None
+            return torch.rand((1, 4, 2, 2), generator=generator)
+
+    class _SeededBackend(FakeBackend):
+        def encode(self, values: torch.Tensor) -> object:
+            del values
+            return SimpleNamespace(latent_dist=_Distribution(torch.zeros((1, 4, 2, 2))))
+
+    adapter = DiffusersAutoencoderKLAdapter("fake/model", "revision", latent_mode="sample")
+    monkeypatch.setattr(adapter, "_backend", lambda: _SeededBackend())
+    first = adapter.encode(np.zeros((1, 3, 2, 2), dtype=np.float32), seed=123)
+    second = adapter.encode(np.zeros((1, 3, 2, 2), dtype=np.float32), seed=123)
+    third = adapter.encode(np.zeros((1, 3, 2, 2), dtype=np.float32), seed=124)
+    np.testing.assert_array_equal(first, second)
+    assert not np.array_equal(first, third)

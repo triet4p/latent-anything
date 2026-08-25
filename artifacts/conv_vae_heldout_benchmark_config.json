@@ -1,0 +1,15 @@
+{
+  "dataset": "sklearn.datasets.load_digits",
+  "dataset_revision": "scikit-learn==1.9.0",
+  "dataset_license": "BSD-3-Clause (scikit-learn bundled digits dataset)",
+  "seed": 42,
+  "train_fraction": 0.8,
+  "latent_dim": 4,
+  "epochs": 8,
+  "thresholds": {
+    "min_zero_baseline_improvement": 0.1,
+    "min_latent_utilization": 0.001,
+    "min_steering_decode_delta": 1e-06,
+    "runtime_budget_seconds_advisory": 30.0
+  }
+}
