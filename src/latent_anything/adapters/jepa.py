@@ -256,6 +256,7 @@ class JEPAWorldModelAdapter:
     I-JEPA or LeWM checkpoint.
     """
 
+    stream_state_contract = "explicit"
     model_revision = "compact-jepa-lewm-v1"
     dataset_revision = "synthetic-controlled-latent-dynamics-v1"
 

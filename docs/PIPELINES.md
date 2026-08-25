@@ -43,6 +43,54 @@ and re-raises `asyncio.CancelledError`. Only completed mean trajectories are
 cached; cached payloads are plain array/metadata dictionaries so immutable
 trajectory metadata remains safe to reconstruct.
 
+## Bounded rollout streaming
+
+`RolloutPipeline.stream()` is the first concrete streaming execution story.
+It accepts an iterable of disjoint, exact `numpy.ndarray` action chunks and
+yields one `Trajectory` per non-empty chunk. Arbitrary list-like and
+array-protocol chunks are rejected before conversion, so `max_chunk_rows` can
+be enforced before an allocation. The initial state is carried into the first
+chunk but is not repeated in the yielded states; concatenating the chunks is
+therefore eager-equivalent to `run(initial, concatenate(chunks))[1:]`. Empty
+chunks are consumed and skipped, short/final chunks are valid, and
+overlap/window semantics are intentionally not supported by this story.
+
+The source is advanced only after the prior chunk has completed, so the
+backpressure policy is one in-flight chunk with no prefetch queue.
+`max_chunk_rows` is a hard per-chunk bound. Transition failures happen before
+that chunk is yielded; producer failures propagate unchanged; already-yielded
+chunks remain the caller's explicit partial result. A transition exposing a
+concrete `reset()` hook is reset before each stream, allowing the RSSM-style
+stateful transition to carry its hidden state across chunks without inheriting
+state from an earlier run. A transition without `reset()` must explicitly
+declare `stream_state_contract = "explicit"`; otherwise the stream rejects it
+before consuming a chunk. This concrete story executes predictive means only:
+sequence masks/padding and seeded categorical or stochastic sampling are not
+stream inputs and are intentionally out of scope.
+
+Both streaming methods aggregate transition profiling into one event per
+stream (including a partial stream), with chunk and row counts in metadata, so
+the stream itself does not accumulate one event per dataset row or chunk. The
+stream intentionally bypasses `InMemoryCache` and `RunRecord` persistence: it
+does not retain a full output or silently cache partial/stateful results.
+Callers can pass bounded metadata for their own recording, while automatic
+provenance is limited to pipeline kind and source-space identity.
+
+`stream_async()` accepts the same synchronous chunk source and returns an
+async generator. Iterator construction, source iteration, chunk validation,
+optional reset, transition work, and iterator cleanup are executed in settled
+worker calls, so the event loop stays responsive and cancellation closes the
+source after the current bounded operation finishes. No result from a
+cancelled operation is committed to the next state. Consumer early
+termination is supported through async-generator close/finalization; callers
+should close a generator explicitly when they do not exhaust it. A worker
+cannot be forcibly interrupted while arbitrary Python code is running, so
+cancellation is observed after the current bounded operation settles.
+
+The Sprint 75 reproduction reports explicit NumPy output-chunk bytes and
+supplemental Python `tracemalloc` allocations. It does not claim native RSS
+peak memory, LeRobot throughput, real-model behavior, or CUDA performance.
+
 Configuration uses `RolloutPipelineSpec` with a runtime `ObjectSpec`. Built-in
 deterministic, stochastic-Gaussian, and RSSM transitions are registered under
 `KIND_RUNTIME` as `deterministic_transition`, `stochastic_transition`, and

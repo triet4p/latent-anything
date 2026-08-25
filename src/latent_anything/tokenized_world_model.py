@@ -191,6 +191,8 @@ class TokenizedWorldModel:
     8)`` or already-tokenized sequences shaped ``(episodes, time, K)``.
     """
 
+    stream_state_contract = "explicit"
+
     def __init__(
         self,
         tokenizer: VQVAE,

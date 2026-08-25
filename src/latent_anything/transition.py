@@ -308,6 +308,8 @@ class DeterministicLatentTransition:
     the initial state plus one state per action.
     """
 
+    stream_state_contract = "explicit"
+
     def __init__(
         self,
         latent_space: LatentSpace,
@@ -625,6 +627,8 @@ class StochasticGaussianLatentTransition:
     in metadata.  This is a deliberately memoryless, flat-Euclidean instance;
     recurrent state and a shared transition protocol remain Sprint 65 scope.
     """
+
+    stream_state_contract = "explicit"
 
     def __init__(
         self,

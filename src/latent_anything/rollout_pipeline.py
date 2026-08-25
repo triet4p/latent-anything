@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import AsyncGenerator, Callable, Generator, Iterable, Mapping
+from contextlib import suppress
 from time import perf_counter
+from typing import Any
 
 import numpy as np
 
@@ -17,6 +19,34 @@ from latent_anything.runtime.cache import CacheKey, InMemoryCache, make_cache_ke
 from latent_anything.runtime.profiling import RuntimeProfiler
 from latent_anything.trajectory import Trajectory
 from latent_anything.transition_contract import LatentTransition
+
+_STREAM_END = object()
+
+
+async def _settled_thread_call[T](function: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    """Run one blocking operation and settle it before propagating cancellation."""
+
+    worker = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
+    try:
+        return await asyncio.shield(worker)
+    except asyncio.CancelledError:
+        with suppress(BaseException):
+            await worker
+        raise
+
+
+def _close_iterator(iterator: object, owner: object | None = None) -> None:
+    """Close an iterator and distinct owning iterable, if they expose hooks."""
+
+    seen: set[int] = set()
+    for candidate in (iterator, owner):
+        if id(candidate) in seen:
+            continue
+        seen.add(id(candidate))
+        close = getattr(candidate, "close", None)
+        if callable(close):
+            with suppress(Exception):
+                close()
 
 
 class RolloutPipeline(PipelineContract):
@@ -116,6 +146,185 @@ class RolloutPipeline(PipelineContract):
             return await asyncio.to_thread(self.run, initial_state, actions, profiler=profiler, metadata=metadata)
         except asyncio.CancelledError:
             raise
+
+    def stream(
+        self,
+        initial_state: np.ndarray | LatentValue,
+        action_chunks: Iterable[object],
+        *,
+        max_chunk_rows: int = 1024,
+        profiler: RuntimeProfiler | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> Generator[Trajectory, None, None]:
+        """Yield predictive states for sequential action chunks.
+
+        Chunks are disjoint and ordered.  The initial state is carried into
+        the first chunk but is not repeated in its output; flattening the
+        yielded trajectories therefore equals ``run(...).trajectory[1:]``.
+        The next input chunk is not requested until the current chunk has
+        been fully processed, which gives this concrete rollout story
+        one-chunk backpressure and no prefetch queue.  A transition error
+        fails the current chunk before it is yielded; previously yielded
+        chunks remain the caller's partial result.
+        """
+
+        if type(max_chunk_rows) is not int:
+            raise TypeError("max_chunk_rows must be a positive integer")
+        if max_chunk_rows < 1:
+            raise ValueError("max_chunk_rows must be positive")
+        state = self._stream_initial(initial_state)
+        iterator = iter(action_chunks)
+        chunk_index = 0
+        profile_seconds = 0.0
+        profile_chunks = 0
+        profile_rows = 0
+        try:
+            for raw_chunk in iterator:
+                actions = self._validate_stream_actions(raw_chunk, max_chunk_rows=max_chunk_rows)
+                if actions.shape[0] == 0:
+                    chunk_index += 1
+                    continue
+                state, values, elapsed = self._execute_stream_chunk(
+                    state,
+                    actions,
+                )
+                profile_seconds += elapsed
+                profile_chunks += 1
+                profile_rows += actions.shape[0]
+                yield Trajectory(values, metadata=self._stream_metadata(metadata, chunk_index, actions.shape[0]))
+                chunk_index += 1
+        finally:
+            close = getattr(iterator, "close", None)
+            if callable(close):
+                with suppress(Exception):
+                    close()
+            if profiler is not None and profile_chunks:
+                profiler.record(
+                    "transition",
+                    profile_seconds,
+                    component=type(self.transition).__name__,
+                    chunk_count=profile_chunks,
+                    row_count=profile_rows,
+                )
+
+    async def stream_async(
+        self,
+        initial_state: np.ndarray | LatentValue,
+        action_chunks: Iterable[object],
+        *,
+        max_chunk_rows: int = 1024,
+        profiler: RuntimeProfiler | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> AsyncGenerator[Trajectory, None]:
+        """Asynchronously yield :meth:`stream` chunks without blocking.
+
+        Synchronous producers and transition work run in worker threads.  No
+        chunk is prefetched, so consumer pacing applies directly.  Cancellation
+        is observed at the next await boundary; an already-running worker
+        finishes its current bounded chunk but its result is discarded.
+        """
+
+        if type(max_chunk_rows) is not int:
+            raise TypeError("max_chunk_rows must be a positive integer")
+        if max_chunk_rows < 1:
+            raise ValueError("max_chunk_rows must be positive")
+        chunk_index = 0
+        profile_seconds = 0.0
+        profile_chunks = 0
+        profile_rows = 0
+        iterator: object | None = None
+        try:
+            state = await _settled_thread_call(self._stream_initial, initial_state)
+            iterator = await _settled_thread_call(iter, action_chunks)
+            while True:
+                raw_chunk = await _settled_thread_call(next, iterator, _STREAM_END)
+                if raw_chunk is _STREAM_END:
+                    return
+                actions = await _settled_thread_call(
+                    self._validate_stream_actions, raw_chunk, max_chunk_rows=max_chunk_rows
+                )
+                if actions.shape[0] == 0:
+                    chunk_index += 1
+                    continue
+                next_state, values, elapsed = await _settled_thread_call(
+                    self._execute_stream_chunk,
+                    state,
+                    actions,
+                )
+                state = next_state
+                profile_seconds += elapsed
+                profile_chunks += 1
+                profile_rows += actions.shape[0]
+                yield Trajectory(values, metadata=self._stream_metadata(metadata, chunk_index, actions.shape[0]))
+                chunk_index += 1
+        finally:
+            close_target = action_chunks if iterator is None else iterator
+            with suppress(Exception):
+                await _settled_thread_call(_close_iterator, close_target, action_chunks)
+            if profiler is not None and profile_chunks:
+                profiler.record(
+                    "transition",
+                    profile_seconds,
+                    component=type(self.transition).__name__,
+                    chunk_count=profile_chunks,
+                    row_count=profile_rows,
+                )
+
+    def _stream_initial(self, initial_state: np.ndarray | LatentValue) -> np.ndarray:
+        reset = getattr(self.transition, "reset", None)
+        if callable(reset):
+            reset()
+        elif getattr(self.transition, "stream_state_contract", None) != "explicit":
+            raise TypeError("streaming requires transition reset() or stream_state_contract='explicit'")
+        empty_actions = np.empty((0, self.transition.action_dim), dtype=np.float64)
+        initial, _ = self._validate_inputs(initial_state, empty_actions)
+        return initial
+
+    def _validate_stream_actions(self, actions: object, *, max_chunk_rows: int) -> np.ndarray:
+        if type(actions) is not np.ndarray:
+            raise TypeError("stream action chunks must be exact numpy.ndarray values")
+        action_values = actions
+        if action_values.ndim != 2 or action_values.shape[1] != self.transition.action_dim:
+            raise ValueError(
+                f"stream action chunks must have shape (n, {self.transition.action_dim}), got {action_values.shape}"
+            )
+        if action_values.shape[0] > max_chunk_rows:
+            raise ValueError("stream action chunk exceeds max_chunk_rows")
+        if not np.issubdtype(action_values.dtype, np.number) or not np.isfinite(action_values).all():
+            raise ValueError("stream action chunks must contain finite numeric values")
+        return np.asarray(action_values, dtype=np.float64)
+
+    def _execute_stream_chunk(
+        self,
+        state: np.ndarray,
+        actions: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, float]:
+        start = perf_counter()
+        current = state
+        values: list[np.ndarray] = []
+        for action in actions:
+            current = np.asarray(self.transition.step(current, action), dtype=np.float64)
+            if current.shape != (self.transition.state_dim,) or not np.isfinite(current).all():
+                raise ValueError("transition produced an invalid stream state")
+            values.append(current.copy())
+        result = np.stack(values, axis=0)
+        return current, result, perf_counter() - start
+
+    def _stream_metadata(
+        self, metadata: Mapping[str, object] | None, chunk_index: int, chunk_rows: int
+    ) -> dict[str, object]:
+        values = {} if metadata is None else dict(metadata)
+        values.update(
+            {
+                "pipeline": self.__class__.__name__,
+                "pipeline_kind": self.pipeline_kind,
+                "stream": True,
+                "chunk_index": chunk_index,
+                "chunk_rows": chunk_rows,
+                "source_space_identity": self.transition.source_space_identity,
+            }
+        )
+        return values
 
     def _execute(
         self,
