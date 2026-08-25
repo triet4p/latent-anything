@@ -16,6 +16,7 @@ dependencies = [
     "umap-learn>=0.5,<1.0",
     "torch>=2.5,<3.0",
     "pydantic>=2.0,<3.0",
+    "pyarrow>=19,<26",
 ]
 
 [project.scripts]
@@ -38,6 +39,11 @@ lerobot-diffusion = ["lerobot[dataset,evaluation,diffusion]>=0.6.0,<0.7.0"]
 # `libero` environment extra (Linux-only) for the causal simulation benchmark.
 lerobot-smolvla = ["lerobot[dataset,evaluation,smolvla,libero]>=0.6.0,<0.7.0"]
 viz = ["plotly>=5.24,<7.0", "kaleido>=1.0.0", "ipywidgets>=8.0,<9.0", "anywidget>=0.9,<1.0"]
+# Tracking SDKs stay optional and are imported only by their adapters. Local
+# file/offline modes are the only supported Sprint 76 evidence paths.
+tracking-mlflow = ["mlflow>=3.5,<4.0"]
+tracking-wandb = ["wandb>=0.28,<0.29"]
+tracking = ["mlflow>=3.5,<4.0", "wandb>=0.28,<0.29"]
 
 [build-system]
 requires = ["setuptools>=75"]
@@ -185,6 +191,7 @@ pythonpath = ["src"]
 markers = [
     "network: test deliberately permitted to access a remote model host",
     "large_download: test needs a pretrained checkpoint and is off by default",
+    "integration: opt-in local SDK integration, never cloud-backed",
 ]
 
 [dependency-groups]
