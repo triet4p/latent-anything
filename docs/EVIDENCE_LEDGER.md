@@ -188,7 +188,7 @@ anisotropic covariance and open-loop drift; this is not real LeWM or CUDA
 evidence. The public I-JEPA checkpoint smoke is separately marked
 `network`/`large_download`.
 
-Sprint 72 adds the compact tokenized-world-model lane at D1 for
+Sprint 72 adds the compact tokenized-world-model lane at D2 for
 `THY-T09-TOKENIZED-WORLD-MODEL`. The source is
 `src/latent_anything/tokenized_world_model.py`, with integer-token adapter and
 mean-transition composition, autoregressive sampling, masking/padding/version
@@ -197,12 +197,10 @@ validation, and teacher-forced/free-running tests in
 offline benchmark is `scripts/tokenized_world_model_benchmark.py` with
 configuration and rollout evidence under
 `artifacts/tokenized_world_model_evidence*`. The artifact includes decoder and
-task-proxy metrics plus failure horizons; it also keeps the Sprint 70
-tokenizer's dead-code result visible. The end-to-end wiring is exercised, but
-the measured non-trivial-token-usage gate fails because the fitted tokenizer
-maps every frame to one code; perfect token accuracy is therefore recorded as
-degenerate constant-token prediction rather than D2 validation. The artifact
-makes no real-checkpoint or CUDA claim.
+task-proxy metrics plus failure horizons. The regenerated fitted tokenizer
+passes the non-trivial-token-usage gate, while the learned dynamics still show
+early greedy free-running error; this is meaningful compact synthetic evidence,
+not real-checkpoint or CUDA evidence.
 
 ## Quality gates for a D2/D3 promotion
 

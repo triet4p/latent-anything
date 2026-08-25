@@ -108,7 +108,7 @@
       "model_bias": 6.6507173907931065,
       "action_smoothness": 0.0036232726873998743,
       "sample_count": 576,
-      "latency_seconds": 1.373677698429674,
+      "latency_seconds": 2.3355222996906377,
       "transition_error_robustness": 0.5684069454406364
     },
     {
@@ -138,7 +138,7 @@
       "model_bias": 6.780005415039739,
       "action_smoothness": 0.0002964029270563637,
       "sample_count": 576,
-      "latency_seconds": 1.3683998996857554,
+      "latency_seconds": 3.247743400745094,
       "transition_error_robustness": 0.5709347356892002
     }
   ],

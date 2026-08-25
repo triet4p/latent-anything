@@ -33,7 +33,7 @@
     "rmse": 2.907896490870308e-14,
     "max_error": 1.4228784781424398e-13,
     "n_samples": 384,
-    "runtime_seconds": 0.015959700103849173
+    "runtime_seconds": 0.05008000001544133
   },
   "rollout": {
     "errors_by_horizon": [
@@ -66,8 +66,8 @@
     "final_error": 2.7962237122149423e-13,
     "max_error": 4.745461308272892e-13,
     "max_state_norm": 2.1926011888130077,
-    "runtime_seconds": 0.013121600029990077,
+    "runtime_seconds": 0.059128599998075515,
     "stable": true
   },
-  "fit_runtime_seconds": 0.0005290999542921782
+  "fit_runtime_seconds": 0.000658300006762147
 }

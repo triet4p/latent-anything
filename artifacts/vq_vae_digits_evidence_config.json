@@ -2,7 +2,7 @@
   "dataset": "sklearn.datasets.load_digits",
   "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
   "model_revision": "compact-vq-vae-v1",
-  "codebook_version": "compact-vq-vae-v1@642987aec8ddf10904950ec905e6a3f3dd93ac02c3d8d32518a2aed8f0728a5c",
+  "codebook_version": "compact-vq-vae-v1@9feb0a98b2d78d1f4a6987b845b6ff89e82b17cf15f19a54c00c5f67088c6b4b",
   "seed": 42,
   "train_slice": [
     0,

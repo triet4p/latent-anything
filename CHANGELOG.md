@@ -11,7 +11,7 @@
 ### Fixed
 
 - Fixed rollout metadata cache collisions, transition Protocol/pipeline signature drift, explicit CEM/MPPI evaluator precedence, reward source-space validation, JEPA variance regularization gradients, VQ-VAE codebook acceptance thresholds, and tokenizer-bound world-model evidence.
-- Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and downgraded collapsed Sprint 72 token dynamics from D2 to D1 with measured evidence gates.
+- Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and remediated the collapsed Sprint 72 token dynamics with non-degenerate D2 synthetic CPU evidence and explicit early-rollout failure metrics.
 
 - Fixed run-record snapshots to deep-freeze canonical JSON inputs, reject unsupported or non-finite values, and keep content-addressed artifact reads inside the recorder artifact directory. (#review-remediation)
 - Fixed selected-episode dataset iteration, SmolVLA intervention-width validation, and device/dtype placement for Diffusion fixed-noise inputs. (#review-remediation)
@@ -37,8 +37,9 @@
   output, explicit codebook embeddings, categorical replacement semantics,
   discrete-geometry integration, reconstruction/commitment/codebook health
   metrics, train/test frequency drift, and an offline ConvVAE comparison
-  artifact. The pinned evidence records codebook collapse as a negative result
-  rather than presenting it as healthy usage. (#sprint-70)
+  artifact. Deterministic codebook initialization and explicit perplexity/dead-code
+  gates keep the pinned compact evidence non-degenerate without claiming a large
+  pretrained VQGAN. (#sprint-70, #m12-remediation)
 
 - Added bounded continuous-action MPPI planning over latent rollouts with
   stable temperature weighting, seeded noise, action constraints,

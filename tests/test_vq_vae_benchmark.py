@@ -22,6 +22,7 @@ def test_vq_vae_evidence_script_writes_reproducible_metrics(monkeypatch: pytest.
     assert payload["model_revision"] == "compact-vq-vae-v1"
     assert "@" in payload["codebook_version"]
     assert payload["acceptance"]["reconstruction_mse_finite"] is True
-    assert payload["acceptance"]["codebook_perplexity_above_one"] is False
+    assert payload["acceptance"]["codebook_perplexity_above_one"] is True
+    assert payload["acceptance"]["dead_code_rate_below_one"] is True
     assert payload["acceptance"]["continuous_path_is_comparison_only"] is True
     assert json.loads(config.read_text(encoding="utf-8"))["offline"] is True

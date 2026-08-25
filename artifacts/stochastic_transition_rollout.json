@@ -43,7 +43,7 @@
     "sample_diversity": 0.11438866578096975,
     "mean_error": 0.14813685794583398,
     "n_samples": 576,
-    "runtime_seconds": 0.16551700001582503
+    "runtime_seconds": 0.5050919000059366
   },
   "rollout": {
     "negative_log_likelihood_by_horizon": [
@@ -154,7 +154,7 @@
     "mean_coverage": 0.9739583333333334,
     "mean_sample_diversity": 0.25192210707124435,
     "final_error": 0.36706518632313667,
-    "runtime_seconds": 15.171947699971497,
+    "runtime_seconds": 51.05003179999767,
     "stable": true
   },
   "deterministic_control": {
@@ -179,5 +179,5 @@
     ],
     "sampled_rollout_mean_differs_from_deterministic": true
   },
-  "fit_runtime_seconds": 0.0014309999532997608
+  "fit_runtime_seconds": 0.001027400023303926
 }

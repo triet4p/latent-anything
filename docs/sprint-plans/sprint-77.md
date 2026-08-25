@@ -19,5 +19,4 @@ Status legend: [ ] pending / [~] in progress / [x] done
 
 ## Notes / Blockers
 
-This sprint is complete with a justified no-go. Rust is not a milestone trophy.
-
+This sprint remains planned. Any Rust no-go must be supported by the Sprint 77 performance gate and an ADR; Rust is not a milestone trophy.

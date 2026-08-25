@@ -15,9 +15,16 @@ A Python framework that treats latent space as a first-class object: load latent
 - Registry/config construction for built-ins
 - Concrete analysis and manipulation pipelines
 - First runtime helpers: batching, in-memory cache, async wrappers, and profiling hooks
+- World-model/planning lanes: deterministic, stochastic-Gaussian, and RSSM transitions; rollout; reward/value evaluation; CEM and MPPI
+- Discrete VQ-VAE and tokenized-world-model reference lanes, plus decoder-free JEPA/LeWM-style prediction
+- Local run recording with content-addressed evidence artifacts and optional LeRobot ACT/Diffusion/SmolVLA bridges
 - Script-level demos and tracked release artifacts
 
-This beta does not claim the full Latent Anything thesis is implemented. Probing/TCAV, clustering, feature attribution, trajectory similarity, rollout, planning, discrete latent adapters, streaming runtime, external plugin discovery, and interactive visualization remain future work.
+This beta does not claim the full Latent Anything thesis is implemented. The
+world-model and tokenized lanes are compact synthetic CPU references, not
+real-checkpoint or CUDA claims. External plugin discovery, portable disk
+artifacts, bounded streaming runtime, tracking backends, API freeze, and stable
+release work remain future milestones.
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
 

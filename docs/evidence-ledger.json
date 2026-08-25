@@ -139,7 +139,7 @@
       ]
     },
     "THY-T09-CODEBOOK-COLLAPSE": {
-      "status": "D3",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/adapters/vq_vae.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_vq_vae.py"},
@@ -149,7 +149,7 @@
       ]
     },
     "THY-T09-TOKENIZED-WORLD-MODEL": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/tokenized_world_model.py"},
         {"role": "test", "path": "tests/test_latent_anything/test_tokenized_world_model.py"},

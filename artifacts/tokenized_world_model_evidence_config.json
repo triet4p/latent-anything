@@ -1,10 +1,10 @@
 {
-  "codebook_version": "compact-vq-vae-v1@8f13d6a73a9978a504583d7efe635eae5fed113f18a673653df1bb98ef9d7aaa",
+  "codebook_version": "compact-vq-vae-v1@54c1e38e958977434e80a4c8ed717e6967e0b81dc894543a085149fe265c2c3a",
   "dataset": "sklearn.datasets.load_digits",
   "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
   "dynamics": {
     "action_dim": 1,
-    "codebook_version": "compact-vq-vae-v1@8f13d6a73a9978a504583d7efe635eae5fed113f18a673653df1bb98ef9d7aaa",
+    "codebook_version": "compact-vq-vae-v1@54c1e38e958977434e80a4c8ed717e6967e0b81dc894543a085149fe265c2c3a",
     "epochs": 180,
     "hidden_dim": 32,
     "learning_rate": 0.01,

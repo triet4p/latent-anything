@@ -95,6 +95,16 @@ def test_codebook_health_metrics_and_frequency_drift_are_finite(adapter: VQVAE) 
     assert metadata["model_revision"] == "compact-vq-vae-v1"
 
 
+def test_fit_spreads_codebook_usage_on_deterministic_training_lane() -> None:
+    """The compact training path must not silently accept one-code collapse."""
+
+    model = VQVAE(codebook_size=8, embedding_dim=4, random_state=7, n_epochs=1)
+    model.fit(_images(12))
+    diagnostics = model.codebook_diagnostics(model.encode(_images(12)))
+    assert diagnostics["codebook_perplexity"] > 1.0
+    assert diagnostics["dead_code_rate"] < 1.0
+
+
 def test_code_replacement_is_explicit_and_validated(adapter: VQVAE) -> None:
     """Categorical edits use an integer replacement map, never arithmetic."""
 

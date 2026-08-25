@@ -150,6 +150,29 @@ def main() -> None:
     }
     evidence_status = "D2" if all(acceptance.values()) else "D1"
     dominant_train_code = int(np.argmax(train_counts))
+    free_running_token_error = float(report.free_running.token_error_by_horizon[0])
+    if nontrivial_token_usage:
+        failure_analysis = (
+            "The benchmark fits from raw image trajectories after encoding every frame with the fitted VQ-VAE "
+            "and measures that provenance from fit/evaluation metadata. The tokenizer uses multiple codes with "
+            f"perplexity={float(tokenizer_code_usage['codebook_perplexity']):.6g} and dead-code rate="
+            f"{float(tokenizer_code_usage['dead_code_rate']):.6g}; active train codes={active_train_codes}, "
+            f"active held-out codes={active_heldout_codes}. The learned dynamics remain a compact synthetic "
+            f"baseline: greedy free-running token error is {free_running_token_error:.6g} at the first horizon "
+            f"and the sampled failure horizon is {sampled_failure_horizon!r}. This is {evidence_status} "
+            "CPU evidence only and makes no real-model or CUDA claim."
+        )
+    else:
+        failure_analysis = (
+            "The benchmark fits from raw image trajectories after encoding every frame with the fitted VQ-VAE "
+            "and measures that provenance from fit/evaluation metadata. The fitted tokenizer is collapsed: "
+            f"tokenizer perplexity={float(tokenizer_code_usage['codebook_perplexity']):.6g}, "
+            f"dead-code rate={float(tokenizer_code_usage['dead_code_rate']):.6g}, active train codes="
+            f"{active_train_codes}, active held-out codes={active_heldout_codes}, with dominant training code "
+            f"{dominant_train_code}. Perfect token accuracy and exact-frame metrics would therefore measure "
+            f"constant-token prediction; the nontrivial_token_usage gate is False, so this reproduction remains "
+            f"{evidence_status} evidence and makes no real-model or CUDA claim."
+        )
     payload = report.to_dict()
     payload.update(
         {
@@ -172,18 +195,7 @@ def main() -> None:
             "seeded_rollout_bit_exact": bool(np.array_equal(seed_a.to_numpy(), seed_b.to_numpy())),
             "rollout_example": seed_a.to_numpy().tolist(),
             "acceptance": acceptance,
-            "failure_analysis": (
-                "The benchmark fits from raw image trajectories after encoding every frame with the fitted VQ-VAE "
-                "and measures that provenance from fit/evaluation metadata. However, the fitted tokenizer is "
-                f"collapsed: tokenizer perplexity={float(tokenizer_code_usage['codebook_perplexity']):.6g}, "
-                f"dead-code rate={float(tokenizer_code_usage['dead_code_rate']):.6g}, "
-                f"active train codes={active_train_codes}, active held-out codes={active_heldout_codes}, "
-                f"with every training token mapped to code {dominant_train_code}. Perfect token accuracy and "
-                "exact-frame metrics therefore measure constant-token prediction, not meaningful dynamics. The "
-                f"nontrivial_token_usage gate is {nontrivial_token_usage}, so this reproduction remains "
-                f"{evidence_status} "
-                "evidence despite the end-to-end wiring; it makes no real-model or CUDA claim."
-            ),
+            "failure_analysis": failure_analysis,
         }
     )
     output = Path("artifacts/tokenized_world_model_evidence.json")

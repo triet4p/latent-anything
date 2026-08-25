@@ -21,6 +21,8 @@ Status legend: [ ] pending / [~] in progress / [x] done
 
 This sprint supplies model evidence for the discrete geometry introduced in Sprint 30.
 
-The compact CPU evidence path is intentionally diagnostic: the first pinned
-training run exhibits codebook collapse, and the artifact records that negative
-result rather than promoting collapsed usage as healthy VQ evidence.
+The compact CPU evidence path is intentionally diagnostic: deterministic
+spread initialization prevents the first-run codebook collapse on the pinned
+digits split, and the artifact requires non-trivial usage rather than merely
+recording a collapsed run as healthy VQ evidence. This remains synthetic CPU
+evidence, not a large pretrained VQ claim.

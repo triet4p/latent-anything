@@ -15,7 +15,7 @@ the full offline pytest suite.
 * `docs/sprint-plans/sprint-70.md`, `docs/PLAN.md` — completion status.
 * `docs/VQ_VAE_INTEGRATION.md` — user-facing contract and reproduction.
 * `.agents/memory/decisions.md`, `CHANGELOG.md` — durable decision/release record.
-* `docs/evidence-ledger.json` — D3 records for VQ/discrete evidence.
+* `docs/evidence-ledger.json` — evidence records for VQ/discrete evidence.
 * `artifacts/task_sprint70_task*_summary.md` — traceability.
 
 ## Testing
@@ -27,3 +27,11 @@ the full offline pytest suite.
 
 The evidence explicitly limits the claim to a compact trained adapter and
 diagnostic semantics.
+
+## Superseded status note
+
+The original Sprint 70 record predates the M12 remediation and must not be
+read as a current D3 claim. The current pinned CPU artifact is D2: deterministic
+codebook-spread initialization prevents collapse on the compact digits lane,
+with strict perplexity and dead-code acceptance checks. See
+`artifacts/task_m12_remediation_vq_summary.md` for the measured rerun.

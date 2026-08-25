@@ -71,15 +71,13 @@ def main() -> None:
             "codebook_perplexity_above_one": bool(
                 discrete.codebook_diagnostics(discrete_train_codes)["codebook_perplexity"] > 1.0
             ),
-            "dead_code_rate_bounded": bool(
-                0.0 <= discrete.codebook_diagnostics(discrete_train_codes)["dead_code_rate"] <= 1.0
+            "dead_code_rate_below_one": bool(
+                discrete.codebook_diagnostics(discrete_train_codes)["dead_code_rate"] < 1.0
             ),
             "continuous_path_is_comparison_only": True,
         },
         "failure_case": (
-            "The compact run exhibits codebook collapse (perplexity 1.0 and a high dead-code rate). It is useful "
-            "for validating diagnostics and discrete API semantics, not evidence for a healthy large pretrained "
-            "VQGAN or tokenized world-model prior."
+            "None on the pinned compact run; real pretrained VQGAN or tokenized-world-model performance is not claimed."
         ),
     }
     output = Path("artifacts/vq_vae_digits_evidence.json")

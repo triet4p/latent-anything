@@ -29,6 +29,7 @@ It writes `artifacts/tokenized_world_model_evidence.json` and its matching
 configuration. The artifact is D2 synthetic CPU evidence. It reports
 teacher-forced perplexity, code usage, dead-code health, greedy and sampled
 drift by horizon, decoder consistency, a task proxy, seeded parity, and
-failure-horizon fields. The compact VQ tokenizer still exhibits dead-code
-collapse, so this sprint does not claim healthy large-scale VQ or real-world
-world-model performance.
+failure-horizon fields. The fitted compact tokenizer passes the non-trivial
+usage gate, but greedy free-running error appears at the first held-out
+horizon; this sprint does not claim healthy large-scale VQ, a real checkpoint,
+or real-world world-model performance.

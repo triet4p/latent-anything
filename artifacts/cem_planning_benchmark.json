@@ -109,11 +109,11 @@
     12.780821674872259
   ],
   "cem_runtime_profile": {
-    "total_seconds": 2.288093901006505,
+    "total_seconds": 2.4020041993935592,
     "stage_totals": {
-      "transition": 0.386473000748083,
-      "evaluation": 0.9481553002260625,
-      "planning": 0.9534656000323594
+      "transition": 0.39858389931032434,
+      "evaluation": 0.9991375000681728,
+      "planning": 1.004282800015062
     }
   },
   "acceptance": {

@@ -37,7 +37,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
 - [x] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
-- [ ] **Milestone 12 - World models and planning (Sprints 63-72):** transition models, rollout, reward/value evaluation, CEM/MPPI, discrete latents, JEPA/LeWM, and tokenized-world-model evidence.
+- [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [ ] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** external plugins, portable artifacts/disk cache, streaming, tracking backends, and an evidence-based Rust decision.
 - [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** `0.9`, release-candidate matrix, and `1.0.0` publication.
 
@@ -51,7 +51,9 @@ These items do not reopen already delivered implementation. They keep the eviden
 
 ## Active Sprints
 
-None. Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+None. Milestone 12 remediation closed on 2026-08-25; the next intended work is Milestone 13 ecosystem and runtime hardening.
+
+Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
 
 ## Planned Sprints
 
@@ -177,11 +179,13 @@ None. Sprints 63–72 are complete as implementation increments, with the eviden
 - [x] [Sprint 61](sprint-plans/sprint-61.md) - Causal policy-explanation benchmark through LIBERO simulation evaluation: four predeclared conditions (no-hook control, zero-strength baseline, random, targeted), seeded episode replay with fixed noise, success/return/action-deviation/latency metrics with Wilson intervals, offline-explanation-to-environment correlation with declared disagreement rules, an offline fixture suite plus a marked CUDA statistical lane, and a D3 promotion gated on the acceptance checks.
 - [x] [Sprint 62](sprint-plans/sprint-62.md) - Versioned local run records, atomic content-addressed artifacts, LeRobot evidence recording, inspection/replay/comparison CLI commands, and the frozen local recorder contract.
 - [x] [Sprint 63](sprint-plans/sprint-63.md) - Deterministic latent transition, recursive rollout, horizon drift metrics, immutable trajectories, and seeded synthetic evidence.
+- [x] [Sprint 64](sprint-plans/sprint-64.md) - Stochastic Gaussian transition, predictive uncertainty, calibration, and seeded particle rollout evidence.
 - [x] [Sprint 65](sprint-plans/sprint-65.md) - RSSM-style recurrent stochastic transition, masked temporal evaluation, stateful checkpointing, and the minimal three-instance transition contract.
 - [x] [Sprint 66](sprint-plans/sprint-66.md) - Rollout Pipeline #3, story-specific pipeline modules, the shared metadata contract, cache/profiling/async parity, and compatibility migration evidence.
 - [x] [Sprint 67](sprint-plans/sprint-67.md) - Reward/value scoring, masked discounted returns, held-out calibration and Bellman diagnostics, imagined-trajectory bias comparison, and run-record evidence.
 - [x] [Sprint 68](sprint-plans/sprint-68.md) - Bounded CEM planning over latent rollouts, controlled random/fixed baselines, model-bias comparison, and reproducible run-record evidence.
 - [x] [Sprint 69](sprint-plans/sprint-69.md) - MPPI planning with stable temperature weighting, receding-horizon execution, CEM/random comparison, smoothness/latency/robustness metrics, and reproducible run-record evidence.
+- [x] [Sprint 70](sprint-plans/sprint-70.md) - Compact VQ/discrete-latent adapter, codebook health diagnostics, and explicit collapse evidence.
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Compact decoder-free JEPA/LeWM-style prediction, target-encoder health diagnostics, rollout/record integration, and marked public I-JEPA checkpoint smoke.
 - [x] [Sprint 72](sprint-plans/sprint-72.md) - Tokenized world-model next-token prediction, seeded rollout, codebook/likelihood/drift metrics, and reproducible synthetic evidence.
 

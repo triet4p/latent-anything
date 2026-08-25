@@ -155,12 +155,35 @@ class VQVAE:
         indices, quantized = self._quantize(encoded)
         return encoded, indices, quantized
 
+    def _initialize_codebook(self, data: torch.Tensor) -> None:
+        """Spread codebook entries across the initial encoder output.
+
+        A randomly initialized codebook can assign every spatial position to
+        one entry before the decoder has learned anything useful.  The
+        straight-through path then gives the unused entries no reconstruction
+        gradient, making collapse permanent on the small full-batch digits
+        lane.  Deterministically selecting evenly spaced encoded vectors gives
+        every entry a distinct starting basin without using held-out data or
+        changing categorical semantics.
+        """
+
+        with torch.no_grad():
+            encoded = self._encoder(data)
+            flat = encoded.permute(0, 2, 3, 1).reshape(-1, self.embedding_dim)
+            if flat.shape[0] < self.codebook_size:
+                raise ValueError("training data does not provide enough encoded positions for the codebook")
+            order = torch.argsort(flat[:, 0], stable=True)
+            positions = torch.linspace(0, flat.shape[0] - 1, self.codebook_size, dtype=torch.float32)
+            indices = positions.round().to(dtype=torch.long)
+            self._codebook.weight.copy_(flat[order[indices]])
+
     def fit(self, images: np.ndarray) -> None:
         """Train the VQ-VAE and record reconstruction/codebook diagnostics."""
 
         self._validate_images(images)
         torch.manual_seed(self.random_state)  # pyright: ignore[reportUnknownMemberType]
         data = torch.from_numpy(images.astype(np.float32))  # pyright: ignore[reportUnknownMemberType]
+        self._initialize_codebook(data)
         parameters = (
             list(self._encoder.parameters()) + list(self._codebook.parameters()) + list(self._decoder.parameters())
         )

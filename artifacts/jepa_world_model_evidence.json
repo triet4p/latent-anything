@@ -50,7 +50,7 @@
     "mse": 0.0013885584043799458,
     "n_samples": 72,
     "rmse": 0.03726336544623883,
-    "runtime_seconds": 0.009844999993219972,
+    "runtime_seconds": 0.0759294000454247,
     "target_health": {
       "collapse_score": 0.49048318342012376,
       "collapsed_fraction": 0.0,
@@ -87,7 +87,7 @@
     "horizon_drift": 0.15191595614804337,
     "mean_error": 0.18395112649729006,
     "n_episodes": 12,
-    "runtime_seconds": 0.010229999898001552,
+    "runtime_seconds": 0.07480770000256598,
     "stable": true
   },
   "train_target_health": {

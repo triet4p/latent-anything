@@ -775,3 +775,10 @@ semantics before any broader protocol or checkpoint loader is considered.
 **Alternatives considered:** Keep the revision string as the version, bind only the codebook tensor, or require callers to pass an opaque version manually.
 **Reason:** Two independently trained VQ-VAEs can share the default revision while producing different token semantics; a full checkpoint digest plus representation schema prevents silent cross-tokenizer training and rollout.
 **Consequences:** Replacing or mutating the tokenizer after world-model construction is rejected, and evidence/config artifacts carry the digest so token IDs remain reproducible and auditable.
+
+## [2026-08-25] Initialize compact VQ codebooks from fit-data coverage
+
+**Decision:** Initialize each compact `VQVAE` codebook deterministically from evenly spaced initial encoder outputs before optimization, and require non-trivial measured code usage before promoting downstream token evidence to D2.
+**Alternatives considered:** Retain random initialization and preserve the collapsed run only as negative evidence, loosen the acceptance tier, add an EMA/restart mechanism, or tune seeds and epochs until one run happened not to collapse.
+**Reason:** The pinned full-batch digits lane assigned nearly every initial encoding to one random entry, after which unused entries received no reconstruction gradient. Fit-data coverage removes that initialization trap without held-out leakage, seed shopping, a new public abstraction, or claims beyond the compact synthetic CPU lane; explicit perplexity and dead-code gates keep the evidence falsifiable.
+**Consequences:** The 2026-08-12 collapsed Sprint 70/72 artifacts remain valid historical negative results but are superseded as current evidence by the regenerated non-degenerate D2 artifacts. Future VQ implementations may use different anti-collapse mechanics, but may not claim healthy or downstream-meaningful token evidence without explicit code-usage acceptance and failure reporting.

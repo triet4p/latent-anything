@@ -32,11 +32,12 @@ uv run python scripts/vq_vae_digits_evidence.py
 ```
 
 It writes `artifacts/vq_vae_digits_evidence.json` and
-`artifacts/vq_vae_digits_evidence_config.json`. The current compact run is
-expected to expose codebook collapse; the artifact records that negative result
-instead of presenting a collapsed codebook as healthy usage. The dataset is
-`sklearn.datasets.load_digits` from the locked `scikit-learn==1.9.0` profile,
-and the model revision is `compact-vq-vae-v1`.
+`artifacts/vq_vae_digits_evidence_config.json`. The compact run now uses
+deterministic spread initialization for the codebook, and the artifact requires
+perplexity above `1.0` plus a dead-code rate below `1.0`; it remains diagnostic
+synthetic CPU evidence rather than a claim about a large pretrained VQGAN. The
+dataset is `sklearn.datasets.load_digits` from the locked
+`scikit-learn==1.9.0` profile, and the model revision is `compact-vq-vae-v1`.
 
 The focused tests are offline and run in the optional-extras workflow's base
 profile:

@@ -268,3 +268,17 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** Runtime Protocol checks inspect attribute presence, not parameter names or keyword compatibility.
 **Fix / workaround:** Align public adapter parameter names with the frozen Protocol and test keyword calls for JEPA, VQ-VAE, and tokenized adapters.
 **Watch out for:** New structural implementations of a public Protocol; verify both `isinstance` conformance and representative keyword-based calls.
+
+## [2026-08-25] Random VQ codebooks can lock compact full-batch training into one code
+
+**Symptom:** The pinned digits VQ-VAE benchmark mapped every encoded position to one code, producing perplexity `1.0`; unused codebook entries stayed dead across training and made downstream token dynamics look perfectly predictable for the wrong reason.
+**Root cause:** Before the decoder learned a useful reconstruction signal, random codebook initialization placed nearly all initial encoder outputs in one Voronoi region. The straight-through reconstruction path updated the encoder and selected embedding, while never-selected embeddings received no reconstruction gradient, so the initial assignment became self-reinforcing on the compact full-batch lane.
+**Fix / workaround:** Initialize the codebook deterministically from evenly spaced initial encoder outputs before the first optimizer step, then require measured perplexity greater than `1.0` and dead-code rate below `1.0` in both regression tests and evidence generation.
+**Watch out for:** Any compact VQ/VQ-VAE benchmark that treats finite reconstruction loss or constant-token accuracy as sufficient evidence. Always gate code usage explicitly and evaluate downstream token models only after the fitted tokenizer passes the non-degenerate usage gate.
+
+## [2026-08-25] Splitting one delegated implementation-validation loop weakens traceability
+
+**Symptom:** Routine owner intervention during an explicitly delegated subagent workflow split coherent implementation, validation, and audit context across turns.
+**Root cause:** The primary owner did not keep the delegated scope, approval boundary, and synthesis role distinct from the subagent's technical loop.
+**Fix / workaround:** Keep one explicitly assigned subagent on the coherent implementation-validation-audit loop; limit owner intervention to required authorization, concrete findings, and final synthesis.
+**Watch out for:** When `subagent-workflow` explicitly assigns one subagent, do not split routine technical work across agents or context windows unless a concrete blocker requires it.
