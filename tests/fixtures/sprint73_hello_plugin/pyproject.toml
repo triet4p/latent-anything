@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latent-anything-hello-plugin"
+version = "0.1.0"
+description = "Minimal separately installed latent-anything Sprint 73 fixture"
+requires-python = ">=3.12"
+
+[project.entry-points."latent_anything.adapter"]
+hello-world = "latent_anything_hello:HelloAdapter"
+
+[tool.setuptools]
+packages = ["latent_anything_hello"]

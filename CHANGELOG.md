@@ -45,6 +45,12 @@
   JSON/PNG digests, and local-only CPU/resource validation. This completes the
   Sprint 35 interpolation carryover and Milestone 8 evidence scope without
   claiming perceptual quality or full diffusion-pipeline behavior. (#sprint-35)
+
+- Added explicit, lazy external plugin discovery through canonical Python
+  entry-point groups for adapters, analyses, interventions, transitions, and
+  planners, with deterministic duplicate handling, API-version validation,
+  isolated load failures, provenance metadata, an English author guide, and a
+  separately installed hello-world integration proof. (#sprint-73)
 - Added a compact tokenized world-model lane that composes the frozen VQ-VAE
   tokenizer with action-conditioned autoregressive next-token prediction,
   seeded categorical rollout, codebook-version/padding validation, decoded

@@ -30,10 +30,11 @@ Internal plugin extraction contract
    new built-in class is added, a corresponding ``GLOBAL_REGISTRY.register``
    call must be added here.
 
-5. **Entry-point readiness.** When the project introduces external plugin
-   discovery via Python ``importlib.metadata`` entry points (future), the
-   external-plugin loader will populate a **separate** ``Registry``
-   instance. Built-in registrations remain here regardless.
+5. **External-discovery isolation.** External plugins are discovered by
+   ``plugin_discovery`` via Python ``importlib.metadata`` entry points and can
+   populate a **separate** ``Registry`` instance. Built-in registrations
+   remain here regardless, preserving this module's deterministic import
+   order and one-to-one class mapping.
 """
 
 from __future__ import annotations

@@ -127,6 +127,8 @@ latent-anything/
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Core primitives and layer design
 - [docs/THEORY.md](docs/THEORY.md) - Theoretical foundations
 - [docs/PLAN.md](docs/PLAN.md) - Incremental project plan
+- [docs/PLUGIN_AUTHOR_GUIDE.md](docs/PLUGIN_AUTHOR_GUIDE.md) - External plugin contract and security boundary
+- [docs/PLUGIN_TEMPLATE.md](docs/PLUGIN_TEMPLATE.md) - Minimal plugin package template
 
 ## License
 

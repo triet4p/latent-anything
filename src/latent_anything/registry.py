@@ -5,16 +5,17 @@ convenience helpers. It has **no knowledge** of concrete adapter or
 method classes — those are registered separately in
 ``_plugin_builtins.py``.
 
-This is registry instance #1 — the first step of **Plugin Extraction**
-(Milestone 4). It is intentionally in-process with no Python entry points
-yet. The registry is a simple ``OrderedDict``-backed store with
+This remains the in-process registry instance used by built-ins and explicit
+external-plugin loading (Milestone 13). Python entry-point discovery lives in
+``plugin_discovery`` so this storage module stays dependency-light. The
+registry is a simple ``OrderedDict``-backed store with
 deterministic insertion-order iteration.
 
 Sprint 17 design decisions (following project ADRs):
 
-- **No entry points.** The registry uses local class references only.
-  Python ``importlib.metadata`` entry points will be considered when a
-  second instance (external plugin) demands them (Rule of Three).
+- **Discovery is separate.** The registry stores local class references and
+  loaded external factories alike; ``plugin_discovery`` owns entry-point
+  metadata, lazy loading, compatibility checks, and failure isolation.
 - **In-process singleton.** A global ``GLOBAL_REGISTRY`` instance is
   provided for convenience, but callers may create standalone
   ``Registry`` instances for testing or scoped sub-registries.
