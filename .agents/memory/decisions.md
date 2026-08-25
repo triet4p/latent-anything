@@ -782,3 +782,100 @@ semantics before any broader protocol or checkpoint loader is considered.
 **Alternatives considered:** Retain random initialization and preserve the collapsed run only as negative evidence, loosen the acceptance tier, add an EMA/restart mechanism, or tune seeds and epochs until one run happened not to collapse.
 **Reason:** The pinned full-batch digits lane assigned nearly every initial encoding to one random entry, after which unused entries received no reconstruction gradient. Fit-data coverage removes that initialization trap without held-out leakage, seed shopping, a new public abstraction, or claims beyond the compact synthetic CPU lane; explicit perplexity and dead-code gates keep the evidence falsifiable.
 **Consequences:** The 2026-08-12 collapsed Sprint 70/72 artifacts remain valid historical negative results but are superseded as current evidence by the regenerated non-degenerate D2 artifacts. Future VQ implementations may use different anti-collapse mechanics, but may not claim healthy or downstream-meaningful token evidence without explicit code-usage acceptance and failure reporting.
+
+## [2026-08-25] Keep Sprint 73 discovery explicit and registry-compatible
+
+**Decision:** Use five canonical Python entry-point groups —
+`latent_anything.adapter`, `.analysis`, `.intervention`, `.transition`, and
+`.planner` — with metadata-only listing and explicit loading through
+`plugin_discovery`. External targets must be callable and declare API marker
+`__latent_anything_plugin_api_version__ == "1"`. Load into a caller-owned
+registry when isolation is needed; preserve existing entries and deterministic
+first-winner duplicate behavior.
+
+**Alternatives considered:** Add a generic plugin Protocol or dependency-
+injection container; auto-load entry points at package import; create new
+`transition`/`planner` registry kinds immediately; overwrite built-ins on name
+collision; or infer compatibility solely from distribution version strings.
+
+**Reason:** Existing built-ins prove callable/config/registry seams but do not
+justify another workflow abstraction or premature kind split. Lazy listing
+avoids third-party imports at base import time, explicit loading makes the
+untrusted-code boundary visible, and deterministic non-overriding duplicates
+preserve reproducibility and built-in compatibility. The marker is a minimal
+metadata contract rather than a widened runtime Protocol.
+
+**Consequences:** Transition and planner entry points map to the existing
+`runtime` registry kind until a future third implementation proves a shared
+kind contract. Distribution name/version, declaration value, group, source,
+and API marker are retained in registry metadata. Plugin loading errors are
+reported per declaration and do not hide healthy plugins; callers remain
+responsible for trusting and isolating third-party code.
+
+## [2026-08-25] Use Arrow IPC with a custom SQLite disk cache for Sprint 74
+
+**Decision:** Store portable artifacts in a versioned PyArrow IPC envelope and use a small custom SQLite backend for disk caching, while keeping public APIs NumPy-facing and rejecting unsafe pickle payloads.
+**Alternatives considered:** Use JSON-only artifacts, add `diskcache`, or expose PyArrow objects directly through the public API.
+**Reason:** PyArrow is the approved serialization boundary and preserves dtype/shape/binary array fidelity for future Rust interop; SQLite is already available in the standard library and gives explicit transactions, WAL reader concurrency, bounded eviction, and inspectable state without adding another runtime dependency. JSON remains useful as canonical manifest metadata but cannot be the sole binary array format.
+**Consequences:** Artifact readers must enforce schema/version/checksum/allocation/path guards and decode only an explicit safe type registry. The cache must include every behavior-affecting component/config/checkpoint/plugin identity in its key and restore serialized state before returning a hit; no new cache Protocol or public PyArrow type is introduced.
+
+## [2026-08-25] Require validated portable payloads at the coherent cache seam
+
+**Decision:** Keep the low-level SQLite byte primitive private-in-spirit and require framework callers to use `set_portable`/`get_portable` with non-empty plugin, checkpoint, and behavior-state identities in generated keys.
+**Alternatives considered:** Accept arbitrary bytes through the only public cache path, infer fitted-state completeness from payload bytes, or require a new cache Protocol.
+**Reason:** The audit showed that an opaque byte cache cannot prove behavior-affecting state coherence by itself; the existing Arrow portable codec is the smallest validated seam already proven by Sprint 74 without widening the runtime architecture.
+**Consequences:** Framework cache integrations must validate portable envelopes and identity inputs before reuse. Low-level bytes remain available for internal cache mechanics, but they carry no state-coherence guarantee and must not be presented as fitted-result evidence.
+
+## [2026-08-25] Keep Sprint 75 streaming concrete at the rollout seam
+
+**Decision:** Sprint 75 exposes `RolloutPipeline.stream()` and
+`stream_async()` over the already-proven `LatentTransition.step` surface. It
+uses ordered, disjoint action chunks, one in-flight chunk, optional concrete
+`reset()` preparation, and existing `Trajectory`/`RuntimeProfiler` values. It
+does not introduce a generic stream executor Protocol, overlap abstraction,
+queue framework, or new pipeline-wide `run()` contract.
+**Alternatives considered:** Freeze a generic runtime streaming Protocol,
+prefetch with an unbounded task queue, or widen `PipelineContract` with a
+shared streaming method after one story.
+**Reason:** The long-rollout story proves bounded chunk execution, state carry,
+async cancellation, and eager equivalence, but not a shared lifecycle across
+all pipeline types or data producers. The Rule of Three therefore keeps the
+new surface concrete and story-specific.
+**Consequences:** Future streaming stories must preserve these invariants or
+provide an explicit compatibility seam and new evidence before any shared
+Protocol is considered.
+
+## [2026-08-25] Require bounded NumPy chunks and explicit stream state contracts
+
+**Decision:** Sprint 75 streaming accepts only exact two-dimensional NumPy action chunks whose row bound is checked before conversion, and transitions must expose either `reset()` or `stream_state_contract = "explicit"` before streaming begins.
+**Alternatives considered:** Materialize arbitrary sequences and array-protocol objects before checking their size, infer hidden-state behavior from duck typing, or allow stateful transitions to inherit unspecified prior state.
+**Reason:** The audit showed that conversion-first validation could allocate an oversized chunk and that a transition with hidden state but no reset hook could silently diverge from eager behavior. Fail-closed NumPy preflight preserves the public boundary and explicit/reset state markers make the supported predictive-mean contract inspectable without adding a new Protocol.
+**Consequences:** List-like chunks, custom array-like objects, and unmarked hidden-state transitions are rejected before partial output. Masks/padding and seeded sampling remain outside this concrete predictive-mean stream story; future stream APIs need separate evidence before supporting them.
+
+## [2026-08-25] Keep tracking integrations behind the validated recorder contract
+
+**Decision:** Define one NumPy/JSON/checksum-only `ExperimentRecorder` and `ExperimentRun` contract, adapt the existing filesystem recorder first, and keep MLflow/W&B SDK objects behind lazy backend modules.
+**Alternatives considered:** Expose SDK run objects from core, replace the local recorder with an external abstraction, or add a generic experiment platform with provider-specific capabilities.
+**Reason:** The local filesystem recorder already proves reproducible identity, lifecycle, parent/child links, and content-addressed artifacts; the common cross-provider surface is small enough to validate without leaking optional SDK types or changing existing run-record behavior.
+**Consequences:** Provider-specific resume, offline mode, artifact upload, and parent semantics remain backend adapters. Public callers receive only stable run information and checksum-bearing artifact references; remote UI, auth, and team workflows remain delegated to the providers.
+
+## [2026-08-25] Fail closed at the tracking input and artifact boundaries
+
+**Decision:** Reject unsafe provenance, artifact names, local roots, and unbounded payloads before optional provider operations, and keep W&B offline artifact verification in an adapter-owned validated mirror when the SDK has no portable read API.
+**Alternatives considered:** Redact arbitrary secrets after capture, accept provider URI/path normalization, expose provider objects for readback, or claim W&B offline artifact parity from upload calls alone.
+**Reason:** The audit showed that post-validation allocation, URI authorities, platform path syntax, and provider-specific offline behavior could otherwise bypass the recorder contract or make evidence unverifiable.
+**Consequences:** Callers must provide explicit safe metadata and canonical relative artifact names; W&B offline evidence is limited to its documented mirror/readback seam, while remote provider storage remains outside the claim.
+
+## [2026-08-25] Commit external recorder state after provider success
+
+**Decision:** Optional tracking adapters must prepare prospective params, metrics, and tags, call the provider, and commit local adapter state only after the provider operation succeeds.
+**Alternatives considered:** Mutate local state before the provider call for simpler code, or add a generic transaction abstraction to the public recorder Protocol.
+**Reason:** Provider failures otherwise make retry and metric-step behavior diverge between the adapter and the actual tracking run; the local prepare/commit helpers solve this without widening the public contract.
+**Consequences:** Adapter methods contain a small two-phase sequence and must keep prospective candidate data bounded; provider-side partial failures remain provider-specific and are surfaced to callers.
+
+## [2026-08-25] Defer Rust/PyO3 until post-stable performance evidence
+
+**Decision:** Defer a Rust/PyO3 implementation for the pre-stable framework while preserving a conditional path for a later, evidence-backed kernel proposal.
+**Alternatives considered:** Start a Rust DTW implementation now, port the density-geodesic finite-difference path, or permanently prohibit native extensions.
+**Reason:** Sprint 77 Phase A measured all declared p95 advisory budgets as passing and found only one clearly actionable framework hotspot: the already-vectorized Euclidean DTW cost path. Its identical-fixture improvement was 28.25% (38,297.3 to 27,478.2 microseconds median with an unchanged digest), while the remaining profiled cost includes dynamic programming/traceback and NumPy/dependency work. Geodesic time is dominated by the intended bounded numerical algorithm, and artifact/cache/recorder time is dominated by PyArrow, SQLite, and filesystem I/O. The evidence is one Windows 11 CPU environment with eight repetitions, unavailable RSS, no real policy lane, and no larger-workload call-frequency study, so it does not justify the build and compatibility cost of PyO3 yet.
+**Consequences:** No Rust/PyO3 dependency, extension module, or cross-language contract is added before stable release. Reconsider only after a larger representative workload establishes DTW/geodesic call frequency and scaling, isolates a kernel's removable cost against the current NumPy baseline, demonstrates exact dtype/shape/window/max-step/tie-break/traceback/error parity, and quantifies cross-platform wheel, toolchain, maintenance, and expected-benefit costs. This is a deferral rather than a permanent prohibition; any future implementation must preserve the public NumPy boundary and pass the existing semantic/evidence gates.

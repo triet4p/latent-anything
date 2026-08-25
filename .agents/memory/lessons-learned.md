@@ -282,3 +282,112 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Root cause:** The primary owner did not keep the delegated scope, approval boundary, and synthesis role distinct from the subagent's technical loop.
 **Fix / workaround:** Keep one explicitly assigned subagent on the coherent implementation-validation-audit loop; limit owner intervention to required authorization, concrete findings, and final synthesis.
 **Watch out for:** When `subagent-workflow` explicitly assigns one subagent, do not split routine technical work across agents or context windows unless a concrete blocker requires it.
+
+## [2026-08-25] SQLite context managers must close connections on Windows
+
+**Symptom:** A cross-process portable-artifact reproduction passed its child checks but temporary-directory cleanup failed with `WinError 32` because the SQLite database remained open.
+**Root cause:** `sqlite3.Connection` context management commits or rolls back transactions but does not close the connection.
+**Fix / workaround:** Wrap every cache operation in an explicit session context that commits/rolls back and always calls `connection.close()`; retain the cross-process cleanup test.
+**Watch out for:** Any SQLite WAL/cache backend on Windows, especially subprocess tests that remove temporary databases immediately after a child exits.
+
+## [2026-08-25] Arrow read-all can bypass downstream allocation limits
+
+**Symptom:** Portable decoding enforced array limits only after Arrow had already materialized the complete table and manifest.
+**Root cause:** A convenient `read_all()` call precedes schema, row, manifest, and payload validation, so limits applied in the domain decoder cannot protect the Arrow reader itself.
+**Fix / workaround:** Bound input and manifest bytes before opening, inspect schema and record-batch counts first, read bounded batches, cap rows/rank, and reject malformed/object dtypes before NumPy restoration.
+**Watch out for:** Any decoder that accepts untrusted binary containers; validate the container allocation boundary before converting rows into domain objects.
+
+## [2026-08-25] Typed envelope trees must preserve immutable sequence contracts
+
+**Symptom:** CEM/MPPI/profile tuples silently restored as mutable lists, and nested metadata remained mutable behind a top-level mapping proxy.
+**Root cause:** Generic recursive serialization erased tuple markers and shallow wrappers were mistaken for deep immutability.
+**Fix / workaround:** Encode explicit tuple markers and recursively freeze decoded mappings and sequences; add tests that assert declared sequence types and reject nested mutation.
+**Watch out for:** Frozen dataclasses and `Mapping` annotations do not make nested containers immutable; test the exact behavior-affecting field types after restoration.
+
+## [2026-08-25] Validate cache row size before loading SQLite BLOBs
+
+**Symptom:** A tampered SQLite row could claim an oversized payload and be loaded before cache limits were checked.
+**Root cause:** The cache selected the BLOB and digest in one query, applying bounds only on writes.
+**Fix / workaround:** Read and validate the stored size/digest in a transaction before selecting the BLOB; delete malformed rows as misses and validate portable envelopes at the coherent seam.
+**Watch out for:** SQLite corruption or local tampering is still untrusted input; bounded writes do not imply bounded reads.
+
+## [2026-08-25] Settle blocking worker calls before async-stream cancellation
+
+**Symptom:** Cancelling an async generator while a synchronous producer or
+transition runs in `asyncio.to_thread` can leave the worker active while source
+cleanup races with `next()`.
+**Root cause:** Cancelling the awaiting task does not stop the underlying
+executor thread, and closing a generator concurrently with its active `next`
+call is unsafe.
+**Fix / workaround:** Shield each bounded worker call, await it to settle when
+cancellation arrives, discard its result, then close the source in the async
+generator's `finally` block. Keep one in-flight chunk and document that
+cancellation is observed at an await boundary.
+**Watch out for:** Do not claim immediate thread interruption for arbitrary
+CPU/blocking Python code; bound each operation and test source finalization and
+worker completion explicitly.
+
+## [2026-08-25] Async iterator setup and array conversion can bypass streaming bounds
+
+**Symptom:** A streaming audit found that asynchronous iterator construction and
+cleanup still ran on the event-loop thread, while action validation converted
+arbitrary chunks before enforcing the row limit.
+**Root cause:** The implementation dispatched `next()` but not `iter()` or
+`close()`, and relied on `np.asarray()` to discover shape and row count. Custom
+iterables or array-protocol objects can execute blocking code or allocate before
+those checks run.
+**Fix / workaround:** Settle iterator construction, `next()`, and cleanup in
+worker calls; require exact NumPy chunks and inspect rank/width/rows before any
+dtype conversion; require an explicit/reset transition-state contract.
+**Watch out for:** Any async wrapper around synchronous user objects must move
+setup and finalization—not only the main operation—off the event loop, and any
+size bound must be checked before a conversion that can materialize input.
+
+## [2026-08-25] W&B offline init reuses the active run unless reinit is explicit
+
+**Symptom:** Starting a W&B offline child while its parent was active returned the parent provider run; finishing the child then made later parent artifact logging fail, and temporary cleanup could hit locked log files on Windows.
+**Root cause:** W&B's default `init()` behavior reuses the active run, unlike the fake provider used by the original parity tests.
+**Fix / workaround:** Request `reinit="create_new"` for new adapter runs, use the adapter-owned offline artifact mirror, and call `wandb.teardown()` in the real offline lane before cleanup assertions.
+**Watch out for:** Any future W&B parent/child or offline integration test that relies only on a fake SDK; verify provider run IDs, active-run lifecycle, local artifact bytes, and Windows cleanup.
+
+## [2026-08-25] `Path` objects bypass URI lexical validation on Windows
+
+**Symptom:** An MLflow tracking root supplied as `Path(r"\\server\share")` was normalized into a non-empty-authority file URI, even though equivalent string and URI inputs were rejected.
+**Root cause:** The `Path` branch skipped the raw lexical checks used by the string/URI branch, so UNC, encoded, device, and ADS syntax reached resolution.
+**Fix / workaround:** Apply platform-independent lexical checks to the raw `Path` spelling before resolution, while allowing ordinary native drive-rooted Windows paths.
+**Watch out for:** Any security-sensitive local-root validator accepting both `str` and `Path` must test both representations; `Path` normalization can hide the original separator and URI syntax.
+
+## [2026-08-25] W&B resume can lose adapter provenance
+
+**Symptom:** A provider run whose adapter identity field had been removed could be resumed with changed configuration.
+**Root cause:** Resume validation treated absent identity as an old-provider compatibility case and checked mismatches only when a value was present.
+**Fix / workaround:** Require a canonical 64-hex adapter identity in provider config and fail closed on missing or malformed provenance before constructing the resumed adapter state.
+**Watch out for:** External resume must reject missing provenance; a provider-generated run ID alone is not proof that the run belongs to this recorder contract.
+
+## [2026-08-25] W&B offline mode still needs loopback service sockets
+
+**Symptom:** Denying every socket connection made the real offline W&B test hang during local service teardown.
+**Root cause:** W&B offline uses loopback or IPC sockets for its local service even though it must not contact a remote provider.
+**Fix / workaround:** Deny URL/HTTP and non-local socket destinations while allowing loopback/IPC, then assert no newly created threads remain after `teardown()`.
+**Watch out for:** Offline network tests must distinguish provider-network destinations from the SDK’s local coordination sockets; a blanket socket denial can deadlock cleanup and produce a false failure.
+
+## [2026-08-25] Provider provenance does not prove resume continuity
+
+**Symptom:** A fake provider that ignored the requested resume ID but echoed the current canonical provenance was accepted as a resumed run with a new provider ID.
+**Root cause:** Resume validation checked provenance but assumed the provider honored the requested ID.
+**Fix / workaround:** Require exact returned-ID equality for MLflow and W&B; best-effort finish unexpected runs as failed and raise a contract error, including cleanup failures.
+**Watch out for:** Every external resume test must simulate a provider that creates a fresh run while preserving provenance, then verify fail-closed cleanup and retry behavior.
+
+## [2026-08-26] Real backend fidelity needs eval mode and independent RNG
+
+**Symptom:** A revision-pinned Diffusers VAE comparison showed a mean-output mismatch and non-repeatable posterior samples even though direct and adapter code used the same checkpoint.
+**Root cause:** The adapter backend remained in training mode, and the direct and adapter sample calls consumed one shared global Torch RNG stream in sequence.
+**Fix / workaround:** Set the loaded backend to evaluation mode and compare seeded posterior samples using a fresh local generator per backend and repeat; keep mean and sample semantics explicit in the evidence harness.
+**Watch out for:** Exact direct-vs-adapter fidelity requires matching model mode and RNG ownership. Do not relax tolerances or infer parity from sequential global-RNG calls.
+
+## [2026-08-26] Repeated Torch evidence runs must reuse interop configuration
+
+**Symptom:** A deterministic interpolation evidence test passed once but failed on its second in-process run when setting Torch inter-op threads.
+**Root cause:** Torch rejects `set_num_interop_threads()` after parallel work has already started, even when the requested value is unchanged.
+**Fix / workaround:** Set the bounded thread configuration once and tolerate only Torch's specific already-started error on repeat runs; propagate unrelated configuration failures.
+**Watch out for:** Reproducibility tests that run multiple model lanes in one process must not assume global Torch thread setters are idempotent.

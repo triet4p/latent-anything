@@ -33,27 +33,65 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 
 - [x] **Milestones 0-6 - Beta foundation (Sprints 1-26):** theory research, core primitives, first adapters/methods, registry/config, concrete pipelines, runtime helpers, and `0.1.0-beta.1` release.
 - [x] **Milestone 7 - Stable contract and semantic API (Sprints 27-31):** measurable 1.0 gates, domain vocabulary, structured latent values, geometry decomposition, and registry migration.
-- [x] **Milestone 8 - Real generative-model proof (Sprints 32-38):** activation capture, optional backend isolation, real VAE and diffusion integrations, and explanation-validity benchmarks.
+- [x] **Milestone 8 - Real generative-model proof (Sprints 32-38):** implementation, Sprint 34 held-out ConvVAE evidence, and Sprint 35 revision-pinned fidelity/interpolation evidence are complete as bounded local CPU D2 lanes.
 - [x] **Milestone 9 - Meaningful introspection (Sprints 39-47):** real transformer inspection, probes, concepts, clustering, density/OOD, attribution, SAE evaluation, and interactive exploration.
 - [x] **Milestone 10 - Geometry, trajectory, and 3D depth (Sprints 48-55):** anisotropic/Riemannian/Lie-group operations, temporal comparison/segmentation, and a real 3D Gaussian backend.
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
-- [ ] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** external plugins, portable artifacts/disk cache, streaming, tracking backends, and an evidence-based Rust decision.
+- [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
 - [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** `0.9`, release-candidate matrix, and `1.0.0` publication.
 
 ## Carryover Evidence Gates
 
-- [ ] Close the Sprint 35 real, revision-pinned checkpoint fidelity evidence before declaring the related Milestone 8 claims complete.
-- [ ] Close the Sprint 35 real-checkpoint interpolation artifact before declaring the related Milestone 8 claims complete.
-- [ ] Close the Sprint 34 held-out meaningful-integration benchmark before declaring Milestone 8 complete.
+- [x] Close the Sprint 35 real, revision-pinned checkpoint fidelity evidence before declaring the related Milestone 8 claims complete.
+- [x] Close the Sprint 35 real-checkpoint interpolation artifact before declaring the related Milestone 8 claims complete.
+- [x] Close the Sprint 34 held-out meaningful-integration benchmark before declaring Milestone 8 complete.
 
 These items do not reopen already delivered implementation. They keep the evidence status honest and prevent downstream real-model claims from being built on unverified prerequisites.
 
+## Active Carryover Work
+
+- [Sprint 34](sprint-plans/sprint-34.md) - *Status: Complete for the offline held-out meaningful-integration gate; Sprint 35 carryover evidence is complete.*
+- [Sprint 35](sprint-plans/sprint-35.md) - *Status: Complete for the cached revision-pinned fidelity and interpolation D2 evidence lanes; claims remain local CPU and non-perceptual.*
+
+The Sprint 34 carryover closure uses the deterministic sklearn-digits dataset
+with an 80/20 index split, fits the ConvVAE only on the training partition,
+and evaluates held-out reconstruction against both an all-zero baseline and a
+training-pixel-mean diagnostic. The hard acceptance gate requires finite
+metrics, at least 10% improvement over the all-zero baseline, non-degenerate
+latent utilization, and successful held-out PCA/SAE/steering composition;
+runtime is recorded against a 30-second CPU budget but is not used to hide a
+failed quality result. The stronger train-mean baseline remains a reported
+diagnostic and is not silently replaced.
+
+Sprint 35 fidelity and interpolation acceptance was predeclared before
+implementation and is now closed for the cached snapshot: use only
+`stabilityai/sd-vae-ft-mse` at revision
+`31f26fdeee1355a5c34592e401dd41e45d25a493`, record repository/revision/hash,
+file-size, model-card license, and locked Diffusers/safetensors/Torch
+versions, and compare the direct `AutoencoderKL` backend with
+`DiffusersAutoencoderKLAdapter` on identical deterministic NCHW inputs. The
+lane must define mean versus posterior-sample semantics and seeded RNG,
+scaling-factor handling, latent/decode tolerances, shape/dtype/device/finiteness
+checks, local-only safetensors loading with no remote code or network, and
+bounded CPU runtime/RAM. The direct and adapter paths achieved exact parity
+under these checks with zero network attempts, and the separate interpolation
+lane preserved ordered endpoints with non-degenerate latent/decoded movement.
+These are bounded local CPU D2 evidence lanes, not perceptual-quality or
+general diffusion-pipeline claims.
+
 ## Active Sprints
 
-None. Milestone 12 remediation closed on 2026-08-25; the next intended work is Milestone 13 ecosystem and runtime hardening.
+- [Sprint 73](sprint-plans/sprint-73.md) - *Status: Complete; delivery and bounded audit-remediation closure finished.*
+- [Sprint 74](sprint-plans/sprint-74.md) - *Status: Complete; bounded post-closure remediation of Arrow decoding, state fidelity, path safety, cache coherence, and traceability finished.*
+- [Sprint 75](sprint-plans/sprint-75.md) - *Status: Complete; bounded-memory rollout streaming delivery and post-closure async/boundedness remediation are validated.*
 
-Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. The Sprint 35 evidence items remain carryover gates for the related Milestone 8 claims.
+- [Sprint 76](sprint-plans/sprint-76.md) - *Status: Complete; final lexical URI/Windows-path, exact provider-ID resume, provider atomicity, offline network, private SDK seam, and evidence-count remediation passed the supported gates.*
+- [Sprint 77](sprint-plans/sprint-77.md) - *Status: Complete for Phase A/B; Rust/PyO3 is deferred with conditional reconsideration criteria, closure gates pass, the cumulative audit found no implementation blocker, and typed-ledger traceability is complete.*
+
+Sprint 73 delivery and its audit-remediation closure are complete. Sprint 74 delivery and bounded post-closure remediation are complete. Sprint 75 delivery and its post-closure audit remediation are complete. Sprint 76 delivery and final post-audit remediation are complete. Sprint 77 Phase A/B are complete for the supported scope, including the owner-approved Rust/PyO3 deferral, closure gates, cumulative audit, and typed-ledger traceability. The Sprint 34 and Sprint 35 carryover evidence gates are complete within their declared local CPU scopes; no stable-release claim follows from these compact lanes.
+
+Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. Milestone 8 is complete for its declared bounded evidence scope; broader real-model and perceptual-quality claims remain outside these gates.
 
 ## Planned Sprints
 
@@ -122,11 +160,11 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 
 ### Milestone 13 - Ecosystem and runtime hardening
 
-- [Sprint 73](sprint-plans/sprint-73.md) - Add external plugin discovery and a separately installed hello-world plugin.
-- [Sprint 74](sprint-plans/sprint-74.md) - Add Arrow-backed portable artifacts and a coherent disk cache.
-- [Sprint 75](sprint-plans/sprint-75.md) - Add bounded-memory streaming execution.
-- [Sprint 76](sprint-plans/sprint-76.md) - Add MLflow and Weights & Biases tracking backends behind a small recorder contract.
-- [Sprint 77](sprint-plans/sprint-77.md) - Run performance gates and make the Rust core go/no-go decision.
+- [x] [Sprint 73](sprint-plans/sprint-73.md) - Add external plugin discovery and a separately installed hello-world plugin.
+- [x] [Sprint 74](sprint-plans/sprint-74.md) - Add Arrow-backed portable artifacts and a coherent disk cache; complete bounded post-closure remediation.
+- [x] [Sprint 75](sprint-plans/sprint-75.md) - Add bounded-memory streaming execution with ordered state carry and async cancellation.
+- [x] [Sprint 76](sprint-plans/sprint-76.md) - Add MLflow and Weights & Biases tracking backends behind a small recorder contract; close final post-audit remediation.
+- [x] [Sprint 77](sprint-plans/sprint-77.md) - Run Phase-A performance gates, record the evidence-based Rust/PyO3 deferral, and complete the bounded closure audit.
 
 ### Milestone 14 - API freeze and stable release
 
@@ -149,8 +187,8 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 - [Sprint 31](sprint-plans/sprint-31.md) - Canonical semantic registry kinds and beta config migration diagnostics.
 - [Sprint 32](sprint-plans/sprint-32.md) - Safe internal PyTorch activation capture and intervention lifecycle.
 - [Sprint 33](sprint-plans/sprint-33.md) - Optional dependency boundaries and resolver smoke matrix.
-- [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE implementation and real-image smoke evidence delivered; the held-out meaningful-integration benchmark remains a carryover gate.
-- [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter delivered; real-checkpoint fidelity and interpolation evidence remain Milestone 8 carryover gates.
+- [Sprint 34](sprint-plans/sprint-34.md) - ConvVAE implementation, real-image smoke evidence, and the held-out meaningful-integration benchmark are delivered as compact D2 CPU evidence.
+- [Sprint 35](sprint-plans/sprint-35.md) - Diffusers `AutoencoderKL` adapter with revision-pinned fidelity and ordered latent interpolation D2 artifacts delivered under local CPU bounds.
 - [Sprint 36](sprint-plans/sprint-36.md) - Control-aware VAE explanation validity benchmark.
 - [Sprint 37](sprint-plans/sprint-37.md) - Conditional diffusion scheduler-state and denoiser-activation capture.
 - [Sprint 38](sprint-plans/sprint-38.md) - Selective scheduler-latent intervention benchmark.

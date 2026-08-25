@@ -54,6 +54,47 @@ capabilities. [RFC 0001](rfcs/0001-semantic-api-vocabulary.md) and
 `tests/test_api_surface.py` define the Sprint 28 semantic-vocabulary baseline;
 Sprint 31 will attach migration evidence to this section.
 
+Sprint 34 carryover closure adds a held-out meaningful-integration benchmark
+for the compact ConvVAE. `scripts/conv_vae_heldout_benchmark.py` uses a
+deterministic 80/20 sklearn-digits split, fits the adapter and composition
+methods on training data only, and evaluates held-out reconstruction against
+an all-zero baseline plus a stronger train-pixel-mean diagnostic. The typed
+JSON/config artifacts and focused regression tests record the dataset revision,
+BSD-3-Clause license, split digests, quantitative thresholds, CPU runtime, and
+the limitation that this is a compact trained CPU model rather than a
+pretrained generative checkpoint. This closes only the Sprint 34 carryover
+gate.
+
+Sprint 35 fidelity closure adds the revision-pinned pretrained Diffusers
+`AutoencoderKL` evidence lane. The cached public MIT checkpoint is
+`stabilityai/sd-vae-ft-mse` at revision
+`31f26fdeee1355a5c34592e401dd41e45d25a493`; the safetensors file is 334,643,276
+bytes with SHA-256
+`a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815`. Under
+Diffusers 0.39.0, safetensors 0.8.0, and Torch 2.10.0+cpu, direct
+`AutoencoderKL` and `DiffusersAutoencoderKLAdapter` execution matched exactly
+(zero maximum absolute error) for deterministic mean and independently seeded
+posterior-sample latent/decode outputs. The lane used local-only safetensors,
+no remote code, and recorded zero network attempts, 2.7973485 seconds, and a
+1,446,883,328-byte peak RSS within the declared CPU bounds. This closes the
+Sprint 35 fidelity component; the separate interpolation record below closes
+the remaining carryover gate.
+
+Sprint 35 interpolation closure adds the corresponding cached-checkpoint D2
+artifact. The deterministic sklearn-digits endpoints are ordered digit 0 to
+digit 1 with seven coefficients from 0.0 to 1.0. Latent shape is `(7, 4, 4,
+4)` and decoded shape is `(7, 3, 32, 32)`; endpoint latent/decoded movement is
+8.3936653/51.7986336 and minimum adjacent movement is 1.3989439/9.1108503,
+above the declared 1e-3 endpoint and 1e-4 adjacent thresholds. Endpoint
+reconstruction error is zero. The JSON/PNG pair has deterministic content
+SHA-256 `b3887f0e4b13e5942011275dac77da3d7f92bfb8203d67a46f119d61abeaf0dd`
+and PNG SHA-256
+`65245a9c171106dc33ce63c3687738721985917aafa7fec9f4751355e3cbfe40`, with
+2100×360 RGBA dimensions. It records zero network attempts, 3.5648021 seconds,
+and 1,150,750,720-byte peak RSS. Together with Sprint 34 and fidelity evidence,
+this closes Milestone 8's declared bounded evidence scope; it does not claim
+perceptual quality, CUDA, or a complete diffusion pipeline.
+
 Sprint 57 adds the LeRobot dataset bridge contract. Its evidence is the
 bridge source (`src/latent_anything/integrations/lerobot_dataset.py`), focused
 offline alignment tests (`tests/test_lerobot_dataset_bridge.py`), the pinned
@@ -201,6 +242,116 @@ task-proxy metrics plus failure horizons. The regenerated fitted tokenizer
 passes the non-trivial-token-usage gate, while the learned dynamics still show
 early greedy free-running error; this is meaningful compact synthetic evidence,
 not real-checkpoint or CUDA evidence.
+
+Sprint 73 adds the external plugin discovery contract as a non-theory API
+capability. Its source evidence is `src/latent_anything/plugin_groups.py`,
+`src/latent_anything/plugin_metadata.py`, and
+`src/latent_anything/plugin_discovery.py`; focused contract tests are
+`tests/test_plugin_groups.py`, `tests/test_plugin_metadata.py`, and
+`tests/test_plugin_discovery.py`. The separately installed distribution proof
+is `tests/fixtures/sprint73_hello_plugin/` exercised by
+`tests/test_plugin_installation.py`; the authoring contract is documented in
+`docs/PLUGIN_AUTHOR_GUIDE.md` and `docs/PLUGIN_TEMPLATE.md`. This is a
+versioned API/integration proof, not a theory D2/D3 promotion: loading remains
+explicit, third-party code is untrusted, and transition/planner groups retain
+the existing `runtime` registry kind. The separately installed proof uses
+`uv pip install --offline --no-build-isolation` and asserts distribution,
+version, entry-point value, and plugin API metadata. Audit-remediation
+summaries under `artifacts/task_sprint73_remediation*` record the stable
+duplicate tie-break, fail-closed installation, provenance, and missing-marker
+checks.
+
+Sprint 74 adds a non-theory portable-artifact and runtime-cache contract. The
+source evidence is `src/latent_anything/portable.py`,
+`src/latent_anything/portable_results.py`, `src/latent_anything/artifact_store.py`,
+`src/latent_anything/runtime/disk_cache.py`, and the run-record integration in
+`src/latent_anything/run_record.py`. Focused tests cover value nodes, typed
+envelopes, storage safety, cache eviction/corruption/concurrency, and
+RunRecord/plugin metadata in `tests/test_portable.py`,
+`tests/test_portable_results.py`, `tests/test_artifact_store.py`,
+`tests/test_disk_cache.py`, `tests/test_run_record_portable.py`, and
+`tests/test_sprint74_roundtrip.py`. Offline CPU reproduction is
+`scripts/sprint74_portable_roundtrip.py`; declared size/latency measurement is
+`scripts/sprint74_artifact_benchmark.py`. Task summaries are
+`artifacts/task_sprint74_task01_portable_nodes_summary.md` through
+`artifacts/task_sprint74_task09_closure_summary.md`; Task09 is the governance
+closure record rather than a separate capability claim. This is an implementation
+and synthetic CPU validation contract, not a D3 real-model or CUDA claim.
+
+Sprint 75 adds a non-theory bounded streaming runtime contract over the
+existing `RolloutPipeline` and `LatentTransition.step` seams. The source and
+tests are `src/latent_anything/rollout_pipeline.py`,
+`tests/test_latent_anything/test_rollout_pipeline.py`, and
+`tests/test_sprint75_streaming.py`. The offline CPU reproduction is
+`scripts/sprint75_streaming_benchmark.py`; task records are
+`artifacts/task_sprint75_task01_streaming_rollout_summary.md` through
+`artifacts/task_sprint75_task08_closure_summary.md`, plus the four post-closure
+remediation records under `artifacts/task_sprint75_remediation*.md`. Evidence proves
+ordered chunk carry, one-chunk backpressure, async cancellation/source
+cleanup, and eager-equivalent output for a 4096-step synthetic rollout. It
+requires exact NumPy action chunks and an explicit/reset transition-state
+contract before execution. It deliberately excludes masks/padding and seeded
+sampling, bypasses cache/run-record persistence to avoid retaining partial or
+stateful outputs, and retains only bounded per-stream profiling metadata. The
+benchmark reports NumPy chunk bytes plus supplemental `tracemalloc`; it does
+not claim native RSS, LeRobot, real-model, or CUDA throughput and does not
+introduce a generic streaming Protocol.
+
+Sprint 76 adds optional external tracking adapters behind the local
+experiment-recorder contract. Its source evidence is
+`src/latent_anything/experiment_recorder.py` and the MLflow/W&B adapters under
+`src/latent_anything/integrations/`; focused fake-provider parity and
+isolation tests are `tests/test_experiment_recorder.py`,
+`tests/test_mlflow_recorder.py`, `tests/test_wandb_recorder.py`,
+`tests/test_tracking_parity.py`, and `tests/test_integrations.py`. Opt-in
+local MLflow file-store and W&B offline tests skip when extras are absent and
+never require cloud credentials. The contract covers bounded canonical JSON
+params/tags, stable identity, ordered finite metrics, checksummed artifacts,
+resume identity, lifecycle, and parent linkage. W&B parent/child is represented
+by a group and explicit parent tag because W&B does not expose the same
+nested-run primitive as MLflow. This is an offline integration contract, not a
+claim about remote tracking, hosted UI, or team workflows. The parity fixture
+is a compact deterministic affine world-model rollout, not a LeRobot or
+real-checkpoint benchmark.
+
+The Sprint 76 post-closure remediation adds focused evidence for local resume
+identity and exact provider-ID continuity matrices, canonical local MLflow roots,
+platform-safe artifact names,
+bounded/privacy-safe inputs and reads, provider-object isolation, provider
+state commit atomicity, and real local/offline provider round trips in the
+remediation artifacts under `artifacts/task_sprint76_remediation*.md`. The
+MLflow lane independently downloads and hashes its file-store artifact. W&B
+offline has no portable SDK artifact-read API, so its evidence uses the
+adapter-owned validated mirror and records that limitation explicitly. Both
+real lanes deny remote network requests and exercise parent/cleanup behavior;
+MLflow exercises provider resume, while W&B offline rejects resume when the
+provider has not persisted adapter provenance or returned the requested run ID
+rather than claiming false continuation. The final test seam injects SDKs only
+through underscore-prefixed internal parameters; no SDK object is part of the
+public recorder contract.
+
+Sprint 77 Phase A adds a reproducible, offline CPU performance contract rather
+than a Rust implementation. `scripts/sprint77_phase_a_benchmark.py` measures
+fixed geometry/DTW/geodesic, activation, rollout/planning, Arrow/artifact/cache,
+streaming, recorder/plugin, and offline LeRobot-boundary workloads with robust
+latency, memory, environment, and correctness-digest fields. The profile and
+before/after comparison are `scripts/sprint77_phase_a_profile.py` and
+`scripts/sprint77_phase_a_compare.py`, with artifacts under
+`artifacts/sprint77_phase_a_*.json`. A bounded NumPy Euclidean DTW cost path
+reduces the declared fixture median from 38,297.3 to 27,478.2 microseconds
+(-28.25%) with unchanged digest. Budgets are advisory and environment-scoped;
+semantic correctness/no-network/bounded-input checks remain hard gates. The
+owner-approved Phase B decision defers Rust/PyO3 for pre-stable work rather
+than permanently prohibiting it; its rationale and reconsideration conditions
+are in `.agents/memory/decisions.md` and
+`artifacts/task_sprint77_phase_b_task01_rust_deferral_summary.md`. The Phase-A
+LeRobot case remains only an offline captured-latent NumPy boundary, native RSS
+is unavailable on the recorded Windows run, and no multi-environment or real
+policy throughput claim is promoted. Sprint 77 Phase A/B closure validation
+and cumulative audit are complete for the supported scope; carryover gates and
+Milestone 14 are not started.
+The Phase-A task summaries and Phase-B closure/audit summaries are linked in
+the typed ledger for atomic traceability.
 
 ## Quality gates for a D2/D3 promotion
 

@@ -102,10 +102,20 @@
       ]
     },
     "THY-T02-AUTOENCODER": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/adapters/vae.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_vae.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_vae.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/diffusers_vae.py"},
+        {"role": "test", "path": "tests/test_diffusers_vae.py"},
+        {"role": "test", "path": "tests/test_diffusers_vae_fidelity.py"},
+        {"role": "benchmark", "path": "scripts/diffusers_vae_fidelity.py"},
+        {"role": "benchmark", "path": "scripts/diffusers_vae_interpolation.py"},
+        {"role": "config", "path": "artifacts/task_sprint35_carryover_task01_acceptance_summary.md"},
+        {"role": "config", "path": "artifacts/task_sprint35_carryover_task04_interpolation_summary.md"},
+        {"role": "artifact", "path": "artifacts/diffusers_vae_fidelity.json"},
+        {"role": "artifact", "path": "artifacts/diffusers_vae_digits_interpolation.json"},
+        {"role": "artifact", "path": "artifacts/diffusers_vae_digits_interpolation.png"}
       ]
     },
     "THY-T02-VQ-VAE-OORD-ET-AL-2017": {
@@ -159,10 +169,15 @@
       ]
     },
     "THY-T02-VAE-KINGMA-WELLING-2013": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/conv_vae.py"},
         {"role": "source", "path": "src/latent_anything/adapters/vae.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_vae.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_vae.py"},
+        {"role": "test", "path": "tests/test_conv_vae_heldout_benchmark.py"},
+        {"role": "benchmark", "path": "scripts/conv_vae_heldout_benchmark.py"},
+        {"role": "config", "path": "artifacts/conv_vae_heldout_benchmark_config.json"},
+        {"role": "artifact", "path": "artifacts/conv_vae_heldout_benchmark.json"}
       ]
     },
     "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT": {
@@ -424,6 +439,165 @@
         {"role": "test", "path": "tests/test_lerobot_benchmark.py"},
         {"role": "benchmark", "path": "scripts/smolvla_simulation_benchmark.py"},
         {"role": "config", "path": "src/latent_anything/integrations/lerobot_benchmark.py"}
+      ]
+    }
+  },
+  "contract_evidence": {
+    "sprint73_external_plugin_discovery": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/plugin_groups.py"},
+        {"role": "source", "path": "src/latent_anything/plugin_metadata.py"},
+        {"role": "source", "path": "src/latent_anything/plugin_discovery.py"},
+        {"role": "test", "path": "tests/test_plugin_groups.py"},
+        {"role": "test", "path": "tests/test_plugin_metadata.py"},
+        {"role": "test", "path": "tests/test_plugin_discovery.py"},
+        {"role": "test", "path": "tests/test_plugin_installation.py"},
+        {"role": "artifact", "path": "tests/fixtures/sprint73_hello_plugin/pyproject.toml"},
+        {"role": "artifact", "path": "artifacts/task_sprint73_remediation01_deterministic_order_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint73_remediation02_offline_fixture_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint73_remediation03_provenance_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint73_remediation04_api_marker_summary.md"}
+      ]
+    },
+    "sprint74_portable_artifacts_and_disk_cache": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/portable.py"},
+        {"role": "source", "path": "src/latent_anything/portable_results.py"},
+        {"role": "source", "path": "src/latent_anything/artifact_store.py"},
+        {"role": "source", "path": "src/latent_anything/runtime/disk_cache.py"},
+        {"role": "source", "path": "src/latent_anything/run_record.py"},
+        {"role": "test", "path": "tests/test_portable.py"},
+        {"role": "test", "path": "tests/test_portable_results.py"},
+        {"role": "test", "path": "tests/test_artifact_store.py"},
+        {"role": "test", "path": "tests/test_disk_cache.py"},
+        {"role": "test", "path": "tests/test_run_record_portable.py"},
+        {"role": "test", "path": "tests/test_sprint74_roundtrip.py"},
+        {"role": "benchmark", "path": "scripts/sprint74_portable_roundtrip.py"},
+        {"role": "benchmark", "path": "scripts/sprint74_artifact_benchmark.py"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task01_portable_nodes_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task02_typed_envelopes_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task03_artifact_store_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task04_disk_cache_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task05_failure_concurrency_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task06_cross_process_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task07_run_record_integration_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task08_benchmark_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint74_task09_closure_summary.md"}
+      ]
+    },
+    "sprint75_bounded_rollout_streaming": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/rollout_pipeline.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_rollout_pipeline.py"},
+        {"role": "test", "path": "tests/test_sprint75_streaming.py"},
+        {"role": "benchmark", "path": "scripts/sprint75_streaming_benchmark.py"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task01_streaming_rollout_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task02_streaming_contract_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task03_async_stream_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task04_failure_cleanup_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task05_streaming_benchmark_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task06_contract_decision_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task07_docs_evidence_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_task08_closure_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_remediation01_async_boundary_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_remediation02_bounded_preflight_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_remediation03_event_loop_test_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint75_remediation04_scope_docs_summary.md"}
+      ]
+    },
+    "sprint76_optional_tracking_backends": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/experiment_recorder.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/_tracking_common.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/mlflow_recorder.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/wandb_recorder.py"},
+        {"role": "test", "path": "tests/test_experiment_recorder.py"},
+        {"role": "test", "path": "tests/test_mlflow_recorder.py"},
+        {"role": "test", "path": "tests/test_wandb_recorder.py"},
+        {"role": "test", "path": "tests/test_tracking_parity.py"},
+        {"role": "test", "path": "tests/test_integrations.py"},
+        {"role": "config", "path": "pyproject.toml"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task01_contract_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task02_mlflow_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task03_wandb_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task04_optional_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task05_parity_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task06_identity_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task07_docs_evidence_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_task08_closure_summary.md"}
+      ]
+    },
+    "sprint76_postclosure_remediation": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/experiment_recorder.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/_tracking_common.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/mlflow_recorder.py"},
+        {"role": "source", "path": "src/latent_anything/integrations/wandb_recorder.py"},
+        {"role": "test", "path": "tests/test_experiment_recorder.py"},
+        {"role": "test", "path": "tests/test_mlflow_recorder.py"},
+        {"role": "test", "path": "tests/test_wandb_recorder.py"},
+        {"role": "test", "path": "tests/test_tracking_parity.py"},
+        {"role": "test", "path": "tests/test_integrations.py"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation01_resume_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation02_local_uri_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation03_artifact_paths_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation04_privacy_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation05_artifact_reads_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation06_sdk_boundary_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation07_provider_evidence_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation08_docs_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation09_closure_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation10_mlflow_path_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation11_wandb_resume_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation12_provider_atomicity_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation13_offline_network_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation14_evidence_counts_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation15_resume_id_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation16_windows_path_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation17_sdk_seam_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint76_remediation18_closure_summary.md"},
+        {"role": "config", "path": "pyproject.toml"}
+      ]
+    },
+    "sprint77_phase_a_performance": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/dtw.py"},
+        {"role": "test", "path": "tests/test_dtw.py"},
+        {"role": "test", "path": "tests/test_sprint77_phase_a_benchmark.py"},
+        {"role": "test", "path": "tests/test_sprint77_phase_a_profile.py"},
+        {"role": "test", "path": "tests/test_sprint77_phase_a_compare.py"},
+        {"role": "benchmark", "path": "scripts/sprint77_phase_a_benchmark.py"},
+        {"role": "benchmark", "path": "scripts/sprint77_phase_a_profile.py"},
+        {"role": "benchmark", "path": "scripts/sprint77_phase_a_compare.py"},
+        {"role": "artifact", "path": "artifacts/sprint77_phase_a_benchmark.json"},
+        {"role": "artifact", "path": "artifacts/sprint77_phase_a_benchmark_after_dtw.json"},
+        {"role": "artifact", "path": "artifacts/sprint77_phase_a_profile.json"},
+        {"role": "artifact", "path": "artifacts/sprint77_phase_a_comparison.json"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_a_task01_workloads_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_a_task02_profile_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_a_task03_dtw_optimization_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_a_task04_budgets_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_a_task05_closure_summary.md"},
+        {"role": "config", "path": "docs/PERFORMANCE.md"}
+      ]
+    },
+    "sprint77_phase_b_rust_deferral": {
+      "status": "implemented-and-validated",
+      "evidence": [
+        {"role": "decision", "path": ".agents/memory/decisions.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_b_task01_rust_deferral_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_b_task02_status_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_b_task03_closure_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_b_task04_audit_summary.md"},
+        {"role": "artifact", "path": "artifacts/task_sprint77_phase_b_task05_ledger_traceability_summary.md"},
+        {"role": "config", "path": "docs/PERFORMANCE.md"},
+        {"role": "plan", "path": "docs/sprint-plans/sprint-77.md"}
       ]
     }
   }

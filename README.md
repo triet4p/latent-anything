@@ -18,13 +18,22 @@ A Python framework that treats latent space as a first-class object: load latent
 - World-model/planning lanes: deterministic, stochastic-Gaussian, and RSSM transitions; rollout; reward/value evaluation; CEM and MPPI
 - Discrete VQ-VAE and tokenized-world-model reference lanes, plus decoder-free JEPA/LeWM-style prediction
 - Local run recording with content-addressed evidence artifacts and optional LeRobot ACT/Diffusion/SmolVLA bridges
+- Explicit external plugin discovery through canonical Python entry-point groups, with a separately installed hello-world proof
+- Versioned Arrow-backed portable NumPy/domain artifacts, allowlisted typed envelopes, checksummed atomic storage, and a bounded SQLite disk cache with cross-process CPU parity evidence
+- Concrete bounded-memory rollout streaming over ordered exact-NumPy action chunks, with sync/async eager-equivalence, cancellation, backpressure, and profiling evidence
+- Optional MLflow local-file and W&B offline/disabled experiment recorders
+  behind a validated contract with offline parity evidence
 - Script-level demos and tracked release artifacts
 
 This beta does not claim the full Latent Anything thesis is implemented. The
 world-model and tokenized lanes are compact synthetic CPU references, not
-real-checkpoint or CUDA claims. External plugin discovery, portable disk
-artifacts, bounded streaming runtime, tracking backends, API freeze, and stable
-release work remain future milestones.
+real-checkpoint or CUDA claims. Sprint 35 also records bounded local-CPU D2
+fidelity and ordered interpolation evidence for one cached Diffusers VAE; this
+does not claim perceptual quality or a complete diffusion pipeline. API freeze and stable release work remain
+future milestones. Sprint 75 streaming evidence is a synthetic offline CPU
+rollout story, not a LeRobot or real-model throughput claim. Sprint 76
+tracking evidence is local/offline only; it does not claim hosted tracking,
+remote servers, or team workflows.
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
 

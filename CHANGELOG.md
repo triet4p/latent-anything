@@ -17,11 +17,12 @@
 
 - Fixed Sprint 35 fidelity evidence to use a repository-relative checkpoint
   label instead of a machine-local absolute snapshot path. (#sprint-35)
-- Hardened Sprint 76 tracking remediation with fail-closed lexical local-root validation for `str` and `Path`, exact provider-ID resume continuity, required W&B resume provenance, provider-state commit atomicity, bounded pre-allocation-safe reads, privacy-safe provenance, private SDK boundaries, cumulative payload limits, and real offline checksum/network/cleanup evidence. W&B offline resume is rejected when the provider drops adapter identity or returns a newly-created run rather than being presented as continuation. (#sprint-76-remediation)
 - Fixed rollout metadata cache collisions, transition Protocol/pipeline signature drift, explicit CEM/MPPI evaluator precedence, reward source-space validation, JEPA variance regularization gradients, VQ-VAE codebook acceptance thresholds, and tokenizer-bound world-model evidence.
+- Fixed Sprint 74 portable decoding allocation bounds, exact typed tuple restoration, recursive metadata immutability, Windows reparse-point rejection, and coherent disk-cache payload/identity validation.
 - Fixed reward/value benchmark provenance, rejected tokenizer mutation before fit and prediction, and remediated the collapsed Sprint 72 token dynamics with non-degenerate D2 synthetic CPU evidence and explicit early-rollout failure metrics.
 
 - Fixed run-record snapshots to deep-freeze canonical JSON inputs, reject unsupported or non-finite values, and keep content-addressed artifact reads inside the recorder artifact directory. (#review-remediation)
+- Hardened Sprint 76 tracking remediation with fail-closed lexical local-root validation for `str` and `Path`, exact provider-ID resume continuity, required W&B resume provenance, provider-state commit atomicity, bounded pre-allocation-safe reads, privacy-safe provenance, private SDK boundaries, cumulative payload limits, and real offline checksum/network/cleanup evidence. W&B offline resume is rejected when the provider drops adapter identity or returns a newly-created run rather than being presented as continuation. (#sprint-76-remediation)
 - Fixed selected-episode dataset iteration, SmolVLA intervention-width validation, and device/dtype placement for Diffusion fixed-noise inputs. (#review-remediation)
 - Fixed the Diffusers VAE adapter's revision-pinned fidelity semantics by
   loading the backend in evaluation mode and supporting independently seeded
@@ -52,17 +53,28 @@
   Sprint 35 interpolation carryover and Milestone 8 evidence scope without
   claiming perceptual quality or full diffusion-pipeline behavior. (#sprint-35)
 
+- Added a validated `ExperimentRecorder` contract with a local filesystem
+  adapter plus lazy MLflow local-file and W&B offline/disabled backends,
+  bounded canonical inputs, stable resume identity, ordered metrics,
+  checksummed artifacts, parent linkage, optional extras, and offline parity
+  tests. Remote tracking and hosted UI workflows remain out of scope.
+  (#sprint-76)
+
+- Added concrete bounded-memory `RolloutPipeline.stream()` and
+  `stream_async()` execution over ordered action chunks, preserving state
+  carry, eager output order, one-chunk backpressure, profiling, cancellation,
+  and source cleanup with an offline CPU benchmark. The stream now requires
+  exact NumPy chunks and an explicit/reset state contract before execution.
+  (#sprint-75)
+
+- Added Sprint 74 portable `LatentValue`/`Trajectory` NumPy nodes and allowlisted typed-result/config envelopes on versioned Arrow IPC, checksummed atomic artifact storage, a state-aware SQLite disk cache, run-record/plugin provenance integration, and offline cross-process CPU evidence. (#sprint-74)
+
 - Added explicit, lazy external plugin discovery through canonical Python
   entry-point groups for adapters, analyses, interventions, transitions, and
   planners, with deterministic duplicate handling, API-version validation,
   isolated load failures, provenance metadata, an English author guide, and a
   separately installed hello-world integration proof. (#sprint-73)
 
-- Added Sprint 74 portable `LatentValue`/`Trajectory` NumPy nodes and allowlisted typed-result/config envelopes on versioned Arrow IPC, checksummed atomic artifact storage, a state-aware SQLite disk cache, run-record/plugin provenance integration, and offline cross-process CPU evidence. (#sprint-74)
-
-- Added concrete bounded-memory `RolloutPipeline.stream()` and `stream_async()` execution over ordered action chunks, preserving state carry, eager output order, one-chunk backpressure, profiling, cancellation, and source cleanup with an offline CPU benchmark. The stream now requires exact NumPy chunks and an explicit/reset state contract before execution. (#sprint-75)
-
-- Added a validated `ExperimentRecorder` contract with a local filesystem adapter plus lazy MLflow local-file and W&B offline/disabled backends, bounded canonical inputs, stable resume identity, ordered metrics, checksummed artifacts, parent linkage, optional extras, and offline parity tests. Remote tracking and hosted UI workflows remain out of scope. (#sprint-76)
 - Added a compact tokenized world-model lane that composes the frozen VQ-VAE
   tokenizer with action-conditioned autoregressive next-token prediction,
   seeded categorical rollout, codebook-version/padding validation, decoded
