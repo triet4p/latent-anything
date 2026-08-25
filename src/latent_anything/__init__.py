@@ -82,6 +82,9 @@ from latent_anything.adapters.jepa import JEPAEvaluationReport as JEPAEvaluation
 from latent_anything.adapters.jepa import JEPAPrediction as JEPAPrediction
 from latent_anything.adapters.jepa import JEPAPredictionMetrics as JEPAPredictionMetrics
 from latent_anything.adapters.jepa import JEPARolloutMetrics as JEPARolloutMetrics
+from latent_anything.artifact_store import ArtifactStore as ArtifactStore
+from latent_anything.artifact_store import ArtifactStoreError as ArtifactStoreError
+from latent_anything.artifact_store import StoredArtifact as StoredArtifact
 from latent_anything.integrated_gradients import (
     IntegratedGradientsConfig as IntegratedGradientsConfig,
 )
@@ -128,6 +131,16 @@ from latent_anything.pipeline import build_mppi_planner_from_config as build_mpp
 from latent_anything.pipeline import build_pipeline_from_config as build_pipeline_from_config
 from latent_anything.pipeline import (
     build_reward_value_evaluator_from_config as build_reward_value_evaluator_from_config,
+)
+from latent_anything.portable import PortableLimits as PortableLimits
+from latent_anything.portable import PortableNodeError as PortableNodeError
+from latent_anything.portable import decode_portable as decode_portable
+from latent_anything.portable import encode_portable as encode_portable
+from latent_anything.portable_results import (
+    PortableEnvelope as PortableEnvelope,
+    PortableResultError as PortableResultError,
+    decode_result_envelope as decode_result_envelope,
+    encode_result_envelope as encode_result_envelope,
 )
 from latent_anything.pipeline import build_rollout_pipeline_from_config as build_rollout_pipeline_from_config
 from latent_anything.pose import SE3 as SE3
@@ -178,10 +191,14 @@ from latent_anything.run_record import migrate_run_record as migrate_run_record
 from latent_anything.runtime import BatchExecutor as BatchExecutor
 from latent_anything.runtime import CacheKey as CacheKey
 from latent_anything.runtime import CacheStats as CacheStats
+from latent_anything.runtime import DiskCacheError as DiskCacheError
+from latent_anything.runtime import DiskCacheStats as DiskCacheStats
 from latent_anything.runtime import InMemoryCache as InMemoryCache
 from latent_anything.runtime import ProfileEvent as ProfileEvent
 from latent_anything.runtime import RuntimeProfile as RuntimeProfile
 from latent_anything.runtime import RuntimeProfiler as RuntimeProfiler
+from latent_anything.runtime import SQLiteDiskCache as SQLiteDiskCache
+from latent_anything.runtime import make_disk_cache_key as make_disk_cache_key
 from latent_anything.sae_evaluation import (
     FeatureAtlas as FeatureAtlas,
 )
@@ -319,6 +336,8 @@ __all__ = [
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
+    "DiskCacheError",
+    "DiskCacheStats",
     "ClusterStabilityReport",
     "ConceptDataset",
     "ConceptDirectionResult",
@@ -382,6 +401,19 @@ __all__ = [
     "RegistryEntry",
     "RuntimeProfile",
     "RuntimeProfiler",
+    "SQLiteDiskCache",
+    "make_disk_cache_key",
+    "ArtifactStore",
+    "ArtifactStoreError",
+    "StoredArtifact",
+    "PortableLimits",
+    "PortableNodeError",
+    "encode_portable",
+    "decode_portable",
+    "PortableEnvelope",
+    "PortableResultError",
+    "encode_result_envelope",
+    "decode_result_envelope",
     "ArtifactRef",
     "DuplicateRunError",
     "FileSystemRunRecorder",

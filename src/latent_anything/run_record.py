@@ -22,6 +22,7 @@ from types import MappingProxyType
 from typing import Literal, TypedDict, cast
 
 from latent_anything.adapters.jepa import JEPAEvaluationReport
+from latent_anything.artifact_store import ArtifactStore, StoredArtifact
 from latent_anything.cem import CEMPlanResult
 from latent_anything.mppi import MPPIPlanResult
 from latent_anything.reward_value import HoldoutEvaluation, RewardValueEvaluationResult
@@ -670,6 +671,61 @@ class FileSystemRunRecorder:
 
     def add_json_artifact(self, run_id: str, value: object, *, name: str) -> ArtifactRef:
         return self.add_artifact(run_id, _canonical_json(value) + b"\n", name=name, media_type="application/json")
+
+    def add_portable_artifact(
+        self,
+        run_id: str,
+        payload: bytes,
+        *,
+        name: str,
+        artifact_type: str,
+        metadata: Mapping[str, object] | None = None,
+    ) -> ArtifactRef:
+        """Store a checksummed portable envelope and attach its content reference.
+
+        The payload must already be encoded by the explicit portable node or
+        typed-result API. Metadata should include plugin/config/checkpoint and
+        complete behavior-state identities whenever a fitted result is stored.
+        """
+
+        store = ArtifactStore(self.root)
+        temporary_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=self.artifacts_dir, prefix=".portable-", delete=False) as handle:
+                temporary_path = Path(handle.name)
+            relative_temporary = f"artifacts/{temporary_path.name}"
+            store.write(relative_temporary, payload, artifact_type=artifact_type, metadata=dict(metadata or {}))
+            envelope = temporary_path.read_bytes()
+            digest = hashlib.sha256(envelope).hexdigest()
+            target = self.artifacts_dir / digest
+            if target.exists():
+                if target.read_bytes() != envelope:
+                    raise ValueError("portable artifact digest collision")
+                temporary_path.unlink(missing_ok=True)
+                temporary_path = None
+            else:
+                os.replace(temporary_path, target)
+                temporary_path = None
+            reference = ArtifactRef(
+                name=name,
+                digest=digest,
+                size_bytes=len(envelope),
+                relative_path=f"artifacts/{digest}",
+                media_type="application/vnd.latent-anything.portable",
+            )
+            record = self.get(run_id)
+            if reference not in record.artifacts:
+                self.save(replace(record, artifacts=record.artifacts + (reference,), updated_at=_now()))
+            return reference
+        finally:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
+
+    def read_portable_artifact(self, reference: ArtifactRef) -> StoredArtifact:
+        """Validate and return a stored portable envelope."""
+
+        self.read_artifact(reference)
+        return ArtifactStore(self.root).read(reference.relative_path)
 
     def read_artifact(self, reference: ArtifactRef) -> bytes:
         expected_path = self.artifacts_dir / reference.digest

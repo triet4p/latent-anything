@@ -51,6 +51,8 @@
   planners, with deterministic duplicate handling, API-version validation,
   isolated load failures, provenance metadata, an English author guide, and a
   separately installed hello-world integration proof. (#sprint-73)
+
+- Added Sprint 74 portable `LatentValue`/`Trajectory` NumPy nodes and allowlisted typed-result/config envelopes on versioned Arrow IPC, checksummed atomic artifact storage, a state-aware SQLite disk cache, run-record/plugin provenance integration, and offline cross-process CPU evidence. (#sprint-74)
 - Added a compact tokenized world-model lane that composes the frozen VQ-VAE
   tokenizer with action-conditioned autoregressive next-token prediction,
   seeded categorical rollout, codebook-version/padding validation, decoded

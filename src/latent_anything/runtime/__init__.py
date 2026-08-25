@@ -15,6 +15,10 @@ from latent_anything.runtime.cache import hash_array as hash_array
 from latent_anything.runtime.cache import hash_component_config as hash_component_config
 from latent_anything.runtime.cache import hash_component_state as hash_component_state
 from latent_anything.runtime.cache import make_cache_key as make_cache_key
+from latent_anything.runtime.disk_cache import DiskCacheError as DiskCacheError
+from latent_anything.runtime.disk_cache import DiskCacheStats as DiskCacheStats
+from latent_anything.runtime.disk_cache import SQLiteDiskCache as SQLiteDiskCache
+from latent_anything.runtime.disk_cache import make_disk_cache_key as make_disk_cache_key
 from latent_anything.runtime.profiling import ProfileEvent as ProfileEvent
 from latent_anything.runtime.profiling import RuntimeProfile as RuntimeProfile
 from latent_anything.runtime.profiling import RuntimeProfiler as RuntimeProfiler
@@ -23,12 +27,16 @@ __all__ = [
     "BatchExecutor",
     "CacheKey",
     "CacheStats",
+    "DiskCacheError",
+    "DiskCacheStats",
     "InMemoryCache",
     "ProfileEvent",
     "RuntimeProfile",
     "RuntimeProfiler",
+    "SQLiteDiskCache",
     "hash_array",
     "hash_component_config",
     "hash_component_state",
     "make_cache_key",
+    "make_disk_cache_key",
 ]
