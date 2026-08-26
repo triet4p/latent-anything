@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -12,7 +13,7 @@ from latent_anything.artifact_store import ArtifactStore, ArtifactStoreError
 from latent_anything.portable import PortableLimits, PortableNodeError, decode_portable, encode_portable
 
 
-def test_artifact_store_round_trip_and_stable_identity(tmp_path: object) -> None:
+def test_artifact_store_round_trip_and_stable_identity(tmp_path: Path) -> None:
     root = os.fspath(tmp_path)
     store = ArtifactStore(root)
 
@@ -25,7 +26,7 @@ def test_artifact_store_round_trip_and_stable_identity(tmp_path: object) -> None
     assert restored.metadata == {"v": 1}
 
 
-def test_artifact_store_rejects_traversal_symlink_and_checksum_tampering(tmp_path: object) -> None:
+def test_artifact_store_rejects_traversal_symlink_and_checksum_tampering(tmp_path: Path) -> None:
     root = os.fspath(tmp_path)
     store = ArtifactStore(root)
     store.write("value.la", b"payload", artifact_type="value")
@@ -59,7 +60,7 @@ def test_artifact_store_rejects_traversal_symlink_and_checksum_tampering(tmp_pat
                 store.write("junction/escape.la", b"nope", artifact_type="value")
 
 
-def test_artifact_store_bounds_truncated_and_version_mismatch(tmp_path: object) -> None:
+def test_artifact_store_bounds_truncated_and_version_mismatch(tmp_path: Path) -> None:
     root = os.fspath(tmp_path)
     store = ArtifactStore(root, max_artifact_bytes=64)
     with pytest.raises(ArtifactStoreError, match="maximum"):
@@ -85,7 +86,7 @@ def test_artifact_store_bounds_truncated_and_version_mismatch(tmp_path: object) 
         decode_portable(payload[:-12])
 
 
-def test_artifact_metadata_is_recursively_immutable(tmp_path: object) -> None:
+def test_artifact_metadata_is_recursively_immutable(tmp_path: Path) -> None:
     store = ArtifactStore(os.fspath(tmp_path))
     restored = store.write(
         "nested.la",

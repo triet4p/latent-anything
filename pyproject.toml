@@ -192,6 +192,7 @@ markers = [
     "network: test deliberately permitted to access a remote model host",
     "large_download: test needs a pretrained checkpoint and is off by default",
     "integration: opt-in local SDK integration, never cloud-backed",
+    "viz: test requires the optional visualization frontend extra",
 ]
 
 [dependency-groups]

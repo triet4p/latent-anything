@@ -248,6 +248,7 @@ class _VAEEncoder(nn.Module):
         self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Encode a batch into posterior mean and log-variance tensors."""
         h = torch.relu(self.fc1(x))
         mu = self.fc_mu(h)
         logvar = self.fc_logvar(h)
@@ -263,6 +264,7 @@ class _VAEDecoder(nn.Module):
         self.fc2 = nn.Linear(hidden_dim, input_dim)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
+        """Decode latent vectors into sigmoid-bounded reconstruction values."""
         h = torch.relu(self.fc1(z))
         return torch.sigmoid(self.fc2(h))
 

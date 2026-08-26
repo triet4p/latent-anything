@@ -7,6 +7,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -34,7 +35,7 @@ def test_state_and_provenance_are_part_of_stable_disk_key() -> None:
         make_disk_cache_key(_key(), plugin_identity="", checkpoint_identity="ckpt-a", behavior_state_identity="state-a")
 
 
-def test_portable_cache_seam_validates_payload_and_restores_it(tmp_path: object) -> None:
+def test_portable_cache_seam_validates_payload_and_restores_it(tmp_path: Path) -> None:
     cache = SQLiteDiskCache(str(tmp_path) + "/portable.sqlite")
     key = make_disk_cache_key(
         _key(), plugin_identity="plugin@1", checkpoint_identity="ckpt-a", behavior_state_identity="state-a"
@@ -48,7 +49,7 @@ def test_portable_cache_seam_validates_payload_and_restores_it(tmp_path: object)
         cache.set_portable(key, b"not-an-arrow-envelope")
 
 
-def test_sqlite_cache_round_trip_cross_process_and_deterministic_eviction(tmp_path: object) -> None:
+def test_sqlite_cache_round_trip_cross_process_and_deterministic_eviction(tmp_path: Path) -> None:
     path = str(tmp_path) + "/cache.sqlite"
     cache = SQLiteDiskCache(path, max_bytes=8, max_entries=2)
     first = hashlib.sha256(b"a").hexdigest()
@@ -70,7 +71,7 @@ def test_sqlite_cache_round_trip_cross_process_and_deterministic_eviction(tmp_pa
     assert cache.stats.misses >= 1
 
 
-def test_corrupt_rows_fail_as_misses_and_invalid_keys_fail_closed(tmp_path: object) -> None:
+def test_corrupt_rows_fail_as_misses_and_invalid_keys_fail_closed(tmp_path: Path) -> None:
     path = str(tmp_path) + "/cache.sqlite"
     cache = SQLiteDiskCache(path)
     key = hashlib.sha256(b"payload").hexdigest()
@@ -82,7 +83,7 @@ def test_corrupt_rows_fail_as_misses_and_invalid_keys_fail_closed(tmp_path: obje
         cache.get("not-a-key")
 
 
-def test_oversized_corrupt_rows_are_rejected_before_payload_load(tmp_path: object) -> None:
+def test_oversized_corrupt_rows_are_rejected_before_payload_load(tmp_path: Path) -> None:
     path = str(tmp_path) + "/oversized.sqlite"
     cache = SQLiteDiskCache(path, max_bytes=8)
     key = hashlib.sha256(b"payload").hexdigest()
@@ -94,7 +95,7 @@ def test_oversized_corrupt_rows_are_rejected_before_payload_load(tmp_path: objec
     assert cache.stats.entries == 0
 
 
-def test_cache_rejects_symlink_database_path(tmp_path: object) -> None:
+def test_cache_rejects_symlink_database_path(tmp_path: Path) -> None:
     target = tmp_path / "target.sqlite"
     link = tmp_path / "link.sqlite"
     try:
@@ -105,7 +106,7 @@ def test_cache_rejects_symlink_database_path(tmp_path: object) -> None:
         SQLiteDiskCache(link)
 
 
-def test_concurrent_process_writers_preserve_sqlite_integrity(tmp_path: object) -> None:
+def test_concurrent_process_writers_preserve_sqlite_integrity(tmp_path: Path) -> None:
     path = str(tmp_path) + "/concurrent.sqlite"
     code = (
         "import hashlib; "

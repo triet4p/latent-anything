@@ -100,6 +100,7 @@ class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"
 
     def _hook(self, location: str) -> Callable[[nn.Module, tuple[object, ...], object], object]:
         def callback(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
+            """Capture one tensor activation and optionally apply intervention."""
             del module, inputs
             if not isinstance(output, torch.Tensor):
                 raise TypeError(f"Capture location {location!r} returned {type(output).__name__}, expected Tensor")

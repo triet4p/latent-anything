@@ -125,6 +125,7 @@ class CEMIteration:
             object.__setattr__(self, name, value)
 
     def to_dict(self) -> dict[str, object]:
+        """Return iteration statistics and bounded action arrays as JSON values."""
         return {
             "iteration": self.iteration,
             "population_size": self.population_size,
@@ -161,6 +162,7 @@ class CEMPlanResult:
         return self.actions
 
     def to_dict(self) -> dict[str, object]:
+        """Return selected actions, convergence history, and runtime evidence."""
         return {
             "actions": self.actions.tolist(),
             "predicted_return": self.predicted_return,
@@ -280,6 +282,7 @@ class CEMPlanner:
         active_profiler = profiler or RuntimeProfiler()
 
         def objective(candidates: np.ndarray) -> np.ndarray:
+            """Score candidate action sequences through imagined rollouts."""
             scores = np.empty(len(candidates), dtype=np.float64)
             discount = active_evaluator.discount
             for index, actions in enumerate(candidates):

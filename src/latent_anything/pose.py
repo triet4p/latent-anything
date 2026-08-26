@@ -85,6 +85,7 @@ class PoseMetadata:
             raise ValueError("pose boundaries require position_unit='m' and angle_unit='rad'")
 
     def to_dict(self) -> dict[str, str]:
+        """Return the frame and unit contract as a JSON-compatible mapping."""
         return {
             "parent_frame": self.parent_frame,
             "child_frame": self.child_frame,
@@ -94,6 +95,7 @@ class PoseMetadata:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PoseMetadata:
+        """Construct metadata from its serialized field mapping."""
         return cls(**data)
 
 
@@ -106,6 +108,7 @@ class PoseConfig(BaseModel):
     angle_unit: str = "rad"
 
     def metadata(self) -> PoseMetadata:
+        """Return this configuration as immutable pose metadata."""
         return PoseMetadata(**self.model_dump())
 
 
@@ -117,10 +120,15 @@ class SO3:
 
     @classmethod
     def identity(cls) -> SO3:
+        """Return the identity rotation."""
         return cls()
 
     @classmethod
     def from_quaternion(cls, quaternion: np.ndarray, *, order: str = "xyzw") -> SO3:
+        """Build a rotation from a finite non-zero quaternion of shape ``(4,)``.
+
+        Only the explicit ``xyzw`` and ``wxyz`` component orders are accepted.
+        """
         q = np.asarray(quaternion, dtype=np.float64)
         if q.shape != (4,) or not np.isfinite(q).all() or np.linalg.norm(q) < 1e-12:
             raise ValueError("quaternion must be a finite non-zero vector with shape (4,)")
@@ -142,6 +150,7 @@ class SO3:
 
     @classmethod
     def exp(cls, rotation_vector: np.ndarray) -> SO3:
+        """Map a rotation vector of shape ``(3,)`` to an SO(3) matrix."""
         v = np.asarray(rotation_vector, dtype=np.float64)
         if v.shape != (3,) or not np.isfinite(v).all():
             raise ValueError("rotation_vector must be finite with shape (3,)")
@@ -153,15 +162,19 @@ class SO3:
 
     @property
     def matrix(self) -> np.ndarray:
+        """Return a defensive copy of the validated ``(3, 3)`` matrix."""
         return self._matrix.copy()
 
     def compose(self, other: SO3) -> SO3:
+        """Compose this rotation with ``other`` in matrix order."""
         return SO3(self._matrix @ other._matrix)
 
     def inverse(self) -> SO3:
+        """Return the inverse rotation."""
         return SO3(self._matrix.T)
 
     def log(self) -> np.ndarray:
+        """Return the rotation-vector logarithm with shape ``(3,)``."""
         cosine = float(np.clip((np.trace(self._matrix) - 1) / 2, -1, 1))
         theta = float(np.arccos(cosine))
         if theta < 1e-10:
@@ -203,9 +216,11 @@ class SO3:
         )
 
     def distance(self, other: SO3) -> float:
+        """Return geodesic angular distance to ``other`` in radians."""
         return float(np.linalg.norm(self.inverse().compose(other).log()))
 
     def interpolate(self, other: SO3, t: float) -> SO3:
+        """Interpolate geodesically toward ``other`` for ``t`` in ``[0, 1]``."""
         if not 0 <= t <= 1:
             raise ValueError("t must be in [0, 1]")
         return self.compose(SO3.exp(t * self.inverse().compose(other).log()))
@@ -241,10 +256,12 @@ class SE3:
 
     @classmethod
     def identity(cls, *, metadata: PoseMetadata | None = None) -> SE3:
+        """Return the identity transform with optional frame metadata."""
         return cls(metadata=metadata)
 
     @classmethod
     def from_matrix(cls, matrix: np.ndarray, *, metadata: PoseMetadata | None = None) -> SE3:
+        """Construct a pose from a validated homogeneous ``(4, 4)`` matrix."""
         value = np.asarray(matrix, dtype=np.float64)
         if value.shape != (4, 4) or not np.allclose(value[3], [0, 0, 0, 1], atol=1e-8):
             raise ValueError("homogeneous pose matrix must have shape (4, 4) and final row [0, 0, 0, 1]")
@@ -252,6 +269,7 @@ class SE3:
 
     @classmethod
     def exp(cls, twist: np.ndarray, *, metadata: PoseMetadata | None = None) -> SE3:
+        """Map a six-vector ``[translation, rotation]`` twist to an SE(3) pose."""
         value = np.asarray(twist, dtype=np.float64)
         if value.shape != (6,):
             raise ValueError("SE(3) twist must have shape (6,), ordered [translation, rotation]")
@@ -267,12 +285,14 @@ class SE3:
 
     @property
     def matrix(self) -> np.ndarray:
+        """Return the homogeneous transform as a new ``(4, 4)`` array."""
         result = np.eye(4)
         result[:3, :3] = self.rotation.matrix
         result[:3, 3] = self.translation
         return result
 
     def compose(self, other: SE3) -> SE3:
+        """Compose transforms when this child frame matches ``other``'s parent."""
         if self.metadata.child_frame != other.metadata.parent_frame:
             raise ValueError(
                 f"frame mismatch: {self.metadata.child_frame!r} cannot compose with parent "
@@ -283,6 +303,7 @@ class SE3:
         )
 
     def inverse(self) -> SE3:
+        """Return the inverse transform with swapped frame metadata."""
         return SE3(
             self.rotation.inverse(),
             -(self.rotation.inverse().matrix @ self.translation),
@@ -290,6 +311,7 @@ class SE3:
         )
 
     def log(self) -> np.ndarray:
+        """Return the six-vector logarithm ordered as translation then rotation."""
         omega = self.rotation.log()
         theta = float(np.linalg.norm(omega))
         skew = _skew(omega)
@@ -304,6 +326,7 @@ class SE3:
         return np.concatenate([v_inverse @ self.translation, omega])
 
     def distance(self, other: SE3, *, translation_weight: float = 1.0, rotation_weight: float = 1.0) -> float:
+        """Return weighted pose distance for transforms sharing both frames."""
         if (
             self.metadata.parent_frame != other.metadata.parent_frame
             or self.metadata.child_frame != other.metadata.child_frame
@@ -316,6 +339,7 @@ class SE3:
         )
 
     def interpolate(self, other: SE3, t: float) -> SE3:
+        """Interpolate translation linearly and rotation geodesically for ``t`` in ``[0, 1]``."""
         if self.metadata != other.metadata:
             raise ValueError("pose interpolation requires matching frame and unit metadata")
         if not 0 <= t <= 1:
@@ -327,10 +351,12 @@ class SE3:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the matrix and frame/unit metadata in mapping form."""
         return {"matrix": self.matrix.tolist(), "metadata": self.metadata.to_dict()}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SE3:
+        """Construct a pose from the mapping produced by :meth:`to_dict`."""
         return cls.from_matrix(
             np.asarray(data["matrix"], dtype=np.float64), metadata=PoseMetadata.from_dict(data["metadata"])
         )
@@ -363,6 +389,7 @@ class PoseTrajectory:
 
     @property
     def poses(self) -> tuple[SE3, ...]:
+        """Return the immutable ordered pose sequence."""
         return self._poses
 
     @property
@@ -372,20 +399,25 @@ class PoseTrajectory:
         return self._metadata
 
     def to_numpy(self) -> np.ndarray:
+        """Return poses as an array with shape ``(n_poses, 4, 4)``."""
         return np.stack([pose.matrix for pose in self._poses])
 
     def group_distance(self) -> np.ndarray:
+        """Return consecutive pose distances, with zero for the first pose."""
         return np.array([0.0 if i == 0 else self._poses[i - 1].distance(self._poses[i]) for i in range(len(self))])
 
     def lerobot_metadata(self) -> dict[str, Any]:
+        """Return LeRobot-compatible pose feature metadata and provenance."""
         return {
             "features": {"observation.state": {"dtype": "float64", "shape": [4, 4], "names": ["pose_matrix"]}},
             **_thaw_metadata(self.metadata),
         }
 
     def to_dict(self) -> dict[str, Any]:
+        """Return poses and recursively thawed metadata for serialization."""
         return {"poses": [pose.to_dict() for pose in self._poses], "metadata": _thaw_metadata(self.metadata)}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PoseTrajectory:
+        """Construct a trajectory from serialized pose mappings and metadata."""
         return cls([SE3.from_dict(item) for item in data["poses"]], metadata=data.get("metadata"))

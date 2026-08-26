@@ -49,6 +49,7 @@ def _validate_metadata(value: object) -> dict[str, object]:
         raise ArtifactStoreError("artifact metadata must be a JSON object")
 
     def visit(item: object) -> None:
+        """Recursively validate JSON-compatible metadata keys and containers."""
         if isinstance(item, Mapping):
             for key, nested in item.items():
                 if not isinstance(key, str):

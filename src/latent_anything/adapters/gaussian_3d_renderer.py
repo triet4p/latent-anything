@@ -48,6 +48,7 @@ class Gaussian3DRendererAdapter:
 
     @property
     def latent_space(self) -> LatentSpace:
+        """Return the fixed-size Gaussian parameter layout and camera metadata."""
         return LatentSpace(
             dim=self.PARAM_DIM,
             geometry="gaussian_3d",
@@ -79,6 +80,7 @@ class Gaussian3DRendererAdapter:
         )
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
+        """Render a validated ``(n_gaussians, 14)`` latent set as an RGB image."""
         self._validate(latent)
         return self._backend.render(
             latent[:, :3], latent[:, 3:7], latent[:, 7:10], latent[:, 10], latent[:, 11:14], self._camera

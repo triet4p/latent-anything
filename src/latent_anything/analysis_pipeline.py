@@ -68,6 +68,7 @@ class AnalysisPipeline(PipelineContract):
 
     def _fit_transform(self, latents: np.ndarray, profiler: RuntimeProfiler | None) -> np.ndarray:
         def operation() -> np.ndarray:
+            """Fit the method and transform the encoded latent batch."""
             return self._fit_transform_impl(latents)
 
         if profiler is None:

@@ -344,6 +344,7 @@ class RolloutPipeline(PipelineContract):
         )
 
         def operation() -> Trajectory:
+            """Run the transition's predictive-mean rollout."""
             return self.transition.mean_rollout(initial, actions, metadata=values)
 
         if profiler is None:

@@ -65,6 +65,7 @@ class Segment:
 
     @property
     def length(self) -> int:
+        """Return the number of frames in this half-open segment."""
         return self.stop - self.start
 
 

@@ -224,6 +224,7 @@ def _make_hover_handler(view: ProjectionView, output: Any) -> Any:
     """Return a plotly ``on_hover`` callback bound to a view and output."""
 
     def handle(figure: Any, trace: Any, points: Any) -> None:  # noqa: ARG001
+        """Render metadata for the points reported by Plotly hover."""
         _update_inspector(view, output, points)
 
     return handle

@@ -28,9 +28,11 @@ class ConvVAE:
 
     @property
     def latent_space(self) -> LatentSpace:
+        """Return the ``euclidean`` latent-space contract for this encoder."""
         return LatentSpace(dim=self.latent_dim, source_model="conv_vae_8x8")
 
     def encode(self, data: np.ndarray) -> np.ndarray:
+        """Encode ``(n, 1, 8, 8)`` images into ``(n, latent_dim)`` vectors."""
         if data.ndim != 4 or data.shape[1:] != (1, 8, 8):
             raise ValueError(f"Expected images shaped (n, 1, 8, 8), got {data.shape}")
         with torch.no_grad():
@@ -69,9 +71,11 @@ class ConvVAE:
         }
 
     def encode_value(self, images: np.ndarray) -> LatentValue:
+        """Encode images and attach this adapter's latent-space metadata."""
         return LatentValue(self.encode(images), self.latent_space)
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
+        """Decode ``(n, latent_dim)`` vectors into ``(n, 1, 8, 8)`` images."""
         if latent.ndim != 2 or latent.shape[1] != self.latent_dim:
             raise ValueError(f"Expected latent shape (n, {self.latent_dim}), got {latent.shape}")
         with torch.no_grad():

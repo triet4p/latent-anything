@@ -2,16 +2,29 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
+from typing import Any
 
+import numpy as np
 import pytest
 
+from latent_anything.visualization import build_projection, prepare_view, projection_explorer
 from scripts.interactive_viz_walkthrough import (
     WalkthroughResult,
     _export,  # pyright: ignore[reportPrivateUsage]
     build_digits_views,
     measure_responsiveness,
 )
+
+pytestmark = pytest.mark.viz
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _require_viz_backend() -> None:  # pyright: ignore[reportUnusedFunction]
+    pytest.importorskip("plotly", reason="visualization walkthrough requires the 'viz' extra (uv sync --extra viz)")
+    pytest.importorskip("kaleido", reason="visualization walkthrough exports PNGs and requires the 'viz' extra")
 
 
 def _small_result() -> WalkthroughResult:
@@ -85,5 +98,43 @@ def test_walkthrough_artifacts_reproducible() -> None:
     assert first.views["kmeans"].to_dict() == second.views["kmeans"].to_dict()
 
 
+def _responsiveness_snapshot(
+    seed: int = 0,
+) -> tuple[dict[str, int], dict[str, Any], tuple[dict[str, Any], ...], str, str]:
+    rng = np.random.default_rng(seed)
+    view = build_projection(
+        rng.random((60_000, 2)),
+        categories=[f"c{i % 8}" for i in range(60_000)],
+        title="Responsiveness check — 60k points",
+    )
+    prepared = prepare_view(view)
+    figure = projection_explorer(view)
+    rendered = sum(len(trace.x) for trace in figure.data if trace.type == "scatter")
+    selected_indices = (0, prepared.n_points // 2, prepared.n_points - 1)
+    selection_metadata = tuple(
+        {"index": index, "point": prepared.points[index].to_dict()} for index in selected_indices
+    )
+    view_payload = prepared.to_dict()
+    selection_payload = {"indices": selected_indices, "points": selection_metadata}
+    view_digest = hashlib.sha256(
+        json.dumps(view_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    selection_digest = hashlib.sha256(
+        json.dumps(selection_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return (
+        {"n_input": 60_000, "n_rendered": rendered, "n_kept": prepared.n_points},
+        dict(prepared.metadata),
+        selection_metadata,
+        view_digest,
+        selection_digest,
+    )
+
+
 def test_responsiveness_uses_deterministic_seed() -> None:
-    assert measure_responsiveness()["n_rendered"] == measure_responsiveness()["n_rendered"]
+    first = _responsiveness_snapshot()
+    second = _responsiveness_snapshot()
+    assert first == second
+    assert first[0]["n_rendered"] <= 50_000
+    assert first[0]["n_rendered"] > 0
+    assert _responsiveness_snapshot(seed=1)[3:] != first[3:]

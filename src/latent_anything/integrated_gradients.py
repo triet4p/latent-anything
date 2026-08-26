@@ -171,6 +171,7 @@ class IntegratedGradients:
         captured: dict[str, Any] = {}
 
         def capture_hook(_module: Any, _inputs: Any, output: Any) -> Any:
+            """Capture the selected activation and retain its full batch context."""
             activation = _first_output(output)
             batch = self.config.activation_batch_index
             position = _resolve_position(
@@ -288,6 +289,7 @@ class IntegratedGradients:
         torch: Any,
     ) -> float:
         def hook(_module: Any, _inputs: Any, output: Any) -> Any:
+            """Replace the target layer output with the supplied baseline/path."""
             return _replace_first_output(output, activation)
 
         handle = module.register_forward_hook(hook)
@@ -313,6 +315,7 @@ class IntegratedGradients:
         path = activation.detach().clone().requires_grad_(True)
 
         def hook(_module: Any, _inputs: Any, output: Any) -> Any:
+            """Replace the target layer output while retaining gradient flow."""
             return _replace_first_output(output, path)
 
         handle = module.register_forward_hook(hook)

@@ -1,4 +1,7 @@
-"""Pipeline #2: focused orchestration for Layer B manipulation stories."""
+"""Pipeline #2: focused orchestration for intervention stories.
+
+``InterventionPipeline`` is the RFC0001 canonical beta alias.
+"""
 
 from __future__ import annotations
 
@@ -34,14 +37,17 @@ class ManipulationPipeline(PipelineContract):
 
     @property
     def method(self) -> BMethod:
+        """Return the wrapped manipulation method instance."""
         return self._method
 
     @property
     def adapter(self) -> FlatBatchDecodableAdapter | None:
+        """Return the optional adapter used for data-space execution."""
         return self._adapter
 
     @property
     def latent_space(self) -> LatentSpace | None:
+        """Return the method or adapter latent space when one is declared."""
         return self._latent_space
 
     def fit(self, *args: object, **kwargs: object) -> None:
@@ -138,6 +144,7 @@ class ManipulationPipeline(PipelineContract):
         fit_kwargs: dict[str, object] | None = None,
         data: np.ndarray | None = None,
     ) -> np.ndarray:
+        """Fit the method and optionally run it on one data batch."""
         self.fit(*fit_args, **(fit_kwargs or {}))
         return self.run_data(data) if data is not None else np.array([])
 
@@ -148,6 +155,7 @@ class ManipulationPipeline(PipelineContract):
         trajectory: Trajectory | None = None,
         **apply_kwargs: object,
     ) -> np.ndarray | Trajectory | None:
+        """Fit the method and optionally apply it to one latent trajectory."""
         self.fit(*fit_args, **(fit_kwargs or {}))
         if trajectory is None:
             return None
@@ -179,3 +187,8 @@ class ManipulationPipeline(PipelineContract):
         result = await asyncio.to_thread(operation)
         profiler.record(stage, perf_counter() - start, component=component)
         return result
+
+
+# RFC0001 canonical vocabulary. This is deliberately an exact alias rather
+# than a subclass/wrapper, preserving beta identity and pickle compatibility.
+InterventionPipeline = ManipulationPipeline

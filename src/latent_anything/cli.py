@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import cast
 
+from latent_anything.integrations import require_optional
+from latent_anything.integrations.lerobot import load_lerobot
 from latent_anything.integrations.lerobot_recording import supported_capture_points
 from latent_anything.run_record import FileSystemRunRecorder, build_comparison_report
 
@@ -74,13 +77,16 @@ def _policy_snapshot(policy: str) -> dict[str, object]:
 
 
 def _inspect_dataset(args: argparse.Namespace) -> int:
-    from lerobot.datasets import (  # pyright: ignore[reportMissingImports, reportMissingTypeStubs, reportAttributeAccessIssue]
-        LeRobotDatasetMetadata,
+    load_lerobot()
+    dataset_module = require_optional("lerobot.datasets", extra="lerobot")
+    metadata_factory = cast(
+        Callable[..., object],
+        dataset_module.LeRobotDatasetMetadata,  # pyright: ignore[reportAttributeAccessIssue]
     )
 
     from latent_anything.integrations.lerobot import describe_lerobot_dataset
 
-    metadata = LeRobotDatasetMetadata(args.repo_id, revision=args.revision)
+    metadata = metadata_factory(args.repo_id, revision=args.revision)
     descriptor = describe_lerobot_dataset(metadata)
     report: dict[str, object] = {
         "claim_scope": "dataset schema, episode boundaries, and provenance only; no model claim",
