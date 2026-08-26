@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import inspect
+import pickle
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from numpy.testing import assert_allclose
 
 from latent_anything import (
@@ -13,6 +19,7 @@ from latent_anything import (
     GaussianPrediction,
     LatentSpace,
     LatentTransition,
+    OneStepMetrics,
     RSSMLatentTransition,
     RSSMOneStepMetrics,
     RSSMPrediction,
@@ -166,6 +173,18 @@ def test_stochastic_sampling_is_seeded_and_keeps_distribution_explicit() -> None
     assert np.isfinite(prediction.log_prob(first)).all()
 
 
+@given(st.integers(min_value=1, max_value=8))
+def test_stochastic_sampling_shape_and_seed_property(n_samples: int) -> None:
+    states, actions, next_states = _noisy_samples()
+    model = _stochastic_transition().fit(states, actions, next_states)
+    prediction = model.predict(np.zeros(2), np.zeros(1))
+
+    samples = prediction.sample(seed=64, n_samples=n_samples)
+    repeated = prediction.sample(seed=64, n_samples=n_samples)
+    assert samples.shape == (n_samples, 2)
+    assert_allclose(samples, repeated)
+
+
 def test_stochastic_degenerate_noise_is_reproducibly_deterministic() -> None:
     states = np.array([[0.0], [1.0], [2.0], [3.0]])
     actions = np.ones((4, 1))
@@ -270,6 +289,33 @@ def test_rssm_reset_makes_stateful_execution_reproducible() -> None:
     assert prediction.deterministic_state.shape == model.hidden_shape
 
 
+def test_rssm_runtime_state_and_all_valid_mask_are_parity_stable() -> None:
+    states, actions, _ = _rssm_sequences(episodes=4, horizon=4)
+    full_mask = np.ones(actions.shape[:2], dtype=np.float64)
+    unmasked = _rssm().fit(states, actions, seed=65)
+    masked = _rssm().fit(states, actions, sequence_mask=full_mask, seed=65)
+    assert_allclose(
+        unmasked.step(states[0, 0], actions[0, 0]),
+        masked.step(states[0, 0], actions[0, 0]),
+        atol=1e-12,
+    )
+    masked.reset()
+    prediction = masked.predict(states[0, 0], actions[0, 0])
+    rollout = masked.rollout(states[0, 0], actions[0], n_samples=8, seed=65)
+    assert_allclose(prediction.mean, unmasked.mean_rollout(states[0, 0], actions[:1, 0]).to_numpy()[1], atol=1e-12)
+    assert_allclose(masked.hidden_state, np.mean(rollout.deterministic_states[:, -1], axis=0), atol=1e-12)
+
+
+def test_rssm_failed_step_does_not_mutate_recurrent_state() -> None:
+    states, actions, _ = _rssm_sequences(episodes=2, horizon=3)
+    model = _rssm().fit(states, actions)
+    model.step(states[0, 0], actions[0, 0])
+    before = model.hidden_state
+    with pytest.raises(ValueError, match="state must have shape"):
+        model.step(np.zeros(3), actions[0, 0])
+    assert_allclose(model.hidden_state, before)
+
+
 def test_rssm_rollout_is_seeded_and_keeps_deterministic_state() -> None:
     states, actions, _ = _rssm_sequences()
     model = _rssm().fit(states, actions)
@@ -305,6 +351,135 @@ def test_rssm_checkpoint_round_trip_resets_in_flight_state(tmp_path: Path) -> No
         atol=1e-5,
     )
     assert restored.to_config().model_dump() == model.to_config().model_dump()
+
+
+def test_rssm_checkpoint_round_trip_is_cross_process_stable(tmp_path: Path) -> None:
+    states, actions, _ = _rssm_sequences()
+    model = _rssm().fit(states, actions)
+    path = tmp_path / "rssm-cross-process.npz"
+    model.save(path)
+    command = (
+        "from pathlib import Path; "
+        "from latent_anything.rssm import RSSMLatentTransition; "
+        f"model = RSSMLatentTransition.load(Path({str(path)!r})); "
+        "print(model.hidden_state.shape); print(model.to_config().model_dump_json())"
+    )
+    completed = subprocess.run([sys.executable, "-c", command], capture_output=True, text=True, check=True)
+    assert "(6,)" in completed.stdout
+    assert '"hidden_dim":6' in completed.stdout
+
+
+def test_rssm_public_surface_state_and_result_schema_snapshot() -> None:
+    assert RSSMLatentTransition.__module__ == "latent_anything.rssm"
+    assert tuple(inspect.signature(RSSMLatentTransition.fit).parameters) == (
+        "self",
+        "states",
+        "actions",
+        "sequence_mask",
+        "seed",
+    )
+    assert tuple(inspect.signature(RSSMLatentTransition.load).parameters) == ("path", "device")
+    assert tuple(RSSMTransitionConfig.model_fields) == (
+        "hidden_dim",
+        "epochs",
+        "learning_rate",
+        "variance_floor",
+        "posterior_scale_factor",
+        "stability_norm_limit",
+        "seed",
+        "device",
+    )
+    assert tuple(RSSMPrediction.__dataclass_fields__) == ("mean", "scale", "deterministic_state")
+    assert tuple(RSSMRollout.__dataclass_fields__) == ("samples", "deterministic_states", "interval_level", "metadata")
+    assert tuple(RSSMOneStepMetrics.__dataclass_fields__) == (
+        "mse",
+        "rmse",
+        "negative_log_likelihood",
+        "kl_divergence",
+        "coverage",
+        "mean_error",
+        "n_samples",
+        "runtime_seconds",
+    )
+    assert tuple(RSSMRolloutMetrics.__dataclass_fields__) == (
+        "errors_by_horizon",
+        "kl_by_horizon",
+        "coverage_by_horizon",
+        "mean_error",
+        "final_error",
+        "mean_kl",
+        "mean_coverage",
+        "runtime_seconds",
+        "stable",
+    )
+
+
+def test_rssm_rejects_nonbinary_masks_and_tampered_checkpoint(tmp_path: Path) -> None:
+    states, actions, _ = _rssm_sequences(episodes=2, horizon=3)
+    model = _rssm().fit(states, actions)
+    with pytest.raises(ValueError, match="sequence_mask"):
+        model.fit(states, actions, sequence_mask=np.full((2, 3), 0.5))
+
+    tampered = tmp_path / "rssm-tampered.npz"
+    np.savez(tampered, recurrent_weights=np.zeros((1, 1)))
+    with pytest.raises(KeyError):
+        RSSMLatentTransition.load(tampered)
+
+
+def test_transition_public_surface_and_result_schema_snapshot() -> None:
+    assert DeterministicLatentTransition.__module__ == "latent_anything.transition"
+    assert StochasticGaussianLatentTransition.__module__ == "latent_anything.transition"
+    assert tuple(inspect.signature(DeterministicLatentTransition.fit).parameters) == (
+        "self",
+        "states",
+        "actions",
+        "next_states",
+        "training_horizon",
+        "source_space_identity",
+    )
+    assert tuple(inspect.signature(StochasticGaussianLatentTransition.rollout).parameters) == (
+        "self",
+        "initial_state",
+        "actions",
+        "n_samples",
+        "seed",
+        "rng",
+        "interval_level",
+        "metadata",
+    )
+    assert tuple(GaussianPrediction.__dataclass_fields__) == ("mean", "scale")
+    assert tuple(StochasticRollout.__dataclass_fields__) == ("samples", "interval_level", "metadata")
+    assert tuple(OneStepMetrics.__dataclass_fields__) == (
+        "mse",
+        "rmse",
+        "max_error",
+        "n_samples",
+        "runtime_seconds",
+    )
+
+
+def test_transition_facade_import_order_and_pickle_identity(tmp_path: Path) -> None:
+    value_path = tmp_path / "prediction.pkl"
+    value_path.write_bytes(pickle.dumps(GaussianPrediction(np.array([1.0, 2.0]), np.array([0.1, 0.2]))))
+    load_code = (
+        "import pickle; "
+        f"value = pickle.loads(open({str(value_path)!r}, 'rb').read()); "
+        "print(type(value).__module__, type(value).__name__, value.distribution_family)"
+    )
+    loaded = subprocess.run([sys.executable, "-c", load_code], capture_output=True, text=True, check=True)
+    assert loaded.stdout.strip() == "latent_anything.transition GaussianPrediction diagonal_gaussian"
+
+    import_orders = (
+        "import latent_anything.transition; import latent_anything._transition_types",
+        "import latent_anything._transition_types; import latent_anything.transition",
+    )
+    for imports in import_orders:
+        code = (
+            f"{imports}; from latent_anything.transition import GaussianPrediction; "
+            "print(GaussianPrediction.__module__)"
+        )
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+        assert result.stdout.strip() == "latent_anything.transition"
 
 
 def test_three_transition_instances_satisfy_only_the_mean_contract() -> None:
