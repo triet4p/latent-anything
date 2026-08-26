@@ -16,23 +16,30 @@ from types import MappingProxyType
 from typing import Literal
 
 import numpy as np
-import torch
 from pydantic import BaseModel, ConfigDict, Field
-from torch import nn, optim
 
+from latent_anything._tokenized_dynamics import AutoregressiveDynamics as _AutoregressiveDynamics
+from latent_anything._tokenized_evaluation import free_running_metrics, teacher_forced_metrics
+from latent_anything._tokenized_integrity import (
+    validate_codebook_version,
+    validate_sequence_codebook_version,
+    validate_tokenizer_binding,
+)
+from latent_anything._tokenized_training import fit_token_dynamics, sample_next_tokens
+from latent_anything._tokenized_validation import (
+    finite_array as _finite_array,
+)
+from latent_anything._tokenized_validation import (
+    validate_actions,
+    validate_sequence_tokens,
+    validate_tokens,
+    validate_training_actions,
+)
 from latent_anything.adapters.vq_vae import VQVAE
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
 
 SamplingMode = Literal["greedy", "sample"]
-
-
-def _finite_array(value: object, *, name: str) -> np.ndarray:
-    if not isinstance(value, np.ndarray):
-        raise TypeError(f"{name} must be a numpy array")
-    if not np.issubdtype(value.dtype, np.number) or not np.isfinite(value).all():
-        raise ValueError(f"{name} must contain finite numeric values")
-    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,6 +81,7 @@ class TokenPredictionMetrics:
     n_tokens: int
 
     def to_dict(self) -> dict[str, float | int]:
+        """Return teacher-forced token metrics as JSON-compatible scalars."""
         return {
             "cross_entropy": self.cross_entropy,
             "perplexity": self.perplexity,
@@ -94,9 +102,11 @@ class TokenRolloutMetrics:
 
     @property
     def horizon(self) -> int:
+        """Return the number of free-running horizon entries."""
         return len(self.token_error_by_horizon)
 
     def to_dict(self) -> dict[str, object]:
+        """Return token rollout metrics with optional diagnostics as lists."""
         return {
             "token_error_by_horizon": list(self.token_error_by_horizon),
             "exact_frame_accuracy_by_horizon": list(self.exact_frame_accuracy_by_horizon),
@@ -124,6 +134,7 @@ class TokenizedEvaluationReport:
         object.__setattr__(self, "provenance", MappingProxyType(dict(self.provenance)))
 
     def to_dict(self) -> dict[str, object]:
+        """Return teacher-forced, free-running, codebook, and provenance evidence."""
         return {
             "teacher_forced": self.teacher_forced.to_dict(),
             "free_running": self.free_running.to_dict(),
@@ -144,42 +155,6 @@ class TokenizedWorldModelConfig(BaseModel):
     seed: int = 0
     model_revision: str = "compact-tokenized-world-model-v1"
     codebook_version: str
-
-
-class _AutoregressiveDynamics(nn.Module):
-    """Private GRU encoder/decoder used by ``TokenizedWorldModel``."""
-
-    def __init__(self, vocab_size: int, action_dim: int, hidden_dim: int, pad_token_id: int) -> None:
-        super().__init__()
-        self.token_embedding = nn.Embedding(vocab_size + 1, hidden_dim, padding_idx=pad_token_id)
-        self.action_projection = nn.Linear(action_dim, hidden_dim)
-        self.encoder = nn.GRU(hidden_dim, hidden_dim, batch_first=True)
-        self.decoder = nn.GRU(hidden_dim, hidden_dim, batch_first=True)
-        self.output = nn.Linear(hidden_dim, vocab_size)
-        self.bos = nn.Parameter(torch.zeros(hidden_dim))
-
-    def encode_context(self, tokens: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        action_embedding = self.action_projection(actions).unsqueeze(1)
-        values = self.token_embedding(tokens) + action_embedding
-        _, hidden = self.encoder(values)
-        return hidden
-
-    def decode_teacher_forced(
-        self, hidden: torch.Tensor, actions: torch.Tensor, target_tokens: torch.Tensor
-    ) -> torch.Tensor:
-        action_embedding = self.action_projection(actions).unsqueeze(1)
-        prefix = torch.cat(
-            (self.bos.expand(target_tokens.shape[0], 1, -1), self.token_embedding(target_tokens[:, :-1])), dim=1
-        )
-        values = prefix + action_embedding
-        decoded, _ = self.decoder(values, hidden)
-        return self.output(decoded)
-
-    def decode_one(self, hidden: torch.Tensor, actions: torch.Tensor, prefix: torch.Tensor) -> torch.Tensor:
-        action_embedding = self.action_projection(actions)
-        value = self.bos.expand(prefix.shape[0], -1) if prefix.shape[1] == 0 else self.token_embedding(prefix[:, -1])
-        decoded, _ = self.decoder((value + action_embedding).unsqueeze(1), hidden)
-        return self.output(decoded[:, 0])
 
 
 class TokenizedWorldModel:
@@ -208,8 +183,7 @@ class TokenizedWorldModel:
         if action_dim < 1 or hidden_dim < 2 or epochs < 1 or learning_rate <= 0.0:
             raise ValueError("action_dim and hidden_dim must be positive; epochs and learning_rate must be positive")
         tokenizer_version = tokenizer.codebook_version
-        if codebook_version is not None and codebook_version != tokenizer_version:
-            raise ValueError(f"codebook_version {codebook_version!r} does not match tokenizer {tokenizer_version!r}")
+        validate_codebook_version(codebook_version, tokenizer_version)
         self.tokenizer = tokenizer
         self.action_dim = action_dim
         self.hidden_dim = hidden_dim
@@ -248,38 +222,47 @@ class TokenizedWorldModel:
 
     @property
     def state_dim(self) -> int:
+        """Return the number of token IDs representing one frame."""
         return self.tokens_per_frame
 
     @property
     def action_shape(self) -> tuple[int]:
+        """Return the one-dimensional action shape for dynamics inputs."""
         return (self.action_dim,)
 
     @property
     def action_dim(self) -> int:
+        """Return the configured action width."""
         return self._action_dim
 
     @action_dim.setter
     def action_dim(self, value: int) -> None:
+        """Set the action width used to construct the dynamics model."""
         self._action_dim = value
 
     @property
     def state_shape(self) -> tuple[int]:
+        """Return the token-ID state shape for one frame."""
         return (self.tokens_per_frame,)
 
     @property
     def source_space_identity(self) -> str:
+        """Return the tokenizer revision and codebook identity for this state space."""
         self._validate_tokenizer_version()
         return f"{self.tokenizer.model_revision}:{self.codebook_version}:{self.tokens_per_frame}tokens"
 
     @property
     def is_fitted(self) -> bool:
+        """Return whether the autoregressive dynamics model has been fitted."""
         return self._fitted
 
     @property
     def fit_metadata(self) -> Mapping[str, object]:
+        """Return a defensive mapping of fit, tokenizer, and provenance metadata."""
         return MappingProxyType(dict(self._fit_metadata))
 
     def to_config(self) -> TokenizedWorldModelConfig:
+        """Return the serializable dynamics configuration and codebook binding."""
         return TokenizedWorldModelConfig(
             action_dim=self.action_dim,
             hidden_dim=self.hidden_dim,
@@ -337,8 +320,7 @@ class TokenizedWorldModel:
         self._validate_tokenizer_version()
         tokens = self._validate_sequence_tokens(token_sequences, allow_padding=True)
         action_values, mask = self._validate_training_actions(actions, sequence_mask, tokens.shape[:2])
-        if codebook_version is not None and codebook_version != self.codebook_version:
-            raise ValueError("token sequence codebook_version does not match the frozen tokenizer")
+        validate_sequence_codebook_version(codebook_version, self.codebook_version)
         valid = mask.astype(bool)
         current = tokens[:, :-1][valid]
         target = tokens[:, 1:][valid]
@@ -348,30 +330,22 @@ class TokenizedWorldModel:
         if current.shape[0] == 0:
             raise ValueError("sequence_mask must select at least one transition")
 
-        torch.manual_seed(self.seed)  # pyright: ignore[reportUnknownMemberType]
-        torch.set_num_threads(1)
-        source_tensor = torch.from_numpy(current.astype(np.int64))  # pyright: ignore[reportUnknownMemberType]
-        target_tensor = torch.from_numpy(target.astype(np.int64))  # pyright: ignore[reportUnknownMemberType]
-        action_tensor = torch.from_numpy(flat_actions.astype(np.float32))  # pyright: ignore[reportUnknownMemberType]
-        optimizer = optim.Adam(self._dynamics.parameters(), lr=self.learning_rate)
-        last_loss = 0.0
-        last_accuracy = 0.0
-        for _ in range(self.epochs):
-            hidden = self._dynamics.encode_context(source_tensor, action_tensor)
-            logits = self._dynamics.decode_teacher_forced(hidden, action_tensor, target_tensor)
-            loss = nn.functional.cross_entropy(logits.reshape(-1, self.vocab_size), target_tensor.reshape(-1))
-            optimizer.zero_grad()
-            loss.backward()  # pyright: ignore[reportUnknownMemberType]
-            optimizer.step()  # pyright: ignore[reportUnknownMemberType]
-            with torch.no_grad():
-                last_loss = float(loss.detach())  # pyright: ignore[reportUnknownMemberType]
-                last_accuracy = float((logits.argmax(dim=-1) == target_tensor).float().mean())  # pyright: ignore[reportUnknownMemberType]
+        result = fit_token_dynamics(
+            self._dynamics,
+            current,
+            target,
+            flat_actions,
+            vocab_size=self.vocab_size,
+            epochs=self.epochs,
+            learning_rate=self.learning_rate,
+            seed=self.seed,
+        )
         self._fitted = True
         self._fit_metadata = {
             "valid_transitions": int(current.shape[0]),
             "masked_transitions": int(mask.size - mask.sum()),
-            "last_cross_entropy": last_loss,
-            "last_token_accuracy": last_accuracy,
+            "last_cross_entropy": result.loss,
+            "last_token_accuracy": result.accuracy,
             "codebook_version": self.codebook_version,
             "input_representation": "token_sequences",
         }
@@ -397,33 +371,18 @@ class TokenizedWorldModel:
             raise ValueError("temperature must be finite and positive")
         if top_k is not None and not 1 <= top_k <= self.vocab_size:
             raise ValueError(f"top_k must be between 1 and {self.vocab_size}")
-        generator = np.random.default_rng(seed)
-        current_tensor = torch.from_numpy(current.astype(np.int64))  # pyright: ignore[reportUnknownMemberType]
-        action_tensor = torch.from_numpy(actions.astype(np.float32))  # pyright: ignore[reportUnknownMemberType]
-        with torch.no_grad():
-            hidden = self._dynamics.encode_context(current_tensor, action_tensor)
-            prefix = torch.empty((current.shape[0], 0), dtype=torch.long)
-            output = np.empty((current.shape[0], self.tokens_per_frame), dtype=np.int64)
-            log_likelihood = np.empty_like(output, dtype=np.float64)
-            for position in range(self.tokens_per_frame):
-                logits = self._dynamics.decode_one(hidden, action_tensor, prefix)
-                scaled = logits / temperature
-                if top_k is not None and top_k < self.vocab_size:
-                    values, indices = torch.topk(scaled, top_k, dim=-1)
-                    filtered = torch.full_like(scaled, -torch.inf)
-                    filtered.scatter_(1, indices, values)
-                    scaled = filtered
-                log_probs = torch.log_softmax(scaled, dim=-1)
-                if sampling == "greedy":
-                    next_token = torch.argmax(log_probs, dim=-1)
-                else:
-                    probabilities = torch.softmax(scaled, dim=-1).cpu().numpy()
-                    sampled = [generator.choice(self.vocab_size, p=row) for row in probabilities]
-                    next_token = torch.from_numpy(np.asarray(sampled, dtype=np.int64))
-                output[:, position] = next_token.cpu().numpy()
-                log_likelihood[:, position] = log_probs.gather(1, next_token[:, None]).squeeze(1).cpu().numpy()
-                prefix = torch.cat((prefix, next_token[:, None]), dim=1)
-        return TokenPrediction(output, log_likelihood, sampling)
+        result = sample_next_tokens(
+            self._dynamics,
+            current,
+            actions,
+            vocab_size=self.vocab_size,
+            tokens_per_frame=self.tokens_per_frame,
+            sampling=sampling,
+            temperature=temperature,
+            top_k=top_k,
+            seed=seed,
+        )
+        return TokenPrediction(result.tokens, result.token_log_likelihood, sampling)
 
     def step(self, state: np.ndarray, action: np.ndarray) -> np.ndarray:
         """Return one greedy next token frame for the transition contract."""
@@ -539,20 +498,14 @@ class TokenizedWorldModel:
     def _teacher_forced_metrics(
         self, tokens: np.ndarray, actions: np.ndarray, mask: np.ndarray
     ) -> TokenPredictionMetrics:
-        current = self._validate_tokens(tokens[:, :-1][mask.astype(bool)], name="current tokens")
-        target = self._validate_tokens(tokens[:, 1:][mask.astype(bool)], name="target tokens")
-        flat_actions = actions[mask.astype(bool)]
-        current_tensor = torch.from_numpy(current.astype(np.int64))  # pyright: ignore[reportUnknownMemberType]
-        target_tensor = torch.from_numpy(target.astype(np.int64))  # pyright: ignore[reportUnknownMemberType]
-        action_tensor = torch.from_numpy(flat_actions.astype(np.float32))  # pyright: ignore[reportUnknownMemberType]
-        with torch.no_grad():
-            hidden = self._dynamics.encode_context(current_tensor, action_tensor)
-            logits = self._dynamics.decode_teacher_forced(hidden, action_tensor, target_tensor)
-            loss = nn.functional.cross_entropy(logits.reshape(-1, self.vocab_size), target_tensor.reshape(-1))
-            accuracy = (logits.argmax(dim=-1) == target_tensor).float().mean()
-        n_tokens = int(target.size)
-        cross_entropy = float(loss)  # pyright: ignore[reportUnknownArgumentType]
-        return TokenPredictionMetrics(cross_entropy, float(np.exp(cross_entropy)), float(accuracy), n_tokens)  # pyright: ignore[reportUnknownArgumentType]
+        cross_entropy, perplexity, accuracy, n_tokens = teacher_forced_metrics(
+            self._dynamics,
+            tokens,
+            actions,
+            mask,
+            vocab_size=self.vocab_size,
+        )
+        return TokenPredictionMetrics(cross_entropy, perplexity, accuracy, n_tokens)
 
     def _free_running_metrics(
         self,
@@ -564,38 +517,18 @@ class TokenizedWorldModel:
         task_proxy: Callable[[np.ndarray], np.ndarray] | None,
         failure_threshold: float,
     ) -> TokenRolloutMetrics:
-        if not 0.0 < failure_threshold <= 1.0:
-            raise ValueError("failure_threshold must be in (0, 1]")
-        horizon = actions.shape[1]
-        errors: list[float] = []
-        exact: list[float] = []
-        decoded_errors: list[float] | None = [] if decoded_targets is not None else None
-        task_accuracy: list[float] | None = [] if task_proxy is not None and decoded_targets is not None else None
-        current = tokens[:, 0].copy()
-        for index in range(horizon):
-            valid = mask[:, index].astype(bool)
-            target = tokens[:, index + 1]
-            prediction = self.predict_next(current, actions[:, index])
-            predicted = prediction.tokens
-            if not np.any(valid):
-                errors.append(float("nan"))
-                exact.append(float("nan"))
-            else:
-                errors.append(float(np.mean(predicted[valid] != target[valid])))
-                exact.append(float(np.mean(np.all(predicted[valid] == target[valid], axis=1))))
-                if decoded_errors is not None and decoded_targets is not None:
-                    decoded = self.decode(predicted[valid])
-                    decoded_errors.append(float(np.mean(np.square(decoded - decoded_targets[valid, index + 1]))))
-                    if task_accuracy is not None and task_proxy is not None:
-                        predicted_labels = np.asarray(task_proxy(decoded))
-                        target_labels = np.asarray(task_proxy(decoded_targets[valid, index + 1]))
-                        if predicted_labels.shape != target_labels.shape:
-                            raise ValueError("task_proxy must return matching label shapes")
-                        task_accuracy.append(float(np.mean(predicted_labels == target_labels)))
-            current = predicted
-        failure_horizon = next(
-            (index + 1 for index, value in enumerate(errors) if np.isfinite(value) and value > failure_threshold),
-            None,
+        errors, exact, decoded_errors, task_accuracy, failure_horizon = free_running_metrics(
+            self._dynamics,
+            tokens,
+            actions,
+            mask,
+            vocab_size=self.vocab_size,
+            tokens_per_frame=self.tokens_per_frame,
+            pad_token_id=self.pad_token_id,
+            decode=self.decode if decoded_targets is not None else None,
+            decoded_targets=decoded_targets,
+            task_proxy=task_proxy,
+            failure_threshold=failure_threshold,
         )
         return TokenRolloutMetrics(
             tuple(errors),
@@ -620,19 +553,13 @@ class TokenizedWorldModel:
         return tokens, decoded
 
     def _validate_sequence_tokens(self, tokens: np.ndarray, *, allow_padding: bool) -> np.ndarray:
-        values = _finite_array(tokens, name="token_sequences")
-        if values.ndim != 3 or values.shape[2] != self.tokens_per_frame:
-            raise ValueError(f"token_sequences must have shape (episodes, time, {self.tokens_per_frame})")
-        if not np.issubdtype(values.dtype, np.integer):
-            raise TypeError("token_sequences must preserve integer token IDs")
-        if allow_padding:
-            if np.any(values < 0) or np.any(values > self.pad_token_id):
-                raise ValueError("token IDs must be within the codebook or padding token")
-        else:
-            self._validate_tokens(values.reshape(-1, self.tokens_per_frame), name="token_sequences")
-        if values.shape[1] < 2:
-            raise ValueError("token sequences need at least an initial and next frame")
-        return values.astype(np.int64, copy=False)
+        return validate_sequence_tokens(
+            tokens,
+            tokens_per_frame=self.tokens_per_frame,
+            pad_token_id=self.pad_token_id,
+            vocab_size=self.vocab_size,
+            allow_padding=allow_padding,
+        )
 
     def _validate_tokens(
         self,
@@ -642,30 +569,17 @@ class TokenizedWorldModel:
         allow_single: bool = False,
         allow_sequence: bool = False,
     ) -> np.ndarray:
-        values = _finite_array(tokens, name=name)
-        expected_ndim = 2
-        if allow_sequence:
-            expected_ndim = 3
-        valid_single = allow_single and values.ndim in {1, 2}
-        if (values.ndim != expected_ndim and not valid_single) or values.shape[-1] != self.tokens_per_frame:
-            raise ValueError(f"{name} must end with token shape ({self.tokens_per_frame},)")
-        if not np.issubdtype(values.dtype, np.integer):
-            if not np.all(values == np.floor(values)):
-                raise TypeError(f"{name} must contain integer token IDs")
-            values = values.astype(np.int64)
-        if np.any(values < 0) or np.any(values >= self.vocab_size):
-            raise ValueError(f"{name} contains invalid token IDs; expected [0, {self.vocab_size - 1}]")
-        if allow_single and values.ndim == 1:
-            values = values[None, :]
-        return values.astype(np.int64, copy=False)
+        return validate_tokens(
+            tokens,
+            name=name,
+            tokens_per_frame=self.tokens_per_frame,
+            vocab_size=self.vocab_size,
+            allow_single=allow_single,
+            allow_sequence=allow_sequence,
+        )
 
     def _validate_actions(self, actions: np.ndarray, *, batch_size: int) -> np.ndarray:
-        values = _finite_array(actions, name="action")
-        if values.ndim == 1:
-            values = values[None, :]
-        if values.ndim != 2 or values.shape != (batch_size, self.action_dim):
-            raise ValueError(f"action must have shape ({batch_size}, {self.action_dim})")
-        return values.astype(np.float64, copy=False)
+        return validate_actions(actions, batch_size=batch_size, action_dim=self.action_dim)
 
     def _validate_training_actions(
         self,
@@ -673,18 +587,12 @@ class TokenizedWorldModel:
         sequence_mask: np.ndarray | None,
         sequence_shape: tuple[int, int],
     ) -> tuple[np.ndarray, np.ndarray]:
-        values = _finite_array(actions, name="actions")
-        expected_shape = (sequence_shape[0], sequence_shape[1] - 1, self.action_dim)
-        if values.ndim != 3 or values.shape != expected_shape:
-            raise ValueError(f"actions must have shape {expected_shape}")
-        if sequence_mask is None:
-            mask = np.ones(values.shape[:2], dtype=bool)
-        else:
-            mask_values = _finite_array(sequence_mask, name="sequence_mask")
-            if mask_values.shape != values.shape[:2] or not np.all(np.isin(mask_values, [0, 1])):
-                raise ValueError("sequence_mask must be a binary array matching the transition batch")
-            mask = mask_values.astype(bool)
-        return values.astype(np.float64, copy=False), mask
+        return validate_training_actions(
+            actions,
+            sequence_mask,
+            sequence_shape,
+            action_dim=self.action_dim,
+        )
 
     def _require_fitted(self) -> None:
         self._validate_tokenizer_version()
@@ -692,8 +600,7 @@ class TokenizedWorldModel:
             raise RuntimeError("TokenizedWorldModel must be fitted before prediction")
 
     def _validate_tokenizer_version(self) -> None:
-        if self.tokenizer.codebook_version != self.codebook_version:
-            raise ValueError("tokenizer checkpoint changed after TokenizedWorldModel construction")
+        validate_tokenizer_binding(self.tokenizer.codebook_version, self.codebook_version)
 
 
 __all__ = [

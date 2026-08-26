@@ -10,30 +10,38 @@ observation-centred posterior proxy and is reported explicitly as such.
 
 from __future__ import annotations
 
-import json
 import os
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 import torch
 from pydantic import BaseModel, Field, field_validator
 
+from latent_anything._rssm_checkpoint import read_rssm_checkpoint, write_rssm_checkpoint
+from latent_anything._rssm_evaluation import aggregate_one_step_metrics, aggregate_rollout_metrics
+from latent_anything._rssm_runtime import (
+    build_rollout_metadata,
+    recurrent_step,
+    sample_recurrent_rollout,
+    teacher_forced_distribution_arrays,
+)
+from latent_anything._rssm_training import fit_rssm_parameters, teacher_forced_predictions
+from latent_anything._rssm_validation import (
+    finite_array as _finite_array,
+)
+from latent_anything._rssm_validation import (
+    validate_batch,
+    validate_one_step_sequences,
+    validate_point,
+    validate_rollout_inputs,
+    validate_sequences,
+)
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
-
-
-def _finite_array(value: object, *, name: str) -> np.ndarray:
-    if not isinstance(value, np.ndarray):
-        raise TypeError(f"{name} must be a numpy array, got {type(value).__name__}")
-    if not np.issubdtype(value.dtype, np.number):
-        raise TypeError(f"{name} must have a numeric dtype, got {value.dtype}")
-    if not np.isfinite(value).all():
-        raise ValueError(f"{name} must contain only finite values")
-    return np.asarray(value, dtype=np.float64)
 
 
 class RSSMTransitionConfig(BaseModel):
@@ -79,27 +87,33 @@ class RSSMPrediction:
 
     @property
     def variance(self) -> np.ndarray:
+        """Return the elementwise predictive variance, ``scale ** 2``."""
         return np.square(self.scale)
 
     @property
     def covariance(self) -> np.ndarray:
+        """Return the diagonal covariance matrix for this prediction."""
         return np.diag(self.variance)
 
     @property
     def event_shape(self) -> tuple[int]:
+        """Return the one-dimensional event shape of the predicted state."""
         return self.mean.shape
 
     @property
     def distribution_family(self) -> str:
+        """Return the distribution label used by this diagonal Gaussian."""
         return "diagonal_gaussian"
 
     def sample(self, *, seed: int | None = None, rng: np.random.Generator | None = None) -> np.ndarray:
+        """Draw one state sample, using either a seed or an existing generator."""
         if seed is not None and rng is not None:
             raise ValueError("pass either seed or rng, not both")
         generator = rng if rng is not None else np.random.default_rng(seed)
         return self.mean + self.scale * generator.normal(size=self.mean.shape)
 
     def log_prob(self, value: np.ndarray) -> float:
+        """Return the diagonal-Gaussian log probability of a matching state."""
         values = _finite_array(value, name="value")
         if values.shape != self.mean.shape:
             raise ValueError(f"value must have shape {self.mean.shape}, got {values.shape}")
@@ -112,6 +126,7 @@ class RSSMPrediction:
         )
 
     def interval(self, level: float = 0.95) -> tuple[np.ndarray, np.ndarray]:
+        """Return elementwise normal interval bounds for a level in ``(0, 1)``."""
         if not 0.0 < level < 1.0 or not np.isfinite(level):
             raise ValueError("level must be finite and between 0 and 1")
         quantile = 1.959963984540054
@@ -166,21 +181,26 @@ class RSSMRollout:
 
     @property
     def mean(self) -> np.ndarray:
+        """Return the particle mean for each rollout time and state dimension."""
         return np.mean(self.samples, axis=0)
 
     @property
     def scale(self) -> np.ndarray:
+        """Return particle standard deviation for each rollout time and dimension."""
         return np.std(self.samples, axis=0)
 
     @property
     def lower(self) -> np.ndarray:
+        """Return the fixed 95% lower normal bound across rollout particles."""
         return self.mean - 1.959963984540054 * self.scale
 
     @property
     def upper(self) -> np.ndarray:
+        """Return the fixed 95% upper normal bound across rollout particles."""
         return self.mean + 1.959963984540054 * self.scale
 
     def to_numpy(self) -> np.ndarray:
+        """Return a writable copy of samples shaped ``(samples, time, dim)``."""
         return self.samples.copy()
 
 
@@ -214,6 +234,7 @@ class RSSMRolloutMetrics:
 
     @property
     def horizon(self) -> int:
+        """Return the number of evaluated rollout steps."""
         return len(self.errors_by_horizon)
 
 
@@ -275,35 +296,43 @@ class RSSMLatentTransition:
 
     @property
     def state_dim(self) -> int:
+        """Return the flat Euclidean latent-state width."""
         return self.latent_space.dim
 
     @property
     def state_shape(self) -> tuple[int]:
+        """Return the latent-state shape expected by transition calls."""
         return (self.state_dim,)
 
     @property
     def action_shape(self) -> tuple[int]:
+        """Return the action shape expected by transition calls."""
         return (self.action_dim,)
 
     @property
     def hidden_shape(self) -> tuple[int]:
+        """Return the recurrent hidden-state shape configured for this model."""
         return (self.config.hidden_dim,)
 
     @property
     def is_fitted(self) -> bool:
+        """Return whether fitted emission scale parameters are available."""
         return self._scale is not None
 
     @property
     def fit_metadata(self) -> Mapping[str, Any]:
+        """Return immutable provenance and training metadata for the fitted model."""
         return self._fit_metadata
 
     @property
     def scale(self) -> np.ndarray:
+        """Return a copy of fitted per-dimension predictive standard deviations."""
         self._require_fitted()
         return self._scale.copy()  # type: ignore[union-attr]
 
     @property
     def hidden_state(self) -> np.ndarray:
+        """Return a copy of the current hidden state, or its zero initialization."""
         if self._hidden_state is None:
             return np.zeros(self.hidden_shape, dtype=np.float64)
         return self._hidden_state.copy()
@@ -320,6 +349,7 @@ class RSSMLatentTransition:
         self._hidden_state = value.copy()
 
     def to_config(self) -> RSSMTransitionConfig:
+        """Return the effective serializable configuration with resolved device."""
         return self.config.model_copy(update={"device": self.device})
 
     def fit(
@@ -336,58 +366,24 @@ class RSSMLatentTransition:
         if not np.any(mask):
             raise ValueError("sequence_mask must contain at least one valid transition")
         fit_seed = self.config.seed if seed is None else seed
-        torch.manual_seed(fit_seed)
-        if self.device.startswith("cuda"):
-            torch.cuda.manual_seed_all(fit_seed)
-        torch_device = torch.device(self.device)
-        recurrent = torch.nn.Linear(self.hidden_dim_input, self.config.hidden_dim, device=torch_device)
-        emission = torch.nn.Linear(
-            self.config.hidden_dim + self.state_dim + self.action_dim + 1, self.state_dim, device=torch_device
+        fitted = fit_rssm_parameters(
+            state_values,
+            action_values,
+            mask,
+            hidden_dim=self.config.hidden_dim,
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+            epochs=self.config.epochs,
+            learning_rate=self.config.learning_rate,
+            variance_floor=self.config.variance_floor,
+            device=self.device,
+            seed=fit_seed,
         )
-        optimizer = torch.optim.Adam([*recurrent.parameters(), *emission.parameters()], lr=self.config.learning_rate)
-        states_tensor = torch.as_tensor(state_values, dtype=torch.float32, device=torch_device)
-        actions_tensor = torch.as_tensor(action_values, dtype=torch.float32, device=torch_device)
-        mask_tensor = torch.as_tensor(mask, dtype=torch.bool, device=torch_device)
-        final_loss = float("nan")
-        for _ in range(self.config.epochs):
-            optimizer.zero_grad()
-            hidden = torch.zeros((state_values.shape[0], self.config.hidden_dim), device=torch_device)
-            total_loss = torch.zeros((), device=torch_device)
-            valid_count = torch.zeros((), device=torch_device)
-            for index in range(action_values.shape[1]):
-                valid = mask_tensor[:, index]
-                proposed = torch.tanh(
-                    recurrent(torch.cat((hidden, states_tensor[:, index], actions_tensor[:, index]), dim=1))
-                )
-                hidden = torch.where(valid[:, None], proposed, hidden)
-                prediction = emission(
-                    torch.cat(
-                        (
-                            hidden,
-                            states_tensor[:, index],
-                            actions_tensor[:, index],
-                            torch.ones((state_values.shape[0], 1), device=torch_device),
-                        ),
-                        dim=1,
-                    )
-                )
-                residual = torch.square(prediction - states_tensor[:, index + 1])
-                total_loss = total_loss + torch.sum(residual * valid[:, None])
-                valid_count = valid_count + torch.sum(valid)
-            loss = total_loss / torch.clamp(valid_count * self.state_dim, min=1.0)
-            loss.backward()
-            optimizer.step()
-            final_loss = float(loss.detach().cpu().item())
-
-        self._recurrent_weights = recurrent.weight.detach().cpu().numpy().T.astype(np.float64)
-        self._recurrent_bias = recurrent.bias.detach().cpu().numpy().astype(np.float64)
-        self._emission_weights = emission.weight.detach().cpu().numpy().T.astype(np.float64)
-        self._emission_bias = emission.bias.detach().cpu().numpy().astype(np.float64)
-        _, predictions = self._teacher_forced_predictions(state_values, action_values, mask)
-        residuals = states[:, 1:, :] - predictions
-        valid_residuals = residuals[mask]
-        variances = np.maximum(np.mean(np.square(valid_residuals), axis=0), self.config.variance_floor)
-        self._scale = np.sqrt(variances)
+        self._recurrent_weights = fitted.recurrent_weights
+        self._recurrent_bias = fitted.recurrent_bias
+        self._emission_weights = fitted.emission_weights
+        self._emission_bias = fitted.emission_bias
+        self._scale = fitted.scale
         self._fit_metadata = MappingProxyType(
             {
                 "source_space_identity": self.source_space_identity,
@@ -403,7 +399,7 @@ class RSSMLatentTransition:
                 "device": self.device,
                 "seed": int(fit_seed),
                 "epochs": self.config.epochs,
-                "final_training_mse": final_loss,
+                "final_training_mse": fitted.final_loss,
             }
         )
         self.reset()
@@ -420,23 +416,26 @@ class RSSMLatentTransition:
         assert self._hidden_state is not None
         assert self._recurrent_weights is not None and self._recurrent_bias is not None
         assert self._emission_weights is not None and self._emission_bias is not None
-        hidden = np.tanh(
-            self._concat_hidden_input(self._hidden_state, state_value, action_value) @ self._recurrent_weights
-            + self._recurrent_bias
-        )  # type: ignore[operator]
-        mean = (
-            self._concat_emission_input(hidden, state_value, action_value) @ self._emission_weights
-            + self._emission_bias
-        )  # type: ignore[operator]
+        hidden, mean = recurrent_step(
+            self._hidden_state,
+            state_value,
+            action_value,
+            recurrent_weights=self._recurrent_weights,
+            recurrent_bias=self._recurrent_bias,
+            emission_weights=self._emission_weights,
+            emission_bias=self._emission_bias,
+        )
         self._hidden_state = hidden
         return RSSMPrediction(mean=mean, scale=self.scale, deterministic_state=hidden)
 
     def step(self, state: np.ndarray, action: np.ndarray) -> np.ndarray:
+        """Advance the fitted model and return the predictive mean state vector."""
         return self.predict(state, action).mean.copy()
 
     def mean_rollout(
         self, initial_state: np.ndarray, actions: np.ndarray, *, metadata: Mapping[str, Any] | None = None
     ) -> Trajectory:
+        """Return a deterministic predictive-mean trajectory for an action sequence."""
         self._require_fitted()
         assert self._recurrent_weights is not None and self._recurrent_bias is not None
         assert self._emission_weights is not None and self._emission_bias is not None
@@ -447,18 +446,16 @@ class RSSMLatentTransition:
         states[0] = initial
         for index, action in enumerate(action_values):
             states[index + 1] = self.step(states[index], action)
-        values: dict[str, Any] = {
-            "state_source": "predictive_mean",
-            "source_space_identity": self.source_space_identity,
-            "transition": self.__class__.__name__,
-            "rollout_horizon": int(action_values.shape[0]),
-            "action_shape": self.action_shape,
-            "state_shape": self.state_shape,
-            "deterministic_state_shape": self.hidden_shape,
-            "stateful": True,
-        }
-        if metadata is not None:
-            values.update(dict(metadata))
+        values = build_rollout_metadata(
+            state_source="predictive_mean",
+            source_space_identity=self.source_space_identity,
+            transition_name=self.__class__.__name__,
+            horizon=action_values.shape[0],
+            action_shape=self.action_shape,
+            state_shape=self.state_shape,
+            hidden_shape=self.hidden_shape,
+            metadata=metadata,
+        )
         return Trajectory(states, metadata=values)
 
     def rollout(
@@ -482,38 +479,32 @@ class RSSMLatentTransition:
             raise ValueError("interval_level must be between 0 and 1")
         initial = self._validate_point(initial_state, name="initial_state", width=self.state_dim)
         action_values = self._validate_batch(actions, name="actions", width=self.action_dim)
-        generator = np.random.default_rng(seed)
-        samples = np.empty((n_samples, action_values.shape[0] + 1, self.state_dim), dtype=np.float64)
-        hidden = np.zeros((n_samples, self.config.hidden_dim), dtype=np.float64)
-        deterministic = np.empty((n_samples, action_values.shape[0] + 1, self.config.hidden_dim), dtype=np.float64)
-        samples[:, 0] = initial
-        deterministic[:, 0] = hidden
-        for index, action in enumerate(action_values):
-            repeated_action = np.broadcast_to(action, (n_samples, self.action_dim))
-            recurrent_input = np.concatenate((hidden, samples[:, index], repeated_action), axis=1)
-            hidden = np.tanh(recurrent_input @ self._recurrent_weights + self._recurrent_bias)  # type: ignore[operator]
-            emission_input = np.concatenate(
-                (hidden, samples[:, index], repeated_action, np.ones((n_samples, 1))), axis=1
-            )
-            means = emission_input @ self._emission_weights + self._emission_bias  # type: ignore[operator]
-            samples[:, index + 1] = means + self.scale * generator.normal(size=(n_samples, self.state_dim))
-            deterministic[:, index + 1] = hidden
-        self._hidden_state = np.mean(hidden, axis=0)
-        values: dict[str, Any] = {
-            "state_source": "sampled",
-            "source_space_identity": self.source_space_identity,
-            "transition": self.__class__.__name__,
-            "rollout_horizon": int(action_values.shape[0]),
-            "action_shape": self.action_shape,
-            "state_shape": self.state_shape,
-            "deterministic_state_shape": self.hidden_shape,
-            "stateful": True,
-            "n_samples": int(n_samples),
-            "seed": seed,
-            "interval_level": interval_level,
-        }
-        if metadata is not None:
-            values.update(dict(metadata))
+        samples, deterministic, final_hidden = sample_recurrent_rollout(
+            initial,
+            action_values,
+            n_samples=n_samples,
+            hidden_dim=self.config.hidden_dim,
+            scale=self.scale,
+            seed=seed,
+            recurrent_weights=self._recurrent_weights,
+            recurrent_bias=self._recurrent_bias,
+            emission_weights=self._emission_weights,
+            emission_bias=self._emission_bias,
+        )
+        self._hidden_state = final_hidden
+        values = build_rollout_metadata(
+            state_source="sampled",
+            source_space_identity=self.source_space_identity,
+            transition_name=self.__class__.__name__,
+            horizon=action_values.shape[0],
+            action_shape=self.action_shape,
+            state_shape=self.state_shape,
+            hidden_shape=self.hidden_shape,
+            metadata=metadata,
+            n_samples=n_samples,
+            seed=seed,
+            interval_level=interval_level,
+        )
         return RSSMRollout(samples, deterministic, interval_level=interval_level, metadata=values)
 
     def evaluate_one_step(
@@ -525,39 +516,28 @@ class RSSMLatentTransition:
         sequence_mask: np.ndarray | None = None,
         interval_level: float = 0.95,
     ) -> RSSMOneStepMetrics:
+        """Evaluate masked teacher-forced Gaussian predictions against next states."""
         start = time.perf_counter()
         state_values, action_values, mask = self._validate_one_step_sequences(
             states, actions, next_states, sequence_mask
         )
         predictions = self._teacher_forced_distribution_predictions(state_values, action_values, mask)
-        targets = next_states[:, 1:, :][mask]
-        selected = [
-            prediction for row, row_mask in zip(predictions, mask) for prediction, valid in zip(row, row_mask) if valid
-        ]
-        means = np.asarray([prediction.mean for prediction in selected])
-        errors = means - targets
-        lower = np.asarray([prediction.interval(interval_level)[0] for prediction in selected])
-        upper = np.asarray([prediction.interval(interval_level)[1] for prediction in selected])
-        nll = float(-np.mean([prediction.log_prob(target) for prediction, target in zip(selected, targets)]))
-        kl = float(
-            np.mean(
-                [
-                    prediction.kl_to_observation(target, posterior_scale_factor=self.config.posterior_scale_factor)
-                    for prediction, target in zip(selected, targets)
-                ]
-            )
+        evaluated = aggregate_one_step_metrics(
+            predictions,
+            next_states,
+            mask,
+            interval_level=interval_level,
+            posterior_scale_factor=self.config.posterior_scale_factor,
         )
-        coverage = float(np.mean((targets >= lower) & (targets <= upper)))
-        mse = float(np.mean(np.square(errors)))
         self.reset()
         return RSSMOneStepMetrics(
-            mse,
-            float(np.sqrt(mse)),
-            nll,
-            kl,
-            coverage,
-            float(np.mean(np.linalg.norm(errors, axis=1))),
-            len(selected),
+            evaluated.mse,
+            evaluated.rmse,
+            evaluated.negative_log_likelihood,
+            evaluated.kl_divergence,
+            evaluated.coverage,
+            evaluated.mean_error,
+            evaluated.n_samples,
             time.perf_counter() - start,
         )
 
@@ -572,6 +552,7 @@ class RSSMLatentTransition:
         seed: int = 0,
         interval_level: float = 0.95,
     ) -> RSSMRolloutMetrics:
+        """Evaluate masked open-loop particle rollouts and horizon-wise diagnostics."""
         start = time.perf_counter()
         initial, action_values, targets, mask = self._validate_rollout_inputs(
             initial_state, actions, target_states, sequence_mask
@@ -579,13 +560,13 @@ class RSSMLatentTransition:
         batch, horizon, _ = action_values.shape
         if horizon == 0:
             return RSSMRolloutMetrics((), (), (), 0.0, 0.0, 0.0, 1.0, time.perf_counter() - start, True)
-        errors: list[list[float]] = []
-        kls: list[list[float]] = []
-        coverages: list[list[float]] = []
-        predicted_norms: list[float] = []
+        means: list[np.ndarray] = []
+        scales: list[np.ndarray] = []
         for episode in range(batch):
             length = int(np.sum(mask[episode]))
             if length == 0:
+                means.append(np.empty((0, self.state_dim), dtype=np.float64))
+                scales.append(np.empty((0, self.state_dim), dtype=np.float64))
                 continue
             rollout = self.rollout(
                 initial[episode],
@@ -594,44 +575,26 @@ class RSSMLatentTransition:
                 seed=seed + episode,
                 interval_level=interval_level,
             )
-            mean = rollout.mean[1:]
-            scale = np.maximum(rollout.scale[1:], np.sqrt(self.config.variance_floor))
-            target = targets[episode, 1 : length + 1]
-            differences = target - mean
-            errors.append([float(np.linalg.norm(value)) for value in differences])
-            predicted_norms.append(float(np.max(np.linalg.norm(mean, axis=1))))
-            lower = mean - 1.959963984540054 * scale
-            upper = mean + 1.959963984540054 * scale
-            coverages.append(
-                [
-                    float(np.mean((target[index] >= lower[index]) & (target[index] <= upper[index])))
-                    for index in range(length)
-                ]
-            )
-            kls.append([float(0.5 * np.sum(np.square(differences[index] / scale[index]))) for index in range(length)])
-        errors_by_horizon = tuple(
-            float(np.mean([row[index] for row in errors if index < len(row)]))
-            for index in range(horizon)
-            if any(index < len(row) for row in errors)
+            means.append(rollout.mean)
+            scales.append(rollout.scale)
+        evaluated = aggregate_rollout_metrics(
+            targets,
+            mask,
+            means,
+            scales,
+            variance_floor=self.config.variance_floor,
+            stability_norm_limit=self.config.stability_norm_limit,
         )
-        kl_by_horizon = tuple(
-            float(np.mean([row[index] for row in kls if index < len(row)])) for index in range(len(errors_by_horizon))
-        )
-        coverage_by_horizon = tuple(
-            float(np.mean([row[index] for row in coverages if index < len(row)]))
-            for index in range(len(errors_by_horizon))
-        )
-        max_state_norm = max(predicted_norms, default=0.0)
         return RSSMRolloutMetrics(
-            errors_by_horizon,
-            kl_by_horizon,
-            coverage_by_horizon,
-            float(np.mean(errors_by_horizon)),
-            errors_by_horizon[-1] if errors_by_horizon else 0.0,
-            float(np.mean(kl_by_horizon)) if kl_by_horizon else 0.0,
-            float(np.mean(coverage_by_horizon)) if coverage_by_horizon else 1.0,
+            evaluated.errors_by_horizon,
+            evaluated.kl_by_horizon,
+            evaluated.coverage_by_horizon,
+            evaluated.mean_error,
+            evaluated.final_error,
+            evaluated.mean_kl,
+            evaluated.mean_coverage,
             time.perf_counter() - start,
-            bool(np.isfinite(max_state_norm) and max_state_norm <= self.config.stability_norm_limit),
+            evaluated.stable,
         )
 
     def save(self, path: str | os.PathLike[str]) -> None:
@@ -640,55 +603,48 @@ class RSSMLatentTransition:
         self._require_fitted()
         assert self._recurrent_weights is not None and self._recurrent_bias is not None
         assert self._emission_weights is not None and self._emission_bias is not None and self._scale is not None
-        metadata = {
-            "config": self.to_config().model_dump(mode="json"),
-            "source_space_identity": self.source_space_identity,
-            "fit_metadata": dict(self._fit_metadata),
-        }
-        np.savez(
+        write_rssm_checkpoint(
             path,
             recurrent_weights=self._recurrent_weights,
             recurrent_bias=self._recurrent_bias,
             emission_weights=self._emission_weights,
             emission_bias=self._emission_bias,
             scale=self._scale,
-            metadata_json=json.dumps(metadata),
+            config=self.to_config().model_dump(mode="json"),
+            source_space_identity=self.source_space_identity,
+            fit_metadata=dict(self._fit_metadata),
         )
 
     @classmethod
     def load(cls, path: str | os.PathLike[str], *, device: str | None = None) -> RSSMLatentTransition:
-        with np.load(path, allow_pickle=False) as data:  # pyright: ignore[reportUnknownMemberType]
-            metadata_raw = data["metadata_json"].item()
-            if not isinstance(metadata_raw, str):
-                raise ValueError("RSSM checkpoint has no metadata_json string")
-            metadata = cast(dict[str, Any], json.loads(metadata_raw))
-            config_values = cast(dict[str, Any], metadata["config"])
-            if device is not None:
-                config_values["device"] = device
-            config = RSSMTransitionConfig(**config_values)
-            source_identity = metadata["source_space_identity"]
-            recurrent_weights = np.asarray(data["recurrent_weights"], dtype=np.float64)
-            emission_weights = np.asarray(data["emission_weights"], dtype=np.float64)
-            state_dim = emission_weights.shape[1]
-            action_dim = recurrent_weights.shape[0] - config.hidden_dim - state_dim
-            model = cls(
-                LatentSpace(state_dim, source_model=source_identity),
-                action_dim,
-                source_space_identity=source_identity,
-                config=config,
-            )
-            model._recurrent_weights = recurrent_weights
-            model._recurrent_bias = np.asarray(data["recurrent_bias"], dtype=np.float64)
-            model._emission_weights = emission_weights
-            model._emission_bias = np.asarray(data["emission_bias"], dtype=np.float64)
-            model._scale = np.asarray(data["scale"], dtype=np.float64)
-            fit_metadata = metadata.get("fit_metadata", {})
-            model._fit_metadata = MappingProxyType(dict(fit_metadata))
-            model.reset()
-            return model
+        """Load a fitted RSSM checkpoint and reset its transient hidden state."""
+        checkpoint = read_rssm_checkpoint(path)
+        config_values = checkpoint.metadata["config"]
+        if device is not None:
+            config_values["device"] = device
+        config = RSSMTransitionConfig(**config_values)
+        source_identity = checkpoint.metadata["source_space_identity"]
+        state_dim = checkpoint.emission_weights.shape[1]
+        action_dim = checkpoint.recurrent_weights.shape[0] - config.hidden_dim - state_dim
+        model = cls(
+            LatentSpace(state_dim, source_model=source_identity),
+            action_dim,
+            source_space_identity=source_identity,
+            config=config,
+        )
+        model._recurrent_weights = checkpoint.recurrent_weights
+        model._recurrent_bias = checkpoint.recurrent_bias
+        model._emission_weights = checkpoint.emission_weights
+        model._emission_bias = checkpoint.emission_bias
+        model._scale = checkpoint.scale
+        fit_metadata = checkpoint.metadata.get("fit_metadata", {})
+        model._fit_metadata = MappingProxyType(dict(fit_metadata))
+        model.reset()
+        return model
 
     @property
     def hidden_dim_input(self) -> int:
+        """Return the recurrent input width: hidden, state, and action dimensions."""
         return self.config.hidden_dim + self.state_dim + self.action_dim
 
     def _resolve_device(self, device: str) -> str:
@@ -715,52 +671,28 @@ class RSSMLatentTransition:
 
     @staticmethod
     def _validate_point(value: np.ndarray, *, name: str, width: int) -> np.ndarray:
-        values = _finite_array(value, name=name)
-        if values.ndim != 1 or values.shape != (width,):
-            raise ValueError(f"{name} must have shape ({width},), got {values.shape}")
-        return values
+        return validate_point(value, name=name, width=width)
 
     @staticmethod
     def _validate_batch(value: np.ndarray, *, name: str, width: int) -> np.ndarray:
-        values = _finite_array(value, name=name)
-        if values.ndim != 2 or values.shape[1] != width:
-            raise ValueError(f"{name} must have shape (n, {width}), got {values.shape}")
-        return values
+        return validate_batch(value, name=name, width=width)
 
     def _validate_sequences(
         self, states: np.ndarray, actions: np.ndarray, sequence_mask: np.ndarray | None
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        state_values = _finite_array(states, name="states")
-        action_values = _finite_array(actions, name="actions")
-        if state_values.ndim != 3 or state_values.shape[2] != self.state_dim:
-            raise ValueError(
-                f"states must have shape (episodes, horizon + 1, {self.state_dim}), got {state_values.shape}"
-            )
-        if (
-            action_values.ndim != 3
-            or action_values.shape[2] != self.action_dim
-            or action_values.shape[:2] != (state_values.shape[0], state_values.shape[1] - 1)
-        ):
-            raise ValueError(
-                f"actions must have shape (episodes, horizon, {self.action_dim}), got {action_values.shape}"
-            )
-        if sequence_mask is None:
-            mask = np.ones(action_values.shape[:2], dtype=bool)
-        else:
-            raw_mask = _finite_array(sequence_mask, name="sequence_mask")
-            if raw_mask.shape != action_values.shape[:2] or not np.isin(raw_mask, [0.0, 1.0]).all():
-                raise ValueError(f"sequence_mask must have shape {action_values.shape[:2]} and contain only 0/1 values")
-            mask = raw_mask.astype(bool)
-        return state_values, action_values, mask
+        return validate_sequences(states, actions, sequence_mask, state_dim=self.state_dim, action_dim=self.action_dim)
 
     def _validate_one_step_sequences(
         self, states: np.ndarray, actions: np.ndarray, next_states: np.ndarray, sequence_mask: np.ndarray | None
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        state_values, action_values, mask = self._validate_sequences(states, actions, sequence_mask)
-        target_values = _finite_array(next_states, name="next_states")
-        if target_values.shape != state_values.shape:
-            raise ValueError(f"next_states must have shape {state_values.shape}, got {target_values.shape}")
-        return state_values, action_values, mask
+        return validate_one_step_sequences(
+            states,
+            actions,
+            next_states,
+            sequence_mask,
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+        )
 
     def _validate_rollout_inputs(
         self,
@@ -769,34 +701,14 @@ class RSSMLatentTransition:
         target_states: np.ndarray,
         sequence_mask: np.ndarray | None,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        initial = _finite_array(initial_state, name="initial_state")
-        action_values = _finite_array(actions, name="actions")
-        targets = _finite_array(target_states, name="target_states")
-        if initial.ndim == 1:
-            initial = initial[None, :]
-        if action_values.ndim == 2:
-            action_values = action_values[None, :, :]
-        if targets.ndim == 2:
-            targets = targets[None, :, :]
-        if initial.ndim != 2 or initial.shape[1] != self.state_dim or action_values.ndim != 3 or targets.ndim != 3:
-            raise ValueError("invalid rollout input dimensions")
-        if (
-            action_values.shape[0] != initial.shape[0]
-            or targets.shape[:2] != (initial.shape[0], action_values.shape[1] + 1)
-            or action_values.shape[2] != self.action_dim
-            or targets.shape[2] != self.state_dim
-        ):
-            raise ValueError("rollout inputs have incompatible batch, horizon, or feature shapes")
-        if not np.array_equal(initial, targets[:, 0]):
-            raise ValueError("initial_state must equal target_states[:, 0, :]")
-        if sequence_mask is None:
-            mask = np.ones(action_values.shape[:2], dtype=bool)
-        else:
-            raw_mask = _finite_array(sequence_mask, name="sequence_mask")
-            if raw_mask.shape != action_values.shape[:2] or not np.isin(raw_mask, [0.0, 1.0]).all():
-                raise ValueError(f"sequence_mask must have shape {action_values.shape[:2]} and contain only 0/1 values")
-            mask = raw_mask.astype(bool)
-        return initial, action_values, targets, mask
+        return validate_rollout_inputs(
+            initial_state,
+            actions,
+            target_states,
+            sequence_mask,
+            state_dim=self.state_dim,
+            action_dim=self.action_dim,
+        )
 
     def _concat_hidden_input(self, hidden: np.ndarray, state: np.ndarray, action: np.ndarray) -> np.ndarray:
         return np.concatenate((hidden, state, action))
@@ -809,22 +721,17 @@ class RSSMLatentTransition:
     ) -> tuple[np.ndarray, np.ndarray]:
         assert self._recurrent_weights is not None and self._recurrent_bias is not None
         assert self._emission_weights is not None and self._emission_bias is not None
-        hidden = np.zeros((states.shape[0], self.config.hidden_dim), dtype=np.float64)
-        predictions = np.empty((states.shape[0], actions.shape[1], self.state_dim), dtype=np.float64)
-        hidden_paths = np.empty((states.shape[0], actions.shape[1], self.config.hidden_dim), dtype=np.float64)
-        for index in range(actions.shape[1]):
-            proposed = np.tanh(
-                np.concatenate((hidden, states[:, index], actions[:, index]), axis=1) @ self._recurrent_weights
-                + self._recurrent_bias
-            )  # type: ignore[operator]
-            hidden = np.where(mask[:, index, None], proposed, hidden)
-            predictions[:, index] = (
-                np.concatenate((hidden, states[:, index], actions[:, index], np.ones((states.shape[0], 1))), axis=1)
-                @ self._emission_weights
-                + self._emission_bias
-            )  # type: ignore[operator]
-            hidden_paths[:, index] = hidden
-        return hidden_paths, predictions
+        return teacher_forced_predictions(
+            states,
+            actions,
+            mask,
+            recurrent_weights=self._recurrent_weights,
+            recurrent_bias=self._recurrent_bias,
+            emission_weights=self._emission_weights,
+            emission_bias=self._emission_bias,
+            hidden_dim=self.config.hidden_dim,
+            state_dim=self.state_dim,
+        )
 
     def _teacher_forced_distribution_predictions(
         self, states: np.ndarray, actions: np.ndarray, mask: np.ndarray
@@ -832,19 +739,20 @@ class RSSMLatentTransition:
         self._require_fitted()
         assert self._recurrent_weights is not None and self._recurrent_bias is not None
         assert self._emission_weights is not None and self._emission_bias is not None
-        hidden = np.zeros((states.shape[0], self.config.hidden_dim), dtype=np.float64)
+        means, hidden_paths = teacher_forced_distribution_arrays(
+            states,
+            actions,
+            mask,
+            recurrent_weights=self._recurrent_weights,
+            recurrent_bias=self._recurrent_bias,
+            emission_weights=self._emission_weights,
+            emission_bias=self._emission_bias,
+            hidden_dim=self.config.hidden_dim,
+        )
         result: list[list[RSSMPrediction]] = [[] for _ in range(states.shape[0])]
-        for index in range(actions.shape[1]):
-            proposed = np.tanh(
-                np.concatenate((hidden, states[:, index], actions[:, index]), axis=1) @ self._recurrent_weights
-                + self._recurrent_bias
-            )  # type: ignore[operator]
-            hidden = np.where(mask[:, index, None], proposed, hidden)
-            means = (
-                np.concatenate((hidden, states[:, index], actions[:, index], np.ones((states.shape[0], 1))), axis=1)
-                @ self._emission_weights
-                + self._emission_bias
-            )  # type: ignore[operator]
-            for episode in range(states.shape[0]):
-                result[episode].append(RSSMPrediction(means[episode], self.scale, hidden[episode]))
+        for episode in range(states.shape[0]):
+            result[episode] = [
+                RSSMPrediction(means[episode, index], self.scale, hidden_paths[episode, index])
+                for index in range(actions.shape[1])
+            ]
         return result

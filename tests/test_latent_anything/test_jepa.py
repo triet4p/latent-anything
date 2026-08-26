@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
+import inspect
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from latent_anything import (
     AnalysisPipeline,
     FileSystemRunRecorder,
     JEPAEvaluationReport,
+    JEPALatentHealth,
+    JEPAPrediction,
+    JEPAPredictionMetrics,
+    JEPARolloutMetrics,
     JEPAWorldModelAdapter,
+    JEPAWorldModelConfig,
     ObjectSpec,
     RolloutPipeline,
     RolloutPipelineSpec,
@@ -147,6 +156,92 @@ def test_jepa_checkpoint_round_trip_preserves_prediction(tmp_path: Path) -> None
     )
     assert restored.latent_space.metadata == adapter.latent_space.metadata
     assert restored.target_encoder_requires_grad is False
+
+
+def test_jepa_public_surface_and_result_schema_snapshot() -> None:
+    assert JEPAWorldModelAdapter.__module__ == "latent_anything.adapters.jepa"
+    assert tuple(inspect.signature(JEPAWorldModelAdapter.fit).parameters) == (
+        "self",
+        "observations",
+        "actions",
+        "sequence_mask",
+        "seed",
+    )
+    assert tuple(inspect.signature(JEPAWorldModelAdapter.load).parameters) == ("path", "device")
+    assert tuple(JEPAWorldModelConfig.model_fields) == (
+        "hidden_dim",
+        "epochs",
+        "learning_rate",
+        "ema_momentum",
+        "variance_loss_weight",
+        "minimum_latent_std",
+        "variance_floor",
+        "stability_norm_limit",
+        "seed",
+        "device",
+    )
+    assert tuple(JEPAPrediction.__dataclass_fields__) == ("mean", "scale")
+    assert tuple(JEPALatentHealth.__dataclass_fields__) == (
+        "mean_variance",
+        "min_variance",
+        "max_variance",
+        "covariance_condition",
+        "effective_rank",
+        "participation_ratio",
+        "collapsed_fraction",
+        "collapse_score",
+        "n_samples",
+        "latent_dim",
+    )
+    assert tuple(JEPAPredictionMetrics.__dataclass_fields__) == (
+        "mse",
+        "rmse",
+        "mean_error",
+        "collapsed_baseline_mse",
+        "improvement_over_collapsed",
+        "target_health",
+        "n_samples",
+        "runtime_seconds",
+    )
+    assert tuple(JEPARolloutMetrics.__dataclass_fields__) == (
+        "errors_by_horizon",
+        "mean_error",
+        "final_error",
+        "horizon_drift",
+        "error_growth_ratio",
+        "n_episodes",
+        "runtime_seconds",
+        "stable",
+    )
+
+
+def test_jepa_same_seed_training_is_numerically_reproducible() -> None:
+    observations, actions = _sequences(episodes=4, horizon=3)
+    first = JEPAWorldModelAdapter(3, 2, 1, hidden_dim=6, epochs=8, seed=71).fit(observations, actions)
+    second = JEPAWorldModelAdapter(3, 2, 1, hidden_dim=6, epochs=8, seed=71).fit(observations, actions)
+    encoded = first.encode(observations[:, 0])
+    assert np.array_equal(encoded, second.encode(observations[:, 0]))
+    assert np.array_equal(first.step(encoded[0], actions[0, 0]), second.step(encoded[0], actions[0, 0]))
+
+
+def test_jepa_checkpoint_is_cross_process_stable_and_tamper_rejected(tmp_path: Path) -> None:
+    observations, actions = _sequences(episodes=4, horizon=3)
+    adapter = JEPAWorldModelAdapter(3, 2, 1, hidden_dim=6, epochs=8, seed=71).fit(observations, actions)
+    path = tmp_path / "jepa-cross-process.npz"
+    adapter.save(str(path))
+    command = (
+        "from latent_anything.adapters.jepa import JEPAWorldModelAdapter; "
+        f"model = JEPAWorldModelAdapter.load({str(path)!r}); "
+        "print(model.latent_space.metadata['decoder']); print(model.target_encoder_requires_grad)"
+    )
+    completed = subprocess.run([sys.executable, "-c", command], capture_output=True, text=True, check=True)
+    assert "absent" in completed.stdout
+    assert "False" in completed.stdout
+
+    tampered = tmp_path / "jepa-tampered.npz"
+    np.savez(tampered, scale=np.zeros(2))
+    with pytest.raises(KeyError):
+        JEPAWorldModelAdapter.load(str(tampered))
 
 
 def test_jepa_evaluation_is_persisted_as_a_content_addressed_run_artifact(tmp_path: Path) -> None:

@@ -10,30 +10,37 @@ existing rollout pipeline.
 
 from __future__ import annotations
 
-import json
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 import torch
 from pydantic import BaseModel, Field, field_validator
 from torch import nn
 
+from latent_anything._jepa_checkpoint import read_jepa_checkpoint, write_jepa_checkpoint
+from latent_anything._jepa_evaluation import (
+    JEPALatentHealthValues,
+    aggregate_prediction_metrics,
+    aggregate_rollout_metrics,
+    compute_latent_health,
+)
+from latent_anything._jepa_training import fit_jepa_parameters
+from latent_anything._jepa_validation import (
+    finite_array as _finite_array,
+)
+from latent_anything._jepa_validation import (
+    validate_batch,
+    validate_mask,
+    validate_point,
+    validate_rollout_inputs,
+    validate_sequences,
+)
 from latent_anything.latent_space import LatentSpace
 from latent_anything.trajectory import Trajectory
-
-
-def _finite_array(value: object, *, name: str) -> np.ndarray:
-    if not isinstance(value, np.ndarray):
-        raise TypeError(f"{name} must be a numpy array, got {type(value).__name__}")
-    if not np.issubdtype(value.dtype, np.number):
-        raise TypeError(f"{name} must have a numeric dtype, got {value.dtype}")
-    if not np.isfinite(value).all():
-        raise ValueError(f"{name} must contain only finite values")
-    return np.asarray(value, dtype=np.float64)
 
 
 def _immutable(value: np.ndarray) -> np.ndarray:
@@ -83,10 +90,12 @@ class JEPAPrediction:
 
     @property
     def variance(self) -> np.ndarray:
+        """Return elementwise predictive variance, computed as ``scale ** 2``."""
         return np.square(self.scale)
 
     @property
     def covariance(self) -> np.ndarray:
+        """Return the diagonal covariance matrix of the prediction."""
         return np.diag(self.variance)
 
 
@@ -106,6 +115,7 @@ class JEPALatentHealth:
     latent_dim: int
 
     def to_dict(self) -> dict[str, object]:
+        """Return latent-health values in a JSON-compatible mapping."""
         return {
             "mean_variance": self.mean_variance,
             "min_variance": self.min_variance,
@@ -134,6 +144,7 @@ class JEPAPredictionMetrics:
     runtime_seconds: float
 
     def to_dict(self) -> dict[str, object]:
+        """Return prediction metrics and nested representation-health evidence."""
         return {
             "mse": self.mse,
             "rmse": self.rmse,
@@ -146,6 +157,7 @@ class JEPAPredictionMetrics:
         }
 
     def to_metrics(self) -> dict[str, float]:
+        """Return the flat metric names used by evaluation consumers."""
         return {
             "latent_prediction_mse": self.mse,
             "latent_prediction_rmse": self.rmse,
@@ -171,9 +183,11 @@ class JEPARolloutMetrics:
 
     @property
     def horizon(self) -> int:
+        """Return the number of open-loop horizon entries."""
         return len(self.errors_by_horizon)
 
     def to_dict(self) -> dict[str, object]:
+        """Return rollout metrics as JSON-compatible scalar and list values."""
         return {
             "errors_by_horizon": list(self.errors_by_horizon),
             "mean_error": self.mean_error,
@@ -186,6 +200,7 @@ class JEPARolloutMetrics:
         }
 
     def to_metrics(self) -> dict[str, float]:
+        """Return the flat rollout metric names used by evaluation consumers."""
         return {
             "rollout_mean_error": self.mean_error,
             "rollout_final_error": self.final_error,
@@ -204,6 +219,7 @@ class JEPAEvaluationReport:
     provenance: Mapping[str, object] = MappingProxyType({})
 
     def to_dict(self) -> dict[str, object]:
+        """Return prediction, rollout, and provenance evidence as a mapping."""
         return {
             "prediction": self.prediction.to_dict(),
             "rollout": self.rollout.to_dict(),
@@ -211,6 +227,7 @@ class JEPAEvaluationReport:
         }
 
     def to_metrics(self) -> dict[str, float]:
+        """Return the merged flat prediction and rollout metrics."""
         metrics = self.prediction.to_metrics()
         metrics.update(self.rollout.to_metrics())
         return metrics
@@ -226,6 +243,7 @@ class _MLPEncoder(nn.Module):
         )
 
     def forward(self, values: torch.Tensor) -> torch.Tensor:
+        """Map a torch observation batch of width ``input_dim`` to latent values."""
         return self.layers(values)
 
 
@@ -239,6 +257,7 @@ class _Predictor(nn.Module):
         )
 
     def forward(self, latent: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        """Map latent/action torch batches to predicted next-latent values."""
         return self.layers(torch.cat((latent, action), dim=1))
 
 
@@ -337,26 +356,32 @@ class JEPAWorldModelAdapter:
 
     @property
     def state_dim(self) -> int:
+        """Return the exposed latent-state width."""
         return self.latent_dim
 
     @property
     def state_shape(self) -> tuple[int]:
+        """Return the one-dimensional latent-state shape."""
         return (self.latent_dim,)
 
     @property
     def action_shape(self) -> tuple[int]:
+        """Return the one-dimensional action shape."""
         return (self.action_dim,)
 
     @property
     def is_fitted(self) -> bool:
+        """Return whether fitted predictive scale parameters are available."""
         return self._scale is not None
 
     @property
     def fit_metadata(self) -> Mapping[str, Any]:
+        """Return immutable fit provenance, diagnostics, and revision metadata."""
         return self._fit_metadata
 
     @property
     def scale(self) -> np.ndarray:
+        """Return a copy of fitted per-latent predictive standard deviations."""
         self._require_fitted()
         assert self._scale is not None
         return self._scale.copy()
@@ -399,43 +424,30 @@ class JEPAWorldModelAdapter:
         if not np.any(mask):
             raise ValueError("sequence_mask must contain at least one valid transition")
         fit_seed = self.config.seed if seed is None else seed
-        torch.manual_seed(fit_seed)
-        if self.device.startswith("cuda"):
-            torch.cuda.manual_seed_all(fit_seed)
-        torch_device = torch.device(self.device)
-        optimizer = torch.optim.Adam(self._context_encoder.parameters(), lr=self.config.learning_rate)
-        optimizer.add_param_group({"params": self._predictor.parameters()})
-        observation_tensor = torch.as_tensor(observation_values, dtype=torch.float32, device=torch_device)
-        action_tensor = torch.as_tensor(action_values, dtype=torch.float32, device=torch_device)
-        mask_tensor = torch.as_tensor(mask.reshape(-1), dtype=torch.bool, device=torch_device)
-        final_loss = float("nan")
-        final_prediction = torch.empty((0, self.latent_dim), device=torch_device)
-        final_target = torch.empty((0, self.latent_dim), device=torch_device)
-        for _ in range(self.config.epochs):
-            optimizer.zero_grad()
-            context = self._context_encoder(observation_tensor[:, :-1].reshape(-1, self.observation_dim))
-            with torch.no_grad():
-                target = self._target_encoder(observation_tensor[:, 1:].reshape(-1, self.observation_dim))
-            predicted = self._predictor(context, action_tensor.reshape(-1, self.action_dim))
-            valid_predicted = predicted[mask_tensor]
-            valid_target = target[mask_tensor]
-            prediction_loss = torch.mean(torch.square(valid_predicted - valid_target))
-            context_std = torch.sqrt(
-                torch.var(context[mask_tensor], dim=0, unbiased=False) + self.config.variance_floor
-            )
-            variance_penalty = torch.mean(torch.relu(self.config.minimum_latent_std - context_std))
-            loss = prediction_loss + self.config.variance_loss_weight * variance_penalty
-            loss.backward()
-            optimizer.step()
-            self._update_target_encoder()
-            self._training_steps += 1
-            final_loss = float(loss.detach().cpu().item())
-            final_prediction = valid_predicted.detach()
-            final_target = valid_target.detach()
-
-        residual = final_target.cpu().numpy() - final_prediction.cpu().numpy()
+        fitted = fit_jepa_parameters(
+            self._context_encoder,
+            self._target_encoder,
+            self._predictor,
+            observation_values,
+            action_values,
+            mask,
+            observation_dim=self.observation_dim,
+            action_dim=self.action_dim,
+            latent_dim=self.latent_dim,
+            epochs=self.config.epochs,
+            learning_rate=self.config.learning_rate,
+            ema_momentum=self.config.ema_momentum,
+            variance_loss_weight=self.config.variance_loss_weight,
+            minimum_latent_std=self.config.minimum_latent_std,
+            variance_floor=self.config.variance_floor,
+            device=self.device,
+            seed=fit_seed,
+            initial_training_steps=self._training_steps,
+        )
+        self._training_steps = fitted.training_steps
+        residual = fitted.final_target - fitted.final_prediction
         self._scale = np.sqrt(np.maximum(np.mean(np.square(residual), axis=0), self.config.variance_floor))
-        health = self.latent_health(final_target.cpu().numpy())
+        health = self.latent_health(fitted.final_target)
         self._fit_metadata = MappingProxyType(
             {
                 "model_family": "jepa_lewm_style",
@@ -456,7 +468,7 @@ class JEPAWorldModelAdapter:
                 "seed": int(fit_seed),
                 "device": self.device,
                 "epochs": self.config.epochs,
-                "final_training_loss": final_loss,
+                "final_training_loss": fitted.final_loss,
                 "target_effective_rank": health.effective_rank,
                 "target_collapsed_fraction": health.collapsed_fraction,
                 "variance_regularizer_source": "trainable_context_encoder",
@@ -533,19 +545,15 @@ class JEPAWorldModelAdapter:
             ]
         )
         targets = self.encode_target(next_values)
-        errors = predictions - targets
-        mse = float(np.mean(np.square(errors)))
-        baseline = np.mean(targets, axis=0)
-        baseline_mse = float(np.mean(np.square(baseline[None, :] - targets)))
-        improvement = 0.0 if baseline_mse <= self.config.variance_floor else 1.0 - mse / baseline_mse
+        evaluated = aggregate_prediction_metrics(predictions, targets, variance_floor=self.config.variance_floor)
         return JEPAPredictionMetrics(
-            mse=mse,
-            rmse=float(np.sqrt(mse)),
-            mean_error=float(np.mean(np.linalg.norm(errors, axis=1))),
-            collapsed_baseline_mse=baseline_mse,
-            improvement_over_collapsed=float(improvement),
-            target_health=self.latent_health(targets),
-            n_samples=int(current.shape[0]),
+            mse=evaluated.mse,
+            rmse=evaluated.rmse,
+            mean_error=evaluated.mean_error,
+            collapsed_baseline_mse=evaluated.collapsed_baseline_mse,
+            improvement_over_collapsed=evaluated.improvement_over_collapsed,
+            target_health=self._public_health(evaluated.target_health),
+            n_samples=evaluated.n_samples,
             runtime_seconds=time.perf_counter() - start,
         )
 
@@ -563,33 +571,29 @@ class JEPAWorldModelAdapter:
         initial, action_values, targets, mask = self._validate_rollout_inputs(
             initial_state, actions, target_states, sequence_mask
         )
-        errors: list[list[float]] = []
-        max_norm = 0.0
+        predictions: list[np.ndarray] = []
         for episode in range(initial.shape[0]):
             length = int(np.sum(mask[episode]))
             if length == 0:
+                predictions.append(np.empty((0, self.latent_dim), dtype=np.float64))
                 continue
-            prediction = self.mean_rollout(initial[episode], action_values[episode, :length]).to_numpy()[1:]
-            target = targets[episode, 1 : length + 1]
-            max_norm = max(max_norm, float(np.max(np.linalg.norm(prediction, axis=1))))
-            errors.append([float(np.linalg.norm(value)) for value in target - prediction])
-        errors_by_horizon = tuple(
-            float(np.mean([row[index] for row in errors if index < len(row)]))
-            for index in range(action_values.shape[1])
-            if any(index < len(row) for row in errors)
+            predictions.append(self.mean_rollout(initial[episode], action_values[episode, :length]).to_numpy())
+        evaluated = aggregate_rollout_metrics(
+            targets,
+            mask,
+            predictions,
+            variance_floor=self.config.variance_floor,
+            stability_norm_limit=self.config.stability_norm_limit,
         )
-        first = errors_by_horizon[0] if errors_by_horizon else 0.0
-        final = errors_by_horizon[-1] if errors_by_horizon else 0.0
-        ratio = final / first if first > self.config.variance_floor else 0.0
         return JEPARolloutMetrics(
-            errors_by_horizon=errors_by_horizon,
-            mean_error=float(np.mean(errors_by_horizon)) if errors_by_horizon else 0.0,
-            final_error=final,
-            horizon_drift=final - first,
-            error_growth_ratio=float(ratio),
-            n_episodes=len(errors),
+            errors_by_horizon=evaluated.errors_by_horizon,
+            mean_error=evaluated.mean_error,
+            final_error=evaluated.final_error,
+            horizon_drift=evaluated.horizon_drift,
+            error_growth_ratio=evaluated.error_growth_ratio,
+            n_episodes=evaluated.n_episodes,
             runtime_seconds=time.perf_counter() - start,
-            stable=bool(np.isfinite(max_norm) and max_norm <= self.config.stability_norm_limit),
+            stable=evaluated.stable,
         )
 
     @staticmethod
@@ -597,34 +601,22 @@ class JEPAWorldModelAdapter:
         """Compute covariance/effective-rank diagnostics without a decoder."""
 
         values = _finite_array(latents, name="latents")
-        if values.ndim != 2 or values.shape[0] < 1:
-            raise ValueError("latents must be a non-empty two-dimensional array")
-        variances = np.var(values, axis=0)
-        if values.shape[0] < 2:
-            covariance = np.zeros((values.shape[1], values.shape[1]), dtype=np.float64)
-        else:
-            covariance = np.asarray(np.cov(values, rowvar=False), dtype=np.float64)
-            if covariance.ndim == 0:
-                covariance = covariance.reshape(1, 1)
-        eigenvalues = np.maximum(np.linalg.eigvalsh(covariance), 0.0)
-        total = float(np.sum(eigenvalues))
-        squared = float(np.sum(np.square(eigenvalues)))
-        effective_rank = total * total / squared if squared > 0.0 else 0.0
-        positive = eigenvalues[eigenvalues > collapse_variance_threshold]
-        condition = float(np.max(positive) / np.min(positive)) if positive.size else float("inf")
-        collapsed_fraction = float(np.mean(variances <= collapse_variance_threshold))
-        collapse_score = 1.0 - effective_rank / values.shape[1]
+        health_values = compute_latent_health(values, collapse_variance_threshold=collapse_variance_threshold)
+        return JEPAWorldModelAdapter._public_health(health_values)
+
+    @staticmethod
+    def _public_health(values: JEPALatentHealthValues) -> JEPALatentHealth:
         return JEPALatentHealth(
-            mean_variance=float(np.mean(variances)),
-            min_variance=float(np.min(variances)),
-            max_variance=float(np.max(variances)),
-            covariance_condition=condition,
-            effective_rank=float(effective_rank),
-            participation_ratio=float(effective_rank),
-            collapsed_fraction=collapsed_fraction,
-            collapse_score=float(np.clip(collapse_score, 0.0, 1.0)),
-            n_samples=int(values.shape[0]),
-            latent_dim=int(values.shape[1]),
+            mean_variance=values.mean_variance,
+            min_variance=values.min_variance,
+            max_variance=values.max_variance,
+            covariance_condition=values.covariance_condition,
+            effective_rank=values.effective_rank,
+            participation_ratio=values.participation_ratio,
+            collapsed_fraction=values.collapsed_fraction,
+            collapse_score=values.collapse_score,
+            n_samples=values.n_samples,
+            latent_dim=values.latent_dim,
         )
 
     def evaluate_latent_health(self, observations: np.ndarray, *, target: bool = False) -> JEPALatentHealth:
@@ -633,6 +625,7 @@ class JEPAWorldModelAdapter:
         return self.latent_health(self.encode_target(observations) if target else self.encode(observations))
 
     def to_config(self) -> JEPAWorldModelConfig:
+        """Return the effective serializable configuration with resolved device."""
         return self.config.model_copy(update={"device": self.device})
 
     def save(self, path: str) -> None:
@@ -647,48 +640,46 @@ class JEPAWorldModelAdapter:
             "config": self.to_config().model_dump(mode="json"),
             "fit_metadata": dict(self._fit_metadata),
         }
-        arrays: dict[str, np.ndarray] = {"scale": self.scale}
-        for prefix, module in (
-            ("context", self._context_encoder),
-            ("target", self._target_encoder),
-            ("predictor", self._predictor),
-        ):
-            for name, value in module.state_dict().items():
-                arrays[f"{prefix}_{name.replace('.', '_')}"] = value.detach().cpu().numpy()
-        np.savez(path, **cast(dict[str, Any], {"metadata_json": np.asarray(json.dumps(payload)), **arrays}))
+        context_state = {
+            name: value.detach().cpu().numpy() for name, value in self._context_encoder.state_dict().items()
+        }
+        target_state = {name: value.detach().cpu().numpy() for name, value in self._target_encoder.state_dict().items()}
+        predictor_state = {name: value.detach().cpu().numpy() for name, value in self._predictor.state_dict().items()}
+        write_jepa_checkpoint(
+            path,
+            metadata=payload,
+            scale=self.scale,
+            context_state=context_state,
+            target_state=target_state,
+            predictor_state=predictor_state,
+        )
 
     @classmethod
     def load(cls, path: str, *, device: str | None = None) -> JEPAWorldModelAdapter:
         """Load a checkpoint and restore the target encoder without gradients."""
 
-        with np.load(path, allow_pickle=False) as data:  # pyright: ignore[reportUnknownMemberType]
-            raw = data["metadata_json"].item()
-            if not isinstance(raw, str):
-                raise ValueError("JEPA checkpoint has no metadata_json string")
-            metadata = cast(dict[str, Any], json.loads(raw))
-            config_values = cast(dict[str, Any], metadata["config"])
-            if device is not None:
-                config_values["device"] = device
-            model = cls(
-                int(metadata["observation_dim"]),
-                int(metadata["latent_dim"]),
-                int(metadata["action_dim"]),
-                source_space_identity=str(metadata["source_space_identity"]),
-                config=JEPAWorldModelConfig(**config_values),
-            )
-            for prefix, module in (
-                ("context", model._context_encoder),
-                ("target", model._target_encoder),
-                ("predictor", model._predictor),
-            ):
-                state = {
-                    name: torch.as_tensor(data[f"{prefix}_{name.replace('.', '_')}"], device=model.device)
-                    for name in module.state_dict()
-                }
-                module.load_state_dict(state)
-            model._scale = np.asarray(data["scale"], dtype=np.float64)
-            model._fit_metadata = MappingProxyType(dict(metadata.get("fit_metadata", {})))
-            return model
+        checkpoint = read_jepa_checkpoint(path)
+        metadata = checkpoint.metadata
+        config_values = dict(metadata["config"])
+        if device is not None:
+            config_values["device"] = device
+        model = cls(
+            int(metadata["observation_dim"]),
+            int(metadata["latent_dim"]),
+            int(metadata["action_dim"]),
+            source_space_identity=str(metadata["source_space_identity"]),
+            config=JEPAWorldModelConfig(**config_values),
+        )
+        for module, state in (
+            (model._context_encoder, checkpoint.context_state),
+            (model._target_encoder, checkpoint.target_state),
+            (model._predictor, checkpoint.predictor_state),
+        ):
+            module_state = {name: torch.as_tensor(state[name], device=model.device) for name in module.state_dict()}
+            module.load_state_dict(module_state)
+        model._scale = checkpoint.scale
+        model._fit_metadata = MappingProxyType(dict(metadata.get("fit_metadata", {})))
+        return model
 
     def _update_target_encoder(self) -> None:
         momentum = self.config.ema_momentum
@@ -722,44 +713,26 @@ class JEPAWorldModelAdapter:
 
     @staticmethod
     def _validate_point(value: np.ndarray, *, name: str, width: int) -> np.ndarray:
-        values = _finite_array(value, name=name)
-        if values.ndim != 1 or values.shape != (width,):
-            raise ValueError(f"{name} must have shape ({width},), got {values.shape}")
-        return values
+        return validate_point(value, name=name, width=width)
 
     @staticmethod
     def _validate_batch(value: np.ndarray, *, name: str, width: int) -> np.ndarray:
-        values = _finite_array(value, name=name)
-        if values.ndim != 2 or values.shape[1] != width:
-            raise ValueError(f"{name} must have shape (n, {width}), got {values.shape}")
-        if values.shape[0] < 1:
-            raise ValueError(f"{name} must contain at least one sample")
-        return values
+        return validate_batch(value, name=name, width=width)
 
     def _validate_sequences(
         self, observations: np.ndarray, actions: np.ndarray, sequence_mask: np.ndarray | None
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        observation_values = _finite_array(observations, name="observations")
-        action_values = _finite_array(actions, name="actions")
-        if observation_values.ndim != 3 or observation_values.shape[2] != self.observation_dim:
-            raise ValueError(
-                f"observations must have shape (episodes, horizon + 1, {self.observation_dim}), "
-                f"got {observation_values.shape}"
-            )
-        expected = (observation_values.shape[0], observation_values.shape[1] - 1, self.action_dim)
-        if action_values.shape != expected:
-            raise ValueError(f"actions must have shape {expected}, got {action_values.shape}")
-        mask = self._validate_mask(sequence_mask, expected[:2])
-        return observation_values, action_values, mask
+        return validate_sequences(
+            observations,
+            actions,
+            sequence_mask,
+            observation_dim=self.observation_dim,
+            action_dim=self.action_dim,
+        )
 
     @staticmethod
     def _validate_mask(sequence_mask: np.ndarray | None, shape: tuple[int, int]) -> np.ndarray:
-        if sequence_mask is None:
-            return np.ones(shape, dtype=bool)
-        raw = _finite_array(sequence_mask, name="sequence_mask")
-        if raw.shape != shape or not np.isin(raw, [0.0, 1.0]).all():
-            raise ValueError(f"sequence_mask must have shape {shape} and contain only 0/1 values")
-        return raw.astype(bool)
+        return validate_mask(sequence_mask, shape)
 
     def _validate_rollout_inputs(
         self,
@@ -768,29 +741,14 @@ class JEPAWorldModelAdapter:
         target_states: np.ndarray,
         sequence_mask: np.ndarray | None,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        initial = _finite_array(initial_state, name="initial_state")
-        action_values = _finite_array(actions, name="actions")
-        targets = _finite_array(target_states, name="target_states")
-        if initial.ndim == 1:
-            initial = initial[None, :]
-        if action_values.ndim == 2:
-            action_values = action_values[None, :, :]
-        if targets.ndim == 2:
-            targets = targets[None, :, :]
-        if initial.ndim != 2 or action_values.ndim != 3 or targets.ndim != 3:
-            raise ValueError("invalid rollout input dimensions")
-        expected_targets = (initial.shape[0], action_values.shape[1] + 1, self.latent_dim)
-        if (
-            initial.shape[1] != self.latent_dim
-            or action_values.shape[0] != initial.shape[0]
-            or action_values.shape[2] != self.action_dim
-        ):
-            raise ValueError("rollout inputs have incompatible state/action shapes")
-        if targets.shape != expected_targets:
-            raise ValueError(f"target_states must have shape {expected_targets}, got {targets.shape}")
-        if not np.array_equal(initial, targets[:, 0, :]):
-            raise ValueError("initial_state must equal target_states[:, 0, :]")
-        return initial, action_values, targets, self._validate_mask(sequence_mask, action_values.shape[:2])
+        return validate_rollout_inputs(
+            initial_state,
+            actions,
+            target_states,
+            sequence_mask,
+            latent_dim=self.latent_dim,
+            action_dim=self.action_dim,
+        )
 
 
 __all__ = [
