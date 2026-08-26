@@ -2,18 +2,49 @@
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
 from latent_anything.experiment_recorder import (
     ExperimentRecorder,
+    ExperimentRun,
     LocalExperimentRecorder,
+    RecorderArtifact,
     RecorderContractError,
+    RecorderRunInfo,
+    canonical_recorder_json,
     compute_recorder_identity,
     read_recorder_artifact,
     validate_recorder_artifact_name,
 )
+
+
+def test_recorder_public_import_and_schema_snapshot() -> None:
+    assert RecorderArtifact.__module__ == "latent_anything.experiment_recorder"
+    assert RecorderRunInfo.__module__ == "latent_anything.experiment_recorder"
+    assert ExperimentRun.__module__ == "latent_anything.experiment_recorder"
+    assert tuple(inspect.signature(LocalExperimentRecorder.start_run).parameters) == (
+        "self",
+        "name",
+        "config",
+        "tags",
+        "parent_run_id",
+        "resume_run_id",
+        "code_version",
+        "framework_version",
+        "model_revisions",
+        "dataset_revisions",
+        "seeds",
+        "environment",
+        "metadata",
+    )
+    assert canonical_recorder_json({"z": [2, 1], "a": "stable"}) == b'{"a":"stable","z":[2,1]}'
+    assert compute_recorder_identity(name="run", config={"b": 2, "a": 1}) == compute_recorder_identity(
+        name="run", config={"a": 1, "b": 2}
+    )
 
 
 def test_local_recorder_contract_preserves_identity_artifact_and_parent_child(tmp_path: Path) -> None:
@@ -67,23 +98,63 @@ def test_local_recorder_resumes_metric_history_and_rejects_invalid_steps(tmp_pat
     assert recorder.get_record(run.info.run_id).metrics == {"score": 0.5}
 
 
+_ResumeMismatchField = Literal[
+    "name",
+    "config",
+    "tags",
+    "parent_run_id",
+    "code_version",
+    "framework_version",
+    "model_revisions",
+    "dataset_revisions",
+    "seeds",
+    "environment",
+    "metadata",
+]
+
+
+def _start_run_with_mismatch(recorder: LocalExperimentRecorder, run_id: str, field: _ResumeMismatchField) -> None:
+    if field == "name":
+        recorder.start_run("other", resume_run_id=run_id)
+    elif field == "config":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, config={"seed": 4})
+    elif field == "tags":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, tags={"lane": "online"})
+    elif field == "parent_run_id":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, parent_run_id="other-parent")
+    elif field == "code_version":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, code_version="other-code")
+    elif field == "framework_version":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, framework_version="other-framework")
+    elif field == "model_revisions":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, model_revisions={"model": "other"})
+    elif field == "dataset_revisions":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, dataset_revisions={"dataset": "other"})
+    elif field == "seeds":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, seeds=(8,))
+    elif field == "environment":
+        recorder.start_run("resume-matrix", resume_run_id=run_id, environment={"platform": "other"})
+    else:
+        recorder.start_run("resume-matrix", resume_run_id=run_id, metadata={"owner": "other"})
+
+
 @pytest.mark.parametrize(
-    ("field", "value"),
+    "field",
     [
-        ("name", "other"),
-        ("config", {"seed": 4}),
-        ("tags", {"lane": "online"}),
-        ("parent_run_id", "other-parent"),
-        ("code_version", "other-code"),
-        ("framework_version", "other-framework"),
-        ("model_revisions", {"model": "other"}),
-        ("dataset_revisions", {"dataset": "other"}),
-        ("seeds", (8,)),
-        ("environment", {"platform": "other"}),
-        ("metadata", {"owner": "other"}),
+        "name",
+        "config",
+        "tags",
+        "parent_run_id",
+        "code_version",
+        "framework_version",
+        "model_revisions",
+        "dataset_revisions",
+        "seeds",
+        "environment",
+        "metadata",
     ],
 )
-def test_local_resume_rejects_each_explicit_identity_mismatch(tmp_path: Path, field: str, value: object) -> None:
+def test_local_resume_rejects_each_explicit_identity_mismatch(tmp_path: Path, field: _ResumeMismatchField) -> None:
     recorder = LocalExperimentRecorder(tmp_path / field)
     run = recorder.start_run(
         "resume-matrix",
@@ -98,12 +169,8 @@ def test_local_resume_rejects_each_explicit_identity_mismatch(tmp_path: Path, fi
         environment={"platform": "cpu"},
         metadata={"owner": "test"},
     )
-    kwargs: dict[str, object] = {field: value}
     with pytest.raises(RecorderContractError, match="local resume"):
-        if field == "name":
-            recorder.start_run("other", resume_run_id=run.info.run_id)
-        else:
-            recorder.start_run("resume-matrix", resume_run_id=run.info.run_id, **kwargs)
+        _start_run_with_mismatch(recorder, run.info.run_id, field)
 
 
 def test_local_recorder_rejects_mutable_parameter_changes_nonfinite_metrics_and_double_finish(tmp_path: Path) -> None:

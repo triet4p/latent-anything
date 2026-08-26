@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
+import pickle
+import subprocess
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
@@ -258,3 +263,122 @@ def test_comparison_report_requires_two_runs_and_reports_deltas(tmp_path: Path) 
     assert report.metric_deltas[second.run_id] == {"success_rate": 0.25, "return": 0.5}
     with pytest.raises(ValueError, match="at least two"):
         build_comparison_report((first,))
+
+
+def test_schema_v1_canonical_json_and_migration_digests_are_stable() -> None:
+    payload = {
+        "schema_version": 1,
+        "run_id": "fixture-id",
+        "identity": "",
+        "name": "fixture",
+        "status": "completed",
+        "created_at": "2026-01-01T00:00:00+00:00",
+        "updated_at": "2026-01-01T00:01:00+00:00",
+        "config": {"z": [2, 1], "a": "stable"},
+        "code_version": "git:test",
+        "framework_version": "0.9",
+        "model_revisions": {"m": "rev"},
+        "dataset_revisions": {"d": "rev"},
+        "seeds": [3, 7],
+        "environment": {"device": "cpu"},
+        "metrics": {"score": 1.25},
+        "artifacts": [],
+        "parent_run_ids": [],
+        "child_run_ids": [],
+        "runtime_profile": {},
+        "theory_evidence_ids": ["THY-1"],
+        "metadata": {"x": True},
+        "error": None,
+    }
+    record = RunRecord.from_dict(payload)
+    encoded = json.dumps(record.to_dict(), sort_keys=True, separators=(",", ":")).encode()
+    assert hashlib.sha256(encoded).hexdigest() == "25a8bc21cf19a67ce9a553d469236e06f19aed0b96760f9b97e3d2ed3b3c4964"
+
+    legacy = {
+        "id": "legacy-id",
+        "run_name": "old",
+        "config": {"seed": 4},
+        "metrics": {"x": 2},
+        "created_at": "2026-01-01T00:00:00+00:00",
+        "artifacts": [
+            {
+                "name": "x",
+                "digest": "a" * 64,
+                "size_bytes": 1,
+                "relative_path": f"artifacts\\{'a' * 64}",
+            }
+        ],
+    }
+    from latent_anything.run_record import migrate_run_record
+
+    migrated = migrate_run_record(legacy)
+    migration_bytes = json.dumps(migrated, sort_keys=True, separators=(",", ":")).encode()
+    assert hashlib.sha256(migration_bytes).hexdigest() == (
+        "fa243e2d7ca35695c6d381940d844312fe8df8476c8d88ef4da5f063406f5083"
+    )
+
+
+def test_public_run_record_types_keep_signatures_and_pickle_identity() -> None:
+    from latent_anything.run_record import ArtifactRef, FileSystemRunRecorder, RunComparisonReport
+
+    assert ArtifactRef.__module__ == "latent_anything.run_record"
+    assert RunRecord.__module__ == "latent_anything.run_record"
+    assert FileSystemRunRecorder.__module__ == "latent_anything.run_record"
+    assert RunComparisonReport.__module__ == "latent_anything.run_record"
+    assert tuple(inspect.signature(RunRecord.create).parameters) == (
+        "name",
+        "config",
+        "code_version",
+        "framework_version",
+        "model_revisions",
+        "dataset_revisions",
+        "seeds",
+        "environment",
+        "parent_run_ids",
+        "runtime_profile",
+        "theory_evidence_ids",
+        "metadata",
+        "status",
+    )
+
+    artifact = ArtifactRef(name="x", digest="a" * 64, size_bytes=1, relative_path=f"artifacts/{'a' * 64}")
+    assert pickle.loads(pickle.dumps(artifact)) == artifact
+    report = RunComparisonReport("fixture", "run", (), {})
+    assert pickle.loads(pickle.dumps(report)) == report
+
+
+def test_recorder_rejects_tampered_and_symlinked_artifacts(tmp_path: Path) -> None:
+    recorder = FileSystemRunRecorder(tmp_path / "runs")
+    record = _start(recorder)
+    reference = recorder.add_artifact(record.run_id, b"hello", name="hello.txt")
+    artifact_path = recorder.artifacts_dir / reference.digest
+    artifact_path.write_bytes(b"tampered")
+    with pytest.raises(ValueError, match="digest mismatch"):
+        recorder.read_artifact(reference)
+
+    outside = tmp_path / "outside.bin"
+    outside.write_bytes(b"hello")
+    artifact_path.unlink()
+    try:
+        artifact_path.symlink_to(outside)
+    except OSError as error:
+        pytest.skip(f"symlink creation unavailable: {error}")
+    with pytest.raises(ValueError, match="outside"):
+        recorder.read_artifact(reference)
+
+
+def test_saved_record_is_readable_in_a_fresh_process(tmp_path: Path) -> None:
+    recorder = FileSystemRunRecorder(tmp_path / "runs")
+    record = _start(recorder)
+    script = (
+        "import sys; "
+        "from latent_anything.run_record import FileSystemRunRecorder; "
+        "print(FileSystemRunRecorder(sys.argv[1]).get(sys.argv[2]).identity)"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", script, str(tmp_path / "runs"), record.run_id],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.stdout.strip() == record.identity
