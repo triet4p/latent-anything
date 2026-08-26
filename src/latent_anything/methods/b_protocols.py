@@ -1,4 +1,4 @@
-"""Frozen ``BMethod`` Protocol for Layer B (Manipulation) methods.
+"""Frozen ``Intervention``/``BMethod`` Protocol for Layer B methods.
 
 Frozen at B-Method #3 (``ActivationPatch``, Sprint 12). Validated by
 3 instances with differing philosophies:
@@ -84,3 +84,8 @@ class BMethod(Protocol):
             (ActivationPatch), returns ``np.ndarray`` in data space.
         """
         ...
+
+
+# RFC0001 canonical vocabulary; this remains an exact alias of the frozen
+# compatibility Protocol during the beta window.
+Intervention = BMethod

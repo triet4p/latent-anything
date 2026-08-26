@@ -107,6 +107,8 @@ from latent_anything.latent_value import (
 )
 from latent_anything.latent_value import coordinate_identity as coordinate_identity
 from latent_anything.methods import Method as Method
+from latent_anything.methods import AnalysisMethod as AnalysisMethod
+from latent_anything.methods import Intervention as Intervention
 from latent_anything.mlp_probe import MLPProbe as MLPProbe
 from latent_anything.mlp_probe import MLPProbeConfig as MLPProbeConfig
 from latent_anything.mlp_probe import MLPProbeResult as MLPProbeResult
@@ -117,6 +119,7 @@ from latent_anything.pipeline import AnalysisPipeline as AnalysisPipeline
 from latent_anything.pipeline import CEMPlannerSpec as CEMPlannerSpec
 from latent_anything.pipeline import MPPIPlannerSpec as MPPIPlannerSpec
 from latent_anything.pipeline import ManipulationPipeline as ManipulationPipeline
+from latent_anything.pipeline import InterventionPipeline as InterventionPipeline
 from latent_anything.pipeline import ManipulationPipelineSpec as ManipulationPipelineSpec
 from latent_anything.pipeline import PipelineContract as PipelineContract
 from latent_anything.pipeline import PipelineResult as PipelineResult
@@ -524,4 +527,7 @@ __all__ = [
     "rank_feature_examples",
     "register_entry",
     "save_feature_atlas",
+    "AnalysisMethod",
+    "Intervention",
+    "InterventionPipeline",
 ]

@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
+import inspect
+import pickle
+
 import latent_anything
 from latent_anything import adapters, methods
+from latent_anything.manipulation_pipeline import InterventionPipeline, ManipulationPipeline
+from latent_anything.methods.b_protocols import BMethod, Intervention
+from latent_anything.methods.lerp import Lerp
+from latent_anything.methods.pca import PCA
+from latent_anything.methods.protocols import AnalysisMethod, Method
+from latent_anything.pipeline import InterventionPipeline as PipelineInterventionPipeline
 from latent_anything.registry import KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B
 
 
@@ -211,11 +220,25 @@ def test_top_level_public_beta_export_snapshot() -> None:
         "rank_feature_examples",
         "register_entry",
         "save_feature_atlas",
+        "AnalysisMethod",
+        "Intervention",
+        "InterventionPipeline",
     ]
 
 
 def test_method_and_adapter_protocol_snapshot() -> None:
-    assert methods.__all__ == ["ActivationPatch", "BMethod", "Method", "PCA", "SAE", "UMAP", "Lerp", "SteeringVector"]
+    assert methods.__all__ == [
+        "ActivationPatch",
+        "BMethod",
+        "Method",
+        "PCA",
+        "SAE",
+        "UMAP",
+        "Lerp",
+        "SteeringVector",
+        "AnalysisMethod",
+        "Intervention",
+    ]
     assert adapters.__all__ == [
         "ConvVAE",
         "DecodableAdapter",
@@ -246,3 +269,23 @@ def test_method_and_adapter_protocol_snapshot() -> None:
 
 def test_registry_kind_snapshot() -> None:
     assert (KIND_ADAPTER, KIND_METHOD_A, KIND_METHOD_B) == ("adapter", "analysis", "intervention")
+
+
+def test_rfc0001_canonical_symbols_are_exact_legacy_aliases() -> None:
+    assert latent_anything.AnalysisMethod is latent_anything.Method is AnalysisMethod is Method
+    assert latent_anything.Intervention is Intervention is BMethod
+    assert latent_anything.InterventionPipeline is latent_anything.ManipulationPipeline is InterventionPipeline
+    assert PipelineInterventionPipeline is InterventionPipeline
+    assert methods.AnalysisMethod is methods.Method
+    assert methods.Intervention is methods.BMethod
+    assert latent_anything.InterventionPipeline.__module__ == ManipulationPipeline.__module__
+    assert latent_anything.AnalysisMethod.__module__ == latent_anything.Method.__module__
+    assert latent_anything.Intervention.__module__ == BMethod.__module__
+    assert inspect.signature(AnalysisMethod.fit) == inspect.signature(Method.fit)
+    assert inspect.signature(Intervention.apply_trajectory) == inspect.signature(BMethod.apply_trajectory)
+    assert inspect.signature(InterventionPipeline) == inspect.signature(ManipulationPipeline)
+    assert pickle.loads(pickle.dumps(AnalysisMethod)) is Method
+    assert pickle.loads(pickle.dumps(Intervention)) is BMethod
+    assert pickle.loads(pickle.dumps(InterventionPipeline)) is ManipulationPipeline
+    assert isinstance(PCA(), AnalysisMethod)
+    assert isinstance(Lerp(), Intervention)

@@ -1,7 +1,8 @@
 """Public Protocol for stateful dimensionality-reduction methods.
 
-Frozen at Method #3 (SAE), Sprint 6 — this is the canonical ``Method`` shape
-for stateful dimensionality-reduction methods in the latent-anything framework.
+Frozen at Method #3 (SAE), Sprint 6 — this is the canonical
+``AnalysisMethod``/beta-compatibility ``Method`` shape for stateful
+dimensionality-reduction methods in the latent-anything framework.
 """
 
 from __future__ import annotations
@@ -68,3 +69,9 @@ class Method(Protocol):
             Transformed array of shape ``(n_samples, n_components)``.
         """
         ...  # pragma: no cover
+
+
+# RFC0001 canonical vocabulary. Keep the frozen beta Protocol definition and
+# expose the new name as an exact alias so identity, runtime-checkability,
+# signatures, and pickle/import behavior remain unchanged.
+AnalysisMethod = Method
