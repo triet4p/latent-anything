@@ -15,6 +15,11 @@ Covers:
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
+from typing import get_type_hints
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -29,6 +34,7 @@ from latent_anything.mlp_probe import (
     compare_probes,
     nonlinear_memorization_test,
 )
+from latent_anything.probes import LinearProbeConfig
 
 # ---------------------------------------------------------------------------
 #  Fixtures
@@ -127,6 +133,19 @@ class TestMLPProbeResult:
         assert isinstance(d["accuracy"], float)
         assert isinstance(d["n_params"], int)
         assert isinstance(d["config"], dict)
+
+    def test_public_api_and_result_digest_are_stable(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
+        features, labels = binary_data
+        cfg = MLPProbeConfig(random_state=42, max_epochs=10, val_size=0.0)
+        result = MLPProbe(cfg).fit(features, labels)
+        digest = hashlib.sha256(
+            json.dumps(result.to_dict(), sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+
+        assert digest == "f5fc4ebd30c4240db69f95ba208c73146eb91454e5f10dee2233830799aeb580"
+        assert inspect.signature(MLPProbe.fit).parameters.keys() == {"self", "features", "labels", "provenance"}
+        assert NonlinearControls.__module__ == "latent_anything.mlp_probe"
+        assert ProbeComparison.__module__ == "latent_anything.mlp_probe"
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +279,14 @@ class TestDeterminism:
         # Splits differ (different train/test masks)
         assert not np.array_equal(result1.train_indices, result2.train_indices)
 
+    def test_shared_split_digest_is_stable(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
+        from latent_anything._probe_split import stratified_split
+
+        _, labels = binary_data
+        masks = stratified_split(labels, test_size=0.3, val_size=0.0, random_state=42)
+        digest = hashlib.sha256(b"".join(mask.tobytes() for mask in masks)).hexdigest()
+        assert digest == "60ff848c1685f5cb185ffe4d6f4cb0cb62ca523ebc4718f906c5b54edc683ac7"
+
 
 # ---------------------------------------------------------------------------
 #  Degenerate / edge cases
@@ -305,6 +332,8 @@ class TestPredict:
         probe.fit(features, labels)
         with pytest.raises(NotImplementedError, match="not available"):
             probe.predict(features[:5])
+        assert "model-state serialization" in (MLPProbe.predict.__doc__ or "")
+        assert "NotImplementedError" in (MLPProbe.predict.__doc__ or "")
 
     def test_result_raises_before_fit(self) -> None:
         probe = MLPProbe()
@@ -374,6 +403,24 @@ class TestMemorizationTest:
 
 
 class TestProbeComparison:
+    def test_linear_config_type_and_default_preserve_runtime_contract(
+        self, binary_data: tuple[np.ndarray, np.ndarray]
+    ) -> None:
+        annotation = get_type_hints(compare_probes)["linear_config"]
+        assert annotation == (LinearProbeConfig | None)
+        parameter = inspect.signature(compare_probes).parameters["linear_config"]
+        assert parameter.default is None
+
+        features, labels = binary_data
+        default_result = compare_probes(features, labels, seed=0)
+        explicit_result = compare_probes(
+            features,
+            labels,
+            linear_config=LinearProbeConfig(random_state=0),
+            seed=0,
+        )
+        assert explicit_result == default_result
+
     def test_comparison_returns_results(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
         features, labels = binary_data
         result = compare_probes(features, labels, seed=0)

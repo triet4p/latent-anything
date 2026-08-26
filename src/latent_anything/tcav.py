@@ -42,7 +42,15 @@ from typing import Any, Literal
 import numpy as np
 from pydantic import BaseModel, Field
 
-from latent_anything.probes import _stratified_split  # type: ignore[reportPrivateUsage]
+from latent_anything._probe_split import stratified_split
+from latent_anything._tcav_model import (
+    compute_transformer_layer_gradient,
+    extract_layer_activation,
+)
+from latent_anything._tcav_model import (
+    intervention_agreement as _intervention_agreement,
+)
+from latent_anything._tcav_statistics import assemble_tcav_result
 
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingTypeStubs=false
 # (torch has incomplete type stubs — these warnings are noise)
@@ -230,7 +238,7 @@ def learn_mean_diff_direction(
     # Held-out separability
     all_x = np.concatenate([concept, reference], axis=0)
     all_y = np.concatenate([np.ones(concept.shape[0]), np.zeros(reference.shape[0])])
-    train_mask, _, test_mask = _stratified_split(
+    train_mask, _, test_mask = stratified_split(
         all_y,
         test_size=test_size,
         val_size=0.0,
@@ -345,7 +353,7 @@ def learn_linear_separator_direction(
     ci95 = float(1.96 * cos_arr.std(ddof=1) / np.sqrt(n_bootstrap)) if n_bootstrap > 1 else 0.0
 
     # Held-out separability (use the main classifier's own accuracy)
-    train_mask, _, test_mask = _stratified_split(
+    train_mask, _, test_mask = stratified_split(
         all_y,
         test_size=test_size,
         val_size=0.0,
@@ -526,8 +534,10 @@ class TCAVResult:
 
 
 # ---------------------------------------------------------------------------
-# Part 5 — Internal gradient computation  (Task 3)
+# Part 5 — Optional model boundary (Task 3)
 # ---------------------------------------------------------------------------
+# Gradient and activation capture live in _tcav_model. These imports preserve
+# the historical private test seams while keeping PyTorch out of this facade.
 
 
 def _compute_transformer_layer_gradient(
@@ -537,92 +547,7 @@ def _compute_transformer_layer_gradient(
     layer: int,
     target: TransformerLogitTarget,
 ) -> np.ndarray:
-    """Compute gradient of *target* logit w.r.t. activations at *layer*.
-
-    Parameters
-    ----------
-    model :
-        HuggingFace ``AutoModelForCausalLM`` instance.  Must be on the
-        correct device and in eval mode.
-    input_ids :
-        ``(batch_size, seq_len)`` int64 NumPy array.
-    attention_mask :
-        ``(batch_size, seq_len)`` int64 NumPy array.
-    layer :
-        0-based layer index whose output activation to differentiate.
-    target :
-        Scalar target specification.
-
-    Returns
-    -------
-    np.ndarray
-        Gradient vector of shape ``(hidden_dim,)`` — the gradient of the
-        target logit w.r.t. the activation at *layer* at the position and
-        batch index specified by *target*.
-    """
-    import torch
-
-    device = next(model.parameters()).device
-
-    input_t = torch.as_tensor(input_ids, dtype=torch.long, device=device)
-    mask_t = torch.as_tensor(attention_mask, dtype=torch.long, device=device)
-
-    # Hook to capture the layer output and retain its gradient
-    activation: dict[str, torch.Tensor] = {}
-
-    def _make_hook(name: str):
-        def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            output = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
-            output.retain_grad()
-            activation[name] = output
-
-        return _hook
-
-    layer_name = f"transformer.h.{layer}"
-    handle = None
-    for n, m in model.named_modules():
-        if n == layer_name:
-            handle = m.register_forward_hook(_make_hook(layer_name))
-            break
-
-    if handle is None:
-        raise ValueError(
-            f"Layer {layer} ({layer_name}) not found in model. "
-            f"Available layers: {[n for n, _ in model.named_modules() if 'transformer.h.' in n]}"
-        )
-
-    try:
-        model.zero_grad()
-        with torch.enable_grad():
-            outputs = model(
-                input_ids=input_t,
-                attention_mask=mask_t,
-                output_hidden_states=False,
-            )
-            logits = outputs.logits  # (batch, seq, vocab)
-
-        batch_idx = target.batch_index
-        pos = target.position if target.position >= 0 else logits.shape[1] + target.position
-        token_id = target.token_id
-
-        scalar = logits[batch_idx, pos, token_id]
-        scalar.backward()
-
-        if layer_name not in activation:
-            raise RuntimeError(f"Hook at {layer_name} did not fire during forward pass")
-
-        act = activation[layer_name]
-        if act.grad is None:
-            raise RuntimeError(
-                f"Gradient not available at {layer_name}. "
-                "Ensure the model is in eval mode (not train) and gradients are enabled."
-            )
-
-        grad: np.ndarray = act.grad[batch_idx, pos].detach().cpu().numpy().copy()
-        return grad.astype(np.float64)
-
-    finally:
-        handle.remove()
+    return compute_transformer_layer_gradient(model, input_ids, attention_mask, layer, target)
 
 
 def _extract_layer_activation(
@@ -633,82 +558,12 @@ def _extract_layer_activation(
     batch_index: int = 0,
     position: int = -1,
 ) -> np.ndarray:
-    """Extract the activation at *layer* for a specific (batch, position).
-
-    Does **not** compute gradients — this is a forward-only helper for
-    concept-direction learning when the user wants to extract activations
-    from raw inputs rather than pre-compute them.
-
-    Parameters
-    ----------
-    model :
-        HuggingFace ``AutoModelForCausalLM`` instance.
-    input_ids :
-        ``(batch_size, seq_len)`` int64 NumPy array.
-    attention_mask :
-        ``(batch_size, seq_len)`` int64 NumPy array.
-    layer :
-        0-based layer index.
-    batch_index :
-        Which batch element.
-    position :
-        Sequence position (-1 = last).
-
-    Returns
-    -------
-    np.ndarray
-        Activation vector of shape ``(hidden_dim,)``.
-    """
-    import torch
-
-    device = next(model.parameters()).device
-    input_t = torch.as_tensor(input_ids, dtype=torch.long, device=device)
-    mask_t = torch.as_tensor(attention_mask, dtype=torch.long, device=device)
-
-    activation: dict[str, torch.Tensor] = {}
-
-    def _make_hook(name: str):
-        def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
-            activation[name] = out.detach().cpu()
-
-        return _hook
-
-    layer_name = f"transformer.h.{layer}"
-    handle = None
-    for n, m in model.named_modules():
-        if n == layer_name:
-            handle = m.register_forward_hook(_make_hook(layer_name))
-            break
-
-    if handle is None:
-        raise ValueError(f"Layer {layer} not found in model")
-
-    try:
-        with torch.no_grad():
-            model(input_ids=input_t, attention_mask=mask_t, output_hidden_states=False)
-
-        if layer_name not in activation:
-            raise RuntimeError(f"Hook at {layer_name} did not fire")
-
-        act = activation[layer_name].numpy()
-        pos = position if position >= 0 else act.shape[1] + position
-        return act[batch_index, pos].astype(np.float64)
-
-    finally:
-        handle.remove()
+    return extract_layer_activation(model, input_ids, attention_mask, layer, batch_index, position)
 
 
 # ---------------------------------------------------------------------------
 # Part 6 — Main TCAV computation  (Tasks 3–5)
 # ---------------------------------------------------------------------------
-
-
-def _binomial_p_value(n_positive: int, n_total: int, p_null: float = 0.5) -> float:
-    """One-sided p-value: P(X >= n_positive) under Binomial(n_total, p_null)."""
-    from scipy import stats  # type: ignore[reportMissingTypeStubs]
-
-    return float(stats.binom.sf(n_positive - 1, n_total, p_null))
 
 
 def compute_tcav(
@@ -780,7 +635,6 @@ def compute_tcav(
     TCAVResult
         Full analysis with scores, significance, and random baselines.
     """
-    # ── Step 1: Learn concept direction ──────────────────────────────
     if direction_method == "mean_diff":
         cav_result = learn_mean_diff_direction(
             concept_dataset,
@@ -796,9 +650,6 @@ def compute_tcav(
     else:
         raise ValueError(f"Unknown direction_method: {direction_method!r}")
 
-    v_c = cav_result.direction  # (n_features,)
-
-    # ── Step 2: Compute per-example gradients ────────────────────────
     batch_size = input_ids_batch.shape[0]
     all_gradients: list[np.ndarray] = []
     for i in range(batch_size):
@@ -811,131 +662,26 @@ def compute_tcav(
         )
         all_gradients.append(grad)
 
-    grad_matrix = np.stack(all_gradients, axis=0)  # (batch_size, hidden_dim)
-
-    # ── Step 3: Compute sensitivities and TCAV score ──────────────────
-    sensitivities = grad_matrix @ v_c  # (batch_size,)
-
-    n_positive = int(np.sum(sensitivities > 0))
-    sensitivity_fraction = n_positive / batch_size
-
-    p_value = _binomial_p_value(n_positive, batch_size)
-
-    score = TCAVScore(
-        concept_name=concept_dataset.concept_name,
-        layer=target_layer,
+    grad_matrix = np.stack(all_gradients, axis=0)
+    return assemble_tcav_result(
+        concept_dataset=concept_dataset,
+        target_layer=target_layer,
         target=target,
-        cav_direction=cav_result,
-        sensitivity=sensitivity_fraction,
-        n_examples=batch_size,
-        n_positive=n_positive,
-        p_value=p_value,
-        per_example_sensitivities=sensitivities.copy(),
-    )
-
-    # ── Step 4: Multi-seed aggregation  (Task 5) ──────────────────────
-    seed_scores: list[float] = [sensitivity_fraction]
-    seed_results: list[TCAVScore] = [score]
-
-    for seed_offset in range(1, n_seeds):
-        if direction_method == "mean_diff":
-            cav_s = learn_mean_diff_direction(
-                concept_dataset,
-                n_bootstrap=n_bootstrap,
-                bootstrap_seed=seed_offset * 1000,
-            )
-        else:
-            cav_s = learn_linear_separator_direction(
-                concept_dataset,
-                n_bootstrap=n_bootstrap,
-                bootstrap_seed=seed_offset * 1000,
-                split_seed=seed_offset * 1000,
-            )
-
-        v_s = cav_s.direction
-        sens_s = grad_matrix @ v_s
-        n_pos_s = int(np.sum(sens_s > 0))
-        frac_s = n_pos_s / batch_size
-
-        seed_scores.append(frac_s)
-        seed_results.append(
-            TCAVScore(
-                concept_name=concept_dataset.concept_name,
-                layer=target_layer,
-                target=target,
-                cav_direction=cav_s,
-                sensitivity=frac_s,
-                n_examples=batch_size,
-                n_positive=n_pos_s,
-                p_value=_binomial_p_value(n_pos_s, batch_size),
-                per_example_sensitivities=sens_s.copy(),
-            )
-        )
-
-    agg_score = float(np.mean(seed_scores))
-    agg_ci95 = float(1.96 * np.std(seed_scores, ddof=1) / np.sqrt(n_seeds)) if n_seeds > 1 else 0.0
-
-    # ── Step 5: Random-concept baselines  (Task 5) ────────────────────
-    rng = np.random.default_rng(random_concept_seed)
-    random_scores: list[float] = []
-
-    for rc in range(n_random_concepts):
-        # Permute the concept labels to create a random concept direction
-        n_total = concept_dataset.n_concept + concept_dataset.n_reference
-        all_x = np.concatenate([concept_dataset.concept_examples, concept_dataset.reference_examples], axis=0)
-        perm = rng.permutation(n_total)
-        random_concept_x = all_x[perm[: concept_dataset.n_concept]]
-        random_reference_x = all_x[perm[concept_dataset.n_concept :]]
-
-        if direction_method == "mean_diff":
-            random_dir = _normalize(random_concept_x.mean(axis=0) - random_reference_x.mean(axis=0))
-        else:
-            from sklearn.linear_model import LogisticRegression
-
-            random_y = np.concatenate([np.ones(random_concept_x.shape[0]), np.zeros(random_reference_x.shape[0])])
-            lr_r = LogisticRegression(
-                C=1.0,
-                solver="lbfgs",
-                max_iter=2000,
-                class_weight="balanced",
-                random_state=rc,
-            )
-            lr_r.fit(np.concatenate([random_concept_x, random_reference_x], axis=0), random_y)
-            random_dir = _normalize(np.asarray(lr_r.coef_[0]))
-
-        random_sens = grad_matrix @ random_dir
-        random_frac = int(np.sum(random_sens > 0)) / batch_size
-        random_scores.append(random_frac)
-
-    random_arr = np.asarray(random_scores, dtype=np.float64)
-    random_mean = float(random_arr.mean())
-    random_std = float(random_arr.std(ddof=1) if n_random_concepts > 1 else 0.0)
-    empirical_p = float(np.mean(random_arr >= agg_score))
-
-    # ── Step 6: Significance and correction  (Task 5) ─────────────────
-    corrected_p = min(1.0, empirical_p * n_concepts_family)
-    significance = "significant" if corrected_p < alpha else "not_significant"
-
-    return TCAVResult(
-        scores=tuple(seed_results),
-        aggregate_score=agg_score,
-        aggregate_ci95=agg_ci95,
-        significance=significance,
-        corrected_p_value=corrected_p,
+        grad_matrix=grad_matrix,
+        initial_direction=cav_result,
+        direction_method=direction_method,
+        n_bootstrap=n_bootstrap,
         n_random_concepts=n_random_concepts,
-        random_baseline_scores=random_arr.copy(),
-        random_baseline_mean=random_mean,
-        random_baseline_std=random_std,
-        empirical_p_value=empirical_p,
-        intervention_agreement=None,
+        n_seeds=n_seeds,
+        alpha=alpha,
+        n_concepts_family=n_concepts_family,
+        random_concept_seed=random_concept_seed,
     )
 
 
 # ---------------------------------------------------------------------------
 # Part 7 — Intervention cross-check  (Task 7)
 # ---------------------------------------------------------------------------
-
-
 def intervention_agreement(
     model: Any,
     target_layer: int,
@@ -946,138 +692,16 @@ def intervention_agreement(
     *,
     strength: float = 1.0,
 ) -> float:
-    """Cross-check TCAV sensitivity with a matched-norm intervention.
-
-    For each example:
-    1. Compute the baseline target logit (no intervention).
-    2. Intervene by adding ``+strength × v_c`` to the activation at
-       *target_layer* and re-compute the target logit.
-    3. Intervene by adding ``-strength × v_c`` and re-compute.
-    4. The TCAV prediction is that ``+v_c`` increases the target (if
-       the directional derivative was positive) and ``-v_c`` decreases it.
-
-    The agreement rate is the fraction of examples where the sign of the
-    observed change matches the TCAV prediction.
-
-    Parameters
-    ----------
-    model :
-        HuggingFace model.
-    target_layer :
-        0-based layer index.
-    concept_direction :
-        Unit-norm direction vector ``(hidden_dim,)``.
-    input_ids_batch :
-        ``(batch_size, seq_len)`` int64 array.
-    attention_mask_batch :
-        ``(batch_size, seq_len)`` int64 array.
-    target :
-        Scalar target.
-    strength :
-        Intervention strength multiplier (matched-norm).
-
-    Returns
-    -------
-    float
-        Fraction of examples where intervention ±v_c changes the target
-        in the direction predicted by the TCAV directional derivative.
-    """
-    import torch
-
-    device = next(model.parameters()).device
-    batch_size = input_ids_batch.shape[0]
-    agreements: list[float] = []
-
-    v_c_t = torch.as_tensor(concept_direction, dtype=torch.float32, device=device)
-
-    for i in range(batch_size):
-        ids = input_ids_batch[i : i + 1]
-        mask = attention_mask_batch[i : i + 1]
-
-        # Position and token for the target
-        pos = target.position if target.position >= 0 else ids.shape[1] + target.position
-
-        # ── Baseline ─────────────────────────────────────────────────
-        ids_t = torch.as_tensor(ids, dtype=torch.long, device=device)
-        mask_t = torch.as_tensor(mask, dtype=torch.long, device=device)
-
-        with torch.no_grad():
-            baseline_logits = model(input_ids=ids_t, attention_mask=mask_t).logits
-            baseline_val = float(baseline_logits[0, pos, target.token_id].cpu().numpy())
-
-        # ── Positive intervention ────────────────────────────────────
-        def _pos_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
-            delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
-            modified = out + delta
-            return modified
-
-        layer_name = f"transformer.h.{target_layer}"
-        pos_handle = None
-        for n, m in model.named_modules():
-            if n == layer_name:
-                pos_handle = m.register_forward_hook(_pos_hook)
-                break
-
-        if pos_handle is None:
-            raise ValueError(f"Layer {target_layer} not found")
-
-        try:
-            with torch.no_grad():
-                pos_out = model(input_ids=ids_t, attention_mask=mask_t).logits
-                pos_val = float(pos_out[0, pos, target.token_id].cpu().numpy())
-        finally:
-            pos_handle.remove()
-
-        # ── Negative intervention ────────────────────────────────────
-        def _neg_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
-            delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
-            modified = out - delta
-            return modified
-
-        neg_handle = None
-        for n, m in model.named_modules():
-            if n == layer_name:
-                neg_handle = m.register_forward_hook(_neg_hook)
-                break
-
-        if neg_handle is None:
-            raise ValueError(f"Layer {target_layer} not found")
-
-        try:
-            with torch.no_grad():
-                neg_out = model(input_ids=ids_t, attention_mask=mask_t).logits
-                neg_val = float(neg_out[0, pos, target.token_id].cpu().numpy())
-        finally:
-            neg_handle.remove()
-
-        # ── Compute TCAV prediction (directional derivative) ─────────
-        # Use the baseline gradient from _compute_transformer_layer_gradient
-        grad = _compute_transformer_layer_gradient(
-            model,
-            input_ids=ids,
-            attention_mask=mask,
-            layer=target_layer,
-            target=target,
-        )
-        ddt = float(np.dot(grad, concept_direction))
-
-        # Agreement: if ddt > 0, +intervention should increase target,
-        # and -intervention should decrease it.
-        if ddt > 0:
-            agrees_positive = pos_val > baseline_val
-            agrees_negative = neg_val < baseline_val
-        elif ddt < 0:
-            agrees_positive = pos_val < baseline_val
-            agrees_negative = neg_val > baseline_val
-        else:
-            agrees_positive = True
-            agrees_negative = True
-
-        agreements.append(1.0 if (agrees_positive and agrees_negative) else 0.0)
-
-    return float(np.mean(agreements))
+    """Cross-check TCAV sensitivity with a matched-norm intervention."""
+    return _intervention_agreement(
+        model=model,
+        target_layer=target_layer,
+        concept_direction=concept_direction,
+        input_ids_batch=input_ids_batch,
+        attention_mask_batch=attention_mask_batch,
+        target=target,
+        strength=strength,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -32,7 +32,6 @@ Design notes
 
 from __future__ import annotations
 
-import json
 import os
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
@@ -41,6 +40,19 @@ from typing import Any, Literal
 import numpy as np
 from pydantic import BaseModel, Field
 
+from latent_anything._sae_atlas import (
+    build_feature_atlas as _build_feature_atlas,
+)
+from latent_anything._sae_atlas import (
+    load_feature_atlas as _load_feature_atlas,
+)
+from latent_anything._sae_atlas import (
+    rank_feature_examples as _rank_feature_examples,
+)
+from latent_anything._sae_atlas import (
+    save_feature_atlas as _save_feature_atlas,
+)
+from latent_anything._sae_metrics import assemble_stability, evaluate_fitted, feature_direction
 from latent_anything.methods.sae import SAE
 from latent_anything.probes import LinearProbe, LinearProbeConfig
 from latent_anything.tcav import TransformerLogitTarget
@@ -250,137 +262,8 @@ def _validate_batch(data: np.ndarray, *, name: str) -> np.ndarray:
     return values
 
 
-def _as_readonly(values: np.ndarray) -> np.ndarray:
-    result = np.asarray(values, dtype=np.float64).copy()
-    result.setflags(write=False)
-    return result
-
-
-def _evaluate_fitted(
-    sae: SAE,
-    train: np.ndarray,
-    val: np.ndarray,
-    config: SAEConfig,
-    source_identity: str,
-    provenance: dict[str, Any] | None,
-) -> SAEEvaluationResult:
-    """Compute all evaluation metrics from one already-fitted SAE."""
-    val_activations = np.asarray(sae.transform(val))
-    train_reconstruction = np.asarray(sae.reconstruct(train))
-    val_reconstruction = np.asarray(sae.reconstruct(val))
-    train_mse = float(np.mean((train_reconstruction - train) ** 2))
-    val_mse = float(np.mean((val_reconstruction - val) ** 2))
-
-    frequencies = np.asarray((val_activations > 0).mean(axis=0), dtype=np.float64)
-    mean_activations = np.asarray(val_activations.mean(axis=0), dtype=np.float64)
-    positive_counts = (val_activations > 0).sum(axis=0).astype(np.float64)
-    positive_sums = np.where(positive_counts > 0, val_activations.sum(axis=0), 0.0)
-    mean_positive = np.divide(
-        positive_sums,
-        positive_counts,
-        out=np.zeros_like(positive_sums),
-        where=positive_counts > 0,
-    )
-
-    state = sae.state_dict()
-    decoder_weights = np.asarray(state["decoder_weight"], dtype=np.float64)
-    encoder_weights = np.asarray(state["encoder_weight"], dtype=np.float64)
-    decoder_norms = np.asarray(np.linalg.norm(decoder_weights, axis=0), dtype=np.float64)
-    encoder_norms = np.asarray(np.linalg.norm(encoder_weights, axis=1), dtype=np.float64)
-
-    is_dead = np.asarray(frequencies < config.dead_frequency_threshold, dtype=bool)
-    n_dead = int(is_dead.sum())
-    l0 = float((val_activations > 0).sum(axis=1).mean())
-    l1 = float(val_activations.sum(axis=1).mean())
-
-    features = tuple(
-        SAEFeatureMetrics(
-            feature_index=int(index),
-            activation_frequency=float(frequencies[index]),
-            mean_activation=float(mean_activations[index]),
-            mean_positive_activation=float(mean_positive[index]),
-            decoder_norm=float(decoder_norms[index]),
-            encoder_norm=float(encoder_norms[index]),
-            is_dead=bool(is_dead[index]),
-        )
-        for index in range(config.n_components)
-    )
-
-    merged_provenance = dict(provenance or {})
-    merged_provenance.update(
-        {
-            "split": "train_validation",
-            "val_fraction": config.val_fraction,
-            "random_state": config.random_state,
-            "n_epochs": config.n_epochs,
-            "l1_coef": config.l1_coef,
-            "train_samples": int(train.shape[0]),
-            "val_samples": int(val.shape[0]),
-            "input_features": int(train.shape[1]),
-        }
-    )
-
-    return SAEEvaluationResult(
-        config=config,
-        n_train=int(train.shape[0]),
-        n_val=int(val.shape[0]),
-        reconstruction_mse=val_mse,
-        train_reconstruction_mse=train_mse,
-        mean_l0=l0,
-        mean_l1=l1,
-        n_dead_features=n_dead,
-        dead_fraction=float(n_dead / config.n_components),
-        activation_frequencies=_as_readonly(frequencies),
-        decoder_norms=_as_readonly(decoder_norms),
-        features=features,
-        val_activations=_as_readonly(val_activations),
-        decoder_weights=_as_readonly(decoder_weights),
-        source_representation_identity=source_identity,
-        provenance=merged_provenance,
-    )
-
-
-def _feature_direction(evaluation: SAEEvaluationResult, feature_index: int) -> np.ndarray:
-    """Return the unit-norm input-space direction for *feature_index*."""
-    column = np.asarray(evaluation.decoder_weights[:, feature_index], dtype=np.float64)
-    norm = float(np.linalg.norm(column))
-    if norm < 1e-12:
-        return column.copy()
-    return column / norm
-
-
-def _match_by_decoder_cosine(
-    reference: np.ndarray,
-    other: np.ndarray,
-    threshold: float,
-) -> list[tuple[int, float]]:
-    """Greedily match reference decoder columns to *other* by cosine similarity.
-
-    Feature indices are not compared directly because an SAE permutes its
-    feature slots between fits; only the decoder direction is meaningful.
-    Each reference feature is matched to the best *unclaimed* other-seed
-    feature whose cosine is at least *threshold*.
-    """
-    reference_unit = reference / np.maximum(np.linalg.norm(reference, axis=0), 1e-12)[None, :]
-    other_unit = other / np.maximum(np.linalg.norm(other, axis=0), 1e-12)[None, :]
-    cosine_matrix = np.asarray(reference_unit.T @ other_unit, dtype=np.float64)
-    used: set[int] = set()
-    matched: list[tuple[int, float]] = []
-    n = cosine_matrix.shape[0]
-    for i in range(n):
-        best_j = -1
-        best_cosine = -1.0
-        for j in range(n):
-            if j in used:
-                continue
-            cosine = float(cosine_matrix[i, j])
-            if cosine > best_cosine:
-                best_cosine = cosine
-                best_j = j
-        if best_j >= 0 and best_cosine >= threshold:
-            used.add(best_j)
-            matched.append((i, best_cosine))
-    return matched
+# Fitted metrics, feature-direction matching, and cross-seed assembly live in
+# _sae_metrics; model-boundary cross-check helpers remain local to this facade.
 
 
 def _gradient_at_layer(
@@ -483,13 +366,6 @@ def _target_with_intervention(
         handle.remove()
 
 
-def _coerce_labels(example_labels: Sequence[str | None], n_examples: int) -> tuple[str | None, ...] | None:
-    values = tuple(None if label is None else str(label) for label in example_labels)
-    if len(values) != n_examples:
-        raise ValueError(f"expected {n_examples} example labels, got {len(values)}")
-    return values
-
-
 # ---------------------------------------------------------------------------
 # Primary evaluation class (registry-constructable)
 # ---------------------------------------------------------------------------
@@ -580,7 +456,7 @@ class SAEFeatureEvaluation:
         )
         sae.fit(train)
         self._sae = sae
-        return _evaluate_fitted(sae, train, val, cfg, source_representation_identity, provenance)
+        return evaluate_fitted(sae, train, val, cfg, source_representation_identity, provenance)
 
     def stability(
         self,
@@ -607,31 +483,7 @@ class SAEFeatureEvaluation:
                     provenance={"stability_seed": seed},
                 )
             )
-        reference = reports[0]
-        matched_cosines: list[float] = []
-        n_matched_total = 0
-        n_pairs = 0
-        for other in reports[1:]:
-            matched = _match_by_decoder_cosine(
-                reference.decoder_weights, other.decoder_weights, self._config.matching_cosine_threshold
-            )
-            n_pairs += 1
-            n_matched_total += len(matched)
-            matched_cosines.extend(cosine for _, cosine in matched)
-        if n_pairs == 0:
-            raise ValueError("stability analysis produced no seed comparisons")
-        alignment_quality = n_matched_total / (n_pairs * self._config.n_components)
-        cosine_values = tuple(matched_cosines)
-        return SAEStabilityResult(
-            seeds=seed_values,
-            reconstruction_mses=tuple(report.reconstruction_mse for report in reports),
-            n_components=self._config.n_components,
-            n_features_matched=n_matched_total,
-            mean_matched_cosine=float(np.mean(cosine_values)) if cosine_values else 0.0,
-            min_matched_cosine=float(np.min(cosine_values)) if cosine_values else 0.0,
-            alignment_quality=float(alignment_quality),
-            matched_cosines=cosine_values,
-        )
+        return assemble_stability(tuple(reports), self._config, seed_values)
 
     def rank(
         self,
@@ -729,25 +581,7 @@ def rank_feature_examples(
     example_labels: Sequence[str | None] | None = None,
 ) -> FeatureRanking:
     """Rank the top-activating and bottom-activating examples for a feature."""
-    if not 0 <= feature_index < evaluation.config.n_components:
-        raise ValueError(f"feature_index {feature_index} is outside [0, {evaluation.config.n_components})")
-    if k < 1:
-        raise ValueError(f"k must be >= 1, got {k}")
-    n_val = evaluation.val_activations.shape[0]
-    labels = _coerce_labels(example_labels, n_val) if example_labels is not None else None
-    activations = evaluation.val_activations[:, feature_index]
-    k_effective = min(k, n_val)
-    top_indices = np.argsort(activations)[-k_effective:][::-1]
-    bottom_indices = np.argsort(activations)[:k_effective]
-    return FeatureRanking(
-        feature_index=feature_index,
-        top_example_indices=tuple(int(index) for index in top_indices),
-        bottom_example_indices=tuple(int(index) for index in bottom_indices),
-        top_activations=tuple(float(activations[index]) for index in top_indices),
-        bottom_activations=tuple(float(activations[index]) for index in bottom_indices),
-        top_labels=tuple(labels[index] for index in top_indices) if labels is not None else (None,) * k_effective,
-        bottom_labels=tuple(labels[index] for index in bottom_indices) if labels is not None else (None,) * k_effective,
-    )
+    return _rank_feature_examples(evaluation, feature_index, k=k, example_labels=example_labels)
 
 
 def cross_check_feature(
@@ -787,7 +621,7 @@ def cross_check_feature(
     """
     if not 0 <= feature_index < evaluation.config.n_components:
         raise ValueError(f"feature_index {feature_index} is outside [0, {evaluation.config.n_components})")
-    direction = _feature_direction(evaluation, feature_index)
+    direction = feature_direction(evaluation, feature_index)
 
     # ── Probe check with shuffled-label control ─────────────────────────
     probe_accuracy: float | None = None
@@ -874,92 +708,21 @@ def build_feature_atlas(
     k_decoder_dims: int = 10,
     example_labels: Sequence[str | None] | None = None,
 ) -> FeatureAtlas:
-    """Build the portable feature-atlas artifact from a fitted evaluation.
-
-    The atlas is pure data (JSON-serializable via :meth:`FeatureAtlas.to_dict`)
-    and independent of any visualization frontend.
-    """
-    n_components = evaluation.config.n_components
-    selected = tuple(range(n_components)) if feature_indices is None else tuple(int(i) for i in feature_indices)
-    for index in selected:
-        if not 0 <= index < n_components:
-            raise ValueError(f"feature index {index} is outside [0, {n_components})")
-    labels = _coerce_labels(example_labels, evaluation.val_activations.shape[0]) if example_labels is not None else None
-    entries: list[FeatureAtlasEntry] = []
-    for index in selected:
-        ranking = rank_feature_examples(evaluation, index, k=k_examples, example_labels=labels)
-        decoder_column = np.asarray(evaluation.decoder_weights[:, index], dtype=np.float64)
-        top_dim_indices = np.argsort(np.abs(decoder_column))[::-1][:k_decoder_dims]
-        top_dims = tuple({"dim_index": int(dim), "weight": float(decoder_column[dim])} for dim in top_dim_indices)
-        metrics = evaluation.features[index]
-        top_examples = tuple(
-            {
-                "rank": rank + 1,
-                "example_index": int(ranking.top_example_indices[rank]),
-                "activation": ranking.top_activations[rank],
-                "label": ranking.top_labels[rank],
-            }
-            for rank in range(len(ranking.top_example_indices))
-        )
-        bottom_examples = tuple(
-            {
-                "rank": rank + 1,
-                "example_index": int(ranking.bottom_example_indices[rank]),
-                "activation": ranking.bottom_activations[rank],
-                "label": ranking.bottom_labels[rank],
-            }
-            for rank in range(len(ranking.bottom_example_indices))
-        )
-        entries.append(
-            FeatureAtlasEntry(
-                feature_index=index,
-                is_dead=metrics.is_dead,
-                activation_frequency=metrics.activation_frequency,
-                mean_activation=metrics.mean_activation,
-                decoder_norm=metrics.decoder_norm,
-                encoder_norm=metrics.encoder_norm,
-                top_examples=top_examples,
-                bottom_examples=bottom_examples,
-                top_decoder_dims=top_dims,
-            )
-        )
-    return FeatureAtlas(
-        entries=tuple(entries),
-        n_components=n_components,
-        n_examples=evaluation.val_activations.shape[0],
-        source_representation_identity=evaluation.source_representation_identity,
-        provenance=dict(evaluation.provenance),
+    """Build the portable feature-atlas artifact from a fitted evaluation."""
+    return _build_feature_atlas(
+        evaluation,
+        feature_indices=feature_indices,
+        k_examples=k_examples,
+        k_decoder_dims=k_decoder_dims,
+        example_labels=example_labels,
     )
 
 
 def save_feature_atlas(atlas: FeatureAtlas, path: str | os.PathLike[str]) -> None:
     """Write the feature atlas to a portable JSON artifact."""
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(atlas.to_dict(), handle, indent=2, sort_keys=True)
+    _save_feature_atlas(atlas, path)
 
 
 def load_feature_atlas(path: str | os.PathLike[str]) -> FeatureAtlas:
     """Load a feature atlas written by :func:`save_feature_atlas`."""
-    with open(path, encoding="utf-8") as handle:
-        data = json.load(handle)
-    entries = tuple(
-        FeatureAtlasEntry(
-            feature_index=int(entry["feature_index"]),
-            is_dead=bool(entry["is_dead"]),
-            activation_frequency=float(entry["activation_frequency"]),
-            mean_activation=float(entry["mean_activation"]),
-            decoder_norm=float(entry["decoder_norm"]),
-            encoder_norm=float(entry["encoder_norm"]),
-            top_examples=tuple(dict(item) for item in entry["top_examples"]),
-            bottom_examples=tuple(dict(item) for item in entry["bottom_examples"]),
-            top_decoder_dims=tuple(dict(item) for item in entry["top_decoder_dims"]),
-        )
-        for entry in data["entries"]
-    )
-    return FeatureAtlas(
-        entries=entries,
-        n_components=int(data["n_components"]),
-        n_examples=int(data["n_examples"]),
-        source_representation_identity=str(data["source_representation_identity"]),
-        provenance=dict(data["provenance"]),
-    )
+    return _load_feature_atlas(path)

@@ -18,10 +18,14 @@ Covers:
 
 from __future__ import annotations
 
+import inspect
 from typing import Any
+from unittest.mock import patch
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from numpy.testing import assert_array_equal
 from pydantic import ValidationError
 
@@ -656,6 +660,21 @@ class TestGradientComputation:
         with pytest.raises(ValueError, match="not found in model"):
             _compute_transformer_layer_gradient(synthetic_model, ids, mask, layer=99, target=target)
 
+    def test_gradient_hook_is_removed_when_forward_fails(self, synthetic_model: _SyntheticTransformer) -> None:
+        from latent_anything.tcav import _compute_transformer_layer_gradient  # type: ignore[reportPrivateUsage]
+
+        ids = np.array([[1, 2, 3]], dtype=np.int64)
+        mask = np.ones_like(ids)
+        target = TransformerLogitTarget(token_id=10)
+
+        with (
+            patch.object(synthetic_model, "forward", side_effect=RuntimeError("synthetic forward failure")),
+            pytest.raises(RuntimeError, match="synthetic forward failure"),
+        ):
+            _compute_transformer_layer_gradient(synthetic_model, ids, mask, layer=1, target=target)
+
+        assert all(not module._forward_hooks for module in synthetic_model.modules())  # type: ignore[reportPrivateUsage]
+
 
 # ---------------------------------------------------------------------------
 #  Layer activation extraction (synthetic model)
@@ -697,6 +716,82 @@ class TestLayerActivationExtraction:
 
 
 class TestComputeTCAV:
+    def test_zero_gradient_statistics_and_single_control_edge(self, synthetic_model: _SyntheticTransformer) -> None:
+        rng = np.random.default_rng(42)
+        dataset = ConceptDataset(
+            concept_examples=rng.normal(0, 0.5, (12, 8)),
+            reference_examples=rng.normal(1.0, 0.5, (28, 8)),
+            concept_name="zero_gradient",
+        )
+        ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
+        mask = np.ones_like(ids)
+        with patch("latent_anything.tcav._compute_transformer_layer_gradient", return_value=np.zeros(8)):
+            result = compute_tcav(
+                synthetic_model,
+                1,
+                dataset,
+                ids,
+                mask,
+                TransformerLogitTarget(token_id=10),
+                n_bootstrap=10,
+                n_random_concepts=1,
+                n_seeds=1,
+            )
+
+        assert result.aggregate_score == 0.0
+        assert result.aggregate_ci95 == 0.0
+        assert result.scores[0].p_value == 1.0
+        assert result.random_baseline_std == 0.0
+        assert result.corrected_p_value == 1.0
+
+    @given(st.integers(min_value=1, max_value=32))
+    def test_binomial_p_values_are_bounded(self, n_total: int) -> None:
+        from latent_anything._tcav_statistics import _binomial_p_value  # type: ignore[reportPrivateUsage]
+
+        values = [_binomial_p_value(k, n_total) for k in range(n_total + 1)]
+        assert all(0.0 <= value <= 1.0 for value in values)
+
+    def test_public_signatures_and_deterministic_result_snapshot(self, synthetic_model: _SyntheticTransformer) -> None:
+        assert str(inspect.signature(compute_tcav)) == (
+            "(model: 'Any', target_layer: 'int', concept_dataset: 'ConceptDataset', "
+            "input_ids_batch: 'np.ndarray', attention_mask_batch: 'np.ndarray', "
+            "target: 'TransformerLogitTarget', *, direction_method: 'str' = 'mean_diff', "
+            "n_bootstrap: 'int' = 50, n_random_concepts: 'int' = 50, n_seeds: 'int' = 5, "
+            "alpha: 'float' = 0.05, n_concepts_family: 'int' = 1, "
+            "random_concept_seed: 'int' = 42) -> 'TCAVResult'"
+        )
+        assert str(inspect.signature(intervention_agreement)) == (
+            "(model: 'Any', target_layer: 'int', concept_direction: 'np.ndarray', "
+            "input_ids_batch: 'np.ndarray', attention_mask_batch: 'np.ndarray', "
+            "target: 'TransformerLogitTarget', *, strength: 'float' = 1.0) -> 'float'"
+        )
+
+        rng = np.random.default_rng(42)
+        dataset = ConceptDataset(
+            concept_examples=rng.normal(0, 0.5, (20, 8)),
+            reference_examples=rng.normal(1.0, 0.5, (20, 8)),
+            concept_name="test_concept",
+        )
+        ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
+        mask = np.ones_like(ids)
+        result = compute_tcav(
+            synthetic_model,
+            1,
+            dataset,
+            ids,
+            mask,
+            TransformerLogitTarget(token_id=10, position=-1),
+            n_bootstrap=10,
+            n_random_concepts=5,
+            n_seeds=2,
+        )
+        assert result.aggregate_score == 0.0
+        assert result.aggregate_ci95 == 0.0
+        assert result.scores[0].sensitivity == 0.0
+        assert_array_equal(result.random_baseline_scores, np.zeros(5))
+        assert result.empirical_p_value == 1.0
+        assert result.to_dict()["significance"] == "not_significant"
+
     def test_compute_tcav_returns_result(self, synthetic_model: _SyntheticTransformer) -> None:
         """End-to-end test with synthetic model and concept."""
         model = synthetic_model

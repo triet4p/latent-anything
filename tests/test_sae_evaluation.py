@@ -9,12 +9,15 @@ residual is the SAE input space.
 
 from __future__ import annotations
 
+import inspect
 import json
 from typing import Any
 
 import numpy as np
 import pytest
 import torch
+from hypothesis import given
+from hypothesis import strategies as st
 from torch import nn
 
 # torch has incomplete type stubs — these warnings are noise.
@@ -204,6 +207,15 @@ class TestCheckpointSerialization:
 
 
 class TestCrossSeedStability:
+    @given(st.permutations(tuple(range(6))))
+    def test_decoder_matching_is_invariant_to_feature_permutation(self, permutation: tuple[int, ...]) -> None:
+        from latent_anything._sae_metrics import match_by_decoder_cosine
+
+        reference = np.eye(6, dtype=np.float64)
+        matched = match_by_decoder_cosine(reference, reference[:, permutation], threshold=0.99)
+        assert len(matched) == 6
+        assert all(abs(cosine - 1.0) < 1e-12 for _, cosine in matched)
+
     def test_features_match_across_seeds_by_direction(self) -> None:
         data, _codes, _dictionary = _sparse_dictionary_data()
         report = cross_seed_sae_stability(
@@ -420,6 +432,31 @@ class TestCrossCheck:
 
 
 class TestFeatureAtlas:
+    def test_public_signature_and_result_schema_snapshot(self) -> None:
+        assert str(inspect.signature(evaluate_sae_features)) == (
+            "(data: 'np.ndarray', *, config: 'SAEConfig | None' = None, "
+            "val_data: 'np.ndarray | None' = None, source_representation_identity: 'str' = '', "
+            "provenance: 'dict[str, Any] | None' = None) -> 'SAEEvaluationResult'"
+        )
+        expected = {
+            "n_train",
+            "n_val",
+            "reconstruction_mse",
+            "train_reconstruction_mse",
+            "mean_l0",
+            "mean_l1",
+            "n_dead_features",
+            "dead_fraction",
+            "activation_frequencies",
+            "decoder_norms",
+            "feature_summaries",
+            "source_representation_identity",
+            "provenance",
+        }
+        data, _codes, _dictionary = _sparse_dictionary_data(80)
+        evaluation = evaluate_sae_features(_standardize(data), config=SAEConfig(n_components=4, n_epochs=30))
+        assert set(evaluation.to_dict()) == expected
+
     def test_atlas_is_json_portable_and_queryable(self) -> None:
         data, _codes, _dictionary = _sparse_dictionary_data()
         evaluation = evaluate_sae_features(
@@ -449,6 +486,12 @@ class TestFeatureAtlas:
         assert loaded.entry(0).top_examples == atlas.entry(0).top_examples
         assert loaded.entry(0).top_decoder_dims == atlas.entry(0).top_decoder_dims
         assert loaded.source_representation_identity == atlas.source_representation_identity
+
+    def test_atlas_tamper_or_truncation_fails_closed(self, tmp_path: Any) -> None:
+        path = tmp_path / "tampered.json"
+        path.write_text(json.dumps({"schema": "latent-anything/feature-atlas-v1", "entries": []}), encoding="utf-8")
+        with pytest.raises(KeyError):
+            load_feature_atlas(path)
 
 
 # ---------------------------------------------------------------------------

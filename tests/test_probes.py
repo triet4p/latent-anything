@@ -137,6 +137,16 @@ class TestLinearProbeResult:
 
 
 class TestStratifiedSplit:
+    def test_private_split_import_remains_compatible(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
+        from latent_anything._probe_split import stratified_split as shared_split
+        from latent_anything.probes import _stratified_split as facade_split  # type: ignore[reportPrivateUsage]
+
+        _, labels = binary_data
+        shared = shared_split(labels, test_size=0.3, val_size=0.1, random_state=7)
+        facade = facade_split(labels, test_size=0.3, val_size=0.1, random_state=7)
+        for shared_mask, facade_mask in zip(shared, facade, strict=True):
+            assert_array_equal(shared_mask, facade_mask)
+
     def test_split_sums_to_full_dataset(self, binary_data: tuple[np.ndarray, np.ndarray]) -> None:
         features, labels = binary_data
         probe = LinearProbe()

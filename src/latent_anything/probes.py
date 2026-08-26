@@ -24,6 +24,8 @@ from pydantic import BaseModel, Field
 from sklearn.linear_model import LogisticRegression  # type: ignore[reportMissingTypeStubs]
 from sklearn.preprocessing import StandardScaler  # type: ignore[reportMissingTypeStubs]
 
+from latent_anything._probe_split import stratified_split
+
 # ── Configuration ──────────────────────────────────────────────────────────
 
 
@@ -141,7 +143,7 @@ class LinearProbeResult:
         return out
 
 
-# ── Split helpers  (leakage-guarded) ────────────────────────────────────────
+# ── Control baselines ──────────────────────────────────────────────────────
 
 
 def _stratified_split(
@@ -151,44 +153,13 @@ def _stratified_split(
     val_size: float,
     random_state: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Deterministic stratified split into train / val / test masks.
-
-    Returns three boolean arrays ``(train_mask, val_mask, test_mask)`` whose
-    axes sum to an identity partition (every sample belongs to exactly one
-    split).  Stratification is per-class proportional.
-    """
-    n = len(labels)
-    classes = np.unique(labels)
-    rng = np.random.default_rng(random_state)
-
-    train = np.zeros(n, dtype=bool)
-    val = np.zeros(n, dtype=bool)
-    test = np.zeros(n, dtype=bool)
-
-    for label in classes:
-        idx = np.flatnonzero(labels == label)
-        perm = rng.permutation(idx)
-        n_cls = len(perm)
-
-        n_test = max(1, int(round(n_cls * test_size)))
-        n_val = max(1, int(round((n_cls - n_test) * val_size))) if val_size > 0 and n_cls - n_test >= 2 else 0
-        n_train = n_cls - n_test - n_val
-
-        # Ensure every split has at least one sample per class when possible
-        if n_train < 1 and n_cls >= 2:
-            n_train = 1
-            remaining = n_cls - n_train
-            n_test = max(1, int(round(remaining * test_size / (test_size + max(val_size, 1e-9)))))
-            n_val = remaining - n_test
-
-        train[perm[:n_train]] = True
-        val[perm[n_train : n_train + n_val]] = True
-        test[perm[n_train + n_val :]] = True
-
-    return train, val, test
-
-
-# ── Control baselines ──────────────────────────────────────────────────────
+    """Compatibility wrapper for the shared probe split implementation."""
+    return stratified_split(
+        labels,
+        test_size=test_size,
+        val_size=val_size,
+        random_state=random_state,
+    )
 
 
 @dataclass(frozen=True)

@@ -20,85 +20,25 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 import numpy as np
-import torch
 from pydantic import BaseModel, Field
 
-from latent_anything.probes import _stratified_split  # type: ignore[reportPrivateUsage]
+from latent_anything._mlp_controls import (
+    NonlinearControls as NonlinearControls,
+)
+from latent_anything._mlp_controls import (
+    ProbeComparison as ProbeComparison,
+)
+from latent_anything._mlp_controls import (
+    classify_probe_comparison,
+)
+from latent_anything._mlp_training import train_mlp
+from latent_anything._probe_split import stratified_split
+from latent_anything.probes import LinearProbeConfig
 
-# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
-# (torch has incomplete type stubs — these warnings are noise)
-
-
-# ── Torch helpers (determinism) ─────────────────────────────────────────────
-
-
-def _seed_everything(seed: int) -> None:
-    """Seed Python, NumPy, and PyTorch RNGs deterministically."""
-    import random
-
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True  # type: ignore[reportAttributeAccessIssue]
-    torch.backends.cudnn.benchmark = False  # type: ignore[reportAttributeAccessIssue]
-
-
-# ── Internal MLP module ─────────────────────────────────────────────────────
-
-
-class _MLP(torch.nn.Module):  # type: ignore[reportMissingTypeStubs]
-    """Small bounded MLP for probe classification.
-
-    Parameters
-    ----------
-    n_features : int
-        Input dimensionality.
-    n_classes : int
-        Number of output classes.
-    hidden_sizes : list[int]
-        Sizes of hidden layers (default ``[64]``).
-    activation : str
-        One of ``"relu"``, ``"tanh"``.
-    """
-
-    def __init__(
-        self,
-        n_features: int,
-        n_classes: int,
-        hidden_sizes: list[int] | None = None,
-        activation: str = "relu",
-    ) -> None:
-        super().__init__()
-        hidden = hidden_sizes or [64]
-        layers: list[torch.nn.Module] = []
-        prev = n_features
-        act_fn = torch.nn.ReLU() if activation == "relu" else torch.nn.Tanh()
-
-        for h in hidden:
-            layers.append(torch.nn.Linear(prev, h))
-            layers.append(act_fn)
-            prev = h
-
-        layers.append(torch.nn.Linear(prev, n_classes))
-        self.net = torch.nn.Sequential(*layers)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
-        """Forward pass. Returns logits (not probabilities)."""
-        return self.net(x)
-
-    def count_params(self) -> int:
-        """Return total number of trainable parameters."""
-        return sum(p.numel() for p in self.parameters() if p.requires_grad)
-
-    def architecture(self) -> dict[str, Any]:
-        """Return architecture summary as a dict."""
-        return {
-            "type": "MLP",
-            "hidden_sizes": [int(layer.out_features) for layer in self.net if isinstance(layer, torch.nn.Linear)][:-1],
-            "n_hidden_layers": sum(1 for _ in [layer for layer in self.net if isinstance(layer, torch.nn.Linear)]) - 1,
-            "n_params": self.count_params(),
-        }
+# Keep pickle/module identity for the long-standing public result types while
+# their implementation lives in the focused private controls module.
+NonlinearControls.__module__ = __name__
+ProbeComparison.__module__ = __name__
 
 
 # ── Configuration ──────────────────────────────────────────────────────────
@@ -264,7 +204,6 @@ class MLPProbe:
         self._config = config if config is not None else MLPProbeConfig()
         self._fitted: bool = False
         self._result: MLPProbeResult | None = None
-        self._scaler: torch.nn.Module | None = None  # non-trainable standardizer container
         self._feature_means: np.ndarray | None = None
         self._feature_stds: np.ndarray | None = None
 
@@ -325,8 +264,6 @@ class MLPProbe:
             If input shapes are invalid or degenerate.
         """
         cfg = self._config
-        _seed_everything(cfg.random_state)
-
         features = np.asarray(features, dtype=np.float64)
         labels = np.asarray(labels)
 
@@ -356,7 +293,7 @@ class MLPProbe:
         n_classes = len(unique_classes)
 
         # ── Split (reuse Sprint 40 helper) ────────────────────────
-        train_mask, val_mask, test_mask = _stratified_split(
+        train_mask, val_mask, test_mask = stratified_split(
             labels,
             test_size=cfg.test_size,
             val_size=cfg.val_size,
@@ -384,99 +321,24 @@ class MLPProbe:
             train_x_scaled = train_x.copy()
             test_x_scaled = test_x.copy()
             val_x_scaled = val_x.copy() if has_val and val_x is not None else None
-
-        # ── Build model ───────────────────────────────────────────
-        model = _MLP(
+        training = train_mlp(
+            train_x_scaled,
+            train_y,
+            val_x_scaled if has_val else None,
+            val_y if has_val else None,
+            test_x_scaled,
+            test_y,
             n_features=n_features,
             n_classes=n_classes,
             hidden_sizes=cfg.hidden_sizes,
             activation=cfg.activation,
-        )
-        model.train()
-
-        optimizer = torch.optim.AdamW(
-            model.parameters(),
-            lr=cfg.learning_rate,
+            max_epochs=cfg.max_epochs,
+            early_stopping_patience=cfg.early_stopping_patience,
+            learning_rate=cfg.learning_rate,
             weight_decay=cfg.weight_decay,
+            batch_size=cfg.batch_size,
+            random_state=cfg.random_state,
         )
-        loss_fn = torch.nn.CrossEntropyLoss()
-
-        # ── Convert to tensors ────────────────────────────────────
-        x_train_t = torch.as_tensor(train_x_scaled, dtype=torch.float32)
-        y_train_t = torch.as_tensor(train_y, dtype=torch.long)
-        x_test_t = torch.as_tensor(test_x_scaled, dtype=torch.float32)
-        x_val_t = torch.as_tensor(val_x_scaled, dtype=torch.float32) if has_val else None
-        y_val_t = torch.as_tensor(val_y, dtype=torch.long) if has_val else None
-
-        # ── Training loop with early stopping ─────────────────────
-        n = len(train_x_scaled)
-        best_val_acc = -1.0
-        patience_counter = 0
-        n_epochs_run = 0
-        stopped_early = False
-
-        for epoch in range(cfg.max_epochs):
-            # Shuffle training data
-            perm = torch.randperm(n)
-            x_shuffled = x_train_t[perm]
-            y_shuffled = y_train_t[perm]
-
-            epoch_loss = 0.0
-            for start in range(0, n, cfg.batch_size):
-                end = min(start + cfg.batch_size, n)
-                batch_x = x_shuffled[start:end]
-                batch_y = y_shuffled[start:end]
-
-                optimizer.zero_grad()
-                logits = model(batch_x)
-                loss = loss_fn(logits, batch_y)
-                loss.backward()
-                optimizer.step()
-
-                epoch_loss += float(loss.detach())
-
-            # Validation check
-            if has_val and x_val_t is not None and y_val_t is not None:
-                model.eval()
-                with torch.no_grad():
-                    val_logits = model(x_val_t)
-                    val_preds_t = val_logits.argmax(dim=1)
-                    val_acc_epoch = float((val_preds_t == y_val_t).float().mean())
-                model.train()
-
-                if val_acc_epoch > best_val_acc:
-                    best_val_acc = val_acc_epoch
-                    patience_counter = 0
-                else:
-                    patience_counter += 1
-
-                if patience_counter >= cfg.early_stopping_patience:
-                    n_epochs_run = epoch + 1
-                    stopped_early = True
-                    break
-
-            n_epochs_run = epoch + 1
-
-        # ── Evaluate ──────────────────────────────────────────────
-        model.eval()
-        with torch.no_grad():
-            test_logits = model(x_test_t)
-            test_probs_t = torch.softmax(test_logits, dim=1)
-            test_preds_t = test_logits.argmax(dim=1)
-
-            test_preds: np.ndarray = np.asarray(test_preds_t.numpy())
-            test_probs: np.ndarray = np.asarray(test_probs_t.numpy())
-            accuracy = float(np.mean(test_preds == test_y))
-
-            val_accuracy = 0.0
-            if has_val and x_val_t is not None and y_val_t is not None:
-                val_logits = model(x_val_t)
-                val_preds_t = val_logits.argmax(dim=1)
-                val_preds_np: np.ndarray = np.asarray(val_preds_t.numpy())
-                val_accuracy = float(np.mean(val_preds_np == val_y))
-
-        arch_info = model.architecture()
-        n_params = model.count_params()
 
         provenance_dict: dict[str, Any] = dict(provenance or {})
         provenance_dict.setdefault("n_features", n_features)
@@ -484,16 +346,16 @@ class MLPProbe:
         provenance_dict.setdefault("n_classes", n_classes)
 
         self._result = MLPProbeResult(
-            accuracy=accuracy,
-            val_accuracy=val_accuracy,
+            accuracy=training.accuracy,
+            val_accuracy=training.val_accuracy,
             classes=unique_classes,
-            predictions=test_preds,
-            probabilities=test_probs,
-            n_epochs=n_epochs_run,
-            stopped_early=stopped_early,
-            architecture=arch_info,
-            n_params=n_params,
-            optimizer="AdamW",
+            predictions=training.predictions,
+            probabilities=training.probabilities,
+            n_epochs=training.n_epochs,
+            stopped_early=training.stopped_early,
+            architecture=training.architecture,
+            n_params=training.n_params,
+            optimizer=training.optimizer,
             train_indices=train_mask,
             val_indices=val_mask,
             test_indices=test_mask,
@@ -508,17 +370,25 @@ class MLPProbe:
     # ── Predict (after fit) ───────────────────────────────────────────
 
     def predict(self, features: np.ndarray) -> np.ndarray:
-        """Predict class labels for new features.
+        """Reject prediction because fitted model state is not serialized.
+
+        ``MLPProbe.fit`` stores the fitted predictions in its result, but this
+        compact probe intentionally does not retain a serialized estimator for
+        inference on new features. Calling this method therefore always raises
+        ``NotImplementedError`` after the fitted-state precondition succeeds.
 
         Parameters
         ----------
         features : np.ndarray
             ``(n_samples, n_features)``.
 
-        Returns
-        -------
-        np.ndarray
-            Predicted class labels.
+        Raises
+        ------
+        RuntimeError
+            If the probe has not been fitted yet.
+        NotImplementedError
+            If the probe is fitted; model-state serialization is not
+            implemented. Use ``result.predictions`` from :meth:`fit` instead.
         """
         del features  # unused — model state serialization not yet implemented
         if not self._fitted or self._result is None:
@@ -534,31 +404,6 @@ class MLPProbe:
 
 
 # ── Controls & memorization tests ──────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class NonlinearControls:
-    """Nonlinear control baselines and memorization test results.
-
-    Attributes
-    ----------
-    shuffled_label_accuracy : float
-        MLP accuracy when trained on shuffled (permuted) labels.
-    memorization_ratio : float
-        ``shuffled_label_accuracy / chance_accuracy``.
-        Values near 1.0 indicate no memorization; values >> 1.0 indicate
-        the model memorized the label-noise pattern.
-    passed_memorization_test : bool
-        Whether the shuffled-label accuracy is below the predeclared
-        selectivity threshold (by default 2× chance).
-    chance_accuracy : float
-        Accuracy expected by random guessing (1 / n_classes).
-    """
-
-    shuffled_label_accuracy: float
-    memorization_ratio: float
-    passed_memorization_test: bool
-    chance_accuracy: float
 
 
 def nonlinear_memorization_test(
@@ -631,41 +476,11 @@ def nonlinear_memorization_test(
 # ── Linear vs nonlinear comparison ─────────────────────────────────────────
 
 
-@dataclass(frozen=True)
-class ProbeComparison:
-    """Side-by-side comparison of linear and nonlinear probes on identical splits.
-
-    Attributes
-    ----------
-    linear_accuracy : float
-        Test accuracy from ``LinearProbe``.
-    nonlinear_accuracy : float
-        Test accuracy from ``MLPProbe``.
-    gap : float
-        ``nonlinear_accuracy - linear_accuracy``.  Positive values indicate
-        nonlinear-accessible information.
-    classification : str
-        One of ``"linear-only"``, ``"nonlinear-only"``, ``"both"``,
-        ``"unsupported"``, ``"memorization-prone"``.
-    linear_ci95 : float
-        95 % confidence interval half-width for linear probe.
-    nonlinear_ci95 : float
-        95 % confidence interval half-width for nonlinear probe.
-    """
-
-    linear_accuracy: float
-    nonlinear_accuracy: float
-    gap: float
-    classification: str
-    linear_ci95: float
-    nonlinear_ci95: float
-
-
 def compare_probes(
     features: np.ndarray,
     labels: np.ndarray,
     *,
-    linear_config: Any = None,
+    linear_config: LinearProbeConfig | None = None,
     nonlinear_config: MLPProbeConfig | None = None,
     seed: int = 0,
     accuracy_threshold: float = 0.55,
@@ -695,8 +510,9 @@ def compare_probes(
     ProbeComparison
         Side-by-side comparison with a qualitative classification.
     """
-    # lazy imports to avoid circular deps at module level
-    from latent_anything.probes import LinearProbeConfig, cross_seed_evaluation
+    # Keep the estimator implementation import lazy; the config type is
+    # imported above because it is part of this function's public contract.
+    from latent_anything.probes import cross_seed_evaluation
 
     lin_cfg = linear_config or LinearProbeConfig(random_state=seed)
     nonlin_cfg = nonlinear_config or MLPProbeConfig(random_state=seed)
@@ -709,35 +525,13 @@ def compare_probes(
     nl_result = nl_probe.fit(features, labels)
     nl_acc = nl_result.accuracy
 
-    gap = nl_acc - lin_acc
-    above_chance_linear = lin_acc >= accuracy_threshold
-    above_chance_nonlinear = nl_acc >= accuracy_threshold
-    meaningful_gap = abs(gap) >= gap_threshold
-
     # Memorization check
     mem_ctl = nonlinear_memorization_test(features, labels, config=nonlin_cfg)
-    mem_problem = not mem_ctl.passed_memorization_test
-
-    if mem_problem:
-        classification = "memorization-prone"
-    elif not above_chance_linear and not above_chance_nonlinear:
-        classification = "unsupported"
-    elif above_chance_linear and above_chance_nonlinear and meaningful_gap and gap > 0:
-        classification = "nonlinear-only"
-    elif above_chance_linear and not above_chance_nonlinear:
-        classification = "linear-only"
-    elif above_chance_linear and above_chance_nonlinear and not meaningful_gap:
-        classification = "both"
-    elif not above_chance_linear and above_chance_nonlinear:
-        classification = "nonlinear-only"
-    else:
-        classification = "both"
-
-    return ProbeComparison(
+    return classify_probe_comparison(
         linear_accuracy=lin_acc,
         nonlinear_accuracy=nl_acc,
-        gap=gap,
-        classification=classification,
         linear_ci95=lin_ci95,
-        nonlinear_ci95=0.0,  # single-seed MLP — no CI computed
+        memorization_prone=not mem_ctl.passed_memorization_test,
+        accuracy_threshold=accuracy_threshold,
+        gap_threshold=gap_threshold,
     )
