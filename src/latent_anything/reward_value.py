@@ -16,62 +16,34 @@ from typing import cast
 
 import numpy as np
 
+from latent_anything._reward_value_metrics import (
+    bellman_residuals,
+    bellman_residuals_batch,
+    discounted_returns,
+    summary_metrics,
+)
+from latent_anything._reward_value_metrics import (
+    bool_vector as _bool_vector,
+)
+from latent_anything._reward_value_metrics import (
+    finite_array as _finite_array,
+)
+from latent_anything._reward_value_metrics import (
+    freeze_bool_array as _freeze_bool_array,
+)
+from latent_anything._reward_value_metrics import (
+    freeze_float_array as _freeze_float_array,
+)
+from latent_anything._reward_value_metrics import (
+    matrix as _matrix,
+)
+from latent_anything._reward_value_metrics import (
+    validate_discount as _validate_discount,
+)
+from latent_anything._reward_value_metrics import (
+    vector as _vector,
+)
 from latent_anything.trajectory import Trajectory
-
-
-def _finite_array(value: np.ndarray, *, name: str) -> np.ndarray:
-    """Validate and return a numeric finite array."""
-
-    if not np.issubdtype(value.dtype, np.number):
-        raise TypeError(f"{name} must have a numeric dtype")
-    if not np.isfinite(value).all():
-        raise ValueError(f"{name} must contain only finite values")
-    return np.asarray(value, dtype=np.float64)
-
-
-def _matrix(value: np.ndarray, *, name: str, width: int | None = None) -> np.ndarray:
-    """Validate a finite two-dimensional batch."""
-
-    result = _finite_array(value, name=name)
-    if result.ndim != 2 or (width is not None and result.shape[1] != width):
-        suffix = f", {width}" if width is not None else ""
-        raise ValueError(f"{name} must have shape (n{suffix}), got {result.shape}")
-    return result
-
-
-def _vector(value: np.ndarray, *, name: str, length: int | None = None) -> np.ndarray:
-    """Validate a finite one-dimensional batch."""
-
-    result = _finite_array(value, name=name)
-    if result.ndim != 1 or (length is not None and result.shape[0] != length):
-        raise ValueError(f"{name} must have shape ({length or 'n'},), got {result.shape}")
-    return result
-
-
-def _bool_vector(value: np.ndarray | None, *, name: str, length: int, default: bool) -> np.ndarray:
-    if value is None:
-        return np.full(length, default, dtype=bool)
-    if value.ndim != 1 or value.shape[0] != length:
-        raise ValueError(f"{name} must have shape ({length},), got {getattr(value, 'shape', None)}")
-    return np.asarray(value, dtype=bool).copy()
-
-
-def _freeze_float_array(value: np.ndarray) -> np.ndarray:
-    copied = np.asarray(value, dtype=np.float64).copy()
-    copied.setflags(write=False)
-    return copied
-
-
-def _freeze_bool_array(value: np.ndarray) -> np.ndarray:
-    copied = np.asarray(value, dtype=bool).copy()
-    copied.setflags(write=False)
-    return copied
-
-
-def _validate_discount(discount: float) -> float:
-    if isinstance(discount, bool) or not np.isfinite(discount) or not 0.0 <= discount < 1.0:
-        raise ValueError(f"discount must be finite and in [0, 1), got {discount}")
-    return float(discount)
 
 
 def compute_discounted_returns(
@@ -81,53 +53,9 @@ def compute_discounted_returns(
     masks: np.ndarray | None = None,
     terminals: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Compute masked, terminal-aware discounted returns.
+    """Compute masked, terminal-aware discounted returns."""
 
-    ``rewards`` may be ``(horizon,)`` or ``(episodes, horizon)``.  ``masks``
-    marks valid transitions; invalid/padded positions return zero.  A true
-    ``terminals[t]`` keeps the reward at ``t`` but prevents bootstrapping from
-    ``t + 1``.  Padding also prevents bootstrapping, even when no terminal
-    flag is supplied.
-    """
-
-    gamma = _validate_discount(discount)
-    values = _finite_array(rewards, name="rewards")
-    if values.ndim not in {1, 2}:
-        raise ValueError(f"rewards must be 1D or 2D, got {values.shape}")
-    was_vector = values.ndim == 1
-    episodes = values[None, :] if was_vector else values
-    episode_count, horizon = episodes.shape
-    if masks is None:
-        valid = np.ones_like(episodes, dtype=bool)
-    else:
-        mask_values = np.asarray(masks)
-        expected = values.shape
-        if mask_values.shape != expected:
-            raise ValueError(f"masks must have shape {expected}, got {mask_values.shape}")
-        valid = mask_values[None, :] if was_vector else mask_values
-        valid = np.asarray(valid, dtype=bool)
-    if terminals is None:
-        terminal_values = np.zeros_like(episodes, dtype=bool)
-    else:
-        terminal_array = np.asarray(terminals)
-        if terminal_array.shape != values.shape:
-            raise ValueError(f"terminals must have shape {values.shape}, got {terminal_array.shape}")
-        terminal_values = terminal_array[None, :] if was_vector else terminal_array
-        terminal_values = np.asarray(terminal_values, dtype=bool)
-
-    result = np.zeros_like(episodes, dtype=np.float64)
-    for episode in range(episode_count):
-        running = 0.0
-        for step in range(horizon - 1, -1, -1):
-            if not valid[episode, step]:
-                running = 0.0
-                continue
-            if terminal_values[episode, step] or step == horizon - 1 or not valid[episode, step + 1]:
-                running = float(episodes[episode, step])
-            else:
-                running = float(episodes[episode, step]) + gamma * running
-            result[episode, step] = running
-    return result[0] if was_vector else result
+    return discounted_returns(rewards, discount=discount, masks=masks, terminals=terminals)
 
 
 class LinearRewardScorer:
@@ -157,10 +85,12 @@ class LinearRewardScorer:
 
     @property
     def is_fitted(self) -> bool:
+        """Return whether reward-regression weights have been fitted."""
         return self._weights is not None
 
     @property
     def fit_metadata(self) -> Mapping[str, object]:
+        """Return immutable provenance and training metadata for the scorer."""
         return self._fit_metadata
 
     def fit(
@@ -217,6 +147,7 @@ class LinearRewardScorer:
         return np.asarray(self._features(state_values, action_values) @ self._weights, dtype=np.float64)
 
     def predict_with_uncertainty(self, states: np.ndarray, actions: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Return predicted rewards and a residual-scale estimate per sample."""
         predictions = self.predict(states, actions)
         return predictions, np.full_like(predictions, self._residual_scale)
 
@@ -261,10 +192,12 @@ class MonteCarloValueEstimator:
 
     @property
     def is_fitted(self) -> bool:
+        """Return whether value-regression weights have been fitted."""
         return self._weights is not None
 
     @property
     def fit_metadata(self) -> Mapping[str, object]:
+        """Return immutable provenance and return-definition metadata."""
         return self._fit_metadata
 
     def fit(self, states: np.ndarray, returns: np.ndarray) -> MonteCarloValueEstimator:
@@ -333,6 +266,7 @@ class MonteCarloValueEstimator:
         return np.asarray(features @ self._weights, dtype=np.float64)
 
     def predict_with_uncertainty(self, states: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Return predicted values and a residual-scale estimate per state."""
         predictions = self.predict(states)
         return predictions, np.full_like(predictions, self._residual_scale)
 
@@ -349,6 +283,7 @@ class ValueCalibration:
     coverage: float | None = None
 
     def to_dict(self) -> dict[str, object]:
+        """Return calibration metrics as a JSON-compatible mapping."""
         return {
             "rmse": self.rmse,
             "mae": self.mae,
@@ -374,6 +309,7 @@ class RewardValueDiagnostics:
     source: str
 
     def to_dict(self) -> dict[str, object]:
+        """Return reward, value, and Bellman diagnostic metrics as a mapping."""
         return {
             "reward_rmse": self.reward_rmse,
             "reward_mae": self.reward_mae,
@@ -435,9 +371,11 @@ class RewardValueEvaluationResult:
 
     @property
     def valid_steps(self) -> int:
+        """Return the count of non-padding score entries."""
         return int(np.count_nonzero(self.masks))
 
     def to_metrics(self) -> dict[str, float]:
+        """Return aggregate metrics over valid, non-padding entries."""
         valid = self.masks
         if not np.any(valid):
             return {"valid_steps": 0.0}
@@ -450,6 +388,7 @@ class RewardValueEvaluationResult:
         }
 
     def to_dict(self) -> dict[str, object]:
+        """Return frozen score arrays, masks, and provenance as serializable values."""
         return {
             "rewards": self.rewards.tolist(),
             "returns": self.returns.tolist(),
@@ -481,6 +420,7 @@ class TrajectoryScoreComparison:
     provenance: Mapping[str, object]
 
     def to_dict(self) -> dict[str, object]:
+        """Return score-difference metrics and comparison provenance."""
         return {
             "reward_mae": self.reward_mae,
             "reward_bias": self.reward_bias,
@@ -523,6 +463,7 @@ class HoldoutEvaluation:
         }
 
     def to_dict(self) -> dict[str, object]:
+        """Return held-out arrays, diagnostics, masks, and provenance for serialization."""
         return {
             "predicted_rewards": self.predicted_rewards.tolist(),
             "target_rewards": self.target_rewards.tolist(),
@@ -546,6 +487,7 @@ class RewardValueEvaluator:
 
     @property
     def discount(self) -> float:
+        """Return the discount factor used by the paired value estimator."""
         return self.value_estimator.discount
 
     def evaluate(
@@ -765,13 +707,14 @@ class RewardValueEvaluator:
         masks: np.ndarray,
         terminals: np.ndarray,
     ) -> np.ndarray:
-        continuation = masks & ~terminals
-        if len(continuation) > 1:
-            continuation[:-1] &= masks[1:]
-        continuation[-1] = False
-        residuals = values - (rewards + self.discount * continuation * next_values)
-        residuals[~masks] = 0.0
-        return residuals
+        return bellman_residuals(
+            rewards,
+            values,
+            next_values,
+            masks,
+            terminals,
+            discount=self.discount,
+        )
 
     def _bellman_residuals_batch(
         self,
@@ -781,13 +724,14 @@ class RewardValueEvaluator:
         masks: np.ndarray,
         terminals: np.ndarray,
     ) -> np.ndarray:
-        continuation = masks & ~terminals
-        if continuation.shape[1] > 1:
-            continuation[:, :-1] &= masks[:, 1:]
-        continuation[:, -1] = False
-        residuals = values - (rewards + self.discount * continuation * next_values)
-        residuals[~masks] = 0.0
-        return residuals
+        return bellman_residuals_batch(
+            rewards,
+            values,
+            next_values,
+            masks,
+            terminals,
+            discount=self.discount,
+        )
 
     @staticmethod
     def _batch_bool(value: np.ndarray, *, name: str, shape: tuple[int, int]) -> np.ndarray:
@@ -799,17 +743,7 @@ class RewardValueEvaluator:
     def _metrics(
         predicted: np.ndarray, target: np.ndarray, masks: np.ndarray
     ) -> tuple[float, float, float, float, float]:
-        valid = masks.astype(bool)
-        if not np.any(valid):
-            raise ValueError("at least one valid transition is required")
-        difference = predicted[valid] - target[valid]
-        return (
-            float(np.sqrt(np.mean(np.square(difference)))),
-            float(np.mean(np.abs(difference))),
-            float(np.mean(difference)),
-            float(np.mean(predicted[valid])),
-            float(np.mean(target[valid])),
-        )
+        return summary_metrics(predicted, target, masks)
 
 
 def compare_real_imagined_scores(

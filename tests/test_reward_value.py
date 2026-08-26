@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 
 import numpy as np
@@ -19,7 +20,13 @@ from latent_anything import (
     compute_discounted_returns,
 )
 from latent_anything.registry import KIND_RUNTIME, Registry
-from latent_anything.reward_value import HoldoutEvaluation
+from latent_anything.reward_value import (
+    HoldoutEvaluation,
+    RewardValueDiagnostics,
+    RewardValueEvaluationResult,
+    TrajectoryScoreComparison,
+    ValueCalibration,
+)
 from latent_anything.transition import DeterministicLatentTransition
 
 
@@ -58,12 +65,87 @@ def _fitted_evaluator() -> RewardValueEvaluator:
     return RewardValueEvaluator(reward_scorer, estimator)
 
 
+def test_reward_value_public_api_and_result_schema_snapshot() -> None:
+    assert tuple(inspect.signature(RewardValueEvaluator.evaluate).parameters) == (
+        "self",
+        "trajectory",
+        "actions",
+        "masks",
+        "terminals",
+        "source",
+    )
+    assert tuple(inspect.signature(RewardValueEvaluator.evaluate_holdout).parameters) == (
+        "self",
+        "states",
+        "actions",
+        "rewards",
+        "masks",
+        "terminals",
+        "source",
+    )
+    assert tuple(RewardValueEvaluationResult.__dataclass_fields__) == (
+        "rewards",
+        "returns",
+        "values",
+        "masks",
+        "terminals",
+        "reward_uncertainty",
+        "value_uncertainty",
+        "bellman_residuals",
+        "discount",
+        "horizon",
+        "source",
+        "provenance",
+    )
+    assert tuple(ValueCalibration.__dataclass_fields__) == (
+        "rmse",
+        "mae",
+        "bias",
+        "mean_prediction",
+        "mean_target",
+        "coverage",
+    )
+    assert tuple(RewardValueDiagnostics.__dataclass_fields__) == (
+        "reward_rmse",
+        "reward_mae",
+        "reward_bias",
+        "value_calibration",
+        "bellman_residual_rmse",
+        "bellman_residual_mae",
+        "bellman_residual_bias",
+        "n_steps",
+        "source",
+    )
+    assert tuple(TrajectoryScoreComparison.__dataclass_fields__) == (
+        "reward_mae",
+        "reward_bias",
+        "return_mae",
+        "return_bias",
+        "value_mae",
+        "value_bias",
+        "bellman_residual_mae_delta",
+        "valid_steps",
+        "provenance",
+    )
+
+
 def test_discounted_returns_honor_terminal_and_padding() -> None:
     rewards = np.asarray([[1.0, 2.0, 3.0, 99.0], [4.0, 5.0, 6.0, 7.0]])
     masks = np.asarray([[1, 1, 1, 0], [1, 1, 0, 0]], dtype=bool)
     terminals = np.asarray([[0, 1, 0, 0], [0, 0, 0, 0]], dtype=bool)
     returns = compute_discounted_returns(rewards, discount=0.5, masks=masks, terminals=terminals)
     np.testing.assert_allclose(returns, [[2.0, 2.0, 3.0, 0.0], [6.5, 5.0, 0.0, 0.0]])
+
+
+def test_discounted_returns_reject_invalid_discount_and_reset_after_mask_gaps() -> None:
+    with pytest.raises(ValueError, match="discount must be finite"):
+        compute_discounted_returns(np.ones(3), discount=1.0)
+    returns = compute_discounted_returns(
+        np.asarray([1.0, 2.0, 3.0, 4.0]),
+        discount=0.5,
+        masks=np.asarray([1, 0, 1, 1], dtype=bool),
+    )
+    np.testing.assert_allclose(returns, [1.0, 0.0, 5.0, 4.0])
 
 
 def test_holdout_evaluation_reports_calibration_and_bellman_consistency() -> None:
