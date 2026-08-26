@@ -1,7 +1,9 @@
 # Latent-Anything — Architecture
 
 > Tài liệu kiến trúc kỹ thuật của dự án
-> Phiên bản: 0.1 — May 2026
+> Phiên bản nền: 0.1 — May 2026
+> Trạng thái: hợp đồng kiến trúc đang được duy trì; từng quyết định được
+> xác nhận, chờ xử lý hoặc điều chỉnh theo `.agents/memory/decisions.md`.
 
 ---
 

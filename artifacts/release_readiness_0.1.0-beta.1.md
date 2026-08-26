@@ -4,6 +4,13 @@
 **Task:** 12
 **Status:** Ready to tag
 
+> **Historical/superseded snapshot (2026-07-10 beta):** This artifact records
+> the `0.1.0-beta.1` decision at Sprint 26. It is not current release approval.
+> Current status is governed by [M14](../docs/M14_REAL_SYSTEM_VALIDATION.md),
+> [the evidence ledger](../docs/EVIDENCE_LEDGER.md), and
+> [the machine-readable ledger](../docs/evidence-ledger.json). Retain the
+> original dates, metrics, and beta decision for historical traceability.
+
 ## Release Workflow Behavior
 
 - Workflow file: `.github/workflows/release.yml`

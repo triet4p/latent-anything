@@ -4,7 +4,21 @@
 
 Latent Anything will reach `1.0.0` by proving the framework on real models and tasks, not by accumulating attractive visualizations. The roadmap keeps the incremental Rule of Three from [INCREMENTAL.md](INCREMENTAL.md), but adds an explicit evidence contract for theory coverage, explanation validity, integration quality, and API stability.
 
-Sprints 1-26 established the beta foundation. Sprints 27-80 are the planned path from `0.1.0-beta.1` to `1.0.0`. Future sprint details are provisional: a sprint may revise later plans when running code disproves an assumption, but it must record that revision in the ADR log and keep this file synchronized.
+Sprints 1-26 established the beta foundation. Sprints 27-80 are the planned path
+from `0.1.0-beta.1` through the planned `0.9.0` pre-stable API-freeze
+compatibility epoch to `1.0.0`. The package metadata remains `0.1.0b1` until
+all Sprint 78 gates and the release workflow are verified; no `v0.9.0` tag or
+publication is authorized while the external GitHub Actions account blocker is
+open. Future sprint details are provisional: a sprint may revise later plans
+when running code disproves an assumption, but it must record that revision in
+the ADR log and keep this file synchronized.
+
+Sprint 78's API-freeze checkpoint is recorded in the owner decision and
+[`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the documented
+205-runtime/202-canonical surface now requires reviewed compatibility handling,
+but this is not a release-readiness claim. Metadata remains `0.1.0b1`, aliases
+remain retained, and version/tag/publication stay blocked by the evidence and
+workflow gates.
 
 ## Definition of Stable
 
@@ -39,7 +53,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** `0.9`, release-candidate matrix, and `1.0.0` publication.
+- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** planning contract is recorded in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md); implementation, real-system evidence, release-candidate gates, and `1.0.0` publication remain pending.
 
 ## Carryover Evidence Gates
 
@@ -168,9 +182,9 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 
 ### Milestone 14 - API freeze and stable release
 
-- [Sprint 78](sprint-plans/sprint-78.md) - Cut `0.9.0`, freeze the public API, and remove scheduled beta aliases.
-- [Sprint 79](sprint-plans/sprint-79.md) - Run the full real-model/integration release-candidate matrix.
-- [Sprint 80](sprint-plans/sprint-80.md) - Publish `1.0.0` with migration, plugin, model-integration, and reproducibility documentation.
+- [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup; retain aliases and keep release authorization pending in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md).
+- [Sprint 79](sprint-plans/sprint-79.md) - Run the 24-lane real-system release-candidate matrix and the exhaustive [theory evidence-gap plan](EVIDENCE_GAP_PLAN.md), including every export/registry/plugin/profile group and the explicit non-API/backlog lanes.
+- [Sprint 80](sprint-plans/sprint-80.md) - Publish `1.0.0` only after signed evidence, clean packaging, workflow/account clearance, and the stop-before-release gate.
 
 ## Completed Sprints
 

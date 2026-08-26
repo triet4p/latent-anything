@@ -2,22 +2,74 @@
 
 ## Sprint Goal
 
-Cut `0.9.0`, freeze the intended public API, and remove only beta aliases whose deprecation window has completed.
+Prepare the planned `0.9.0` pre-stable API-freeze compatibility epoch after the
+Sprint 78 gates pass, and remove only beta aliases whose deprecation window has
+completed. Keep package metadata at `0.1.0b1` until the gates and release
+workflow are verified; do not tag or publish `v0.9.0` while the external GitHub
+Actions account blocker remains. Sprint 80 targets `1.0.0` and stops before
+stable publication if any required gate is unresolved.
 
 ## Atomic Tasks
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Inventory top-level exports, submodule imports, protocols, result schemas, registry/config names, extras, CLI commands, and serialization versions.
-- [ ] Compare the inventory with Sprint 28 naming/deprecation policy and remove or retain aliases exactly as scheduled.
-- [ ] Complete facade/module decompositions for `LatentSpace`, pipelines, and adapters where earlier evidence created stable seams.
-- [ ] Add public signature, import-path, config-schema, plugin-contract, and serialized-artifact compatibility snapshots.
-- [ ] Review exception taxonomy, docstrings, typing, sync/async symmetry, and optional-extra error messages.
-- [ ] Run the theory ledger gate and create explicit issues/plans for every remaining D0/D1 item needed for stable.
-- [ ] Publish the `0.9.0` migration guide and API reference; begin the no-unplanned-break freeze.
-- [ ] Log the API-freeze ADR and update changelog/artifact/full gates.
+- [x] Inventory top-level exports, submodule imports, protocols, result schemas, registry/config names, extras, CLI commands, and serialization versions in atomic task 78.28 ([task artifact](../../artifacts/task_78.28_summary.md)); the inventory passes, but API freeze remains blocked by canonical-symbol migration and compatibility snapshots.
+- [x] Record the M14 planning contract and exhaustive 24-lane traceability matrix in [M14_REAL_SYSTEM_VALIDATION](../M14_REAL_SYSTEM_VALIDATION.md); this does not mark implementation evidence complete.
+- [x] Restore strict typing for the 25 pre-existing test diagnostics in atomic task 78.1; implementation is limited to test annotations, typed recorder fixtures, and a narrow tokenizer checkpoint-test seam ([task artifact](../../artifacts/task_78.1_summary.md)).
+- [x] Make the real visualization walkthrough an explicit optional `viz` lane, with clean base skips and full locked-extra execution in atomic task 78.2 ([task artifact](../../artifacts/task_78.2_summary.md)).
+- [x] Remove the `integrations.lerobot` ↔ `integrations.lerobot_dataset` import cycle while preserving raw-object boundaries and public re-exports in atomic task 78.3 ([task artifact](../../artifacts/task_78.3_summary.md)).
+- [x] Extract the portable codec's recursive handlers and resource-validation contract into focused internal modules, preserving public imports, exact wire bytes, and security guards in atomic task 78.4 ([task artifact](../../artifacts/task_78.4_summary.md)).
+- [x] Separate TCAV's optional PyTorch model hooks/interventions from its statistical facade, preserving public/private seams, deterministic results, and registry behavior in atomic task 78.5 ([task artifact](../../artifacts/task_78.5_summary.md)).
+- [x] Extract TCAV statistical scoring, bootstrap/control aggregation, p-values, significance correction, and result assembly into a focused internal module in atomic task 78.6 ([task artifact](../../artifacts/task_78.6_summary.md)).
+- [x] Extract proven shared transition validation, affine-residual fitting, rollout normalization, and provenance helpers while preserving deterministic/stochastic public classes and the narrow mean contract in atomic task 78.8 ([task artifact](../../artifacts/task_78.8_summary.md)).
+- [x] Move deterministic/stochastic transition lifecycles and public result dataclasses into cycle-free focused modules while preserving the `latent_anything.transition` facade, module identity, pickle behavior, and contracts in atomic task 78.9 ([task artifact](../../artifacts/task_78.9_summary.md)).
+- [x] Extract RSSM training, evaluation aggregation, and checkpoint I/O behind the stable `latent_anything.rssm` facade while preserving recurrent state, masks, seeded numerics, NumPy/torch boundaries, and NPZ schema in atomic task 78.10 ([task artifact](../../artifacts/task_78.10_summary.md)).
+- [x] Extract pure RSSM recurrent math, particle rollout/metadata assembly, and sequence/mask validation behind compatibility wrappers while retaining state ownership in `RSSMLatentTransition` in atomic task 78.11 ([task artifact](../../artifacts/task_78.11_summary.md)).
+- [x] Extract JEPA training/EMA, evaluation-health aggregation, checkpoint I/O, and validation behind the stable decoder-free `JEPAWorldModelAdapter` facade while preserving ModelAdapter/LatentTransition contracts in atomic task 78.12 ([task artifact](../../artifacts/task_78.12_summary.md)).
+- [x] Separate tokenized dynamics, tokenizer-integrity validation, training/sampling, evaluation, and sequence validation behind the stable `TokenizedWorldModel` facade while preserving categorical IDs, padding masks, digest binding, and transition seams in atomic task 78.13 ([task artifact](../../artifacts/task_78.13_summary.md)).
+- [x] Separate bounded recorder canonicalization, validation, artifact I/O, and local lifecycle orchestration behind the stable experiment-recorder facade while preserving provider-neutral protocols, identity/resume semantics, checksums, and tracking-adapter imports in atomic task 78.14 ([task artifact](../../artifacts/task_78.14_summary.md)).
+- [x] Extract pure reward/value validation, discounted-return, Bellman-residual, and summary-metric helpers while preserving `RewardValueEvaluator` orchestration, calibration, provenance, terminal/padding semantics, and planner integration in atomic task 78.15 ([task artifact](../../artifacts/task_78.15_summary.md)).
+- [x] Separate lazy transformer backend loading/tokenization and pure logit-lens/rank calculations behind the stable `TransformerLMIntegration` facade while preserving NumPy boundaries, native hidden-state capture, interventions, hook cleanup, provenance, and offline analysis parity in atomic task 78.16 ([task artifact](../../artifacts/task_78.16_summary.md)).
+- [x] Extract the model-bound transformer generation, hidden-state capture, and intervention-hook lifecycle behind the stable `TransformerLMIntegration` facade while preserving signatures, result schemas, NumPy boundaries, lazy imports, seeded behavior, and success/failure cleanup in atomic task 78.17 ([task artifact](../../artifacts/task_78.17_summary.md)).
+- [x] Separate SmolVLA checkpoint/processor loading and intervention measurement/report assembly behind the concrete `SmolVLAPolicyAdapter` lifecycle while preserving official LeRobot factories, camera/token metadata, queue semantics, bounded interventions, hook cleanup, and NumPy boundaries in atomic task 78.18 ([task artifact](../../artifacts/task_78.18_summary.md)).
+- [x] Extract the SmolVLA-specific query/hook runtime, capture parsing, token-offset assembly, and expert intervention application behind the stable `SmolVLAPolicyAdapter` facade while preserving queue semantics, capture order, zero-strength identity, errors, and cleanup in atomic task 78.19 ([task artifact](../../artifacts/task_78.19_summary.md)).
+- [x] Separate LeRobot benchmark environment construction, episode execution, and statistics/artifact assembly behind the stable `lerobot_benchmark` facade while preserving public signatures, result schemas, official policy seams, queue-aware query accounting, and deterministic fixture behavior in atomic task 78.20 ([task artifact](../../artifacts/task_78.20_summary.md)).
+- [x] Remove the repository-wide Ruff B009 test-only lint blocker without weakening the SmolVLA compatibility assertion in atomic task 78.21 ([task artifact](../../artifacts/task_78.21_summary.md)).
+- [x] Separate MLP training, nonlinear controls, and shared stratified split ownership behind the stable MLP probe facade while preserving public signatures, exact split/result digests, deterministic training, leakage guards, registry behavior, and TCAV/probes compatibility in atomic task 78.22 ([task artifact](../../artifacts/task_78.22_summary.md)).
+- [x] Separate run-record codec/migration, schema, filesystem/artifact persistence, and comparison/reporting behind the stable `run_record` facade while preserving schema-v1 bytes, migrations, identity/lifecycle semantics, path safety, artifact checksums, pickle-capable identities, and recorder compatibility in atomic task 78.23 ([task artifact](../../artifacts/task_78.23_summary.md)).
+- [x] Separate LeRobot Diffusion policy-specific trace analysis, metric/result assembly, and capture-facade ownership while preserving public signatures, trace axes/order, queue behavior, metadata, hook cleanup, and NumPy boundaries in atomic task 78.24 ([task artifact](../../artifacts/task_78.24_summary.md)).
+- [x] Separate SAE evaluation metrics, decoder matching/stability, and feature-atlas persistence into focused internal modules while preserving the facade lifecycle and artifact schemas in atomic task 78.7 ([task artifact](../../artifacts/task_78.7_summary.md)).
+- [x] Compare the inventory with Sprint 28 naming/deprecation policy and document every retained alias, warning boundary, replacement, and migration family in atomic task 78.31 ([task artifact](../../artifacts/task_78.31_summary.md)); no removal or version change is performed during the beta window.
+- [x] Add RFC0001 canonical `AnalysisMethod`, `Intervention`, and `InterventionPipeline` exports as exact beta aliases while retaining `Method`, `BMethod`, and `ManipulationPipeline` in atomic task 78.29 ([task artifact](../../artifacts/task_78.29_summary.md)); no alias removal or version change is performed during the beta window.
+- [x] Add the deterministic machine-readable API-freeze compatibility snapshot, normalized canonical/legacy projections, section digests, and drift comparator in atomic task 78.30 ([task artifact](../../artifacts/task_78.30_summary.md)); snapshot review remains required for any future public-surface change.
+- [x] Add the authoritative user-facing alias/deprecation ledger and runtime parity/warning tests in atomic task 78.31 ([task artifact](../../artifacts/task_78.31_summary.md)); retain all beta aliases and schema/path migrations without a version change.
+- [x] Resolve the pending facade/module decomposition audit for `LatentSpace`, pipelines, and adapters in atomic task 78.28 ([task artifact](../../artifacts/task_78.28_summary.md)); 78.25/78.28 find cohesive domain facades with no justified pre-freeze extraction, deferring only to the documented fourth-geometry, Pipeline #3, or second-renderer triggers.
+- [x] Perform a full `src/` SRP/maintainability audit, prioritize oversized classes/files, and refactor only behind public parity snapshots and focused regression tests in atomic task 78.25 ([task artifact](../../artifacts/task_78.25_summary.md)).
+- [x] Produce the exhaustive documentation/release-readiness conflict inventory, deterministic link/nav/status/count scans, and ordered blocker ledger in atomic task 78.26 ([task artifact](../../artifacts/task_78.26_summary.md)); this audit does not close the separate docs-conflict, evidence, migration, or API-freeze gates.
+- [x] Add public signature, import-path, config-schema, plugin-contract, and serialized-artifact compatibility snapshots in atomic task 78.30 ([task artifact](../../artifacts/task_78.30_summary.md)).
+- [x] Review exception taxonomy, docstrings, typing, sync/async symmetry, and optional-extra error messages in atomic tasks 78.32–78.37 ([task artifacts](../../artifacts/task_78.32_summary.md), [78.37](../../artifacts/task_78.37_summary.md)).
+- [x] Complete the read-only exception/docstring/typing/async/optional-profile audit in atomic task 78.32 ([task artifact](../../artifacts/task_78.32_summary.md)); A-1/A-2 and all public-docstring findings are closed by 78.33–78.37, while the classified `Any` owner-decision seams remain advisory.
+- [x] Remediate the confirmed 78.32 A-1/A-2 findings and narrow the approved concrete `compare_probes.linear_config` typing seam while retaining justified heterogeneous `Any` boundaries in atomic task 78.33 ([task artifact](../../artifacts/task_78.33_summary.md)); no unrelated docstring batch, alias removal, or version change is performed.
+- [x] Remediate the first 42 deterministic public-docstring findings across pose, VAE, Diffusers, and Gaussian-renderer seams in atomic task 78.34 ([task artifact](../../artifacts/task_78.34_summary.md)); 140 findings remained at that checkpoint and no behavior/signatures changed.
+- [x] Remediate the next 74 deterministic public-docstring findings across RSSM, JEPA, tokenized-world-model, and reward/value seams in atomic task 78.35 ([task artifact](../../artifacts/task_78.35_summary.md)); 66 findings remain for later bounded batches and no behavior/signatures changed.
+- [x] Remediate the next 45 deterministic public-docstring findings across experiment/MLflow/W&B recorders and LeRobot integration seams in atomic task 78.36 ([task artifact](../../artifacts/task_78.36_summary.md)); 21 findings remain for later bounded batches and no behavior/signatures changed.
+- [x] Close the final 21 deterministic public-docstring findings across pipeline, planner, attribution, capture, artifact, temporal, and visualization seams in atomic task 78.37 ([task artifact](../../artifacts/task_78.37_summary.md)); the source/ledger scan is now zero and no behavior/signatures changed.
+- [x] Reconcile the confirmed 78.26 documentation conflicts and historical beta labels with current probes, planning, world-model, 3D, plugin, artifact, and tracking surfaces in atomic task 78.27 ([task artifact](../../artifacts/task_78.27_summary.md)); remaining evidence, migration, API-freeze, and real-system blockers stay explicitly open.
+- [x] Run the theory ledger gate and create the exhaustive D0/D1 closure plan in atomic task 78.38 ([task artifact](../../artifacts/task_78.38_summary.md); [row-level plan](../../docs/EVIDENCE_GAP_PLAN.md)); validator remains honest at 25/63 core and 25/65 overall, with no evidence promotion.
+- [x] Create the snapshot-grounded migration guide and API reference in atomic task 78.39 ([task artifact](../../artifacts/task_78.39_summary.md)); no version bump, alias removal, or unreviewed generated-surface drift.
+- [x] Record the owner-level API-freeze checkpoint, reconcile changelog/M14/PLAN status, and run the final closure gates in atomic task 78.40 ([task artifact](../../artifacts/task_78.40_summary.md)); the 205-runtime/202-canonical surface is compatibility-controlled without release authorization.
+- [x] Reconcile the remaining Sprint 78 status conflict and audit every M14 source/test command against the current checkout in atomic task 78.41 ([task artifact](../../artifacts/task_78.41_summary.md)); no evidence level or release blocker is changed.
+- [ ] Publish the planned `0.9.0` package and versioned migration guide; begin the no-unplanned-break freeze only after the remaining evidence and workflow gates pass.
+- [x] Log the API-freeze decision and update changelog/artifact/full gates, including export/registry/plugin/profile counts and the absent-backend non-API list.
 
 ## Notes / Blockers
 
-After this sprint, only release-blocking corrections may change public API before `1.0.0`, and each change requires an ADR plus migration update.
-
+After this sprint, only release-blocking corrections may change public API before
+`1.0.0`, and each change requires an ADR plus migration update. The planned
+`0.9.0` epoch is a compatibility/API-freeze milestone, not a tag or publication
+yet: metadata remains `0.1.0b1`, and no `v0.9.0` release is allowed while the
+release workflow or external GitHub Actions account access is unresolved. The
+owner-level API-freeze checkpoint is recorded for the documented current
+surface, but it authorizes neither alias removal nor version/tag/publication.
+The evidence and workflow gates remain unresolved, so no stable-release claim
+follows from this checkpoint.

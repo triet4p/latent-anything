@@ -1,0 +1,792 @@
+{
+  "actionable_findings": [
+    {
+      "expected": "An actionable error naming uv sync --extra lerobot while preserving the command dispatch.",
+      "file": "src/latent_anything/cli.py",
+      "id": "A-1",
+      "issue": "Direct lerobot.datasets import bypasses the actionable optional-extra boundary.",
+      "line": 77,
+      "observed": "Fresh blocked-backend execution raises ModuleNotFoundError: No module named 'lerobot'.",
+      "recommended_atomic_task": "78.33 optional-profile failure-message remediation",
+      "severity": "Advisory",
+      "symbol": "_inspect_dataset"
+    },
+    {
+      "expected": "Docstring documents the unsupported state and NotImplementedError, or a separately approved implementation.",
+      "file": "src/latent_anything/mlp_probe.py",
+      "id": "A-2",
+      "issue": "Docstring describes class-label output, but fitted calls deliberately raise NotImplementedError until model-state serialization exists.",
+      "line": 373,
+      "observed": "tests/test_mlp_probe.py:329-332 asserts NotImplementedError.",
+      "recommended_atomic_task": "78.34 MLPProbe prediction contract documentation/implementation decision",
+      "severity": "Advisory",
+      "symbol": "MLPProbe.predict"
+    }
+  ],
+  "integrity": {
+    "actionable_findings_count": 2,
+    "actual_typed_any_annotation_count": 40,
+    "classification_counts": {
+      "metadata/provenance justified": 26,
+      "optional-backend justified": 4,
+      "requires owner decision": 10,
+      "signature-text false positive": 1
+    },
+    "missing_docstrings_by_module": {},
+    "missing_public_docstrings_count": 0,
+    "missing_public_docstrings_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "payload_sha256_excluding_integrity": "6d17ce748e8ea8201cb41a005fc6bdbd987a9c37f5168467d82b5f1362c6dd25",
+    "public_any_signatures_count": 41,
+    "public_any_signatures_sha256": "d8fb3976d9c27a67dd531504462543f091d272480cce362e7db908bed428d57c",
+    "scan_note": "41 token hits are ledgered; 40 are typed Any annotations and one is the literal 'Any' substring in build_comparison_report's default title; the narrowed compare_probes.linear_config hit is no longer typed."
+  },
+  "missing_public_docstrings": [],
+  "public_any_signatures": [
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "source_metadata",
+          "position": "parameter"
+        },
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "ChangePointResult",
+      "file": "latent_anything/temporal.py",
+      "import_path": "latent_anything.ChangePointResult",
+      "line": 71,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(boundaries: 'tuple[int, ...]', segments: 'tuple[Segment, ...]', scores: 'tuple[float, ...]', confidence: 'tuple[float, ...]', velocity: 'tuple[float, ...]', threshold: 'float', geometry: 'str', source_metadata: 'Mapping[str, Any]', provenance: 'Mapping[str, Any]') -> None",
+      "symbol": "latent_anything.temporal.ChangePointResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "ConceptDataset",
+      "file": "latent_anything/tcav.py",
+      "import_path": "latent_anything.ConceptDataset",
+      "line": 63,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(concept_examples: 'np.ndarray', reference_examples: 'np.ndarray', concept_name: 'str', source: 'str' = '', representation_space: 'str' = '', model_version: 'str' = '', provenance: 'dict[str, Any]' = <factory>) -> None",
+      "symbol": "latent_anything.tcav.ConceptDataset"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "CovarianceState",
+      "file": "latent_anything/covariance.py",
+      "import_path": "latent_anything.CovarianceState",
+      "line": 75,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(mean: 'np.ndarray', covariance: 'np.ndarray', n_samples: 'int', source_representation_identity: 'str', reg_coef: 'float', provenance: 'Mapping[str, Any]') -> None",
+      "symbol": "latent_anything.covariance.CovarianceState"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "DTWResult",
+      "file": "latent_anything/dtw.py",
+      "import_path": "latent_anything.DTWResult",
+      "line": 51,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(distance: 'float', raw_distance: 'float', path: 'tuple[tuple[int, int], ...]', point_costs: 'tuple[float, ...]', cost_summary: 'DTWCostSummary', normalization: 'str', geometry: 'str', provenance: 'dict[str, Any]', cost_matrix: 'np.ndarray | None' = None) -> None",
+      "symbol": "latent_anything.dtw.DTWResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "split_provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "DensityEvaluationReport",
+      "file": "latent_anything/density.py",
+      "import_path": "latent_anything.DensityEvaluationReport",
+      "line": 70,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(in_distribution: 'DensityResult', out_of_distribution: 'DensityResult', metrics: 'DensityMetrics', split_provenance: 'dict[str, Any]') -> None",
+      "symbol": "latent_anything.density.DensityEvaluationReport"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "DensityGeodesic",
+      "file": "latent_anything/geodesic.py",
+      "import_path": "latent_anything.DensityGeodesic",
+      "line": 304,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'GeodesicConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.geodesic.DensityGeodesic"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "fit_provenance",
+          "position": "parameter"
+        },
+        {
+          "annotation": "dict[str, Any]",
+          "name": "calibration_provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "DensityResult",
+      "file": "latent_anything/density.py",
+      "import_path": "latent_anything.DensityResult",
+      "line": 41,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(log_density: 'np.ndarray', responsibilities: 'np.ndarray', calibrated_ood_score: 'np.ndarray', source_representation_identity: 'str', fit_provenance: 'dict[str, Any]', calibration_provenance: 'dict[str, Any]') -> None",
+      "symbol": "latent_anything.density.DensityResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "FeatureAtlas",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.FeatureAtlas",
+      "line": 220,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(entries: 'tuple[FeatureAtlasEntry, ...]', n_components: 'int', n_examples: 'int', source_representation_identity: 'str', provenance: 'dict[str, Any]') -> None",
+      "symbol": "latent_anything.sae_evaluation.FeatureAtlas"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "tuple[dict[str, Any], ...]",
+          "name": "top_examples",
+          "position": "parameter"
+        },
+        {
+          "annotation": "tuple[dict[str, Any], ...]",
+          "name": "bottom_examples",
+          "position": "parameter"
+        },
+        {
+          "annotation": "tuple[dict[str, Any], ...]",
+          "name": "top_decoder_dims",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "FeatureAtlasEntry",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.FeatureAtlasEntry",
+      "line": 205,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(feature_index: 'int', is_dead: 'bool', activation_frequency: 'float', mean_activation: 'float', decoder_norm: 'float', encoder_norm: 'float', top_examples: 'tuple[dict[str, Any], ...]', bottom_examples: 'tuple[dict[str, Any], ...]', top_decoder_dims: 'tuple[dict[str, Any], ...]') -> None",
+      "symbol": "latent_anything.sae_evaluation.FeatureAtlasEntry"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "GaussianMixtureDensity",
+      "file": "latent_anything/density.py",
+      "import_path": "latent_anything.GaussianMixtureDensity",
+      "line": 149,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'GMMConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.density.GaussianMixtureDensity"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "GeodesicPath",
+      "file": "latent_anything/geodesic.py",
+      "import_path": "latent_anything.GeodesicPath",
+      "line": 151,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(path: 'np.ndarray', endpoint_a: 'np.ndarray', endpoint_b: 'np.ndarray', length: 'float', euclidean_length: 'float', log_density: 'np.ndarray', min_log_density: 'float', mean_log_density: 'float', decoded: 'np.ndarray | None', reconstruction_error: 'float | None', status: 'PathOptimizationStatus', source_representation_identity: 'str | None', provenance: 'Mapping[str, Any]') -> None",
+      "symbol": "latent_anything.geodesic.GeodesicPath"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "IntegratedGradientsResult",
+      "file": "latent_anything/integrated_gradients.py",
+      "import_path": "latent_anything.IntegratedGradientsResult",
+      "line": 33,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(attributions: 'np.ndarray', input_activation: 'np.ndarray', baseline_activation: 'np.ndarray', target_input: 'float', target_baseline: 'float', attribution_sum: 'float', completeness_delta: 'float', completeness_error: 'float', convergence_delta: 'float', n_steps: 'int', integration_rule: 'IntegrationRule', baseline_kind: 'BaselineKind', target_layer: 'int', activation_position: 'int', target: 'TransformerLogitTarget', provenance: 'dict[str, Any]') -> None",
+      "symbol": "latent_anything.integrated_gradients.IntegratedGradientsResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "KMeans",
+      "file": "latent_anything/clustering.py",
+      "import_path": "latent_anything.KMeans",
+      "line": 292,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'KMeansConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.clustering.KMeans"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "KMeansResult",
+      "file": "latent_anything/clustering.py",
+      "import_path": "latent_anything.KMeansResult",
+      "line": 124,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(assignments: 'np.ndarray', centers: 'np.ndarray', inertia: 'float', n_iter: 'int', n_clusters: 'int', cluster_sizes: 'np.ndarray', silhouette_score: 'float', per_sample_silhouette: 'np.ndarray | None', confidence: 'np.ndarray', n_init: 'int', config: 'KMeansConfig', feature_means: 'np.ndarray | None' = None, feature_stds: 'np.ndarray | None' = None, provenance: 'dict[str, Any]' = <factory>) -> None",
+      "symbol": "latent_anything.clustering.KMeansResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any] | None",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "LatentSpace",
+      "file": "latent_anything/latent_space.py",
+      "import_path": "latent_anything.LatentSpace",
+      "line": 47,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(dim: 'int', geometry: 'str' = 'euclidean', source_model: 'str' = '', metadata: 'dict[str, Any] | None' = None, covariance: 'CovarianceState | None' = None, n_gaussians: 'int | None' = None, position_dim: 'int' = 3, scale_dim: 'int' = 3, color_dim: 'int' = 3, codebook_size: 'int | None' = None) -> 'None'",
+      "symbol": "latent_anything.latent_space.LatentSpace"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any] | None",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "LatentValue",
+      "file": "latent_anything/latent_value.py",
+      "import_path": "latent_anything.LatentValue",
+      "line": 121,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(data: 'np.ndarray', space: 'LatentSpace', metadata: 'Mapping[str, Any] | None' = None) -> 'None'",
+      "symbol": "latent_anything.latent_value.LatentValue"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "LinearProbeResult",
+      "file": "latent_anything/probes.py",
+      "import_path": "latent_anything.LinearProbeResult",
+      "line": 77,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(accuracy: 'float', val_accuracy: 'float', classes: 'np.ndarray', predictions: 'np.ndarray', probabilities: 'np.ndarray', coefficients: 'np.ndarray', intercept: 'np.ndarray', n_iter: 'int', train_indices: 'np.ndarray', val_indices: 'np.ndarray', test_indices: 'np.ndarray', feature_means: 'np.ndarray | None', feature_stds: 'np.ndarray | None', config: 'LinearProbeConfig', provenance: 'dict[str, Any]' = <factory>) -> None",
+      "symbol": "latent_anything.probes.LinearProbeResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "architecture",
+          "position": "parameter"
+        },
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "MLPProbeResult",
+      "file": "latent_anything/mlp_probe.py",
+      "import_path": "latent_anything.MLPProbeResult",
+      "line": 93,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(accuracy: 'float', val_accuracy: 'float', classes: 'np.ndarray', predictions: 'np.ndarray', probabilities: 'np.ndarray', n_epochs: 'int', stopped_early: 'bool', architecture: 'dict[str, Any]', n_params: 'int', optimizer: 'str', train_indices: 'np.ndarray', val_indices: 'np.ndarray', test_indices: 'np.ndarray', feature_means: 'np.ndarray | None', feature_stds: 'np.ndarray | None', config: 'MLPProbeConfig', provenance: 'dict[str, Any]' = <factory>) -> None",
+      "symbol": "latent_anything.mlp_probe.MLPProbeResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, typing.Any]",
+          "name": "params",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "ObjectSpec",
+      "file": "latent_anything/config.py",
+      "import_path": "latent_anything.ObjectSpec",
+      "line": 54,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(*, kind: str, name: Annotated[str, MinLen(min_length=1)], params: dict[str, typing.Any] = <factory>) -> None",
+      "symbol": "latent_anything.config.ObjectSpec"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "OrthonormalSubspace",
+      "file": "latent_anything/projection.py",
+      "import_path": "latent_anything.OrthonormalSubspace",
+      "line": 114,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(basis: 'np.ndarray', source_representation_identity: 'str', origin: 'str', provenance: 'Mapping[str, Any]') -> None",
+      "symbol": "latent_anything.projection.OrthonormalSubspace"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any] | None",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "PoseTrajectory",
+      "file": "latent_anything/pose.py",
+      "import_path": "latent_anything.PoseTrajectory",
+      "line": 339,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(poses: 'Sequence[SE3]', *, metadata: 'Mapping[str, Any] | None' = None) -> 'None'",
+      "symbol": "latent_anything.pose.PoseTrajectory"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "RSSMRollout",
+      "file": "latent_anything/rssm.py",
+      "import_path": "latent_anything.RSSMRollout",
+      "line": 153,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(samples: 'np.ndarray', deterministic_states: 'np.ndarray', interval_level: 'float' = 0.95, metadata: 'Mapping[str, Any]' = mappingproxy({})) -> None",
+      "symbol": "latent_anything.rssm.RSSMRollout"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Callable[..., Any]",
+          "name": "factory",
+          "position": "parameter"
+        },
+        {
+          "annotation": "dict[str, Any]",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "RegistryEntry",
+      "file": "latent_anything/registry.py",
+      "import_path": "latent_anything.RegistryEntry",
+      "line": 80,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(kind: 'str', name: 'str', factory: 'Callable[..., Any]', metadata: 'dict[str, Any]' = <factory>) -> None",
+      "symbol": "latent_anything.registry.RegistryEntry"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "SAEEvaluationResult",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.SAEEvaluationResult",
+      "line": 96,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(config: 'SAEConfig', n_train: 'int', n_val: 'int', reconstruction_mse: 'float', train_reconstruction_mse: 'float', mean_l0: 'float', mean_l1: 'float', n_dead_features: 'int', dead_fraction: 'float', activation_frequencies: 'np.ndarray', decoder_norms: 'np.ndarray', features: 'tuple[SAEFeatureMetrics, ...]', val_activations: 'np.ndarray', decoder_weights: 'np.ndarray', source_representation_identity: 'str', provenance: 'dict[str, Any]') -> None",
+      "symbol": "latent_anything.sae_evaluation.SAEEvaluationResult"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "SAEFeatureEvaluation",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.SAEFeatureEvaluation",
+      "line": 374,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'SAEConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.sae_evaluation.SAEFeatureEvaluation"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "SmoothedTrajectory",
+      "file": "latent_anything/temporal.py",
+      "import_path": "latent_anything.SmoothedTrajectory",
+      "line": 29,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(trajectory: 'Trajectory', provenance: 'Mapping[str, Any]', mean_distortion: 'float', maximum_distortion: 'float') -> None",
+      "symbol": "latent_anything.temporal.SmoothedTrajectory"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "StochasticRollout",
+      "file": "<unknown>",
+      "import_path": "latent_anything.StochasticRollout",
+      "line": 0,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(samples: 'np.ndarray', interval_level: 'float' = 0.95, metadata: 'Mapping[str, Any]' = mappingproxy({})) -> None",
+      "symbol": "latent_anything.transition.StochasticRollout"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "SubspaceProjection",
+      "file": "latent_anything/projection.py",
+      "import_path": "latent_anything.SubspaceProjection",
+      "line": 374,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'SubspaceProjectionConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.projection.SubspaceProjection"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "kwargs",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "TCAV",
+      "file": "latent_anything/tcav.py",
+      "import_path": "latent_anything.TCAV",
+      "line": 747,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(config: 'TCAVConfig | None' = None, **kwargs: 'Any') -> 'None'",
+      "symbol": "latent_anything.tcav.TCAV"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any] | None",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "Trajectory",
+      "file": "latent_anything/trajectory.py",
+      "import_path": "latent_anything.Trajectory",
+      "line": 12,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(data: 'np.ndarray', *, metadata: 'Mapping[str, Any] | None' = None) -> 'None'",
+      "symbol": "latent_anything.trajectory.Trajectory"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "The substring 'Any' occurs in the default title 'Latent Anything'; no typing.Any annotation.",
+          "name": "<literal>",
+          "position": "signature-text"
+        }
+      ],
+      "classification": "signature-text false positive",
+      "export": "build_comparison_report",
+      "file": "latent_anything/_run_record_comparison.py",
+      "import_path": "latent_anything.build_comparison_report",
+      "line": 31,
+      "reason": "This is a deterministic scan false positive from a default string; the signature has no Any type annotation.",
+      "signature": "(records: 'Sequence[RunRecord]', *, title: 'str' = 'Latent Anything run comparison') -> 'RunComparisonReport'",
+      "symbol": "latent_anything._run_record_comparison.build_comparison_report"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "return",
+          "position": "return"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "build_from_config",
+      "file": "latent_anything/config.py",
+      "import_path": "latent_anything.build_from_config",
+      "line": 133,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(spec: 'ObjectSpec', *, registry: 'Registry | None' = None) -> 'Any'",
+      "symbol": "latent_anything.config.build_from_config"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any]",
+          "name": "data",
+          "position": "parameter"
+        },
+        {
+          "annotation": "Any",
+          "name": "return",
+          "position": "return"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "build_from_dict",
+      "file": "latent_anything/config.py",
+      "import_path": "latent_anything.build_from_dict",
+      "line": 212,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(data: 'dict[str, Any]', *, registry: 'Registry | None' = None) -> 'Any'",
+      "symbol": "latent_anything.config.build_from_dict"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "model",
+          "position": "parameter"
+        }
+      ],
+      "classification": "optional-backend justified",
+      "export": "compute_integrated_gradients",
+      "file": "latent_anything/integrated_gradients.py",
+      "import_path": "latent_anything.compute_integrated_gradients",
+      "line": 347,
+      "reason": "The public seam accepts an upstream model object whose concrete type is optional and backend-owned.",
+      "signature": "(model: 'Any', input_ids: 'np.ndarray', attention_mask: 'np.ndarray', target: 'TransformerLogitTarget', *, config: 'IntegratedGradientsConfig | None' = None, baseline_activation: 'np.ndarray | None' = None, source_model_version: 'str' = '') -> 'IntegratedGradientsResult'",
+      "symbol": "latent_anything.integrated_gradients.compute_integrated_gradients"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "model",
+          "position": "parameter"
+        }
+      ],
+      "classification": "optional-backend justified",
+      "export": "compute_tcav",
+      "file": "latent_anything/tcav.py",
+      "import_path": "latent_anything.compute_tcav",
+      "line": 569,
+      "reason": "The public seam accepts an upstream model object whose concrete type is optional and backend-owned.",
+      "signature": "(model: 'Any', target_layer: 'int', concept_dataset: 'ConceptDataset', input_ids_batch: 'np.ndarray', attention_mask_batch: 'np.ndarray', target: 'TransformerLogitTarget', *, direction_method: 'str' = 'mean_diff', n_bootstrap: 'int' = 50, n_random_concepts: 'int' = 50, n_seeds: 'int' = 5, alpha: 'float' = 0.05, n_concepts_family: 'int' = 1, random_concept_seed: 'int' = 42) -> 'TCAVResult'",
+      "symbol": "latent_anything.tcav.compute_tcav"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Mapping[str, Any]",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "coordinate_identity",
+      "file": "latent_anything/latent_value.py",
+      "import_path": "latent_anything.coordinate_identity",
+      "line": 34,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(space: 'LatentSpace', metadata: 'Mapping[str, Any]') -> 'str'",
+      "symbol": "latent_anything.latent_value.coordinate_identity"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "model",
+          "position": "parameter"
+        }
+      ],
+      "classification": "optional-backend justified",
+      "export": "cross_check_feature",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.cross_check_feature",
+      "line": 587,
+      "reason": "The public seam accepts an upstream model object whose concrete type is optional and backend-owned.",
+      "signature": "(evaluation: 'SAEEvaluationResult', feature_index: 'int', *, labels: 'np.ndarray | None' = None, model: 'Any' = None, input_ids: 'np.ndarray | None' = None, attention_mask: 'np.ndarray | None' = None, target: 'TransformerLogitTarget | None' = None, layer: 'int | None' = None, intervention_strength: 'float' = 1.0, probe_random_state: 'int' = 0) -> 'FeatureCrossCheck'",
+      "symbol": "latent_anything.sae_evaluation.cross_check_feature"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any] | None",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "evaluate_sae_features",
+      "file": "latent_anything/sae_evaluation.py",
+      "import_path": "latent_anything.evaluate_sae_features",
+      "line": 546,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(data: 'np.ndarray', *, config: 'SAEConfig | None' = None, val_data: 'np.ndarray | None' = None, source_representation_identity: 'str' = '', provenance: 'dict[str, Any] | None' = None) -> 'SAEEvaluationResult'",
+      "symbol": "latent_anything.sae_evaluation.evaluate_sae_features"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "dict[str, Any] | None",
+          "name": "provenance",
+          "position": "parameter"
+        }
+      ],
+      "classification": "metadata/provenance justified",
+      "export": "fit_covariance_state",
+      "file": "latent_anything/covariance.py",
+      "import_path": "latent_anything.fit_covariance_state",
+      "line": 206,
+      "reason": "The contract intentionally carries JSON-like provenance or metadata without freezing provider-specific keys.",
+      "signature": "(data: 'np.ndarray', *, source_representation_identity: 'str', config: 'CovarianceConfig | None' = None, provenance: 'dict[str, Any] | None' = None) -> 'CovarianceState'",
+      "symbol": "latent_anything.covariance.fit_covariance_state"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Any",
+          "name": "model",
+          "position": "parameter"
+        }
+      ],
+      "classification": "optional-backend justified",
+      "export": "intervention_agreement",
+      "file": "latent_anything/tcav.py",
+      "import_path": "latent_anything.intervention_agreement",
+      "line": 685,
+      "reason": "The public seam accepts an upstream model object whose concrete type is optional and backend-owned.",
+      "signature": "(model: 'Any', target_layer: 'int', concept_direction: 'np.ndarray', input_ids_batch: 'np.ndarray', attention_mask_batch: 'np.ndarray', target: 'TransformerLogitTarget', *, strength: 'float' = 1.0) -> 'float'",
+      "symbol": "latent_anything.tcav.intervention_agreement"
+    },
+    {
+      "annotations": [
+        {
+          "annotation": "Callable[..., Any]",
+          "name": "factory",
+          "position": "parameter"
+        },
+        {
+          "annotation": "Any",
+          "name": "metadata",
+          "position": "parameter"
+        }
+      ],
+      "classification": "requires owner decision",
+      "export": "register_entry",
+      "file": "latent_anything/registry.py",
+      "import_path": "latent_anything.register_entry",
+      "line": 255,
+      "reason": "The seam is dynamically typed for config, registry factories, or backend kwargs; a narrower stable schema is not established by this audit.",
+      "signature": "(kind: 'str', name: 'str', factory: 'Callable[..., Any]', *, registry: 'Registry | None' = None, **metadata: 'Any') -> 'None'",
+      "symbol": "latent_anything.registry.register"
+    }
+  ],
+  "schema_version": "task-78.32-findings-v1",
+  "scope": {
+    "canonical_stable_exports": 202,
+    "optional_profiles": 12,
+    "public_package_modules_imported_under_blockers": 93,
+    "public_source_modules": 84,
+    "runtime_exports": 205,
+    "sync_async_pairs": 9
+  }
+}

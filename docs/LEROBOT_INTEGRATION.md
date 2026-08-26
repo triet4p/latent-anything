@@ -284,14 +284,16 @@ observational — only the SmolVLA environment-level evidence can promote the
 causal-intervention capability, and only when the predeclared acceptance gate
 passes.
 
-The committed artifact (seeds 1–3, strengths 1/5/10) passed the gate on the
-pinned public pair and promoted `THY-T05-CAUSAL-INTERVENTION-VS-
-OBSERVATIONAL-STUDY` to D3. It demonstrates all three outcomes: the baseline
-is bit-exact; the targeted intervention leaves behavior unchanged at strength
+The retained artifact (seeds 1–3, strengths 1/5/10) is historical evidence from
+the earlier pinned public pair. Its reported outcomes remain unchanged: the
+baseline is bit-exact; the targeted intervention leaves behavior unchanged at strength
 1 (offline on-target 0.86 with zero success delta — a recorded overstatement
 disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10
 (recorded reversal disagreements; all six episodes max out at 280 steps),
 while the random control never changes success.
+The authoritative ledger keeps `THY-T05-CAUSAL-INTERVENTION-VS-
+OBSERVATIONAL-STUDY` at D2 pending a corrected, pinned real CUDA rerun; this
+document does not promote the retained artifact to D3.
 
 ## Sprint 62 run records and inspection commands
 

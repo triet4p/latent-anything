@@ -3,8 +3,8 @@
 > Guidance for when to use `DensityGeodesic` vs. simpler lerp/slerp/geodesic
 > alternatives. The implementation lives in `src/latent_anything/geodesic.py`
 > (stateful entry point) and `src/latent_anything/geometry.py` (pure path
-> algorithms); the theory background is [Geodesic](../../../latent-anything-theory/01-space-representation/research/05-geodesic.md)
-> and [Pullback Metric](../../../latent-anything-theory/01-space-representation/research/06-pullback-metric.md).
+> algorithms); the theory background is [Geodesic](../latent-anything-theory/01-space-representation/research/05-geodesic.md)
+> and [Pullback Metric](../latent-anything-theory/01-space-representation/research/06-pullback-metric.md).
 
 ## What it does
 

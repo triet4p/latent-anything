@@ -4,6 +4,13 @@
 **Task:** 9
 **Status:** Complete
 
+> **Historical/superseded snapshot (2026-07-10 beta):** This matrix records the
+> beta-era theory boundary and is not a current implementation inventory.
+> Current evidence status is governed by [M14](../docs/M14_REAL_SYSTEM_VALIDATION.md),
+> [the evidence ledger](../docs/EVIDENCE_LEDGER.md), and
+> [the machine-readable ledger](../docs/evidence-ledger.json). Retain the
+> original dates, metrics, and beta claims for historical traceability.
+
 This matrix maps `docs/THEORY.md` layers to shipped beta code, demo coverage, docs-only coverage, and future work. It is designed to prevent the release notes from overclaiming theory completeness.
 
 | Theory area | Shipped code in beta | Demo/artifact coverage | Release claim |

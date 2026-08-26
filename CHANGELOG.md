@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Recorded the Sprint 78 API-freeze checkpoint and snapshot-grounded migration
+  and API-reference entry points: the current runtime surface is 205 exports
+  with a 202-entry canonical-stable projection, while metadata remains
+  `0.1.0b1`. This does not remove aliases, bump the version, create a tag,
+  publish a package, or claim release readiness; the planned `0.9.0` epoch and
+  Sprint 80 `1.0.0` release remain gated by evidence and workflow blockers.
 - Added the Sprint 77 Phase-A offline performance harness, cProfile attribution,
   explicit product-budget proposal, and a semantics-preserving Euclidean DTW
   vectorization. Sprint 77 Phase B records an owner-approved Rust/PyO3
@@ -14,6 +20,10 @@
 - `09_gaussian_rasterization.ipynb`: improve Exp 4 and Exp 5 visualizations — denser overlap scenes, cumulative contribution breakdown, rendered image quality comparison, percent-savings heatmaps.
 
 ### Fixed
+
+- Fixed `inspect-dataset` to report the actionable LeRobot installation extra
+  when the optional backend is unavailable, while preserving nested dependency
+  errors and the existing provider dispatch. (#sprint-78.33)
 
 - Fixed Sprint 35 fidelity evidence to use a repository-relative checkpoint
   label instead of a machine-local absolute snapshot path. (#sprint-35)
@@ -32,6 +42,12 @@
 - `end_to_end_showcase_demo.py`: add missing `pydantic` to inline script dependencies so `uv run --script` resolves it correctly; add `sys.stdout.reconfigure(encoding='utf-8')` for Windows Unicode support.
 
 ### Added
+
+- Added the RFC0001 canonical public names `AnalysisMethod`, `Intervention`,
+  and `InterventionPipeline` as exact identity-compatible aliases for the beta
+  `Method`, `BMethod`, and `ManipulationPipeline` symbols. Legacy names remain
+  supported; this additive change does not remove aliases or change the package
+  version. (#sprint-78.29)
 
 - Added the Sprint 34 held-out ConvVAE meaningful-integration evidence lane:
   deterministic train-only fitting on sklearn digits, an all-zero baseline and
@@ -215,7 +231,8 @@
 - Added `compare_probes()` that classifies representation access as linear-only, nonlinear-only, both, unsupported, or memorization-prone under explicit accuracy and gap thresholds. (#sprint-41)
 - Reused Sprint 40 `_stratified_split` and training-only standardization, keeping nonlinear-model-specific state (architecture, n_params, early stopping) out of the linear result type. (#sprint-41)
 - Registered `MLPProbe` under the `"analysis"` registry kind for config-driven construction. (#sprint-41)
-- Added 33 offline tests covering capacity, overfit, degenerate-label, determinism, config round-trip, memorization testing, comparison, and 2 marked real-integration tests. (#sprint-41)- Evidence-ledger validation now inventories all theory capabilities, verifies local evidence links in CI, and reports the D2/D3 stable-coverage denominator without downloading optional models. (#sprint-27)
+- Added 33 offline tests covering capacity, overfit, degenerate-label, determinism, config round-trip, memorization testing, comparison, and 2 marked real-integration tests. (#sprint-41)
+- Evidence-ledger validation now inventories all theory capabilities, verifies local evidence links in CI, and reports the D2/D3 stable-coverage denominator without downloading optional models. (#sprint-27)
 - `LatentValue` carries immutable flat batches and structured latent states with explicit `LatentSpace` association, safe NumPy conversion, and beta `Trajectory` compatibility. (#sprint-29)
 - `LatentSpace` now supports categorical `discrete_code` geometry with codebook validation, normalized Hamming distance, and an explicit no-continuous-interpolation policy. (#sprint-30)
 - Registry and config construction now use canonical `analysis` and `intervention` kinds; legacy beta kinds remain aliases with migration diagnostics until `0.9.0`. (#sprint-31)

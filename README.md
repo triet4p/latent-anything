@@ -11,7 +11,7 @@ A Python framework that treats latent space as a first-class object: load latent
 - Core primitives: `LatentSpace`, `LatentValue`, and `Trajectory`
 - Layer A introspection methods: PCA, UMAP, and SAE
 - Layer B manipulation methods: Lerp, SteeringVector, and ActivationPatch
-- Built-in adapters: VAE, RandomProjection, HiddenStateAdapter, and GaussianRendererAdapter
+- Representative built-in adapters: VAE, RandomProjection, HiddenStateAdapter, and GaussianRendererAdapter; the authoritative current inventory is the 205-runtime-export/202-canonical-stable-projection/32-registry contract in [M14_REAL_SYSTEM_VALIDATION](docs/M14_REAL_SYSTEM_VALIDATION.md#registry-plugin-groups-optional-profiles)
 - Registry/config construction for built-ins
 - Concrete analysis and manipulation pipelines
 - First runtime helpers: batching, in-memory cache, async wrappers, and profiling hooks
@@ -36,11 +36,22 @@ tracking evidence is local/offline only; it does not claim hosted tracking,
 remote servers, or team workflows.
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
+Sprint 78 plans `0.9.0` as the pre-stable API-freeze compatibility epoch after
+its gates pass. Package metadata remains `0.1.0b1` until all Sprint 78 gates and
+the release workflow are verified; no `v0.9.0` tag or publication is authorized
+while the external GitHub Actions account blocker remains. Sprint 80 targets
+`1.0.0`, with publication stopping if any required evidence or release gate is
+missing.
 
 Registry configs now use `adapter`, `analysis`, and `intervention` kinds.
 The beta `method_a` and `method_b` spellings remain supported with a migration
 warning until `0.9.0`; run `uv run python scripts/report_config_migration.py <config.json>`
 to inspect repository-owned JSON configs without rewriting them.
+
+See the [migration and compatibility guide](docs/MIGRATION.md) and the
+[API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger and
+the two separate schema/path migrations, frozen signatures, and current 205-runtime/202-canonical
+surface. The planned `0.9.0` epoch is not released; metadata remains `0.1.0b1`.
 
 ## Installation
 
