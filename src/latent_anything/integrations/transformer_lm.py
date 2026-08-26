@@ -24,14 +24,20 @@ from intermediate layers. Learned/tuned translators are explicitly deferred.
 
 from __future__ import annotations
 
-from contextlib import nullcontext
 from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
 
-from latent_anything.capture import ActivationCaptureSession
-from latent_anything.integrations import require_optional
+from latent_anything._transformer_analysis import (
+    apply_logit_lens,
+    compute_token_rank_trajectories,
+    compute_top_tokens,
+    softmax,
+)
+from latent_anything._transformer_backend import load_backend
+from latent_anything._transformer_backend import tokenize as tokenize_backend
+from latent_anything._transformer_runtime import run_generation
 from latent_anything.latent_space import LatentSpace
 from latent_anything.latent_value import LatentValue
 
@@ -379,28 +385,12 @@ class TransformerLMIntegration:
         """Lazy import and construct the transformer model and tokenizer."""
         if self._model is not None:
             return self._model, self._tokenizer, self._config
-
-        transformers = require_optional("transformers", extra="transformers")
-
-        self._tokenizer = transformers.AutoTokenizer.from_pretrained(
+        self._model, self._tokenizer, self._config = load_backend(
             self.model_id,
-            revision=self.revision,
-        )
-
-        self._model = transformers.AutoModelForCausalLM.from_pretrained(
-            self.model_id,
-            revision=self.revision,
+            self.revision,
+            device=self.device,
             torch_dtype=self._torch_dtype(),
         )
-        self._model = self._model.to(self.device)
-        self._model.eval()
-
-        self._config = self._model.config
-
-        # Set pad token if not set (GPT-2 doesn't have one by default).
-        if self._tokenizer.pad_token is None:
-            self._tokenizer.pad_token = self._tokenizer.eos_token
-
         return self._model, self._tokenizer, self._config
 
     def tokenize(
@@ -427,16 +417,12 @@ class TransformerLMIntegration:
         """
         _, tokenizer, _ = self._backend()
 
-        prompts = [prompt] if isinstance(prompt, str) else list(prompt)
-
-        encoded = tokenizer(
-            prompts,
-            padding=True,
-            truncation=True,
+        return tokenize_backend(
+            tokenizer,
+            prompt,
             max_length=max_length,
             return_tensors=return_tensors,
         )
-        return dict(encoded)
 
     # -- public LatentSpace descriptors   (Task 3) --------------------------
 
@@ -502,171 +488,47 @@ class TransformerLMIntegration:
         ImportError
             If ``transformers`` is not installed.
         """
-        import torch
-
         model, tokenizer, config = self._backend()
-
-        # Tokenize
-        encoded = self.tokenize(request.prompt, max_length=request.max_length)
-        input_ids = encoded["input_ids"].to(self.device)
-        attention_mask = encoded["attention_mask"].to(self.device)
-
-        batch_size, seq_len = input_ids.shape
-
-        # Determine which layers to capture.
-        num_layers = int(getattr(config, "num_hidden_layers", GPT2_NUM_LAYERS))
-        if request.capture_layers:
-            capture_layers = sorted(request.capture_layers)
-        elif request.capture_hidden_states:
-            # Layers 0..num_layers: 0 = embedding, 1..num_layers = transformer blocks
-            capture_layers = tuple(range(num_layers + 1))
-        else:
-            capture_layers = ()
-
-        # Containers for captured hidden states and lens results.
-        captured_states: list[HiddenState] = []
-        lens_results: list[LogitLensResult] = []
-
-        # ------------------------------------------------------------------
-        # Intervention via ActivationCaptureSession   (Task 6)
-        # ------------------------------------------------------------------
-        need_intervention = intervention is not None
-        need_capture = request.capture_hidden_states or len(capture_layers) > 0
-
-        # Build the list of module locations to hook.
-        module_locations: list[str] = []
-
-        if need_intervention:
-            # Hook the specific transformer block for intervention.
-            # GPT-2 block naming: ``transformer.h.{layer}``
-            location = f"transformer.h.{intervention.layer}"  # type: ignore[union-attr]
-            if location not in module_locations:
-                module_locations.append(location)
-
-        if need_capture:
-            # Hook each layer we want to capture from.
-            # For native hidden states via output_hidden_states=True, we don't
-            # need hooks for observation — we read from the model output directly.
-            # But for intervention we need hooks.
-            pass  # We use native output_hidden_states for observation
-
-        # Build intervention callback if needed.
-        intervention_fn: Any = None
-        if need_intervention:
-            direction_t = torch.tensor(intervention.direction, dtype=torch.float32)  # type: ignore[union-attr]
-            strength_val = intervention.strength
-            token_indices = intervention.token_indices
-            target_dtype = direction_t.dtype
-
-            def _intervene_cb(tensor: torch.Tensor, metadata: Any) -> torch.Tensor:  # noqa: ARG001
-                modified = tensor.clone()
-                delta = strength_val * direction_t.to(device=tensor.device, dtype=tensor.dtype)
-                if token_indices is not None:
-                    for b_idx, s_idx in token_indices:
-                        if b_idx < modified.shape[0] and s_idx < modified.shape[1]:
-                            modified[b_idx, s_idx] = modified[b_idx, s_idx] + delta[b_idx, s_idx]
-                else:
-                    modified = modified + delta
-                return modified.to(dtype=target_dtype)
-
-            intervention_fn = _intervene_cb
-
-        # Open the capture session for intervention if needed.
-        capture_session = nullcontext()
-        if module_locations and intervention_fn is not None:
-            capture_session = ActivationCaptureSession(
-                model,
-                module_locations,
-                source_model_version=self.provenance,
-                intervention=intervention_fn,
-            )
-
-        # ------------------------------------------------------------------
-        # Forward pass   (Task 3: native output_hidden_states=True)
-        # ------------------------------------------------------------------
-        import torch
-
-        with capture_session, torch.no_grad():  # type: ignore[union-attr]
-            outputs = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                output_hidden_states=True,  # native hidden-state path
-            )
-
-        # Extract final logits.
-        final_logits = outputs.logits.detach().cpu().numpy().copy()
-        final_logits.setflags(write=False)
-
-        # Extract native hidden states from the model output.
-        # outputs.hidden_states is a tuple of length num_layers+1:
-        #   (embedding_output, layer_0_output, layer_1_output, ..., layer_{N-1}_output)
-        native_hidden_states = outputs.hidden_states
-        provenance_str = self.provenance
-
-        # -- Process hidden states from native output   (Task 3) --
-        if native_hidden_states is not None and need_capture:
-            for layer_idx in capture_layers:
-                if layer_idx < len(native_hidden_states):
-                    hs = native_hidden_states[layer_idx]
-                    hs_np = hs.detach().cpu().numpy().copy()
-                    hs_np.setflags(write=False)
-                    captured_states.append(
-                        HiddenState(
-                            layer=layer_idx,
-                            values=hs_np,
-                            provenance=provenance_str,
-                            metadata={
-                                "shape": str(tuple(hs_np.shape)),
-                                "source": "native_output_hidden_states",
-                            },
-                        )
-                    )
-
-        # -- Direct logit lens   (Task 4) --
-        if native_hidden_states is not None:
-            for layer_idx in capture_layers:
-                if layer_idx < len(native_hidden_states):
-                    hs = native_hidden_states[layer_idx]
-                    lens_np = self._apply_logit_lens(model, hs)
-                    probs = self._softmax(lens_np)
-
-                    # Build top tokens if requested.
-                    top_tokens: list[list[list[tuple[int, float]]]] = []
-                    if request.top_k_logit_lens > 0:
-                        top_tokens = self._compute_top_tokens(
-                            probs,
-                            request.top_k_logit_lens,
-                            tokenizer,  # noqa: B038
-                        )
-
-                    lens_results.append(
-                        LogitLensResult(
-                            layer=layer_idx,
-                            logits=lens_np,
-                            probabilities=probs,
-                            top_tokens=top_tokens,
-                            top_k=request.top_k_logit_lens,
-                        )
-                    )
-
-        # -- Token rank trajectories   (Task 7) --
-        token_rank_trajectories = self._compute_token_rank_trajectories(lens_results, seq_len, batch_size, tokenizer)
-
-        # Build the input/output arrays for the result.
-        input_ids_np = input_ids.detach().cpu().numpy().copy()
-        input_ids_np.setflags(write=False)
-        attention_mask_np = attention_mask.detach().cpu().numpy().copy()
-        attention_mask_np.setflags(write=False)
-
+        runtime_result = run_generation(
+            model,
+            tokenizer,
+            config,
+            request,
+            intervention,
+            device=self.device,
+            provenance=self.provenance,
+            default_num_layers=GPT2_NUM_LAYERS,
+        )
         return TransformerGenerationResult(
-            input_ids=input_ids_np,
-            attention_mask=attention_mask_np,
-            logits=final_logits,
-            hidden_states=tuple(captured_states),
-            lens_results=tuple(lens_results),
-            token_rank_trajectories=tuple(token_rank_trajectories),
+            input_ids=runtime_result.input_ids,
+            attention_mask=runtime_result.attention_mask,
+            logits=runtime_result.logits,
+            hidden_states=tuple(
+                HiddenState(layer=layer, values=values, provenance=self.provenance, metadata=metadata)
+                for layer, values, metadata in runtime_result.hidden_states
+            ),
+            lens_results=tuple(
+                LogitLensResult(
+                    layer=layer,
+                    logits=logits,
+                    probabilities=probabilities,
+                    top_tokens=top_tokens,
+                    top_k=top_k,
+                )
+                for layer, logits, probabilities, top_tokens, top_k in runtime_result.lens_results
+            ),
+            token_rank_trajectories=tuple(
+                TokenRankTrajectory(
+                    token_id=token_id,
+                    token_str=token_str,
+                    ranks=ranks,
+                    probabilities=probabilities,
+                    layers=layers,
+                )
+                for token_id, token_str, ranks, probabilities, layers in runtime_result.token_rank_trajectories
+            ),
             prompt=request.prompt,
-            provenance=provenance_str,
+            provenance=self.provenance,
         )
 
     # -- Logit lens implementation   (Task 4) -------------------------------
@@ -691,30 +553,14 @@ class TransformerLMIntegration:
         np.ndarray
             Logits of shape ``(batch_size, seq_len, vocab_size)``.
         """
-        import torch
-
-        with torch.no_grad():
-            # Apply final LayerNorm if present (GPT-2 has transformer.ln_f).
-            if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
-                normalized = model.transformer.ln_f(hidden_state)
-            else:
-                normalized = hidden_state
-
-            # Apply LM head (weight typically tied with word embeddings).
-            logits = model.lm_head(normalized)
-
-        logits_np = logits.detach().cpu().numpy().copy()
-        logits_np.setflags(write=False)
-        return logits_np
+        return apply_logit_lens(model, hidden_state)
 
     # -- Helper methods -----------------------------------------------------
 
     @staticmethod
     def _softmax(logits: np.ndarray, axis: int = -1) -> np.ndarray:
         """Compute softmax along the specified axis."""
-        shifted = logits - np.max(logits, axis=axis, keepdims=True)
-        exp_logits = np.exp(shifted)
-        return exp_logits / np.sum(exp_logits, axis=axis, keepdims=True)
+        return softmax(logits, axis=axis)
 
     @staticmethod
     def _compute_top_tokens(
@@ -723,19 +569,7 @@ class TransformerLMIntegration:
         tokenizer: Any,  # noqa: ARG004
     ) -> list[list[list[tuple[int, float]]]]:
         """Compute top-k token IDs and probabilities for each position."""
-        batch_size, seq_len, _ = probabilities.shape
-        top_tokens: list[list[list[tuple[int, float]]]] = []
-
-        for b in range(batch_size):
-            batch_tokens: list[list[tuple[int, float]]] = []
-            for s in range(seq_len):
-                pos_probs = probabilities[b, s]
-                top_indices = np.argsort(pos_probs)[::-1][:top_k]
-                pos_tokens: list[tuple[int, float]] = [(int(idx), float(pos_probs[idx])) for idx in top_indices]
-                batch_tokens.append(pos_tokens)
-            top_tokens.append(batch_tokens)
-
-        return top_tokens
+        return compute_top_tokens(probabilities, top_k)
 
     @staticmethod
     def _compute_token_rank_trajectories(
@@ -746,43 +580,17 @@ class TransformerLMIntegration:
     ) -> tuple[TokenRankTrajectory, ...]:
         """Compute rank/probability trajectories for the most-probable token
         at each sequence position."""
-        trajectories: list[TokenRankTrajectory] = []
-
-        if not lens_results or seq_len < 1:
-            return tuple(trajectories)
-
-        final_probs = lens_results[-1].probabilities
-
-        # Track the first batch only for the trajectory analysis.
-        for pos in range(min(seq_len, 10)):  # Limit to first 10 positions
-            top_token_id = int(np.argmax(final_probs[0, pos]))
-            top_token_str = tokenizer.decode([top_token_id])
-
-            ranks: list[int] = []
-            probs_list: list[float] = []
-            layers_list: list[int] = []
-
-            for lr in lens_results:
-                pos_probs = lr.probabilities[0, pos]
-                sorted_indices = np.argsort(pos_probs)[::-1]
-                matches = np.where(sorted_indices == top_token_id)[0]
-                rank = int(matches[0]) + 1 if len(matches) > 0 else len(sorted_indices)
-                prob = float(pos_probs[top_token_id])
-                ranks.append(rank)
-                probs_list.append(prob)
-                layers_list.append(lr.layer)
-
-            trajectories.append(
-                TokenRankTrajectory(
-                    token_id=top_token_id,
-                    token_str=top_token_str,
-                    ranks=ranks,
-                    probabilities=probs_list,
-                    layers=layers_list,
-                )
+        raw = compute_token_rank_trajectories(lens_results, seq_len, tokenizer)
+        return tuple(
+            TokenRankTrajectory(
+                token_id=token_id,
+                token_str=token_str,
+                ranks=ranks,
+                probabilities=probabilities,
+                layers=layers,
             )
-
-        return tuple(trajectories)
+            for token_id, token_str, ranks, probabilities, layers in raw
+        )
 
     # -- Hook-based intervention helpers   (Task 6) -------------------------
 

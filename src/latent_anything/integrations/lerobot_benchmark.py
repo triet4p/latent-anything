@@ -28,10 +28,9 @@ imported lazily by :func:`build_libero_benchmark_environment`.
 from __future__ import annotations
 
 import importlib.util
-import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
-from importlib import import_module, machinery
+from importlib import machinery
 from pathlib import Path
 from typing import Literal, cast
 
@@ -40,11 +39,31 @@ import torch
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from torch import Tensor, nn
 
-from latent_anything.integrations.lerobot import LeRobotAPI, load_lerobot_api
+from latent_anything._lerobot_benchmark_environment import (
+    build_libero_benchmark_environment as _build_libero_environment,
+)
+from latent_anything._lerobot_benchmark_execution import run_episode as _run_benchmark_episode
+from latent_anything._lerobot_benchmark_statistics import (
+    build_correlation as _build_benchmark_correlation,
+)
+from latent_anything._lerobot_benchmark_statistics import (
+    normal_ci as _normal_ci_benchmark,
+)
+from latent_anything._lerobot_benchmark_statistics import (
+    run_simulation_benchmark as _run_benchmark_simulation,
+)
+from latent_anything._lerobot_benchmark_statistics import (
+    spearman as _spearman_benchmark,
+)
+from latent_anything._lerobot_benchmark_statistics import (
+    summarize as _summarize_benchmark,
+)
+from latent_anything._lerobot_benchmark_statistics import (
+    wilson_ci as _wilson_benchmark_ci,
+)
+from latent_anything.integrations.lerobot import LeRobotAPI
 from latent_anything.integrations.lerobot_smolvla import (
-    SmolVLAIntervention,
     SmolVLAPolicyAdapter,
-    measure_smolvla_intervention,
 )
 
 BenchmarkCondition = Literal["no_hook", "baseline", "random", "targeted"]
@@ -259,29 +278,13 @@ def wilson_ci(successes: Sequence[bool], z: float = 1.96) -> tuple[float, float]
     can afford in simulation.
     """
 
-    n = len(successes)
-    if n == 0:
-        raise ValueError("wilson_ci requires at least one episode")
-    k = sum(successes)
-    p_hat = k / n
-    denom = 1 + z * z / n
-    center = (p_hat + z * z / (2 * n)) / denom
-    half = z * np.sqrt(p_hat * (1 - p_hat) / n + z * z / (4 * n * n)) / denom
-    return float(max(0.0, center - half)), float(min(1.0, center + half))
+    return _wilson_benchmark_ci(successes, z)
 
 
-def _normal_ci(values: Sequence[float], z: float = 1.96) -> tuple[float, float]:
+def _normal_ci(values: Sequence[float], z: float = 1.96) -> tuple[float, float]:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Normal-approximation 95% interval for a continuous metric."""
 
-    if not values:
-        raise ValueError("_normal_ci requires at least one value")
-    array = np.asarray(values, dtype=float)
-    mean = float(np.mean(array))
-    if len(array) == 1:
-        return mean, mean
-    std = float(np.std(array, ddof=1))
-    half = z * std / np.sqrt(len(array))
-    return mean - half, mean + half
+    return _normal_ci_benchmark(values, z)
 
 
 @dataclass(frozen=True)
@@ -401,7 +404,7 @@ def _find_spec(name: str) -> machinery.ModuleSpec | None:
     return importlib.util.find_spec(name)
 
 
-def _bootstrap_libero_config() -> None:
+def _bootstrap_libero_config() -> None:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Pre-create LIBERO's user config so its import never prompts interactively.
 
     ``hf-libero`` 0.1.4 runs ``input()`` at import time when
@@ -462,65 +465,10 @@ def build_libero_benchmark_environment(
     bootstrapped first so the upstream import never prompts interactively.
     """
 
-    upstream_api = api if api is not None else load_lerobot_api()
-    _bootstrap_libero_config()
-    envs_module = import_module("lerobot.envs")
-    make_env_config = getattr(envs_module, "make_env_config")  # noqa: B009 - optional upstream symbol
-    env_config = make_env_config(
-        config.env_type,
-        task=config.task,
-        task_ids=list(config.task_ids) if config.task_ids is not None else None,
-        episode_length=config.episode_length,
-        observation_height=config.observation_height,
-        observation_width=config.observation_width,
-    )
-    env_preprocessor, env_postprocessor = env_config.get_env_processors()
-    del env_postprocessor
-    task_id = config.task_ids[0] if config.task_ids else 0
-
-    def create_env() -> object:
-        envs = upstream_api.make_env(env_config, n_envs=1)
-        suite_map = cast(Mapping[str, Mapping[int, object]], envs)
-        suite_key = next((key for key in (config.task, config.env_type) if key in suite_map), None)
-        if suite_key is None:
-            raise ValueError(
-                f"environment factory returned no {config.env_type!r}/{config.task!r} suite: {sorted(suite_map)}"
-            )
-        task_map = suite_map[suite_key]
-        if task_id not in task_map:
-            raise ValueError(f"environment factory returned no task {task_id} for {suite_key!r}: {sorted(task_map)}")
-        return task_map[task_id]
-
-    utils_module = import_module("lerobot.envs.utils")
-    preprocess_observation = getattr(utils_module, "preprocess_observation")  # noqa: B009 - optional upstream symbol
-    probe_env = create_env()
-    try:
-        task_description = _call_task_description(probe_env)
-        max_steps = (
-            int(config.max_episode_steps) if config.max_episode_steps is not None else _call_max_steps(probe_env)
-        )
-    finally:
-        close = getattr(probe_env, "close", None)
-        if callable(close):
-            close()
-    return BenchmarkEnvironmentBundle(
-        env_factory=create_env,
-        env_preprocessor=env_preprocessor,
-        preprocess_observation=preprocess_observation,
-        task_description=task_description,
-        max_episode_steps=max_steps,
-        metadata={
-            "env_type": config.env_type,
-            "task": config.task,
-            "task_id": task_id,
-            "task_description": task_description,
-            "max_episode_steps": max_steps,
-            "n_envs": 1,
-        },
-    )
+    return _build_libero_environment(config, api=api)
 
 
-def _call_task_description(env: object) -> str:
+def _call_task_description(env: object) -> str:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Resolve the natural-language task description from the vector env."""
 
     call = getattr(env, "call", None)
@@ -536,7 +484,7 @@ def _call_task_description(env: object) -> str:
     raise ValueError("environment must expose a task_description attribute through call()")
 
 
-def _call_max_steps(env: object) -> int:
+def _call_max_steps(env: object) -> int:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Resolve the upstream max episode steps from the vector env."""
 
     call = getattr(env, "call", None)
@@ -568,7 +516,7 @@ def _noise_to_tensor(value: np.ndarray, *, device: torch.device) -> Tensor:
     return Tensor(value).to(dtype=torch.float32, device=device)
 
 
-def _official_select_action(
+def _official_select_action(  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     adapter: SmolVLAPolicyAdapter,
     sample: Mapping[str, object],
     *,
@@ -634,7 +582,7 @@ class _ModelExecutionProbe:
         return output
 
 
-def _action_to_numpy(value: object) -> np.ndarray:
+def _action_to_numpy(value: object) -> np.ndarray:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Extract the canonical batched action from a real or fixture post-processor result."""
 
     if isinstance(value, Mapping):
@@ -657,7 +605,7 @@ def _action_to_numpy(value: object) -> np.ndarray:
     return array
 
 
-def _extract_success(info: Mapping[str, object]) -> bool:
+def _extract_success(info: Mapping[str, object]) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Resolve the per-episode success flag from a vector-env info mapping."""
 
     final_info = info.get("final_info")
@@ -677,7 +625,7 @@ def _extract_success(info: Mapping[str, object]) -> bool:
     return False
 
 
-def _termination_flags(value: object, index: int = 0) -> bool:
+def _termination_flags(value: object, index: int = 0) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Extract one batched termination flag from a vector-env step result."""
 
     if isinstance(value, (np.ndarray, list, tuple)):
@@ -685,14 +633,14 @@ def _termination_flags(value: object, index: int = 0) -> bool:
     return bool(value)
 
 
-def _random_expert_direction(dim: int, rng: np.random.Generator) -> np.ndarray:
+def _random_expert_direction(dim: int, rng: np.random.Generator) -> np.ndarray:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Return a seeded unit-norm direction in action-expert space."""
 
     vector = rng.normal(size=dim)
     return vector / float(np.linalg.norm(vector))
 
 
-def _targeted_expert_direction(
+def _targeted_expert_direction(  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     adapter: SmolVLAPolicyAdapter,
     *,
     action_axis: int,
@@ -747,90 +695,20 @@ def run_episode(
     policy-ready samples of executed queries (used as offline probe inputs).
     """
 
-    if condition not in VALID_CONDITIONS:
-        raise ValueError(f"unknown benchmark condition {condition!r}")
-    env = environment.env_factory()
-    reset = cast(
-        Callable[..., tuple[Mapping[str, object], Mapping[str, object]]],
-        getattr(env, "reset", None),
-    )
-    step = cast(
-        Callable[..., tuple[Mapping[str, object], object, object, object, Mapping[str, object]]],
-        getattr(env, "step", None),
-    )
-    if not callable(reset) or not callable(step):
-        close = getattr(env, "close", None)
-        if callable(close):
-            close()
-        raise TypeError("benchmark environment must expose reset() and step()")
-    try:
-        adapter.reset()
-        observation, _info = reset(seed=seed)
-        samples: list[Mapping[str, object]] = []
-        actions: list[np.ndarray] = []
-        rewards: list[float] = []
-        query_latencies: list[float] = []
-        query_steps: list[int] = []
-        success = False
-        terminated = False
-        step_index = 0
-        while step_index < environment.max_episode_steps:
-            observed = cast(Mapping[str, object], observation)
-            converted = environment.preprocess_observation(observed)
-            with_task = dict(converted)
-            with_task["task"] = [environment.task_description]
-            sample = environment.env_preprocessor(with_task)
-            started = time.perf_counter()
-            if condition == "no_hook":
-                selection = _official_select_action(adapter, sample, noise=noise)
-                raw_action = selection.action
-                model_query_executed = selection.model_query_executed
-            else:
-                selection = adapter.select_action(
-                    sample,
-                    noise=noise,
-                    intervention=SmolVLAIntervention(direction=direction, strength=strength),
-                    episode_step=step_index,
-                )
-                raw_action = selection.action
-                model_query_executed = selection.model_query_executed
-            elapsed = time.perf_counter() - started
-            if model_query_executed:
-                if record_samples:
-                    samples.append(sample)
-                query_latencies.append(elapsed)
-                query_steps.append(step_index)
-            action = _action_to_numpy(raw_action)
-            actions.append(action)
-            observation, reward, done, truncated, info = step(action)
-            rewards.append(float(np.asarray(reward).reshape(-1)[0]))
-            terminated = _termination_flags(done) or _termination_flags(truncated)
-            success = _extract_success(cast(Mapping[str, object], info))
-            if terminated:
-                break
-            step_index += 1
-    finally:
-        close = getattr(env, "close", None)
-        if callable(close):
-            close()
-    del _info
-    outcome = _build_outcome(
+    return _run_benchmark_episode(
+        adapter,
+        environment,
         seed=seed,
         condition=condition,
         strength=strength,
-        success=success,
-        rewards=rewards,
-        actions=actions,
-        latencies=query_latencies,
-        query_steps=query_steps,
-        terminated=terminated,
-        max_steps=environment.max_episode_steps,
+        direction=direction,
+        noise=noise,
         reference_actions=reference_actions,
+        record_samples=record_samples,
     )
-    return outcome, tuple(samples)
 
 
-def _build_outcome(
+def _build_outcome(  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     *,
     seed: int,
     condition: BenchmarkCondition,
@@ -884,56 +762,20 @@ def _build_outcome(
     )
 
 
-def _summarize(
+def _summarize(  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     outcomes: Sequence[EpisodeOutcome],
     condition: BenchmarkCondition,
     strength: float,
 ) -> ConditionSummary:
     """Aggregate one (condition, strength) cell into a summary with CIs."""
 
-    if not outcomes:
-        raise ValueError(f"no episodes for {condition} at strength {strength}")
-    successes = [outcome.success for outcome in outcomes]
-    returns = [outcome.sum_reward for outcome in outcomes]
-    low, high = wilson_ci(successes)
-    return_low, return_high = _normal_ci(returns)
-    return ConditionSummary(
-        condition=condition,
-        strength=strength,
-        n_episodes=len(outcomes),
-        success_rate=sum(successes) / len(successes),
-        success_ci_low=low,
-        success_ci_high=high,
-        mean_return=float(np.mean(returns)),
-        return_ci_low=return_low,
-        return_ci_high=return_high,
-        mean_length=float(np.mean([outcome.length for outcome in outcomes])),
-        mean_action_deviation=float(np.mean([outcome.mean_action_deviation for outcome in outcomes])),
-        mean_query_latency_s=float(np.mean([outcome.mean_query_latency_s for outcome in outcomes])),
-        first_query_latency_s=float(np.mean([outcome.first_query_latency_s for outcome in outcomes])),
-    )
+    return _summarize_benchmark(outcomes, condition, strength)
 
 
-def _spearman(x: Sequence[float], y: Sequence[float]) -> float | None:
+def _spearman(x: Sequence[float], y: Sequence[float]) -> float | None:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Rank-based correlation over paired cells; None when underpowered."""
 
-    if len(x) < 3 or len(x) != len(y):
-        return None
-    x_array = np.asarray(x, dtype=float)
-    y_array = np.asarray(y, dtype=float)
-    if float(np.std(x_array)) == 0.0 or float(np.std(y_array)) == 0.0:
-        return None
-
-    def ranks(values: np.ndarray) -> np.ndarray:
-        order = np.argsort(np.argsort(values))
-        return order.astype(float) + 1.0
-
-    dx = ranks(x_array) - np.mean(ranks(x_array))
-    dy = ranks(y_array) - np.mean(ranks(y_array))
-    denom = float(np.linalg.norm(dx) * np.linalg.norm(dy))
-    if denom == 0.0:
-        return None
-    return float(np.sum(dx * dy) / denom)
+    return _spearman_benchmark(x, y)
 
 
 def build_correlation(
@@ -954,46 +796,7 @@ def build_correlation(
     axes have variance.
     """
 
-    disagreements: list[str] = []
-    notes: list[str] = []
-    for cell in cells:
-        if cell.condition != "targeted":
-            continue
-        if cell.on_target_fraction >= 0.8 and abs(cell.success_delta) < 0.2:
-            disagreements.append(
-                f"overstatement: targeted strength={cell.strength} has offline on-target "
-                f"{cell.on_target_fraction:.2f} but the environment success delta is only "
-                f"{cell.success_delta:+.2f}"
-            )
-        if cell.on_target_fraction < 0.5 and abs(cell.success_delta) >= 0.2:
-            disagreements.append(
-                f"understatement: targeted strength={cell.strength} has offline on-target "
-                f"{cell.on_target_fraction:.2f} yet the environment success delta is "
-                f"{cell.success_delta:+.2f}"
-            )
-        if cell.success_delta <= -0.2:
-            disagreements.append(
-                f"reversal: targeted strength={cell.strength} changed success by "
-                f"{cell.success_delta:+.2f}, worse than the offline explanation suggested"
-            )
-    if len(cells) < 3:
-        notes.append("fewer than three cells compared; Spearman correlation not computed")
-    rho = _spearman(
-        [cell.on_target_fraction for cell in cells],
-        [cell.mean_action_deviation for cell in cells],
-    )
-    if rho is None:
-        notes.append("Spearman correlation not computed (insufficient cells or no variance)")
-    else:
-        notes.append("Spearman correlation computed between offline on-target fraction and mean action deviation")
-    if not cells:
-        raise ValueError("correlation requires at least one cell")
-    return CausalCorrelation(
-        cells=tuple(cells),
-        spearman_rho=rho,
-        disagreements=tuple(disagreements),
-        notes=tuple(notes),
-    )
+    return _build_benchmark_correlation(cells)
 
 
 def run_simulation_benchmark(
@@ -1015,148 +818,10 @@ def run_simulation_benchmark(
     difference is the intervention.
     """
 
-    if not isinstance(noise, np.ndarray):
-        noise = np.full(
-            (1, adapter.metadata.chunk_size, adapter.metadata.max_action_dim),
-            config.noise_value,
-        )
-    rng = np.random.default_rng(config.intervention_seed)
-    random_direction = _random_expert_direction(adapter.expert_dim, rng)
-    targeted_direction = _targeted_expert_direction(adapter, action_axis=config.action_axis)
-    direction_for: dict[BenchmarkCondition, np.ndarray] = {
-        "random": random_direction,
-        "targeted": targeted_direction,
-    }
-
-    outcomes: list[EpisodeOutcome] = []
-    probe_samples: list[Mapping[str, object]] = []
-    reference_by_seed: dict[int, tuple[np.ndarray, ...]] = {}
-    for seed in config.seeds:
-        for condition in config.conditions:
-            strengths = (0.0,) if condition in ("no_hook", "baseline") else config.strengths
-            for strength in strengths:
-                reference = reference_by_seed.get(seed)
-                collect_probes = (
-                    condition == "no_hook" and seed == config.seeds[0] and len(probe_samples) < config.probe_queries
-                )
-                outcome, samples = run_episode(
-                    adapter,
-                    environment,
-                    seed=seed,
-                    condition=condition,
-                    strength=strength,
-                    direction=direction_for.get(condition, np.zeros(adapter.expert_dim)),
-                    noise=noise,
-                    reference_actions=reference,
-                    record_samples=collect_probes,
-                )
-                if condition == "no_hook":
-                    reference_by_seed[seed] = outcome.actions
-                outcomes.append(outcome)
-                if samples:
-                    probe_samples.extend(samples)
-
-    summaries = tuple(
-        _summarize(
-            [outcome for outcome in outcomes if outcome.condition == condition and outcome.strength == strength],
-            condition,
-            strength,
-        )
-        for condition in config.conditions
-        for strength in ((0.0,) if condition in ("no_hook", "baseline") else config.strengths)
-    )
-    summary_by_cell = {(summary.condition, summary.strength): summary for summary in summaries}
-
-    offline_scores: list[OfflineExplanationScore] = []
-    if probe_samples:
-        for condition in ("random", "targeted"):
-            if condition not in config.conditions:
-                continue
-            direction = direction_for[condition]
-            for strength in config.strengths:
-                measurement = measure_smolvla_intervention(
-                    adapter,
-                    probe_samples,
-                    noise=noise,
-                    intervention=SmolVLAIntervention(direction=direction, strength=strength),
-                )
-                offline_scores.append(
-                    OfflineExplanationScore(
-                        condition=cast(BenchmarkCondition, condition),
-                        strength=strength,
-                        on_target_fraction=measurement.on_target_fraction,
-                        action_change_norm=measurement.action_change_norm,
-                        representation_drift=measurement.representation_drift,
-                        probe_queries=len(probe_samples),
-                    )
-                )
-
-    cells: list[CausalCorrelationCell] = []
-    no_hook_success_rate = summary_by_cell[("no_hook", 0.0)].success_rate
-    for score in offline_scores:
-        summary = summary_by_cell[(score.condition, score.strength)]
-        cells.append(
-            CausalCorrelationCell(
-                condition=score.condition,
-                strength=score.strength,
-                on_target_fraction=score.on_target_fraction,
-                action_change_norm=score.action_change_norm,
-                representation_drift=score.representation_drift,
-                mean_action_deviation=summary.mean_action_deviation,
-                success_delta=summary.success_rate - no_hook_success_rate,
-            )
-        )
-    if not cells:
-        correlation = CausalCorrelation(
-            cells=(),
-            spearman_rho=None,
-            disagreements=(),
-            notes=(
-                "no offline explanation scores were produced because the probe episode "
-                "collected no executed-query samples; correlation is unavailable",
-            ),
-        )
-    else:
-        correlation = build_correlation(cells)
-
-    checks: dict[str, bool] = {
-        "baseline_actions_bit_exact": _baseline_is_bit_exact(outcomes),
-        "baseline_success_equals_no_hook": _baseline_success_matches(outcomes),
-        "intervention_changes_actions": _interventions_change_actions(outcomes),
-        "all_episodes_within_max_steps": _episodes_within_budget(outcomes, environment.max_episode_steps),
-    }
-    failures = [key for key, passed in checks.items() if not passed]
-    acceptance = BenchmarkAcceptance(passed=not failures, checks=checks, failures=tuple(failures))
-
-    failure_analysis = FailureAnalysis(
-        per_condition={
-            condition: tuple(outcome for outcome in outcomes if outcome.condition == condition and not outcome.success)
-            for condition in config.conditions
-        },
-        notes=(
-            "unsuccessful episodes are grouped per condition; each row records the seed, "
-            "strength, length, and action deviation against the no_hook reference",
-        ),
-    )
-    return SimulationBenchmarkResult(
-        config=config,
-        environment_metadata=dict(environment.metadata),
-        outcomes=tuple(outcomes),
-        summaries=summaries,
-        offline_scores=tuple(offline_scores),
-        correlation=correlation,
-        acceptance=acceptance,
-        failure_analysis=failure_analysis,
-        claim_scope=(
-            "environment-level causal evidence for the SmolVLA action-expert intervention on "
-            f"{config.env_type}/{config.task}: the official preprocess/select_action/postprocess path is "
-            "executed per condition, episodes share seeds, noise, and initial states, and success/return/"
-            "deviation/latency are compared against the no_hook control"
-        ),
-    )
+    return _run_benchmark_simulation(adapter, environment, config, noise=noise)
 
 
-def _baseline_is_bit_exact(outcomes: Sequence[EpisodeOutcome]) -> bool:
+def _baseline_is_bit_exact(outcomes: Sequence[EpisodeOutcome]) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Check that every baseline action matches the no_hook reference exactly."""
 
     no_hook = {outcome.seed: outcome for outcome in outcomes if outcome.condition == "no_hook"}
@@ -1176,7 +841,7 @@ def _baseline_is_bit_exact(outcomes: Sequence[EpisodeOutcome]) -> bool:
     return True
 
 
-def _baseline_success_matches(outcomes: Sequence[EpisodeOutcome]) -> bool:
+def _baseline_success_matches(outcomes: Sequence[EpisodeOutcome]) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Check that the baseline success flags equal the no_hook flags per seed."""
 
     no_hook = {outcome.seed: outcome for outcome in outcomes if outcome.condition == "no_hook"}
@@ -1189,7 +854,7 @@ def _baseline_success_matches(outcomes: Sequence[EpisodeOutcome]) -> bool:
     return True
 
 
-def _interventions_change_actions(outcomes: Sequence[EpisodeOutcome]) -> bool:
+def _interventions_change_actions(outcomes: Sequence[EpisodeOutcome]) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Check that every non-zero intervention cell changed the actions."""
 
     threshold = 1e-9
@@ -1201,7 +866,7 @@ def _interventions_change_actions(outcomes: Sequence[EpisodeOutcome]) -> bool:
     return True
 
 
-def _episodes_within_budget(outcomes: Sequence[EpisodeOutcome], max_steps: int) -> bool:
+def _episodes_within_budget(outcomes: Sequence[EpisodeOutcome], max_steps: int) -> bool:  # pyright: ignore[reportUnusedFunction] - retained compatibility seam
     """Check that every episode stayed inside the declared step budget."""
 
     return all(outcome.length <= max_steps for outcome in outcomes)

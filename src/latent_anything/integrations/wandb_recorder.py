@@ -92,6 +92,7 @@ class WandbRecorder:
         environment: Mapping[str, object] | None = None,
         metadata: Mapping[str, object] | None = None,
     ) -> WandbExperimentRun:
+        """Start or resume an offline/disabled W&B run with provenance config."""
         prepared = prepare_run(
             name,
             config=config,
@@ -184,9 +185,11 @@ class WandbExperimentRun:
 
     @property
     def info(self) -> RecorderRunInfo:
+        """Return this provider run's identity, backend, and lifecycle status."""
         return self._state.info
 
     def log_params(self, params: Mapping[str, object]) -> None:
+        """Validate and update parameters in the offline W&B config."""
         values, candidate = self._state.prepare_params(params)
         if values:
             config = getattr(self._sdk_run, "config", None)
@@ -196,12 +199,14 @@ class WandbExperimentRun:
         self._state.commit_params(candidate)
 
     def log_metrics(self, metrics: Mapping[str, float], *, step: int) -> None:
+        """Validate and log step metrics to the offline W&B run."""
         values, candidate, resolved_step, metric_events = self._state.prepare_metrics(metrics, step)
         if values:
             _call(self._sdk_run, "log", values, step=step)
         self._state.commit_metrics(candidate, resolved_step, metric_events)
 
     def set_tags(self, tags: Mapping[str, str]) -> None:
+        """Validate and merge tags into the provider run when mutable."""
         values, candidate = self._state.prepare_tags(tags)
         if not values:
             self._state.commit_tags(candidate)
@@ -227,6 +232,7 @@ class WandbExperimentRun:
         name: str,
         media_type: str = "application/octet-stream",
     ) -> RecorderArtifact:
+        """Safely stage bytes, log the artifact, and return its local reference."""
         self._state.require_running()
         safe_name = validate_recorder_artifact_name(name)
         data = read_recorder_artifact(content)
@@ -253,15 +259,18 @@ class WandbExperimentRun:
         return reference
 
     def child(self, name: str, *, config: Mapping[str, object] | None = None) -> WandbExperimentRun:
+        """Start a child run grouped under this running W&B handle."""
         self._state.require_running()
         return self._owner.start_run(name, config=config, parent_run_id=self.info.run_id)
 
     def finish(self) -> RecorderRunInfo:
+        """Finish the provider run and return its completed recorder info."""
         self._state.require_running()
         _call(self._sdk_run, "finish")
         return self._state.finish(status="completed")
 
     def fail(self, error: str) -> RecorderRunInfo:
+        """Record a bounded failure diagnostic and close the provider run."""
         self._state.require_running()
         if not error or len(error) > 4096:
             raise RecorderContractError("failure diagnostic must be a bounded non-empty string")

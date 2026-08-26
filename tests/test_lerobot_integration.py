@@ -71,6 +71,58 @@ def test_base_import_does_not_load_lerobot_modules() -> None:
     assert completed.returncode == 0, completed.stderr
 
 
+@pytest.mark.parametrize(
+    "import_order",
+    [
+        ("latent_anything.integrations.lerobot", "latent_anything.integrations.lerobot_dataset"),
+        ("latent_anything.integrations.lerobot_dataset", "latent_anything.integrations.lerobot"),
+    ],
+)
+def test_lerobot_import_orders_preserve_lazy_public_dataset_reexports(
+    import_order: tuple[str, str],
+) -> None:
+    first, second = import_order
+    expected = [
+        "LeRobotAPI",
+        "LeRobotCompatibilityReport",
+        "LeRobotEvaluationResult",
+        "LeRobotPolicyContext",
+        "SUPPORTED_LEROBOT_SPEC",
+        "SUPPORTED_LEROBOT_VERSION",
+        "SUPPORTED_LEROBOT_EXTRA",
+        "check_lerobot_compatibility",
+        "load_lerobot",
+        "load_lerobot_api",
+        "LeRobotCapturedLatent",
+        "LeRobotDatasetDescriptor",
+        "LeRobotDatasetReader",
+        "LeRobotEpisodeSlice",
+        "LeRobotFeatureDescriptor",
+        "LeRobotSample",
+        "LeRobotSampleProvenance",
+        "LeRobotStreamingReader",
+        "captured_latent",
+        "captured_latent_to_numpy",
+        "describe_lerobot_dataset",
+        "load_streaming_lerobot_dataset",
+        "read_lerobot_episode",
+        "stream_lerobot_samples",
+    ]
+    code = f"""
+import importlib
+import latent_anything.integrations.lerobot as bridge
+
+importlib.import_module({first!r})
+importlib.import_module({second!r})
+expected = {expected!r}
+assert bridge.__all__ == expected
+assert bridge.LeRobotDatasetReader.__name__ == "LeRobotDatasetReader"
+assert bridge.describe_lerobot_dataset.__name__ == "describe_lerobot_dataset"
+"""
+    completed = subprocess.run([sys.executable, "-c", code], check=False, capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+
+
 def test_extra_install_loads_supported_upstream_seams_on_cpu() -> None:
     pytest.importorskip("lerobot")
     from latent_anything.integrations.lerobot import check_lerobot_compatibility, load_lerobot_api

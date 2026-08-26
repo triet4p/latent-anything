@@ -24,6 +24,12 @@ class GsplatBackend:
         colors: np.ndarray,
         camera: GaussianCamera,
     ) -> np.ndarray:
+        """Render Gaussian parameters with the optional gsplat backend.
+
+        Inputs use one row per Gaussian; camera matrices and output image
+        dimensions come from ``camera``. Missing gsplat raises an actionable
+        optional-extra error.
+        """
         try:
             import torch
             from gsplat import rasterization  # type: ignore[reportMissingImports]
@@ -69,6 +75,7 @@ class ReferenceGaussianBackend:
         colors: np.ndarray,
         camera: GaussianCamera,
     ) -> np.ndarray:
+        """Render Gaussian parameters with the deterministic CPU reference backend."""
         del quaternions
         homogeneous = np.concatenate((means, np.ones((means.shape[0], 1))), axis=1)
         points = (camera.world_to_camera @ homogeneous.T).T[:, :3]

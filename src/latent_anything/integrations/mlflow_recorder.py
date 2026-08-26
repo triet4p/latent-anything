@@ -168,6 +168,7 @@ class MLflowRecorder:
         environment: Mapping[str, object] | None = None,
         metadata: Mapping[str, object] | None = None,
     ) -> MLflowExperimentRun:
+        """Start or resume one offline/local MLflow run with provenance tags."""
         prepared = prepare_run(
             name,
             config=config,
@@ -242,9 +243,11 @@ class MLflowExperimentRun:
 
     @property
     def info(self) -> RecorderRunInfo:
+        """Return this provider run's identity, backend, and lifecycle status."""
         return self._state.info
 
     def log_params(self, params: Mapping[str, object]) -> None:
+        """Validate and forward parameters to the local MLflow run."""
         values, candidate = self._state.prepare_params(params)
         if values:
             self._owner._call_provider(  # pyright: ignore[reportPrivateUsage]
@@ -253,12 +256,14 @@ class MLflowExperimentRun:
         self._state.commit_params(candidate)
 
     def log_metrics(self, metrics: Mapping[str, float], *, step: int) -> None:
+        """Validate and forward step metrics to the local MLflow run."""
         values, candidate, resolved_step, metric_events = self._state.prepare_metrics(metrics, step)
         if values:
             self._owner._call_provider("log_metrics", values, step=step)  # pyright: ignore[reportPrivateUsage]
         self._state.commit_metrics(candidate, resolved_step, metric_events)
 
     def set_tags(self, tags: Mapping[str, str]) -> None:
+        """Validate and forward tags while preserving recorder state."""
         values, candidate = self._state.prepare_tags(tags)
         if values:
             self._owner._call_provider("set_tags", values)  # pyright: ignore[reportPrivateUsage]
@@ -271,6 +276,7 @@ class MLflowExperimentRun:
         name: str,
         media_type: str = "application/octet-stream",
     ) -> RecorderArtifact:
+        """Safely stage bytes and log one artifact through the MLflow SDK."""
         self._state.require_running()
         safe_name = validate_recorder_artifact_name(name)
         data = read_recorder_artifact(content)
@@ -285,15 +291,18 @@ class MLflowExperimentRun:
         return reference
 
     def child(self, name: str, *, config: Mapping[str, object] | None = None) -> MLflowExperimentRun:
+        """Start a child run linked to this running MLflow handle."""
         self._state.require_running()
         return self._owner.start_run(name, config=config, parent_run_id=self.info.run_id)
 
     def finish(self) -> RecorderRunInfo:
+        """Finish the provider run and return its completed recorder info."""
         self._state.require_running()
         self._owner._call_provider("end_run", status="FINISHED")  # pyright: ignore[reportPrivateUsage]
         return self._state.finish(status="completed")
 
     def fail(self, error: str) -> RecorderRunInfo:
+        """Record a bounded failure diagnostic and close the provider run."""
         self._state.require_running()
         if not error or len(error) > 4096:
             raise RecorderContractError("failure diagnostic must be a bounded non-empty string")

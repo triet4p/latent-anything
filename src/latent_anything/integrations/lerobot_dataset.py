@@ -179,6 +179,7 @@ class LeRobotFeatureDescriptor:
     metadata: Mapping[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
+        """Return feature schema, names, normalization, and metadata as a mapping."""
         return asdict(self)
 
 
@@ -205,6 +206,7 @@ class LeRobotEpisodeSlice:
             raise ValueError("episode length must match frame_stop - frame_start")
 
     def to_dict(self) -> dict[str, object]:
+        """Return the half-open frame range and episode metadata as a mapping."""
         return asdict(self)
 
 
@@ -229,12 +231,14 @@ class LeRobotDatasetDescriptor:
     provenance: Mapping[str, object]
 
     def episode(self, episode_index: int) -> LeRobotEpisodeSlice:
+        """Return the validated frame slice for one episode index."""
         for episode in self.episodes:
             if episode.episode_index == episode_index:
                 return episode
         raise IndexError(f"episode_index {episode_index} is not present in the dataset descriptor")
 
     def to_dict(self) -> dict[str, object]:
+        """Return dataset schema, feature descriptors, and provenance as a mapping."""
         return {
             "repo_id": self.repo_id,
             "revision": self.revision,
@@ -268,6 +272,7 @@ class LeRobotSampleProvenance:
     source: str
 
     def to_dict(self) -> dict[str, object]:
+        """Return sample provenance fields in a JSON-compatible mapping."""
         return asdict(self)
 
 
@@ -299,6 +304,7 @@ class LeRobotCapturedLatent:
         object.__setattr__(self, "values", values)
 
     def to_numpy(self) -> np.ndarray:
+        """Return a writable copy of the captured latent array."""
         return self.values.copy()
 
 
@@ -481,6 +487,7 @@ class LeRobotDatasetReader:
         raise IndexError(f"episode {episode_index} is not selected by the loaded dataset")
 
     def sample_at(self, absolute_index: int, *, source: str = "lerobot_dataset") -> LeRobotSample:
+        """Read one absolute dataset frame through the lazy LeRobot backend."""
         episode = next(
             (item for item in self.descriptor.episodes if item.frame_start <= absolute_index < item.frame_stop),
             None,
@@ -500,6 +507,7 @@ class LeRobotDatasetReader:
         start_frame: int = 0,
         stop_frame: int | None = None,
     ) -> Iterator[LeRobotSample]:
+        """Yield samples in an episode's validated half-open frame range."""
         episode = self.descriptor.episode(episode_index)
         if start_frame < 0 or start_frame > episode.length:
             raise ValueError("start_frame is outside the episode")
@@ -568,6 +576,7 @@ class LeRobotStreamingReader:
         return tuple(self._buffer)
 
     def iter_samples(self, *, max_samples: int | None = None) -> Iterator[LeRobotSample]:
+        """Stream samples in dataset order, optionally stopping at ``max_samples``."""
         if max_samples is not None and max_samples < 0:
             raise ValueError("max_samples must be non-negative or None")
         self._buffer.clear()

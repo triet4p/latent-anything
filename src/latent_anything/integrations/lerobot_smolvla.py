@@ -12,23 +12,44 @@ bit-exact no-change identity at strength zero.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
-from contextlib import AbstractContextManager
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
-from importlib import import_module
 from typing import Literal, cast
 
 import numpy as np
 import torch
 from torch import Tensor, nn
 
+from latent_anything._lerobot_smolvla_loader import load_smolvla_policy as _load_smolvla_policy
+from latent_anything._lerobot_smolvla_metrics import (
+    measure_first_step_drift as _measure_first_step_drift,
+)
+from latent_anything._lerobot_smolvla_metrics import (
+    measure_induced_action_direction as _measure_induced_action_direction,
+)
+from latent_anything._lerobot_smolvla_metrics import (
+    measure_mean_token_delta as _measure_mean_token_delta,
+)
+from latent_anything._lerobot_smolvla_metrics import (
+    measure_representation_drift as _measure_representation_drift,
+)
+from latent_anything._lerobot_smolvla_metrics import (
+    measure_smolvla_intervention as _measure_smolvla_intervention,
+)
+from latent_anything._lerobot_smolvla_runtime import (
+    SmolVLAHookSession,
+    run_smolvla_query,
+    smolvla_capture_metadata,
+    smolvla_noise_to_tensor,
+    smolvla_policy_device,
+    smolvla_tensor_output,
+    smolvla_to_numpy,
+)
 from latent_anything.capture import CaptureMetadata
 from latent_anything.integrations.lerobot import (
     LeRobotAPI,
     LeRobotCapturedLatent,
     LeRobotPolicyContext,
-    captured_latent,
-    load_lerobot_api,
 )
 from latent_anything.latent_space import LatentSpace
 
@@ -303,23 +324,9 @@ class SmolVLAInterventionMeasurement:
 
 
 def _to_numpy(value: object) -> np.ndarray:
-    """Convert a tensor-like or array-like value into an owned NumPy array.
+    """Compatibility wrapper for the private capture conversion seam."""
 
-    The SmolVLA backbone runs in bfloat16, which NumPy cannot represent;
-    bfloat16/float16 tensors are upcast to float32 losslessly.
-    """
-
-    if isinstance(value, np.ndarray):
-        return np.array(value, copy=True)
-    detached = getattr(value, "detach", None)
-    current = detached() if callable(detached) else value
-    cpu = getattr(current, "cpu", None)
-    current = cpu() if callable(cpu) else current
-    if isinstance(current, torch.Tensor) and current.dtype in (torch.bfloat16, torch.float16):
-        current = current.float()
-    numpy = getattr(current, "numpy", None)
-    current = numpy() if callable(numpy) else current
-    return np.array(current, copy=True)
+    return smolvla_to_numpy(value)
 
 
 def _action_to_numpy(value: object) -> np.ndarray:
@@ -333,68 +340,21 @@ def _action_to_numpy(value: object) -> np.ndarray:
     return _to_numpy(value)
 
 
-def _tensor_output(output: object) -> Tensor:
-    """Extract the tensor from a module output or an output object."""
+def _tensor_output(output: object) -> Tensor:  # pyright: ignore[reportUnusedFunction]
+    """Compatibility wrapper for private capture parsing."""
 
-    if isinstance(output, Tensor):
-        return output
-    tensor = getattr(output, "last_hidden_state", None)
-    if not isinstance(tensor, Tensor):
-        raise TypeError(f"capture location returned {type(output).__name__}, expected Tensor output")
-    return tensor
+    return smolvla_tensor_output(output)
 
 
-def _capture_metadata(location: str, tensor: Tensor, call_index: int, version: str) -> CaptureMetadata:
-    """Build shared capture metadata for a tensor observed through a hook."""
+def _capture_metadata(  # pyright: ignore[reportUnusedFunction]
+    location: str, tensor: Tensor, call_index: int, version: str
+) -> CaptureMetadata:
+    """Compatibility wrapper for private capture metadata assembly."""
 
-    return CaptureMetadata(
-        location=location,
-        call_index=call_index,
-        shape=tuple(int(size) for size in tensor.shape),
-        batch_axis=0 if tensor.ndim >= 1 else None,
-        sequence_axis=1 if tensor.ndim >= 2 else None,
-        device=str(tensor.device),
-        dtype=str(tensor.dtype).removeprefix("torch."),
-        source_model_version=f"lerobot-{version}",
-    )
+    return smolvla_capture_metadata(location, tensor, call_index, version)
 
 
-class _SmolVLAHookSession(AbstractContextManager["_SmolVLAHookSession"]):
-    """Exception-safe forward-hook session for one action query.
-
-    Hooks are registered on entry and always removed on exit, even when the
-    policy forward raises, so no intervention or capture can leak into a later
-    query.
-    """
-
-    def __init__(
-        self,
-        policy: nn.Module,
-        callbacks: Mapping[str, Callable[[nn.Module, tuple[object, ...], object], object]],
-    ) -> None:
-        modules: dict[str, nn.Module] = dict(policy.named_modules())  # pyright: ignore[reportUnknownArgumentType]
-        missing = [location for location in callbacks if location not in modules or location == ""]
-        if missing:
-            raise KeyError(f"Unknown SmolVLA capture location(s): {missing}")
-        self._modules = {location: modules[location] for location in callbacks}
-        self._callbacks = dict(callbacks)
-        self._handles: list[torch.utils.hooks.RemovableHandle] = []
-
-    def __enter__(self) -> _SmolVLAHookSession:
-        for location, callback in self._callbacks.items():
-            self._handles.append(self._modules[location].register_forward_hook(callback))
-        return self
-
-    def __exit__(self, exc_type: object, exc_value: object, traceback: object) -> None:
-        del exc_type, exc_value, traceback
-        for handle in self._handles:
-            handle.remove()
-        self._handles.clear()
-
-    @property
-    def is_active(self) -> bool:
-        """Whether this session currently owns registered hooks."""
-        return bool(self._handles)
+_SmolVLAHookSession = SmolVLAHookSession
 
 
 class SmolVLAPolicyAdapter:
@@ -594,152 +554,44 @@ class SmolVLAPolicyAdapter:
             )
         prepared = cast(Mapping[str, object], preprocess(sample))
         present_cameras = [key for key in self._image_features if key in prepared]
-        representations: list[SmolVLARepresentation] = []
-        prefix_offset = 0
-        vision_calls = 0
-        language_calls = 0
-        expert_calls = 0
-
-        def capture(
-            location: str,
-            kind: SmolVLARepresentationKind,
-            tensor: Tensor,
-            token: SmolVLATokenMetadata,
-        ) -> None:
-            values = _to_numpy(tensor)
-            if values.ndim == 2:
-                values = values[None, :]
-            if values.ndim != 3 or values.shape[0] != 1:
-                raise ValueError(f"SmolVLA {kind} capture must be 2D or 3D with batch size 1; got shape {values.shape}")
-            latent = captured_latent(
-                values[0],
-                provenance={
-                    "kind": kind,
-                    "episode_step": episode_step,
-                    "policy_repo_id": self.checkpoint.policy_repo_id,
-                    "policy_revision": self.checkpoint.policy_revision,
-                    "coordinate_identity": self.metadata.coordinate_identity,
-                    "token_metadata": token.to_dict(),
-                },
-            )
-            representation = SmolVLARepresentation(
-                kind=kind,
-                latent=latent,
-                capture_metadata=_capture_metadata(
-                    location, tensor, len(representations), self.checkpoint.lerobot_version
-                ),
-                episode_step=episode_step,
-                token=token,
-                metadata=self.metadata,
-            )
-            representations.append(representation)
-
-        def vision_hook(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
-            nonlocal prefix_offset, vision_calls
-            del module, inputs
-            tensor = _tensor_output(output)
-            if vision_calls >= len(present_cameras):
-                raise ValueError(
-                    f"vision encoder called {vision_calls + 1} times but only "
-                    f"{len(present_cameras)} cameras are present"
-                )
-            camera = present_cameras[vision_calls]
-            vision_calls += 1
-            token = SmolVLATokenMetadata(
-                modality="vision",
-                token_count=int(tensor.shape[1]),
-                prefix_offset=prefix_offset,
-                camera=camera,
-            )
-            capture(self.vision_location, "vision_context", tensor, token)
-            prefix_offset += int(tensor.shape[1])
-            return output
-
-        def language_hook(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
-            nonlocal prefix_offset, language_calls
-            del module, inputs
-            tensor = _tensor_output(output)
-            if language_calls != 0:
-                raise ValueError(f"language embedding called {language_calls + 1} times per query")
-            language_calls += 1
-            token = SmolVLATokenMetadata(
-                modality="language",
-                token_count=int(tensor.shape[1]),
-                prefix_offset=prefix_offset,
-            )
-            capture(self.language_location, "language_context", tensor, token)
-            prefix_offset += int(tensor.shape[1])
-            return output
-
-        def state_hook(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
-            del module, inputs
-            tensor = _tensor_output(output)
-            token = SmolVLATokenMetadata(
-                modality="state",
-                token_count=1,
-                prefix_offset=prefix_offset,
-            )
-            capture(self.state_location, "state_context", tensor, token)
-            return output
-
-        def expert_hook(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
-            nonlocal expert_calls
-            del module, inputs
-            tensor = _tensor_output(output)
-            call_index = expert_calls
-            expert_calls += 1
-            if tensor.shape[-1] != self._expert_dim:
-                raise ValueError(
-                    f"action-expert hidden shape {tuple(int(s) for s in tensor.shape)} does not match "
-                    f"expert_dim={self._expert_dim}"
-                )
-            result = tensor
-            if intervention is not None and intervention.strength != 0.0:
-                direction = torch.as_tensor(
-                    np.asarray(intervention.direction).copy(), device=tensor.device, dtype=tensor.dtype
-                )
-                result = tensor + direction * intervention.strength
-            token = SmolVLATokenMetadata(
-                modality="action_expert",
-                token_count=int(result.shape[1]),
-                prefix_offset=None,
-                denoising_step=call_index,
-            )
-            capture(self.expert_location, "action_expert", result, token)
-            return result
-
-        session = _SmolVLAHookSession(
+        query = run_smolvla_query(
             policy,
-            {
-                self.vision_location: vision_hook,
-                self.language_location: language_hook,
-                self.state_location: state_hook,
-                self.expert_location: expert_hook,
-            },
+            prepared,
+            select,
+            present_cameras=present_cameras,
+            vision_location=self.vision_location,
+            language_location=self.language_location,
+            state_location=self.state_location,
+            expert_location=self.expert_location,
+            expert_dim=self._expert_dim,
+            checkpoint_repo_id=self.checkpoint.policy_repo_id,
+            checkpoint_revision=self.checkpoint.policy_revision,
+            coordinate_identity=self.metadata.coordinate_identity,
+            lerobot_version=self.checkpoint.lerobot_version,
+            metadata=self.metadata,
+            episode_step=episode_step,
+            intervention=intervention,
+            noise=noise,
         )
-        with session:
-            raw_action = select(prepared, noise=_noise_to_tensor(noise, device=_policy_device(policy)))
-        action = postprocess(raw_action)
+        action = postprocess(query.raw_action)
         return SmolVLAActionSelection(
             action=action,
             action_array=_action_to_numpy(action),
-            representations=tuple(representations),
-            denoising_steps=expert_calls,
-            model_query_executed=expert_calls > 0,
+            representations=query.representations,
+            denoising_steps=query.denoising_steps,
+            model_query_executed=query.denoising_steps > 0,
         )
 
 
 def _policy_device(policy: nn.Module) -> torch.device:
     """Return the device of the policy's first parameter."""
 
-    try:
-        first = next(policy.parameters())
-    except StopIteration:
-        raise TypeError("SmolVLA policy must own at least one parameter") from None
-    return first.device
+    return smolvla_policy_device(policy)
 
 
-def _noise_to_tensor(value: np.ndarray | None, *, device: torch.device) -> Tensor | None:
+def _noise_to_tensor(  # pyright: ignore[reportUnusedFunction]
+    value: np.ndarray | None, *, device: torch.device
+) -> Tensor | None:
     """Convert the public NumPy noise boundary to the upstream tensor type.
 
     LeRobot's default action-chunk noise is float32 on the policy device; the
@@ -747,7 +599,7 @@ def _noise_to_tensor(value: np.ndarray | None, *, device: torch.device) -> Tenso
     the dtype and the device of the model.
     """
 
-    return None if value is None else Tensor(value).to(dtype=torch.float32, device=device)
+    return smolvla_noise_to_tensor(value, device=device)
 
 
 def load_smolvla_policy(
@@ -757,60 +609,14 @@ def load_smolvla_policy(
     dataset_meta: object | None = None,
     device: str = "cpu",
 ) -> SmolVLAPolicyAdapter:
-    """Load the pinned SmolVLA policy and official LeRobot processors.
+    """Load the pinned policy through official LeRobot factories."""
 
-    The factory path is intentionally upstream-owned: ``SmolVLAConfig`` and
-    ``LeRobotDatasetMetadata`` come from LeRobot, while policy and processor
-    construction go through ``LeRobotAPI.make_policy`` and
-    ``make_pre_post_processors``. The device step of the loaded processor
-    pipelines is overridden to the requested device.
-    """
-
-    upstream_api = api if api is not None else load_lerobot_api()
-    smolvla_config_module = import_module("lerobot.policies.smolvla.configuration_smolvla")
-    config_type = getattr(smolvla_config_module, "SmolVLAConfig")  # noqa: B009 - optional upstream symbol
-    config_loader = getattr(config_type, "from_pretrained")  # noqa: B009 - optional upstream symbol
-    config = config_loader(checkpoint.policy_repo_id, revision=checkpoint.policy_revision)
-    config.pretrained_path = checkpoint.policy_repo_id
-    config.pretrained_revision = checkpoint.policy_revision
-    config.device = device
-
-    resolved_meta = dataset_meta
-    if resolved_meta is None:
-        dataset_module = import_module("lerobot.datasets")
-        metadata_type = getattr(dataset_module, "LeRobotDatasetMetadata")  # noqa: B009 - optional upstream symbol
-        resolved_meta = metadata_type(checkpoint.dataset_repo_id, revision=checkpoint.dataset_revision)
-
-    policy = upstream_api.make_policy(
-        config,
-        ds_meta=resolved_meta,
-        rename_map=SMOLVLA_RENAME_MAP,
+    return _load_smolvla_policy(
+        checkpoint,
+        api=api,
+        dataset_meta=dataset_meta,
+        device=device,
     )
-    processors = upstream_api.make_pre_post_processors(
-        config,
-        pretrained_path=checkpoint.policy_repo_id,
-        pretrained_revision=checkpoint.policy_revision,
-        dataset_stats=getattr(resolved_meta, "stats", None),
-        dataset_meta=resolved_meta,
-        preprocessor_overrides={"device_processor": {"device": device}},
-    )
-    preprocessor, postprocessor = cast(tuple[object, object], processors)
-    context = LeRobotPolicyContext(
-        policy_name="smolvla",
-        policy=policy,
-        preprocessor=preprocessor,
-        postprocessor=postprocessor,
-        dataset=resolved_meta,
-        metadata={
-            "policy_repo_id": checkpoint.policy_repo_id,
-            "policy_revision": checkpoint.policy_revision,
-            "dataset_repo_id": checkpoint.dataset_repo_id,
-            "dataset_revision": checkpoint.dataset_revision,
-            "environment_type": checkpoint.environment_type,
-            "environment_task": checkpoint.environment_task,
-        },
-    )
-    return SmolVLAPolicyAdapter(context, checkpoint=checkpoint)
 
 
 def measure_smolvla_intervention(
@@ -822,99 +628,27 @@ def measure_smolvla_intervention(
     alternate_prompt_sample: Mapping[str, object] | None = None,
     camera_swapped_sample: Mapping[str, object] | None = None,
 ) -> SmolVLAInterventionMeasurement:
-    """Measure one bounded intervention and prompt/camera-order sensitivity.
+    """Measure one bounded intervention and prompt/camera-order sensitivity."""
 
-    ``samples`` must be spaced at least ``chunk_size`` apart so every query
-    executes a fresh model pass. The on/off-target decomposition projects each
-    action change onto the action-space direction induced by the expert
-    direction through the policy's own ``action_out_proj`` mapping.
-    """
-
-    if not samples:
-        raise ValueError("at least one sample is required")
-    noise_array = np.array(noise, copy=True)
-    adapter.reset()
-    baseline: list[SmolVLAActionSelection] = []
-    for sample in samples:
-        baseline.append(adapter.select_action(sample, noise=noise_array))
-    adapter.reset()
-    intervened: list[SmolVLAActionSelection] = []
-    for sample in samples:
-        intervened.append(adapter.select_action(sample, noise=noise_array, intervention=intervention))
-    deltas = [
-        np.asarray(item.action_array).reshape(-1) - np.asarray(base.action_array).reshape(-1)
-        for item, base in zip(intervened, baseline, strict=True)
-    ]
-    changes = np.stack(deltas)
-    action_change_norm = float(np.mean(np.linalg.norm(changes, axis=1)))
-    action_change_per_dim = np.mean(np.abs(changes), axis=0)
-
-    induced = _induced_action_direction(adapter, intervention.direction, adapter.action_dim)
-    unit = induced / np.linalg.norm(induced)
-    projections = changes @ unit
-    on_target_norm = float(np.mean(np.abs(projections)))
-    residuals = changes - projections[:, None] * unit[None, :]
-    off_target_norm = float(np.mean(np.linalg.norm(residuals, axis=1)))
-    total = on_target_norm + off_target_norm
-    on_target_fraction = on_target_norm / total if total > 0.0 else 0.0
-
-    drift = _representation_drift(baseline, intervened)
-    first_step_drift = _first_step_drift(baseline[0], intervened[0])
-
-    prompt_sensitivity = 0.0
-    if alternate_prompt_sample is not None:
-        adapter.reset()
-        alternate = adapter.select_action(alternate_prompt_sample, noise=noise_array)
-        prompt_sensitivity = float(np.linalg.norm(alternate.action_array - baseline[0].action_array))
-    camera_order_sensitivity = 0.0
-    if camera_swapped_sample is not None:
-        adapter.reset()
-        swapped = adapter.select_action(camera_swapped_sample, noise=noise_array)
-        camera_order_sensitivity = float(np.linalg.norm(swapped.action_array - baseline[0].action_array))
-
-    return SmolVLAInterventionMeasurement(
-        action_change_norm=action_change_norm,
-        action_change_per_dim=action_change_per_dim,
-        on_target_norm=on_target_norm,
-        off_target_norm=off_target_norm,
-        on_target_fraction=on_target_fraction,
-        representation_drift=drift,
-        first_step_drift=first_step_drift,
-        prompt_sensitivity=prompt_sensitivity,
-        camera_order_sensitivity=camera_order_sensitivity,
-        metadata={
-            "measurement": "smolvla_action_expert_intervention",
-            "samples": len(samples),
-            "intervention": intervention.to_dict(),
-            "causal_environment_effect": False,
-            "off_target_definition": (
-                "component of the action change orthogonal to the direction induced by the expert "
-                "direction through action_out_proj"
-            ),
-        },
+    return _measure_smolvla_intervention(
+        adapter,
+        samples,
+        noise=noise,
+        intervention=intervention,
+        alternate_prompt_sample=alternate_prompt_sample,
+        camera_swapped_sample=camera_swapped_sample,
     )
 
 
-def _induced_action_direction(adapter: SmolVLAPolicyAdapter, direction: np.ndarray, action_dim: int) -> np.ndarray:
-    """Project an expert-space direction into action space via the policy's own head."""
+def _induced_action_direction(  # pyright: ignore[reportUnusedFunction]
+    adapter: SmolVLAPolicyAdapter, direction: np.ndarray, action_dim: int
+) -> np.ndarray:
+    """Project an expert-space direction through the policy's action head."""
 
-    policy = adapter.context.policy
-    if not isinstance(policy, nn.Module):
-        raise TypeError("SmolVLA policy must be a torch.nn.Module to derive the induced direction")
-    action_out_proj = getattr(getattr(policy, "model", None), "action_out_proj", None)
-    weight = getattr(action_out_proj, "weight", None)
-    if not isinstance(weight, Tensor):
-        raise TypeError("SmolVLA policy must expose model.action_out_proj.weight")
-    matrix = _to_numpy(weight.detach())
-    if matrix.ndim != 2 or matrix.shape[1] != adapter.expert_dim:
-        raise ValueError(f"action_out_proj weight shape {matrix.shape} does not match expert_dim={adapter.expert_dim}")
-    induced = matrix @ direction
-    if induced.shape[0] < action_dim:
-        raise ValueError("action_out_proj output is smaller than the declared action dimension")
-    return induced[:action_dim]
+    return _measure_induced_action_direction(adapter, direction, action_dim)
 
 
-def _expert_reprs(
+def _expert_reprs(  # pyright: ignore[reportUnusedFunction]
     selection: SmolVLAActionSelection,
 ) -> list[np.ndarray]:
     """Return action-expert captures in denoising order for one selection."""
@@ -926,47 +660,30 @@ def _expert_reprs(
     ]
 
 
-def _mean_token_delta(before: np.ndarray, after: np.ndarray) -> float:
+def _mean_token_delta(  # pyright: ignore[reportUnusedFunction]
+    before: np.ndarray, after: np.ndarray
+) -> float:
     """Mean per-token Euclidean displacement between two expert captures."""
 
-    if before.shape != after.shape:
-        raise ValueError(f"expert capture shapes differ: {before.shape} vs {after.shape}")
-    deltas = after - before
-    return float(np.mean(np.linalg.norm(deltas, axis=-1)))
+    return _measure_mean_token_delta(before, after)
 
 
-def _representation_drift(
+def _representation_drift(  # pyright: ignore[reportUnusedFunction]
     baseline: Sequence[SmolVLAActionSelection],
     intervened: Sequence[SmolVLAActionSelection],
 ) -> float:
     """Mean per-step per-token expert displacement across executed queries."""
 
-    per_step: list[float] = []
-    for base, item in zip(baseline, intervened, strict=True):
-        base_reprs = _expert_reprs(base)
-        item_reprs = _expert_reprs(item)
-        if len(base_reprs) != len(item_reprs):
-            raise ValueError("baseline and intervened queries produced different denoising capture counts")
-        per_step.extend(
-            _mean_token_delta(base_values, item_values)
-            for base_values, item_values in zip(base_reprs, item_reprs, strict=True)
-        )
-    if not per_step:
-        raise ValueError("no action-expert captures were produced for drift measurement")
-    return float(np.mean(per_step))
+    return _measure_representation_drift(baseline, intervened)
 
 
-def _first_step_drift(
+def _first_step_drift(  # pyright: ignore[reportUnusedFunction]
     baseline: SmolVLAActionSelection,
     intervened: SmolVLAActionSelection,
 ) -> float:
     """Expert per-token displacement at the first denoising step of the first query."""
 
-    base_reprs = _expert_reprs(baseline)
-    item_reprs = _expert_reprs(intervened)
-    if not base_reprs or not item_reprs:
-        raise ValueError("no action-expert captures were produced for first-step drift")
-    return _mean_token_delta(base_reprs[0], item_reprs[0])
+    return _measure_first_step_drift(baseline, intervened)
 
 
 __all__ = [

@@ -34,6 +34,7 @@ class CapturePoint:
     supports_intervention: bool
 
     def to_dict(self) -> dict[str, object]:
+        """Return this capture-point contract as a JSON-compatible mapping."""
         return cast(dict[str, object], asdict(self))
 
 

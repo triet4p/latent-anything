@@ -8,6 +8,8 @@ No real model downloads occur.
 
 from __future__ import annotations
 
+import inspect
+
 import numpy as np
 import pytest
 import torch
@@ -337,6 +339,35 @@ class TestHiddenStateIntervention:
 
 
 class TestTransformerLMIntegration:
+    def test_public_api_and_result_schema_snapshot(self) -> None:
+        assert tuple(inspect.signature(TransformerLMIntegration.generate).parameters) == (
+            "self",
+            "request",
+            "intervention",
+        )
+        assert tuple(inspect.signature(TransformerLMIntegration.tokenize).parameters) == (
+            "self",
+            "prompt",
+            "max_length",
+            "return_tensors",
+        )
+        assert TransformerGenerationRequest.__module__ == "latent_anything.integrations.transformer_lm"
+        assert TransformerGenerationResult.__module__ == "latent_anything.integrations.transformer_lm"
+        assert tuple(TransformerGenerationRequest.__dataclass_fields__) == (
+            "prompt",
+            "max_length",
+            "seed",
+            "capture_hidden_states",
+            "capture_layers",
+            "top_k_logit_lens",
+        )
+        assert tuple(HiddenStateIntervention.__dataclass_fields__) == (
+            "layer",
+            "direction",
+            "strength",
+            "token_indices",
+        )
+
     def test_constructor_with_defaults(self) -> None:
         pipe = TransformerLMIntegration()
         assert pipe.model_id == TRANSFORMER_MODEL_ID
@@ -486,6 +517,29 @@ class TestFakeBackendPipeline:
         assert isinstance(result, TransformerGenerationResult)
         # Intervention with zero direction should not affect shapes.
         assert len(result.hidden_states) == GPT2_NUM_LAYERS + 1
+
+    def test_intervention_hooks_are_removed_when_forward_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """A failed model call must not leave intervention hooks installed."""
+        pipe = TransformerLMIntegration()
+        fake_model = FakeGPT2Model()
+        fake_tokenizer = FakeTokenizer()
+        monkeypatch.setattr(pipe, "_backend", lambda: (fake_model, fake_tokenizer, fake_model.config))
+
+        def fail_forward(*_args: object, **_kwargs: object) -> object:
+            raise RuntimeError("fake forward failure")
+
+        monkeypatch.setattr(fake_model, "forward", fail_forward)
+        request = TransformerGenerationRequest(prompt="test", max_length=8, capture_hidden_states=False)
+        intervention = HiddenStateIntervention(
+            layer=6,
+            direction=np.zeros((1, 1, GPT2_HIDDEN_DIM), dtype=np.float32),
+            strength=0.5,
+        )
+
+        with pytest.raises(RuntimeError, match="fake forward failure"):
+            pipe.generate(request, intervention=intervention)
+
+        assert all(not getattr(module, "_forward_hooks", {}) for module in fake_model.modules())
 
     def test_token_rank_trajectories(self, monkeypatch: pytest.MonkeyPatch) -> None:
         pipe = TransformerLMIntegration()

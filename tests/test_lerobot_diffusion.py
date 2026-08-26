@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
 import sys
 from collections.abc import Mapping
 from types import ModuleType, SimpleNamespace
@@ -17,6 +20,7 @@ from latent_anything.integrations.lerobot_diffusion import (
     DEFAULT_DIFFUSION_CHECKPOINT,
     DIFFUSION_CONDITIONING_LOCATION,
     DIFFUSION_DENOISING_LOCATION,
+    DiffusionAnalysisResult,
     DiffusionCheckpointSpec,
     DiffusionEpisodeTrace,
     DiffusionPolicyAdapter,
@@ -231,6 +235,52 @@ def test_diffusion_analysis_separates_episode_time_and_diffusion_timestep_metric
     assert all(set(metrics) == {"9", "4", "0"} for metrics in result.timestep_time_lengths.values())
     assert result.metadata["axes"] == ["episode_time", "action_chunk_position", "diffusion_timestep"]
     assert result.metadata["causal_intervention"] is False
+
+
+def test_diffusion_analysis_schema_digest_and_public_identity_are_stable() -> None:
+    traces: list[DiffusionEpisodeTrace] = []
+    for outcome, offset in (("success", 2.0), ("failure", -2.0)):
+        for episode_index in range(4):
+            adapter = make_fixture_adapter()
+            trace = adapter.capture_episode(
+                [{"state": torch.tensor([[offset + episode_index * 0.1 + step, 0.0, 1.0]])} for step in range(7)],
+                episode_id=f"{outcome}-{episode_index}",
+                outcome=cast(Literal["success", "failure"], outcome),
+            )
+            traces.append(trace)
+
+    result = analyze_diffusion_traces(traces, random_state=0)
+    encoded = json.dumps(result.to_dict(), sort_keys=True, separators=(",", ":")).encode()
+    assert hashlib.sha256(encoded).hexdigest() == ("6c48fdac2aed61bc69e4e3e489f1fc2f47497da406c282d2b62c97c9dd309f61")
+    assert DiffusionAnalysisResult.__module__ == "latent_anything.integrations.lerobot_diffusion"
+    assert analyze_diffusion_traces.__module__ == "latent_anything.integrations.lerobot_diffusion"
+    assert tuple(inspect.signature(analyze_diffusion_traces).parameters) == (
+        "traces",
+        "n_components",
+        "probe_config",
+        "random_state",
+    )
+
+
+def test_diffusion_hook_is_removed_when_policy_forward_fails() -> None:
+    class FailingDenoiser(nn.Module):
+        def forward(self, sample: Tensor, timestep: Tensor, *, global_cond: Tensor) -> Tensor:
+            del sample, timestep, global_cond
+            raise RuntimeError("fixture denoiser failure")
+
+    policy = TinyDiffusionPolicy()
+    object.__setattr__(policy.diffusion, "unet", FailingDenoiser())
+    context = LeRobotPolicyContext(
+        policy_name="diffusion",
+        policy=policy,
+        preprocessor=AddOnePreprocessor(),
+        postprocessor=ScalePostprocessor(),
+        dataset=SimpleNamespace(repo_id="fixture/dataset", revision="fixture-revision"),
+    )
+    adapter = DiffusionPolicyAdapter(context)
+    with pytest.raises(RuntimeError, match="fixture denoiser failure"):
+        adapter.select_action({"state": torch.tensor([[1.0, 2.0, 3.0]])})
+    assert len(policy.diffusion.unet._forward_hooks) == 0  # type: ignore[reportPrivateUsage]
 
 
 @pytest.mark.network

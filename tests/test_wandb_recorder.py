@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsKeysAndGetItem
 
 import pytest
 
@@ -150,7 +154,12 @@ def test_wandb_provider_failures_do_not_commit_local_state(monkeypatch: pytest.M
     class FailingConfig(dict[str, object]):
         fail = True
 
-        def update(self, values: object, **kwargs: object) -> None:
+        def update(
+            self,
+            values: SupportsKeysAndGetItem[str, object] | Iterable[tuple[str, object]] = (),
+            /,
+            **kwargs: object,
+        ) -> None:
             if self.fail:
                 raise RuntimeError("provider params failed")
             super().update(values, **kwargs)

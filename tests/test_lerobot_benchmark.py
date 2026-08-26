@@ -8,8 +8,11 @@ observations per seed, so the default suite stays offline and deterministic.
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
 from collections.abc import Mapping
-from dataclasses import replace
+from dataclasses import fields, replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -278,6 +281,46 @@ def test_benchmark_config_validates_conditions_and_strengths() -> None:
         SimulationBenchmarkConfig(conditions=("no_hook", "unknown"))  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="random condition requires"):
         SimulationBenchmarkConfig(conditions=("no_hook", "random"))
+
+
+def test_benchmark_public_api_and_artifact_schema_digest() -> None:
+    """Pin the stable facade signatures and JSON artifact field ownership."""
+
+    import latent_anything.integrations.lerobot_benchmark as benchmark
+
+    public_functions = (
+        "build_libero_benchmark_environment",
+        "run_episode",
+        "wilson_ci",
+        "build_correlation",
+        "run_simulation_benchmark",
+    )
+    result_types = (
+        benchmark.SimulationBenchmarkConfig,
+        benchmark.BenchmarkEnvironmentBundle,
+        benchmark.EpisodeOutcome,
+        benchmark.ConditionSummary,
+        benchmark.OfflineExplanationScore,
+        benchmark.CausalCorrelationCell,
+        benchmark.CausalCorrelation,
+        benchmark.BenchmarkAcceptance,
+        benchmark.FailureAnalysis,
+        benchmark.SimulationBenchmarkResult,
+    )
+    schema = {
+        "functions": {name: str(inspect.signature(getattr(benchmark, name))) for name in public_functions},
+        "types": {
+            result_type.__name__: (
+                list(model_fields)
+                if isinstance(model_fields := getattr(result_type, "model_fields", None), Mapping)
+                else [field.name for field in fields(result_type)]
+            )
+            for result_type in result_types
+        },
+    }
+    digest = hashlib.sha256(json.dumps(schema, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    assert digest == "afa32fe10a3e9d8f31cb0d2953dbd2d64291dbf4982a45ecb118387bafe9f8c6"
+    assert benchmark.run_simulation_benchmark.__module__ == "latent_anything.integrations.lerobot_benchmark"
     with pytest.raises(ValueError, match="non-zero"):
         SimulationBenchmarkConfig(strengths=(0.0,))
     with pytest.raises(ValueError, match="unique"):

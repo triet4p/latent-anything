@@ -54,11 +54,17 @@ class DiffusersAutoencoderKLAdapter:
 
     @property
     def latent_space(self) -> LatentSpace:
+        """Load the optional backend and return its latent-channel contract."""
         model = self._backend()
         latent_channels = cast(int, model.config.latent_channels)
         return LatentSpace(dim=latent_channels, source_model=self.model_id, metadata={"revision": self.revision})
 
     def encode(self, data: np.ndarray, *, seed: int | None = None) -> np.ndarray:
+        """Encode finite NCHW images in ``[-1, 1]`` into scaled latent arrays.
+
+        Sampling uses ``seed`` when ``latent_mode`` is ``"sample"``; the
+        optional Diffusers backend is loaded lazily at this boundary.
+        """
         if (
             data.ndim != 4
             or data.shape[1] not in {1, 3}
@@ -95,6 +101,7 @@ class DiffusersAutoencoderKLAdapter:
         )
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
+        """Decode a finite NCHW latent batch through the lazy Diffusers backend."""
         if latent.ndim != 4 or not np.isfinite(latent).all():
             raise ValueError("Expected NCHW latent batch")
         import torch

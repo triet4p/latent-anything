@@ -8,6 +8,7 @@ queue) while keeping the default suite offline and deterministic.
 
 from __future__ import annotations
 
+import inspect
 import subprocess
 import sys
 from collections.abc import Callable, Mapping
@@ -300,6 +301,50 @@ def test_smolvla_module_import_stays_lazy_in_base_install() -> None:
         text=True,
     )
     assert completed.returncode == 0, completed.stderr
+
+
+def test_smolvla_public_api_and_result_schema_snapshot() -> None:
+    """The SRP extraction must preserve public names, signatures, and fields."""
+    from dataclasses import fields
+
+    from latent_anything._lerobot_smolvla_runtime import SmolVLAHookSession
+    from latent_anything.integrations import lerobot_smolvla as module
+
+    assert list(inspect.signature(module.SmolVLAPolicyAdapter.select_action).parameters) == [
+        "self",
+        "sample",
+        "noise",
+        "intervention",
+        "episode_step",
+    ]
+    assert list(inspect.signature(module.load_smolvla_policy).parameters) == [
+        "checkpoint",
+        "api",
+        "dataset_meta",
+        "device",
+    ]
+    assert [field.name for field in fields(module.SmolVLAActionSelection)] == [
+        "action",
+        "action_array",
+        "representations",
+        "denoising_steps",
+        "model_query_executed",
+    ]
+    assert [field.name for field in fields(module.SmolVLAInterventionMeasurement)] == [
+        "action_change_norm",
+        "action_change_per_dim",
+        "on_target_norm",
+        "off_target_norm",
+        "on_target_fraction",
+        "representation_drift",
+        "first_step_drift",
+        "prompt_sensitivity",
+        "camera_order_sensitivity",
+        "metadata",
+    ]
+    assert module.SmolVLAPolicyAdapter.__module__ == "latent_anything.integrations.lerobot_smolvla"
+    assert module._SmolVLAHookSession is SmolVLAHookSession  # pyright: ignore[reportPrivateUsage] # compatibility alias is intentionally tested
+    assert callable(module.load_smolvla_policy)
 
 
 def test_smolvla_capture_records_modalities_with_token_metadata() -> None:

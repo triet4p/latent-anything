@@ -13,13 +13,74 @@ from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, field
 from importlib import import_module, metadata
 from types import ModuleType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from latent_anything.integrations import require_optional
 
 SUPPORTED_LEROBOT_SPEC = ">=0.6.0,<0.7.0"
 SUPPORTED_LEROBOT_EXTRA = "lerobot[dataset,evaluation]"
 SUPPORTED_LEROBOT_VERSION = "0.6.x"
+
+_DATASET_EXPORTS = (
+    "LeRobotCapturedLatent",
+    "LeRobotDatasetDescriptor",
+    "LeRobotDatasetReader",
+    "LeRobotEpisodeSlice",
+    "LeRobotFeatureDescriptor",
+    "LeRobotSample",
+    "LeRobotSampleProvenance",
+    "LeRobotStreamingReader",
+    "captured_latent",
+    "captured_latent_to_numpy",
+    "describe_lerobot_dataset",
+    "load_streaming_lerobot_dataset",
+    "read_lerobot_episode",
+    "stream_lerobot_samples",
+)
+
+if TYPE_CHECKING:
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotCapturedLatent as LeRobotCapturedLatent,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotDatasetDescriptor as LeRobotDatasetDescriptor,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotDatasetReader as LeRobotDatasetReader,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotEpisodeSlice as LeRobotEpisodeSlice,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotFeatureDescriptor as LeRobotFeatureDescriptor,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotSample as LeRobotSample,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotSampleProvenance as LeRobotSampleProvenance,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        LeRobotStreamingReader as LeRobotStreamingReader,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        captured_latent as captured_latent,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        captured_latent_to_numpy as captured_latent_to_numpy,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        describe_lerobot_dataset as describe_lerobot_dataset,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        load_streaming_lerobot_dataset as load_streaming_lerobot_dataset,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        read_lerobot_episode as read_lerobot_episode,
+    )
+    from latent_anything.integrations.lerobot_dataset import (
+        stream_lerobot_samples as stream_lerobot_samples,
+    )
 
 
 def _version_tuple(value: str) -> tuple[int, int, int] | None:
@@ -230,29 +291,6 @@ __all__ = [
     "check_lerobot_compatibility",
     "load_lerobot",
     "load_lerobot_api",
-]
-
-# Dataset views are imported only after the raw boundary definitions above.
-# They import this module for ``LeRobotAPI`` and therefore must not be moved to
-# the top of the file without recreating an import cycle.
-from latent_anything.integrations.lerobot_dataset import (  # noqa: E402, I001
-    LeRobotCapturedLatent as LeRobotCapturedLatent,
-    LeRobotDatasetDescriptor as LeRobotDatasetDescriptor,
-    LeRobotDatasetReader as LeRobotDatasetReader,
-    LeRobotEpisodeSlice as LeRobotEpisodeSlice,
-    LeRobotFeatureDescriptor as LeRobotFeatureDescriptor,
-    LeRobotSample as LeRobotSample,
-    LeRobotSampleProvenance as LeRobotSampleProvenance,
-    LeRobotStreamingReader as LeRobotStreamingReader,
-    captured_latent as captured_latent,
-    captured_latent_to_numpy as captured_latent_to_numpy,
-    describe_lerobot_dataset as describe_lerobot_dataset,
-    load_streaming_lerobot_dataset as load_streaming_lerobot_dataset,
-    read_lerobot_episode as read_lerobot_episode,
-    stream_lerobot_samples as stream_lerobot_samples,
-)
-
-__all__ += [
     "LeRobotCapturedLatent",
     "LeRobotDatasetDescriptor",
     "LeRobotDatasetReader",
@@ -268,3 +306,12 @@ __all__ += [
     "read_lerobot_episode",
     "stream_lerobot_samples",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve dataset bridge re-exports only when their public names are used."""
+
+    if name in _DATASET_EXPORTS:
+        dataset_module = import_module("latent_anything.integrations.lerobot_dataset")
+        return getattr(dataset_module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
