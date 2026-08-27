@@ -80,9 +80,14 @@ def run_real() -> dict[str, Any]:
         clustering = KMeans(
             KMeansConfig(n_clusters=10, n_init=10, max_iter=300, random_state=79, standardize=True)
         ).fit_predict(primary, provenance={"role": "diagnostic-only", "fit_scope": "all hidden rows"})
+        layer_metrics = {
+            str(layer): evaluate_linear(hidden[layer], split["labels"], masks, linear_cfg) for layer in (0, 4, 8, 12)
+        }
         linear = evaluate_linear(primary, split["labels"], masks, linear_cfg)
         pca_features, pca_meta = fit_train_only_pca(primary, masks, components=32)
         pca = evaluate_linear(pca_features, split["labels"], masks, linear_cfg)
+        raw_features = split["images"].reshape(len(split["images"]), -1)
+        raw_glyph = evaluate_linear(raw_features, split["labels"], masks, linear_cfg)
         mlp_cfg = MLPProbeConfig(
             hidden_sizes=[16],
             activation="relu",
@@ -97,6 +102,15 @@ def run_real() -> dict[str, Any]:
             standardize=True,
         )
         mlp = evaluate_mlp(pca_features, split["labels"], masks, mlp_cfg)
+        capacity = {
+            str(width): evaluate_mlp(
+                pca_features,
+                split["labels"],
+                masks,
+                mlp_cfg.model_copy(update={"hidden_sizes": [width]}),
+            )
+            for width in (4, 64)
+        }
         api_diagnostic = nonlinear_memorization_test(
             pca_features, split["labels"], config=mlp_cfg, selectivity_threshold=2.0
         )
@@ -125,8 +139,10 @@ def run_real() -> dict[str, Any]:
                     "accepted": pca_ok,
                     "metrics": {
                         "full_hidden": linear,
+                        "declared_layer_diagnostics": layer_metrics,
                         "pca32": pca,
                         "pca": pca_meta,
+                        "raw_glyph_diagnostic": raw_glyph,
                         "kmeans_diagnostic": clustering.to_dict(),
                     },
                 },
@@ -140,7 +156,11 @@ def run_real() -> dict[str, Any]:
                     "record_id": plan["records"][2]["record_id"],
                     "gap_id": plan["records"][2]["gap_id"],
                     "accepted": mlp_ok,
-                    "metrics": {"primary": mlp, "api_shuffled_label_diagnostic": asdict(api_diagnostic)},
+                    "metrics": {
+                        "primary": mlp,
+                        "capacity_diagnostics": capacity,
+                        "api_shuffled_label_diagnostic": asdict(api_diagnostic),
+                    },
                 },
             ]
         )
