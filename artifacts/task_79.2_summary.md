@@ -43,4 +43,32 @@ tier was promoted by either smoke.
 - Official source: Hugging Face model repository and pinned commit page above;
   no floating `main` revision, credential, or license acceptance was used.
 
-Status: **PASS-WITH-BLOCKERS — ready for owner review, commit, and remote retry**.
+## Remote CUDA retry
+
+Both invocations were launched from authenticated external PowerShell through
+Git Bash using the bundled `remote_cuda_test.sh` workflow. Each runner cloned
+and verified the exact pushed source SHA, then used a disposable clone and
+isolated `UV_CACHE_DIR`, `TORCH_EXTENSIONS_DIR`, and `CUDA_CACHE_PATH`.
+
+- Source for both invocations: `https://github.com/triet4p/latent-anything.git@ecf63b5021852b6f0d1c2c11a8ba761c5913176a`.
+- Server/GPU for both: `trietlm@di-server`; `NVIDIA GeForce RTX 4060 Ti`
+  available; Torch `2.10.0+cu128`, CUDA `12.8` available.
+- First invocation: the real model loaded and generated successfully, printing
+  `cuda_logits=(1, 5, 50257) hidden_states=13`, then failed solely because the
+  ad-hoc command asserted the over-specific shape `(1, 8, 50257)`. This was a
+  command-level assertion failure, not repository evidence; the focused test
+  did not run in that invocation. The run also emitted the unsuppressed
+  Transformers warning `torch_dtype` is deprecated; use `dtype` instead. The
+  runner terminated through its exit trap; no cleanup error was reported.
+- Second invocation: the GPU smoke used the project contract (3D logits,
+  vocabulary axis `50257`, 13 hidden states, hidden width `768`) and **PASS**ed.
+  The focused network test
+  `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_transformer_lm_network.py::test_pinned_checkpoint_generates_expected_shape -m network -q`
+  also **PASS**ed (`1 passed in 4.49s`). `Remote CUDA test` reported both GPU
+  and broader tests as PASS; cleanup was completed by the exit trap with no
+  cleanup error reported.
+
+Neither invocation promoted an evidence tier; the first remains a recorded
+command failure and the second is the sole successful retry result.
+
+Status: **PASS-WITH-BLOCKERS — remote retry complete; awaiting owner review**.
