@@ -45,14 +45,15 @@ from latent_anything.latent_value import LatentValue
 # Pinned model identity   (Task 1)
 # ---------------------------------------------------------------------------
 
-TRANSFORMER_MODEL_ID = "gpt2"
+TRANSFORMER_MODEL_ID = "openai-community/gpt2"
 """HuggingFace model ID for the pinned decoder-only transformer."""
 
-TRANSFORMER_MODEL_REVISION = "e7da7f221d5bf496a4811970ad59b19a5b3ff2a4"
+TRANSFORMER_MODEL_REVISION = "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
 """Pinned revision for reproducible behaviour across installations.
 
-This is the original ``gpt2`` model checkpoint (124M parameters). Pinned by
-commit hash so that offline tests and benchmarks are reproducible across time.
+This is the canonical ``openai-community/gpt2`` model checkpoint (124M
+parameters). Pinned by its immutable Hugging Face commit hash so that offline
+tests and benchmarks are reproducible across time.
 """
 
 # Tested dependency ranges (installation guards)

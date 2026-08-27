@@ -7,7 +7,7 @@
 
 Implemented a comprehensive decoder-only transformer integration with a direct logit lens. The integration:
 
-1. **Pinned model**: GPT-2 (124M, gpt2-small) at revision `e7da7f221d5bf496a4811970ad59b19a5b3ff2a4` with clear final LayerNorm and LM head.
+1. **Pinned model**: GPT-2 (124M, gpt2-small; canonical ID `openai-community/gpt2`) at immutable revision `e7da7f221d5bf496a48136c0cd264e630fe9fcc8` with clear final LayerNorm and LM head.
 2. **Typed data types**: `TransformerInput`, `HiddenState`, `LogitLensResult`, `TokenRankTrajectory`, `TransformerGenerationRequest`, `TransformerGenerationResult`, `HiddenStateIntervention` — all frozen dataclasses with NumPy arrays and validation.
 3. **Native observation path**: `output_hidden_states=True` as the canonical mechanism; hidden states extracted directly from model output, not from hooks.
 4. **Direct logit lens**: Applies the model's own final LayerNorm (`transformer.ln_f`) and LM head to each layer's hidden state.

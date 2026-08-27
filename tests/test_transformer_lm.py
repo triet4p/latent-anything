@@ -373,6 +373,11 @@ class TestTransformerLMIntegration:
         assert pipe.model_id == TRANSFORMER_MODEL_ID
         assert pipe.revision == TRANSFORMER_MODEL_REVISION
 
+    def test_default_model_identity_is_immutable_and_canonical(self) -> None:
+        assert TRANSFORMER_MODEL_ID == "openai-community/gpt2"
+        assert TRANSFORMER_MODEL_REVISION == "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        assert len(TRANSFORMER_MODEL_REVISION) == 40
+
     def test_provenance_format(self) -> None:
         pipe = TransformerLMIntegration()
         assert "@" in pipe.provenance

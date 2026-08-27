@@ -102,7 +102,8 @@ by 78.38 itself.
   shape/dtype/no-mutation checks, endpoint/metric/DTW/geodesic controls, and
   `artifacts/m14/l01-core.json` / `l02-geometry.json`.
 - **L03–L06 analysis and explanations:** pin GPT-2
-  `e7da7f221d5bf496a4811970ad59b19a5b3ff2a4` and its license/access; use
+  `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` and its
+  license/access; use
   train/holdout labels, shuffled-label/raw-input/capacity controls, seed
   confidence intervals, selectivity and intervention metrics; write the L03,
   L04, L05, and L06 artifacts. A real-model requirement is never satisfied by

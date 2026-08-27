@@ -80,7 +80,7 @@ class ConceptDataset:
         Which representation space the features come from
         (e.g. ``"gpt2_layer_8_hidden"``).
     model_version :
-        Model provenance string (e.g. ``"gpt2@e7da7f221d5bf"``).
+        Model provenance string (e.g. ``"openai-community/gpt2@e7da7f2"``).
     provenance :
         Arbitrary additional provenance metadata.
     """

@@ -391,3 +391,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Torch rejects `set_num_interop_threads()` after parallel work has already started, even when the requested value is unchanged.
 **Fix / workaround:** Set the bounded thread configuration once and tolerate only Torch's specific already-started error on repeat runs; propagate unrelated configuration failures.
 **Watch out for:** Reproducibility tests that run multiple model lanes in one process must not assume global Torch thread setters are idempotent.
+
+## [2026-08-26] GPT-2 immutable pin can be a near-match typo
+
+**Symptom:** The remote CUDA smoke could reach the GPU preflight, but Hugging Face returned HTTP 404 `RevisionNotFoundError` for `gpt2@e7da7f221d5bf496a4811970ad59b19a5b3ff2a4`.
+**Root cause:** The recorded 40-character revision was not an existing commit in the canonical `openai-community/gpt2` repository; it differed from the official commit by a short middle segment.
+**Fix / workaround:** Use the explicit canonical model ID `openai-community/gpt2` and the immutable official commit `e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, verified from the repository's commit page and MIT model card.
+**Watch out for:** Never infer that a model pin is valid from a familiar short prefix. Resolve the exact model ID and full commit through the authoritative Hugging Face repository/API before updating source, tests, or evidence contracts; keep the failed attempt as historical evidence.

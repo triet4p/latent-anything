@@ -214,7 +214,7 @@
 - Added hook-based activation intervention support via `ActivationCaptureSession` for one bounded activation intervention at a specified layer, with hook cleanup verification. (#sprint-39)
 - Added token rank/probability trajectory measurement across layers, with stability tracking under predeclared prompt perturbations. (#sprint-39)
 - Added comprehensive test suite: 38 offline tests with fake backend + 11 marked real-checkpoint tests, plus a reproducible artifact demo script. (#sprint-39)
-- Added a `transformers` optional install extra with pinned GPT-2 (`gpt2` model at revision `e7da7f2`, 124M parameters) for the transformer integration. (#sprint-39)
+- Added a `transformers` optional install extra with pinned GPT-2 (`openai-community/gpt2` at revision `e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, 124M parameters) for the transformer integration. (#sprint-39)
 
 - Added a label-aware `LinearProbe` class with leakage-guarded train/val/test splitting, training-only feature standardization, regularization, and class-balance controls. (#sprint-40)
 - Added `LinearProbeConfig` (pydantic v2) and `LinearProbeResult` (frozen dataclass) with labels, predictions, probabilities, coefficients, split metadata, and provenance. (#sprint-40)
