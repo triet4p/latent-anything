@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "lane": "M14-L01",
+  "artifact": "artifacts/m14/l01-core.json",
+  "artifact_sha256": "edf9ebe10ef8e2c8132e2074cee213fb8115bfd2826ddf68aad39f3b65bd4fac",
+  "runner": "scripts/m14_l01_core.py",
+  "command": "uv run python scripts/m14_l01_core.py",
+  "started_at_utc": "2026-08-27T01:48:02.354342+00:00",
+  "status": "accepted",
+  "resource_peak": "not measured; M14 estimate only",
+  "cleanup": "completed; no temporary files created"
+}

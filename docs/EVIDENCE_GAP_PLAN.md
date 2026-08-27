@@ -8,13 +8,13 @@ map is [`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.jso
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **25/63 core (39.7%)** and
-**25/65 overall (38.5%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **26/63 core (41.3%)** and
+**26/65 overall (40.0%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **40 current D0/D1
-rows** in this plan: **38 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **35 additional core qualifiers** are required to reach
-`ceil(0.95 × 63) = 60`; at least **34 additional overall qualifiers** are
+denominator adds two applicable X01 rows. There are exactly **39 current D0/D1
+rows** in this plan: **37 core** and **2 non-core**. A qualifying row is D2 or
+D3, so at least **34 additional core qualifiers** are required to reach
+`ceil(0.95 × 63) = 60`; at least **33 additional overall qualifiers** are
 required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
 binding gate. Headline model, causal explanation, and named integration claims
 target D3; ordinary algorithm capabilities target D2 unless their row says
@@ -26,7 +26,7 @@ The validator command is:
 uv run python scripts/validate_evidence_ledger.py
 ```
 
-It must continue to report the honest current 25/63 and 25/65 result while
+It must continue to report the honest current 26/63 and 26/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
@@ -38,7 +38,7 @@ map; lane-level defaults are specified in the next section.
 
 | ID | Current | Core | Headline | Target | M14 lane | Capability / insufficiency |
 |---|---:|:---:|:---:|:---:|:---:|---|
-| `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` | D1 | yes | no | D2 | L01 | Operations tested, no non-trivial held-out benchmark/config |
+| `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` | D2 | yes | no | D2 | L01 | Existing ConvVAE/AnalysisPipeline held-out benchmark and immutable artifact verified |
 | `THY-T01-MANIFOLD-HYPOTHESIS` | D1 | yes | no | D2 | L02 | Geometry tests lack held-out manifold evidence |
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |

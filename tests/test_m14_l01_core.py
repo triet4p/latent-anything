@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+import subprocess
 from pathlib import Path
 from typing import cast
 
@@ -38,11 +40,25 @@ def test_l01_runner_writes_accepted_schema_and_matching_run_record(tmp_path: Pat
     assert validate_l01_artifact(payload) == []
     assert run_record["artifact_sha256"] == payload["artifact_sha256"]
     assert run_record["status"] == "accepted"
+    provenance = cast(dict[str, object], payload["provenance"])
+    expected_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+    ).stdout.strip()
+    assert provenance["git_sha"] == expected_sha
+    source_digest = hashlib.sha256(Path("scripts/m14_l01_core.py").read_bytes()).hexdigest()
+    assert provenance["runner_source_sha256"] == source_digest
+    assert provenance["resource_peak"] == "not measured; M14 estimate only"
+    assert "does not claim model-quality superiority" in cast(str, payload["claim_scope"])
+    thresholds = cast(dict[str, object], payload["thresholds"])
+    assert "runtime_budget_seconds" not in thresholds
     split = cast(dict[str, object], payload["split"])
     metrics = cast(dict[str, float], payload["metrics"])
     assert split["train_samples"] == 1437
     assert split["heldout_samples"] == 360
     assert metrics["heldout_reconstruction_mse"] < metrics["zero_baseline_mse"]
+    assert metrics["train_mean_baseline_mse"] < metrics["heldout_reconstruction_mse"]
+    acceptance = cast(dict[str, bool], payload["acceptance"])
+    assert acceptance["train_mean_baseline_is_stronger_diagnostic"] is True
 
 
 def test_l01_schema_rejects_missing_field_and_tampered_digest() -> None:

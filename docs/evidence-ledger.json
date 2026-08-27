@@ -78,10 +78,17 @@
       ]
     },
     "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "source", "path": "src/latent_anything/latent_value.py"},
+        {"role": "source", "path": "src/latent_anything/pipeline.py"},
+        {"role": "source", "path": "src/latent_anything/adapters/conv_vae.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
+        {"role": "test", "path": "tests/test_m14_l01_core.py"},
+        {"role": "benchmark", "path": "scripts/m14_l01_core.py"},
+        {"role": "config", "path": "artifacts/m14/l01-core.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l01-core.json"}
       ]
     },
     "THY-T01-MANIFOLD-HYPOTHESIS": {
