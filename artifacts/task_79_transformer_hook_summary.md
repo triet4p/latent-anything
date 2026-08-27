@@ -59,7 +59,7 @@ observation, shape, dtype/device, gradient, and cleanup behavior.
   SHA-256 digests.
 - Evidence validator remains 33/63 core and 33/65 overall; no D2 status/count
   or L03 artifact metric changed.
-- Final closure commit SHA: to be recorded after the final diff review.
+- Final closure commit SHA: `a04a870743c90595c77eb2b434a476b867a84bef`.
 - No L04 or native index-12/direct-logit-lens implementation is included.
 
 ## API and architecture impact
