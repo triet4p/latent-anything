@@ -72,8 +72,9 @@ general abstraction is introduced.
   responsibilities.
 - `scripts/m14_l02_geometry.py` — thin executable orchestrator with
   real-data loading, train-only fitting, held-out paths, six independent
-  evaluations, payload construction, and explicit output writing. It was not
-  invoked during this design task.
+  evaluations, payload construction, and explicit output writing. The canonical
+  validation command is `uv run python -m scripts.m14_l02_geometry --check`;
+  the real run command is `uv run python -m scripts.m14_l02_geometry`.
 - `tests/test_m14_l02_geometry.py` — unit-only schema, exact gap mapping,
   digest tamper, negative-path, and deferred provenance tests.
 - `artifacts/m14/l02-geometry.plan.json` — sole declarative source of truth;
@@ -88,5 +89,6 @@ evidence promotion. The plan is explicitly design-only and uses
 will carry dataset/license/content and exact split-index digests, model/density
 configs and train-only scopes, package/backend versions, input mutation
 digests, independent records, accepted gaps, plan/source/git provenance, and a
-canonical self-digest. Its run record will carry the UTC timestamp, command,
+canonical self-digest. Its run record will carry the UTC timestamp, canonical
+module command,
 status, operational wording, and matching accepted IDs.

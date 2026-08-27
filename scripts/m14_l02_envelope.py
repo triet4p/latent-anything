@@ -7,7 +7,6 @@ import json
 import platform
 import re
 import subprocess
-import sys
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from importlib.metadata import PackageNotFoundError
@@ -17,7 +16,7 @@ from typing import Any
 
 from latent_anything.adapters.conv_vae import ConvVAE
 from latent_anything.density import GaussianMixtureDensity
-from scripts.m14_l02_plan import EXPECTED_RECORD_IDS, plan_digest, section
+from scripts.m14_l02_plan import CANONICAL_COMMAND, EXPECTED_RECORD_IDS, plan_digest, section
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -94,6 +93,8 @@ def validate_run_record(
             errors.append("run record timestamp_utc must be ISO-8601")
     if run_record.get("status") != "completed":
         errors.append("run record status must be completed")
+    if plan is not None and run_record.get("command") != str(section(plan, "provenance_contract").get("command")):
+        errors.append("run record command does not match the canonical plan command")
     for field in ("command", "network", "credentials", "cleanup", "resource_measurement"):
         if not isinstance(run_record.get(field), str) or not run_record[field].strip():
             errors.append(f"run record {field} wording is required")
@@ -289,7 +290,7 @@ def write_artifact_and_run_record(
         "runner_source_sha256": sources["runner_source_sha256"],
         "contract_source_sha256": sources["contract_source_sha256"],
         "plan_sha256": plan_digest(plan),
-        "command": " ".join(sys.argv),
+        "command": CANONICAL_COMMAND,
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "status": "completed",
         "network": str(section(plan, "resource_contract")["network"]),

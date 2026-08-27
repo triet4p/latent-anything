@@ -9,6 +9,8 @@ These tests use tiny synthetic arrays and never fit ConvVAE or call ``main``.
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -25,6 +27,7 @@ from scripts.m14_l02_metrics import (  # pyright: ignore[reportPrivateUsage]
     verdict,
 )
 from scripts.m14_l02_plan import (
+    CANONICAL_COMMAND,
     EXPECTED_GAP_IDS,
     EXPECTED_RECORD_IDS,
     load_plan,
@@ -173,6 +176,39 @@ def test_importing_runner_does_not_create_evidence() -> None:
     artifact = Path(__file__).resolve().parents[1] / "artifacts/m14/l02-geometry.json"
 
     assert not artifact.exists()
+
+
+def test_module_check_validates_plan_without_fitting_or_writing() -> None:
+    root = Path(__file__).resolve().parents[1]
+    artifact = root / "artifacts/m14/l02-geometry.json"
+    run_record = root / "artifacts/m14/l02-geometry.run.json"
+    before = {path: path.read_bytes() for path in (artifact, run_record) if path.exists()}
+
+    result = subprocess.run(
+        [sys.executable, "-m", "scripts.m14_l02_geometry", "--check"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == plan_digest(load_plan())
+    assert {path: path.read_bytes() for path in (artifact, run_record) if path.exists()} == before
+
+
+def test_canonical_module_command_replaces_unsupported_direct_path() -> None:
+    root = Path(__file__).resolve().parents[1]
+    documented = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (
+            root / "artifacts/m14/l02-geometry.plan.json",
+            root / "artifacts/task_79.4A_summary.md",
+            root / "docs/M14_REAL_SYSTEM_VALIDATION.md",
+        )
+    )
+
+    assert CANONICAL_COMMAND in documented
+    assert "uv run python scripts/m14_l02_geometry.py" not in documented
 
 
 @pytest.mark.parametrize("record_id", EXPECTED_RECORD_IDS)

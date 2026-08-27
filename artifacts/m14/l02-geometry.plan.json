@@ -60,9 +60,9 @@
     "smoothing": {"window": 5, "weighting": "triangular"},
     "dtw": {"normalization": "path_length", "max_cells": 4096}
   },
-  "plan_sha256": "eb397b14bac3a0e9fbb68e01952d1133c54334b1f99005608fb33668e37b40ad",
+  "plan_sha256": "e2bcbbb361f08eefa429ca48dd708ac00c094fe98959c17d7c88b261d73f869f",
   "provenance_contract": {
-    "command": "deferred until owner approves design and runner is committed",
+    "command": "uv run python -m scripts.m14_l02_geometry",
     "git_sha": "deferred",
     "package_versions": "record exact uv.lock-resolved versions at execution",
     "runner_source_sha256": "deferred",

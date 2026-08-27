@@ -6,6 +6,8 @@ real-data run and writes the future artifact/run record.
 
 from __future__ import annotations
 
+import argparse
+import importlib
 from collections.abc import Mapping
 from typing import Any
 
@@ -19,7 +21,14 @@ from scripts.m14_l02_data import (
 )
 from scripts.m14_l02_envelope import build_payload, input_digests, write_artifact_and_run_record
 from scripts.m14_l02_metrics import evaluate_independent_records
-from scripts.m14_l02_plan import load_plan, section
+from scripts.m14_l02_plan import load_plan, plan_digest, section, validate_plan
+
+_SIBLING_MODULES = (
+    "scripts.m14_l02_data",
+    "scripts.m14_l02_envelope",
+    "scripts.m14_l02_metrics",
+    "scripts.m14_l02_plan",
+)
 
 
 def run_l02_benchmark(plan: Mapping[str, Any] | None = None) -> dict[str, Any]:
@@ -72,8 +81,31 @@ def run_l02_benchmark(plan: Mapping[str, Any] | None = None) -> dict[str, Any]:
     )
 
 
-def main() -> None:
-    """Run the approved lane and write its shared artifact/run record."""
+def check_plan() -> str:
+    """Validate imports and the exact checked-in plan without running evidence."""
+    for module_name in _SIBLING_MODULES:
+        importlib.import_module(module_name)
+    plan = load_plan()
+    errors = validate_plan(plan)
+    if errors:
+        raise ValueError("invalid L02 plan: " + "; ".join(errors))
+    digest = plan_digest(plan)
+    print(digest)
+    return digest
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Run the approved lane or its side-effect-free validation mode."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="import sibling modules and validate the plan without fitting or writing outputs",
+    )
+    args = parser.parse_args(argv)
+    if args.check:
+        check_plan()
+        return
     plan = load_plan()
     write_artifact_and_run_record(plan, run_l02_benchmark(plan))
 

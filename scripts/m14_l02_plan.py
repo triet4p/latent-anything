@@ -10,6 +10,7 @@ from typing import Any
 
 PLAN_PATH = Path(__file__).resolve().parents[1] / "artifacts/m14/l02-geometry.plan.json"
 SCHEMA_VERSION = "m14-l02-geometry-plan-v1"
+CANONICAL_COMMAND = "uv run python -m scripts.m14_l02_geometry"
 EXPECTED_GAP_IDS = (
     "THY-T01-MANIFOLD-HYPOTHESIS",
     "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
@@ -174,10 +175,11 @@ def validate_plan(plan: Mapping[str, Any]) -> list[str]:
     provenance = plan["provenance_contract"]
     if (
         not isinstance(provenance, Mapping)
+        or provenance.get("command") != CANONICAL_COMMAND
         or provenance.get("git_sha") != "deferred"
         or provenance.get("runner_source_sha256") != "deferred"
     ):
-        errors.append("design provenance must remain deferred")
+        errors.append("provenance must declare the canonical module command and remain deferred")
     _validate_records(plan, errors)
     if not isinstance(plan.get("plan_sha256"), str) or plan["plan_sha256"] != plan_digest(plan):
         errors.append("plan_sha256 does not match canonical unsigned plan")

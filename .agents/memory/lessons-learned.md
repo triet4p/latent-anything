@@ -398,3 +398,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** The recorded 40-character revision was not an existing commit in the canonical `openai-community/gpt2` repository; it differed from the official commit by a short middle segment.
 **Fix / workaround:** Use the explicit canonical model ID `openai-community/gpt2` and the immutable official commit `e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, verified from the repository's commit page and MIT model card.
 **Watch out for:** Never infer that a model pin is valid from a familiar short prefix. Resolve the exact model ID and full commit through the authoritative Hugging Face repository/API before updating source, tests, or evidence contracts; keep the failed attempt as historical evidence.
+
+## [2026-08-27] Direct script invocation breaks sibling imports
+
+**Symptom:** Running `uv run python scripts/m14_l02_geometry.py` failed before execution with `ModuleNotFoundError: No module named 'scripts'`.
+**Root cause:** Python puts the script directory on `sys.path` for direct-file execution, not the repository root package context required by absolute `scripts.*` sibling imports.
+**Fix / workaround:** Use the package-aware canonical command `uv run python -m scripts.m14_l02_geometry`; add a side-effect-free `--check` mode to validate imports and the exact plan before a real run.
+**Watch out for:** Any repository script using absolute sibling-package imports will fail when launched by file path; document and test module execution instead of adding `sys.path` hacks.
