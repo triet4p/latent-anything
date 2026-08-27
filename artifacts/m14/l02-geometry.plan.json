@@ -1,0 +1,230 @@
+{
+  "accepted": false,
+  "artifact_contract": {
+    "accepted_artifact": "artifacts/m14/l02-geometry.json",
+    "future_run_record": "artifacts/m14/l02-geometry.run.json",
+    "design_artifacts_are_not_evidence": true,
+    "partial_promotion": "one independent record may be accepted without accepting other records",
+    "shared_across_records": true
+  },
+  "data": {
+    "dataset": "sklearn.datasets.load_digits",
+    "heldout_role": "all path endpoints and induced sequences are held-out real images; no physical trajectory claim",
+    "license": "BSD-3-Clause",
+    "samples": 1797,
+    "train_samples": 1437,
+    "heldout_samples": 360,
+    "shape": [1, 8, 8],
+    "normalization": "images / 16.0 to [0, 1]",
+    "split": "np.random.default_rng(42).permutation; first 1437 train, remaining 360 held-out",
+    "pair_selection": "balanced same/different-label held-out pairs selected by RNG seed before scoring; no selection by latent distance, density, or observed benchmark output"
+  },
+  "evidence_level": "not-run",
+  "gap_ids": [
+    "THY-T01-MANIFOLD-HYPOTHESIS",
+    "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
+    "THY-T04-LERP-LINEAR-INTERPOLATION",
+    "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+    "THY-T04-SLERP",
+    "THY-T06-TRAJECTORY-SIMILARITY-METRICS"
+  ],
+  "integration": {
+    "dtw": "compute_dtw with DTWConfig(normalization='path_length', max_cells=4096)",
+    "geodesic": "DensityGeodesic + GeodesicConfig(n_points=24, max_iter=300, step_size=0.3, tol=1e-5, density_exponent=1.0); report metric as iterations",
+    "geometry": ["lerp_path", "density_path_energy", "density_path_length"],
+    "latent_space": ["LatentSpace.distance", "LatentSpace.interpolate", "LatentSpace.normalize"],
+    "latent_value": "ConvVAE.encode_value on held-out images",
+    "manifold": "mean train-only GMM log-density along each 24-point held-out LERP path; labels are evaluation-only",
+    "pose": "existing SO3/SE3/PoseTrajectory focused controls remain supporting coverage, not physical trajectory evidence",
+    "projection": "existing SubspaceProjection contract remains a supporting focused control; no new abstraction",
+    "temporal": "Trajectory + smooth_trajectory with a triangular window=5; each of 128 independent held-out pair paths supplies one monotone 32-point query"
+  },
+  "lane": "M14-L02",
+  "model": {
+    "adapter": "latent_anything.adapters.conv_vae.ConvVAE",
+    "epochs": 8,
+    "fit_scope": "train images only",
+    "latent_contract": "ConvVAE.latent_space (euclidean, source_model=conv_vae_8x8)",
+    "latent_dim": 4,
+    "random_state": 42
+  },
+  "density": {
+    "fit_scope": "train latents only; held-out latents are score-only",
+    "config": {"n_components": 10, "n_init": 2, "random_state": 42},
+    "identity": "conv-vae/digits/train-only"
+  },
+  "execution": {
+    "path_points": 24,
+    "trajectory_query_points": 32,
+    "geodesic": {"n_points": 24, "max_iter": 300, "step_size": 0.3, "tol": 1e-5, "density_exponent": 1.0},
+    "smoothing": {"window": 5, "weighting": "triangular"},
+    "dtw": {"normalization": "path_length", "max_cells": 4096}
+  },
+  "plan_sha256": "eb397b14bac3a0e9fbb68e01952d1133c54334b1f99005608fb33668e37b40ad",
+  "provenance_contract": {
+    "command": "deferred until owner approves design and runner is committed",
+    "git_sha": "deferred",
+    "package_versions": "record exact uv.lock-resolved versions at execution",
+    "runner_source_sha256": "deferred",
+    "status": "deferred_until_committed_run"
+  },
+  "records": [
+    {
+      "acceptance": {
+        "pair_count_min": 128,
+        "finite": true,
+        "real_pair_auc_min": 0.55,
+        "shuffled_label_auc_abs_delta_max": 0.1,
+        "strong_raw_pixel_auc_delta_min": -0.05,
+        "train_only_density_fit": true
+      },
+      "failure": "Fail this record when held-out ranking, the shuffled-label sanity control, or the strong raw-pixel reference comparison misses its threshold.",
+      "gap_ids": ["THY-T01-MANIFOLD-HYPOTHESIS"],
+      "method": "held-out pair path ranking",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "manifold_hypothesis"
+    },
+    {
+      "acceptance": {
+        "angular_additivity_error_max": 1e-9,
+        "dtype": "float64",
+        "endpoint_abs_error_max": 1e-10,
+        "finite": true,
+        "input_mutation": false,
+        "norm_abs_error_max": 1e-10
+      },
+      "failure": "Fail this record when any spherical endpoint, norm, angle, shape/dtype, finiteness, or no-mutation control fails.",
+      "gap_ids": ["THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION"],
+      "method": "LatentSpace geometry='unit_norm' interpolation (T03)",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "slerp_spherical"
+    },
+    {
+      "acceptance": {
+        "coefficient_residual_max": 1e-12,
+        "dtype": "float64",
+        "endpoint_abs_error_max": 1e-12,
+        "finite": true,
+        "input_mutation": false
+      },
+      "failure": "Fail this record on endpoint, coefficient, shape/dtype, finiteness, or no-mutation failure.",
+      "gap_ids": ["THY-T04-LERP-LINEAR-INTERPOLATION"],
+      "method": "latent_anything.methods.Lerp over ConvVAE LatentSpace",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "lerp_euclidean"
+    },
+    {
+      "acceptance": {
+        "converged": true,
+        "endpoint_abs_error_max": 1e-10,
+        "finite": true,
+        "max_iterations": 300,
+        "mean_log_density_delta_min": -1e-6,
+        "train_only_density_fit": true
+      },
+      "failure": "Fail this record when the bounded optimizer does not converge, endpoints drift, values are non-finite, or the path falls materially below the LERP density baseline.",
+      "gap_ids": ["THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN"],
+      "method": "DensityGeodesic over train-fitted GaussianMixtureDensity",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "riemannian_density_geodesic"
+    },
+    {
+      "acceptance": {
+        "angular_additivity_error_max": 1e-9,
+        "dtype": "float64",
+        "endpoint_abs_error_max": 1e-10,
+        "finite": true,
+        "input_mutation": false,
+        "norm_abs_error_max": 1e-10
+      },
+      "failure": "Fail this record when any spherical endpoint, norm, angle, shape/dtype, finiteness, or no-mutation control fails.",
+      "gap_ids": ["THY-T04-SLERP"],
+      "method": "LatentSpace geometry='unit_norm' interpolation (T04)",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "slerp_latent_operation"
+    },
+    {
+      "acceptance": {
+        "independent_pair_trials_min": 128,
+        "ranking_auc_min": 0.6,
+        "finite": true,
+        "input_mutation": false,
+        "median_self_to_unrelated_ratio_max": 0.9,
+        "median_self_to_indexwise_ratio_max": 0.95,
+        "no_self_mapping": true,
+        "unequal_lengths": true
+      },
+      "failure": "Fail this record when 128 independent held-out pair-path trials do not beat indexwise and deranged unrelated-pair controls, or temporal outputs violate shape/dtype/finiteness/no-mutation checks.",
+      "gap_ids": ["THY-T06-TRAJECTORY-SIMILARITY-METRICS"],
+      "method": "Trajectory + temporal smoothing + DTW",
+      "verdict": "not-run",
+      "accepted": null,
+      "record_id": "trajectory_similarity_dtw"
+    }
+  ],
+  "resource_contract": {
+    "cleanup": "retain immutable artifact/run record; remove only temporary plots/cache if any",
+    "network": "offline",
+    "peak_rss": "not measured; M14 estimate only"
+  },
+  "runner_functions": [
+    "load_and_split_digits",
+    "fit_train_only_conv_vae",
+    "build_heldout_latent_paths",
+    "evaluate_independent_records",
+    "build_benchmark_payload",
+    "write_artifact_and_run_record"
+  ],
+  "schema_version": "m14-l02-geometry-plan-v1",
+  "status": "design-in-review",
+  "trajectory_semantics": {
+    "chance_control": "deterministic derangement of the 128 held-out pair paths using a seed derived from 42; no pair path maps to itself",
+    "frechet": "not available in the stable project API; no Frechet claim or invented implementation",
+    "label": "model-induced latent sequences from held-out real sklearn digits samples",
+    "not_claimed": "recorded physical trajectories",
+    "warp": "each held-out 24-point latent pair path is monotonically resampled into its own 32-point unequal-length query"
+  },
+  "artifact_schema": {
+    "schema_version": "m14-l02-geometry-artifact-v1",
+    "status": "created only by an explicit committed run",
+    "verdicts": "independent per-record outcomes with optional partial promotion",
+    "required_fields": ["artifact_sha256", "accepted_gap_ids", "dataset", "model", "density", "backend_versions", "input_digests", "provenance", "plan_sha256", "records"]
+  },
+  "run_record_schema": {
+    "schema_version": "m14-l02-geometry-run-v1",
+    "status": "created only by an explicit committed run",
+    "provenance": "requires exact git_sha and runner_source_sha256",
+    "required_fields": ["artifact_sha256", "plan_sha256", "runner_source_sha256", "contract_source_sha256", "git_sha", "command", "timestamp_utc", "status", "network", "credentials", "cleanup", "resource_measurement", "accepted_record_ids"]
+  },
+  "baseline_contract": {
+    "chance": {
+      "method": "balanced pair scores with labels permuted by RNG seed 42; trajectory positives and deranged unrelated-pair negatives are scored independently",
+      "expected_auc": 0.5,
+      "acceptance": "report; shuffled-label AUC must remain within +/-0.10 of 0.50"
+    },
+    "shuffled": {
+      "method": "fixed permutation of held-out labels and deterministic derangement of the 128 held-out pair paths",
+      "acceptance": "must not produce a positive claim; report exact derangement and pair-path digests"
+    },
+    "strong": {
+      "method": "raw-pixel Euclidean endpoint/path score on the same held-out pairs, with any density fit train-only",
+      "acceptance": "latent pair-ranking AUC must be no more than 0.05 below this reference; report both",
+      "rationale": "five AUC points is a predeclared practical-equivalence margin, not a claim of superiority"
+    },
+    "trajectory_alignment": {
+      "method": "fixed indexwise distance is the non-warping reference; each pair path has a monotone 32-point query, and DTW must improve indexwise plus deranged unrelated-pair controls",
+      "acceptance": "median self-to-indexwise <= 0.95 and median self-to-unrelated <= 0.90 across 128 independent trials"
+    }
+  },
+  "determinism_contract": {
+    "seed": 42,
+    "rng": "np.random.default_rng(42) for split, pair selection, and controls",
+    "repeat": "execute the design-approved runner twice and require identical payload digest before promotion",
+    "mutation": "snapshot all input arrays and require byte-identical inputs after every record computation"
+  }
+}
