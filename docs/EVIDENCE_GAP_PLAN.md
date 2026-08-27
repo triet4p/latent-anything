@@ -1,21 +1,22 @@
 # Theory evidence-gap closure plan
 
 This is the Sprint 78.38 execution plan for the non-qualifying theory rows,
-updated with the Sprint 79 L02 partial result. The levels in
+updated with the Sprint 79 L02 and L03 results. The levels in
 [`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative; the
-immutable L02 artifact supports exactly four D2 promotions. The row-level
+immutable L02 artifact supports exactly four D2 promotions and the immutable
+L03 artifact supports exactly three D2 promotions. The row-level
 machine-readable map is
 [`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **30/63 core (47.6%)** and
-**30/65 overall (46.2%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **33/63 core (52.4%)** and
+**33/65 overall (50.8%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **35 current D0/D1
-rows** in this plan: **33 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **30 additional core qualifiers** are required to reach
-`ceil(0.95 × 63) = 60`; at least **29 additional overall qualifiers** are
+denominator adds two applicable X01 rows. There are exactly **32 current D0/D1
+rows** in this plan: **30 core** and **2 non-core**. A qualifying row is D2 or
+D3, so at least **27 additional core qualifiers** are required to reach
+`ceil(0.95 × 63) = 60`; at least **26 additional overall qualifiers** are
 required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
 binding gate. Headline model, causal explanation, and named integration claims
 target D3; ordinary algorithm capabilities target D2 unless their row says
@@ -45,13 +46,40 @@ and are not promoted. The lane concerns model-induced latent sequences from
 held-out sklearn digits, not recorded physical trajectories, and makes no
 Fréchet claim.
 
+### Sprint 79 L03 result
+
+The remote CUDA run used the pinned `openai-community/gpt2` revision through
+the concrete `TransformerLMIntegration` and produced the validated artifact
+[`l03-analysis.json`](../artifacts/m14/l03-analysis.json) with self-digest
+`60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`. Its
+final run record digest is
+`0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a` and the
+plan digest is
+`fe2a85a1691c0fe362fc5f39434898d6ea8968aeec8450a7bb61ba55fd94cfd5`.
+Exactly three independent records are promoted to D2:
+`THY-T03-LINEAR-STRUCTURE-TRONG-LATENT`, `THY-T05-LINEAR-PROBING`, and
+`THY-T05-NONLINEAR-PROBING`.
+
+The evidence is forward-only real pinned GPT-2 with concrete
+`TransformerLMIntegration`, real PCA/`LinearProbe`/`MLPProbe`, and the
+sklearn-digits glyph control. It does not claim a separate GPT-2
+`ModelAdapter` or an L11 promotion; the raw-glyph baseline is an expected
+diagnostic because GPT-2 was not trained for this synthetic ASCII task.
+The focused network suite repeatedly returned **6 passed / 2 failed** because
+the tuple-return hook intervention is incompatible with the capture seam.
+This remains an unresolved release blocker/follow-up and does not reduce the
+forward-only L03 evidence or imply that all transformer network tests are
+green. Attempts 1–3 remain preserved capture-only failures; attempt 4 is
+represented by the sanitized capture audit after its raw transcript was
+deleted.
+
 The validator command is:
 
 ```text
 uv run python scripts/validate_evidence_ledger.py
 ```
 
-It must continue to report the honest current 30/63 and 30/65 result while
+It must continue to report the honest current 33/63 and 33/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 

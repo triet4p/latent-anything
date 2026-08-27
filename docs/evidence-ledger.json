@@ -192,10 +192,14 @@
       ]
     },
     "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/methods/pca.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_pca.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_pca.py"},
+        {"role": "benchmark", "path": "scripts/m14_l03_analysis.py"},
+        {"role": "config", "path": "artifacts/m14/l03-analysis.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.run.json"}
       ]
     },
     "THY-T03-ISOTROPY-VS-ANISOTROPY": {
@@ -310,6 +314,28 @@
         {"role": "test", "path": "tests/test_latent_anything/test_covariance_geometry.py"},
         {"role": "benchmark", "path": "scripts/anisotropy_benchmark.py"},
         {"role": "config", "path": "src/latent_anything/covariance.py"}
+      ]
+    },
+    "THY-T05-LINEAR-PROBING": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/probes.py"},
+        {"role": "test", "path": "tests/test_probes.py"},
+        {"role": "benchmark", "path": "scripts/m14_l03_analysis.py"},
+        {"role": "config", "path": "artifacts/m14/l03-analysis.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.run.json"}
+      ]
+    },
+    "THY-T05-NONLINEAR-PROBING": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/mlp_probe.py"},
+        {"role": "test", "path": "tests/test_probes.py"},
+        {"role": "benchmark", "path": "scripts/m14_l03_analysis.py"},
+        {"role": "config", "path": "artifacts/m14/l03-analysis.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.json"},
+        {"role": "artifact", "path": "artifacts/m14/l03-analysis.run.json"}
       ]
     },
     "THY-T05-ACTIVATION-PATCHING": {

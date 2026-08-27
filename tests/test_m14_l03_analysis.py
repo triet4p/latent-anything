@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import importlib
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
+import scripts.m14_l03_analysis as analysis_module
 from scripts.m14_l03_analysis import check
 from scripts.m14_l03_data import glyph_prompt, grouped_digit_split, validate_group_labels
 from scripts.m14_l03_envelope import (
@@ -44,12 +47,47 @@ def _cleanup_evidence() -> dict[str, object]:
     }
 
 
-def test_plan_is_immutable_and_check_has_no_result_artifact() -> None:
+def test_plan_is_immutable_and_check_preserves_result_artifacts() -> None:
     plan = load_plan()
+    root = Path(__file__).parents[1]
+    result_paths = (root / "artifacts/m14/l03-analysis.json", root / "artifacts/m14/l03-analysis.run.json")
+    before = {path: path.read_bytes() for path in result_paths if path.exists()}
+
     assert plan["plan_sha256"] == plan_digest(plan)
-    assert not (Path(__file__).parents[1] / "artifacts/m14/l03-analysis.json").exists()
-    assert not (Path(__file__).parents[1] / "artifacts/m14/l03-analysis.run.json").exists()
     assert check()["plan_sha256"] == plan["plan_sha256"]
+    assert {path: path.read_bytes() for path in result_paths if path.exists()} == before
+
+
+def test_import_and_check_preserve_preexisting_accepted_outputs() -> None:
+    root = Path(__file__).parents[1]
+    result_paths = (root / "artifacts/m14/l03-analysis.json", root / "artifacts/m14/l03-analysis.run.json")
+    before = {path: path.read_bytes() for path in result_paths}
+
+    imported = importlib.reload(analysis_module)
+    completed = subprocess.run(
+        ["uv", "run", "python", "-m", "scripts.m14_l03_analysis", "--check"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert imported.check()["plan_sha256"] == load_plan()["plan_sha256"]
+    assert completed.stdout
+    assert {path: path.read_bytes() for path in result_paths} == before
+
+
+def test_check_keeps_absent_outputs_absent_in_temp_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    plan = load_plan()
+    monkeypatch.setattr(analysis_module, "load_plan", lambda: plan)
+    artifact_path = tmp_path / "artifacts/m14/l03-analysis.json"
+    run_path = tmp_path / "artifacts/m14/l03-analysis.run.json"
+
+    assert not artifact_path.exists()
+    assert not run_path.exists()
+    assert analysis_module.check()["plan_sha256"] == plan["plan_sha256"]
+    assert not artifact_path.exists()
+    assert not run_path.exists()
 
 
 def test_grouped_split_has_zero_prompt_overlap_and_auditable_counts() -> None:
@@ -229,6 +267,9 @@ def test_artifact_validation_detects_implementation_digest_mismatch() -> None:
 
 def test_build_artifact_has_valid_self_digest_without_writing() -> None:
     plan = load_plan()
+    root = Path(__file__).parents[1]
+    result_paths = (root / "artifacts/m14/l03-analysis.json", root / "artifacts/m14/l03-analysis.run.json")
+    before = {path: path.read_bytes() for path in result_paths}
     records = [
         {"record_id": record["record_id"], "gap_id": record["gap_id"], "accepted": False, "verdict": "failed"}
         for record in plan["records"]
@@ -267,7 +308,7 @@ def test_build_artifact_has_valid_self_digest_without_writing() -> None:
     assert final_report["status"] == "success"
     assert final_report["artifact"] == artifact
     assert validate_report(final_report, plan) == []
-    assert not (Path(__file__).parents[1] / "artifacts/m14/l03-analysis.json").exists()
+    assert {path: path.read_bytes() for path in result_paths} == before
 
 
 def test_batched_feature_extraction_preserves_order_pooling_and_release() -> None:

@@ -1,0 +1,65 @@
+{
+  "schema_version": "m14-l03-capture-audit-v1",
+  "lane": "M14-L03",
+  "attempt": 4,
+  "status": "sanitized_capture_audit",
+  "source": {
+    "git_sha": "bb0da6fdc4fb00950ce4cb574ec83e8a9344db8b",
+    "plan_sha256": "fe2a85a1691c0fe362fc5f39434898d6ea8968aeec8450a7bb61ba55fd94cfd5",
+    "command": "uv run python -m scripts.m14_l03_analysis --run-real"
+  },
+  "raw_transcript": {
+    "path": "artifacts/m14/l03-analysis.attempt4.raw-transcript.txt",
+    "sha256": "79e7e14dc6b1baf5168ef0829cc2181b0e023212b3ace4ce357e603c68d085e7",
+    "size_bytes": 368479,
+    "credential_pattern_matches": 0,
+    "marker_counts": {
+      "L03_REPORT_B64_BEGIN": 1,
+      "L03_REPORT_B64_END": 1
+    },
+    "disposition": "deleted_after_verified_artifact_and_run_record_capture"
+  },
+  "captured_report": {
+    "sha256": "e2acee40bd86e19252bd7b1a6a8bb6070e1bf00db507c51b0e1371cea22d0108",
+    "size_bytes": 275741,
+    "captured": true
+  },
+  "wrapper": {
+    "actual_sha": "bb0da6fdc4fb00950ce4cb574ec83e8a9344db8b",
+    "expected_sha": "bb0da6fdc4fb00950ce4cb574ec83e8a9344db8b",
+    "clone_status": 0,
+    "sync_status": 0,
+    "focused_status": "not-run",
+    "analysis_status": 0,
+    "gpu_name": "NVIDIA GeForce RTX 4060 Ti",
+    "gpu_status": "available",
+    "torch_status": "available",
+    "nvcc_summary": "not-available",
+    "compiler_summary": "CC=gcc-12 CXX=g++-12 CUDAHOSTCXX=g++-12",
+    "host_rss_kb": 2825124,
+    "report_captured": true,
+    "wrapper_exit_status": 0,
+    "checkout_removed": true,
+    "cache_removed": true,
+    "output_captured": true,
+    "isolated_checkout_path": "/tmp/remote-cuda-test.F0de65/repo",
+    "isolated_cache_paths": [
+      "/tmp/remote-cuda-test.F0de65/uv-cache",
+      "/tmp/remote-cuda-test.F0de65/torch-extensions",
+      "/tmp/remote-cuda-test.F0de65/cuda-cache",
+      "/tmp/remote-cuda-test.F0de65/hf-cache"
+    ]
+  },
+  "verified_outputs": {
+    "artifact_path": "artifacts/m14/l03-analysis.json",
+    "artifact_sha256": "60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b",
+    "run_record_path": "artifacts/m14/l03-analysis.run.json",
+    "run_record_sha256": "0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a",
+    "accepted_gap_ids": [
+      "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
+      "THY-T05-LINEAR-PROBING",
+      "THY-T05-NONLINEAR-PROBING"
+    ]
+  },
+  "audit_sha256": "bfc2c089642b637bb230cc7f25da13e9f16fcacd3d72e3d821ae513bad7ed42e"
+}

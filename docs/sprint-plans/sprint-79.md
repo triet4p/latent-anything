@@ -23,10 +23,17 @@ Status legend: [ ] pending / [~] in progress / [x] done
   promote only the four validator-backed D2 records and retain the manifold and
   trajectory-similarity failures. See [`l02-geometry.json`](../../artifacts/m14/l02-geometry.json)
   and [`task_79.4C_summary.md`](../../artifacts/task_79.4C_summary.md).
+- [x] Execute M14 L03 on the pinned real GPT-2 forward-only lane; promote only
+  the three validator-backed D2 records for linear structure, linear probing,
+  and nonlinear probing. Preserve attempts 1–3 as capture-only failures and
+  retain the focused 6-pass/2-fail hook-capture blocker. See
+  [`l03-analysis.json`](../../artifacts/m14/l03-analysis.json), the
+  [`capture audit`](../../artifacts/m14/l03-analysis.attempt4.capture-audit.json),
+  and [`task_79_l03_phase_b_summary.md`](../../artifacts/task_79_l03_phase_b_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
-- [ ] Execute the exhaustive [theory evidence-gap plan](../EVIDENCE_GAP_PLAN.md) and its row-level [machine-readable map](../../artifacts/task_78.38_gap_map.json); keep D0/D1 statuses unchanged until the validator-backed D2/D3 artifacts exist.
+- [ ] Execute the exhaustive [theory evidence-gap plan](../EVIDENCE_GAP_PLAN.md) and its row-level [machine-readable map](../../artifacts/task_78.38_gap_map.json); keep D0/D1 statuses unchanged until validator-backed D2/D3 artifacts exist, as demonstrated by the L03 promotion.
 - [ ] Use the [migration guide](../MIGRATION.md) and [API reference](../API_REFERENCE.md) as the human entry points to the checked-in compatibility snapshot during RC verification.
 - [ ] Execute the pinned real-model matrix: Diffusers VAE/conditional diffusion, GPT-2, I-JEPA, VQ/tokenized/world-model paths, ACT, Diffusion Policy, and SmolVLA; record the named 3DGS checkpoint or keep L17 blocked.
 - [ ] Execute explanation-validity controls and confirm the theory ledger meets 95% core / 90% overall D2-or-D3 thresholds.
@@ -40,6 +47,8 @@ Status legend: [ ] pending / [~] in progress / [x] done
 
 No percentage waiver may hide an implementation-applicable core theory gap. Any exclusion must have been classified and justified in the Sprint 27 ledger. SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and unnamed 3DGS are not stable API claims; they remain explicit backlog/blocker rows.
 
-Sprint 78.38 records the current denominator and all 40 non-qualifying rows;
-Sprint 79 owns execution in dependency order. The named 3DGS checkpoint and
-corrected SmolVLA rerun remain explicit blockers, not evidence promotions.
+Sprint 78.38 records the starting denominator and all 40 gap records; the
+updated map now records 33 qualifying rows after L03. Sprint 79 owns execution
+in dependency order. The focused L03 tuple-return hook blocker, named 3DGS
+checkpoint, and corrected SmolVLA rerun remain explicit blockers, not evidence
+promotions.

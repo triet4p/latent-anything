@@ -405,3 +405,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Python puts the script directory on `sys.path` for direct-file execution, not the repository root package context required by absolute `scripts.*` sibling imports.
 **Fix / workaround:** Use the package-aware canonical command `uv run python -m scripts.m14_l02_geometry`; add a side-effect-free `--check` mode to validate imports and the exact plan before a real run.
 **Watch out for:** Any repository script using absolute sibling-package imports will fail when launched by file path; document and test module execution instead of adding `sys.path` hacks.
+
+## [2026-08-27] Remote capture wrappers must persist report bytes before cleanup
+
+**Symptom:** Three remote L03 capture attempts reached the real runner but lost the report during wrapper normalization, transfer, or local marker parsing; the cleanup trap then removed the only remote copy.
+**Root cause:** The wrapper emitted or deleted report data in the wrong order, parsed base64 marker lines as ordinary key/value metadata, and used system `python` even though only the uv-managed interpreter existed on the remote image.
+**Fix / workaround:** Emit report bytes inside the remote command before the cleanup trap, persist the raw local transcript before parsing, parse base64 begin/end markers before key/value metadata, use `uv run python` rather than system `python`, and rehearse the exact transcript parser before the canonical run. Preserve each failed attempt as an unchanged capture-only record; sanitize and retain audit metadata after verified output capture.
+**Watch out for:** Any remote evidence lane whose output is captured over SSH must make report persistence precede cleanup, keep raw bytes until digest verification, and distinguish wrapper/capture failures from runner metrics or focused network-test failures.

@@ -1,0 +1,55 @@
+{
+  "accepted_gap_ids": [],
+  "accepted_record_ids": [],
+  "artifact_name": "artifacts/m14/l03-analysis.json",
+  "artifact_sha256": null,
+  "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+  "cleanup_status": "pending_external_wrapper",
+  "command": "uv run python -m scripts.m14_l03_analysis --run-real",
+  "contract_source_sha256": "c2bae5c55b952b80965ffe3e7642d18a4385000b5c7ace294776faf3a052f171",
+  "error": "remote wrapper could not capture the canonical analysis stdout JSON: system python is unavailable (python: command not found); the required trap deleted the uncaptured output",
+  "error_type": "RuntimeError",
+  "git_sha": "bb0da6fdc4fb00950ce4cb574ec83e8a9344db8b",
+  "implementation_source_files": {
+    "m14_l03_analysis.py": "053dcd17c8629a59b92c972328b79ff379b6fda11569baa734f591e32a850e3f",
+    "m14_l03_data.py": "cef877756a245ab591b75feabbefe9de315d7f5bf20c56f143ec1182d37b20f9",
+    "m14_l03_envelope.py": "88f23f463aa4cbfc9ed6778c82b672eb5204437a6023426951df38423c83faea",
+    "m14_l03_features.py": "8ffd532f8b16883f2957a05b40fedb8ac78991bdc80d867e8fd425a1b809e608",
+    "m14_l03_finalize.py": "ad2bbcb878837379f7126aa8818019fdb3d944cce6112cdf3df4da6080736476",
+    "m14_l03_metrics.py": "ec0c62330223744b68b1765f31d8d72c9da40d041ef8cd2e8038f9344cdf54cc",
+    "m14_l03_plan.py": "c2bae5c55b952b80965ffe3e7642d18a4385000b5c7ace294776faf3a052f171"
+  },
+  "implementation_source_sha256": "303b321fd70c752d7cc1be853130c4b7ebb5a2f2ffde3a4bcc9b149fa507754d",
+  "lane": "M14-L03",
+  "plan_sha256": "fe2a85a1691c0fe362fc5f39434898d6ea8968aeec8450a7bb61ba55fd94cfd5",
+  "resource_measurement": {
+    "remote_wrapper": {
+      "analysis_status": 125,
+      "cache_removed": true,
+      "checkout_removed": true,
+      "clone_status": 0,
+      "compiler_summary": "CC=gcc-12 CXX=g++-12 CUDAHOSTCXX=g++-12",
+      "focused_status": 1,
+      "gpu_name": "NVIDIA GeForce RTX 4060 Ti",
+      "gpu_status": "available",
+      "host_rss_kb": 2800484,
+      "isolated_cache_paths": [
+        "/tmp/remote-cuda-test.CqlJN8/uv-cache",
+        "/tmp/remote-cuda-test.CqlJN8/torch-extensions",
+        "/tmp/remote-cuda-test.CqlJN8/cuda-cache",
+        "/tmp/remote-cuda-test.CqlJN8/hf-cache"
+      ],
+      "isolated_checkout_path": "/tmp/remote-cuda-test.CqlJN8/repo",
+      "nvcc_summary": "not-available",
+      "output_captured": false,
+      "sync_status": 0,
+      "torch_status": "available",
+      "wrapper_exit_status": 0
+    }
+  },
+  "run_record_sha256": "2e329b6b1d3082a3964e5fbbe2a17102ab4130691aa4cb6acf1cdffb68b729a8",
+  "runner_source_sha256": "053dcd17c8629a59b92c972328b79ff379b6fda11569baa734f591e32a850e3f",
+  "schema_version": "m14-l03-analysis-run-v1",
+  "status": "runner_failed_cleanup_pending",
+  "timestamp_utc": "2026-08-27T07:06:36.715476Z"
+}

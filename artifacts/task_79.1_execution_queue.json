@@ -1,7 +1,7 @@
 {
   "schema_version": "sprint79-execution-queue-v1",
   "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
-  "source_commit": "f3d0c82e52630e1e38b1e5f8f7f4827e2fcedac4",
+  "source_commit": "bb0da6fdc4fb00950ce4cb574ec83e8a9344db8b",
   "source_documents": [
     "docs/M14_REAL_SYSTEM_VALIDATION.md",
     "docs/EVIDENCE_GAP_PLAN.md",
@@ -152,13 +152,13 @@
     {
       "lane_id": "L01",
       "surface": "LatentSpace, LatentValue, PipelineContract, Result",
-      "source_tests_evidence": "`latent_space.py`, `latent_value.py`, `pipeline.py` → core unit tests, D1",
-      "real_target_backend": "sklearn digits split; NumPy/PyTorch CPU",
-      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_latent_space.py tests/test_latent_anything/test_latent_value.py -q`",
-      "acceptance_artifact": "finite shapes/dtypes, stable schema, no input mutation; `artifacts/m14/l01-core.json`",
+      "source_tests_evidence": "`latent_space.py`, `latent_value.py`, `pipeline.py`, `adapters/conv_vae.py` → core tests and `scripts/m14_l01_core.py`, D2",
+      "real_target_backend": "sklearn digits split; existing ConvVAE + AnalysisPipeline/PCA; NumPy/PyTorch CPU",
+      "environment_command": "local; `uv run python scripts/m14_l01_core.py` and `uv run pytest tests/test_m14_l01_core.py -q`",
+      "acceptance_artifact": "held-out reconstruction vs zero baseline, finite shapes/dtypes, stable schema/digest, no input mutation; `artifacts/m14/l01-core.json`",
       "artifact_path": "artifacts/m14/l01-core.json",
-      "resources_network_cleanup": "<1 GB, offline; remove temp files",
-      "status_blocker_owner": "planned; no blocker; API owner",
+      "resources_network_cleanup": "resource peak not measured; M14 estimate only; offline; output artifact/run record retained",
+      "status_blocker_owner": "verified D2; no blocker; API owner",
       "gap_record_ids": [
         "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
       ],
@@ -167,13 +167,13 @@
     {
       "lane_id": "L02",
       "surface": "geometry: covariance, projection, SO3/SE3, DTW, smoothing",
-      "source_tests_evidence": "`geometry.py`, `projection.py`, `pose.py`, `dtw.py`, `temporal.py` → focused tests, D1/D2 synthetic",
-      "real_target_backend": "real recorded trajectory substitute: `tests/fixtures/` + sklearn digits labels; NumPy/SciPy CPU",
-      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_covariance_geometry.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_pose.py tests/test_dtw.py tests/test_temporal.py -q`",
-      "acceptance_artifact": "metric invariants, valid rotations, DTW path, boundary/smoothing thresholds; `artifacts/m14/l02-geometry.json`",
+      "source_tests_evidence": "`geometry.py`, `projection.py`, `pose.py`, `dtw.py`, `temporal.py`, `scripts/m14_l02_plan.py`, `scripts/m14_l02_data.py`, `scripts/m14_l02_metrics.py`, `scripts/m14_l02_envelope.py`, `scripts/m14_l02_geometry.py` → focused tests, D1/D2 synthetic; design contract [`l02-geometry.plan.json`](../artifacts/m14/l02-geometry.plan.json)",
+      "real_target_backend": "real sklearn digits held-out substitute with existing ConvVAE; model-induced latent sequences (not recorded physical trajectories); NumPy/SciPy CPU",
+      "environment_command": "local; side-effect-free validation: `uv run python -m scripts.m14_l02_geometry --check`; real runner: `uv run python -m scripts.m14_l02_geometry`; focused tests: `uv run pytest tests/test_m14_l02_geometry.py -q`",
+      "acceptance_artifact": "six independent manifold/T03-SLERP/T04-LERP/Riemannian/T04-SLERP/DTW verdicts with train-only density, 128 independent pair-path DTW trials, chance/shuffled/raw-pixel strong controls, endpoint/norm/angle tolerances; accepted artifact remains `artifacts/m14/l02-geometry.json`",
       "artifact_path": "artifacts/m14/l02-geometry.json",
-      "resources_network_cleanup": "<1 GB, offline; delete generated plots",
-      "status_blocker_owner": "planned; 3D external backends absent; geometry owner",
+      "resources_network_cleanup": "offline; peak RSS not measured; retain run record and remove temporary plots/cache",
+      "status_blocker_owner": "79.4C invocation fix; partial verified D2 for 4/6 records; manifold and DTW records failed honestly; no stable Fréchet or physical-trajectory claim; geometry owner",
       "gap_record_ids": [
         "THY-T01-MANIFOLD-HYPOTHESIS",
         "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
@@ -187,13 +187,13 @@
     {
       "lane_id": "L03",
       "surface": "analysis: KMeans, probes, feature ranking",
-      "source_tests_evidence": "`clustering.py`, `probes.py`, `mlp_probe.py` → analysis tests, D1",
+      "source_tests_evidence": "`clustering.py`, `probes.py`, `mlp_probe.py` → analysis tests, D2; concrete `TransformerLMIntegration` real forward path",
       "real_target_backend": "GPT-2 hidden states on `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; sklearn digits labels",
-      "environment_command": "local CPU first, optional remote; `uv run pytest tests/test_clustering.py tests/test_probes.py -q`",
-      "acceptance_artifact": "seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json`",
+      "environment_command": "remote CUDA; `uv run python -m scripts.m14_l03_analysis --run-real`",
+      "acceptance_artifact": "three independent accepted D2 records with seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json` self-digest `60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`; run record `0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a`",
       "artifact_path": "artifacts/m14/l03-analysis.json",
-      "resources_network_cleanup": "~2–4 GB CPU, model download/cache; purge disposable HF cache",
-      "status_blocker_owner": "planned; model license/access capture; analysis owner",
+      "resources_network_cleanup": "RTX 4060 Ti, CUDA 12.8, disposable clone/cache cleanup; report capture audit retained, raw transcript superseded and deleted",
+      "status_blocker_owner": "verified D2 forward-only; focused transformer network suite remains 6 passed/2 failed on tuple-return hook capture; no separate GPT-2 ModelAdapter or L11 claim; analysis owner",
       "gap_record_ids": [
         "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
         "THY-T05-LINEAR-PROBING",
@@ -835,16 +835,16 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run the L02 geometry/temporal focused suite and predeclared manifold metric benchmark",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "finite metrics; declared manifold/geodesic threshold; no input mutation",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "none known; threshold must be predeclared"
+      "blocker": "held-out ranking threshold failed; rerun requires owner direction"
     },
     {
       "position": 14,
       "record_id": "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
       "lane_id": "L02",
-      "current_evidence": "D1",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 2,
       "internal_dependencies": [
@@ -854,16 +854,16 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run L02 geometry benchmark including lerp-vs-slerp controls",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "endpoint/angle/norm tolerances and digest pass",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "none known; benchmark fixture to be recorded"
+      "blocker": "none"
     },
     {
       "position": 15,
       "record_id": "THY-T04-LERP-LINEAR-INTERPOLATION",
       "lane_id": "L02",
-      "current_evidence": "D1",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 2,
       "internal_dependencies": [
@@ -873,16 +873,16 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "include LERP in L02 geometry benchmark",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "endpoint and movement thresholds with deterministic digest",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "none known"
+      "blocker": "none"
     },
     {
       "position": 16,
       "record_id": "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
       "lane_id": "L03",
-      "current_evidence": "D1",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 2,
       "internal_dependencies": [
@@ -895,7 +895,7 @@
       "command": "uv run pytest tests/test_latent_anything/test_clustering.py tests/test_latent_anything/test_probes.py -q; run L03 benchmark",
       "acceptance": "predeclared held-out improvement and finite/stable digest",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "GPT-2 model/license/cache capture"
+      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
     },
     {
       "position": 17,
@@ -1053,7 +1053,7 @@
       "position": 25,
       "record_id": "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
       "lane_id": "L02",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 3,
       "internal_dependencies": [
@@ -1063,16 +1063,16 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "extend L02 geodesic benchmark with metric/geodesic controls",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "finite path; declared path-quality and convergence thresholds",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "approved non-Euclidean benchmark fixture needed"
+      "blocker": "none"
     },
     {
       "position": 26,
       "record_id": "THY-T04-SLERP",
       "lane_id": "L02",
-      "current_evidence": "D1",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 3,
       "internal_dependencies": [
@@ -1082,10 +1082,10 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "include T04 Slerp path in L02 benchmark and artifact",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "declared norm and endpoint tolerances",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "none known"
+      "blocker": "none"
     },
     {
       "position": 27,
@@ -1101,16 +1101,16 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run L02 trajectory similarity benchmark",
+      "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "finite metric and predeclared ranking/held-out threshold",
       "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "Fréchet implementation/acceptance protocol may need owner approval"
+      "blocker": "self-to-indexwise threshold failed; Fréchet remains unavailable"
     },
     {
       "position": 28,
       "record_id": "THY-T05-LINEAR-PROBING",
       "lane_id": "L03",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 3,
       "internal_dependencies": [
@@ -1123,7 +1123,7 @@
       "command": "run L03 probe benchmark",
       "acceptance": "predeclared held-out gain over shuffled baseline and finite metrics",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "GPT-2 model/license/access capture"
+      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
     },
     {
       "position": 29,
@@ -1186,7 +1186,7 @@
       "position": 32,
       "record_id": "THY-T05-NONLINEAR-PROBING",
       "lane_id": "L03",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 4,
       "internal_dependencies": [
@@ -1199,7 +1199,7 @@
       "command": "run L03 MLP benchmark with capacity/random-label/memorization controls",
       "acceptance": "held-out result above predeclared baseline; memorization control fails as expected",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "real hidden-state lane and owner threshold pending"
+      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
     },
     {
       "position": 33,

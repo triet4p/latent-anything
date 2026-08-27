@@ -261,6 +261,27 @@ physical trajectories, and makes no Fréchet claim. Coverage is now 30/63 core
 non-core); 30 additional core and 29 additional overall qualifiers are needed
 for the release gates.
 
+Sprint 79 L03 promotes exactly three independent core rows to D2 through the
+real forward-only pinned GPT-2 lane:
+`THY-T03-LINEAR-STRUCTURE-TRONG-LATENT`, `THY-T05-LINEAR-PROBING`, and
+`THY-T05-NONLINEAR-PROBING`. The concrete integration is
+`TransformerLMIntegration`; this does not claim a separate GPT-2
+`ModelAdapter` or promote L11. The accepted artifact
+(`artifacts/m14/l03-analysis.json`) has self-digest
+`60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`, and the
+final run record has digest
+`0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a` under
+plan `fe2a85a1691c0fe362fc5f39434898d6ea8968aeec8450a7bb61ba55fd94cfd5`.
+The raw glyph baseline is an expected diagnostic for GPT-2's synthetic ASCII
+task. The focused transformer network suite remains an unresolved **6 passed /
+2 failed** tuple-return hook-capture blocker; it does not reduce the
+forward-only L03 evidence or imply that all transformer network tests are
+green. Attempts 1–3 are retained as capture-only failures, while attempt 4's
+raw transcript is superseded by its sanitized capture-audit artifact.
+Current validator coverage is **33/63 core (52.4%)** and **33/65 overall
+(50.8%)**, leaving 32 D0/D1 rows (30 core and 2 non-core); 27 additional core
+and 26 additional overall qualifiers are needed for the release gates.
+
 Sprint 73 adds the external plugin discovery contract as a non-theory API
 capability. Its source evidence is `src/latent_anything/plugin_groups.py`,
 `src/latent_anything/plugin_metadata.py`, and
