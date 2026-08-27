@@ -47,15 +47,25 @@ def record_digest(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def source_digests() -> dict[str, str]:
+def source_digests() -> dict[str, Any]:
     root = Path(__file__).resolve().parent
-    names = ("m14_l03_analysis.py", "m14_l03_plan.py", "m14_l03_data.py", "m14_l03_metrics.py", "m14_l03_envelope.py")
+    names = (
+        "m14_l03_analysis.py",
+        "m14_l03_plan.py",
+        "m14_l03_data.py",
+        "m14_l03_metrics.py",
+        "m14_l03_features.py",
+        "m14_l03_finalize.py",
+        "m14_l03_envelope.py",
+    )
+    file_digests = {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in names}
     return {
         "runner_source_sha256": hashlib.sha256((root / names[0]).read_bytes()).hexdigest(),
         "contract_source_sha256": hashlib.sha256((root / names[1]).read_bytes()).hexdigest(),
         "implementation_source_sha256": hashlib.sha256(
             b"".join((root / name).read_bytes() for name in names)
         ).hexdigest(),
+        "implementation_source_files": file_digests,
     }
 
 
@@ -80,7 +90,7 @@ def runtime_versions() -> dict[str, str]:
 
 
 def validate_artifact(
-    artifact: Mapping[str, Any], plan: Mapping[str, Any], current_sources: Mapping[str, str] | None = None
+    artifact: Mapping[str, Any], plan: Mapping[str, Any], current_sources: Mapping[str, Any] | None = None
 ) -> list[str]:
     errors: list[str] = []
     required_fields = {
@@ -143,6 +153,7 @@ def validate_artifact(
         "runner_source_sha256",
         "contract_source_sha256",
         "implementation_source_sha256",
+        "implementation_source_files",
         "model_id",
         "model_revision",
         "tokenizer",
@@ -157,10 +168,16 @@ def validate_artifact(
         for field in ("runner_source_sha256", "contract_source_sha256", "implementation_source_sha256")
     ):
         errors.append("artifact source digests must be SHA-256 values")
+    if not isinstance(provenance, Mapping) or not isinstance(provenance.get("implementation_source_files"), Mapping):
+        errors.append("artifact implementation source file digests are missing")
+    elif "m14_l03_features.py" not in provenance["implementation_source_files"]:
+        errors.append("feature extractor source digest is missing")
     if current_sources is not None and isinstance(provenance, Mapping):
         for field in ("runner_source_sha256", "contract_source_sha256", "implementation_source_sha256"):
             if provenance.get(field) != current_sources.get(field):
                 errors.append(f"artifact {field} does not match current source")
+        if provenance.get("implementation_source_files") != current_sources.get("implementation_source_files"):
+            errors.append("artifact implementation source files do not match current source")
     if not isinstance(artifact.get("split"), Mapping) or artifact["split"].get("group_overlap") != {
         "train_val": 0,
         "train_test": 0,
@@ -191,7 +208,7 @@ def failure_envelope(
     resources: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a non-promoting, auditable failure report in memory."""
-    return {
+    result = {
         "schema_version": "m14-l03-failure-v1",
         "lane": "M14-L03",
         "status": "failed",
@@ -200,6 +217,7 @@ def failure_envelope(
         "git_sha": git_sha(),
         "source_digests": source_digests(),
         "model_attempt": dict(model_attempt or {}),
+        "runtime_versions": runtime_versions(),
         "resources": dict(resources or {}),
         "error_type": type(error).__name__,
         "error": str(error),
@@ -210,6 +228,10 @@ def failure_envelope(
         "artifact_written": False,
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
     }
+    failed_run = build_failed_run_record(plan, result, resources or {})
+    result["run_record"] = failed_run
+    result["run_record_sha256"] = record_digest(failed_run)
+    return result
 
 
 def git_sha() -> str:
@@ -254,9 +276,10 @@ def build_run_record(
         **sources,
         "command": "uv run python -m scripts.m14_l03_analysis --run-real",
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-        "status": "completed",
+        "status": "runner_completed_cleanup_pending",
         "resource_measurement": dict(resources),
-        "cleanup": "disposable clone and caches removed after report capture",
+        "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+        "cleanup_status": "pending_external_wrapper",
         "accepted_record_ids": list(artifact.get("accepted_record_ids", [])),
         "accepted_gap_ids": list(artifact.get("accepted_gap_ids", [])),
     }
@@ -264,47 +287,31 @@ def build_run_record(
     return result
 
 
-def build_report(plan: Mapping[str, Any], artifact: Mapping[str, Any], run_record: Mapping[str, Any]) -> dict[str, Any]:
-    """Build the single JSON object captured before remote cleanup."""
-    return {
-        "schema_version": "m14-l03-report-v1",
-        "status": "success",
+def build_failed_run_record(
+    plan: Mapping[str, Any], failure: Mapping[str, Any], resources: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Build a failed preliminary run record for later wrapper finalization."""
+    result = {
+        "schema_version": "m14-l03-analysis-run-v1",
+        "lane": "M14-L03",
+        "artifact_name": "artifacts/m14/l03-analysis.json",
+        "artifact_sha256": None,
         "plan_sha256": plan_digest(plan),
-        "artifact": dict(artifact),
-        "run_record": dict(run_record),
-        "run_record_sha256": record_digest(run_record),
+        "git_sha": failure.get("git_sha"),
+        **source_digests(),
+        "command": failure.get("command"),
+        "timestamp_utc": failure.get("timestamp_utc"),
+        "status": "runner_failed_cleanup_pending",
+        "resource_measurement": dict(resources),
+        "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+        "cleanup_status": "pending_external_wrapper",
+        "error_type": failure.get("error_type"),
+        "error": failure.get("error"),
+        "accepted_record_ids": [],
+        "accepted_gap_ids": [],
     }
-
-
-def validate_report(report: Mapping[str, Any], plan: Mapping[str, Any]) -> list[str]:
-    """Validate success envelope linkage and both nested records."""
-    errors: list[str] = []
-    artifact = report.get("artifact")
-    run_record = report.get("run_record")
-    if report.get("schema_version") != "m14-l03-report-v1" or report.get("status") != "success":
-        errors.append("report identity/status is invalid")
-    if not isinstance(artifact, Mapping) or not isinstance(run_record, Mapping):
-        return errors + ["success report must contain artifact and run_record objects"]
-    errors.extend(validate_artifact(artifact, plan, source_digests()))
-    if report.get("plan_sha256") != plan_digest(plan):
-        errors.append("report plan digest is invalid")
-    if report.get("run_record_sha256") != record_digest(run_record):
-        errors.append("report run-record digest is invalid")
-    if run_record.get("artifact_sha256") != artifact.get("artifact_sha256"):
-        errors.append("run record does not link to artifact digest")
-    if run_record.get("plan_sha256") != plan_digest(plan):
-        errors.append("run record plan digest is invalid")
-    if run_record.get("status") != "completed" or not SHA1_RE.fullmatch(str(run_record.get("git_sha", ""))):
-        errors.append("run record status or git SHA is invalid")
-    if run_record.get("accepted_record_ids") != artifact.get("accepted_record_ids"):
-        errors.append("run record accepted IDs do not link to artifact")
-    if run_record.get("git_sha") != artifact.get("provenance", {}).get("git_sha"):
-        errors.append("run record git SHA does not link to artifact")
-    current = source_digests()
-    for field in ("runner_source_sha256", "contract_source_sha256", "implementation_source_sha256"):
-        if run_record.get(field) != current.get(field):
-            errors.append(f"run record {field} does not match current source")
-    return errors
+    result["run_record_sha256"] = record_digest(result)
+    return result
 
 
 def apply_dependency_blocking(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:

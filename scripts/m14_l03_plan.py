@@ -73,6 +73,12 @@ def validate_plan(plan: Mapping[str, Any]) -> list[str]:
         errors.append("model must use the immutable GPT-2 revision")
     if model.get("device") != "cuda" or model.get("inference_batch_size") != 8:
         errors.append("real validation device must be remote CUDA")
+    revision = str(model.get("revision", ""))
+    if (
+        model.get("official_url") != f"https://huggingface.co/{model.get('model_id')}/tree/{revision}"
+        or model.get("license_url") != f"https://huggingface.co/{model.get('model_id')}/blob/{revision}/LICENSE"
+    ):
+        errors.append("model and license URLs must be pinned to the immutable revision")
     report_schema = section(plan, "report_schema")
     if report_schema.get("schema_version") != "m14-l03-report-v1" or "artifact" not in report_schema.get(
         "required_fields", []

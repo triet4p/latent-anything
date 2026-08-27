@@ -13,14 +13,13 @@ from scripts.m14_l03_data import glyph_prompt, grouped_digit_split, validate_gro
 from scripts.m14_l03_envelope import (
     apply_dependency_blocking,
     build_artifact,
-    build_report,
     build_run_record,
     failure_envelope,
     source_digests,
     validate_artifact,
-    validate_report,
 )
 from scripts.m14_l03_features import extract_batched
+from scripts.m14_l03_finalize import build_report, finalize_report, finalize_run_record, validate_report
 from scripts.m14_l03_metrics import compression_ok, paired_bootstrap, wilson_95
 from scripts.m14_l03_plan import load_plan, plan_digest, validate_plan
 
@@ -68,8 +67,8 @@ def test_dependency_predicates_are_independent_but_block_downstream() -> None:
 
 def test_source_provenance_digests_are_sha256() -> None:
     digests = source_digests()
-    assert set(digests) == {"runner_source_sha256", "contract_source_sha256", "implementation_source_sha256"}
-    assert all(len(value) == 64 for value in digests.values())
+    assert {"runner_source_sha256", "contract_source_sha256", "implementation_source_sha256"}.issubset(digests)
+    assert len(digests["implementation_source_files"]["m14_l03_features.py"]) == 64
 
 
 def test_intervals_are_explicit_and_deterministic() -> None:
@@ -85,12 +84,25 @@ def test_intervals_are_explicit_and_deterministic() -> None:
 
 def test_failure_envelope_never_promotes() -> None:
     plan = load_plan()
-    envelope = failure_envelope(plan, RuntimeError("no CUDA"))
+    envelope = failure_envelope(plan, RuntimeError("no CUDA"), model_attempt=plan["model"])
     assert envelope["artifact_written"] is False
     assert envelope["accepted_record_ids"] == []
     assert len(envelope["git_sha"]) == 40
     assert envelope["source_digests"]["implementation_source_sha256"]
+    assert "runtime_versions" in envelope
+    assert envelope["run_record"]["status"] == "runner_failed_cleanup_pending"
+    assert envelope["run_record"]["accepted_record_ids"] == []
+    assert envelope["model_attempt"]["revision"] == plan["model"]["revision"]
+    assert envelope["run_record"]["cleanup_status"] == "pending_external_wrapper"
     assert envelope["error_type"] == "RuntimeError"
+    finalized_failure = finalize_report(
+        envelope,
+        {"checkout_removed": True, "cache_removed": True, "output_captured": True},
+        plan,
+    )
+    assert finalized_failure["status"] == "failed"
+    assert finalized_failure["run_record"]["status"] == "failed"
+    assert finalized_failure["run_record"]["accepted_record_ids"] == []
 
 
 def test_artifact_validation_rejects_bad_digest_and_dependency() -> None:
@@ -121,14 +133,23 @@ def test_artifact_validation_detects_implementation_digest_mismatch() -> None:
         **source_digests(),
         "model_id": "test",
         "model_revision": "0" * 40,
-        "tokenizer": {},
+        "tokenizer": {"class": "test.Tokenizer", "padding": True, "truncation": True},
         "runtime_versions": {},
         "resources": {},
-        "cleanup": "test-only",
+        "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+        "dataset_source": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html",
+        "dataset_license": "BSD-3-Clause",
+        "model_url": "https://huggingface.co/openai-community/gpt2/tree/0000000000000000000000000000000000000000",
+        "tokenizer_class": "test.Tokenizer",
+        "model_config": {"class": "test.Config"},
+        "data_digests": {"content_sha256": "0" * 64},
     }
     artifact = build_artifact(plan, records, split, provenance)
     artifact["provenance"]["implementation_source_sha256"] = "f" * 64
     assert any("implementation_source_sha256" in error for error in validate_artifact(artifact, plan, source_digests()))
+    artifact = build_artifact(plan, records, split, provenance)
+    artifact["provenance"]["implementation_source_files"]["m14_l03_features.py"] = "f" * 64
+    assert any("implementation source files" in error for error in validate_artifact(artifact, plan, source_digests()))
 
 
 def test_build_artifact_has_valid_self_digest_without_writing() -> None:
@@ -143,18 +164,34 @@ def test_build_artifact_has_valid_self_digest_without_writing() -> None:
         **source_digests(),
         "model_id": "test",
         "model_revision": "0" * 40,
-        "tokenizer": {},
+        "tokenizer": {"class": "test.Tokenizer", "padding": True, "truncation": True},
         "runtime_versions": {},
         "resources": {},
-        "cleanup": "test-only",
+        "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+        "dataset_source": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html",
+        "dataset_license": "BSD-3-Clause",
+        "model_url": "https://huggingface.co/openai-community/gpt2/tree/0000000000000000000000000000000000000000",
+        "model_license_url": "https://huggingface.co/openai-community/gpt2/blob/0000000000000000000000000000000000000000/LICENSE",
+        "model_config": {"class": "test.Config", "n_layer": 12},
+        "data_digests": {"content_sha256": "0" * 64},
     }
     artifact = build_artifact(plan, records, split, provenance)
     assert validate_artifact(artifact, plan) == []
     run = build_run_record(plan, artifact, {"gpu": "not-measured-in-unit-test"})
     assert run["plan_sha256"] == plan["plan_sha256"]
     assert run["artifact_sha256"] == artifact["artifact_sha256"]
+    assert run["status"] == "runner_completed_cleanup_pending"
+    assert "pending" in run["cleanup"]
     report = build_report(plan, artifact, run)
     assert validate_report(report, plan) == []
+    cleanup = {"checkout_removed": True, "cache_removed": True, "output_captured": True}
+    final_run = finalize_run_record(run, cleanup)
+    assert final_run["status"] == "completed"
+    assert final_run["cleanup_status"] == "completed_external_wrapper"
+    final_report = finalize_report(report, cleanup, plan)
+    assert final_report["status"] == "success"
+    assert final_report["artifact"] == artifact
+    assert validate_report(final_report, plan) == []
     assert not (Path(__file__).parents[1] / "artifacts/m14/l03-analysis.json").exists()
 
 

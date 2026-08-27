@@ -12,8 +12,8 @@
     "dtype": "float32",
     "forward_only": true,
     "inference_batch_size": 8,
-    "official_url": "https://huggingface.co/openai-community/gpt2/commit/e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
-    "license_url": "https://huggingface.co/openai-community/gpt2/blob/main/LICENSE",
+    "official_url": "https://huggingface.co/openai-community/gpt2/tree/e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "license_url": "https://huggingface.co/openai-community/gpt2/blob/e7da7f221d5bf496a48136c0cd264e630fe9fcc8/LICENSE",
     "adapter_truth": "TransformerLMIntegration is the concrete integration; HiddenStateAdapter is synthetic and excluded"
   },
   "data": {
@@ -102,9 +102,9 @@
     "partial_promotion": "independent record verdicts; dependency failures block downstream records; no D2 without accepted records"
   },
   "artifact_schema": {"schema_version": "m14-l03-analysis-artifact-v1", "required_fields": ["artifact_sha256", "plan_sha256", "split", "records", "provenance", "accepted_record_ids", "accepted_gap_ids"]},
-  "run_record_schema": {"schema_version": "m14-l03-analysis-run-v1", "required_fields": ["git_sha", "artifact_sha256", "plan_sha256", "runner_source_sha256", "timestamp_utc", "resource_measurement", "cleanup"]},
-  "report_schema": {"schema_version": "m14-l03-report-v1", "stdout_encoding": "one JSON object; artifact and run_record nested; no committed output files", "required_fields": ["status", "plan_sha256", "artifact", "run_record", "run_record_sha256"]},
+  "run_record_schema": {"schema_version": "m14-l03-analysis-run-v1", "preliminary_statuses": ["runner_completed_cleanup_pending", "runner_failed_cleanup_pending"], "final_statuses": ["completed", "failed"], "required_fields": ["git_sha", "artifact_sha256", "plan_sha256", "runner_source_sha256", "implementation_source_sha256", "timestamp_utc", "resource_measurement", "cleanup", "cleanup_status"]},
+  "report_schema": {"schema_version": "m14-l03-report-v1", "stdout_encoding": "one JSON object; artifact and preliminary run_record nested; no committed output files", "required_fields": ["status", "plan_sha256", "artifact", "run_record", "run_record_sha256"], "finalizer": "requires wrapper evidence checkout_removed/cache_removed/output_captured=true; preserves artifact bytes and accepted IDs"},
   "provenance_contract": {"command": "uv run python -m scripts.m14_l03_analysis --run-real", "git_sha": "deferred-until-phase-a-commit", "source_digests": "runner, contract, implementation; SHA-256", "dataset": "sklearn.datasets.load_digits source and BSD-3-Clause license", "model_provenance": "model ID, immutable revision, official pinned URL, MIT license URL, tokenizer/config fields", "runtime": "Python, NumPy, SciPy, scikit-learn, Torch, Transformers, CUDA versions", "resources": "GPU identity, CUDA/Torch versions, token distribution, inference batch size/count, peak allocated/reserved memory, host RSS when /usr/bin/time is available; otherwise explicitly not measured", "cleanup": "disposable clone and model/package caches removed by trap after report capture; distinguish runner measurements from wrapper cleanup evidence"},
-  "phase_contract": {"phase_a": "commit/push plan, runner, support modules, tests; no result artifact", "phase_b": "external authenticated PowerShell launches Bash/SSH remote-cuda skill against exact pushed SHA; immutable uncommitted result is reviewed", "phase_c": "separate evidence/docs promotion commit only after owner review"},
-  "plan_sha256": "cb3d4b5adf8637beccef04705eab401e821f3f3e6047b6670b5712075b27322b"
+  "phase_contract": {"phase_a": "commit/push plan, runner, support modules, finalizer, tests; no result artifact", "phase_b": "external authenticated PowerShell launches Bash/SSH remote-cuda skill against exact pushed SHA; runner emits preliminary JSON with cleanup pending; wrapper captures exact bytes and proves isolated checkout/cache/output cleanup", "phase_c": "side-effect-free finalizer validates preliminary report and cleanup evidence, emits final immutable run record without changing artifact metrics/IDs; finalizer handles failed runs too; separate evidence/docs promotion commit only after owner review"},
+  "plan_sha256": "80179bf9ba24cf0888ee2c6982e3b479e4d12265b2ac309f069b482f2f3bc3d2"
 }

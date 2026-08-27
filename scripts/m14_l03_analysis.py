@@ -14,16 +14,15 @@ from scripts.m14_l03_data import array_digest, grouped_digit_split
 from scripts.m14_l03_envelope import (
     apply_dependency_blocking,
     build_artifact,
-    build_report,
     build_run_record,
     failure_envelope,
     git_sha,
     runtime_versions,
     source_digests,
     validate_artifact,
-    validate_report,
 )
 from scripts.m14_l03_features import extract_batched
+from scripts.m14_l03_finalize import build_report, validate_report
 from scripts.m14_l03_metrics import compression_ok, evaluate_linear, evaluate_mlp, fit_train_only_pca
 from scripts.m14_l03_plan import load_plan, section
 
@@ -38,6 +37,7 @@ def check() -> dict[str, Any]:
 def run_real() -> dict[str, Any]:
     """Run the remote-only real model lane and write evidence after validation."""
     plan = load_plan()
+    run_resources: dict[str, Any] = {}
     try:
         split = grouped_digit_split(int(section(plan, "split")["seed"]))
         from latent_anything.clustering import KMeans, KMeansConfig
@@ -73,6 +73,7 @@ def run_real() -> dict[str, Any]:
         inference["cuda_peak_allocated_bytes"] = int(torch.cuda.max_memory_allocated())
         inference["cuda_peak_reserved_bytes"] = int(torch.cuda.max_memory_reserved())
         inference["gpu_name"] = str(torch.cuda.get_device_name())
+        run_resources = {**inference, "host_rss": "not measured by runner"}
         masks = split["partitions"]
         linear_cfg = LinearProbeConfig(
             C=1.0,
@@ -92,7 +93,7 @@ def run_real() -> dict[str, Any]:
         layer_metrics = {
             str(layer): evaluate_linear(hidden[layer], split["labels"], masks, linear_cfg) for layer in (0, 4, 8, 12)
         }
-        linear = evaluate_linear(primary, split["labels"], masks, linear_cfg)
+        linear = layer_metrics["12"]
         pca_features, pca_meta = fit_train_only_pca(primary, masks, components=32)
         pca = evaluate_linear(pca_features, split["labels"], masks, linear_cfg)
         raw_features = split["images"].reshape(len(split["images"]), -1)
@@ -173,22 +174,39 @@ def run_real() -> dict[str, Any]:
                 },
             ]
         )
-        resources: dict[str, Any] = {**inference, "host_rss": "not measured by runner"}
+        resources = run_resources
+        _backend_model, tokenizer, model_config = model._backend()  # pyright: ignore[reportPrivateUsage]
         provenance = {
             "git_sha": git_sha(),
             **source_digests(),
             "model_id": model.model_id,
             "model_revision": model.revision,
             "model": model.provenance,
-            "model_url": f"https://huggingface.co/{model.model_id}/commit/{model.revision}",
-            "model_license_url": "https://huggingface.co/openai-community/gpt2/blob/main/LICENSE",
+            "model_url": f"https://huggingface.co/{model.model_id}/tree/{model.revision}",
+            "model_license_url": f"https://huggingface.co/{model.model_id}/blob/{model.revision}/LICENSE",
             "dataset_source": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html",
             "dataset_license": "BSD-3-Clause",
             "dataset_license_url": "https://github.com/scikit-learn/scikit-learn/blob/main/COPYING",
-            "tokenizer": {"max_length": 64, "padding": True, "truncation": True, "return_tensors": "pt"},
-            "model_config": model.hidden_state_space.metadata,
+            "tokenizer": {
+                "class": f"{tokenizer.__class__.__module__}.{tokenizer.__class__.__name__}",
+                "max_length": 64,
+                "padding": True,
+                "truncation": True,
+                "return_tensors": "pt",
+                "pad_token_id": getattr(tokenizer, "pad_token_id", None),
+                "eos_token_id": getattr(tokenizer, "eos_token_id", None),
+            },
+            "model_config": {
+                "class": f"{model_config.__class__.__module__}.{model_config.__class__.__name__}",
+                "n_layer": getattr(model_config, "n_layer", None),
+                "n_head": getattr(model_config, "n_head", None),
+                "n_embd": getattr(model_config, "n_embd", None),
+                "vocab_size": getattr(model_config, "vocab_size", None),
+                "max_position_embeddings": getattr(model_config, "n_positions", None),
+            },
             "runtime_versions": runtime_versions(),
             "resources": resources,
+            "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
             "wrapper_cleanup_evidence": "reported by remote-cuda wrapper separately",
             "network": "model download/network access required only during remote run",
             "credentials": "none used by runner",
@@ -212,7 +230,7 @@ def run_real() -> dict[str, Any]:
             raise ValueError("invalid L03 report: " + "; ".join(errors))
         return report
     except Exception as error:
-        return failure_envelope(plan, error, model_attempt=section(plan, "model"))
+        return failure_envelope(plan, error, model_attempt=section(plan, "model"), resources=run_resources)
 
 
 def main() -> None:
