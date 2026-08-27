@@ -419,3 +419,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** PyTorch forward hooks observe the complete module return value; decoder transformer blocks place the primary hidden-state Tensor first and retain auxiliary cache or attention values that downstream code still needs.
 **Fix / workaround:** Centralize extraction and reconstruction in a private helper supporting exact Tensor, plain tuple, and plain list outputs. Replace only position 0, preserve tuple auxiliary identities and list type without mutating the original, and reject mappings, empty/non-Tensor primaries, and custom containers where reconstruction is not provably exact. Migrate capture, Integrated Gradients, TCAV, and SAE intervention/observation hooks.
 **Watch out for:** Any new hook consumer that returns a replacement must preserve the original structured container and its auxiliary fields; observe-only hooks should extract the primary Tensor. Keep cleanup, gradient flow, shape validation, and zero-strength identity covered for both Tensor and structured outputs.
+
+## [2026-08-27] GPT-2 block hooks are offset from native hidden-state indices
+
+**Symptom:** A real intervention at `transformer.h.6` changed no value at native hidden-state index 6, causing the network oracle to fail after structured hook-output handling was fixed.
+**Root cause:** Hugging Face GPT-2 appends the input to each block before invoking it, so block `h.L` produces native `output_hidden_states[L + 1]`; native index 0 is the embedding output and the final index is post-`ln_f`.
+**Fix / workaround:** Keep intervention layers as direct zero-based transformer block indices, document the distinction from native capture indices, and assert block 6's effect at native index 7.
+**Watch out for:** Network tests that compare a block intervention against the same-numbered native tuple index are off by one; use a nonconstant direction for final-logit effect checks because an all-ones shift can be removed by LayerNorm.

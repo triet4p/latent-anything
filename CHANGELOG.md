@@ -21,6 +21,8 @@
 
 ### Fixed
 
+- Clarified transformer block intervention indices versus native hidden-state
+  capture indices and corrected the real-checkpoint intervention oracle.
 - Fixed `inspect-dataset` to report the actionable LeRobot installation extra
   when the optional backend is unavailable, while preserving nested dependency
   errors and the existing provider dispatch. (#sprint-78.33)

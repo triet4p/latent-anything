@@ -101,7 +101,7 @@ class TransformerInput:
 
 @dataclass(frozen=True)
 class LayerIndex:
-    """Typed layer index selection for hidden-state capture.
+    """Typed native output index selection for hidden-state capture.
 
     Parameters
     ----------
@@ -244,8 +244,10 @@ class TransformerGenerationRequest:
     capture_hidden_states:
         If True, record all hidden states from all layers.
     capture_layers:
-        Specific layer indices to capture. If empty and
-        ``capture_hidden_states`` is True, captures all layers (0 to n_layers).
+        Specific native ``output_hidden_states`` indices to capture. Native
+        index 0 is the embedding output and transformer block ``L``'s output
+        is index ``L + 1``. If empty and ``capture_hidden_states`` is True,
+        captures all native indices (0 to n_layers).
     top_k_logit_lens:
         Number of top tokens to store in each LogitLensResult (0 = skip).
     """
@@ -306,7 +308,9 @@ class HiddenStateIntervention:
     Parameters
     ----------
     layer:
-        0-based layer index to intervene on.
+        Zero-based transformer block index to intervene on. The runtime maps
+        this value to ``transformer.h.<layer>``; the corresponding native
+        ``output_hidden_states`` block output is at index ``layer + 1``.
     direction:
         Direction vector as ``(1, 1, hidden_dim)`` or
         ``(batch_size, seq_len, hidden_dim)`` non-writable NumPy array.

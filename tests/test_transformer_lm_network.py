@@ -10,12 +10,59 @@ import os
 
 import numpy as np
 import pytest
+import torch
 
 from latent_anything.integrations.transformer_lm import (
     HiddenStateIntervention,
     TransformerGenerationRequest,
     TransformerLMIntegration,
 )
+
+
+def _network_device() -> str:
+    """Select the opt-in device for real network integration tests."""
+    requested = os.environ.get("LATENT_ANYTHING_NETWORK_DEVICE", "cpu").strip().lower()
+    if requested not in {"cpu", "auto", "cuda"}:
+        raise ValueError("LATENT_ANYTHING_NETWORK_DEVICE must be 'cpu', 'auto', or 'cuda'")
+    if requested == "cpu":
+        return "cpu"
+    available = bool(torch.cuda.is_available())
+    if requested == "auto":
+        return "cuda" if available else "cpu"
+    if not available:
+        raise RuntimeError("LATENT_ANYTHING_NETWORK_DEVICE='cuda' requires CUDA availability")
+    return "cuda"
+
+
+def test_network_device_defaults_to_cpu(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep ordinary local/network runs on CPU unless explicitly opted in."""
+    monkeypatch.delenv("LATENT_ANYTHING_NETWORK_DEVICE", raising=False)
+    assert _network_device() == "cpu"
+
+
+@pytest.mark.parametrize(("available", "expected"), [(False, "cpu"), (True, "cuda")])
+def test_network_device_auto_selects_available_cuda(
+    monkeypatch: pytest.MonkeyPatch, available: bool, expected: str
+) -> None:
+    """Auto mode uses CUDA when available and otherwise falls back to CPU."""
+    monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "auto")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: available)
+    assert _network_device() == expected
+
+
+def test_network_device_cuda_requires_availability(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Explicit CUDA mode fails clearly instead of silently falling back."""
+    monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "cuda")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    with pytest.raises(RuntimeError, match="requires CUDA availability"):
+        _network_device()
+
+
+def test_network_device_rejects_invalid_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Reject unsupported device selectors before acquiring a checkpoint."""
+    monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "mps")
+    with pytest.raises(ValueError, match="must be 'cpu', 'auto', or 'cuda'"):
+        _network_device()
 
 
 @pytest.mark.network
@@ -26,7 +73,7 @@ from latent_anything.integrations.transformer_lm import (
 )
 def test_pinned_checkpoint_generates_expected_shape() -> None:
     """Prove the pinned GPT-2 checkpoint produces valid hidden states."""
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="The capital of France is",
         max_length=10,
@@ -51,7 +98,7 @@ def test_pinned_checkpoint_generates_expected_shape() -> None:
 )
 def test_pinned_checkpoint_lens_results() -> None:
     """Verify that the logit lens produces valid probability distributions."""
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="Hello, world",
         max_length=8,
@@ -81,7 +128,7 @@ def test_logit_lens_final_layer_parity() -> None:
     The direct logit lens with the model's own final LayerNorm + LM head
     should produce logits identical to the model's forward pass output.
     """
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="Once upon a time",
         max_length=10,
@@ -113,7 +160,7 @@ def test_logit_lens_final_layer_parity() -> None:
 def test_logit_lens_layer_evolution() -> None:
     """Verify that logit lens results change across layers (deeper layers
     should produce different distributions than shallow layers)."""
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="The meaning of life is",
         max_length=8,
@@ -152,9 +199,8 @@ def test_logit_lens_layer_evolution() -> None:
     reason="set LATENT_ANYTHING_RUN_NETWORK=1 to acquire or validate the pinned checkpoint",
 )
 def test_intervention_changes_hidden_states() -> None:
-    """Verify that a bounded activation intervention modifies hidden states
-    at the target layer (Task 6)."""
-    pipe = TransformerLMIntegration(device="cpu")
+    """Verify that block intervention changes its native output state."""
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="The future of AI is",
         max_length=8,
@@ -166,7 +212,7 @@ def test_intervention_changes_hidden_states() -> None:
     # Baseline: no intervention.
     baseline = pipe.generate(req)
 
-    # With intervention at layer 6.
+    # With intervention at transformer block h.6.
     intervention = HiddenStateIntervention(
         layer=6,
         direction=np.ones((1, 1, 768), dtype=np.float32),
@@ -174,15 +220,14 @@ def test_intervention_changes_hidden_states() -> None:
     )
     edited = pipe.generate(req, intervention=intervention)
 
-    # Post-intervention hidden states should differ from baseline.
-    # Specifically, the hidden state at layer 6 should be modified.
+    # Native index 6 is the input to block h.6 and must remain unchanged;
+    # block h.6's output is native hidden-state index 7.
     baseline_hs = {hs.layer: hs.values for hs in baseline.hidden_states}
     edited_hs = {hs.layer: hs.values for hs in edited.hidden_states}
 
-    # Layer 6 should differ.
-    diff_layer_6 = float(np.linalg.norm(edited_hs[6] - baseline_hs[6]))
-    # The intervention should produce a measurable difference.
-    assert diff_layer_6 > 0.0, f"Intervention produced no change at layer 6 (diff={diff_layer_6:.2e})"
+    np.testing.assert_array_equal(edited_hs[6], baseline_hs[6])
+    diff_layer_7 = float(np.linalg.norm(edited_hs[7] - baseline_hs[7]))
+    assert diff_layer_7 > 0.0, f"Intervention produced no change at native index 7 (diff={diff_layer_7:.2e})"
 
 
 @pytest.mark.network
@@ -198,7 +243,7 @@ def test_hook_cleanup_after_intervention() -> None:
     `generate()` without intervention should produce the same result as
     a fresh run.
     """
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="Testing hook cleanup",
         max_length=8,
@@ -231,7 +276,7 @@ def test_hook_cleanup_after_intervention() -> None:
 )
 def test_padded_token_masking_parity() -> None:
     """Verify that padded tokens produce valid but masked logits (Task 5)."""
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
 
     # Use a short prompt with max_length larger than prompt length,
     # so padding is applied.
@@ -262,7 +307,7 @@ def test_padded_token_masking_parity() -> None:
 def test_token_rank_trajectory_stability() -> None:
     """Measure token rank trajectory stability under prompt perturbations
     (Task 7)."""
-    pipe = TransformerLMIntegration(device="cpu")
+    pipe = TransformerLMIntegration(device=_network_device())
 
     # Two similar prompts with one word changed.
     prompt_a = "The capital of France is"
