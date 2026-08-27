@@ -29,11 +29,16 @@ class _TupleBlock(nn.Module):
         return values, None
 
 
+class _ListBlock(nn.Module):
+    def forward(self, values: torch.Tensor) -> list[object]:
+        return [values, None]
+
+
 class _AnalyticTransformer(nn.Module):
-    def __init__(self, *, nonlinear: bool = False, tuple_output: bool = False) -> None:
+    def __init__(self, *, nonlinear: bool = False, tuple_output: bool = False, list_output: bool = False) -> None:
         super().__init__()
         self.embedding = nn.Embedding(8, 3)
-        block: nn.Module = _TupleBlock() if tuple_output else _LinearBlock()
+        block: nn.Module = _TupleBlock() if tuple_output else _ListBlock() if list_output else _LinearBlock()
         self.transformer = nn.Module()
         self.transformer.h = nn.ModuleList([block])
         self.lm_head = nn.Linear(3, 4, bias=False)
@@ -51,9 +56,11 @@ class _AnalyticTransformer(nn.Module):
     ) -> object:
         del attention_mask, output_hidden_states
         hidden = self.embedding(input_ids)
-        block = cast(_TupleBlock | _LinearBlock, cast(Any, self.transformer.h)[0])
-        block_output: torch.Tensor | tuple[torch.Tensor, None] = block(hidden)
-        hidden: torch.Tensor = block_output[0] if isinstance(block_output, tuple) else block_output
+        block = cast(_TupleBlock | _ListBlock | _LinearBlock, cast(Any, self.transformer.h)[0])
+        block_output: torch.Tensor | tuple[torch.Tensor, None] | list[object] = block(hidden)
+        hidden: torch.Tensor = (
+            cast(torch.Tensor, block_output[0]) if isinstance(block_output, (tuple, list)) else block_output
+        )
         if self.nonlinear:
             hidden = hidden.pow(3)
         return type("Output", (), {"logits": self.lm_head(hidden), "hidden_states": None})()
@@ -106,6 +113,17 @@ class TestIntegratedGradients:
         assert all(len(cast(Any, module)._forward_hooks) == 0 for module in model.modules())
         assert all(parameter.grad is None for parameter in model.parameters())
         assert torch.is_grad_enabled()
+
+    def test_list_output_hook_is_replaced_and_cleaned_up(self) -> None:
+        model = _AnalyticTransformer(list_output=True)
+        ids, mask = _inputs()
+        result = IntegratedGradients(
+            IntegratedGradientsConfig(target_layer=0, activation_position=-1, n_steps=8)
+        ).compute(model, ids, mask, TransformerLogitTarget(token_id=2))
+
+        assert result.attributions.shape == (3,)
+        assert all(len(cast(Any, module)._forward_hooks) == 0 for module in model.modules())
+        assert all(parameter.grad is None for parameter in model.parameters())
 
     def test_explicit_baseline_and_readonly_arrays(self) -> None:
         model = _AnalyticTransformer()

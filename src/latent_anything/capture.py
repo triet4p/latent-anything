@@ -11,6 +11,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from latent_anything._hook_output import extract_primary_tensor, replace_primary_tensor
+
 GradientMode = Literal["disabled", "preserve"]
 
 
@@ -100,29 +102,41 @@ class ActivationCaptureSession(AbstractContextManager["ActivationCaptureSession"
 
     def _hook(self, location: str) -> Callable[[nn.Module, tuple[object, ...], object], object]:
         def callback(module: nn.Module, inputs: tuple[object, ...], output: object) -> object:
-            """Capture one tensor activation and optionally apply intervention."""
+            """Capture one primary Tensor and optionally apply intervention."""
             del module, inputs
-            if not isinstance(output, torch.Tensor):
-                raise TypeError(f"Capture location {location!r} returned {type(output).__name__}, expected Tensor")
+            try:
+                tensor = extract_primary_tensor(output)
+            except TypeError as error:
+                if type(output) is tuple or type(output) is list:
+                    raise TypeError(
+                        f"Capture location {location!r} returned {type(output).__name__}, "
+                        f"expected Tensor or a tuple/list with a Tensor at position 0: {error}"
+                    ) from None
+                raise TypeError(
+                    f"Capture location {location!r} returned {type(output).__name__}, expected Tensor"
+                ) from None
             self._calls[location] += 1
-            metadata = self._metadata(location, output, self._calls[location] - 1)
+            metadata = self._metadata(location, tensor, self._calls[location] - 1)
             previous_shape = self._shapes.setdefault(location, metadata.shape)
             if previous_shape != metadata.shape:
                 msg = f"Capture location {location!r} changed shape from {previous_shape} to {metadata.shape}"
                 raise ValueError(msg)
-            values = output.detach().cpu().numpy().copy()
+            values = tensor.detach().cpu().numpy().copy()
             values.setflags(write=False)
             self._captures.append(CapturedActivation(values=values, metadata=metadata))
             if self._intervention is None:
                 return output
             if self._gradient_mode == "disabled":
                 with torch.no_grad():
-                    replaced = self._intervention(output.detach().clone(), metadata)
+                    replaced = self._intervention(tensor.detach().clone(), metadata)
             else:
-                replaced = self._intervention(output, metadata)
-            if replaced.shape != output.shape:
+                replaced = self._intervention(tensor, metadata)
+            if not isinstance(replaced, torch.Tensor):  # pyright: ignore[reportUnnecessaryIsInstance]
+                raise TypeError(f"intervention must return a Tensor, got {type(replaced).__name__}")
+            if replaced.shape != tensor.shape:
                 raise ValueError("intervention must return a Tensor with the original shape")
-            return replaced.to(device=output.device, dtype=output.dtype)
+            restored = replaced.to(device=tensor.device, dtype=tensor.dtype)
+            return replace_primary_tensor(output, restored)
 
         return callback
 

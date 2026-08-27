@@ -40,6 +40,7 @@ from typing import Any, Literal
 import numpy as np
 from pydantic import BaseModel, Field
 
+from latent_anything._hook_output import extract_primary_tensor, replace_primary_tensor
 from latent_anything._sae_atlas import (
     build_feature_atlas as _build_feature_atlas,
 )
@@ -282,7 +283,7 @@ def _gradient_at_layer(
     activation: dict[str, Any] = {}
 
     def _hook(_module: Any, _inputs: Any, output: Any) -> None:
-        out = output if hasattr(output, "shape") else output[0]
+        out = extract_primary_tensor(output)
         out.retain_grad()
         activation["selected"] = out
 
@@ -346,8 +347,9 @@ def _target_with_intervention(
     direction_t = torch.as_tensor(direction, dtype=torch.float32, device=device)
 
     def _hook(_module: Any, _inputs: Any, output: Any) -> Any:
-        out = output if hasattr(output, "shape") else output[0]
-        return out + direction_t.to(dtype=out.dtype, device=out.device)
+        out = extract_primary_tensor(output)
+        replacement = out + direction_t.to(dtype=out.dtype, device=out.device)
+        return replace_primary_tensor(output, replacement)
 
     handle = None
     for name, module in model.named_modules():

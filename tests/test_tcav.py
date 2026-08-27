@@ -19,7 +19,7 @@ Covers:
 from __future__ import annotations
 
 import inspect
-from typing import Any
+from typing import Any, cast
 from unittest.mock import patch
 
 import numpy as np
@@ -535,14 +535,21 @@ class _SyntheticTransformer(torch.nn.Module):
     Has embedding + 2 transformer-like blocks + lm_head.
     """
 
-    def __init__(self, hidden_dim: int = 16, vocab_size: int = 100) -> None:
+    def __init__(self, hidden_dim: int = 16, vocab_size: int = 100, structured_output: str | None = None) -> None:
         super().__init__()
         self.hidden_dim = hidden_dim
         self.vocab_size = vocab_size
 
         self.transformer = torch.nn.ModuleDict()
         self.transformer["wte"] = torch.nn.Embedding(vocab_size, hidden_dim)
-        self.transformer["h"] = torch.nn.ModuleList([_SyntheticBlock(hidden_dim) for _ in range(3)])
+        blocks: list[torch.nn.Module] = [_SyntheticBlock(hidden_dim) for _ in range(3)]
+        if structured_output == "tuple":
+            blocks = [_StructuredSyntheticBlock(block, "tuple") for block in blocks]
+        elif structured_output == "list":
+            blocks = [_StructuredSyntheticBlock(block, "list") for block in blocks]
+        elif structured_output is not None:
+            raise ValueError(f"unsupported structured output: {structured_output}")
+        self.transformer["h"] = torch.nn.ModuleList(blocks)
         self.transformer["ln_f"] = torch.nn.LayerNorm(hidden_dim)
         self.lm_head = torch.nn.Linear(hidden_dim, vocab_size, bias=False)
         # Tie weights
@@ -558,7 +565,8 @@ class _SyntheticTransformer(torch.nn.Module):
         x = self.transformer["wte"](input_ids)
         all_hidden = [x]
         for block in self.transformer["h"]:  # type: ignore[reportGeneralTypeIssues,reportUnknownVariableType]
-            x = block(x)  # type: ignore[reportUnknownVariableType]
+            block_output = block(x)  # type: ignore[reportUnknownVariableType]
+            x = block_output[0] if isinstance(block_output, (tuple, list)) else block_output
             all_hidden.append(x)
         x = self.transformer["ln_f"](x)
         logits = self.lm_head(x)
@@ -584,6 +592,19 @@ class _SyntheticBlock(torch.nn.Module):
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
         return x
+
+
+class _StructuredSyntheticBlock(torch.nn.Module):
+    def __init__(self, block: torch.nn.Module, output_kind: str) -> None:
+        super().__init__()
+        self.block = block
+        self.output_kind = output_kind
+
+    def forward(self, x: torch.Tensor) -> object:
+        output = cast(torch.Tensor, self.block(x))
+        if self.output_kind == "tuple":
+            return output, self
+        return [output, self]
 
 
 class _SyntheticAttention(torch.nn.Module):
@@ -961,6 +982,25 @@ class TestInterventionAgreement:
             strength=0.5,
         )
         assert 0.0 <= agreement <= 1.0
+
+    @pytest.mark.parametrize("structured_output", ["tuple", "list"])
+    def test_intervention_reconstructs_structured_block_output(self, structured_output: str) -> None:
+        torch.manual_seed(42)  # type: ignore[reportUnknownMemberType]
+        model = _SyntheticTransformer(hidden_dim=8, vocab_size=32, structured_output=structured_output).eval()
+        direction = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        ids = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
+        mask = np.ones_like(ids)
+        agreement = intervention_agreement(
+            model,
+            1,
+            direction,
+            ids,
+            mask,
+            TransformerLogitTarget(token_id=10, position=-1),
+            strength=0.0,
+        )
+        assert isinstance(agreement, float)
+        assert all(not module._forward_hooks for module in model.modules())  # type: ignore[reportPrivateUsage]
 
 
 # ---------------------------------------------------------------------------

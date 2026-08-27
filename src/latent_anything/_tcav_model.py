@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from latent_anything._hook_output import extract_primary_tensor, replace_primary_tensor
+
 if TYPE_CHECKING:
     from latent_anything.tcav import TransformerLogitTarget
 
@@ -32,10 +34,10 @@ def compute_transformer_layer_gradient(
     activation: dict[str, torch.Tensor] = {}
 
     def _make_hook(name: str):
-        def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            output = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
-            output.retain_grad()
-            activation[name] = output
+        def _hook(_module: Any, _input: Any, output: Any) -> None:
+            tensor = extract_primary_tensor(output)
+            tensor.retain_grad()
+            activation[name] = tensor
 
         return _hook
 
@@ -94,8 +96,8 @@ def extract_layer_activation(
     activation: dict[str, torch.Tensor] = {}
 
     def _make_hook(name: str):
-        def _hook(_module: Any, _input: Any, output: torch.Tensor) -> None:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
+        def _hook(_module: Any, _input: Any, output: Any) -> None:
+            out = extract_primary_tensor(output)
             activation[name] = out.detach().cpu()
 
         return _hook
@@ -153,10 +155,10 @@ def intervention_agreement(
 
         layer_name = f"transformer.h.{target_layer}"
 
-        def _pos_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
+        def _pos_hook(_module: Any, _input: Any, output: Any) -> Any:
+            out = extract_primary_tensor(output)
             delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
-            return out + delta
+            return replace_primary_tensor(output, out + delta)
 
         pos_handle = None
         for n, m in model.named_modules():
@@ -172,10 +174,10 @@ def intervention_agreement(
         finally:
             pos_handle.remove()
 
-        def _neg_hook(_module: Any, _input: Any, output: torch.Tensor) -> torch.Tensor:
-            out = output if isinstance(output, torch.Tensor) else output[0]  # pyright: ignore[reportUnnecessaryIsInstance]
+        def _neg_hook(_module: Any, _input: Any, output: Any) -> Any:
+            out = extract_primary_tensor(output)
             delta = strength * v_c_t.to(dtype=out.dtype, device=out.device)
-            return out - delta
+            return replace_primary_tensor(output, out - delta)
 
         neg_handle = None
         for n, m in model.named_modules():

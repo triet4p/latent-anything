@@ -13,6 +13,7 @@ from typing import Any, Literal
 import numpy as np
 from pydantic import BaseModel, Field
 
+from latent_anything._hook_output import extract_primary_tensor, replace_primary_tensor
 from latent_anything.tcav import TransformerLogitTarget
 
 BaselineKind = Literal["zero", "batch_mean", "explicit"]
@@ -114,18 +115,6 @@ def _layer_module(model: Any, layer: int) -> Any:
     raise ValueError(f"Layer {layer} ({name}) was not found in the model")
 
 
-def _first_output(output: Any) -> Any:
-    return output if hasattr(output, "shape") else output[0]
-
-
-def _replace_first_output(output: Any, replacement: Any) -> Any:
-    if hasattr(output, "shape"):
-        return replacement
-    values = list(output)
-    values[0] = replacement
-    return tuple(values)
-
-
 def _target_scalar(logits: Any, target: TransformerLogitTarget) -> Any:
     batch = target.batch_index
     position = _resolve_position(target.position, int(logits.shape[1]), "target.position")
@@ -172,7 +161,7 @@ class IntegratedGradients:
 
         def capture_hook(_module: Any, _inputs: Any, output: Any) -> Any:
             """Capture the selected activation and retain its full batch context."""
-            activation = _first_output(output)
+            activation = extract_primary_tensor(output)
             batch = self.config.activation_batch_index
             position = _resolve_position(
                 self.config.activation_position,
@@ -290,7 +279,7 @@ class IntegratedGradients:
     ) -> float:
         def hook(_module: Any, _inputs: Any, output: Any) -> Any:
             """Replace the target layer output with the supplied baseline/path."""
-            return _replace_first_output(output, activation)
+            return replace_primary_tensor(output, activation)
 
         handle = module.register_forward_hook(hook)
         try:
@@ -316,7 +305,7 @@ class IntegratedGradients:
 
         def hook(_module: Any, _inputs: Any, output: Any) -> Any:
             """Replace the target layer output while retaining gradient flow."""
-            return _replace_first_output(output, path)
+            return replace_primary_tensor(output, path)
 
         handle = module.register_forward_hook(hook)
         try:

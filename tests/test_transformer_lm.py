@@ -61,6 +61,17 @@ class FakeTransformerBlock(nn.Module):
         return x
 
 
+class TupleTransformerBlock(FakeTransformerBlock):
+    """Fake GPT-2 block whose output includes an auxiliary cache value."""
+
+    def __init__(self, hidden_dim: int = 768) -> None:
+        super().__init__(hidden_dim)
+        self.auxiliary = object()
+
+    def forward(self, x: object) -> tuple[object, object]:
+        return x, self.auxiliary
+
+
 class FakeTransformer(nn.Module):
     """Fake transformer with the same module path as GPT-2."""
 
@@ -70,6 +81,12 @@ class FakeTransformer(nn.Module):
         self.wpe = nn.Embedding(1024, hidden_dim)
         self.h = nn.ModuleList([FakeTransformerBlock(hidden_dim) for _ in range(num_layers)])
         self.ln_f = nn.LayerNorm(hidden_dim)
+
+
+class TupleFakeTransformer(FakeTransformer):
+    def __init__(self, hidden_dim: int = 768, num_layers: int = 12) -> None:
+        super().__init__(hidden_dim, num_layers)
+        self.h = nn.ModuleList([TupleTransformerBlock(hidden_dim) for _ in range(num_layers)])
 
 
 class FakeConfig:
@@ -125,6 +142,33 @@ class FakeGPT2Model(nn.Module):
 
         # Use SimpleNamespace to avoid Python class-scope closure issues.
         return type("FakeOutput", (), {"logits": result_logits, "hidden_states": result_hs})()
+
+
+class TupleFakeGPT2Model(FakeGPT2Model):
+    """Small executable fake that routes structured block output downstream."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.transformer = TupleFakeTransformer()
+
+    def forward(  # type: ignore[reportUnknownMemberType]
+        self,
+        input_ids: object,
+        attention_mask: object | None = None,
+        output_hidden_states: bool = False,
+    ) -> object:
+        del attention_mask
+        hidden = self.transformer.wte(input_ids)  # type: ignore[arg-type]
+        all_hidden: list[torch.Tensor] = [hidden]
+        for block in self.transformer.h:
+            block_output = block(hidden)
+            hidden = block_output[0] if isinstance(block_output, tuple) else block_output  # type: ignore[assignment]
+            all_hidden.append(hidden)  # type: ignore[arg-type]
+        hidden = self.transformer.ln_f(hidden)  # type: ignore[arg-type]
+        logits = self.lm_head(hidden)  # type: ignore[arg-type]
+        return type(
+            "FakeOutput", (), {"logits": logits, "hidden_states": tuple(all_hidden) if output_hidden_states else None}
+        )()
 
 
 class FakeTokenizer:
@@ -544,6 +588,37 @@ class TestFakeBackendPipeline:
         with pytest.raises(RuntimeError, match="fake forward failure"):
             pipe.generate(request, intervention=intervention)
 
+        assert all(not getattr(module, "_forward_hooks", {}) for module in fake_model.modules())
+
+    def test_generate_intervention_preserves_tuple_block_output(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        pipe = TransformerLMIntegration()
+        fake_model = TupleFakeGPT2Model()
+        fake_tokenizer = FakeTokenizer()
+        monkeypatch.setattr(pipe, "_backend", lambda: (fake_model, fake_tokenizer, fake_model.config))
+        request = TransformerGenerationRequest(prompt="test", max_length=8, capture_hidden_states=True)
+
+        baseline = pipe.generate(request)
+        identity = pipe.generate(
+            request,
+            intervention=HiddenStateIntervention(
+                layer=6,
+                direction=np.ones((1, 1, GPT2_HIDDEN_DIM), dtype=np.float32),
+                strength=0.0,
+            ),
+        )
+        intervention = HiddenStateIntervention(
+            layer=6,
+            direction=np.ones((1, 1, GPT2_HIDDEN_DIM), dtype=np.float32),
+            strength=1.0,
+        )
+        changed = pipe.generate(request, intervention=intervention)
+
+        assert len(changed.hidden_states) == GPT2_NUM_LAYERS + 1
+        assert all(
+            np.array_equal(expected.values, actual.values)
+            for expected, actual in zip(baseline.hidden_states, identity.hidden_states, strict=True)
+        )
+        assert not np.array_equal(baseline.hidden_states[7].values, changed.hidden_states[7].values)
         assert all(not getattr(module, "_forward_hooks", {}) for module in fake_model.modules())
 
     def test_token_rank_trajectories(self, monkeypatch: pytest.MonkeyPatch) -> None:

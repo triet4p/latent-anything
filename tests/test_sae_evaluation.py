@@ -20,6 +20,8 @@ from hypothesis import given
 from hypothesis import strategies as st
 from torch import nn
 
+from latent_anything._hook_output import extract_primary_tensor
+
 # torch has incomplete type stubs — these warnings are noise.
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 # pyright: reportUnknownArgumentType=false, reportMissingTypeStubs=false
@@ -294,9 +296,26 @@ class _TransformerBody(nn.Module):
 
     h: nn.ModuleList
 
-    def __init__(self) -> None:
+    def __init__(self, structured_output: str | None = None) -> None:
         super().__init__()
-        self.h = nn.ModuleList([nn.Identity()])
+        block: nn.Module = nn.Identity()
+        if structured_output is not None:
+            block = _StructuredIdentity(structured_output)
+        self.h = nn.ModuleList([block])
+
+
+class _StructuredIdentity(nn.Module):
+    def __init__(self, output_kind: str) -> None:
+        super().__init__()
+        self.output_kind = output_kind
+        self.auxiliary = object()
+
+    def forward(self, values: torch.Tensor) -> object:
+        if self.output_kind == "tuple":
+            return values, self.auxiliary
+        if self.output_kind == "list":
+            return [values, self.auxiliary]
+        raise ValueError(f"unsupported structured output: {self.output_kind}")
 
 
 class _TinyTargetTransformer(nn.Module):
@@ -309,10 +328,10 @@ class _TinyTargetTransformer(nn.Module):
 
     transformer: _TransformerBody
 
-    def __init__(self, vocab: int, hidden: int, dictionary: np.ndarray) -> None:
+    def __init__(self, vocab: int, hidden: int, dictionary: np.ndarray, structured_output: str | None = None) -> None:
         super().__init__()
         self.embedding = nn.Embedding(vocab, hidden)
-        self.transformer = _TransformerBody()
+        self.transformer = _TransformerBody(structured_output)
         self.lm_head = nn.Linear(hidden, vocab, bias=False)
         with torch.no_grad():
             weights = self.embedding.weight.clone()
@@ -331,12 +350,14 @@ class _TinyTargetTransformer(nn.Module):
     ) -> object:
         del attention_mask, output_hidden_states
         hidden = self.embedding(input_ids)
-        hidden = self.transformer.h[0](hidden)
+        block_output = self.transformer.h[0](hidden)
+        hidden = extract_primary_tensor(block_output)
         return type("Output", (), {"logits": self.lm_head(hidden)})
 
 
 def _tiny_transformer_fixture(
     n_repeats: int = 40,
+    structured_output: str | None = None,
 ) -> tuple[_TinyTargetTransformer, np.ndarray, np.ndarray]:
     """Return ``(model, residuals, token_ids)`` for the tiny transformer."""
     torch.manual_seed(0)
@@ -346,7 +367,7 @@ def _tiny_transformer_fixture(
     rng = np.random.default_rng(3)
     dictionary = rng.normal(size=(hidden, n_components_true))
     dictionary /= np.linalg.norm(dictionary, axis=0, keepdims=True)
-    model = _TinyTargetTransformer(vocab, hidden, dictionary)
+    model = _TinyTargetTransformer(vocab, hidden, dictionary, structured_output)
     tokens = np.asarray([[t] for t in list(range(n_components_true)) * n_repeats], dtype=np.int64)
     token_ids = tokens.reshape(-1)
     ids_t = torch.as_tensor(tokens)
@@ -358,11 +379,24 @@ def _tiny_transformer_fixture(
             model(ids_t, attention_mask=mask_t)
     finally:
         handle.remove()
-    residuals = captured["x"].detach().numpy().reshape(-1, hidden)
+    residuals = extract_primary_tensor(captured["x"]).detach().numpy().reshape(-1, hidden)
     return model, residuals, token_ids
 
 
 class TestCrossCheck:
+    def test_causal_steering_reconstructs_structured_output(self) -> None:
+        from latent_anything.sae_evaluation import _target_with_intervention  # type: ignore[reportPrivateUsage]
+
+        model, _residuals, _token_ids = _tiny_transformer_fixture(n_repeats=2, structured_output="tuple")
+        input_ids = np.asarray([[0], [1], [2]], dtype=np.int64)
+        attention_mask = np.ones_like(input_ids)
+        target = TransformerLogitTarget(token_id=7, position=-1)
+        direction = np.asarray(model.lm_head.weight[7].detach().numpy(), dtype=np.float64)
+        result = _target_with_intervention(model, input_ids, attention_mask, target, 0, direction)
+
+        assert result > 0.0
+        assert all(not module._forward_hooks for module in model.modules())  # type: ignore[reportPrivateUsage]
+
     def _evaluation_and_target_feature(
         self,
     ) -> tuple[object, SAEEvaluationResult, int, int]:
