@@ -1,0 +1,106 @@
+{
+  "schema_version": "m14-l03-analysis-plan-v1",
+  "lane": "M14-L03",
+  "status": "design-approved",
+  "evidence_level": "not-run",
+  "accepted": false,
+  "model": {
+    "integration": "latent_anything.integrations.transformer_lm.TransformerLMIntegration",
+    "model_id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "device": "cuda",
+    "dtype": "float32",
+    "forward_only": true,
+    "adapter_truth": "TransformerLMIntegration is the concrete integration; HiddenStateAdapter is synthetic and excluded"
+  },
+  "data": {
+    "dataset": "sklearn.datasets.load_digits",
+    "license": "BSD-3-Clause",
+    "label_source": "dataset.target",
+    "fit_scope": "no model or transform sees validation/test labels"
+  },
+  "split": {
+    "method": "StratifiedGroupKFold",
+    "n_splits": 5,
+    "shuffle": true,
+    "seed": 79,
+    "partition_folds": {"train": [0, 1, 2], "val": [3], "test": [4]},
+    "group_key": "sha256(UTF-8 rendered prompt)",
+    "group_conflict": "fail if one prompt digest maps to multiple labels",
+    "overlap_assertion": "zero digest overlap between every pair of partitions"
+  },
+  "prompt_contract": {
+    "template": "Classify this 8x8 glyph:\\n<8 rows of #/.>",
+    "threshold": "pixel >= 8 => #; pixel < 8 => .",
+    "label_or_digit_text": "forbidden",
+    "max_length": 64,
+    "tokenization": "TransformerLMIntegration backend tokenizer, padding=True, truncation=True, return_tensors=pt",
+    "truncation_policy": "fail if any prompt is truncated",
+    "pooling": "attention-mask mean",
+    "sampling": "none; frozen eval forward"
+  },
+  "analysis": {
+    "layers": [0, 4, 8, 12],
+    "primary_layer": 12,
+    "pca_components": 32,
+    "pca_fit_scope": "train rows only",
+    "kmeans": {"n_clusters": 10, "n_init": 10, "max_iter": 300, "random_state": 79, "role": "diagnostic only"},
+    "linear_probe": {"C": 1.0, "solver": "lbfgs", "max_iter": 1000, "standardize": true, "class_weight": "balanced", "fit_intercept": true},
+    "mlp_probe": {"hidden_sizes": [16], "activation": "relu", "max_epochs": 80, "early_stopping_patience": 10, "learning_rate": 0.001, "weight_decay": 0.0001, "batch_size": 64, "standardize": true},
+    "mlp_capacity_diagnostics": [[4], [64]],
+    "seed": 79
+  },
+  "baseline_contract": {
+    "raw_glyph": "flattened 8x8 pixels with the same fixed grouped split and train-only standardization",
+    "role": "diagnostic only; GPT-2 hidden states need not outperform the input glyph representation",
+    "rationale": "pixels directly retain glyph morphology while GPT-2 was not trained for this synthetic ASCII task"
+  },
+  "controls": {
+    "chance_accuracy": "1 / number of classes",
+    "shuffled_label": "permute train labels only; preserve fixed true validation/test labels",
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 7901,
+    "bootstrap_interval": "percentile 2.5%/97.5% paired held-out correctness difference",
+    "sampling_unit": "held-out example",
+    "wilson_interval": "95% Wilson score interval for primary held-out accuracy",
+    "api_diagnostic": "nonlinear_memorization_test shuffles all labels and re-splits; report only as API shuffled-label diagnostic, never as train memorization proof",
+    "capacity": "record n_params/n_train, validation accuracy, test accuracy, and absolute validation/test gap"
+  },
+  "records": [
+    {
+      "record_id": "t03_latent_linear_structure",
+      "gap_id": "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
+      "depends_on": [],
+      "verdict": "not-run",
+      "accepted": null,
+      "predicate": "full-hidden accuracy >= 0.20; PCA32 accuracy >= full-hidden accuracy - 0.10; PCA32 paired bootstrap lower > 0.05; Wilson lower > 0.15; all finite and no group overlap"
+    },
+    {
+      "record_id": "t05_linear_probe",
+      "gap_id": "THY-T05-LINEAR-PROBING",
+      "depends_on": ["t03_latent_linear_structure"],
+      "verdict": "not-run",
+      "accepted": null,
+      "predicate": "full-hidden accuracy >= 0.20; paired B=10000 lower > 0.05; Wilson lower > 0.15; all finite and no group overlap"
+    },
+    {
+      "record_id": "t05_mlp_probe",
+      "gap_id": "THY-T05-NONLINEAR-PROBING",
+      "depends_on": ["t05_linear_probe"],
+      "verdict": "not-run",
+      "accepted": null,
+      "predicate": "bounded primary MLP held-out accuracy >= 0.20; paired B=10000 lower > 0.05; shuffled-control <= 0.15; abs validation/test gap <= 0.15; n_params/n_train <= 4"
+    }
+  ],
+  "artifact_contract": {
+    "accepted_artifact": "artifacts/m14/l03-analysis.json",
+    "run_record": "artifacts/m14/l03-analysis.run.json",
+    "design_plan_is_not_evidence": true,
+    "partial_promotion": "independent record verdicts; dependency failures block downstream records; no D2 without accepted records"
+  },
+  "artifact_schema": {"schema_version": "m14-l03-analysis-artifact-v1", "required_fields": ["artifact_sha256", "plan_sha256", "split", "records", "provenance", "accepted_record_ids", "accepted_gap_ids"]},
+  "run_record_schema": {"schema_version": "m14-l03-analysis-run-v1", "required_fields": ["git_sha", "artifact_sha256", "plan_sha256", "runner_source_sha256", "timestamp_utc", "resource_measurement", "cleanup"]},
+  "provenance_contract": {"command": "uv run python -m scripts.m14_l03_analysis --run-real", "git_sha": "deferred-until-phase-a-commit", "source_digests": "runner, contract, implementation; SHA-256", "model_provenance": "model ID, immutable revision, tokenizer/backend versions, license URL", "resources": "GPU identity, CUDA/Torch versions, peak allocated/reserved memory, host RSS when /usr/bin/time is available; otherwise explicitly not measured", "cleanup": "disposable clone and model/package caches removed by trap after report capture"},
+  "phase_contract": {"phase_a": "commit/push plan, runner, support modules, tests; no result artifact", "phase_b": "external authenticated PowerShell launches Bash/SSH remote-cuda skill against exact pushed SHA; immutable uncommitted result is reviewed", "phase_c": "separate evidence/docs promotion commit only after owner review"},
+  "plan_sha256": "bbf8739537d9a084adc90656a1c412ebd1c63f0567a3c18dbcc8c289f4c23cc7"
+}
