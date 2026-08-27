@@ -1,0 +1,1371 @@
+{
+  "schema_version": "sprint79-execution-queue-v1",
+  "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
+  "source_commit": "f3d0c82e52630e1e38b1e5f8f7f4827e2fcedac4",
+  "source_documents": [
+    "docs/M14_REAL_SYSTEM_VALIDATION.md",
+    "docs/EVIDENCE_GAP_PLAN.md",
+    "artifacts/task_78.38_gap_map.json"
+  ],
+  "reconciliation": {
+    "gap_records": 40,
+    "unique_gap_records": 40,
+    "m14_lanes": 24,
+    "lane_ids": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L05",
+      "L06",
+      "L07",
+      "L08",
+      "L09",
+      "L10",
+      "L11",
+      "L12",
+      "L13",
+      "L14",
+      "L15",
+      "L16",
+      "L17",
+      "L18",
+      "L19",
+      "L20",
+      "L21",
+      "L22",
+      "L23",
+      "L24"
+    ],
+    "mapped_lanes": 14,
+    "unmapped_m14_lanes": [
+      "L07",
+      "L09",
+      "L10",
+      "L11",
+      "L18",
+      "L20",
+      "L21",
+      "L22",
+      "L23",
+      "L24"
+    ],
+    "execution_records": 40,
+    "external_prerequisite_edges": 9,
+    "external_prerequisites": [
+      {
+        "record_id": "THY-T02-VAE-HIGGINS-ET-AL-2017",
+        "prerequisite_id": "THY-T02-AUTOENCODER",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T02-VQGAN-ESSER-ET-AL-2021",
+        "prerequisite_id": "THY-T02-VQ-VAE-OORD-ET-AL-2017",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE",
+        "prerequisite_id": "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+        "prerequisite_id": "THY-T06-LATENT-TRANSITION-MODEL",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+        "prerequisite_id": "THY-T07-REWARD-MODEL-TRONG-LATENT",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+        "prerequisite_id": "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T09-EMA-CODEBOOK-UPDATE",
+        "prerequisite_id": "THY-T09-VECTOR-QUANTIZATION",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ",
+        "prerequisite_id": "THY-T09-VECTOR-QUANTIZATION",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      },
+      {
+        "record_id": "THY-X01-LEWM-LEWORLDMODEL-2026",
+        "prerequisite_id": "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022",
+        "effective_status": "D2",
+        "ledger_section": "overrides",
+        "resolution": "satisfied_qualifying"
+      }
+    ],
+    "dependency_cycle_groups": [
+      {
+        "group_id": "SCC-L05-01",
+        "records": [
+          "THY-T03-NORMALIZING-FLOWS",
+          "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT"
+        ],
+        "co_scheduled": true,
+        "lane_id": "L05",
+        "shared_artifact": [
+          "artifacts/m14/l05-density.json"
+        ],
+        "implementation_blocker": "Normalizing Flows has no stable implementation; shared L05 artifact does not promote either claim."
+      }
+    ],
+    "external_prerequisite_resolution": {
+      "satisfied_qualifying": 9,
+      "unsatisfied": 0,
+      "unresolved_missing_ledger_record": 0
+    }
+  },
+  "execution_policy": {
+    "owner": "Sprint 79 capability owner; release owner signs final artifact",
+    "seed": "predeclare a stable integer seed in the lane artifact and rerun unchanged",
+    "sample": "use the lane's named dataset/model and held-out split; never substitute a mock for a real-model lane",
+    "artifact": "artifacts/m14/<lane>.json",
+    "run_record": "artifacts/m14/<lane>.run.json (immutable provenance/run record alongside the lane artifact)",
+    "cleanup": "disposable clone/cache/temp files only; retain artifact and manifest; redact secrets",
+    "waiver": "owner-signed scope, rationale, expiry, and non-core/core impact; never waive a core percentage gap",
+    "security": "offline by default, bounded inputs, pinned revisions/licenses, isolated caches, no implicit model download"
+  },
+  "lane_contract": [
+    {
+      "lane_id": "L01",
+      "surface": "LatentSpace, LatentValue, PipelineContract, Result",
+      "source_tests_evidence": "`latent_space.py`, `latent_value.py`, `pipeline.py` → core unit tests, D1",
+      "real_target_backend": "sklearn digits split; NumPy/PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_latent_space.py tests/test_latent_anything/test_latent_value.py -q`",
+      "acceptance_artifact": "finite shapes/dtypes, stable schema, no input mutation; `artifacts/m14/l01-core.json`",
+      "artifact_path": "artifacts/m14/l01-core.json",
+      "resources_network_cleanup": "<1 GB, offline; remove temp files",
+      "status_blocker_owner": "planned; no blocker; API owner",
+      "gap_record_ids": [
+        "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
+      ],
+      "gap_record_count": 1
+    },
+    {
+      "lane_id": "L02",
+      "surface": "geometry: covariance, projection, SO3/SE3, DTW, smoothing",
+      "source_tests_evidence": "`geometry.py`, `projection.py`, `pose.py`, `dtw.py`, `temporal.py` → focused tests, D1/D2 synthetic",
+      "real_target_backend": "real recorded trajectory substitute: `tests/fixtures/` + sklearn digits labels; NumPy/SciPy CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_covariance_geometry.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_pose.py tests/test_dtw.py tests/test_temporal.py -q`",
+      "acceptance_artifact": "metric invariants, valid rotations, DTW path, boundary/smoothing thresholds; `artifacts/m14/l02-geometry.json`",
+      "artifact_path": "artifacts/m14/l02-geometry.json",
+      "resources_network_cleanup": "<1 GB, offline; delete generated plots",
+      "status_blocker_owner": "planned; 3D external backends absent; geometry owner",
+      "gap_record_ids": [
+        "THY-T01-MANIFOLD-HYPOTHESIS",
+        "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+        "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
+        "THY-T04-LERP-LINEAR-INTERPOLATION",
+        "THY-T04-SLERP",
+        "THY-T06-TRAJECTORY-SIMILARITY-METRICS"
+      ],
+      "gap_record_count": 6
+    },
+    {
+      "lane_id": "L03",
+      "surface": "analysis: KMeans, probes, feature ranking",
+      "source_tests_evidence": "`clustering.py`, `probes.py`, `mlp_probe.py` → analysis tests, D1",
+      "real_target_backend": "GPT-2 hidden states on `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; sklearn digits labels",
+      "environment_command": "local CPU first, optional remote; `uv run pytest tests/test_clustering.py tests/test_probes.py -q`",
+      "acceptance_artifact": "seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json`",
+      "artifact_path": "artifacts/m14/l03-analysis.json",
+      "resources_network_cleanup": "~2–4 GB CPU, model download/cache; purge disposable HF cache",
+      "status_blocker_owner": "planned; model license/access capture; analysis owner",
+      "gap_record_ids": [
+        "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
+        "THY-T05-LINEAR-PROBING",
+        "THY-T05-NONLINEAR-PROBING"
+      ],
+      "gap_record_count": 3
+    },
+    {
+      "lane_id": "L04",
+      "surface": "IntegratedGradients, TCAV, sensitivity/intervention controls",
+      "source_tests_evidence": "`integrated_gradients.py`, `tcav.py` → focused tests, D1",
+      "real_target_backend": "GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real prompt/label fixture",
+      "environment_command": "local CPU; `uv run pytest tests/test_integrated_gradients.py tests/test_tcav.py -q`",
+      "acceptance_artifact": "completeness/sensitivity, selectivity, seeded CI and causal intervention; `artifacts/m14/l04-explanations.json`",
+      "artifact_path": "artifacts/m14/l04-explanations.json",
+      "resources_network_cleanup": "~2–4 GB, network on first run; retain manifest, delete weights if disposable",
+      "status_blocker_owner": "planned; D3 absent until run; explanation owner",
+      "gap_record_ids": [
+        "THY-T03-DISENTANGLEMENT",
+        "THY-T05-ACTIVATION-PATCHING",
+        "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+        "THY-T05-LOGIT-LENS-TUNED-LENS",
+        "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING"
+      ],
+      "gap_record_count": 5
+    },
+    {
+      "lane_id": "L05",
+      "surface": "GaussianMixtureDensity, OOD, covariance/geodesic density",
+      "source_tests_evidence": "`density.py`, `geodesic.py` → density/geodesic tests, D1/D2",
+      "real_target_backend": "real GPT-2 states + held-out prompts; sklearn GMM backend",
+      "environment_command": "local CPU; `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q`",
+      "acceptance_artifact": "calibration, held-out AUROC threshold predeclared, path feasibility; `artifacts/m14/l05-density.json`",
+      "artifact_path": "artifacts/m14/l05-density.json",
+      "resources_network_cleanup": "<3 GB; no secrets; remove cache",
+      "status_blocker_owner": "planned; threshold not yet evidenced; geometry owner",
+      "gap_record_ids": [
+        "THY-T03-NORMALIZING-FLOWS",
+        "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT",
+        "THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT"
+      ],
+      "gap_record_count": 3
+    },
+    {
+      "lane_id": "L06",
+      "surface": "SAE, FeatureAtlas, cross-seed stability",
+      "source_tests_evidence": "`sae_evaluation.py`, `_sae_atlas.py` → SAE tests, D1/D2",
+      "real_target_backend": "GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real text corpus fixture",
+      "environment_command": "local CPU; `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q`",
+      "acceptance_artifact": "dead-feature, reconstruction, cross-seed stability and atlas hash; `artifacts/m14/l06-sae.json`",
+      "artifact_path": "artifacts/m14/l06-sae.json",
+      "resources_network_cleanup": "~4 GB; network only model; purge temporary corpus",
+      "status_blocker_owner": "planned; D3 gap; introspection owner",
+      "gap_record_ids": [
+        "THY-T05-DICTIONARY-LEARNING",
+        "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023"
+      ],
+      "gap_record_count": 2
+    },
+    {
+      "lane_id": "L07",
+      "surface": "SubspaceProjection, steering, activation patch, LERP",
+      "source_tests_evidence": "`methods/activation_patch.py`, `methods/steering.py`, `projection.py`, `methods/lerp.py` → intervention tests, D1",
+      "real_target_backend": "GPT-2 hidden states and VAE latents; PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q`",
+      "acceptance_artifact": "paired control effect, reversibility/shape safety, no mutation; `artifacts/m14/l07-interventions.json`",
+      "artifact_path": "artifacts/m14/l07-interventions.json",
+      "resources_network_cleanup": "<4 GB; offline after models; delete outputs",
+      "status_blocker_owner": "planned; cross-adapter evidence required; manipulation owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L08",
+      "surface": "ConvVAE adapter and manipulation pipeline",
+      "source_tests_evidence": "`adapters/conv_vae.py`, `manipulation_pipeline.py`, `pipeline.py` → ConvVAE held-out tests, D2",
+      "real_target_backend": "sklearn digits 80/20; compact ConvVAE, PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_conv_vae.py tests/test_latent_anything/test_conv_vae_evidence.py -q`",
+      "acceptance_artifact": "≥10% over all-zero baseline, non-degenerate latent, composition; `artifacts/m14/l08-convvae.json`",
+      "artifact_path": "artifacts/m14/l08-convvae.json",
+      "resources_network_cleanup": "<1.5 GB, offline; no model download",
+      "status_blocker_owner": "planned; bounded local D2 only; generative owner",
+      "gap_record_ids": [
+        "THY-T02-VAE-HIGGINS-ET-AL-2017"
+      ],
+      "gap_record_count": 1
+    },
+    {
+      "lane_id": "L09",
+      "surface": "DiffusersAutoencoderKLAdapter",
+      "source_tests_evidence": "`integrations/diffusers_vae.py` → `test_diffusers_vae.py`, D2",
+      "real_target_backend": "`stabilityai/sd-vae-ft-mse@31f26fdeee1355a5c34592e401dd41e45d25a493`, safetensors SHA `a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815`, MIT",
+      "environment_command": "local CPU offline after cache; `uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q`",
+      "acceptance_artifact": "direct/adapter parity, mean/posterior seeded semantics, shape/dtype/finiteness; `artifacts/m14/l09-diffusers-vae.json`",
+      "artifact_path": "artifacts/m14/l09-diffusers-vae.json",
+      "resources_network_cleanup": "~1.5 GB RSS, 334 MB weights; no network in validation; cache manifest only",
+      "status_blocker_owner": "planned; license/hash portability gate; generative owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L10",
+      "surface": "conditional diffusion capture/intervention",
+      "source_tests_evidence": "`integrations/diffusers_conditional.py` → conditional tests, D1",
+      "real_target_backend": "`runwayml/stable-diffusion-v1-5@39593d56b552c3a24aeb192dd11d2a1429c3102b`; Diffusers scheduler/denoiser",
+      "environment_command": "remote CUDA recommended; `uv run pytest tests/test_diffusers_conditional_network.py -m network -q`",
+      "acceptance_artifact": "paired scheduler controls, timestep trace, intervention effect and artifact hash; `artifacts/m14/l10-diffusion.json`",
+      "artifact_path": "artifacts/m14/l10-diffusion.json",
+      "resources_network_cleanup": "high VRAM/download; license card/access must be recorded; cleanup disposable cache",
+      "status_blocker_owner": "planned; network/VRAM/access blocker until provisioned; diffusion owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L11",
+      "surface": "TransformerLogitTarget, hidden-state adapter",
+      "source_tests_evidence": "`integrations/transformer_lm.py` → transformer tests, D2 candidate",
+      "real_target_backend": "`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, MIT; Transformers",
+      "environment_command": "local CPU; `uv run pytest tests/test_transformer_lm_network.py -m network -q`",
+      "acceptance_artifact": "vocab 50257, 13 layers, hidden 768, logits/hidden parity; `artifacts/m14/l11-gpt2.json`",
+      "artifact_path": "artifacts/m14/l11-gpt2.json",
+      "resources_network_cleanup": "~2–4 GB; public download; remove disposable cache",
+      "status_blocker_owner": "planned; capture versions/license; transformer owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L12",
+      "surface": "JEPAWorldModelAdapter and health metrics",
+      "source_tests_evidence": "`adapters/jepa.py` → JEPA tests, D2 structural",
+      "real_target_backend": "`facebook/ijepa_vith14_1k@be440b1cac639542ae553e71a9c7afd925ab5fac`, Transformers",
+      "environment_command": "local CPU or remote CUDA; `uv run pytest tests/test_latent_anything/test_jepa_checkpoint.py -m network -q`",
+      "acceptance_artifact": "finite latent prediction/health metrics, explicit decoder-free contract; `artifacts/m14/l12-ijepa.json`",
+      "artifact_path": "artifacts/m14/l12-ijepa.json",
+      "resources_network_cleanup": "high download/RAM; model-card license/access missing; retain manifest only",
+      "status_blocker_owner": "planned; license/access blocker; world-model owner",
+      "gap_record_ids": [
+        "THY-T08-I-JEPA-ASSRAN-ET-AL-2023",
+        "THY-T08-REPRESENTATION-COLLAPSE",
+        "THY-T08-V-JEPA-BARDES-ET-AL-2024",
+        "THY-X01-LEWM-LEWORLDMODEL-2026"
+      ],
+      "gap_record_count": 4
+    },
+    {
+      "lane_id": "L13",
+      "surface": "VQ-VAE and discrete latent adapter",
+      "source_tests_evidence": "`adapters/vq_vae.py` → VQ tests, D2",
+      "real_target_backend": "`compact-vq-vae-v1`, sklearn digits, scikit-learn 1.9.0 BSD-3-Clause",
+      "environment_command": "local CPU; `uv run pytest tests/test_latent_anything/test_vq_vae.py -q`",
+      "acceptance_artifact": "perplexity >1, dead-code <1, encode/decode finite; `artifacts/m14/l13-vq.json`",
+      "artifact_path": "artifacts/m14/l13-vq.json",
+      "resources_network_cleanup": "<1 GB, offline; delete generated codebook",
+      "status_blocker_owner": "planned; no blocker; discrete owner",
+      "gap_record_ids": [
+        "THY-T02-VQGAN-ESSER-ET-AL-2021",
+        "THY-T09-EMA-CODEBOOK-UPDATE",
+        "THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ",
+        "THY-T09-RESIDUAL-VQ-SOUNDSTREAM-ENCODEC"
+      ],
+      "gap_record_count": 4
+    },
+    {
+      "lane_id": "L14",
+      "surface": "TokenizedWorldModel, TokenPrediction/Rollout",
+      "source_tests_evidence": "`tokenized_world_model.py` → tokenized tests, D2 with recorded failure",
+      "real_target_backend": "compact VQVAE + synthetic controlled dynamics; PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_tokenized_world_model.py -q`",
+      "acceptance_artifact": "prediction/rollout schema, bounded sequence, failure reproduced or fixed; `artifacts/m14/l14-tokenized.json`",
+      "artifact_path": "artifacts/m14/l14-tokenized.json",
+      "resources_network_cleanup": "<2 GB, offline; preserve failed artifact, clean temp",
+      "status_blocker_owner": "planned; early rollout failure must remain visible; world-model owner",
+      "gap_record_ids": [
+        "THY-T09-GAIA-1-WAYVE-2023",
+        "THY-T09-GENIE-GOOGLE-2024"
+      ],
+      "gap_record_count": 2
+    },
+    {
+      "lane_id": "L15",
+      "surface": "Deterministic/Stochastic/RSSM transitions",
+      "source_tests_evidence": "`transition.py`, `rssm.py` → transition/RSSM tests, D2 synthetic",
+      "real_target_backend": "compact latent dynamics fixture; PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_latent_anything/test_transition.py -q`",
+      "acceptance_artifact": "one-step/rollout finite, seeded stochastic reproducibility, state carry; `artifacts/m14/l15-transitions.json`",
+      "artifact_path": "artifacts/m14/l15-transitions.json",
+      "resources_network_cleanup": "<2 GB, offline; remove temp state",
+      "status_blocker_owner": "planned; real temporal model gap; runtime owner",
+      "gap_record_ids": [
+        "THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER",
+        "THY-T06-STOCHASTIC-TRANSITION"
+      ],
+      "gap_record_count": 2
+    },
+    {
+      "lane_id": "L16",
+      "surface": "reward/value, CEM, MPPI planning",
+      "source_tests_evidence": "`reward_value.py`, `cem.py`, `mppi.py` → planner tests, D2 synthetic",
+      "real_target_backend": "real recorded trajectory substitute + compact transition; NumPy/PyTorch CPU",
+      "environment_command": "local; `uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q`",
+      "acceptance_artifact": "predeclared return/regret and budget, deterministic seed, no invalid action; `artifacts/m14/l16-planning.json`",
+      "artifact_path": "artifacts/m14/l16-planning.json",
+      "resources_network_cleanup": "<2 GB, offline; preserve trace, clean scratch",
+      "status_blocker_owner": "planned; policy-grounded D3 gap; planning owner",
+      "gap_record_ids": [
+        "THY-T07-MCTS-TRONG-LATENT",
+        "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+        "THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER",
+        "THY-T07-VALUE-EQUIVALENCE-MUZERO"
+      ],
+      "gap_record_count": 4
+    },
+    {
+      "lane_id": "L17",
+      "surface": "Gaussian renderer/3D manipulation",
+      "source_tests_evidence": "`adapters/gaussian_renderer.py`, `integrations/gsplat_renderer.py` → renderer tests, D2/D3 candidate",
+      "real_target_backend": "named gsplat checkpoint required; `LATENT_ANYTHING_3DGS_CHECKPOINT`; gsplat 1.4–<2.0",
+      "environment_command": "remote CUDA; `remote-cuda-test` runs `uv run pytest tests/test_latent_anything/test_gaussian_3d_renderer_network.py -m network -q` in disposable clone",
+      "acceptance_artifact": "render finite, multi-view PSNR/SSIM thresholds, intervention artifact; `artifacts/m14/l17-3dgs.json`",
+      "artifact_path": "artifacts/m14/l17-3dgs.json",
+      "resources_network_cleanup": "high VRAM/model download; access/license/hash required; disposable clone/cache",
+      "status_blocker_owner": "blocked; no named checkpoint; 3D owner",
+      "gap_record_ids": [
+        "THY-T03B-DYNAMIC-3DGS",
+        "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE"
+      ],
+      "gap_record_count": 2
+    },
+    {
+      "lane_id": "L18",
+      "surface": "LeRobotDataset bridge/streaming",
+      "source_tests_evidence": "`integrations/lerobot_dataset.py` → dataset tests, D1/D2",
+      "real_target_backend": "`lerobot/aloha_sim_insertion_human@cc571a3c661df81b566dbfde3d5c1e85fcdf7884`; LeRobot 0.6.1",
+      "environment_command": "remote/Linux recommended; `uv run python scripts/lerobot_dataset_inspection.py lerobot/aloha_sim_insertion_human --revision cc571a3c661df81b566dbfde3d5c1e85fcdf7884 --output artifacts/m14/l18-dataset.json`",
+      "acceptance_artifact": "episode order, schema, bounded stream/resume, dataset license; `artifacts/m14/l18-dataset.json`",
+      "artifact_path": "artifacts/m14/l18-dataset.json",
+      "resources_network_cleanup": "dataset download/storage; no credentials expected; delete local dataset",
+      "status_blocker_owner": "planned; upstream/license capture; LeRobot owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L19",
+      "surface": "ACT policy capture/intervention",
+      "source_tests_evidence": "`integrations/lerobot_act.py` → ACT tests, D2/D3",
+      "real_target_backend": "`lerobot/act_aloha_sim_insertion_human@33259aa86eb45fdf85350280044a33d9d50e40c3`; same ALOHA dataset",
+      "environment_command": "remote CUDA/Linux; `remote-cuda-test` runs `uv run pytest tests/test_lerobot_act.py::test_pinned_public_act_checkpoint_pair_loads_through_lerobot_factories -m network -q` in disposable clone",
+      "acceptance_artifact": "action shape, paired intervention/control, simulator metric and revision manifest; `artifacts/m14/l19-act.json`",
+      "artifact_path": "artifacts/m14/l19-act.json",
+      "resources_network_cleanup": "GPU/large download; model-card license not recorded; clean HF/cache",
+      "status_blocker_owner": "planned; license/access blocker; LeRobot owner",
+      "gap_record_ids": [
+        "THY-X01-OPENVLA"
+      ],
+      "gap_record_count": 1
+    },
+    {
+      "lane_id": "L20",
+      "surface": "Diffusion Policy capture",
+      "source_tests_evidence": "`integrations/lerobot_diffusion.py` → Diffusion tests, D2/D3",
+      "real_target_backend": "`LeTau/diffusion_aloha_insertion@6126e33`; dataset `lerobot/aloha_sim_insertion_human_image@d93d36a`; `aloha/AlohaInsertion-v0`",
+      "environment_command": "remote CUDA/Linux; `remote-cuda-test` runs `uv run pytest tests/test_lerobot_diffusion.py::test_pinned_public_diffusion_checkpoint_pair_loads_through_lerobot_factories -m network -q` in disposable clone",
+      "acceptance_artifact": "action distribution/causal simulation threshold, exact env/model/data IDs; `artifacts/m14/l20-diffusion-policy.json`",
+      "artifact_path": "artifacts/m14/l20-diffusion-policy.json",
+      "resources_network_cleanup": "GPU/large download; access/license capture; disposable env/cache",
+      "status_blocker_owner": "planned; upstream access; LeRobot owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L21",
+      "surface": "SmolVLA capture/intervention",
+      "source_tests_evidence": "`integrations/lerobot_smolvla.py` → SmolVLA tests, D2 candidate",
+      "real_target_backend": "`lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de`; `lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4`; `libero/libero_spatial`",
+      "environment_command": "remote CUDA/Linux, ~16 GB GPU; `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_lerobot_smolvla.py::test_smolvla_gpu_checkpoint_intervention_lane -m network -q`",
+      "acceptance_artifact": "action validity, causal intervention, simulator success threshold; `artifacts/m14/l21-smolvla.json`",
+      "artifact_path": "artifacts/m14/l21-smolvla.json",
+      "resources_network_cleanup": "~450M bf16, large download; model/data license/access required; clean clone/cache",
+      "status_blocker_owner": "planned; Linux/GPU/account/access blockers; LeRobot owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L22",
+      "surface": "ArtifactStore, portable envelopes, cache, stream, recorder/tracking",
+      "source_tests_evidence": "`portable.py`, `artifact_store.py`, `runtime/cache.py`, `rollout_pipeline.py`, `run_record.py`, `experiment_recorder.py` → focused tests, D1/D2",
+      "real_target_backend": "real Arrow/SQLite filesystem; MLflow/W&B optional backends",
+      "environment_command": "local isolated temp; `uv run pytest tests/test_portable.py tests/test_portable_results.py tests/test_artifact_store.py tests/test_latent_anything/test_cache.py tests/test_sprint75_streaming.py tests/test_run_record.py tests/test_run_record_portable.py tests/test_experiment_recorder.py tests/test_mlflow_recorder.py tests/test_wandb_recorder.py -q`",
+      "acceptance_artifact": "schema-v1 round trip/migration, path safety, resume/cancel, provider atomicity; `artifacts/m14/l22-runtime.json`",
+      "artifact_path": "artifacts/m14/l22-runtime.json",
+      "resources_network_cleanup": "<1 GB, offline; tracking credentials only in opt-in lane; delete temp DB/artifacts",
+      "status_blocker_owner": "planned; external tracking account may block; runtime owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L23",
+      "surface": "registry/plugins/config/CLI/serialization/security",
+      "source_tests_evidence": "`registry.py`, `_plugin_builtins.py`, `plugin_discovery.py`, `plugin_groups.py`, `plugin_metadata.py`, `cli.py`, `config.py`, `pipeline_config.py` → registry/plugin/CLI tests, D1",
+      "real_target_backend": "all 32 built-ins, 5 entry-point groups, hello-world separately installed plugin; base + each extra",
+      "environment_command": "local clean env; `uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q`",
+      "acceptance_artifact": "import isolation, discovery, install/uninstall, schema migrations, negative paths, secret/path/zip safety; `artifacts/m14/l23-contract.json`",
+      "artifact_path": "artifacts/m14/l23-contract.json",
+      "resources_network_cleanup": "<2 GB, no network except plugin install fixture; uninstall temp plugin/cache",
+      "status_blocker_owner": "planned; external GitHub Actions account blocker; API owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    },
+    {
+      "lane_id": "L24",
+      "surface": "packaging/docs/performance/release gates",
+      "source_tests_evidence": "`pyproject.toml`, `docs/M14_REAL_SYSTEM_VALIDATION.md`, `scripts/validate_evidence_ledger.py`, `.github/workflows/ci.yml`, `.github/workflows/optional-extras.yml`, `.github/workflows/release.yml` → full tests, MkDocs, Ruff/Pyright",
+      "real_target_backend": "clean base/all 12 profiles, supported Python/platform tiers, wheel/sdist",
+      "environment_command": "local then remote CI; `uv sync --locked --all-extras`; `uv run pytest -q`; `uv run mkdocs build --strict`",
+      "acceptance_artifact": "no diff/check errors, strict docs, type/lint/test pass, wheel import, performance budgets; `artifacts/m14/l24-rc.json`",
+      "artifact_path": "artifacts/m14/l24-rc.json",
+      "resources_network_cleanup": "build isolated; no secrets in artifacts; delete dist/site/temp",
+      "status_blocker_owner": "planned; external Actions account and unresolved evidence thresholds; release owner",
+      "gap_record_ids": [],
+      "gap_record_count": 0
+    }
+  ],
+  "execution_queue": [
+    {
+      "position": 1,
+      "record_id": "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE",
+      "lane_id": "L01",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "uv run pytest tests/test_latent_anything/test_latent_space.py tests/test_latent_anything/test_latent_value.py -q; add the declared L01 benchmark runner",
+      "acceptance": "all finite; stable schema/digest; exact no-mutation control",
+      "artifact": "artifacts/m14/l01-core.json",
+      "blocker": "none known; local lane"
+    },
+    {
+      "position": 2,
+      "record_id": "THY-T03-NORMALIZING-FLOWS",
+      "lane_id": "L05",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [
+        "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": [
+        "THY-T03-NORMALIZING-FLOWS",
+        "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT"
+      ],
+      "queue_status": "co_scheduled_scc_blocked_by_missing_implementation",
+      "command": "create L05 flow comparison lane with exact train/holdout split",
+      "acceptance": "finite held-out likelihood/AUROC against predeclared baseline",
+      "artifact": "artifacts/m14/l05-density.json",
+      "blocker": "no flow implementation currently in stable surface"
+    },
+    {
+      "position": 3,
+      "record_id": "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT",
+      "lane_id": "L05",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [
+        "THY-T03-NORMALIZING-FLOWS"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": [
+        "THY-T03-NORMALIZING-FLOWS",
+        "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT"
+      ],
+      "queue_status": "co_scheduled_scc_blocked_by_missing_implementation",
+      "command": "run L05 density/OOD benchmark",
+      "acceptance": "predeclared AUROC/calibration thresholds and finite digest",
+      "artifact": "artifacts/m14/l05-density.json",
+      "blocker": "flow portion unimplemented; GMM lane can cover bounded scope"
+    },
+    {
+      "position": 4,
+      "record_id": "THY-T02-VAE-HIGGINS-ET-AL-2017",
+      "lane_id": "L08",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T02-AUTOENCODER"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T02-VAE-HIGGINS-ET-AL-2017",
+          "prerequisite_id": "THY-T02-AUTOENCODER",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "add a bounded beta-VAE benchmark and run its focused test selector",
+      "acceptance": "finite metrics; predeclared reconstruction/disentanglement threshold; non-degenerate latent",
+      "artifact": "artifacts/m14/l08-convvae.json",
+      "blocker": "implementation scope not yet approved"
+    },
+    {
+      "position": 5,
+      "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+      "lane_id": "L12",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+          "prerequisite_id": "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L12 world-model health benchmark with collapsed baseline",
+      "acceptance": "non-collapse threshold and held-out gain over collapsed baseline",
+      "artifact": "artifacts/m14/l12-ijepa.json",
+      "blocker": "real checkpoint not needed for D2, but D3 requires I-JEPA access"
+    },
+    {
+      "position": 6,
+      "record_id": "THY-X01-LEWM-LEWORLDMODEL-2026",
+      "lane_id": "L12",
+      "current_evidence": "D1",
+      "target_evidence": "D3",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-X01-LEWM-LEWORLDMODEL-2026",
+          "prerequisite_id": "THY-T08-JEPA-JOINT-EMBEDDING-PREDICTIVE-ARCHITECTURE-LECUN-2022",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run marked real LeWM checkpoint lane after access is provisioned",
+      "acceptance": "predeclared held-out/drift/health thresholds and real checkpoint manifest",
+      "artifact": "artifacts/m14/l12-ijepa.json",
+      "blocker": "real LeWM checkpoint/license/access unavailable"
+    },
+    {
+      "position": 7,
+      "record_id": "THY-T02-VQGAN-ESSER-ET-AL-2021",
+      "lane_id": "L13",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T02-VQ-VAE-OORD-ET-AL-2017"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T02-VQGAN-ESSER-ET-AL-2021",
+          "prerequisite_id": "THY-T02-VQ-VAE-OORD-ET-AL-2017",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create a separate approved VQGAN lane; do not infer it from VQ-VAE tests",
+      "acceptance": "predeclared quantitative reconstruction/codebook thresholds; retain failure artifact",
+      "artifact": "artifacts/m14/l13-vq.json",
+      "blocker": "no approved VQGAN implementation/model lane"
+    },
+    {
+      "position": 8,
+      "record_id": "THY-T09-EMA-CODEBOOK-UPDATE",
+      "lane_id": "L13",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T09-VECTOR-QUANTIZATION"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T09-EMA-CODEBOOK-UPDATE",
+          "prerequisite_id": "THY-T09-VECTOR-QUANTIZATION",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "add EMA-vs-gradient codebook comparison to L13",
+      "acceptance": "perplexity >1, dead-code <1, finite held-out reconstruction",
+      "artifact": "artifacts/m14/l13-vq.json",
+      "blocker": "EMA implementation not currently present"
+    },
+    {
+      "position": 9,
+      "record_id": "THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ",
+      "lane_id": "L13",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T09-VECTOR-QUANTIZATION"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ",
+          "prerequisite_id": "THY-T09-VECTOR-QUANTIZATION",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create bounded FSQ comparison in L13",
+      "acceptance": "predeclared distortion/rate threshold and finite schema",
+      "artifact": "artifacts/m14/l13-vq.json",
+      "blocker": "not implemented"
+    },
+    {
+      "position": 10,
+      "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+      "lane_id": "L15",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T06-LATENT-TRANSITION-MODEL"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+          "prerequisite_id": "THY-T06-LATENT-TRANSITION-MODEL",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run transition/RSSM focused suite and D2 comparison",
+      "acceptance": "finite metrics; coverage/NLL thresholds predeclared; preserve failure evidence",
+      "artifact": "artifacts/m14/l15-transitions.json",
+      "blocker": "ledger evidence reconciliation required before promotion"
+    },
+    {
+      "position": 11,
+      "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+      "lane_id": "L16",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T07-REWARD-MODEL-TRONG-LATENT"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+          "prerequisite_id": "THY-T07-REWARD-MODEL-TRONG-LATENT",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L16 planner benchmark including fixed-zero/random-shooting controls",
+      "acceptance": "predeclared return/regret and budget; no invalid action",
+      "artifact": "artifacts/m14/l16-planning.json",
+      "blocker": "generic MPC scope must not overclaim CEM/MPPI equivalence"
+    },
+    {
+      "position": 12,
+      "record_id": "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE",
+      "lane_id": "L17",
+      "current_evidence": "D1",
+      "target_evidence": "D3",
+      "dependency_depth": 1,
+      "internal_dependencies": [],
+      "external_prerequisites": [
+        "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023"
+      ],
+      "external_prerequisite_details": [
+        {
+          "record_id": "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE",
+          "prerequisite_id": "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023",
+          "effective_status": "D2",
+          "ledger_section": "overrides",
+          "resolution": "satisfied_qualifying"
+        }
+      ],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run remote-cuda-test lane for L17 after checkpoint provisioning",
+      "acceptance": "finite render; predeclared PSNR/SSIM and intervention thresholds; reproducible manifest",
+      "artifact": "artifacts/m14/l17-3dgs.json",
+      "blocker": "named 3DGS checkpoint absent; L17 explicitly blocked"
+    },
+    {
+      "position": 13,
+      "record_id": "THY-T01-MANIFOLD-HYPOTHESIS",
+      "lane_id": "L02",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run the L02 geometry/temporal focused suite and predeclared manifold metric benchmark",
+      "acceptance": "finite metrics; declared manifold/geodesic threshold; no input mutation",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "none known; threshold must be predeclared"
+    },
+    {
+      "position": 14,
+      "record_id": "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
+      "lane_id": "L02",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L02 geometry benchmark including lerp-vs-slerp controls",
+      "acceptance": "endpoint/angle/norm tolerances and digest pass",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "none known; benchmark fixture to be recorded"
+    },
+    {
+      "position": 15,
+      "record_id": "THY-T04-LERP-LINEAR-INTERPOLATION",
+      "lane_id": "L02",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "include LERP in L02 geometry benchmark",
+      "acceptance": "endpoint and movement thresholds with deterministic digest",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "none known"
+    },
+    {
+      "position": 16,
+      "record_id": "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
+      "lane_id": "L03",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T01-METRIC-SPACE-VA-VECTOR-SPACE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "uv run pytest tests/test_latent_anything/test_clustering.py tests/test_latent_anything/test_probes.py -q; run L03 benchmark",
+      "acceptance": "predeclared held-out improvement and finite/stable digest",
+      "artifact": "artifacts/m14/l03-analysis.json",
+      "blocker": "GPT-2 model/license/cache capture"
+    },
+    {
+      "position": 17,
+      "record_id": "THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT",
+      "lane_id": "L05",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T04-DENSITY-ESTIMATION-TRONG-LATENT"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create bounded L05 transport comparison task",
+      "acceptance": "predeclared distance/control threshold and deterministic digest",
+      "artifact": "artifacts/m14/l05-density.json",
+      "blocker": "no transport implementation currently in stable surface"
+    },
+    {
+      "position": 18,
+      "record_id": "THY-T08-I-JEPA-ASSRAN-ET-AL-2023",
+      "lane_id": "L12",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T08-REPRESENTATION-COLLAPSE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run marked I-JEPA checkpoint smoke and L12 metrics",
+      "acceptance": "D2 health thresholds plus real checkpoint reproducibility and manifest",
+      "artifact": "artifacts/m14/l12-ijepa.json",
+      "blocker": "large checkpoint/license/access and optional profile"
+    },
+    {
+      "position": 19,
+      "record_id": "THY-T09-RESIDUAL-VQ-SOUNDSTREAM-ENCODEC",
+      "lane_id": "L13",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T09-EMA-CODEBOOK-UPDATE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create separate residual-VQ benchmark in L13",
+      "acceptance": "predeclared reconstruction/rate and non-collapse thresholds",
+      "artifact": "artifacts/m14/l13-vq.json",
+      "blocker": "not implemented; dataset scope pending"
+    },
+    {
+      "position": 20,
+      "record_id": "THY-T09-GAIA-1-WAYVE-2023",
+      "lane_id": "L14",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create separate real tokenized-model lane; compact tokenized D2 cannot promote this ID",
+      "acceptance": "predeclared task/perplexity/drift thresholds and real artifact",
+      "artifact": "artifacts/m14/l14-tokenized.json",
+      "blocker": "model/checkpoint access and implementation absent"
+    },
+    {
+      "position": 21,
+      "record_id": "THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER",
+      "lane_id": "L15",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T06-STOCHASTIC-TRANSITION"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L15 RSSM benchmark, then real temporal model lane if claiming D3",
+      "acceptance": "D2 thresholds plus real-model artifact for D3; retain negative drift result",
+      "artifact": "artifacts/m14/l15-transitions.json",
+      "blocker": "real temporal model and license/access absent"
+    },
+    {
+      "position": 22,
+      "record_id": "THY-T07-MCTS-TRONG-LATENT",
+      "lane_id": "L16",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create bounded MCTS comparison in L16",
+      "acceptance": "predeclared return/regret under fixed simulation budget",
+      "artifact": "artifacts/m14/l16-planning.json",
+      "blocker": "not implemented"
+    },
+    {
+      "position": 23,
+      "record_id": "THY-T07-VALUE-EQUIVALENCE-MUZERO",
+      "lane_id": "L16",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create separate value-equivalence lane; planner D2 is insufficient",
+      "acceptance": "predeclared value/policy agreement and task-return thresholds",
+      "artifact": "artifacts/m14/l16-planning.json",
+      "blocker": "not implemented and no checkpoint lane"
+    },
+    {
+      "position": 24,
+      "record_id": "THY-T03B-DYNAMIC-3DGS",
+      "lane_id": "L17",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 2,
+      "internal_dependencies": [
+        "THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "extend L17 with temporal multi-view benchmark only after checkpoint is named",
+      "acceptance": "predeclared PSNR/SSIM/temporal consistency thresholds and exact artifact digest",
+      "artifact": "artifacts/m14/l17-3dgs.json",
+      "blocker": "checkpoint and dynamic dataset unavailable"
+    },
+    {
+      "position": 25,
+      "record_id": "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+      "lane_id": "L02",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T01-MANIFOLD-HYPOTHESIS"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "extend L02 geodesic benchmark with metric/geodesic controls",
+      "acceptance": "finite path; declared path-quality and convergence thresholds",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "approved non-Euclidean benchmark fixture needed"
+    },
+    {
+      "position": 26,
+      "record_id": "THY-T04-SLERP",
+      "lane_id": "L02",
+      "current_evidence": "D1",
+      "target_evidence": "D2",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "include T04 Slerp path in L02 benchmark and artifact",
+      "acceptance": "declared norm and endpoint tolerances",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "none known"
+    },
+    {
+      "position": 27,
+      "record_id": "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
+      "lane_id": "L02",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T01-MANIFOLD-HYPOTHESIS"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L02 trajectory similarity benchmark",
+      "acceptance": "finite metric and predeclared ranking/held-out threshold",
+      "artifact": "artifacts/m14/l02-geometry.json",
+      "blocker": "Fréchet implementation/acceptance protocol may need owner approval"
+    },
+    {
+      "position": 28,
+      "record_id": "THY-T05-LINEAR-PROBING",
+      "lane_id": "L03",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L03 probe benchmark",
+      "acceptance": "predeclared held-out gain over shuffled baseline and finite metrics",
+      "artifact": "artifacts/m14/l03-analysis.json",
+      "blocker": "GPT-2 model/license/access capture"
+    },
+    {
+      "position": 29,
+      "record_id": "THY-T08-V-JEPA-BARDES-ET-AL-2024",
+      "lane_id": "L12",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T08-I-JEPA-ASSRAN-ET-AL-2023"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create separate V-JEPA lane after I-JEPA scope approval",
+      "acceptance": "predeclared masked-frame metric/health thresholds and reproducible real artifact",
+      "artifact": "artifacts/m14/l12-ijepa.json",
+      "blocker": "not implemented; checkpoint/dataset/access absent"
+    },
+    {
+      "position": 30,
+      "record_id": "THY-T09-GENIE-GOOGLE-2024",
+      "lane_id": "L14",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T09-GAIA-1-WAYVE-2023"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create separate real interactive-world-model lane",
+      "acceptance": "predeclared action/rollout/task thresholds with real artifact",
+      "artifact": "artifacts/m14/l14-tokenized.json",
+      "blocker": "model/checkpoint access and implementation absent"
+    },
+    {
+      "position": 31,
+      "record_id": "THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER",
+      "lane_id": "L16",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 3,
+      "internal_dependencies": [
+        "THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create owner-approved policy-gradient lane after L15; do not infer from planner results",
+      "acceptance": "predeclared return/regret and stability thresholds plus real-model artifact",
+      "artifact": "artifacts/m14/l16-planning.json",
+      "blocker": "not implemented; real model/checkpoint required"
+    },
+    {
+      "position": 32,
+      "record_id": "THY-T05-NONLINEAR-PROBING",
+      "lane_id": "L03",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 4,
+      "internal_dependencies": [
+        "THY-T05-LINEAR-PROBING"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L03 MLP benchmark with capacity/random-label/memorization controls",
+      "acceptance": "held-out result above predeclared baseline; memorization control fails as expected",
+      "artifact": "artifacts/m14/l03-analysis.json",
+      "blocker": "real hidden-state lane and owner threshold pending"
+    },
+    {
+      "position": 33,
+      "record_id": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+      "lane_id": "L04",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 4,
+      "internal_dependencies": [
+        "THY-T05-LINEAR-PROBING"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L04 TCAV/explanation validity lane",
+      "acceptance": "predeclared TCAV effect/selectivity/stability thresholds and artifact hash",
+      "artifact": "artifacts/m14/l04-explanations.json",
+      "blocker": "real GPT-2 and prompt/label fixture not yet provisioned"
+    },
+    {
+      "position": 34,
+      "record_id": "THY-T05-LOGIT-LENS-TUNED-LENS",
+      "lane_id": "L04",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 4,
+      "internal_dependencies": [
+        "THY-T05-LINEAR-PROBING"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L04 layerwise logit-lens benchmark",
+      "acceptance": "predeclared layerwise calibration/accuracy and stability thresholds",
+      "artifact": "artifacts/m14/l04-explanations.json",
+      "blocker": "tuned-lens implementation and real model access pending"
+    },
+    {
+      "position": 35,
+      "record_id": "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023",
+      "lane_id": "L06",
+      "current_evidence": "D1",
+      "target_evidence": "D3",
+      "dependency_depth": 4,
+      "internal_dependencies": [
+        "THY-T05-LINEAR-PROBING"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "uv run pytest tests/test_latent_anything/test_sae* -q; run L06 benchmark",
+      "acceptance": "predeclared reconstruction/dead-feature/stability thresholds and atlas hash",
+      "artifact": "artifacts/m14/l06-sae.json",
+      "blocker": "GPT-2/cache/license and D3 corpus lane pending"
+    },
+    {
+      "position": 36,
+      "record_id": "THY-T03-DISENTANGLEMENT",
+      "lane_id": "L04",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 5,
+      "internal_dependencies": [
+        "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run explanation-validity benchmark with explicit factor labels and controls",
+      "acceptance": "declared disentanglement metric beats control with confidence interval threshold",
+      "artifact": "artifacts/m14/l04-explanations.json",
+      "blocker": "factor-labeled real/model data not yet pinned"
+    },
+    {
+      "position": 37,
+      "record_id": "THY-T05-ACTIVATION-PATCHING",
+      "lane_id": "L04",
+      "current_evidence": "D1",
+      "target_evidence": "D3",
+      "dependency_depth": 5,
+      "internal_dependencies": [
+        "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L04 intervention lane",
+      "acceptance": "finite causal effect above control, off-target/degradation bounds, confidence interval",
+      "artifact": "artifacts/m14/l04-explanations.json",
+      "blocker": "GPT-2 model/access and causal threshold pending"
+    },
+    {
+      "position": 38,
+      "record_id": "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING",
+      "lane_id": "L04",
+      "current_evidence": "D1",
+      "target_evidence": "D3",
+      "dependency_depth": 5,
+      "internal_dependencies": [
+        "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "run L04 steering causal benchmark",
+      "acceptance": "predeclared target gain, off-target/degradation and confidence thresholds",
+      "artifact": "artifacts/m14/l04-explanations.json",
+      "blocker": "real model and prompt fixture pending"
+    },
+    {
+      "position": 39,
+      "record_id": "THY-T05-DICTIONARY-LEARNING",
+      "lane_id": "L06",
+      "current_evidence": "D0",
+      "target_evidence": "D2",
+      "dependency_depth": 5,
+      "internal_dependencies": [
+        "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "add a bounded dictionary-learning comparison to L06",
+      "acceptance": "predeclared held-out reconstruction/sparsity threshold",
+      "artifact": "artifacts/m14/l06-sae.json",
+      "blocker": "no dedicated implementation currently in stable surface"
+    },
+    {
+      "position": 40,
+      "record_id": "THY-X01-OPENVLA",
+      "lane_id": "L19",
+      "current_evidence": "D0",
+      "target_evidence": "D3",
+      "dependency_depth": 6,
+      "internal_dependencies": [
+        "THY-T05-ACTIVATION-PATCHING"
+      ],
+      "external_prerequisites": [],
+      "external_prerequisite_details": [],
+      "cycle_conflict": null,
+      "queue_status": "ready_for_dependency_ordered_execution",
+      "command": "create approved OpenVLA policy lane; do not count it in core denominator",
+      "acceptance": "predeclared action validity and task-success/causal thresholds",
+      "artifact": "artifacts/m14/l19-act.json",
+      "blocker": "checkpoint/license/access and adapter scope absent"
+    }
+  ],
+  "headline_blockers": [
+    {
+      "claim": "3DGS real/model-quality claim",
+      "lane": "L17",
+      "status": "blocked",
+      "reason": "M14 requires a named checkpoint, revision, license/access, and artifact; none is provisioned. Do not promote the D1 Gaussian-parameter item or Dynamic 3DGS D0 item."
+    },
+    {
+      "claim": "SmolVLA causal policy-explanation claim",
+      "lane": "L21",
+      "status": "D2 pending corrected rerun",
+      "reason": "The historical D3 artifact is explicitly unverified; run the corrected pinned CUDA/Linux lane with the exact model/dataset revisions, controls, seed, simulator threshold, and signed artifact before any D3 promotion."
+    }
+  ]
+}
