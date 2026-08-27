@@ -172,10 +172,19 @@ def test_trajectory_uses_independent_pair_paths_and_derangement() -> None:
     assert metrics["positive_scores_digest"] != metrics["negative_scores_digest"]
 
 
-def test_importing_runner_does_not_create_evidence() -> None:
-    artifact = Path(__file__).resolve().parents[1] / "artifacts/m14/l02-geometry.json"
+def test_importing_runner_does_not_modify_evidence() -> None:
+    root = Path(__file__).resolve().parents[1]
+    artifact = root / "artifacts/m14/l02-geometry.json"
+    run_record = root / "artifacts/m14/l02-geometry.run.json"
+    before = {path: path.read_bytes() for path in (artifact, run_record)}
 
-    assert not artifact.exists()
+    subprocess.run(
+        [sys.executable, "-c", "import scripts.m14_l02_geometry"],
+        cwd=root,
+        check=True,
+    )
+
+    assert {path: path.read_bytes() for path in (artifact, run_record)} == before
 
 
 def test_module_check_validates_plan_without_fitting_or_writing() -> None:

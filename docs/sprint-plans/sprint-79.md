@@ -19,6 +19,10 @@ Status legend: [ ] pending / [~] in progress / [x] done
   `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` to validator-backed D2. See
   [`l01-core.json`](../../artifacts/m14/l01-core.json) and
   [`task_79.3_summary.md`](../../artifacts/task_79.3_summary.md).
+- [x] Execute M14 L02 geometry with the committed sklearn-digits held-out lane;
+  promote only the four validator-backed D2 records and retain the manifold and
+  trajectory-similarity failures. See [`l02-geometry.json`](../../artifacts/m14/l02-geometry.json)
+  and [`task_79.4C_summary.md`](../../artifacts/task_79.4C_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

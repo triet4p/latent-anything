@@ -243,6 +243,24 @@ passes the non-trivial-token-usage gate, while the learned dynamics still show
 early greedy free-running error; this is meaningful compact synthetic evidence,
 not real-checkpoint or CUDA evidence.
 
+Sprint 79 L02 partially closes the geometry gap plan through the reproducible
+held-out sklearn-digits artifact
+(`artifacts/m14/l02-geometry.json`, self-digest
+`97d26f5fb1d12dc00658ff9cfec12a91b080bb4a1bb3cd96e7bc2ed70f9e5a58`). Four
+independent core rows are promoted to D2:
+`THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION`,
+`THY-T04-LERP-LINEAR-INTERPOLATION`,
+`THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN`, and `THY-T04-SLERP`. The
+`THY-T01-MANIFOLD-HYPOTHESIS` row remains D1 because held-out ranking AUC was
+`0.4560546875` against the `0.55` threshold, and
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` remains D0 because its
+self-to-indexwise ratio was `17.015624999997637` against the `0.95` threshold.
+The lane records model-induced latent sequences from held-out digits, not
+physical trajectories, and makes no Fréchet claim. Coverage is now 30/63 core
+(`47.6%`) and 30/65 overall (`46.2%`), leaving 35 D0/D1 rows (33 core and 2
+non-core); 30 additional core and 29 additional overall qualifiers are needed
+for the release gates.
+
 Sprint 73 adds the external plugin discovery contract as a non-theory API
 capability. Its source evidence is `src/latent_anything/plugin_groups.py`,
 `src/latent_anything/plugin_metadata.py`, and

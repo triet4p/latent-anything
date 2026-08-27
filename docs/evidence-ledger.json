@@ -95,7 +95,11 @@
       "status": "D1",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
       ]
     },
     "THY-T01-GEODESIC": {
@@ -206,10 +210,28 @@
       ]
     },
     "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
+        {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
+      ]
+    },
+    "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/geodesic.py"},
+        {"role": "source", "path": "src/latent_anything/geometry.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_geodesic.py"},
+        {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
       ]
     },
     "THY-T03B-3D-GAUSSIAN-SPLATTING-KERBL-ET-AL-2023": {
@@ -256,17 +278,27 @@
       ]
     },
     "THY-T04-LERP-LINEAR-INTERPOLATION": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/methods/lerp.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_lerp.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_lerp.py"},
+        {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
       ]
     },
     "THY-T04-SLERP": {
-      "status": "D1",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/latent_space.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"}
+        {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
+        {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
       ]
     },
     "THY-T04-MAHALANOBIS-DISTANCE": {
@@ -311,6 +343,21 @@
         {"role": "benchmark", "path": "scripts/trajectory_temporal_benchmark.py"},
         {"role": "config", "path": "src/latent_anything/temporal.py"},
         {"role": "artifact", "path": "artifacts/trajectory_temporal_benchmark.json"}
+      ]
+    },
+    "THY-T06-TRAJECTORY-SIMILARITY-METRICS": {
+      "status": "D0",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/dtw.py"},
+        {"role": "source", "path": "src/latent_anything/temporal.py"},
+        {"role": "source", "path": "src/latent_anything/trajectory.py"},
+        {"role": "test", "path": "tests/test_dtw.py"},
+        {"role": "test", "path": "tests/test_temporal.py"},
+        {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
+        {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
+        {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
       ]
     },
     "THY-T06-LATENT-TRANSITION-MODEL": {

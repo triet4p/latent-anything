@@ -1,0 +1,194 @@
+{
+  "accepted_gap_ids": [
+    "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
+    "THY-T04-LERP-LINEAR-INTERPOLATION",
+    "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+    "THY-T04-SLERP"
+  ],
+  "accepted_record_ids": [
+    "slerp_spherical",
+    "lerp_euclidean",
+    "riemannian_density_geodesic",
+    "slerp_latent_operation"
+  ],
+  "artifact_sha256": "97d26f5fb1d12dc00658ff9cfec12a91b080bb4a1bb3cd96e7bc2ed70f9e5a58",
+  "backend_versions": {
+    "latent-anything": "0.1.0b1",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.17.1",
+    "torch": "2.10.0"
+  },
+  "dataset": {
+    "content_sha256": "4bc179b311d025a12b852eec8fb2ddeaa3099a2a97c99bb40d78bf33d2f59d4a",
+    "dataset": "sklearn.datasets.load_digits",
+    "heldout_index_sha256": "2153b4535ef4d3bfd092731276601deeab61004b817ee2b54daf4fa1f7b84d59",
+    "heldout_samples": 360,
+    "license": "BSD-3-Clause",
+    "total_samples": 1797,
+    "train_index_sha256": "f9c880cf9066db68aa666972fe306b6c9afcb789a959f6bcd5a76115e068b2c4",
+    "train_samples": 1437
+  },
+  "density": {
+    "config": {
+      "config": {
+        "n_components": 10,
+        "n_init": 2,
+        "random_state": 42
+      },
+      "fit_scope": "train latents only; held-out latents are score-only",
+      "identity": "conv-vae/digits/train-only"
+    },
+    "fit_scope": "train latents only",
+    "state_digest": "f1b5a6674cdae0d5e1e6e29412b16f83e2d4aed2c3094de7e5d1fe5b435bc1ec"
+  },
+  "derived_latent_digests": {
+    "heldout_latents": "bc5d33214e58292944c0fc4c1f2ad9ab14910db19bf9429485180b82891ece82",
+    "train_latents": "ecd8d5940e29ffd8772ebe09b3e477a786561330a2d22ef669b0fa9a15559bf5"
+  },
+  "evidence_level": "D2",
+  "input_digests": {
+    "after": {
+      "heldout_images": "990ba9add9c2761fbf84d0daddc81d7fd278031a16fe93d613886686c93030f4",
+      "heldout_labels": "6ece134cab18f3a7e9e04cdb0099189f69cd77cdad4133fe799966cf0c01c2ce",
+      "train_images": "3efe2ec3b280770755a76fb9944f4f21d2466464381670b60ca936ed9118c251",
+      "train_labels": "b3b791b4c757642c4806610b8a3605c35b1ae8bd5c9af39db3dd0c5a04398566"
+    },
+    "before": {
+      "heldout_images": "990ba9add9c2761fbf84d0daddc81d7fd278031a16fe93d613886686c93030f4",
+      "heldout_labels": "6ece134cab18f3a7e9e04cdb0099189f69cd77cdad4133fe799966cf0c01c2ce",
+      "train_images": "3efe2ec3b280770755a76fb9944f4f21d2466464381670b60ca936ed9118c251",
+      "train_labels": "b3b791b4c757642c4806610b8a3605c35b1ae8bd5c9af39db3dd0c5a04398566"
+    }
+  },
+  "lane": "M14-L02",
+  "model": {
+    "config": {
+      "adapter": "latent_anything.adapters.conv_vae.ConvVAE",
+      "epochs": 8,
+      "fit_scope": "train images only",
+      "latent_contract": "ConvVAE.latent_space (euclidean, source_model=conv_vae_8x8)",
+      "latent_dim": 4,
+      "random_state": 42
+    },
+    "fit_scope": "train images only",
+    "metrics": {
+      "latent_utilization": 0.0045607807114720345,
+      "posterior_kl": 0.006323094479739666,
+      "reconstruction_mse": 0.18588410317897797
+    }
+  },
+  "partial_promotion": true,
+  "plan_sha256": "e2bcbbb361f08eefa429ca48dd708ac00c094fe98959c17d7c88b261d73f869f",
+  "provenance": {
+    "contract_source_sha256": "530e20e02dd1cb247ceb8100b6f2bcdc7f5de5d2aafa40b7d4e3a35d6225925f",
+    "git_sha": "9f1bcbe362ae76015a9db752f9b80e3c81022ed7",
+    "implementation_source_sha256": "675ff3d646b293fcc85a7b1c201727ce95392a491c951c897c7c9f1a7c3749ad",
+    "runner_source_sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226"
+  },
+  "records": [
+    {
+      "accepted": false,
+      "gap_ids": [
+        "THY-T01-MANIFOLD-HYPOTHESIS"
+      ],
+      "metrics": {
+        "finite": true,
+        "latent_vs_raw_auc_delta": -0.4124755859375,
+        "pair_count": 128,
+        "raw_pixel_auc": 0.8685302734375,
+        "real_pair_auc": 0.4560546875,
+        "shuffled_label_auc": 0.46142578125,
+        "train_only_density_fit": true
+      },
+      "record_id": "manifold_hypothesis",
+      "verdict": "failed"
+    },
+    {
+      "accepted": true,
+      "gap_ids": [
+        "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION"
+      ],
+      "metrics": {
+        "angular_additivity_error": 2.220446049250313e-16,
+        "endpoint_error": 0.0,
+        "finite": true,
+        "no_input_mutation": true,
+        "norm_error": 2.220446049250313e-16
+      },
+      "record_id": "slerp_spherical",
+      "verdict": "accepted"
+    },
+    {
+      "accepted": true,
+      "gap_ids": [
+        "THY-T04-LERP-LINEAR-INTERPOLATION"
+      ],
+      "metrics": {
+        "coefficient_error": 0.0,
+        "endpoint_error": 0.0,
+        "finite": true,
+        "no_input_mutation": true
+      },
+      "record_id": "lerp_euclidean",
+      "verdict": "accepted"
+    },
+    {
+      "accepted": true,
+      "gap_ids": [
+        "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN"
+      ],
+      "metrics": {
+        "converged": true,
+        "endpoint_error": 0.0,
+        "finite": true,
+        "iterations": 2,
+        "mean_log_density_delta": 0.012367905751419883,
+        "path_length": 0.13895596335260527,
+        "train_only_density_fit": true
+      },
+      "record_id": "riemannian_density_geodesic",
+      "verdict": "accepted"
+    },
+    {
+      "accepted": true,
+      "gap_ids": [
+        "THY-T04-SLERP"
+      ],
+      "metrics": {
+        "angular_additivity_error": 2.220446049250313e-16,
+        "endpoint_error": 0.0,
+        "finite": true,
+        "no_input_mutation": true,
+        "norm_error": 2.220446049250313e-16
+      },
+      "record_id": "slerp_latent_operation",
+      "verdict": "accepted"
+    },
+    {
+      "accepted": false,
+      "gap_ids": [
+        "THY-T06-TRAJECTORY-SIMILARITY-METRICS"
+      ],
+      "metrics": {
+        "finite": true,
+        "independent_pair_trials": 128,
+        "median_self_to_indexwise_ratio": 17.015624999997637,
+        "median_self_to_unrelated_ratio": 0.010693904158763163,
+        "negative_scores_digest": "a320b983de5ac00dab082251b7e4873a27ae68f7418474f38f0b4c0ce5a92b3e",
+        "no_input_mutation": true,
+        "no_self_mapping": true,
+        "pair_path_digest": "027a5a891b0b1a8efee88ecdc814e5d37570fdd5401313a4d1b196313ae26652",
+        "positive_scores_digest": "73bf28914f08d555f65c3d4e29b531daaf8ad5855b22e359eee64e609ad702ea",
+        "ranking_auc": 1.0,
+        "unequal_lengths": true,
+        "unrelated_pair_permutation_digest": "b96e25cbb68ab8dd9afc4a3f310c7a596785cfd4aae40b71e101b55139414600"
+      },
+      "record_id": "trajectory_similarity_dtw",
+      "verdict": "failed"
+    }
+  ],
+  "schema_version": "m14-l02-geometry-artifact-v1"
+}

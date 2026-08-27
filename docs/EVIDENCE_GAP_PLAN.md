@@ -1,24 +1,49 @@
 # Theory evidence-gap closure plan
 
-This is the Sprint 78.38 execution plan for the non-qualifying theory rows.
-It is a plan, not evidence promotion: the levels in
-[`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative until
-an immutable lane artifact passes the validator. The row-level machine-readable
-map is [`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
+This is the Sprint 78.38 execution plan for the non-qualifying theory rows,
+updated with the Sprint 79 L02 partial result. The levels in
+[`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative; the
+immutable L02 artifact supports exactly four D2 promotions. The row-level
+machine-readable map is
+[`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **26/63 core (41.3%)** and
-**26/65 overall (40.0%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **30/63 core (47.6%)** and
+**30/65 overall (46.2%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **39 current D0/D1
-rows** in this plan: **37 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **34 additional core qualifiers** are required to reach
-`ceil(0.95 × 63) = 60`; at least **33 additional overall qualifiers** are
+denominator adds two applicable X01 rows. There are exactly **35 current D0/D1
+rows** in this plan: **33 core** and **2 non-core**. A qualifying row is D2 or
+D3, so at least **30 additional core qualifiers** are required to reach
+`ceil(0.95 × 63) = 60`; at least **29 additional overall qualifiers** are
 required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
 binding gate. Headline model, causal explanation, and named integration claims
 target D3; ordinary algorithm capabilities target D2 unless their row says
 otherwise.
+
+### Sprint 79 L02 partial result
+
+The committed, reproducible artifact
+[`l02-geometry.json`](../artifacts/m14/l02-geometry.json) passed its artifact
+and run-record validators and supports exactly four independent D2 promotions:
+`THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION`,
+`THY-T04-LERP-LINEAR-INTERPOLATION`,
+`THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN`, and `THY-T04-SLERP`. The artifact
+self-digest is
+`97d26f5fb1d12dc00658ff9cfec12a91b080bb4a1bb3cd96e7bc2ed70f9e5a58`, and the
+two canonical runs were deterministic apart from their UTC run-record
+timestamps.
+
+The `THY-T01-MANIFOLD-HYPOTHESIS` record remains D1 because its held-out
+ranking AUC was `0.4560546875` (threshold `0.55`) and its latent-vs-raw delta
+was `-0.4124755859375` (threshold `-0.05`). The
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` record remains D0 because its
+self-to-indexwise ratio was `17.015624999997637` (threshold `0.95`), despite
+128 finite trials and ranking AUC `1.0`; its self-to-unrelated ratio was
+`0.010693904158763163`. These failures remain linked to the retained artifact
+and are not promoted. The lane concerns model-induced latent sequences from
+held-out sklearn digits, not recorded physical trajectories, and makes no
+Fréchet claim.
 
 The validator command is:
 
@@ -26,7 +51,7 @@ The validator command is:
 uv run python scripts/validate_evidence_ledger.py
 ```
 
-It must continue to report the honest current 26/63 and 26/65 result while
+It must continue to report the honest current 30/63 and 30/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
@@ -39,18 +64,18 @@ map; lane-level defaults are specified in the next section.
 | ID | Current | Core | Headline | Target | M14 lane | Capability / insufficiency |
 |---|---:|:---:|:---:|:---:|:---:|---|
 | `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` | D2 | yes | no | D2 | L01 | Existing ConvVAE/AnalysisPipeline held-out benchmark and immutable artifact verified |
-| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 | yes | no | D2 | L02 | Geometry tests lack held-out manifold evidence |
+| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed L02 record) | yes | no | D2 | L02 | Held-out ranking failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05 |
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |
 | `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D1 | yes | no | D2 | L03 | PCA tests lack quantitative held-out benchmark |
 | `THY-T03-DISENTANGLEMENT` | D0 | yes | yes | D2 | L04 | Benchmark-only row has no factor/control artifact |
-| `THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN` | D0 | yes | no | D2 | L02 | Theory-only metric/geodesic row |
-| `THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION` | D1 | yes | no | D2 | L02 | Unit behavior tested, no non-trivial benchmark |
+| `THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN` | D2 | yes | no | D2 | L02 | Accepted bounded density-geodesic record in the L02 artifact |
+| `THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION` | D2 | yes | no | D2 | L02 | Accepted held-out unit-norm interpolation record in the L02 artifact |
 | `THY-T03-NORMALIZING-FLOWS` | D0 | yes | no | D2 | L05 | Theory-only flow row |
 | `THY-T03B-GAUSSIAN-PARAMETERS-LA-LATENT-VARIABLE` | D1 | yes | yes | D3 | L17 | Reference renderer evidence is not real 3DGS evidence |
 | `THY-T03B-DYNAMIC-3DGS` | D0 | yes | yes | D3 | L17 | Theory-only dynamic-scene claim |
-| `THY-T04-LERP-LINEAR-INTERPOLATION` | D1 | yes | no | D2 | L02 | Focused implementation lacks benchmark/config |
-| `THY-T04-SLERP` | D1 | yes | no | D2 | L02 | Focused implementation lacks separate D2 artifact |
+| `THY-T04-LERP-LINEAR-INTERPOLATION` | D2 | yes | no | D2 | L02 | Accepted held-out LERP record in the L02 artifact |
+| `THY-T04-SLERP` | D2 | yes | no | D2 | L02 | Accepted independent T04 SLERP record in the L02 artifact |
 | `THY-T04-DENSITY-ESTIMATION-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only density row |
 | `THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only transport row |
 | `THY-T05-LINEAR-PROBING` | D0 | yes | yes | D2 | L03 | Existing probe is not linked to a D2 benchmark |
@@ -63,7 +88,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D0 | yes | yes | D3 | L04 | Benchmark-only row lacks layerwise model artifact |
 | `THY-T06-STOCHASTIC-TRANSITION` | D0 | yes | no | D2 | L15 | Later implementation evidence is not mapped to this ID |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
-| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 | yes | no | D2 | L02 | DTW/temporal code lacks benchmark-only artifact |
+| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |
 | `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D0 | yes | no | D2 | L16 | CEM/MPPI do not automatically prove generic MPC row |
 | `THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER` | D0 | yes | yes | D3 | L16 | No actor-critic/policy-gradient lane |
 | `THY-T07-VALUE-EQUIVALENCE-MUZERO` | D0 | yes | yes | D3 | L16 | No value-equivalence representation/training lane |
