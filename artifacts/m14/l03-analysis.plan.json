@@ -11,13 +11,16 @@
     "device": "cuda",
     "dtype": "float32",
     "forward_only": true,
+    "inference_batch_size": 8,
+    "official_url": "https://huggingface.co/openai-community/gpt2/commit/e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "license_url": "https://huggingface.co/openai-community/gpt2/blob/main/LICENSE",
     "adapter_truth": "TransformerLMIntegration is the concrete integration; HiddenStateAdapter is synthetic and excluded"
   },
   "data": {
     "dataset": "sklearn.datasets.load_digits",
     "license": "BSD-3-Clause",
     "label_source": "dataset.target",
-    "fit_scope": "no model or transform sees validation/test labels"
+    "fit_scope": "all transforms fit train rows only; MLP may use validation labels for early stopping; held-out test labels are never used for fitting or model selection"
   },
   "split": {
     "method": "StratifiedGroupKFold",
@@ -44,7 +47,7 @@
     "primary_layer": 12,
     "pca_components": 32,
     "pca_fit_scope": "train rows only",
-    "kmeans": {"n_clusters": 10, "n_init": 10, "max_iter": 300, "random_state": 79, "role": "diagnostic only"},
+    "kmeans": {"n_clusters": 10, "n_init": 10, "max_iter": 300, "random_state": 79, "fit_scope": "train rows only", "role": "diagnostic only"},
     "linear_probe": {"C": 1.0, "solver": "lbfgs", "max_iter": 1000, "standardize": true, "class_weight": "balanced", "fit_intercept": true},
     "mlp_probe": {"hidden_sizes": [16], "activation": "relu", "max_epochs": 80, "early_stopping_patience": 10, "learning_rate": 0.001, "weight_decay": 0.0001, "batch_size": 64, "standardize": true},
     "mlp_capacity_diagnostics": [[4], [64]],
@@ -100,7 +103,8 @@
   },
   "artifact_schema": {"schema_version": "m14-l03-analysis-artifact-v1", "required_fields": ["artifact_sha256", "plan_sha256", "split", "records", "provenance", "accepted_record_ids", "accepted_gap_ids"]},
   "run_record_schema": {"schema_version": "m14-l03-analysis-run-v1", "required_fields": ["git_sha", "artifact_sha256", "plan_sha256", "runner_source_sha256", "timestamp_utc", "resource_measurement", "cleanup"]},
-  "provenance_contract": {"command": "uv run python -m scripts.m14_l03_analysis --run-real", "git_sha": "deferred-until-phase-a-commit", "source_digests": "runner, contract, implementation; SHA-256", "model_provenance": "model ID, immutable revision, tokenizer/backend versions, license URL", "resources": "GPU identity, CUDA/Torch versions, peak allocated/reserved memory, host RSS when /usr/bin/time is available; otherwise explicitly not measured", "cleanup": "disposable clone and model/package caches removed by trap after report capture"},
+  "report_schema": {"schema_version": "m14-l03-report-v1", "stdout_encoding": "one JSON object; artifact and run_record nested; no committed output files", "required_fields": ["status", "plan_sha256", "artifact", "run_record", "run_record_sha256"]},
+  "provenance_contract": {"command": "uv run python -m scripts.m14_l03_analysis --run-real", "git_sha": "deferred-until-phase-a-commit", "source_digests": "runner, contract, implementation; SHA-256", "dataset": "sklearn.datasets.load_digits source and BSD-3-Clause license", "model_provenance": "model ID, immutable revision, official pinned URL, MIT license URL, tokenizer/config fields", "runtime": "Python, NumPy, SciPy, scikit-learn, Torch, Transformers, CUDA versions", "resources": "GPU identity, CUDA/Torch versions, token distribution, inference batch size/count, peak allocated/reserved memory, host RSS when /usr/bin/time is available; otherwise explicitly not measured", "cleanup": "disposable clone and model/package caches removed by trap after report capture; distinguish runner measurements from wrapper cleanup evidence"},
   "phase_contract": {"phase_a": "commit/push plan, runner, support modules, tests; no result artifact", "phase_b": "external authenticated PowerShell launches Bash/SSH remote-cuda skill against exact pushed SHA; immutable uncommitted result is reviewed", "phase_c": "separate evidence/docs promotion commit only after owner review"},
-  "plan_sha256": "bbf8739537d9a084adc90656a1c412ebd1c63f0567a3c18dbcc8c289f4c23cc7"
+  "plan_sha256": "cb3d4b5adf8637beccef04705eab401e821f3f3e6047b6670b5712075b27322b"
 }

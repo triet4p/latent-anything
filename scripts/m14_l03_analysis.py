@@ -14,11 +14,16 @@ from scripts.m14_l03_data import array_digest, grouped_digit_split
 from scripts.m14_l03_envelope import (
     apply_dependency_blocking,
     build_artifact,
+    build_report,
+    build_run_record,
     failure_envelope,
     git_sha,
+    runtime_versions,
     source_digests,
     validate_artifact,
+    validate_report,
 )
+from scripts.m14_l03_features import extract_batched
 from scripts.m14_l03_metrics import compression_ok, evaluate_linear, evaluate_mlp, fit_train_only_pca
 from scripts.m14_l03_plan import load_plan, section
 
@@ -33,37 +38,41 @@ def check() -> dict[str, Any]:
 def run_real() -> dict[str, Any]:
     """Run the remote-only real model lane and write evidence after validation."""
     plan = load_plan()
-    split = grouped_digit_split(int(section(plan, "split")["seed"]))
     try:
-        import numpy as np
-
+        split = grouped_digit_split(int(section(plan, "split")["seed"]))
         from latent_anything.clustering import KMeans, KMeansConfig
         from latent_anything.integrations.transformer_lm import TransformerGenerationRequest, TransformerLMIntegration
 
-        model = TransformerLMIntegration(
-            str(section(plan, "model")["model_id"]), str(section(plan, "model")["revision"]), device="cuda"
-        )
+        model_spec = section(plan, "model")
+        model = TransformerLMIntegration(str(model_spec["model_id"]), str(model_spec["revision"]), device="cuda")
         prompts = tuple(str(prompt) for prompt in split["prompts"])
-        tokenized = model.tokenize(prompts, max_length=64, return_tensors="pt")
-        token_lengths = np.asarray(tokenized["attention_mask"].sum(dim=1).cpu())
-        if np.any(token_lengths >= 64):
-            raise ValueError("a prompt reaches max_length and may have been truncated")
-        result = model.generate(
-            TransformerGenerationRequest(
-                prompt=prompts,
-                max_length=64,
+        import torch
+
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA is required for the real L03 lane")
+        torch.cuda.reset_peak_memory_stats()
+
+        def request_factory(batch: tuple[str, ...], *, max_length: int, layers: tuple[int, ...]) -> Any:
+            return TransformerGenerationRequest(
+                prompt=batch,
+                max_length=max_length,
                 seed=79,
                 capture_hidden_states=True,
-                capture_layers=(0, 4, 8, 12),
+                capture_layers=layers,
                 top_k_logit_lens=0,
             )
+
+        hidden, inference = extract_batched(
+            model,
+            prompts,
+            layers=(0, 4, 8, 12),
+            max_length=64,
+            batch_size=int(model_spec["inference_batch_size"]),
+            request_factory=request_factory,
         )
-        mask = np.asarray(result.attention_mask, dtype=bool)
-        hidden: dict[int, np.ndarray] = {}
-        for state in result.hidden_states:
-            values = np.asarray(state.values, dtype=np.float64)
-            denominator = np.maximum(mask.sum(axis=1, keepdims=True), 1)
-            hidden[state.layer] = (values * mask[:, :, None]).sum(axis=1) / denominator
+        inference["cuda_peak_allocated_bytes"] = int(torch.cuda.max_memory_allocated())
+        inference["cuda_peak_reserved_bytes"] = int(torch.cuda.max_memory_reserved())
+        inference["gpu_name"] = str(torch.cuda.get_device_name())
         masks = split["partitions"]
         linear_cfg = LinearProbeConfig(
             C=1.0,
@@ -79,7 +88,7 @@ def run_real() -> dict[str, Any]:
         primary = hidden[12]
         clustering = KMeans(
             KMeansConfig(n_clusters=10, n_init=10, max_iter=300, random_state=79, standardize=True)
-        ).fit_predict(primary, provenance={"role": "diagnostic-only", "fit_scope": "all hidden rows"})
+        ).fit_predict(primary[masks["train"]], provenance={"role": "diagnostic-only", "fit_scope": "train rows only"})
         layer_metrics = {
             str(layer): evaluate_linear(hidden[layer], split["labels"], masks, linear_cfg) for layer in (0, 4, 8, 12)
         }
@@ -164,10 +173,29 @@ def run_real() -> dict[str, Any]:
                 },
             ]
         )
+        resources: dict[str, Any] = {**inference, "host_rss": "not measured by runner"}
         provenance = {
             "git_sha": git_sha(),
             **source_digests(),
+            "model_id": model.model_id,
+            "model_revision": model.revision,
             "model": model.provenance,
+            "model_url": f"https://huggingface.co/{model.model_id}/commit/{model.revision}",
+            "model_license_url": "https://huggingface.co/openai-community/gpt2/blob/main/LICENSE",
+            "dataset_source": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_digits.html",
+            "dataset_license": "BSD-3-Clause",
+            "dataset_license_url": "https://github.com/scikit-learn/scikit-learn/blob/main/COPYING",
+            "tokenizer": {"max_length": 64, "padding": True, "truncation": True, "return_tensors": "pt"},
+            "model_config": model.hidden_state_space.metadata,
+            "runtime_versions": runtime_versions(),
+            "resources": resources,
+            "wrapper_cleanup_evidence": "reported by remote-cuda wrapper separately",
+            "network": "model download/network access required only during remote run",
+            "credentials": "none used by runner",
+            "data_digests": {
+                key: split["metadata"][key]
+                for key in ("content_sha256", "label_sha256", "prompt_sha256", "prompt_digest_sha256", "fold_sha256")
+            },
             "hidden_layers": sorted(hidden),
             "feature_digest": hashlib.sha256(
                 "".join(array_digest(hidden[layer]) for layer in sorted(hidden)).encode("ascii")
@@ -177,9 +205,14 @@ def run_real() -> dict[str, Any]:
         errors = validate_artifact(artifact, plan, source_digests())
         if errors:
             raise ValueError("invalid L03 artifact: " + "; ".join(errors))
-        return artifact
+        run_record = build_run_record(plan, artifact, resources)
+        report = build_report(plan, artifact, run_record)
+        errors = validate_report(report, plan)
+        if errors:
+            raise ValueError("invalid L03 report: " + "; ".join(errors))
+        return report
     except Exception as error:
-        return failure_envelope(plan, error)
+        return failure_envelope(plan, error, model_attempt=section(plan, "model"))
 
 
 def main() -> None:

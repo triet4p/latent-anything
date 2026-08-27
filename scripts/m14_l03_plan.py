@@ -55,6 +55,7 @@ def validate_plan(plan: Mapping[str, Any]) -> list[str]:
         "artifact_contract",
         "artifact_schema",
         "run_record_schema",
+        "report_schema",
         "provenance_contract",
         "plan_sha256",
     }
@@ -70,19 +71,29 @@ def validate_plan(plan: Mapping[str, Any]) -> list[str]:
         errors.append("model must name the concrete TransformerLMIntegration")
     if model.get("model_id") != "openai-community/gpt2" or len(str(model.get("revision", ""))) != 40:
         errors.append("model must use the immutable GPT-2 revision")
-    if model.get("device") != "cuda":
+    if model.get("device") != "cuda" or model.get("inference_batch_size") != 8:
         errors.append("real validation device must be remote CUDA")
+    report_schema = section(plan, "report_schema")
+    if report_schema.get("schema_version") != "m14-l03-report-v1" or "artifact" not in report_schema.get(
+        "required_fields", []
+    ):
+        errors.append("stdout report schema must link artifact and run record")
     split = section(plan, "split")
     if (split.get("method"), split.get("n_splits"), split.get("seed")) != ("StratifiedGroupKFold", 5, 79):
         errors.append("split must be deterministic five-fold StratifiedGroupKFold seed 79")
     if split.get("partition_folds") != {"train": [0, 1, 2], "val": [3], "test": [4]}:
         errors.append("split must declare 60/20/20 fold assignment")
+    data = section(plan, "data")
+    if "held-out test labels are never used" not in str(data.get("fit_scope")):
+        errors.append("data contract must prohibit test-label fitting and model selection")
     prompts = section(plan, "prompt_contract")
     if prompts.get("max_length") != 64 or prompts.get("pooling") != "attention-mask mean":
         errors.append("prompt max length/pooling contract changed")
     analysis = section(plan, "analysis")
     if analysis.get("pca_components") != 32 or analysis.get("layers") != [0, 4, 8, 12]:
         errors.append("analysis layer/PCA configuration changed")
+    if not isinstance(analysis.get("kmeans"), Mapping) or analysis["kmeans"].get("fit_scope") != "train rows only":
+        errors.append("KMeans diagnostic must fit train rows only")
     intervals = section(plan, "controls")
     if (intervals.get("bootstrap_resamples"), intervals.get("bootstrap_seed")) != (10000, 7901):
         errors.append("paired held-out bootstrap must remain B=10000 seed 7901")
