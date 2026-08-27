@@ -225,6 +225,7 @@ def failure_envelope(
         "accepted_record_ids": [],
         "accepted_gap_ids": [],
         "run_record_status": "failed",
+        "cleanup_status": "pending_external_wrapper",
         "artifact_written": False,
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
     }

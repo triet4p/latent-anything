@@ -12,6 +12,7 @@ from scripts.m14_l03_analysis import check
 from scripts.m14_l03_data import glyph_prompt, grouped_digit_split, validate_group_labels
 from scripts.m14_l03_envelope import (
     apply_dependency_blocking,
+    artifact_digest,
     build_artifact,
     build_run_record,
     failure_envelope,
@@ -19,9 +20,28 @@ from scripts.m14_l03_envelope import (
     validate_artifact,
 )
 from scripts.m14_l03_features import extract_batched
-from scripts.m14_l03_finalize import build_report, finalize_report, finalize_run_record, validate_report
+from scripts.m14_l03_finalize import (
+    build_report,
+    finalize_report,
+    finalize_run_record,
+    validate_cleanup_evidence,
+    validate_failure_report,
+    validate_report,
+)
 from scripts.m14_l03_metrics import compression_ok, paired_bootstrap, wilson_95
 from scripts.m14_l03_plan import load_plan, plan_digest, validate_plan
+
+
+def _cleanup_evidence() -> dict[str, object]:
+    return {
+        "checkout_removed": True,
+        "cache_removed": True,
+        "output_captured": True,
+        "isolated_checkout_path": "/tmp/latent-anything-l03-checkout-abc",
+        "isolated_cache_paths": ["/tmp/latent-anything-l03-cache-abc"],
+        "captured_output_sha256": "a" * 64,
+        "wrapper_exit_status": 0,
+    }
 
 
 def test_plan_is_immutable_and_check_has_no_result_artifact() -> None:
@@ -95,14 +115,69 @@ def test_failure_envelope_never_promotes() -> None:
     assert envelope["model_attempt"]["revision"] == plan["model"]["revision"]
     assert envelope["run_record"]["cleanup_status"] == "pending_external_wrapper"
     assert envelope["error_type"] == "RuntimeError"
+    assert validate_failure_report(envelope, plan) == []
     finalized_failure = finalize_report(
         envelope,
-        {"checkout_removed": True, "cache_removed": True, "output_captured": True},
+        _cleanup_evidence(),
         plan,
     )
     assert finalized_failure["status"] == "failed"
     assert finalized_failure["run_record"]["status"] == "failed"
     assert finalized_failure["run_record"]["accepted_record_ids"] == []
+    assert validate_failure_report(finalized_failure, plan, finalized=True) == []
+
+
+def test_failure_finalization_rejects_tampered_preliminary_linkage() -> None:
+    plan = load_plan()
+    envelope = failure_envelope(plan, RuntimeError("no CUDA"), model_attempt=plan["model"])
+    envelope["plan_sha256"] = "f" * 64
+    with pytest.raises(ValueError, match="preliminary failure report"):
+        finalize_report(envelope, _cleanup_evidence(), plan)
+
+
+def test_cleanup_evidence_requires_scoped_paths_and_wrapper_status() -> None:
+    evidence = _cleanup_evidence()
+    assert validate_cleanup_evidence(evidence) == []
+    evidence.pop("isolated_cache_paths")
+    assert any("cache paths" in error for error in validate_cleanup_evidence(evidence))
+    with pytest.raises(ValueError, match="cleanup evidence"):
+        finalize_run_record(
+            {"status": "runner_completed_cleanup_pending", "cleanup_status": "pending_external_wrapper"}, evidence
+        )
+
+
+def test_finalized_success_requires_cleanup_proof() -> None:
+    plan = load_plan()
+    artifact = {
+        "schema_version": "m14-l03-analysis-artifact-v1",
+        "lane": "M14-L03",
+        "evidence_level": "D1",
+        "partial_promotion": True,
+        "accepted_record_ids": [],
+        "accepted_gap_ids": [],
+        "records": [
+            {"record_id": record["record_id"], "gap_id": record["gap_id"], "accepted": False, "verdict": "failed"}
+            for record in plan["records"]
+        ],
+        "split": {"group_overlap": {"train_val": 0, "train_test": 0, "val_test": 0}},
+        "provenance": {
+            "git_sha": "0" * 40,
+            **source_digests(),
+            "model_id": "test",
+            "model_revision": "0" * 40,
+            "tokenizer": {"class": "test.Tokenizer", "padding": True, "truncation": True},
+            "runtime_versions": {},
+            "resources": {},
+            "cleanup": "pending external wrapper cleanup; runner makes no completion claim",
+        },
+        "plan_sha256": plan_digest(plan),
+    }
+    artifact["artifact_sha256"] = artifact_digest(artifact)
+    run = build_run_record(plan, artifact, {})
+    report = build_report(plan, artifact, run)
+    final = finalize_report(report, _cleanup_evidence(), plan)
+    final["run_record"]["cleanup_evidence"].pop("isolated_checkout_path")
+    assert any("checkout path" in error for error in validate_report(final, plan))
 
 
 def test_artifact_validation_rejects_bad_digest_and_dependency() -> None:
@@ -184,7 +259,7 @@ def test_build_artifact_has_valid_self_digest_without_writing() -> None:
     assert "pending" in run["cleanup"]
     report = build_report(plan, artifact, run)
     assert validate_report(report, plan) == []
-    cleanup = {"checkout_removed": True, "cache_removed": True, "output_captured": True}
+    cleanup = _cleanup_evidence()
     final_run = finalize_run_record(run, cleanup)
     assert final_run["status"] == "completed"
     assert final_run["cleanup_status"] == "completed_external_wrapper"
