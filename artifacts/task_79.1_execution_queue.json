@@ -1,7 +1,7 @@
 {
   "schema_version": "sprint79-execution-queue-v1",
   "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
-  "source_commit": "7e44f1267e873f1e16ef86d8682cbe99a685f764",
+  "source_commit": "9ebecfaee3e6e24f4ed56fae728b43828ab614d3",
   "source_documents": [
     "docs/M14_REAL_SYSTEM_VALIDATION.md",
     "docs/EVIDENCE_GAP_PLAN.md",
@@ -198,7 +198,7 @@
       "acceptance_artifact": "three independent accepted D2 records with seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json` self-digest `60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`; run record `0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a`",
       "artifact_path": "artifacts/m14/l03-analysis.json",
       "resources_network_cleanup": "RTX 4060 Ti, CUDA 12.8, disposable clone/cache cleanup; report capture audit retained, raw transcript superseded and deleted",
-      "status_blocker_owner": "verified D2 forward-only; focused transformer network suite remains 6 passed/2 failed on tuple-return hook capture; no separate GPT-2 ModelAdapter or L11 claim; analysis owner",
+      "status_blocker_owner": "verified D2 forward-only; separate Sprint 79 transformer-hook verification passed 8/8 on exact SHA strict CUDA, resolving the structured hook/output cleanup blocker; no separate GPT-2 ModelAdapter or L11 claim; analysis owner",
       "gap_record_ids": [
         "THY-T03-LINEAR-STRUCTURE-TRONG-LATENT",
         "THY-T05-LINEAR-PROBING",
@@ -900,7 +900,7 @@
       "command": "uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py tests/test_m14_l03_analysis.py -q; uv run python -m scripts.m14_l03_analysis --run-real",
       "acceptance": "full-hidden accuracy >= 0.20; PCA32 accuracy >= full-hidden accuracy - 0.10; PCA32 paired bootstrap lower > 0.05; Wilson lower > 0.15; all finite and no group overlap",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
+      "blocker": "none for the forward-only L03 record; structured hook/output cleanup is resolved by commits 16db80f + 9ebecfa and exact-SHA strict-CUDA 8/8 transformer-hook evidence; native index-12/direct-logit-lens parity remains a separate open Sprint 79 follow-up"
     },
     {
       "position": 17,
@@ -1128,7 +1128,7 @@
       "command": "uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py tests/test_m14_l03_analysis.py -q; uv run python -m scripts.m14_l03_analysis --run-real",
       "acceptance": "full-hidden accuracy >= 0.20; paired B=10000 lower > 0.05; Wilson lower > 0.15; all finite and no group overlap; dependency THY-T03-LINEAR-STRUCTURE-TRONG-LATENT qualifying",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
+      "blocker": "none for the forward-only L03 record; structured hook/output cleanup is resolved by commits 16db80f + 9ebecfa and exact-SHA strict-CUDA 8/8 transformer-hook evidence; native index-12/direct-logit-lens parity remains a separate open Sprint 79 follow-up"
     },
     {
       "position": 29,
@@ -1204,7 +1204,7 @@
       "command": "uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py tests/test_m14_l03_analysis.py -q; uv run python -m scripts.m14_l03_analysis --run-real",
       "acceptance": "bounded primary MLP held-out accuracy >= 0.20; paired B=10000 lower > 0.05; shuffled-control <= 0.15; abs validation/test gap <= 0.15; n_params/n_train <= 4; dependency THY-T05-LINEAR-PROBING qualifying",
       "artifact": "artifacts/m14/l03-analysis.json",
-      "blocker": "none for the forward-only L03 record; hook-capture tuple-return network failures remain a separate follow-up"
+      "blocker": "none for the forward-only L03 record; structured hook/output cleanup is resolved by commits 16db80f + 9ebecfa and exact-SHA strict-CUDA 8/8 transformer-hook evidence; native index-12/direct-logit-lens parity remains a separate open Sprint 79 follow-up"
     },
     {
       "position": 33,

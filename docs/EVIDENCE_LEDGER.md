@@ -273,11 +273,21 @@ final run record has digest
 `0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a` under
 plan `fe2a85a1691c0fe362fc5f39434898d6ea8968aeec8450a7bb61ba55fd94cfd5`.
 The raw glyph baseline is an expected diagnostic for GPT-2's synthetic ASCII
-task. The focused transformer network suite remains an unresolved **6 passed /
-2 failed** tuple-return hook-capture blocker; it does not reduce the
-forward-only L03 evidence or imply that all transformer network tests are
-green. Attempts 1–3 are retained as capture-only failures, while attempt 4's
-raw transcript is superseded by its sanitized capture-audit artifact.
+task. The focused transformer network suite first returned **6 passed / 2
+failed** because tuple-return intervention was incompatible with the capture
+seam. After the structured-output fix in `16db80f`, an intermediate
+verification returned **7 passed / 1 failed** because its indexing oracle
+used the wrong native hidden-state position; `9ebecfa` corrected that test
+contract without changing runtime layer mapping. The final exact-SHA
+strict-CUDA verification passed **8/8**, including native-index-7 intervention
+and hook cleanup. The structured hook/output cleanup blocker is resolved by
+`16db80f` + `9ebecfa` and the retained transformer-hook attempt-1 and attempt-2
+artifacts. The forward-only L03 evidence and D2 promotions are unchanged.
+The separate native hidden-state index-12/direct-logit-lens parity question
+remains an open Sprint 79 follow-up; it is not an L11 promotion. Attempts 1–3
+of the canonical L03 capture workflow remain capture-only failures, while
+attempt 4's raw transcript is superseded by its sanitized capture-audit
+artifact.
 Current validator coverage is **33/63 core (52.4%)** and **33/65 overall
 (50.8%)**, leaving 32 D0/D1 rows (30 core and 2 non-core); 27 additional core
 and 26 additional overall qualifiers are needed for the release gates.

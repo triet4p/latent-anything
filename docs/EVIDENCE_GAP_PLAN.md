@@ -65,13 +65,21 @@ The evidence is forward-only real pinned GPT-2 with concrete
 sklearn-digits glyph control. It does not claim a separate GPT-2
 `ModelAdapter` or an L11 promotion; the raw-glyph baseline is an expected
 diagnostic because GPT-2 was not trained for this synthetic ASCII task.
-The focused network suite repeatedly returned **6 passed / 2 failed** because
-the tuple-return hook intervention is incompatible with the capture seam.
-This remains an unresolved release blocker/follow-up and does not reduce the
-forward-only L03 evidence or imply that all transformer network tests are
-green. Attempts 1–3 remain preserved capture-only failures; attempt 4 is
-represented by the sanitized capture audit after its raw transcript was
-deleted.
+The focused network suite first returned **6 passed / 2 failed** because the
+tuple-return hook intervention was incompatible with the capture seam. After
+the structured-output fix in `16db80f`, the intermediate verification exposed
+a separate **7 passed / 1 failed** indexing-oracle error; `9ebecfa` corrected
+that test contract without remapping runtime layers. The final exact-SHA
+strict-CUDA run passed **8/8**, including the native-index-7 intervention
+oracle and cleanup test. The structured hook/output blocker is therefore
+resolved by `16db80f` + `9ebecfa` and the retained transformer-hook
+[attempt-1 failure](../artifacts/task_79_transformer_hook_remote_verification_attempt1.md)
+and [attempt-2 verification](../artifacts/task_79_transformer_hook_remote_verification.md).
+The forward-only L03 evidence and its D2 promotions are unchanged. The separate
+native hidden-state index-12/direct-logit-lens parity question remains an open
+Sprint 79 follow-up; it is not implemented or promoted here. Attempts 1–3 of
+the canonical L03 capture workflow remain preserved capture-only failures;
+attempt 4 remains represented by the sanitized capture audit.
 
 The validator command is:
 

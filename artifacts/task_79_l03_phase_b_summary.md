@@ -35,7 +35,14 @@ begin/one end marker, and zero credential-pattern matches. After verifying the
 accepted artifact/run bytes, the superseded raw transcript was deleted; no
 history file was deleted.
 
-The focused transformer network result remains **6 passed / 2 failed** on the
-tuple-return hook intervention and is tracked as an unresolved release
-blocker/follow-up. This does not reduce the forward-only L03 evidence and does
-not claim that all transformer network tests are green.
+The focused transformer network history is retained: the initial tuple-return
+seam failure was **6 passed / 2 failed**, and the first structured-output-fix
+verification exposed an intermediate **7 passed / 1 failed** native-index
+oracle error. The follow-up commits `16db80f` and `9ebecfa` resolved the
+structured hook/output cleanup blocker and corrected the oracle without
+changing L03 evidence or D2 statuses. The final exact-SHA strict-CUDA
+transformer-hook verification passed **8/8**, including native-index-7
+intervention and cleanup; see the retained transformer-hook attempt-1 and
+attempt-2 artifacts. The separate native hidden-state index-12/direct-logit-
+lens parity question remains an open Sprint 79 follow-up and is not claimed
+by this L03 artifact.

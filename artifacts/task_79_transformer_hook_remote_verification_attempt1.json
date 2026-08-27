@@ -1,0 +1,41 @@
+{
+  "source": "https://github.com/triet4p/latent-anything.git",
+  "expected_sha": "16db80fd8aac8dadd31c35a3245e03c3109fdaf1",
+  "ref": "main",
+  "server": "trietlm@192.168.30.244",
+  "hostname": "di-server",
+  "command": "LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_transformer_lm_network.py -m network -q",
+  "status": "FAIL",
+  "passed": 7,
+  "failed": 1,
+  "failure": {
+    "test": "tests/test_transformer_lm_network.py::test_intervention_changes_hidden_states",
+    "message": "Intervention produced no change at layer 6 (diff=0.00e+00)"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "temporary_paths_remaining": [],
+    "related_processes_remaining": []
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4060 Ti",
+    "memory_mib": 16380,
+    "driver": "580.126.20",
+    "torch_cuda_preflight": "available",
+    "inference_device": "cpu"
+  },
+  "environment": {
+    "python": "3.13.12",
+    "torch": "2.10.0",
+    "cuda_runtime": "12.8",
+    "transformers": "4.57.6"
+  },
+  "clone_sha_printed": false,
+  "runner_clone_sha_guard_passed": true,
+  "transcript": {
+    "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\task_79_transformer_hook_remote.log",
+    "bytes": 6626,
+    "sha256": "2216351DAA53E561C4AF7ED3C6A484C8BEB8F59DAE09DEA44C23E084774562C7"
+  },
+  "rerun": false
+}

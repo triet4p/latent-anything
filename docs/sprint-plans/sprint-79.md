@@ -25,11 +25,19 @@ Status legend: [ ] pending / [~] in progress / [x] done
   and [`task_79.4C_summary.md`](../../artifacts/task_79.4C_summary.md).
 - [x] Execute M14 L03 on the pinned real GPT-2 forward-only lane; promote only
   the three validator-backed D2 records for linear structure, linear probing,
-  and nonlinear probing. Preserve attempts 1–3 as capture-only failures and
-  retain the focused 6-pass/2-fail hook-capture blocker. See
+  and nonlinear probing. Preserve the initial 6-pass/2-fail tuple-return
+  failure and the intermediate 7-pass/1-fail indexing-oracle failure; the
+  structured hook/output cleanup blocker was then resolved by `16db80f` and
+  `9ebecfa`, with exact-SHA strict-CUDA verification completing 8/8. See the
+  transformer-hook attempt-1 and final attempt-2 evidence, as well as
   [`l03-analysis.json`](../../artifacts/m14/l03-analysis.json), the
   [`capture audit`](../../artifacts/m14/l03-analysis.attempt4.capture-audit.json),
   and [`task_79_l03_phase_b_summary.md`](../../artifacts/task_79_l03_phase_b_summary.md).
+- [ ] Resolve the separate native hidden-state index-12/direct-logit-lens
+  semantics follow-up: determine whether the final hidden-state position is
+  pre- or post-final-LayerNorm for direct lens parity, including the double-
+  LayerNorm question. Do not conflate this open analysis with the resolved
+  structured hook/output blocker or promote L11 from it.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
@@ -49,6 +57,9 @@ No percentage waiver may hide an implementation-applicable core theory gap. Any 
 
 Sprint 78.38 records the starting denominator and all 40 gap records; the
 updated map now records 33 qualifying rows after L03. Sprint 79 owns execution
-in dependency order. The focused L03 tuple-return hook blocker, named 3DGS
-checkpoint, and corrected SmolVLA rerun remain explicit blockers, not evidence
+in dependency order. The historical L03 tuple-return failures are retained,
+but the structured hook/output cleanup blocker is resolved by `16db80f` and
+`9ebecfa` and the exact-SHA strict-CUDA 8/8 evidence. The native index-12
+direct-logit-lens question remains a separate open follow-up; named 3DGS,
+checkpoint, and corrected SmolVLA gaps remain explicit blockers, not evidence
 promotions.

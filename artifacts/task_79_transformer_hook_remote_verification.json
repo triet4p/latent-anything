@@ -1,0 +1,61 @@
+{
+  "attempt": 2,
+  "source": "https://github.com/triet4p/latent-anything.git",
+  "expected_sha": "9ebecfaee3e6e24f4ed56fae728b43828ab614d3",
+  "clone_sha": "9ebecfaee3e6e24f4ed56fae728b43828ab614d3",
+  "ref": "main",
+  "server": "trietlm@192.168.30.244",
+  "hostname": "di-server",
+  "command": "LATENT_ANYTHING_RUN_NETWORK=1 LATENT_ANYTHING_NETWORK_DEVICE=cuda uv run pytest tests/test_transformer_lm_network.py -m network -q",
+  "status": "PASS",
+  "passed": 8,
+  "failed": 0,
+  "deselected": 5,
+  "duration_seconds": 19.08,
+  "tests": {
+    "intervention_oracle": "native hidden_states[6] unchanged; [7] changed",
+    "cleanup": "passed"
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4060 Ti",
+    "status": "available",
+    "torch_cuda_preflight": "available",
+    "selector": "cuda",
+    "inference_device": "cuda",
+    "peak_memory_telemetry": "not emitted by bundled runner"
+  },
+  "environment": {
+    "python": "3.13.12",
+    "torch": "2.10.0",
+    "cuda_runtime": "12.8",
+    "transformers": "4.57.6"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "temporary_paths_remaining": [],
+    "exact_pytest_pids_remaining": [],
+    "exact_uv_pids_remaining": []
+  },
+  "transcript": {
+    "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\task_79_transformer_hook_remote_attempt2.log",
+    "bytes": 5056,
+    "sha256": "19E3AE7FFD03D39EA94F485EB496BF054626FF0F7E485DACC1E7E58B0D9369D3"
+  },
+  "cleanup_audit": {
+    "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\task_79_transformer_hook_remote_attempt2_cleanup.log",
+    "bytes": 44,
+    "sha256": "79A5937C6D1E6D0724FE02F8B405027A56AB636A9B4945E63933AE9EF3DADA3D"
+  },
+  "attempt1": {
+    "markdown": {
+      "path": "artifacts/task_79_transformer_hook_remote_verification_attempt1.md",
+      "sha256": "D6AEE9CC1EF8CBB492E32F84A888B85AAAF10A561B6BBB85C5268FBD3BBF5C36"
+    },
+    "json": {
+      "path": "artifacts/task_79_transformer_hook_remote_verification_attempt1.json",
+      "sha256": "BEB2DB1E96C6556C6F17C4EF67066759D538C8529810005771487CC3537209EC"
+    }
+  },
+  "rerun": false,
+  "source_changes_during_run": []
+}
