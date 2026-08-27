@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 M14 = ROOT / "docs" / "M14_REAL_SYSTEM_VALIDATION.md"
+GAP_MAP = ROOT / "artifacts" / "task_78.38_gap_map.json"
+EXECUTION_QUEUE = ROOT / "artifacts" / "task_79.1_execution_queue.json"
 LANE_RE = re.compile(r"^\| (L\d{2}) \|")
 PATH_RE = re.compile(r"(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.(?:py|md|toml|yml|yaml)(?:::[A-Za-z0-9_]+)?")
 
@@ -76,3 +80,42 @@ def test_m14_has_24_unique_lanes_and_existing_contract_paths() -> None:
         for code_span in re.findall(r"`([^`]+)`", row):
             for token in _repo_path_tokens(code_span):
                 _assert_existing_path(lane, token)
+
+
+def test_sprint79_queue_reconciles_gap_map_and_completed_statuses() -> None:
+    """Keep queue records synchronized with gap status and real L01-L03 paths."""
+    gap_map = json.loads(GAP_MAP.read_text(encoding="utf-8"))
+    queue = json.loads(EXECUTION_QUEUE.read_text(encoding="utf-8"))
+    gap_items = {item["id"]: item for item in gap_map["items"]}
+    queue_rows = queue["execution_queue"]
+    queue_ids = [row["record_id"] for row in queue_rows]
+
+    assert len(gap_items) == len(queue_rows) == 40
+    assert len(queue_ids) == len(set(queue_ids))
+    assert set(queue_ids) == set(gap_items)
+    assert all(row["current_evidence"] == gap_items[row["record_id"]]["status"] for row in queue_rows)
+
+    qualifying = {row["record_id"] for row in queue_rows if row["current_evidence"] in {"D2", "D3"}}
+    assert qualifying
+    assert all(row["queue_status"] == "satisfied_qualifying" for row in queue_rows if row["record_id"] in qualifying)
+    status_counts = Counter(row["queue_status"] for row in queue_rows)
+    assert status_counts == Counter(
+        {
+            "satisfied_qualifying": 8,
+            "ready_for_dependency_ordered_execution": 30,
+            "co_scheduled_scc_blocked_by_missing_implementation": 2,
+        }
+    )
+    assert queue["reconciliation"]["queue_status_counts"] == dict(status_counts)
+
+    queue_text = EXECUTION_QUEUE.read_text(encoding="utf-8")
+    assert "tests/test_latent_anything/test_clustering.py" not in queue_text
+    assert "tests/test_latent_anything/test_probes.py" not in queue_text
+    l03_rows = [row for row in queue_rows if row["lane_id"] == "L03"]
+    assert len(l03_rows) == 3
+    for row in l03_rows:
+        assert row["command"] == (
+            "uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py "
+            "tests/test_m14_l03_analysis.py -q; uv run python -m scripts.m14_l03_analysis --run-real"
+        )
+    assert all("memorization control fails as expected" not in row["acceptance"] for row in l03_rows)

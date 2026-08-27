@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -159,7 +159,9 @@ def _dependency_order(
                 "external_prerequisite_details": external_by_record.get(item["id"], []),
                 "cycle_conflict": next((group for group in cycle_groups if item["id"] in group), None),
                 "queue_status": (
-                    "co_scheduled_scc_blocked_by_missing_implementation"
+                    "satisfied_qualifying"
+                    if item["status"] in {"D2", "D3"}
+                    else "co_scheduled_scc_blocked_by_missing_implementation"
                     if item["id"] in cycle_nodes
                     else "requires_prerequisite_resolution"
                     if any(
@@ -225,6 +227,7 @@ def main() -> None:
             "mapped_lanes": sum(1 for lane in lanes if lane["gap_record_count"]),
             "unmapped_m14_lanes": [lane["lane_id"] for lane in lanes if not lane["gap_record_count"]],
             "execution_records": len(execution_queue),
+            "queue_status_counts": dict(Counter(row["queue_status"] for row in execution_queue)),
             "external_prerequisite_edges": len(external),
             "external_prerequisites": external,
             "dependency_cycle_groups": [
