@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added the M14 L04.5 TCAV Phase A real-CUDA handler and fail-closed
+  train/holdout, seeded-null, intervention, and artifact validation path.
+  Remote execution remains pending and no evidence record was promoted.
+
 - Added the M14 L04.4 Integrated Gradients support-only execution handler with
   frozen baseline, sensitivity, seed, and no-mutation controls plus
   fail-closed real-CUDA provenance validation.

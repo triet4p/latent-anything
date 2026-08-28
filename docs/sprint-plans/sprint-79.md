@@ -80,6 +80,13 @@ Status legend: [ ] pending / [~] in progress / [x] done
   controls passed. The result remains D0/evidence-ineligible with empty
   accepted IDs; no promotion or coverage-count change occurred. See
   [`task_79_l04_4_summary.md`](../../artifacts/task_79_l04_4_summary.md).
+- [x] Implement the L04.5 TCAV Phase A handler with train-group-only concept
+  fitting, held-out group/pair metrics, exact five-seed/2,000-bootstrap
+  summaries, seeded null controls, genuine hidden-state interventions, and
+  strict artifact/run/failure validation. The implementation is ready for the
+  required owner-reviewed remote CUDA execution; no model/network run or
+  evidence promotion was performed in Phase A. See
+  [`task_79_l04_5_summary.md`](../../artifacts/task_79_l04_5_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

@@ -42,6 +42,8 @@ def build_run_record(
         "status": status,
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "partial_artifact_written": True,
+        "accepted_record_ids": list(artifact.get("accepted_record_ids", [])),
+        "accepted_gap_ids": list(artifact.get("accepted_gap_ids", [])),
     }
     result["run_record_sha256"] = canonical_digest(result, "run_record_sha256")
     return result

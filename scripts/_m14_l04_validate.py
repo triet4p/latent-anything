@@ -8,6 +8,7 @@ from typing import Any
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_digest import canonical_digest, source_map_digest
 from scripts._m14_l04_validate_ig import validate_real_ig_execution
+from scripts._m14_l04_validate_tcav import validate_real_tcav_execution
 from scripts.m14_l04_contract import plan_digest
 
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -39,6 +40,10 @@ RECORD_FOR_USE_CASE = {
     "TrueActivationPatching": "THY-T05-ACTIVATION-PATCHING",
     "AdditiveSteering": "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING",
 }
+GAP_FOR_USE_CASE = {
+    "TCAV": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+}
+TCAV_ACCEPTED_RECORD_ID = "t05_tcav"
 
 
 def _source_errors(value: dict[str, Any], label: str) -> list[str]:
@@ -117,9 +122,11 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             for field in ("record_id", "support_only", "model", "integration", "adapter"):
                 if entry.get(field) != expected.get(field):
                     errors.append(f"artifact execution {field} mapping is invalid")
-            if entry.get("status") == REAL_IG_STATUS:
+            if entry.get("status") == REAL_IG_STATUS and entry.get("use_case") == "IntegratedGradients":
                 if entry.get("evidence_eligible") is not True:
                     errors.append("real Integrated Gradients execution must be evidence-eligible")
+            elif entry.get("status") == REAL_IG_STATUS and entry.get("use_case") == "TCAV":
+                errors.extend(validate_real_tcav_execution(entry, artifact, plan))
             elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
@@ -132,7 +139,7 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             )
             if entry.get("status") not in allowed_status:
                 errors.append(f"artifact execution status for {entry.get('use_case')} is invalid")
-            if entry.get("status") == REAL_IG_STATUS:
+            if entry.get("status") == REAL_IG_STATUS and entry.get("use_case") == "IntegratedGradients":
                 errors.extend(validate_real_ig_execution(entry, artifact, plan))
     expected_records = [item["record_id"] for item in plan["record_order"]]
     records = artifact.get("records")
@@ -143,12 +150,33 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
     )
     if not isinstance(records, list) or record_ids != expected_records:
         errors.append("artifact records do not match frozen order")
+    active_status = _active_status(artifact)
+    active_execution = next(
+        (
+            entry
+            for entry in artifact.get("executions", [])
+            if isinstance(entry, dict) and entry.get("use_case") == artifact.get("use_case")
+        ),
+        None,
+    )
+    tcav_accepted = (
+        artifact.get("use_case") == "TCAV"
+        and active_status == REAL_IG_STATUS
+        and isinstance(active_execution, dict)
+        and active_execution.get("evidence_eligible") is True
+        and active_execution.get("acceptance") is True
+        and artifact.get("evidence_level") == "D3"
+        and artifact.get("accepted_record_ids") == [TCAV_ACCEPTED_RECORD_ID]
+        and artifact.get("accepted_gap_ids") == [GAP_FOR_USE_CASE["TCAV"]]
+    )
     if isinstance(records, list):
         for record in records:
-            if (
-                not isinstance(record, dict)
-                or record.get("evidence_level") != "D0"
-                or record.get("acceptance") is not False
+            if not isinstance(record, dict) or (
+                not (
+                    tcav_accepted
+                    and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                )
+                and (record.get("evidence_level") != "D0" or record.get("acceptance") is not False)
             ):
                 errors.append("dispatcher records cannot contain eligible or accepted evidence")
                 break
@@ -178,7 +206,13 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             )
             if record.get("status") != expected_status:
                 errors.append(f"artifact record status for {record.get('record_id')} is invalid")
-    if (
+    if tcav_accepted:
+        active_record = next(
+            (r for r in artifact.get("records", []) if r.get("record_id") == RECORD_FOR_USE_CASE["TCAV"]), {}
+        )
+        if active_record.get("evidence_level") != "D3" or active_record.get("acceptance") is not True:
+            errors.append("accepted TCAV record must be D3 and accepted")
+    elif (
         artifact.get("accepted_record_ids") != []
         or artifact.get("accepted_gap_ids") != []
         or artifact.get("evidence_level") != "D0"
@@ -216,6 +250,7 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         is_real_ig = (
             artifact.get("use_case") == "IntegratedGradients" and provenance.get("evidence_origin") == "real-cuda"
         )
+        is_real_tcav = artifact.get("use_case") == "TCAV" and provenance.get("evidence_origin") == "real-cuda"
         if is_real_ig:
             active_status = _active_status(artifact)
             allowed_networks = {"enabled"} if active_status == REAL_IG_STATUS else {"enabled", "not attempted"}
@@ -231,6 +266,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 peak = provenance.get("resource_peak")
                 if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
                     errors.append("real Integrated Gradients CUDA peak resource is missing")
+        elif is_real_tcav:
+            if provenance.get("network") != "enabled":
+                errors.append("real TCAV runtime provenance is invalid")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:
@@ -260,6 +298,10 @@ def validate_run_record(run: dict[str, Any], artifact: dict[str, Any], plan: dic
         errors.append("run record model provenance is invalid")
     if run.get("status") != _active_status(artifact):
         errors.append("run record status linkage is invalid")
+    if run.get("accepted_record_ids", artifact.get("accepted_record_ids")) != artifact.get("accepted_record_ids"):
+        errors.append("run record accepted record IDs do not link to artifact")
+    if run.get("accepted_gap_ids", artifact.get("accepted_gap_ids")) != artifact.get("accepted_gap_ids"):
+        errors.append("run record accepted gap IDs do not link to artifact")
     artifact_name = run.get("artifact_name")
     partial_pattern = rf"^l04-explanations\.{re.escape(str(artifact.get('use_case')))}\.attempt\d+\.partial\.json$"
     if not isinstance(artifact_name, str) or re.fullmatch(partial_pattern, artifact_name) is None:

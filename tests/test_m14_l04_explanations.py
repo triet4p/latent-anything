@@ -54,6 +54,12 @@ def test_plan_digest_does_not_mutate_plan() -> None:
     assert plan["plan_sha256"] == before
 
 
+def test_tcav_plan_keeps_authoritative_gap_id_for_record_linkage() -> None:
+    plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
+    assert plan["record_order"][0]["record_id"] == "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+    assert plan["real_use_case_checklist"][1]["record_id"] == "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+
+
 def test_malformed_plan_schema_fails_closed(tmp_path: Path) -> None:
     plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
     del plan["remote_cuda_workflow"]

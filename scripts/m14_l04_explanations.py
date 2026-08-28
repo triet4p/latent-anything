@@ -100,10 +100,15 @@ def run_real(
     handler = None if handlers is None else handlers.get(use_case)
     # Preserve the offline dispatcher behavior unless the caller has
     # explicitly opted into the real CUDA/network lane.
-    if handlers is None and use_case == "IntegratedGradients" and os.environ.get("LATENT_ANYTHING_RUN_NETWORK") == "1":
-        from scripts._m14_l04_integrated_gradients import run_integrated_gradients
+    if handlers is None and os.environ.get("LATENT_ANYTHING_RUN_NETWORK") == "1":
+        if use_case == "IntegratedGradients":
+            from scripts._m14_l04_integrated_gradients import run_integrated_gradients
 
-        handler = run_integrated_gradients
+            handler = run_integrated_gradients
+        elif use_case == "TCAV":
+            from scripts._m14_l04_tcav import run_tcav
+
+            handler = run_tcav
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None
