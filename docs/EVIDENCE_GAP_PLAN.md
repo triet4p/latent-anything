@@ -123,9 +123,13 @@ lens, disentanglement, true interchange patching, additive steering) must
 execute on the CUDA server through authenticated direct PowerShell `ssh.exe` at
 an exact detached code SHA; Git Bash/WSL and local CPU real-model evidence are
 out of scope. True interchange patching, additive steering, direct lens, and
-separately fit holdout-calibrated tuned lens remain distinct executions. Tuned
-lens is blocked/D0 until the authoritative pinned WikiText-2 subset is
-provisioned and its content/split digests exist. Thresholds, formulas,
+separately fit holdout-calibrated tuned lens remain distinct executions. The
+authoritative pinned WikiText-2 subset is provisioned and its content/split
+digests and selection metadata are bound by the committed manifest. The first
+owner-authorized exact-SHA run (`dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422`)
+reached real CUDA execution but failed D0 at tuned-lens aggregation; corrected
+code awaits a separately authorized validation run at a new SHA. Thresholds,
+formulas,
 aggregation units, comparator strictness, and randomized, shuffled, null,
 off-target, and zero-strength controls are frozen in the machine-readable plan.
 Each remote SSH invocation runs exactly one parameterized use case with raw

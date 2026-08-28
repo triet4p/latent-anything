@@ -1,0 +1,4 @@
+ssh_exit=2
+remote_tuned_lens_exit=1
+bundle_exit=2
+remote_cleanup=pass

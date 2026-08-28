@@ -1,0 +1,7 @@
+ssh_exit=2
+remote_tuned_lens_exit=1
+bundle_exit=0
+classification=semantic_result_failed_with_post_capture_wrapper_protocol_diagnostic
+remote_cleanup=pass
+connection_count_this_recovery=1
+cumulative_connection_count=2

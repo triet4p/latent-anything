@@ -482,3 +482,17 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Raw file bytes (including formatting/line endings) and canonical JSON object bytes are different hash domains; transport and semantic/envelope ordinals also identify different retry boundaries.
 **Fix / workaround:** Lint and simulate the exact guard before remote execution, compare each digest only within its declared domain, use collision-proof attempt-specific raw capture names, and transport the normalized LF payload through direct authenticated PowerShell `ssh.exe` with Bash.
 **Watch out for:** Any evidence wrapper that hashes a plan or fixture before execution; preserve raw-file and canonical-object digests as separate fields and never infer semantic execution from a transport attempt.
+
+## [2026-08-29] Native terminal diagnostics must not enter fitted-layer aggregation
+
+**Symptom:** The first real TunedLogitLens execution failed with `tuned-lens macro metric requires exactly fitted native layers 0..11` even though evaluation returned the expected 13 native-layer mappings.
+**Root cause:** The production aggregation boundary passed direct, tuned, and shuffled mappings containing diagnostic-only native layer 12 into a macro helper that intentionally accepts only fitted layers 0..11.
+**Fix / workaround:** Filter every evaluator mapping to `FITTED_LAYERS` immediately before macro aggregation; retain native layer 12 only for terminal post-`ln_f` parity. Add an integration-level regression test using realistic 13-key evaluator outputs.
+**Watch out for:** Any metric API that deliberately rejects extra keys; diagnostic/native terminal states must be separated from fitted translator acceptance inputs at the production boundary.
+
+## [2026-08-29] Concrete CUDA device names are not backend markers
+
+**Symptom:** A failed real CUDA attempt with device `NVIDIA GeForce RTX 4060 Ti` was classified as dispatcher-only because provenance logic compared the concrete device string to the literal `cuda`.
+**Root cause:** Device identity and execution backend/attempt state are different provenance dimensions; an early failure can have a concrete device name without a successful execution result.
+**Fix / workaround:** Carry explicit `execution_attempted` and `execution_backend` markers from the real dispatcher, classify real CUDA attempts from those markers, and retain D0 plus `resource_peak: "not measured"` on early failure. Validate marker coherence fail-closed.
+**Watch out for:** Real, injected, and dispatcher-only paths sharing envelope builders; never infer execution origin from a human-readable GPU name or from an absent result payload.

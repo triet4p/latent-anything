@@ -1,0 +1,69 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": null,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 2,
+    "remote_tuned_lens_exit": 1,
+    "bundle_exit": 2,
+    "command_count": 1,
+    "result_count": 0,
+    "bundle_result_count": 0,
+    "transport_diagnostic": "Setup/protocol failure; required network gate variables were not exported and the bundle file list used incorrect relative paths. No semantic TunedLogitLens execution occurred; no rerun authorized."
+  },
+  "marker_audit": {
+    "singleton_gate": "PASS for emitted markers",
+    "security_singletons": {
+      "L04_REMOTE_HEAD": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+      "L04_SOURCE_SHA_VERIFIED": "true",
+      "L04_PREFLIGHT": "pass",
+      "L04_USE_CASE": "TunedLogitLens",
+      "L04_CODE_SHA": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+      "L04_TORCH_VERSION": "2.10.0+cu128",
+      "L04_TRANSFORMERS_VERSION": "4.57.6",
+      "L04_TOKENIZERS_VERSION": "0.22.2",
+      "L04_DATASETS_VERSION": "4.8.5",
+      "L04_CUDA_VERSION": "12.8",
+      "L04_GPU_NAME": "NVIDIA GeForce RTX 4060 Ti",
+      "L04_TUNED_LENS_EXIT": "1",
+      "L04_REMOTE_TRAP_CLEANUP": "pass",
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": "0"
+    },
+    "missing_required_markers": [
+      "LATENT_ANYTHING_RUN_NETWORK=1",
+      "LATENT_ANYTHING_NETWORK_DEVICE=cuda",
+      "L04_BUNDLE_B64_BEGIN",
+      "L04_BUNDLE_B64_END"
+    ]
+  },
+  "raw_capture": {
+    "path": "artifacts/m14/l04-explanations.ssh.TunedLogitLens.dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422.raw.txt",
+    "bytes": 35031,
+    "sha256": "a51003bae36402d4e785269cb3cd2769e76f19576629bd6e27dc5ef7dbe36850",
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "member_count": 0,
+    "archive_created": false,
+    "exact_member_gate": "FAIL; remote tar could not stat the relative filenames"
+  },
+  "semantic_result": {
+    "classification": "setup_or_protocol_failure",
+    "execution_status": "not_run",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "reason": "The required explicit network/device gates were absent, so the dispatcher retained blocked_missing_corpus instead of invoking the real handler."
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "remote_trap_cleanup": "pass",
+    "local_extract": "none; bundle was not created",
+    "attempt1_raw_deleted_after_verified_hash": true,
+    "closure_commit_or_push": false
+  }
+}

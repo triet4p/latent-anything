@@ -1,0 +1,95 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 2,
+  "cumulative_connection_count": 2,
+  "semantic_execution_ordinal": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 2,
+    "remote_tuned_lens_exit": 1,
+    "bundle_exit": 0,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "protocol_diagnostic": "Semantic handler completed and emitted its bundle. The remote Bash wrapper received CRLF from the PowerShell here-string, so exit 1 contained a carriage return and produced a numeric-argument diagnostic; this changed only the outer SSH exit code after capture, not the semantic result."
+  },
+  "marker_audit": {
+    "singleton_gate": "PASS for emitted markers",
+    "security_singletons": {
+      "L04_REMOTE_HEAD": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+      "L04_SOURCE_SHA_VERIFIED": "true",
+      "L04_NETWORK_GATE": "LATENT_ANYTHING_RUN_NETWORK:1",
+      "L04_DEVICE_GATE": "LATENT_ANYTHING_NETWORK_DEVICE:cuda",
+      "L04_PREFLIGHT": "pass",
+      "L04_USE_CASE": "TunedLogitLens",
+      "L04_EXPECTED_SHA": "dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422",
+      "L04_MODEL_ID": "openai-community/gpt2",
+      "L04_MODEL_REVISION": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+      "L04_DATASET_ID": "Salesforce/wikitext",
+      "L04_DATASET_CONFIG": "wikitext-2-raw-v1",
+      "L04_DATASET_REVISION": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+      "L04_DATASETS_VERSION": "4.8.5",
+      "L04_TORCH_VERSION": "2.10.0+cu128",
+      "L04_TRANSFORMERS_VERSION": "4.57.6",
+      "L04_TOKENIZERS_VERSION": "0.22.2",
+      "L04_CUDA_VERSION": "12.8",
+      "L04_GPU_NAME": "NVIDIA GeForce RTX 4060 Ti",
+      "L04_TUNED_LENS_EXIT": "1",
+      "L04_REMOTE_TRAP_CLEANUP": "pass",
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": "0"
+    }
+  },
+  "raw_capture": {
+    "path": "artifacts/m14/l04-explanations.ssh.TunedLogitLens.dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422.recovery.raw.txt",
+    "bytes": 44303,
+    "sha256": "5feb414eca108ced92c0dea16640aed8799397b3f5bd92874b212ec9fb5fd415",
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "member_count": 3,
+    "members": [
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt1.failure.json",
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt1.partial.json",
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt1.run.json"
+    ],
+    "archive_bytes": 5780,
+    "archive_sha256": "not retained after verified extraction",
+    "exact_member_gate": "PASS; tar used -C repo with repo-relative members"
+  },
+  "semantic_result": {
+    "classification": "semantic_result_failed",
+    "execution_status": "failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "exception_type": "RealExecutionError",
+    "exception": "tuned-lens macro metric requires exactly fitted native layers 0..11",
+    "failure_sha256": "15730aa05f1da8e5a587e8593ed216f6b6d101f86b54e5eda4828d6ad4377573",
+    "artifact_sha256": "e5ee6ca8b51264e23aa7f9b6abbcb371956188d2cb073113b5231dd427b369a3",
+    "run_record_sha256": "8a84dadc24c0579c21c03eb7680991fdeb89a96dc4bb37ac54f61b42b1577cbf",
+    "local_self_digest_recomputation": "PASS for artifact, run, and failure",
+    "local_validator": {
+      "artifact_errors": ["artifact resource provenance is invalid"],
+      "run_errors": [],
+      "failure_errors": []
+    },
+    "interpretation": "Real model/integration/dataset execution reached the tuned-lens handler, but the frozen fitted-layer completeness invariant failed. No tuned-lens acceptance or metrics are valid; no rerun was made."
+  },
+  "resources": {
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "gpu_memory_total_mib": 16380,
+    "peak_gpu_allocated_bytes": "not measured by failed runner",
+    "peak_rss_bytes": "not measured by failed runner",
+    "elapsed_seconds": "approximately 1200; exact runner resource_peak not measured"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "remote_trap_cleanup": "pass",
+    "local_extract": "verified and copied to artifacts/m14",
+    "raw_deleted_after_verified_hash": true,
+    "closure_commit_or_push": false
+  }
+}

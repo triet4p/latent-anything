@@ -34,9 +34,9 @@ flag is internally consistent.
 
 The implementation records real elapsed/resource measurements and enforces the
 frozen caps only when the CUDA run is performed; offline tests do not claim the
-30-minute target. The remaining performance risk is model/tokenizer throughput
-and GPU memory behavior on the pinned environment, which requires the owner’s
-authenticated real-CUDA run.
+30-minute target. The first authenticated real-CUDA attempt is recorded below;
+the corrected commit still requires a new owner-authorized run to establish
+semantic acceptance and resource evidence.
 
 ## Files
 
@@ -49,15 +49,31 @@ authenticated real-CUDA run.
 - `scripts/_m14_l04_validate.py`
 - `scripts/m14_l04_explanations.py`
 - `tests/test_m14_l04_tuned_lens.py`
+- `artifacts/m14/l04-explanations.TunedLogitLens.attempt1.{partial,run,failure}.json` — retained semantic-failure evidence.
+- `artifacts/m14/l04-explanations.ssh.TunedLogitLens.*.recovery.{audit,exit}.json` — sanitized recovery transport audit.
 
 ## Verification
 
-- `uv run pytest tests/test_m14_l04_tuned_lens.py -q` — 10 passed.
-- Existing L04 regression suite — 102 passed after the implementation.
+- `uv run pytest tests/test_m14_l04_tuned_lens.py tests/test_m14_l04_runner.py -q` — 62 passed.
+- Existing L04 regression suite — 136 passed after the correction.
+- Full suite — 1768 passed, 36 skipped, 39 warnings.
 - Ruff and strict Pyright for all touched Python files — passed.
 - `graphify update .` — run after this change.
 
-This Phase A pass did not run model downloads, CUDA, SSH, network, commit, or
-push. The next owner-authorized action is one exact-SHA real CUDA execution
-through the project's PowerShell `ssh.exe` transport, followed by owner review
-of artifact and failure/cleanup evidence.
+The first owner-authorized exact-SHA CUDA execution reached the real
+`TransformerLMIntegration`/WikiText handler and retained a semantic D0 failure:
+`tuned-lens macro metric requires exactly fitted native layers 0..11`. The
+production boundary correction now filters the 13-key evaluator output to
+fitted layers before macro aggregation, while native layer 12 remains parity
+only. Failed real attempts now retain truthful explicit execution/backend
+markers and `resource_peak: "not measured"`; injected and dispatcher-only
+artifacts remain non-promotable. The original setup-failure and semantic-failure
+audits are preserved. A corrected SHA requires owner review and a new explicit
+authorization before any CUDA rerun.
+
+The retained attempt-1 partial artifact is immutable, sanitized, and
+self-digest-valid. It intentionally fails the current artifact validator
+because it predates the explicit `execution_attempted`/`execution_backend`
+provenance markers and the current resource schema; its run and failure
+envelopes independently pass validation. No historical evidence was migrated
+or rewritten.
