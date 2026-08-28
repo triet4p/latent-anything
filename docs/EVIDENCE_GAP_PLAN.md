@@ -127,14 +127,33 @@ separately fit holdout-calibrated tuned lens remain distinct executions. The
 authoritative pinned WikiText-2 subset is provisioned and its content/split
 digests and selection metadata are bound by the committed manifest. The first
 owner-authorized exact-SHA run (`dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422`)
-reached real CUDA execution but failed D0 at tuned-lens aggregation; corrected
-code awaits a separately authorized validation run at a new SHA. Thresholds,
+reached real CUDA execution but failed D0 at tuned-lens aggregation. A later
+setup D0 failed before model loading with `ModuleNotFoundError: datasets` because
+the isolated environment omitted same-environment provisioning; it has no
+semantic metrics, and its cleanup and outer SSH exit are not evidenced or
+claimed. Corrected code awaits a separately authorized validation run at a new
+SHA. Thresholds,
 formulas,
 aggregation units, comparator strictness, and randomized, shuffled, null,
 off-target, and zero-strength controls are frozen in the machine-readable plan.
 Each remote SSH invocation runs exactly one parameterized use case with raw
 stdout/stderr capture and owner review before the next; a blocked tuned-lens
 attempt is isolated and cannot poison unrelated records.
+
+For the next TunedLogitLens execution, the frozen plan remains immutable and
+the owner-approved operational override is the exact command in the [M14
+validation procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+
+```text
+uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+```
+
+Its import/version preflight must use the identical `uv` environment. The
+transport is direct authenticated PowerShell `ssh.exe` with LF-normalized Bash
+stdin; raw stdout/stderr is hashed before parsing, and explicit remote cleanup
+and immediate outer `$LASTEXITCODE` markers are mandatory. The attempt2
+artifact/run/failure files and sanitized SSH audit are required committed
+fixtures for the validator regression and remain setup D0 only.
 
 ## Exhaustive row inventory
 

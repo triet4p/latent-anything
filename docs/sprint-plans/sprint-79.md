@@ -141,9 +141,13 @@ Status legend: [ ] pending / [~] in progress / [x] done
   The first owner-authorized exact-SHA CUDA run reached the real handler but
   failed honestly at the production fitted-layer invariant
   (`tuned-lens macro metric requires exactly fitted native layers 0..11`).
-  Setup and semantic failure evidence are retained; the aggregation/provenance
-  correction is local and awaits owner review plus a new authorization before
-  any rerun. L04.7 remains D0 and unpromoted.
+  Setup and semantic failure evidence are retained. Attempt 2 is a setup D0
+  (`ModuleNotFoundError: datasets`) from an isolated environment that omitted
+  same-environment provisioning; its cleanup and outer SSH exit are not
+  evidenced and are not claimed. The validator now accepts truthful early
+  failure provenance but remains fail-closed for any claimed acceptance. The
+  aggregation/provenance correction is local and awaits owner review plus a
+  new authorization before any rerun. L04.7 remains D0 and unpromoted.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

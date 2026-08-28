@@ -1,0 +1,106 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": null,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": "not captured: outer PowerShell marker was not emitted",
+    "remote_tuned_lens_exit": 1,
+    "bundle_exit": "not separately emitted; bundle was created and decoded",
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "protocol_diagnostic": "The normalized payload executed through direct PowerShell ssh.exe. PowerShell native stdin nevertheless appended CRLF at the final remote exit boundary, yielding a numeric-argument diagnostic after the valid bundle; remote status marker remained 1. The semantic invocation failed before model loading because datasets was absent from the locked transformers profile."
+  },
+  "marker_audit": {
+    "singleton_gate": "PASS for emitted use-case/SHA/status/bundle markers",
+    "security_singletons": {
+      "L04_USE_CASE": "TunedLogitLens",
+      "L04_CODE_SHA": "436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f",
+      "L04_STATUS": "1",
+      "L04_BUNDLE": "present",
+      "L04_REMOTE_HEAD": "436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f",
+      "L04_GPU_NAME": "NVIDIA GeForce RTX 4060 Ti",
+      "L04_DRIVER": "580.126.20",
+      "L04_CUDA": "13.0"
+    },
+    "missing_required_markers": [
+      "explicit remote cleanup marker",
+      "outer PowerShell SSH exit marker"
+    ]
+  },
+  "raw_capture": {
+    "path": "artifacts/m14/l04-explanations.ssh.TunedLogitLens.436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f.raw.txt",
+    "bytes": 119448,
+    "sha256": "4139b24bdf42fb2092e6fd2d71b0f470ff23a10cdf04221e76cdb205d54b4d31",
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "member_count": 3,
+    "members": [
+      "l04-explanations.TunedLogitLens.attempt2.partial.json",
+      "l04-explanations.TunedLogitLens.attempt2.run.json",
+      "l04-explanations.TunedLogitLens.attempt2.failure.json"
+    ],
+    "archive_bytes": 62895,
+    "archive_sha256": "7a68ea87016945fbcbb155feacbeba02d6cb1470fe83e3d6f09f05937205c8cf",
+    "exact_member_gate": "PASS; tar used -C artifacts/m14 with basename member list",
+    "file_sha256": {
+      "l04-explanations.TunedLogitLens.attempt2.partial.json": "b06a43089a89051021f592d2b562e74aa0fa4deb906736cc3a63ff3ff354e74d",
+      "l04-explanations.TunedLogitLens.attempt2.run.json": "21e98dec58556fd94615ef3f224b3c68de0dbd0891fabd5bcef38e799a6e1fd7",
+      "l04-explanations.TunedLogitLens.attempt2.failure.json": "5b9349bd4398fb59762a593fcc9148d4a353a2e7be6214314b043849162017cc"
+    }
+  },
+  "semantic_result": {
+    "classification": "setup_or_protocol_failure",
+    "execution_status": "failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "reason": "Real CUDA host preflight and isolated clone succeeded, but no model/integration/dataset semantic execution occurred: the fresh locked environment lacked the datasets module and the handler failed with ModuleNotFoundError.",
+    "exception_type": "ModuleNotFoundError",
+    "exception": "No module named datasets",
+    "local_validator": {
+      "artifact_errors": [
+        "real tuned lens runtime provenance is invalid"
+      ],
+      "run_errors": [],
+      "failure_errors": []
+    },
+    "interpretation": "The corrected SHA was cloned and the single requested dispatcher invocation was attempted with the real-CUDA/network gates, but it stopped before loading GPT-2 or Salesforce/WikiText. No tuned-lens metric, bootstrap, control, elapsed, GPU-peak, or RSS evidence exists; no rerun was made."
+  },
+  "provenance": {
+    "model": "openai-community/gpt2",
+    "model_revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "dataset": "Salesforce/wikitext@f776294184f13b8ff2337b3841cf9269a6216d1e",
+    "dataset_config": "wikitext-2-raw-v1",
+    "plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+    "manifest_file_sha256": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+    "runtime": {
+      "python": "3.13.12",
+      "torch": "2.10.0",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.38"
+    },
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "driver": "580.126.20",
+    "cuda": "13.0",
+    "datasets": "not installed",
+    "network_gate": "set in remote script but handler did not reach gate",
+    "resource_peak": "not measured"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "trap configured; remote session terminated; no persistent checkout touched; explicit cleanup marker unavailable",
+    "local_bundle": "decoded/extracted, verified, and removed from local temporary paths",
+    "raw_capture": "deleted after sanitized audit and validator verification",
+    "closure_commit_or_push": false
+  },
+  "plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+  "manifest_sha256": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3"
+}

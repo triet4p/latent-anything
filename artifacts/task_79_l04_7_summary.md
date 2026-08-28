@@ -50,13 +50,15 @@ semantic acceptance and resource evidence.
 - `scripts/m14_l04_explanations.py`
 - `tests/test_m14_l04_tuned_lens.py`
 - `artifacts/m14/l04-explanations.TunedLogitLens.attempt1.{partial,run,failure}.json` — retained semantic-failure evidence.
+- `artifacts/m14/l04-explanations.TunedLogitLens.attempt2.{partial,run,failure}.json` — retained setup-failure evidence (`ModuleNotFoundError: datasets`).
+- `artifacts/m14/l04-explanations.ssh.TunedLogitLens.436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f.audit.json` — sanitized setup-failure capture audit.
 - `artifacts/m14/l04-explanations.ssh.TunedLogitLens.*.recovery.{audit,exit}.json` — sanitized recovery transport audit.
 
 ## Verification
 
-- `uv run pytest tests/test_m14_l04_tuned_lens.py tests/test_m14_l04_runner.py -q` — 62 passed.
-- Existing L04 regression suite — 136 passed after the correction.
-- Full suite — 1768 passed, 36 skipped, 39 warnings.
+- `uv run pytest tests/test_m14_l04_tuned_lens.py tests/test_m14_l04_runner.py -q` — 64 passed.
+- Existing L04 regression suite — 138 passed after the correction.
+- Full suite — 1770 passed, 36 skipped, 39 warnings.
 - Ruff and strict Pyright for all touched Python files — passed.
 - `graphify update .` — run after this change.
 
@@ -68,8 +70,31 @@ fitted layers before macro aggregation, while native layer 12 remains parity
 only. Failed real attempts now retain truthful explicit execution/backend
 markers and `resource_peak: "not measured"`; injected and dispatcher-only
 artifacts remain non-promotable. The original setup-failure and semantic-failure
-audits are preserved. A corrected SHA requires owner review and a new explicit
-authorization before any CUDA rerun.
+audits are preserved. Attempt 2 is a setup D0 caused by the isolated
+environment omitting `datasets`; it has no semantic metrics. The same-environment
+provisioning attempt, cleanup, and outer SSH exit are not evidenced and are not
+claimed. The validator now accepts that truthful early-failure provenance while
+still rejecting any claimed accepted/success result without enabled network and
+complete runtime/resource evidence. A corrected SHA requires owner review and a
+new explicit authorization before any CUDA rerun.
+
+## Owner-approved recovery command
+
+The frozen plan is unchanged. Because its command predates the pinned
+`datasets` dependency, the exact operational override for the next
+TunedLogitLens run is documented in
+[`M14_REAL_SYSTEM_VALIDATION.md`](../docs/M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+
+```text
+uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+```
+
+The preflight import/version assertion must use that identical `uv` prefix.
+Execution remains direct authenticated PowerShell `ssh.exe` with LF-normalized
+stdin, raw capture before parsing, explicit remote cleanup marker, and immediate
+`$LASTEXITCODE` capture. The attempt2 artifact/run/failure JSON files and the
+sanitized SSH audit are required committed fixtures for the regression test;
+they remain D0 setup evidence and do not become semantic evidence.
 
 The retained attempt-1 partial artifact is immutable, sanitized, and
 self-digest-valid. It intentionally fails the current artifact validator

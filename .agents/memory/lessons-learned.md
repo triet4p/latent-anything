@@ -496,3 +496,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Device identity and execution backend/attempt state are different provenance dimensions; an early failure can have a concrete device name without a successful execution result.
 **Fix / workaround:** Carry explicit `execution_attempted` and `execution_backend` markers from the real dispatcher, classify real CUDA attempts from those markers, and retain D0 plus `resource_peak: "not measured"` on early failure. Validate marker coherence fail-closed.
 **Watch out for:** Real, injected, and dispatcher-only paths sharing envelope builders; never infer execution origin from a human-readable GPU name or from an absent result payload.
+
+## [2026-08-29] Isolated remote environments can fail before model setup
+
+**Symptom:** The second TunedLogitLens remote attempt stopped with `ModuleNotFoundError: No module named 'datasets'` before model loading, while the capture did not establish cleanup or the outer SSH exit.
+**Root cause:** The required `datasets` dependency was not provisioned in the exact isolated invocation, and the capture path did not preserve explicit cleanup/exit markers before describing the attempt.
+**Fix / workaround:** Put every required dependency on the exact `uv --with` invocation, run the preflight import in that same environment, emit an explicit cleanup marker, capture `$LASTEXITCODE` immediately, and normalize PowerShell stdin to LF before direct `ssh.exe` transport. Treat the resulting early failure as D0 with `network: not attempted` and `resource_peak: not measured`; never infer semantic metrics or cleanup.
+**Watch out for:** Any remote retry that uses a fresh `uv` environment or pipes a multiline Bash script from PowerShell; setup, semantic execution, cleanup, and outer transport exit are separate evidence boundaries.
