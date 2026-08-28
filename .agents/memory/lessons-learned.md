@@ -475,3 +475,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** The marker schema's expected multiplicity was not aligned with the approved emitter's output path.
 **Fix / workaround:** Define singleton versus repeatable marker fields explicitly, validate counts and values against that schema, and retain a duplicate-marker defect audit when identical duplicates are accepted by owner review.
 **Watch out for:** Any wrapper that combines preflight, execution, and bundle metadata; schema counts must be tested against the exact emitted transcript before a canonical run.
+
+## [2026-08-29] Raw file hashes differ from canonical evidence digests
+
+**Symptom:** The first DirectLogitLens transport stopped before preflight because a raw plan-file SHA-256 was compared with the plan's canonical object digest, making setup failure look like a plan mismatch.
+**Root cause:** Raw file bytes (including formatting/line endings) and canonical JSON object bytes are different hash domains; transport and semantic/envelope ordinals also identify different retry boundaries.
+**Fix / workaround:** Lint and simulate the exact guard before remote execution, compare each digest only within its declared domain, use collision-proof attempt-specific raw capture names, and transport the normalized LF payload through direct authenticated PowerShell `ssh.exe` with Bash.
+**Watch out for:** Any evidence wrapper that hashes a plan or fixture before execution; preserve raw-file and canonical-object digests as separate fields and never infer semantic execution from a transport attempt.

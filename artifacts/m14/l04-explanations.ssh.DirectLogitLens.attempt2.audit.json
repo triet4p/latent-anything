@@ -1,0 +1,316 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "e9573728e4ba165735e847642cbae979dd4fdf5d",
+  "use_case": "DirectLogitLens",
+  "transport_attempt": 2,
+  "semantic_command_ordinal": 1,
+  "semantic_envelope_attempt": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 0,
+    "use_case_exit": 0,
+    "bundle_exit": 0,
+    "final_exit": 0,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "bundle_file_count": 3,
+    "transport_diagnostic": "DirectLogitLens semantic run completed; exact bundle captured before remote trap cleanup",
+      "remote_target": "authenticated remote CUDA host"
+  },
+  "marker_audit": {
+    "singleton_gate": "PASS",
+    "marker_counts": {
+      "L04_PREFLIGHT": 1,
+      "L04_REMOTE_HEAD": 1,
+      "L04_SOURCE_SHA_VERIFIED": 1,
+      "L04_USE_CASE": 1,
+      "L04_CODE_SHA": 1,
+      "L04_PLAN_SHA256": 1,
+      "L04_FIXTURE_SHA256": 1,
+      "L04_TRANSPORT_ATTEMPT": 1,
+      "L04_SEMANTIC_COMMAND_ORDINAL": 1,
+      "L04_DIRECT_LOGIT_LENS_COMMAND_COUNT": 1,
+      "L04_DIRECT_LOGIT_LENS_RESULT_COUNT": 1,
+      "L04_DIRECT_LOGIT_LENS_STDOUT_BYTES": 1,
+      "L04_DIRECT_LOGIT_LENS_STDOUT_SHA256": 1,
+      "L04_DIRECT_LOGIT_LENS_STDERR_BYTES": 1,
+      "L04_DIRECT_LOGIT_LENS_STDERR_SHA256": 1,
+      "L04_DIRECT_LOGIT_LENS_EXIT": 1,
+      "L04_BUNDLE_RESULT_COUNT": 1,
+      "L04_BUNDLE_FILE_COUNT": 1,
+      "L04_BUNDLE_EXIT": 1,
+      "L04_STATUS": 1,
+      "L04_FINAL_EXIT": 1,
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": 1,
+      "L04_REMOTE_TRAP_CLEANUP": 1,
+      "L04_BUNDLE_B64_BEGIN": 1,
+      "L04_BUNDLE_B64_END": 1
+    },
+    "security_singletons": {
+      "L04_PREFLIGHT": "pass",
+      "L04_REMOTE_HEAD": "e9573728e4ba165735e847642cbae979dd4fdf5d",
+      "L04_SOURCE_SHA_VERIFIED": "true",
+      "L04_USE_CASE": "DirectLogitLens",
+      "L04_CODE_SHA": "e9573728e4ba165735e847642cbae979dd4fdf5d",
+      "L04_PLAN_SHA256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+      "L04_FIXTURE_SHA256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+      "L04_TRANSPORT_ATTEMPT": "2",
+      "L04_SEMANTIC_COMMAND_ORDINAL": "1",
+      "L04_DIRECT_LOGIT_LENS_COMMAND_COUNT": "1",
+      "L04_DIRECT_LOGIT_LENS_RESULT_COUNT": "1",
+      "L04_DIRECT_LOGIT_LENS_STDOUT_BYTES": "144150",
+      "L04_DIRECT_LOGIT_LENS_STDOUT_SHA256": "ce4c76fe1d82450fbadbde8ebd010dbe5846f3932cf7bd6ca78f47cd9ed00394",
+      "L04_DIRECT_LOGIT_LENS_STDERR_BYTES": "50",
+      "L04_DIRECT_LOGIT_LENS_STDERR_SHA256": "aaa09aab886de1f83917ae74ece127a8014d80045ef3ee7b773ad46683d03832",
+      "L04_DIRECT_LOGIT_LENS_EXIT": "0",
+      "L04_BUNDLE_RESULT_COUNT": "1",
+      "L04_BUNDLE_FILE_COUNT": "3",
+      "L04_BUNDLE_EXIT": "0",
+      "L04_STATUS": "0",
+      "L04_FINAL_EXIT": "0",
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": "0",
+      "L04_REMOTE_TRAP_CLEANUP": "pass"
+    }
+  },
+  "raw_capture": {
+    "stdout_path": "latent-anything-l04-direct-capture.attempt2.e9573728e4ba165735e847642cbae979dd4fdf5d.stdout.bin",
+    "stderr_path": "latent-anything-l04-direct-capture.attempt2.e9573728e4ba165735e847642cbae979dd4fdf5d.stderr.bin",
+    "stdout_bytes": 24509,
+    "stdout_sha256": "29a0510a65d065dcb8d2b945039494014b43b905cc806122263c8ee90259b765",
+    "stderr_bytes": 131,
+    "stderr_sha256": "a4411a1392c39617c508721bd70065fdb03bb138d60f556c6861e4ce3acf5731",
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "bytes": 17635,
+    "sha256": "d08ed08c4acde8536d67c6a876a89c2d8573c3315bc43898ae3c463dfc65625a",
+    "member_count": 3,
+    "members": [
+      "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.failure.json",
+      "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.partial.json",
+      "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.run.json"
+    ]
+  },
+  "envelopes": {
+    "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.failure.json": {
+      "bytes": 9392,
+      "sha256": "4c5449d2b5c7730401e8fddaaf351f20291f3148e85db2a5029d77745513c0e0",
+      "failure_sha256": "de10e253329fbfa21a355df43dd78b61daa35f2988fac294892f82f35f17a52d",
+      "failure_ref": "l04-explanations.DirectLogitLens.attempt1.failure.json",
+      "status": "passed_real_cuda",
+      "use_case": "DirectLogitLens"
+    },
+    "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.partial.json": {
+      "bytes": 129685,
+      "sha256": "3f591381e5325ee6b576f0e37cbe4a51185696e8dfb6674fcffb7916e25fad95",
+      "artifact_sha256": "def8843c328e87491acf679682c73e49c52f462cedf8fb1e90032c1538b5c2a6",
+      "use_case": "DirectLogitLens"
+    },
+    "artifacts/m14/l04-explanations.DirectLogitLens.attempt1.run.json": {
+      "bytes": 4777,
+      "sha256": "0d62d87925b6756d7793e96134f2390808c969c3341de3729f0ef196d69b98b8",
+      "artifact_sha256": "def8843c328e87491acf679682c73e49c52f462cedf8fb1e90032c1538b5c2a6",
+      "run_record_sha256": "3b237a3f18169f62339477203ace309f80f1ff5f60f4d4eb44a9a3d82d92d311",
+      "artifact_name": "l04-explanations.DirectLogitLens.attempt1.partial.json",
+      "status": "passed_real_cuda",
+      "use_case": "DirectLogitLens"
+    }
+  },
+  "validators": {
+    "artifact_errors": [],
+    "run_errors": [],
+    "failure_errors": [],
+    "linkage": "PASS"
+  },
+  "semantic_result": {
+    "execution_status": "passed_real_cuda",
+    "evidence_level": "D0",
+    "evidence_eligible": true,
+    "acceptance": true,
+    "accepted_record_ids": [],
+    "accepted_gap_ids": [],
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "metrics": {
+      "terminal_logit_parity": {
+        "aggregation_unit": "independent causal group",
+        "comparator": "<=",
+        "confidence_interval_95": [
+          0.0,
+          0.0
+        ],
+        "pass": true,
+        "point_estimate": 0.0,
+        "statistic": "median",
+        "threshold": 1e-06,
+        "units": "dimensionless"
+      },
+      "terminal_logit_relative_parity": {
+        "aggregation_unit": "independent causal group",
+        "comparator": "<=",
+        "confidence_interval_95": [
+          0.0,
+          0.0
+        ],
+        "pass": true,
+        "point_estimate": 0.0,
+        "statistic": "median",
+        "threshold": 1e-06,
+        "units": "dimensionless"
+      }
+    },
+    "diagnostics": {
+      "heldout_target_non_target_selectivity": {
+        "aggregation_unit": "independent causal group",
+        "comparator": ">",
+        "confidence_interval_95": [
+          0.0005931574705755338,
+          0.0012898929126095027
+        ],
+        "pass": true,
+        "point_estimate": 0.0009173363650916144,
+        "statistic": "mean",
+        "threshold": 0.0,
+        "units": "dimensionless"
+      }
+    },
+    "controls": {
+      "randomized_target_tokens": {
+        "metrics": {
+          "finite_fraction": {
+            "aggregation_unit": "independent causal group",
+            "comparator": ">=",
+            "confidence_interval_95": [
+              1.0,
+              1.0
+            ],
+            "pass": true,
+            "point_estimate": 1.0,
+            "statistic": "mean",
+            "threshold": 1.0,
+            "units": "dimensionless"
+          }
+        },
+        "pass": true
+      },
+      "shuffled_target_labels": {
+        "metrics": {
+          "finite_fraction": {
+            "aggregation_unit": "independent causal group",
+            "comparator": ">=",
+            "confidence_interval_95": [
+              1.0,
+              1.0
+            ],
+            "pass": true,
+            "point_estimate": 1.0,
+            "statistic": "mean",
+            "threshold": 1.0,
+            "units": "dimensionless"
+          }
+        },
+        "pass": true
+      },
+      "target_non_target_selectivity": {
+        "metrics": {
+          "finite_fraction": {
+            "aggregation_unit": "independent causal group",
+            "comparator": ">=",
+            "confidence_interval_95": [
+              1.0,
+              1.0
+            ],
+            "pass": true,
+            "point_estimate": 1.0,
+            "statistic": "mean",
+            "threshold": 1.0,
+            "units": "dimensionless"
+          }
+        },
+        "pass": true
+      },
+      "terminal_post_ln_f_parity": {
+        "metrics": {
+          "max_abs_error": {
+            "aggregation_unit": "independent causal group",
+            "comparator": "<=",
+            "confidence_interval_95": [
+              0.0,
+              0.0
+            ],
+            "pass": true,
+            "point_estimate": 0.0,
+            "statistic": "median",
+            "threshold": 1e-06,
+            "units": "dimensionless"
+          },
+          "max_relative_error": {
+            "aggregation_unit": "independent causal group",
+            "comparator": "<=",
+            "confidence_interval_95": [
+              0.0,
+              0.0
+            ],
+            "pass": true,
+            "point_estimate": 0.0,
+            "statistic": "median",
+            "threshold": 1e-06,
+            "units": "dimensionless"
+          }
+        },
+        "pass": true
+      }
+    },
+    "control_raw_lengths": {
+      "holdout_group_margins": 20,
+      "randomized_group_margins": 20,
+      "shuffled_group_margins": 20
+    },
+    "token_ids": {
+      " false": 3991,
+      " true": 2081
+    },
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "seeds": [
+      17,
+      29,
+      41,
+      53,
+      67
+    ]
+  },
+  "remote_facts": {
+    "source_sha_verified": true,
+    "preflight_status": "pass",
+    "runtime": "real TransformerLMIntegration",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "runtime_versions": {
+      "numpy": "2.4.6",
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.38",
+      "python": "3.13.12",
+      "tokenizers": "0.22.2",
+      "torch": "2.10.0",
+      "transformers": "4.57.6"
+    },
+    "model_revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "resource_peak": {
+      "cuda_device": "NVIDIA GeForce RTX 4060 Ti",
+      "elapsed_seconds": 33.24082692805678,
+      "max_memory_allocated_bytes": 884460544,
+      "max_memory_reserved_bytes": 996147200
+    },
+    "remote_trap_cleanup": "pass"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "local_extract": "three exact attempt1 envelopes extracted to temp and copied without renaming",
+    "attempt1_envelopes_preserved": true,
+    "attempt1_raw_deleted_after_verified_hash": true,
+    "local_worktree_source_changes": false,
+    "closure_commit_or_push": false
+  }
+}

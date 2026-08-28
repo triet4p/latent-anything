@@ -91,13 +91,20 @@ Status legend: [ ] pending / [~] in progress / [x] done
   1 and 2 remain auditable transport/capture failures; no rerun, D3 promotion,
   or coverage-count change occurred. See
   [`task_79_l04_5_summary.md`](../../artifacts/task_79_l04_5_summary.md).
-- [x] Implement the offline L04.6 Direct Logit Lens Phase A handler around the
-  concrete `TransformerLMIntegration` boundary. It captures all 13 native
-  hidden states, verifies terminal post-`ln_f` parity, records held-out
-  target/non-target diagnostics with seeded null controls, and emits strict
-  partial/run/failure envelopes. The handler is support-only and remains D0;
-  no real CUDA execution or evidence promotion was performed. See
-  [`task_79_l04_6_summary.md`](../../artifacts/task_79_l04_6_summary.md).
+- [x] Implement and close L04.6 Direct Logit Lens Phase A around the concrete
+  `TransformerLMIntegration` boundary. The owner-reviewed exact-SHA remote
+  execution (transport attempt 2, semantic ordinal 1, envelope attempt 1)
+  captured all 13 native hidden states and passed terminal absolute/relative
+  logit parity (`0.0 <= 1e-6`), held-out selectivity (`0.0009173364`, 95% CI
+  `[0.0005931575, 0.0012898929]`), and all four controls on an RTX 4060 Ti in
+  `33.24082692805678` s; remote disposable clone/cache cleanup passed. Direct
+  lens is support-only and remains D0 with empty accepted IDs, so no ledger
+  promotion or coverage-count change occurred. Attempt 1 remains an auditable
+  preflight setup failure caused by raw-file-vs-canonical-plan-digest
+  conflation; its exact 60/131-byte captures were hash-verified, deleted, and
+  their absence recorded. See
+  [`task_79_l04_6_summary.md`](../../artifacts/task_79_l04_6_summary.md) and
+  the sanitized attempt audits.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

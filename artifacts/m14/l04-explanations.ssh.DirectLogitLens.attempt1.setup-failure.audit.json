@@ -1,0 +1,64 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "e9573728e4ba165735e847642cbae979dd4fdf5d",
+  "use_case": "DirectLogitLens",
+  "classification": "setup_failure_before_preflight",
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 1,
+    "use_case_command_count": 0,
+    "result_count": 0,
+    "bundle_exit": "not reached",
+    "final_exit": "not reached",
+    "diagnostic": "payload compared raw plan-file SHA256 against canonical plan_sha256 and exited before preflight",
+    "remote_target": "authenticated remote CUDA host"
+  },
+  "reviewed_inputs": {
+    "payload_sha256": "538a23d1551aeffc34b373bdc8db9ed4468195714f47ee695f1ae3f963a75e28",
+    "launcher_sha256": "a2f2da6bba9e1f28e2c1987c1e2fdc860148e98fda51c1e4526a99a14f331c40",
+    "raw_plan_file_sha256": "098c5f21d48102ace28ea5f7497af014befe097964e1ec8c0887f870c4d62269",
+    "canonical_plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+    "raw_fixture_file_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+    "canonical_fixture_content_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f"
+  },
+  "raw_capture": {
+    "stdout": {
+      "path": "redacted local capture path",
+      "bytes": 60,
+      "sha256": "cc684fb8f2fa5c8e035b1d193087a566954308b676dd8e9c86585afcc3d69ae2"
+    },
+    "stderr": {
+      "path": "redacted local capture path",
+      "bytes": 131,
+      "sha256": "19da7f84ca4593dbddb43245d993386f25a016e75bc5857a7310180adcb2a894"
+    },
+    "marker_counts": {
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": 1,
+      "L04_REMOTE_TRAP_CLEANUP": 1,
+      "all_other_expected_markers": 0
+    },
+    "raw_deleted_after_sanitized_record": true,
+    "deletion_proof": {
+      "stdout": {
+        "expected_bytes": 60,
+        "expected_sha256": "cc684fb8f2fa5c8e035b1d193087a566954308b676dd8e9c86585afcc3d69ae2",
+        "exists_after_delete": false
+      },
+      "stderr": {
+        "expected_bytes": 131,
+        "expected_sha256": "19da7f84ca4593dbddb43245d993386f25a016e75bc5857a7310180adcb2a894",
+        "exists_after_delete": false
+      },
+      "verification": "Each exact path was size/hash checked before deletion and checked absent afterward; absolute paths are intentionally omitted from this sanitized record."
+    }
+  },
+  "remote_cleanup": {
+    "trap": "pass",
+    "clone_cache_cleanup": "reported by trap",
+    "model_loaded": false,
+    "cuda_preflight_reached": false
+  },
+  "next_action": "blocked; owner decision required; no rerun authorized"
+}

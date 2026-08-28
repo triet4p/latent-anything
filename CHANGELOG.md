@@ -23,6 +23,13 @@
 
 ### Changed
 
+- Recorded the owner-reviewed exact-SHA DirectLogitLens CUDA validation on the
+  pinned GPT-2 boundary. Absolute and relative terminal parity were both zero,
+  the held-out selectivity diagnostic and four controls passed, and cleanup was
+  verified on an RTX 4060 Ti; the support-only result remains D0 with empty
+  accepted IDs and no evidence-ledger promotion. Sanitized attempt audits
+  retain the preflight setup failure and verified raw-capture deletion proof.
+
 - Recorded one owner-reviewed exact-SHA real-CUDA M14 L04.4 Integrated
   Gradients execution. The frozen completeness gates failed, so the result is
   retained as a D0/evidence-ineligible semantic failure with sanitized
