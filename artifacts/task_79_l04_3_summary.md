@@ -1,7 +1,7 @@
 # Task Summary: Sprint 79 L04.3 — Fail-closed explanation dispatch infrastructure
 
-**Sprint:** Sprint 79  
-**Task:** L04.3  
+**Sprint:** Sprint 79
+**Task:** L04.3
 **Status:** complete for infrastructure only; no real-model evidence was produced.
 
 ## Summary
