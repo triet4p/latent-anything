@@ -129,6 +129,15 @@ Status legend: [ ] pending / [~] in progress / [x] done
   [`manifest`](../../artifacts/m14/l04-wikitext-2-manifest.json),
   [`audit`](../../artifacts/m14/l04-wikitext-2-manifest.attempt1.audit.json),
   and [`exit record`](../../artifacts/m14/l04-wikitext-2-manifest.attempt1.exit.txt).
+- [x] Implement L04.7 tuned-logit-lens Phase A with pinned-manifest runtime
+  revalidation, streaming dense affine translators for native states 0..11,
+  KL-over-every-non-padding-token training, deterministic AdamW provenance,
+  row-level macro holdout improvement gates, five seed-specific bootstrap
+  diagnostics, shuffled-target and terminal post-`ln_f` controls, and
+    fail-closed artifact validation. Runtime uses bounded indexed scans and one
+    model forward per corpus batch; validator recomputes numeric parity,
+    permutations, and all pass flags from retained evidence. Offline/fake tests and the existing L04
+  regression suite pass; real CUDA execution remains the required next gate.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

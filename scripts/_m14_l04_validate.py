@@ -10,6 +10,7 @@ from scripts._m14_l04_digest import canonical_digest, source_map_digest
 from scripts._m14_l04_validate_direct_lens import validate_real_direct_lens_execution
 from scripts._m14_l04_validate_ig import validate_real_ig_execution
 from scripts._m14_l04_validate_tcav import validate_real_tcav_execution
+from scripts._m14_l04_validate_tuned_lens import validate_real_tuned_lens_execution
 from scripts.m14_l04_contract import plan_digest
 
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -25,6 +26,7 @@ INJECTED_STATUS = "injected_offline_non_eligible"
 FAILED_STATUS = "failed"
 REAL_IG_STATUS = "passed_real_cuda"
 REAL_DIRECT_LENS_STATUS = "passed_real_cuda"
+REAL_TUNED_LENS_STATUS = "passed_real_cuda"
 TUNED_USE_CASE = "TunedLogitLens"
 EXPECTED_STATUS = {
     "IntegratedGradients": "not_implemented_pending_L04.4",
@@ -131,13 +133,21 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 errors.extend(validate_real_tcav_execution(entry, artifact, plan))
             elif entry.get("status") == REAL_DIRECT_LENS_STATUS and entry.get("use_case") == "DirectLogitLens":
                 errors.extend(validate_real_direct_lens_execution(entry, artifact, plan))
+            elif entry.get("status") == REAL_TUNED_LENS_STATUS and entry.get("use_case") == "TunedLogitLens":
+                errors.extend(validate_real_tuned_lens_execution(entry, artifact, plan))
             elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
             active_name = artifact.get("use_case")
             active_key = active_name if isinstance(active_name, str) else ""
             allowed_status = (
-                {EXPECTED_STATUS.get(active_key), INJECTED_STATUS, FAILED_STATUS, REAL_IG_STATUS}
+                {
+                    EXPECTED_STATUS.get(active_key),
+                    INJECTED_STATUS,
+                    FAILED_STATUS,
+                    REAL_IG_STATUS,
+                    REAL_TUNED_LENS_STATUS,
+                }
                 if expected.get("use_case") == artifact.get("use_case")
                 else {expected_status}
             )
@@ -173,11 +183,28 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         and artifact.get("accepted_record_ids") == [TCAV_ACCEPTED_RECORD_ID]
         and artifact.get("accepted_gap_ids") == [GAP_FOR_USE_CASE["TCAV"]]
     )
+    tuned_accepted = (
+        artifact.get("use_case") == "TunedLogitLens"
+        and active_status == REAL_TUNED_LENS_STATUS
+        and isinstance(active_execution, dict)
+        and active_execution.get("evidence_eligible") is True
+        and active_execution.get("acceptance") is True
+        and artifact.get("evidence_level") == "D3"
+        and artifact.get("accepted_record_ids") == ["THY-T05-LOGIT-LENS-TUNED-LENS"]
+        and artifact.get("accepted_gap_ids") == ["THY-T05-LOGIT-LENS-TUNED-LENS"]
+    )
     if isinstance(records, list):
         for record in records:
             if not isinstance(record, dict) or (
                 not (
-                    tcav_accepted and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    (
+                        tcav_accepted
+                        and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    )
+                    or (
+                        tuned_accepted
+                        and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    )
                 )
                 and (record.get("evidence_level") != "D0" or record.get("acceptance") is not False)
             ):
@@ -215,6 +242,12 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         )
         if active_record.get("evidence_level") != "D3" or active_record.get("acceptance") is not True:
             errors.append("accepted TCAV record must be D3 and accepted")
+    elif tuned_accepted:
+        active_record = next(
+            (r for r in artifact.get("records", []) if r.get("record_id") == RECORD_FOR_USE_CASE["TunedLogitLens"]), {}
+        )
+        if active_record.get("evidence_level") != "D3" or active_record.get("acceptance") is not True:
+            errors.append("accepted tuned lens record must be D3 and accepted")
     elif (
         artifact.get("accepted_record_ids") != []
         or artifact.get("accepted_gap_ids") != []
@@ -257,6 +290,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         is_real_direct = (
             artifact.get("use_case") == "DirectLogitLens" and provenance.get("evidence_origin") == "real-cuda"
         )
+        is_real_tuned = (
+            artifact.get("use_case") == "TunedLogitLens" and provenance.get("evidence_origin") == "real-cuda"
+        )
         if is_real_ig:
             active_status = _active_status(artifact)
             allowed_networks = {"enabled"} if active_status == REAL_IG_STATUS else {"enabled", "not attempted"}
@@ -278,6 +314,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         elif is_real_direct:
             if provenance.get("network") != "enabled":
                 errors.append("real direct lens runtime provenance is invalid")
+        elif is_real_tuned:
+            if provenance.get("network") != "enabled":
+                errors.append("real tuned lens runtime provenance is invalid")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:

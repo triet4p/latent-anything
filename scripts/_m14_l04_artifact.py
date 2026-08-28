@@ -10,6 +10,8 @@ from scripts.m14_l04_contract import plan_digest
 
 TCAV_RECORD_ID = "t05_tcav"
 TCAV_GAP_ID = "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
+TUNED_RECORD_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
+TUNED_GAP_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
 
 
 def _record_template(plan: dict[str, Any], item: dict[str, Any], status: str) -> dict[str, Any]:
@@ -77,6 +79,7 @@ def build_artifact(
             "acceptance",
             "evidence_level",
             "metrics",
+            "confidence_intervals",
             "controls",
             "control_raw",
             "diagnostics",
@@ -86,6 +89,7 @@ def build_artifact(
             "layer",
             "native_hidden_state_index",
             "seeds",
+            "no_mutation",
         ):
             if key in execution_result:
                 current[key] = execution_result[key]
@@ -97,7 +101,15 @@ def build_artifact(
         and execution_result.get("evidence_eligible") is True
         and execution_result.get("acceptance") is True
     )
-    if accepted_tcav:
+    accepted_tuned = bool(
+        use_case == "TunedLogitLens"
+        and not injected
+        and execution_result is not None
+        and execution_result.get("status") == "passed_real_cuda"
+        and execution_result.get("evidence_eligible") is True
+        and execution_result.get("acceptance") is True
+    )
+    if accepted_tcav or accepted_tuned:
         current["evidence_level"] = "D3"
         current["acceptance"] = True
     records = []
@@ -130,9 +142,9 @@ def build_artifact(
         "schema_version": "m14-l04-explanations-artifact-v1",
         "lane": "L04",
         "use_case": use_case,
-        "accepted_gap_ids": [TCAV_GAP_ID] if accepted_tcav else [],
-        "accepted_record_ids": [TCAV_RECORD_ID] if accepted_tcav else [],
-        "evidence_level": "D3" if accepted_tcav else "D0",
+        "accepted_gap_ids": [TCAV_GAP_ID] if accepted_tcav else ([TUNED_GAP_ID] if accepted_tuned else []),
+        "accepted_record_ids": [TCAV_RECORD_ID] if accepted_tcav else ([TUNED_RECORD_ID] if accepted_tuned else []),
+        "evidence_level": "D3" if (accepted_tcav or accepted_tuned) else "D0",
         "partial_promotion": True,
         "model": plan["model"],
         "integration": "TransformerLMIntegration",

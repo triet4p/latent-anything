@@ -907,3 +907,25 @@ Protocol is considered.
 **Alternatives considered:** Rewrite the frozen plan with newly discovered digests, retain a local/committed text subset, or substitute the authored L04 fixture for tuned-lens fitting.
 **Reason:** Existing IG, TCAV, and DirectLogitLens evidence is bound to the frozen plan digest; tuned-lens needs the authoritative Salesforce corpus while the repository must not redistribute corpus text or silently change the preregistered contract.
 **Consequences:** A separate immutable manifest carries source/revision/license metadata, selected original indices, text hashes, and content/split digests. The 8192/2048 selection and seed 79 remain fixed, and tuned-lens stays blocked/D0 until the manifest is acquired and validator-checked; no authored substitution or text retention is allowed.
+## [2026-08-29] M14 L04.7 tuned-lens calibration contract
+
+The tuned-lens Phase A implementation uses one dense affine translator per
+native GPT-2 state 0..11, with native state 12 as an identity terminal control.
+Translators are fit with tokenwise KL in nats over every non-padding token,
+using one deterministic AdamW schedule (seed 79, one epoch, batch size 4,
+learning rate 1e-3, weight decay 1e-4, gradient clipping 1.0). Validation is
+row-independent: each row averages its token KL, then the acceptance statistic
+is the macro-average improvement across fitted layers. Five frozen seeds each
+retain a 2,000-replicate percentile bootstrap; the minimum lower bound is the
+conservative gate. The shuffled-target control uses one seed-79 global
+permutation and remains diagnostic-only. The runtime re-acquires only the
+pinned manifest-selected rows and retains hashes/metrics, never corpus text.
+
+Runtime provisioning scans each official split by bounded index and verifies
+official/nonblank counts. Fit and evaluation combine paired rows for one model
+forward per batch, then reuse detached activations. Terminal parity retains a
+true global maximum over validation batch/token/vocabulary coordinates so the
+validator can independently recompute every control pass flag.
+
+  Alternatives rejected: MSE-only fitting, fixture substitution, layerwise-only
+  acceptance, and caching all hidden/logit tensors.

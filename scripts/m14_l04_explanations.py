@@ -113,6 +113,10 @@ def run_real(
             from scripts._m14_l04_direct_lens import run_direct_logit_lens
 
             handler = run_direct_logit_lens
+        elif use_case == "TunedLogitLens":
+            from scripts._m14_l04_tuned_lens import run_tuned_logit_lens
+
+            handler = run_tuned_logit_lens
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None
