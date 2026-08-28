@@ -8,6 +8,15 @@
   validation of its authored fixture; `--check` validates declared target text
   and count only, performs no model/tokenizer resolution, and makes no network
   access.
+- Added the M14 L04.3 fail-closed dispatch infrastructure with atomic,
+  use-case-specific partial/run/failure envelopes, seven execution mappings,
+  five frozen ledger records, deterministic implementation digests, and a
+  lazy concrete `TransformerLMIntegration` identity seam. It performs no
+  computation or model/network access; pending use cases and tuned-lens corpus
+  blocking remain explicit and cannot produce promotable evidence. Full
+  plan/fixture validation now gates every handler and write; validators retain
+  canonical recorded source maps, strict status/linkage checks, and the proven
+  zero-overlap fixture split.
 - Recorded the Sprint 78 API-freeze checkpoint and snapshot-grounded migration
   and API-reference entry points: the current runtime surface is 205 exports
   with a 202-entry canonical-stable projection, while metadata remains

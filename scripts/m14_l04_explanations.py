@@ -1,24 +1,172 @@
-"""Canonical offline checker facade for the M14 L04 explanation lane."""
+"""M14 L04 dispatcher and failure-preserving artifact writer.
+
+Computation handlers are intentionally supplied by L04.4--L04.10. This lane
+only validates the frozen inputs, dispatches one use case, and writes honest
+non-promoting envelopes.
+"""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
-from scripts.m14_l04_contract import FIXTURE_PATH, PLAN_PATH, load_and_validate
+from scripts._m14_l04_data import fixture_metadata
+from scripts._m14_l04_envelope import (
+    build_artifact,
+    build_run_record,
+    canonical_digest,
+    failure_envelope,
+    safe_write,
+)
+from scripts._m14_l04_fixture_contract import read_fixture
+from scripts._m14_l04_validate import validate_artifact, validate_failure, validate_run_record
+from scripts.m14_l04_contract import FIXTURE_PATH, PLAN_PATH, load_and_validate, load_plan
+
+__all__ = [
+    "check",
+    "run_real",
+    "run_one_use_case",
+    "failure_envelope",
+    "validate_artifact",
+    "validate_failure",
+    "validate_run_record",
+]
+
+USE_CASES = (
+    "IntegratedGradients",
+    "TCAV",
+    "DirectLogitLens",
+    "TunedLogitLens",
+    "Disentanglement",
+    "TrueActivationPatching",
+    "AdditiveSteering",
+)
+PENDING = {
+    "IntegratedGradients": "not_implemented_pending_L04.4",
+    "TCAV": "not_implemented_pending_L04.5",
+    "DirectLogitLens": "not_implemented_pending_L04.6",
+    "TunedLogitLens": "blocked_missing_corpus",
+    "Disentanglement": "not_implemented_pending_L04.8",
+    "TrueActivationPatching": "not_implemented_pending_L04.9",
+    "AdditiveSteering": "not_implemented_pending_L04.10",
+}
+
+Handler = Callable[[dict[str, Any], list[dict[str, Any]]], dict[str, Any]]
+
+
+def check(plan_path: Path = PLAN_PATH, fixture_path: Path = FIXTURE_PATH) -> dict[str, str]:
+    """Perform the existing side-effect-free offline contract check."""
+    return load_and_validate(plan_path, fixture_path)
+
+
+def _attempt(output_dir: Path, use_case: str) -> int:
+    prefix = f"l04-explanations.{use_case}.attempt"
+    numbers = []
+    for path in output_dir.glob(f"{prefix}*.partial.json"):
+        try:
+            numbers.append(int(path.name[len(prefix) :].split(".", 1)[0]))
+        except ValueError:
+            continue
+    return max(numbers, default=0) + 1
+
+
+def run_real(
+    *,
+    plan_path: Path = PLAN_PATH,
+    fixture_path: Path = FIXTURE_PATH,
+    use_case: str,
+    output_dir: Path = Path("artifacts/m14"),
+    handlers: dict[str, Handler] | None = None,
+) -> dict[str, Any]:
+    """Dispatch one use case without loading a model in this infrastructure task."""
+    if use_case not in USE_CASES:
+        raise ValueError(f"unknown use case {use_case!r}")
+    # Full contract validation is the preflight barrier: no handler, attempt
+    # allocation, or output write is allowed when plan/fixture bytes are bad.
+    load_and_validate(plan_path, fixture_path)
+    plan = load_plan(plan_path)
+    raw, rows = read_fixture(fixture_path)
+    output_dir = Path(output_dir)
+    attempt = _attempt(output_dir, use_case)
+    stem = f"l04-explanations.{use_case}.attempt{attempt}"
+    partial_name = f"{stem}.partial.json"
+    run_name = f"{stem}.run.json"
+    failure_name = f"{stem}.failure.json"
+    handler = None if handlers is None else handlers.get(use_case)
+    status = PENDING[use_case]
+    injected = handler is not None
+    error: BaseException | None = None
+    handler_result: dict[str, Any] = {}
+    handler_result_digest: str | None = None
+    if handler is not None:
+        try:
+            handler_result = dict(handler(plan, rows))
+            if handler_result:
+                handler_result_digest = hashlib.sha256(
+                    json.dumps(handler_result, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
+            status = "injected_offline_non_eligible"
+        except Exception as exc:  # noqa: BLE001 - retain every injected failure
+            error = exc
+            status = "failed"
+            handler_result = {}
+    fixture = fixture_metadata(plan, raw, rows)
+    artifact = build_artifact(plan, fixture, use_case, status, failure_name, injected=injected)
+    provenance = artifact["provenance"]
+    if handler_result_digest is not None:
+        provenance["injected_handler_result_digest"] = handler_result_digest
+        artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    safe_write(output_dir / partial_name, artifact)
+    resources = {
+        "device": "not used",
+        "network": "not attempted",
+        "resource_peak": "not measured",
+        "cleanup": "not applicable; no model was loaded",
+    }
+    run = build_run_record(plan, artifact, use_case, status, resources, artifact_name=partial_name)
+    safe_write(output_dir / run_name, run)
+    failure = failure_envelope(plan, use_case, status, error=error, failure_ref=failure_name, run_record=run)
+    safe_write(output_dir / failure_name, failure)
+    return {
+        "status": status,
+        "use_case": use_case,
+        "artifact": artifact,
+        "run_record": run,
+        "failure": failure,
+        "paths": {"partial": partial_name, "run": run_name, "failure": failure_name},
+    }
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Validate the frozen contract; real execution is intentionally not implemented here."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="run deterministic offline plan/fixture validation")
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--run-real", action="store_true")
+    parser.add_argument("--use-case", choices=USE_CASES)
     parser.add_argument("--plan", type=Path, default=PLAN_PATH)
     parser.add_argument("--fixture", type=Path, default=FIXTURE_PATH)
+    parser.add_argument("--output-dir", type=Path, default=Path("artifacts/m14"))
     args = parser.parse_args(argv)
-    if not args.check:
-        parser.error("only --check is available until the separately authorized real-run preflight")
-    print(json.dumps(load_and_validate(args.plan, args.fixture), sort_keys=True, separators=(",", ":")))
+    if args.check and args.run_real:
+        parser.error("choose only --check or --run-real")
+    if args.check:
+        print(json.dumps(check(args.plan, args.fixture), sort_keys=True, separators=(",", ":")))
+        return
+    if not args.run_real:
+        parser.error("choose --check or --run-real")
+    if args.use_case is None:
+        parser.error("--run-real requires --use-case")
+    result = run_real(
+        plan_path=args.plan, fixture_path=args.fixture, use_case=args.use_case, output_dir=args.output_dir
+    )
+    print(json.dumps(result, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
+    raise SystemExit(1)
+
+
+run_one_use_case = run_real
 
 
 if __name__ == "__main__":

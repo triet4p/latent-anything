@@ -61,6 +61,13 @@ Status legend: [ ] pending / [~] in progress / [x] done
   invariants, and checks the declared thresholds, resources, and remote
   protocol without resolving a model or tokenizer. See
   [`task_79_l04_2_summary.md`](../../artifacts/task_79_l04_2_summary.md).
+- [x] Add the L04.3 fail-closed dispatch infrastructure: one-use-case partial,
+  run, and retained failure envelopes with atomic caller-directory writes,
+  seven execution mappings, five frozen ledger records, deterministic source
+  digests, and a lazy `TransformerLMIntegration` factory identity seam. Real
+  computation remains pending L04.4--L04.10; tuned lens remains blocked until
+  the pinned WikiText subset is provisioned. See
+  [`task_79_l04_3_summary.md`](../../artifacts/task_79_l04_3_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
