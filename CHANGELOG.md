@@ -4,6 +4,11 @@
 
 ### Added
 
+- Added the offline-tested, explicitly network-gated WikiText-2 acquisition
+  and sanitized manifest pipeline for the frozen M14 L04 tuned-lens corpus.
+  The pipeline retains only pinned provenance, counts, selected indices, text
+  hashes, and independent content/split digests; it never writes corpus text.
+
 - Added the M14 L04.6 direct logit-lens Phase A handler with all-native-state
   parity, target/non-target held-out diagnostics, seeded controls, and
   fail-closed support-only artifact validation. No D0 record was promoted.
@@ -22,6 +27,10 @@
   fail-closed real-CUDA provenance validation.
 
 ### Changed
+
+- Restricted the M14 L04 WikiText-2 acquisition path to explicit pinned
+  `train` and `validation` split requests, preventing an upstream `test`
+  split from entering the sanitized manifest.
 
 - Recorded the owner-reviewed exact-SHA DirectLogitLens CUDA validation on the
   pinned GPT-2 boundary. Absolute and relative terminal parity were both zero,

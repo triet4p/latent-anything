@@ -105,6 +105,18 @@ Status legend: [ ] pending / [~] in progress / [x] done
   their absence recorded. See
   [`task_79_l04_6_summary.md`](../../artifacts/task_79_l04_6_summary.md) and
   the sanitized attempt audits.
+- [x] Implement L04.7a as an offline-tested, network-gated WikiText-2
+  acquisition and sanitized manifest pipeline. It requests only explicit
+  pinned `train` and `validation` splits (never an upstream `test` split) and
+  pins the Salesforce
+  `wikitext-2-raw-v1` configuration/revision and license, verifies official
+  split sizes, drops blank rows, selects the frozen 8192/2048 rows with seed
+  79 downstream-training provenance and max-128 metadata (selection itself is
+  deterministic hash/index sorting), and independently binds selected indices
+  and UTF-8 text hashes through content/split digests. Raw corpus text is
+  never written or committed; the frozen L04 plan remains byte-for-byte
+  unchanged. See
+  [`task_79_l04_7a_summary.md`](../../artifacts/task_79_l04_7a_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

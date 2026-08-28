@@ -900,3 +900,10 @@ Protocol is considered.
 **Alternatives considered:** Treat the 202-entry canonical projection as the complete runtime surface, remove beta aliases immediately, bump metadata and tag `0.9.0`, or describe the API-freeze work as a release-readiness result.
 **Reason:** The checked-in API snapshot is the mechanical authority and records 205 runtime exports, a 202-entry canonical-stable projection, 18 human-ledger alias rows, and two separate data migrations. The repository remains at `0.1.0b1`; the planned `0.9.0` compatibility epoch has not been released, and M14 evidence/release-workflow blockers remain open.
 **Consequences:** Future public-surface changes must update the reviewed snapshot, compatibility ledger, migration/API documentation, and tests before landing. Alias removal, version/tag/publish operations, and release-readiness claims remain prohibited until an explicit owner decision verifies the required evidence and workflow gates.
+
+## [2026-08-29] Provision the frozen tuned-lens corpus once and bind it separately
+
+**Decision:** Provision the pinned WikiText-2 corpus exactly once through an owner-approved acquisition, retain only its sanitized manifest, and keep `l04-explanations.plan.json` byte-for-byte immutable.
+**Alternatives considered:** Rewrite the frozen plan with newly discovered digests, retain a local/committed text subset, or substitute the authored L04 fixture for tuned-lens fitting.
+**Reason:** Existing IG, TCAV, and DirectLogitLens evidence is bound to the frozen plan digest; tuned-lens needs the authoritative Salesforce corpus while the repository must not redistribute corpus text or silently change the preregistered contract.
+**Consequences:** A separate immutable manifest carries source/revision/license metadata, selected original indices, text hashes, and content/split digests. The 8192/2048 selection and seed 79 remain fixed, and tuned-lens stays blocked/D0 until the manifest is acquired and validator-checked; no authored substitution or text retention is allowed.
