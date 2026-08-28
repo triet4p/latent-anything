@@ -62,6 +62,12 @@ def build_artifact(
     execution_result: dict[str, Any] | None = None,
     resources: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    execution_attempted = bool(
+        (resources or {}).get("execution_attempted", execution_result is not None and not injected)
+    )
+    execution_backend = (resources or {}).get("execution_backend")
+    if execution_backend is None:
+        execution_backend = "cuda" if execution_attempted and not injected else "none"
     executions = [
         execution_template(
             plan,
@@ -172,14 +178,13 @@ def build_artifact(
             "adapter": "N/A",
             "evidence_origin": "dependency-injected-offline"
             if injected
-            else (
-                "real-cuda"
-                if execution_result is not None or (resources or {}).get("device") == "cuda"
-                else "dispatcher-only-no-model"
-            ),
+            else ("real-cuda" if execution_attempted and execution_backend == "cuda" else "dispatcher-only-no-model"),
             "network": (resources or {}).get("network", "not attempted"),
             "credentials": "not used",
             "cleanup": (resources or {}).get("cleanup", "not applicable; no model was loaded"),
+            "execution_attempted": execution_attempted,
+            "execution_backend": execution_backend,
+            "resource_peak": (resources or {}).get("resource_peak", "not measured"),
             "use_case": use_case,
             "plan_sha256": plan_digest(plan),
         },

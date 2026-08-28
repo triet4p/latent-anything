@@ -252,6 +252,18 @@ def _control_metric(value: float, *, threshold: float, comparator: str) -> dict[
     }
 
 
+def _aggregate_improvements(
+    direct: Mapping[int, Sequence[float]],
+    tuned: Mapping[int, Sequence[float]],
+    shuffled: Mapping[int, Sequence[float]],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Aggregate only fitted translators; native layer 12 is parity-only."""
+    fitted_direct = {layer: direct[layer] for layer in FITTED_LAYERS}
+    fitted_tuned = {layer: tuned[layer] for layer in FITTED_LAYERS}
+    fitted_shuffled = {layer: shuffled[layer] for layer in FITTED_LAYERS}
+    return macro_improvement(fitted_direct, fitted_tuned), macro_improvement(fitted_direct, fitted_shuffled)
+
+
 def _selected_identity(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, str]]:
     return [
         {"row_id": str(row["row_id"]), "index": str(row["index"]), "text_sha256": str(row["text_sha256"])}
@@ -406,8 +418,7 @@ def run_tuned_logit_lens(
             device=device,
             torch=torch,
         )
-        improvements = macro_improvement(direct, tuned)
-        shuffled_improvements = macro_improvement(direct, shuffled_kl)
+        improvements, shuffled_improvements = _aggregate_improvements(direct, tuned, shuffled_kl)
         threshold = float(
             cast_mapping(plan["thresholds_and_controls"])["lens"]["tuned_holdout_kl_improvement_strict_gt_nats"]
         )

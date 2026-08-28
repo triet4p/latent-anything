@@ -283,6 +283,12 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             "real-cuda",
         }:
             errors.append("artifact evidence origin is invalid")
+        execution_attempted = provenance.get("execution_attempted")
+        execution_backend = provenance.get("execution_backend")
+        if not isinstance(execution_attempted, bool) or execution_backend not in {"cuda", "none"}:
+            errors.append("artifact execution attempt/backend provenance is invalid")
+        elif execution_attempted is not (execution_backend == "cuda"):
+            errors.append("artifact execution attempt/backend provenance is incoherent")
         is_real_ig = (
             artifact.get("use_case") == "IntegratedGradients" and provenance.get("evidence_origin") == "real-cuda"
         )
@@ -293,6 +299,10 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         is_real_tuned = (
             artifact.get("use_case") == "TunedLogitLens" and provenance.get("evidence_origin") == "real-cuda"
         )
+        if provenance.get("evidence_origin") == "real-cuda" and (
+            execution_attempted is not True or execution_backend != "cuda"
+        ):
+            errors.append("real CUDA artifact is missing truthful execution attempt/backend provenance")
         if is_real_ig:
             active_status = _active_status(artifact)
             allowed_networks = {"enabled"} if active_status == REAL_IG_STATUS else {"enabled", "not attempted"}

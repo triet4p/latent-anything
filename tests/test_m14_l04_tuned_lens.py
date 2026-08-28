@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import torch
@@ -32,7 +33,7 @@ def test_row_token_kl_and_macro_improvement_are_strictly_positive_for_better_tra
 
 @pytest.mark.parametrize("expected_pass, tampered_pass", [(True, False), (False, True)])
 def test_validator_rejects_tampered_recomputed_pass_flag(expected_pass: bool, tampered_pass: bool) -> None:
-    from scripts._m14_l04_validate_tuned_lens import _metric_matches
+    from scripts import _m14_l04_validate_tuned_lens as validator
 
     errors: list[str] = []
     expected = {
@@ -47,7 +48,10 @@ def test_validator_rejects_tampered_recomputed_pass_flag(expected_pass: bool, ta
     }
     actual = dict(expected)
     actual["pass"] = tampered_pass
-    _metric_matches(actual, expected, "tampered", errors)
+    # Private validator boundary is deliberate: this test checks recomputation,
+    # while the public artifact validator exercises the complete envelope.
+    metric_matches = cast(Callable[[object, Mapping[str, Any], str, list[str]], None], validator._metric_matches)  # pyright: ignore[reportPrivateUsage]
+    metric_matches(actual, expected, "tampered", errors)
     assert errors
 
 
@@ -57,14 +61,117 @@ def test_macro_improvement_requires_exact_fitted_layers() -> None:
         macro_improvement(values, values)
 
 
-def test_terminal_projection_is_not_double_normalized() -> None:
-    from scripts._m14_l04_tuned_lens import _project
+def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Exercise run_tuned_logit_lens through its real aggregation caller."""
+    from scripts import _m14_l04_tuned_lens as tuned_lens
+    from scripts.m14_l04_contract import load_plan
+
+    fitted_layers = tuple(range(12))
+    native_layers = tuple(range(13))
+    validation_rows = [
+        {"row_id": f"validation:{index}", "index": str(index), "text_sha256": "0" * 64} for index in range(2048)
+    ]
+    selected = {
+        "train": [{"row_id": f"train:{i}", "index": str(i), "text_sha256": "1" * 64, "text": "x"} for i in range(8192)],
+        "validation": [{**row, "text": "x"} for row in validation_rows],
+    }
+    manifest: dict[str, Any] = {
+        "content_sha256": "content",
+        "split_sha256": "split",
+        "splits": {
+            "train": {"official_rows": 36718, "selected": []},
+            "validation": {"official_rows": 3760, "selected": []},
+        },
+    }
 
     class _Model(torch.nn.Module):
         def __init__(self) -> None:
             super().__init__()
-            self.transformer = torch.nn.Module()
-            self.transformer.ln_f = torch.nn.LayerNorm(2)
+            self.weight = torch.nn.Parameter(torch.ones(1))
+
+    class _Integration:
+        def __init__(self, model: _Model) -> None:
+            self.model = model
+
+        def _backend(self) -> tuple[_Model, object, object]:
+            return self.model, object(), object()
+
+    class _Translator:
+        def parameters(self) -> tuple[object, ...]:
+            return ()
+
+    model = _Model()
+    translators = {layer: _Translator() for layer in fitted_layers}
+
+    def fake_fit_and_evaluate(**_kwargs: Any) -> tuple[Any, ...]:
+        direct = {layer: [2.0] * 2048 for layer in native_layers}
+        tuned = {layer: [1.0] * 2048 for layer in native_layers}
+        shuffled = {layer: [1.5] * 2048 for layer in native_layers}
+        # These terminal values would make macro_improvement reject the
+        # mappings if the production caller forgot to filter layer 12.
+        direct[12] = [100.0] * 2048
+        tuned[12] = [-100.0] * 2048
+        shuffled[12] = [-50.0] * 2048
+        return (
+            translators,
+            translators,
+            {str(layer): 0.0 for layer in fitted_layers},
+            {str(layer): 0.0 for layer in fitted_layers},
+            direct,
+            tuned,
+            shuffled,
+            [1] * 2048,
+            0.0,
+            0.0,
+        )
+
+    fake_cuda = torch.cuda
+    monkeypatch.setattr(fake_cuda, "is_available", lambda: True)
+    monkeypatch.setattr(fake_cuda, "get_device_name", lambda _index=0: "test-cuda")
+    monkeypatch.setattr(fake_cuda, "reset_peak_memory_stats", lambda: None)
+    monkeypatch.setattr(fake_cuda, "max_memory_allocated", lambda: 1)
+    monkeypatch.setattr(fake_cuda, "max_memory_reserved", lambda: 1)
+    monkeypatch.setattr(fake_cuda, "synchronize", lambda: None)
+    monkeypatch.setattr(fake_cuda, "empty_cache", lambda: None)
+    monkeypatch.setattr(tuned_lens, "seed_everything", lambda _seed, _torch: None)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "cuda")
+    monkeypatch.setattr(tuned_lens, "read_manifest", lambda _path: (manifest, "raw"))
+    monkeypatch.setattr(tuned_lens, "load_selected_rows", lambda _path, **_kwargs: selected)
+    monkeypatch.setattr(tuned_lens, "_fit_and_evaluate", fake_fit_and_evaluate)
+
+    result = tuned_lens.run_tuned_logit_lens(
+        load_plan(),
+        [],
+        integration_factory=lambda **_kwargs: _Integration(model),
+        dataset_loader=lambda **_kwargs: object(),
+    )
+
+    assert result["status"] == "passed_real_cuda"
+    assert result["acceptance"] is True
+    assert result["raw_summaries"][0]["native_layers"] == list(native_layers)
+    assert all(row["macro_improvement"] == 1.0 for row in result["raw_summaries"][0]["rows"])
+
+
+def test_terminal_projection_is_not_double_normalized() -> None:
+    from scripts._m14_l04_tuned_lens import _project
+
+    class _Transformer(torch.nn.Module):
+        ln_f: torch.nn.LayerNorm
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.ln_f = torch.nn.LayerNorm(2)
+
+    class _Model(torch.nn.Module):
+        transformer: _Transformer
+        lm_head: torch.nn.Linear
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.transformer = _Transformer()
             self.lm_head = torch.nn.Linear(2, 2, bias=False)
 
         def forward(self, hidden: torch.Tensor) -> torch.Tensor:
@@ -211,6 +318,46 @@ def test_tuned_lens_injected_dispatch_remains_non_eligible(tmp_path: Path) -> No
     assert result["artifact"]["provenance"]["evidence_origin"] == "dependency-injected-offline"
 
 
+def test_real_failed_cuda_artifact_keeps_d0_and_validates_provenance(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from scripts import _m14_l04_tuned_lens as tuned_lens
+    from scripts._m14_l04_execution_common import RealExecutionError
+    from scripts._m14_l04_validate import validate_artifact, validate_failure, validate_run_record
+    from scripts.m14_l04_contract import load_plan
+    from scripts.m14_l04_explanations import run_real
+
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "cuda")
+
+    def failed_real_handler(_plan: dict[str, Any], _rows: list[dict[str, Any]]) -> dict[str, Any]:
+        raise RealExecutionError(
+            "fitted layer invariant failed",
+            {
+                "device": "NVIDIA GeForce RTX 4060 Ti",
+                "network": "enabled",
+                "resource_peak": "not measured",
+                "cleanup": "failure cleanup synchronized; gradients cleared; CUDA cache emptied",
+                "execution_attempted": True,
+                "execution_backend": "cuda",
+            },
+        )
+
+    monkeypatch.setattr(tuned_lens, "run_tuned_logit_lens", failed_real_handler)
+    result = run_real(use_case="TunedLogitLens", output_dir=tmp_path)
+    plan = load_plan()
+
+    assert result["status"] == "failed"
+    assert result["artifact"]["evidence_level"] == "D0"
+    assert result["artifact"]["provenance"]["evidence_origin"] == "real-cuda"
+    assert result["artifact"]["provenance"]["execution_attempted"] is True
+    assert result["artifact"]["provenance"]["execution_backend"] == "cuda"
+    assert result["artifact"]["provenance"]["resource_peak"] == "not measured"
+    assert validate_artifact(result["artifact"], plan) == []
+    assert validate_run_record(result["run_record"], result["artifact"], plan) == []
+    assert validate_failure(result["failure"], plan, result["artifact"]) == []
+
+
 def _validator_fixture(
     *, malformed_first_direct: object | None = None
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -221,7 +368,7 @@ def _validator_fixture(
     ]
     rows: list[dict[str, Any]] = []
     for index, identity in enumerate(validation_rows):
-        direct = [1.0] * len(NATIVE_LAYERS)
+        direct: list[Any] = [1.0] * len(NATIVE_LAYERS)
         if index == 0 and malformed_first_direct is not None:
             direct[0] = malformed_first_direct
         rows.append(

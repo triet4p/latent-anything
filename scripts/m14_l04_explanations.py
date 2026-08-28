@@ -127,6 +127,8 @@ def run_real(
         "network": "not attempted",
         "resource_peak": "not measured",
         "cleanup": "not applicable; no model was loaded",
+        "execution_attempted": bool(handler is not None and not injected),
+        "execution_backend": "cuda" if handler is not None and not injected else "none",
     }
     if handler is not None:
         try:
