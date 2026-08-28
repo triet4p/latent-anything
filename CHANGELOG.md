@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Added the offline M14 L04 explanation contract checker and deterministic
+  validation of its authored fixture; `--check` validates declared target text
+  and count only, performs no model/tokenizer resolution, and makes no network
+  access.
 - Recorded the Sprint 78 API-freeze checkpoint and snapshot-grounded migration
   and API-reference entry points: the current runtime surface is 205 exports
   with a 202-entry canonical-stable projection, while metadata remains

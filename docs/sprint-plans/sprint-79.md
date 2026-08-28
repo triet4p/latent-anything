@@ -55,6 +55,12 @@ Status legend: [ ] pending / [~] in progress / [x] done
   [`l04-explanations.plan.json`](../../artifacts/m14/l04-explanations.plan.json)
   and [`task_79_l04_1_summary.md`](../../artifacts/task_79_l04_1_summary.md).
   This planning task changes no source/tests and does not promote any L04 row.
+- [x] Add the side-effect-free M14 L04.2 contract checker for the frozen plan
+  and authored JSONL fixture. It recomputes plan/content/split/pair digests,
+  validates the five-record/seven-use-case order and fixture pair/split/label
+  invariants, and checks the declared thresholds, resources, and remote
+  protocol without resolving a model or tokenizer. See
+  [`task_79_l04_2_summary.md`](../../artifacts/task_79_l04_2_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

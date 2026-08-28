@@ -433,3 +433,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Hugging Face GPT-2 stores the terminal `output_hidden_states` entry after `ln_f`, but the test asserted only layer identity and logits shape; the fake backend also did not model the post-`ln_f` terminal state accurately.
 **Fix / workaround:** Pass a private final-normalization control to the lens, apply `ln_f` only to pre-final native states, and compare the terminal lens logits numerically with the model's forward logits using an affine post-normalization fake.
 **Watch out for:** Any native hidden-state parity test that checks only shapes or ranks can remain green under duplicate normalization; model-specific output-state ordering and exact value parity must be tested, including capture subsets containing the terminal state.
+
+## [2026-08-28] Windows text writes changed the JSONL line-ending contract
+
+**Symptom:** Temporary JSONL fixtures written with `Path.write_text()` were rejected by the offline checker as CRLF, even though the test string explicitly used `\n`.
+**Root cause:** Windows newline translation converts text-mode `\n` writes to CRLF; the L04 fixture contract requires exact UTF-8 bytes with LF-only row terminators.
+**Fix / workaround:** Write mutated JSONL fixtures with `Path.write_bytes(...encode("utf-8"))` and keep the checker validating raw bytes before parsing.
+**Watch out for:** Any digest-sensitive JSONL or evidence fixture test running on Windows; text-mode writes alter bytes and invalidate content digests.
