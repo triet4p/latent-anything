@@ -10,6 +10,12 @@
 
 ### Changed
 
+- Recorded one owner-reviewed exact-SHA real-CUDA M14 L04.4 Integrated
+  Gradients execution. The frozen completeness gates failed, so the result is
+  retained as a D0/evidence-ineligible semantic failure with sanitized
+  provenance and cleanup audit; no evidence-ledger promotion or coverage-count
+  change was made, and no rerun was performed.
+
 - Added the offline M14 L04 explanation contract checker and deterministic
   validation of its authored fixture; `--check` validates declared target text
   and count only, performs no model/tokenizer resolution, and makes no network

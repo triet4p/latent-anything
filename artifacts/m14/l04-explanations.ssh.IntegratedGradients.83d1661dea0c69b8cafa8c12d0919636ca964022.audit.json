@@ -1,0 +1,97 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "83d1661dea0c69b8cafa8c12d0919636ca964022",
+  "use_case": "IntegratedGradients",
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 2,
+    "embedded_remote_status": 1,
+    "transport_diagnostic": "bash: line 31: exit: 1: numeric argument required (remote script line-ending status encoding)",
+    "remote_target": "authenticated remote CUDA host"
+  },
+  "raw_capture": {
+    "name": "l04-explanations.ssh.IntegratedGradients.83d1661dea0c69b8cafa8c12d0919636ca964022.raw.txt",
+    "bytes": 125044,
+    "sha256": "ab30f4e39c5835577b23a9f83154c38b961a702b6bf6d2567dc8d96d9c43737a",
+    "bundle_bytes": 21138,
+    "bundle_sha256": "912f99dec680f632328ec17ab352c61c5e294e12fbc2be464f2d0e4a3b0b865f",
+    "marker_counts": {
+      "L04_USE_CASE": 1,
+      "L04_CODE_SHA": 1,
+      "L04_STATUS": 1,
+      "L04_BUNDLE_B64_BEGIN": 1,
+      "L04_BUNDLE_B64_END": 1
+    },
+    "embedded_use_case": "IntegratedGradients",
+    "embedded_code_sha": "83d1661dea0c69b8cafa8c12d0919636ca964022",
+    "raw_deleted_after_sanitized_record": true
+  },
+  "sanitization": {
+    "credential_pattern_matches": 0,
+    "fixture_prompt_literal_matches": 0,
+    "remote_disposable_path_matches_redacted": 4,
+    "prompt_text_retained": false,
+    "sanitized_record_verified_before_raw_deletion": true
+  },
+  "remote_facts": {
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "driver": "580.126.20",
+    "nvidia_smi_cuda": "13.0",
+    "torch": "2.10.0",
+    "transformers": "4.57.6",
+    "python": "3.13.12",
+    "runtime_cuda_wheels": "12.8",
+    "elapsed_seconds": 376.18669196404517,
+    "max_memory_allocated_bytes": 1603745792,
+    "max_memory_reserved_bytes": 1889533952,
+    "remote_trap_cleanup": true
+  },
+  "records": {
+    "partial": {
+      "name": "l04-explanations.IntegratedGradients.attempt1.partial.json",
+      "sha256": "062b5706d22361bad293e229f5de5033bc32a7ed7d84b888e3e170b2463395e6"
+    },
+    "run": {
+      "name": "l04-explanations.IntegratedGradients.attempt1.run.json",
+      "sha256": "66eb7d2cf351e68c1f9a1bee2e2b0930020dc01b67da589ea18867c2acdd577a"
+    },
+    "failure": {
+      "name": "l04-explanations.IntegratedGradients.attempt1.failure.json",
+      "sha256": "7009eaeebd5eb13b064049d8a218467bbb04e8dedec1686a2cd0450259a2ee59"
+    }
+  },
+  "validators": {
+    "artifact_errors": [],
+    "run_errors": [],
+    "failure_errors": [],
+    "artifact_sha256": "880714c2a81904e4bba7b8cd854bfb707706a6a0c57f2cb348ca14b9b5db33f0",
+    "run_record_sha256": "c4d4bc4c446ce1c96d4fad38670f65096a2706d312e30b9fd2302c5ae7c36f49",
+    "failure_sha256": "8105314bed8288552d0f78f1842074ac8be674abf1afe8ecfe04581a671764bb"
+  },
+  "semantic_result": {
+    "execution_status": "failed",
+    "exception_type": "RuntimeError",
+    "failure_reason": "one or more frozen Integrated Gradients gates failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "accepted_record_ids": [],
+    "accepted_gap_ids": [],
+    "control_pass": {
+      "zero_baseline": false,
+      "batch_mean_baseline": false,
+      "random_target": true,
+      "seeded_repeat": true,
+      "finite/no-mutation": true
+    },
+    "completeness_relative_error_point": 42.81190960320498,
+    "step_16_vs_64_attribution_cosine_point": 0.9972437907491202
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "local_extract": "removed after validated copy",
+    "local_worktree_source_changes": false,
+    "closure_commit_or_push": false
+  }
+}

@@ -440,3 +440,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Windows newline translation converts text-mode `\n` writes to CRLF; the L04 fixture contract requires exact UTF-8 bytes with LF-only row terminators.
 **Fix / workaround:** Write mutated JSONL fixtures with `Path.write_bytes(...encode("utf-8"))` and keep the checker validating raw bytes before parsing.
 **Watch out for:** Any digest-sensitive JSONL or evidence fixture test running on Windows; text-mode writes alter bytes and invalidate content digests.
+
+## [2026-08-28] PowerShell here-string CRLF corrupts remote Bash exit status
+
+**Symptom:** A direct authenticated PowerShell `ssh.exe` invocation reported `exit: 1: numeric argument required` and SSH exit `2`, even though the embedded remote status was `1` for the genuine semantic Integrated Gradients failure.
+**Root cause:** The PowerShell here-string transported CRLF line endings into the remote Bash script's status encoding, so Bash parsed the trailing carriage return as part of the numeric `exit` argument.
+**Fix / workaround:** For future runs, normalize the remote script to LF bytes before piping it directly to authenticated PowerShell `ssh.exe`; keep Bash as the remote shell. The frozen L04 evidence was not altered and was not rerun.
+**Watch out for:** Always distinguish the embedded remote status (`1`) from the transport-level SSH exit (`2`) when a Windows PowerShell here-string feeds Bash; normalize bytes before transport rather than changing frozen evidence or thresholds.
