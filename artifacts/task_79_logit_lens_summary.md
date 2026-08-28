@@ -36,5 +36,19 @@ queue, or L04 claim changed.
 
 The L03 artifact consumes only captured hidden states, not lens results or
 logits, so its feature digest and accepted metrics do not require rerunning.
-The real network test remains opt-in; no model download or remote CUDA run was
-performed for this task.
+
+## Remote CUDA verification
+
+Attempt 1 stopped before model execution because the isolated base environment
+omitted the confirmed `transformers` optional extra. Its sanitized failure
+record is [`task_79_logit_lens_remote_cuda_attempt1.json`](task_79_logit_lens_remote_cuda_attempt1.json).
+Attempt 2 used `uv sync --locked --extra transformers` and direct authenticated
+PowerShell `ssh.exe` transport into a fresh remote clone. The exact network
+command passed all 8 selected tests on the RTX 4060 Ti with CUDA 12.8,
+including numerical final-layer parity, intervention, and hook cleanup. See
+the final sanitized record
+[`task_79_logit_lens_remote_cuda_verification_final.json`](task_79_logit_lens_remote_cuda_verification_final.json)
+and its SHA-256 transcript digest. Both raw local captures were verified and
+then deleted according to the repository's sanitized-audit convention; the
+failure/pass metadata and digests remain. No public protocol/schema, L03
+artifact, evidence count, ledger row, queue item, or L04 claim changed.

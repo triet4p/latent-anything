@@ -1,0 +1,52 @@
+{
+  "status": "fail_environment_dependency",
+  "source": {
+    "repository": "https://github.com/triet4p/latent-anything.git",
+    "sha": "73daf5349a915b32157e6be695e96b79be1ddd36",
+    "branch": "main",
+    "clone_sha_match": true
+  },
+  "server": {
+    "user": "trietlm",
+    "host": "192.168.30.244",
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "nvidia_smi": "pass",
+    "torch": "2.10.0+cu128",
+    "cuda_runtime": "12.8",
+    "torch_cuda_available": true,
+    "compiler": "gcc-12/g++-12",
+    "nvcc": "not_installed"
+  },
+  "runtime": {
+    "python": "CPython 3.13.12",
+    "temporary_directory": "/tmp/remote-cuda-test.fF12Ky",
+    "temporary_directory_cleanup": "pass",
+    "ssh_exit_code": 1
+  },
+  "test": {
+    "command": "LATENT_ANYTHING_RUN_NETWORK=1 LATENT_ANYTHING_NETWORK_DEVICE=cuda uv run pytest tests/test_transformer_lm_network.py -m network -q",
+    "selected_tests": 8,
+    "passed": 0,
+    "failed": 8,
+    "deselected": 5,
+    "duration": "3.27s",
+    "model_execution": "not_reached",
+    "failure": "Optional backend 'transformers' unavailable; isolated base uv sync omitted the transformers extra",
+    "rerun": false
+  },
+  "transcript": {
+    "path": null,
+    "sha256": "8f84bad69b682c8566c036a17f4459f9ab69422225ec212bf9864640f56fb86f",
+    "bytes": 37673,
+    "retained": false,
+    "deletion_reason": "raw capture superseded by sanitized audit metadata after digest verification"
+  },
+  "scope": {
+    "source_changes": false,
+    "test_changes": false,
+    "docs_changes": false,
+    "ledger_queue_changes": false,
+    "l03_rerun": false,
+    "l04_changes": false
+  }
+}

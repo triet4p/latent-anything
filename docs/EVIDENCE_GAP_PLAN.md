@@ -75,11 +75,15 @@ oracle and cleanup test. The structured hook/output blocker is therefore
 resolved by `16db80f` + `9ebecfa` and the retained transformer-hook
 [attempt-1 failure](../artifacts/task_79_transformer_hook_remote_verification_attempt1.md)
 and [attempt-2 verification](../artifacts/task_79_transformer_hook_remote_verification.md).
-The forward-only L03 evidence and its D2 promotions are unchanged. The separate
-native hidden-state index-12/direct-logit-lens parity question remains an open
-Sprint 79 follow-up; it is not implemented or promoted here. Attempts 1–3 of
-the canonical L03 capture workflow remain preserved capture-only failures;
-attempt 4 remains represented by the sanitized capture audit.
+The forward-only L03 evidence and its D2 promotions are unchanged. The
+separate native hidden-state index-12/direct-logit-lens parity follow-up is
+complete as an internal semantic correction: attempt 1's missing optional
+`transformers` dependency and attempt 2's exact-SHA direct-PowerShell-SSH
+8/8 CUDA verification are preserved in the sanitized
+[`task_79_logit_lens_remote_cuda_verification_final.json`](../artifacts/task_79_logit_lens_remote_cuda_verification_final.json)
+record and digests, without an L11 promotion. Attempts 1–3 of the canonical
+L03 capture workflow remain preserved capture-only failures; attempt 4 remains
+represented by the sanitized capture audit.
 
 The validator command is:
 

@@ -38,7 +38,9 @@ Status legend: [ ] pending / [~] in progress / [x] done
   pre- or post-final-LayerNorm for direct lens parity, including the double-
   LayerNorm question. The terminal native state is post-`ln_f`; the private
   lens now skips duplicate normalization and exact offline/network parity
-  tests cover all states and capture subsets. See
+  tests cover all states and capture subsets. Direct PowerShell `ssh.exe`
+  verification passed 8/8 on the exact committed SHA with the pinned
+  `transformers` extra; attempts and sanitized digests are recorded in
   [`task_79_logit_lens_summary.md`](../../artifacts/task_79_logit_lens_summary.md).
   This remains separate from the resolved structured hook/output blocker and
   does not promote L11.

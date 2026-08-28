@@ -1,0 +1,67 @@
+{
+  "status": "pass",
+  "source": {
+    "repository": "https://github.com/triet4p/latent-anything.git",
+    "sha": "73daf5349a915b32157e6be695e96b79be1ddd36",
+    "branch": "main",
+    "clone_sha_match": true
+  },
+  "server": {
+    "user": "trietlm",
+    "host": "192.168.30.244",
+    "transport": "direct PowerShell ssh.exe; remote Bash/POSIX via bash -s",
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "nvidia_smi": "pass",
+    "torch": "2.10.0+cu128",
+    "cuda_runtime": "12.8",
+    "torch_cuda_available": true,
+    "compiler": "gcc-12/g++-12",
+    "nvcc": "not_installed",
+    "transformers": "4.57.6",
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+  },
+  "attempts": {
+    "attempt1": {
+      "status": "fail_environment_dependency",
+      "raw_transcript": null,
+      "raw_sha256": "8f84bad69b682c8566c036a17f4459f9ab69422225ec212bf9864640f56fb86f",
+      "raw_retained": false
+    },
+    "attempt2": {
+      "status": "pass",
+      "setup": "uv sync --locked --extra transformers",
+      "raw_transcript": null,
+      "raw_sha256": "50c512c48398572c497f51ca76c80efebf6e900f1024f333537740986707d7da",
+      "raw_bytes": 5851,
+      "raw_retained": false,
+      "ssh_exit_code": 0
+    }
+  },
+  "runtime": {
+    "python": "CPython 3.13.12",
+    "temporary_directory": "/tmp/remote-cuda-test.JrPw1g",
+    "temporary_directory_cleanup": "pass"
+  },
+  "test": {
+    "command": "LATENT_ANYTHING_RUN_NETWORK=1 LATENT_ANYTHING_NETWORK_DEVICE=cuda uv run pytest tests/test_transformer_lm_network.py -m network -q",
+    "selected_tests": 8,
+    "passed": 8,
+    "failed": 0,
+    "deselected": 5,
+    "warnings": 2,
+    "duration": "35.29s",
+    "final_logit_lens_numerical_parity": true,
+    "intervention_behavior": true,
+    "hook_cleanup": true,
+    "rerun": false
+  },
+  "scope": {
+    "source_changes": false,
+    "test_changes": false,
+    "docs_changes": false,
+    "ledger_queue_changes": false,
+    "l03_rerun": false,
+    "l04_changes": false,
+    "artifacts_uncommitted": false
+  }
+}

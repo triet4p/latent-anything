@@ -283,11 +283,13 @@ strict-CUDA verification passed **8/8**, including native-index-7 intervention
 and hook cleanup. The structured hook/output cleanup blocker is resolved by
 `16db80f` + `9ebecfa` and the retained transformer-hook attempt-1 and attempt-2
 artifacts. The forward-only L03 evidence and D2 promotions are unchanged.
-The separate native hidden-state index-12/direct-logit-lens parity question
-remains an open Sprint 79 follow-up; it is not an L11 promotion. Attempts 1–3
-of the canonical L03 capture workflow remain capture-only failures, while
-attempt 4's raw transcript is superseded by its sanitized capture-audit
-artifact.
+The separate native hidden-state index-12/direct-logit-lens parity follow-up
+is complete as an internal semantic correction, with attempt 1's missing
+optional `transformers` dependency and attempt 2's exact-SHA
+direct-PowerShell-SSH 8/8 CUDA verification preserved in sanitized metadata
+and transcript digests; it is not an L11 promotion. Attempts 1–3 of the
+canonical L03 capture workflow remain capture-only failures, while attempt 4's
+raw transcript is superseded by its sanitized capture-audit artifact.
 Current validator coverage is **33/63 core (52.4%)** and **33/65 overall
 (50.8%)**, leaving 32 D0/D1 rows (30 core and 2 non-core); 27 additional core
 and 26 additional overall qualifiers are needed for the release gates.
