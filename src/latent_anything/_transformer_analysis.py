@@ -7,11 +7,18 @@ from typing import Any
 import numpy as np
 
 
-def apply_logit_lens(model: Any, hidden_state: Any) -> np.ndarray:
+def apply_logit_lens(model: Any, hidden_state: Any, *, apply_final_norm: bool = True) -> np.ndarray:
+    """Project a hidden state through the model's final norm and LM head.
+
+    Native decoder-only ``output_hidden_states`` tuples may already contain
+    the model's final normalized state.  Callers must set ``apply_final_norm``
+    to ``False`` for that terminal native state to avoid applying the final
+    normalization twice.
+    """
     import torch
 
     with torch.no_grad():
-        if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
+        if apply_final_norm and hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
             normalized = model.transformer.ln_f(hidden_state)
         else:
             normalized = hidden_state

@@ -21,6 +21,9 @@
 
 ### Fixed
 
+- Corrected the GPT-2 direct logit lens to avoid applying the terminal native
+  hidden state's final LayerNorm twice, with exact offline and real-checkpoint
+  final-logit parity coverage. (#sprint-79)
 - Clarified transformer block intervention indices versus native hidden-state
   capture indices and corrected the real-checkpoint intervention oracle.
 - Fixed `inspect-dataset` to report the actionable LeRobot installation extra

@@ -122,12 +122,7 @@ def test_pinned_checkpoint_lens_results() -> None:
     reason="set LATENT_ANYTHING_RUN_NETWORK=1 to acquire or validate the pinned checkpoint",
 )
 def test_logit_lens_final_layer_parity() -> None:
-    """Verify that the logit lens at the final layer produces logits that
-    match the model's own final logits (Task 5: final-layer parity).
-
-    The direct logit lens with the model's own final LayerNorm + LM head
-    should produce logits identical to the model's forward pass output.
-    """
+    """Verify exact final-layer lens values against forward logits."""
     pipe = TransformerLMIntegration(device=_network_device())
     req = TransformerGenerationRequest(
         prompt="Once upon a time",
@@ -138,17 +133,11 @@ def test_logit_lens_final_layer_parity() -> None:
     )
     result = pipe.generate(req)
 
-    # The last hidden state is the final transformer block output.
-    # The logit lens on this state should match the model's final logits
-    # (after applying the same LN + LM head that the model uses internally).
-    if result.lens_results:
-        final_lens = result.lens_results[-1]
-        # These won't be bitwise identical because output_hidden_states=True
-        # returns hidden states that already went through the block's residual
-        # computation. But for GPT-2, the last block output IS the final hidden
-        # state, and applying ln_f + lm_head should match.
-        # We verify the shape matches.
-        assert final_lens.logits.shape == result.logits.shape
+    # Native GPT-2 index 12 is already post-ln_f, so the lens must use only
+    # the model's LM head and match forward logits numerically.
+    assert result.lens_results
+    final_lens = result.lens_results[-1]
+    np.testing.assert_allclose(final_lens.logits, result.logits, rtol=1e-6, atol=1e-6)
 
 
 @pytest.mark.network

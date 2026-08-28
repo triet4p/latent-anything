@@ -130,9 +130,14 @@ def run_generation(
                 )
 
     if native_hidden_states is not None:
+        final_native_index = len(native_hidden_states) - 1
         for layer_index in capture_layers:
             if layer_index < len(native_hidden_states):
-                logits = apply_logit_lens(model, native_hidden_states[layer_index])
+                logits = apply_logit_lens(
+                    model,
+                    native_hidden_states[layer_index],
+                    apply_final_norm=layer_index != final_native_index,
+                )
                 probabilities = softmax(logits)
                 top_tokens = (
                     compute_top_tokens(probabilities, request.top_k_logit_lens) if request.top_k_logit_lens > 0 else []

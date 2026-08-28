@@ -33,11 +33,15 @@ Status legend: [ ] pending / [~] in progress / [x] done
   [`l03-analysis.json`](../../artifacts/m14/l03-analysis.json), the
   [`capture audit`](../../artifacts/m14/l03-analysis.attempt4.capture-audit.json),
   and [`task_79_l03_phase_b_summary.md`](../../artifacts/task_79_l03_phase_b_summary.md).
-- [ ] Resolve the separate native hidden-state index-12/direct-logit-lens
+- [x] Resolve the separate native hidden-state index-12/direct-logit-lens
   semantics follow-up: determine whether the final hidden-state position is
   pre- or post-final-LayerNorm for direct lens parity, including the double-
-  LayerNorm question. Do not conflate this open analysis with the resolved
-  structured hook/output blocker or promote L11 from it.
+  LayerNorm question. The terminal native state is post-`ln_f`; the private
+  lens now skips duplicate normalization and exact offline/network parity
+  tests cover all states and capture subsets. See
+  [`task_79_logit_lens_summary.md`](../../artifacts/task_79_logit_lens_summary.md).
+  This remains separate from the resolved structured hook/output blocker and
+  does not promote L11.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
@@ -60,6 +64,6 @@ updated map now records 33 qualifying rows after L03. Sprint 79 owns execution
 in dependency order. The historical L03 tuple-return failures are retained,
 but the structured hook/output cleanup blocker is resolved by `16db80f` and
 `9ebecfa` and the exact-SHA strict-CUDA 8/8 evidence. The native index-12
-direct-logit-lens question remains a separate open follow-up; named 3DGS,
-checkpoint, and corrected SmolVLA gaps remain explicit blockers, not evidence
-promotions.
+direct-logit-lens question is resolved as an internal semantic correction with
+no public protocol/schema expansion; named 3DGS, checkpoint, and corrected
+SmolVLA gaps remain explicit blockers, not evidence promotions.

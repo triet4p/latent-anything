@@ -18,8 +18,9 @@ Native hidden-state outputs (``output_hidden_states=True``) are the canonical
 observation path — hooks are used only for intervention.
 
 The direct logit lens applies the model's own final-layer normalisation and LM
-head to each layer's hidden state, producing token probability distributions
-from intermediate layers. Learned/tuned translators are explicitly deferred.
+head to pre-final native hidden states, while applying only the LM head to
+the terminal native state because Hugging Face GPT-2 already applies ``ln_f``
+before storing it. Learned/tuned translators are explicitly deferred.
 """
 
 from __future__ import annotations
@@ -538,13 +539,20 @@ class TransformerLMIntegration:
 
     # -- Logit lens implementation   (Task 4) -------------------------------
 
-    def _apply_logit_lens(self, model: Any, hidden_state: Any) -> np.ndarray:
-        """Apply the direct logit lens: final LayerNorm + LM head.
+    def _apply_logit_lens(
+        self,
+        model: Any,
+        hidden_state: Any,
+        *,
+        apply_final_norm: bool = True,
+    ) -> np.ndarray:
+        """Apply the direct logit lens with optional final LayerNorm.
 
-        Uses the model's own final normalisation layer and language
-        modelling head to project intermediate hidden states into vocabulary
-        space. This is a direct (untrained) lens — no learned translator is
-        involved.
+        Uses the model's own final normalisation layer when requested and
+        always uses its language-modelling head to project hidden states into
+        vocabulary space. Native terminal hidden states that already passed
+        the final normalization must set ``apply_final_norm=False``. This is
+        a direct (untrained) lens — no learned translator is involved.
 
         Parameters
         ----------
@@ -552,13 +560,15 @@ class TransformerLMIntegration:
             The HuggingFace model.
         hidden_state:
             PyTorch tensor of shape ``(batch_size, seq_len, hidden_dim)``.
+        apply_final_norm:
+            Whether to apply the model's final normalization before the head.
 
         Returns
         -------
         np.ndarray
             Logits of shape ``(batch_size, seq_len, vocab_size)``.
         """
-        return apply_logit_lens(model, hidden_state)
+        return apply_logit_lens(model, hidden_state, apply_final_norm=apply_final_norm)
 
     # -- Helper methods -----------------------------------------------------
 

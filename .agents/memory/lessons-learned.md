@@ -426,3 +426,10 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** Hugging Face GPT-2 appends the input to each block before invoking it, so block `h.L` produces native `output_hidden_states[L + 1]`; native index 0 is the embedding output and the final index is post-`ln_f`.
 **Fix / workaround:** Keep intervention layers as direct zero-based transformer block indices, document the distinction from native capture indices, and assert block 6's effect at native index 7.
 **Watch out for:** Network tests that compare a block intervention against the same-numbered native tuple index are off by one; use a nonconstant direction for final-logit effect checks because an all-ones shift can be removed by LayerNorm.
+
+## [2026-08-28] Shape-only logit-lens parity masked double normalization
+
+**Symptom:** The final-layer logit-lens parity test passed while the runtime applied GPT-2's final `ln_f` twice to native hidden-state index 12.
+**Root cause:** Hugging Face GPT-2 stores the terminal `output_hidden_states` entry after `ln_f`, but the test asserted only layer identity and logits shape; the fake backend also did not model the post-`ln_f` terminal state accurately.
+**Fix / workaround:** Pass a private final-normalization control to the lens, apply `ln_f` only to pre-final native states, and compare the terminal lens logits numerically with the model's forward logits using an affine post-normalization fake.
+**Watch out for:** Any native hidden-state parity test that checks only shapes or ranks can remain green under duplicate normalization; model-specific output-state ordering and exact value parity must be tested, including capture subsets containing the terminal state.

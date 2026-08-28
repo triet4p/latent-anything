@@ -9,6 +9,7 @@ No real model downloads occur.
 from __future__ import annotations
 
 import inspect
+from typing import Any
 
 import numpy as np
 import pytest
@@ -171,6 +172,56 @@ class TupleFakeGPT2Model(FakeGPT2Model):
         )()
 
 
+class PostNormFakeConfig:
+    """Small config for a fake that mirrors GPT-2 native state semantics."""
+
+    num_hidden_layers = 2
+    hidden_size = 4
+    vocab_size = 8
+
+
+class PostNormFakeTransformer(nn.Module):
+    """Tiny decoder stack whose terminal native state is post-``ln_f``."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.wte = nn.Embedding(8, 4)
+        self.h = nn.ModuleList([nn.Identity(), nn.Identity()])
+        self.ln_f = nn.LayerNorm(4, eps=1e-5)
+
+
+class PostNormFakeGPT2Model(nn.Module):
+    """Executable GPT-2-like fake with accurate native hidden-state ordering."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.transformer = PostNormFakeTransformer()
+        self.lm_head = nn.Linear(4, 8, bias=False)
+        self.config = PostNormFakeConfig()
+
+        with torch.no_grad():
+            self.transformer.ln_f.weight.copy_(torch.tensor([0.5, 1.0, 2.0, 3.0]))
+            self.transformer.ln_f.bias.copy_(torch.tensor([0.2, -0.1, 0.3, -0.4]))
+
+    def forward(  # type: ignore[reportUnknownMemberType]
+        self,
+        input_ids: object,
+        attention_mask: object | None = None,  # noqa: ARG002
+        output_hidden_states: bool = False,
+    ) -> object:
+        hidden = self.transformer.wte(input_ids)  # type: ignore[arg-type]
+        all_hidden: list[torch.Tensor] = []
+        for block in self.transformer.h:
+            all_hidden.append(hidden)
+            hidden = block(hidden)
+        hidden = self.transformer.ln_f(hidden)
+        all_hidden.append(hidden)
+        logits = self.lm_head(hidden)
+        return type(
+            "FakeOutput", (), {"logits": logits, "hidden_states": tuple(all_hidden) if output_hidden_states else None}
+        )()
+
+
 class FakeTokenizer:
     """Fake tokenizer that mimics the HuggingFace tokenizer interface."""
 
@@ -203,6 +254,34 @@ class FakeTokenizer:
         return {
             "input_ids": torch.tensor(input_ids_list, dtype=torch.long),  # noqa: F821
             "attention_mask": torch.ones((batch_size, max_length), dtype=torch.long),  # noqa: F821
+        }
+
+    def decode(self, token_ids: list[int]) -> str:
+        return f"tok_{token_ids[0]}" if token_ids else ""
+
+
+class PostNormFakeTokenizer:
+    """Small tokenizer whose IDs fit the semantically accurate fake model."""
+
+    pad_token = "<pad>"
+    eos_token = "<eos>"
+    pad_token_id = 0
+    eos_token_id = 0
+
+    def __call__(
+        self,
+        texts: str | list[str],
+        *,
+        padding: bool = True,  # noqa: ARG002
+        truncation: bool = True,  # noqa: ARG002
+        max_length: int = 128,
+        return_tensors: str | None = None,  # noqa: ARG002
+    ) -> dict[str, object]:
+        batch_size = len(texts) if isinstance(texts, list) else 1
+        ids = torch.arange(max_length, dtype=torch.long).remainder(8).repeat(batch_size, 1)
+        return {
+            "input_ids": ids,
+            "attention_mask": torch.ones((batch_size, max_length), dtype=torch.long),
         }
 
     def decode(self, token_ids: list[int]) -> str:
@@ -641,9 +720,8 @@ class TestFakeBackendPipeline:
             assert len(traj.ranks) == len(traj.layers)
             assert len(traj.probabilities) == len(traj.layers)
 
-    def test_lens_logit_parity_with_final_logits(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Verify that the logit lens at the final layer matches the model's
-        own final logits (Task 5: final-layer parity)."""
+    def test_fake_backend_preserves_native_layer_index_order(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Verify native layer IDs remain ordered on the legacy fake backend."""
         pipe = TransformerLMIntegration()
         fake_model = FakeGPT2Model()
         fake_tokenizer = FakeTokenizer()
@@ -663,6 +741,62 @@ class TestFakeBackendPipeline:
             final_lens_layer = result.lens_results[-1].layer
             last_hs_layer = result.hidden_states[-1].layer
             assert final_lens_layer == last_hs_layer
+
+    def test_lens_applies_final_norm_once_and_preserves_capture_subsets(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Match every lens to a GPT-2-like fake's native states and logits."""
+        pipe = TransformerLMIntegration()
+        fake_model = PostNormFakeGPT2Model()
+        fake_tokenizer = PostNormFakeTokenizer()
+        monkeypatch.setattr(pipe, "_backend", lambda: (fake_model, fake_tokenizer, fake_model.config))
+        request = TransformerGenerationRequest(
+            prompt="test",
+            max_length=4,
+            capture_hidden_states=True,
+            capture_layers=(0, 1, 2),
+            top_k_logit_lens=0,
+        )
+
+        result = pipe.generate(request)
+        tokenized = fake_tokenizer(["test"], max_length=4, return_tensors="pt")
+        direct: Any = fake_model(
+            input_ids=tokenized["input_ids"],
+            attention_mask=tokenized["attention_mask"],
+            output_hidden_states=True,
+        )
+
+        assert len(result.hidden_states) == 3
+        assert len(result.lens_results) == 3
+        native_states = direct.hidden_states
+        assert native_states is not None
+        for index, lens_result in enumerate(result.lens_results):
+            state = native_states[index]
+            expected_input = fake_model.transformer.ln_f(state) if index < 2 else state
+            expected_logits = fake_model.lm_head(expected_input).detach().numpy()
+            np.testing.assert_array_equal(lens_result.logits, expected_logits)
+
+        np.testing.assert_array_equal(result.lens_results[-1].logits, result.logits)
+        shifted = result.logits - np.max(result.logits, axis=-1, keepdims=True)
+        expected_probabilities = np.exp(shifted) / np.sum(np.exp(shifted), axis=-1, keepdims=True)
+        np.testing.assert_allclose(result.lens_results[-1].probabilities, expected_probabilities)
+        for position, trajectory in enumerate(result.token_rank_trajectories):
+            assert trajectory.layers[-1] == 2
+            assert (
+                trajectory.probabilities[-1] == result.lens_results[-1].probabilities[0, position, trajectory.token_id]
+            )
+
+        for capture_layers in ((2,), (0, 2)):
+            subset = pipe.generate(
+                TransformerGenerationRequest(
+                    prompt="test",
+                    max_length=4,
+                    capture_hidden_states=False,
+                    capture_layers=capture_layers,
+                    top_k_logit_lens=0,
+                )
+            )
+            assert tuple(state.layer for state in subset.hidden_states) == capture_layers
+            assert tuple(lens.layer for lens in subset.lens_results) == capture_layers
+            np.testing.assert_array_equal(subset.lens_results[-1].logits, subset.logits)
 
     def test_set_seed_determinism(self) -> None:
         """Verify that the integration produces deterministic results."""
