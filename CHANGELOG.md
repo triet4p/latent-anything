@@ -28,6 +28,13 @@
 
 ### Changed
 
+- Recorded the single owner-approved acquisition of the pinned M14 L04
+  WikiText-2 tuned-lens subset. The retained manifest contains only
+  provenance, counts, selected indices, text hashes, and independent
+  content/split digests; raw captures were deleted after verification and the
+  tuned-lens evidence row remains D0 pending translator implementation and
+  real CUDA execution.
+
 - Restricted the M14 L04 WikiText-2 acquisition path to explicit pinned
   `train` and `validation` split requests, preventing an upstream `test`
   split from entering the sanitized manifest.

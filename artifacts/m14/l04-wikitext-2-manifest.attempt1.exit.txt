@@ -1,0 +1,13 @@
+schema_version=m14-l04-wikitext-acquisition-exit-v1
+source_sha=e6b1bf71de46d6b6879ce6c57fef9e939f1d2fcc
+command_count=1
+result_count=1
+acquisition_exit=0
+bundle_exit=0
+final_exit=0
+manifest_count=1
+bundle_file_count=1
+remote_cleanup=pass
+manifest_validator=pass
+no_text_or_prompt_fields=true
+raw_deleted_after_verified_sanitization=true

@@ -115,8 +115,20 @@ Status legend: [ ] pending / [~] in progress / [x] done
   deterministic hash/index sorting), and independently binds selected indices
   and UTF-8 text hashes through content/split digests. Raw corpus text is
   never written or committed; the frozen L04 plan remains byte-for-byte
-  unchanged. See
-  [`task_79_l04_7a_summary.md`](../../artifacts/task_79_l04_7a_summary.md).
+  unchanged. The single owner-approved direct PowerShell `ssh.exe` acquisition
+  from source SHA `e6b1bf71de46d6b6879ce6c57fef9e939f1d2fcc` produced the
+  validator-passing manifest SHA `0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3`,
+  content digest `bd235bad5a7643c860bca04a98ba545214f25702cd7625dd4ff591f0ea32cf7b`,
+  split digest `bb2dab8721bb8e244bf38f9add6af9e5c2fc70291ce4de6cf2263f7e0f970703`,
+  and official/non-blank/selected counts train `36718/23767/8192`, validation
+  `3760/2461/2048`. Cleanup passed and raw captures were deleted after
+  verification. The corpus blocker is provisioned/resolved, while
+  `TunedLogitLens` remains D0 until translator implementation and real CUDA
+  execution; no ledger promotion or rerun occurred. See
+  [`task_79_l04_7a_summary.md`](../../artifacts/task_79_l04_7a_summary.md),
+  [`manifest`](../../artifacts/m14/l04-wikitext-2-manifest.json),
+  [`audit`](../../artifacts/m14/l04-wikitext-2-manifest.attempt1.audit.json),
+  and [`exit record`](../../artifacts/m14/l04-wikitext-2-manifest.attempt1.exit.txt).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
