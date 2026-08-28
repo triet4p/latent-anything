@@ -1,0 +1,119 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "5c38b63f01d280939790e415de699ab285a228de",
+  "use_case": "TCAV",
+  "transport_attempt": 3,
+  "semantic_execution_ordinal": 2,
+  "semantic_envelope_attempt": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 1,
+    "embedded_remote_status": 1,
+    "tcav_exit": 1,
+    "bundle_exit": 0,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "transport_diagnostic": "TCAV semantic run completed with failed status; bundle succeeded; no rerun authorized"
+  },
+  "marker_audit": {
+    "duplicate_marker_defect": "Approved payload emitted reviewed duplicate markers; duplicates were accepted only because each pair was byte-identical.",
+    "duplicates": {
+      "L04_PREFLIGHT": {"count": 2, "values": ["pass", "pass"]},
+      "L04_TRANSPORT_ATTEMPT": {"count": 2, "values": ["3", "3"]},
+      "L04_SEMANTIC_EXECUTION_ORDINAL": {"count": 2, "values": ["2", "2"]},
+      "L04_SEMANTIC_ENVELOPE_ATTEMPT": {"count": 2, "values": ["1", "1"]}
+    },
+    "security_singletons": {
+      "L04_USE_CASE": "TCAV",
+      "L04_CODE_SHA": "5c38b63f01d280939790e415de699ab285a228de",
+      "L04_REMOTE_HEAD": "5c38b63f01d280939790e415de699ab285a228de",
+      "L04_SOURCE_SHA_VERIFIED": "true",
+      "L04_TCAV_COMMAND_COUNT": "1",
+      "L04_TCAV_RESULT_COUNT": "1",
+      "L04_BUNDLE_RESULT_COUNT": "1",
+      "L04_BUNDLE_FILE_COUNT": "3",
+      "L04_TCAV_EXIT": "1",
+      "L04_BUNDLE_EXIT": "0",
+      "L04_STATUS": "1",
+      "L04_REMOTE_TRAP_CLEANUP_EXIT": "0",
+      "L04_REMOTE_TRAP_CLEANUP": "pass",
+      "L04_BUNDLE_B64_BEGIN": "count=1",
+      "L04_BUNDLE_B64_END": "count=1",
+      "L04_TCAV_STDOUT_SHA256": "3ccbd43c86158ac444d8a7f429a64dc2fc63d86efcafbf09a56b7f43cffe26d2",
+      "L04_TCAV_STDERR_SHA256": "aaa09aab886de1f83917ae74ece127a8014d80045ef3ee7b773ad46683d03832"
+    },
+    "security_singleton_gate": "PASS; singleton values and exit/status consistency verified"
+  },
+  "raw_capture": {
+    "path": "redacted local quarantine path",
+    "bytes": 61873,
+    "sha256": "94355fa22a7e49d90193c9e8fe497e8a3601343268c66b9b0d27718582e4d509",
+    "raw_deleted_after_sanitized_record": true,
+    "raw_deletion_verified": true,
+    "raw_deletion_sha256_before_delete": "94355fa22a7e49d90193c9e8fe497e8a3601343268c66b9b0d27718582e4d509"
+  },
+  "bundle": {
+    "archive_bytes": 40960,
+    "archive_sha256": "5bc6cca7f89b3f3c89e74c6848b6a418b1a1a79ab86294e7f94465b9d98439cc",
+    "member_count": 3,
+    "path_traversal_count": 0,
+    "members": [
+      "artifacts/m14/l04-explanations.TCAV.attempt1.failure.json",
+      "artifacts/m14/l04-explanations.TCAV.attempt1.partial.json",
+      "artifacts/m14/l04-explanations.TCAV.attempt1.run.json"
+    ],
+    "exact_member_gate": "PASS"
+  },
+  "envelopes": {
+    "l04-explanations.TCAV.attempt1.failure.json": {"bytes": 8773, "sha256": "1f00beb47b842b77b36f386f1cf9ecefb1e2a28fbb7dcab4c87cdcf6021dec6b", "failure_sha256": "f7350d90f924bfee4da40598dcc60fe24605cd3337d615c5a35fcbedbc7a97e1", "failure_ref": "l04-explanations.TCAV.attempt1.failure.json"},
+    "l04-explanations.TCAV.attempt1.partial.json": {"bytes": 23300, "sha256": "adbb6ac51b9222767c9c15e0c18ae716b3d0a5f94eb9de73e0bd6bda3de2d523", "artifact_sha256": "3d8e483697878fa8c6aa0c085668056d8c90f7258a436212c63c48448f84abda"},
+    "l04-explanations.TCAV.attempt1.run.json": {"bytes": 4440, "sha256": "123240b06bfbc7578c9b0264a903d2c729322e9ed31028a0519fa98d1aa12fd1", "run_record_sha256": "4c596e75cda25110b332b889c663600ab9882f00d2b744bf24e1113e117f7dbf", "artifact_name": "l04-explanations.TCAV.attempt1.partial.json"}
+  },
+  "validators": {"artifact_errors": 0, "run_errors": 0, "failure_errors": 0, "linkage": "PASS"},
+  "remote_facts": {
+    "source_sha_verified": true,
+    "preflight_status": "pass",
+    "runtime": "real TransformerLMIntegration",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "elapsed_seconds": 18.64694532752037,
+    "max_memory_allocated_bytes": 1348754432,
+    "max_memory_reserved_bytes": 1468006400,
+    "remote_trap_cleanup": "pass"
+  },
+  "semantic_result": {
+    "execution_status": "failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "accepted_record_ids": [],
+    "record_id": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "metrics": {
+      "heldout_accuracy": {"point_estimate": 0.875, "confidence_interval_95": [0.625, 1.0], "threshold": 0.6, "comparator": ">", "pass": true},
+      "heldout_accuracy_wilson_lower": {"point_estimate": 0.5291118177871466, "confidence_interval_95": [0.5291118177871466, 0.5291118177871466], "threshold": 0.55, "comparator": ">", "pass": false},
+      "bootstrap_ci_lower": {"point_estimate": 1.0, "confidence_interval_95": [1.0, 1.0], "threshold": 0.5, "comparator": ">", "pass": true},
+      "corrected_empirical_p": {"point_estimate": 0.24, "confidence_interval_95": [0.24, 0.24], "threshold": 0.05, "comparator": "<=", "pass": false},
+      "intervention_agreement": {"point_estimate": 1.0, "confidence_interval_95": [1.0, 1.0], "threshold": 0.8, "comparator": ">", "pass": true}
+    },
+    "controls": {
+      "shuffled_concept_labels": {"point_estimate": 0.4090909090909091, "confidence_interval_95": [0.28020833333333334, 0.5340909090909091], "pass": true},
+      "random_concept_directions": {"point_estimate": 0.5265151515151515, "confidence_interval_95": [0.375, 0.6742424242424242], "pass": true},
+      "matched_norm_null": {"point_estimate": 0.4356060606060606, "confidence_interval_95": [0.2878787878787879, 0.5758522727272722], "pass": true},
+      "off_target_target_token": {"point_estimate": 0.0, "confidence_interval_95": [0.0, 0.0], "pass": true},
+      "zero_strength_identity": {"point_estimate": 0.0, "confidence_interval_95": [0.0, 0.0], "pass": true}
+    },
+    "failure_reason": "TCAV gates failed: Wilson lower-bound held-out accuracy and corrected empirical p-value"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "local_extract": "three exact attempt1 envelopes extracted and copied without renaming",
+    "attempt2_quarantine_touched": false,
+    "local_worktree_source_changes": false,
+    "closure_commit_or_push": false
+  }
+}

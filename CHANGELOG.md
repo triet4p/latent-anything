@@ -4,9 +4,14 @@
 
 ### Added
 
-- Added the M14 L04.5 TCAV Phase A real-CUDA handler and fail-closed
-  train/holdout, seeded-null, intervention, and artifact validation path.
-  Remote execution remains pending and no evidence record was promoted.
+- Added the M14 L04.5 TCAV real-CUDA handler and fail-closed train/holdout,
+  seeded-null, intervention, and artifact validation path. The owner-reviewed
+  exact-SHA execution is retained as a semantic failed/D0/non-eligible result;
+  no evidence record was promoted.
+
+- Added sanitized TCAV remote-attempt audits, preserving the attempt-1 raw
+  deletion policy violation, attempt-2 unverified cleanup, and attempt-3
+  duplicate-marker review and validator-backed semantic failure.
 
 - Added the M14 L04.4 Integrated Gradients support-only execution handler with
   frozen baseline, sensitivity, seed, and no-mutation controls plus

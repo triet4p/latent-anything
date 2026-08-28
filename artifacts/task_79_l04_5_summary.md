@@ -1,65 +1,76 @@
-# Task Summary: Sprint 79 L04.5 — TCAV Phase A
+# Task Summary: Sprint 79 L04.5 — TCAV closure
 
 ## Status
 
-Implementation-ready; owner-reviewed remote CUDA execution remains pending.
-No model download, network execution, evidence artifact, ledger promotion, or
-commit was performed in Phase A.
+The TCAV real-model lane is closed as an owner-reviewed semantic failure. The
+validated attempt-3 recovery ran the pinned GPT-2 revision through the real
+`TransformerLMIntegration` boundary, produced a failed D0/non-eligible result,
+and was not rerun or promoted. `accepted_record_ids` and `accepted_gap_ids`
+remain empty; no D3 claim or ledger coverage change was made.
 
-The authoritative TCAV gap is
-`THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018`; the short M14 record
-key is `t05_tcav`. Accepted evidence must keep these distinct in
-`accepted_record_ids` versus `accepted_gap_ids`, following the L03 envelope
-precedent. The M14 policy permits D3 only after the real CUDA run and a
-validator-backed artifact; the authored fixture alone cannot claim D3, and any
-eventual claim remains limited to this controlled fixture rather than broad
-external semantic validity.
+The authoritative gap is
+`THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018`; the M14 record key
+is `t05_tcav`. The authored fixture is bounded evidence only and cannot by
+itself establish D3.
 
 ## Implementation
 
-Added a lazy `TransformerLMIntegration` TCAV handler for the frozen
-`openai-community/gpt2` revision. It requires the explicit network/CUDA gates,
-resolves exactly one-token ` true`/` false` targets, uses transformer block 6
-and native hidden-state index 7 at the last non-padding prompt token, fits the
-`tone_positive` concept direction on train groups only, and evaluates held-out
-groups/pairs without prompt text in summaries. Cached activations and one
-task-margin gradient per row are reused by the shuffled-label, random,
-matched-norm, and off-target controls. Genuine +/- hidden-state hooks and a
-zero-strength identity hook are retained for intervention controls.
+The Phase A implementation uses the frozen
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` revision and
+the concrete `TransformerLMIntegration` boundary (`ModelAdapter=N/A`). It
+fits the `tone_positive` direction on train groups only, evaluates held-out
+groups/pairs at transformer block 6 / native hidden-state index 7, and records
+five seeds `[17, 29, 41, 53, 67]`, 2,000 bootstrap replicates, 99 null draws,
+five controls, and token IDs `true=2081`, `false=3991`. Sanitized evidence
+retains no fixture prompt text, credentials, or disposable paths.
 
-The lane records the exact five seeds `[17, 29, 41, 53, 67]`, 2,000 group
-bootstrap replicates, and a fixed 99-null corrected empirical p-value using
-`(1 + count(null >= observed)) / 100`; the three null families each contain
-33 independently seeded draws distributed across all five seed summaries. All metrics and controls carry finite
-point estimates, units, aggregation units, intervals, frozen comparators,
-thresholds, and recomputed pass verdicts.
+## Remote attempts and outcome
 
-## Files and tests
+- Attempt 1 used source SHA `5c38b63f01d280939790e415de699ab285a228de`, exited
+  SSH `127` with embedded TCAV status `1`, and lost the post-run bundle before
+  verified extraction. Its audit explicitly records the raw-deletion policy
+  violation (`raw_deleted_after_sanitized_record=false`).
+- Attempt 2 used the same source SHA, exited SSH `2` before the TCAV command,
+  and retained no semantic result. The raw capture was audited as exactly
+  4,741 bytes with SHA-256
+  `f80f4c0ded1388867c6dfa3b1c69cdf31fc355622e12202b32b991fadc709fc9` and
+  then deleted. Because the raw showed no cleanup marker, both remote cleanup
+  and the remote-trap result are recorded as **unverified**, not pass. The
+  corrected audit records exact source, exit, size, and hash facts plus
+  verified absence after deletion.
+- Attempt 3 was transport attempt 3, semantic execution ordinal 2, and
+  semantic envelope attempt 1. It ran exactly one TCAV command and recovered
+  exactly three envelopes. The approved payload had duplicate preflight,
+  transport-ordinal, semantic-ordinal, and envelope-attempt markers; each
+  duplicate pair was byte-identical and accepted by owner review. Singleton
+  marker and exit/status consistency checks passed; artifact, run, failure,
+  and linkage validators all returned zero errors.
 
-- `scripts/_m14_l04_tcav.py` — lazy real handler and orchestration.
-- `scripts/_m14_l04_tcav_runtime.py` — tokenization, activation/gradient,
-  intervention, and resource seams.
-- `scripts/_m14_l04_tcav_metrics.py` — group bootstrap, Wilson, and p-value
-  helpers.
-- `scripts/_m14_l04_tcav_controls.py` — five-control verdict assembly.
-- `scripts/_m14_l04_validate_tcav.py` — strict TCAV schema, provenance,
-  coverage, and verdict validator.
-- `tests/test_m14_l04_tcav_handler.py` — deterministic fake hook path,
-  bounded-forward smoke, semantic-failure triad, accepted D3 linkage, and
-  mutation rejection tests.
+Attempt 3 metrics were: held-out accuracy `0.875` (pass), Wilson lower bound
+`0.5291118178` against `> 0.55` (fail), bootstrap CI lower `1.0` (pass),
+corrected empirical p `0.24` against `<= 0.05` (fail), intervention agreement
+`1.0` (pass), and all five controls pass. The semantic result is therefore
+`failed`, D0, and evidence-ineligible.
 
-Focused TCAV/L04 tests pass locally, as do the full repository gates: 1697
-passed and 36 skipped; strict Pyright is clean. Targeted Ruff is clean; the
-repository-wide Ruff command still reports pre-existing findings in
-skill/notebook trees outside this change. Graphify was refreshed after the
-audit (11,894 nodes and 23,212 edges). The remote CUDA run must still prove
-real model semantics before any D3 record can be retained.
+## Retained evidence
 
-Policy evidence: `docs/EVIDENCE_LEDGER.md:17,22` defines D3 as a reproducible
-real-model artifact; `docs/EVIDENCE_GAP_PLAN.md:120-121,215` says the authored
-fixture alone cannot establish D3; and `docs/M14_REAL_SYSTEM_VALIDATION.md:49`
-requires the real CUDA run plus validator-backed artifact. Therefore this
-Phase A implementation is eligible to attempt D3 but does not claim it. The
-later remote transport remains the explicitly frozen authenticated direct
-PowerShell `ssh.exe` path in `docs/M14_REAL_SYSTEM_VALIDATION.md:49`, despite
-the generic remote skill text; no remote action was taken here.
+The nine sanitized TCAV evidence files are retained under `artifacts/m14/`:
+the attempt-1 partial, run, and failure envelopes; attempt-1 audit and exit;
+attempt-2 audit and exit; and attempt-3 audit and exit. Attempt-1 and
+attempt-3 local raw captures were deleted according to their recorded audit
+state. Attempt 2 was deleted only after the exact size/hash match above and
+the corrected sanitized audit was complete; a post-delete existence check
+confirmed absence.
+
+## Verification
+
+- `uv run python scripts/_m14_l04_validate_tcav.py` and the artifact/run/failure
+  validators: pass with zero errors on the recovered attempt-3 envelopes.
+- Focused TCAV/L04 tests: pass; no source or test files were changed during
+  closure.
+- `uv run mkdocs build --strict`: pass.
+- `git diff --check`: pass.
+- `graphify update .`: pass after final edits.
+- No model/network/CUDA execution, release, tag, or version change was made
+  during closure; the recorded remote result is the owner-reviewed attempt-3
+  recovery described above.

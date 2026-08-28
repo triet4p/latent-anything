@@ -447,3 +447,31 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** The PowerShell here-string transported CRLF line endings into the remote Bash script's status encoding, so Bash parsed the trailing carriage return as part of the numeric `exit` argument.
 **Fix / workaround:** For future runs, normalize the remote script to LF bytes before piping it directly to authenticated PowerShell `ssh.exe`; keep Bash as the remote shell. The frozen L04 evidence was not altered and was not rerun.
 **Watch out for:** Always distinguish the embedded remote status (`1`) from the transport-level SSH exit (`2`) when a Windows PowerShell here-string feeds Bash; normalize bytes before transport rather than changing frozen evidence or thresholds.
+
+## [2026-08-28] Generic remote-test transport can conflict with the project contract
+
+**Symptom:** The frozen L04 remote lane required a direct authenticated PowerShell `ssh.exe` transport, while the generic remote-test workflow suggested a different shell/connection path; early payloads also failed at remote setup or post-run bundling.
+**Root cause:** Repository-specific transport requirements override stale generic guidance, and shell payloads were not syntax-checked in the exact byte form that would cross SSH. Bare system `python` and shell-specific bundling assumptions were unavailable on the remote image.
+**Fix / workaround:** Use direct PowerShell `ssh.exe` with Bash as the remote shell, normalize scripts to LF bytes, run `bash -n` on the exact payload before SSH, and use the uv-bound interpreter or POSIX-native bundling tools rather than assuming system Python.
+**Watch out for:** Any remote evidence lane with a repository transport override; validate the exact LF payload and interpreter/tool availability before consuming a model run.
+
+## [2026-08-28] Transport, semantic, and envelope ordinals are different identities
+
+**Symptom:** Recovered TCAV evidence required describing a third transport attempt, second semantic execution, and first semantic envelope without treating those numbers as interchangeable.
+**Root cause:** Transport retries can fail before execution, while one semantic execution can emit one envelope; collapsing the ordinals obscures whether a model was actually rerun and which files came from that execution.
+**Fix / workaround:** Record transport attempt, semantic execution ordinal, and semantic envelope attempt as separate fields and reconcile each with command, result, bundle, and exit/status singleton markers.
+**Watch out for:** Any retry/recovery workflow where setup, model execution, and artifact transfer have independent failure boundaries.
+
+## [2026-08-28] Remote raw capture must survive verified extraction
+
+**Symptom:** TCAV attempt 1 deleted the raw capture before the bundle was verified, leaving only an audit and no recoverable envelopes; attempt 2 initially overstated cleanup despite having no cleanup marker.
+**Root cause:** Cleanup was treated as a completion fact before raw bytes, size/hash, markers, and sanitized records had been verified.
+**Fix / workaround:** Persist and hash raw bytes first, extract and validate envelopes, complete the sanitized audit, then delete only an exact size/hash-matched quarantine file and verify absence. If a cleanup marker is missing, record cleanup as unverified rather than pass.
+**Watch out for:** Every capture wrapper and quarantine cleanup path; never delete the only raw evidence before verified extraction, and do not infer cleanup from the absence of an error.
+
+## [2026-08-28] Marker multiplicity must match the emitter schema
+
+**Symptom:** TCAV attempt 3 emitted duplicate preflight and ordinal markers; acceptance required a manual byte-identical-value review instead of treating the output as a clean singleton capture.
+**Root cause:** The marker schema's expected multiplicity was not aligned with the approved emitter's output path.
+**Fix / workaround:** Define singleton versus repeatable marker fields explicitly, validate counts and values against that schema, and retain a duplicate-marker defect audit when identical duplicates are accepted by owner review.
+**Watch out for:** Any wrapper that combines preflight, execution, and bundle metadata; schema counts must be tested against the exact emitted transcript before a canonical run.

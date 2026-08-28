@@ -80,12 +80,16 @@ Status legend: [ ] pending / [~] in progress / [x] done
   controls passed. The result remains D0/evidence-ineligible with empty
   accepted IDs; no promotion or coverage-count change occurred. See
   [`task_79_l04_4_summary.md`](../../artifacts/task_79_l04_4_summary.md).
-- [x] Implement the L04.5 TCAV Phase A handler with train-group-only concept
-  fitting, held-out group/pair metrics, exact five-seed/2,000-bootstrap
-  summaries, seeded null controls, genuine hidden-state interventions, and
-  strict artifact/run/failure validation. The implementation is ready for the
-  required owner-reviewed remote CUDA execution; no model/network run or
-  evidence promotion was performed in Phase A. See
+- [x] Implement and close L04.5 TCAV with train-group-only concept fitting,
+  held-out group/pair metrics, exact five-seed/2,000-bootstrap summaries,
+  seeded null controls, genuine hidden-state interventions, and strict
+  artifact/run/failure validation. The owner-reviewed attempt-3 recovery on
+  the exact source SHA produced a semantic failed/D0/non-eligible result:
+  accuracy `0.875` passed, Wilson lower `0.5291118178` failed `> 0.55`,
+  bootstrap lower `1.0` passed, corrected empirical p `0.24` failed `<= 0.05`,
+  intervention agreement `1.0` passed, and all five controls passed. Attempts
+  1 and 2 remain auditable transport/capture failures; no rerun, D3 promotion,
+  or coverage-count change occurred. See
   [`task_79_l04_5_summary.md`](../../artifacts/task_79_l04_5_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.

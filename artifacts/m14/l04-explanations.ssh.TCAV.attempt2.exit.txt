@@ -1,0 +1,5 @@
+attempt=2
+ssh_exit=2
+classification=remote_setup_shell_syntax_failure_before_tcav
+tcav_command_executed=false
+raw_quarantine_path=redacted_local_quarantine_path

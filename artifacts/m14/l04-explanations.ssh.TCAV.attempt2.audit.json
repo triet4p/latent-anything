@@ -1,0 +1,51 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "5c38b63f01d280939790e415de699ab285a228de",
+  "use_case": "TCAV",
+  "attempt": 2,
+  "ssh_total_invocations_through_attempt": 2,
+  "tcav_total_invocations_through_attempt": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": true,
+    "ssh_exit": 2,
+    "embedded_remote_status": null,
+    "bundle_exit": null,
+    "transport_diagnostic": "remote shell syntax failure before runtime/TCAV; raw capture quarantined",
+    "command_boundary": "ssh.exe trietlm@192.168.30.244 bash -s; one frozen TCAV use-case command"
+  },
+  "raw_capture": {
+    "name": "quarantined raw capture outside tracked repo",
+    "path": "redacted local quarantine path",
+    "bytes": 4741,
+    "sha256": "f80f4c0ded1388867c6dfa3b1c69cdf31fc355622e12202b32b991fadc709fc9",
+    "raw_deleted_after_sanitized_record": true,
+    "raw_deletion_verified": true,
+    "raw_deletion_size_verified": true,
+    "raw_deletion_sha256_before_delete": "f80f4c0ded1388867c6dfa3b1c69cdf31fc355622e12202b32b991fadc709fc9"
+  },
+  "remote_facts": {
+    "source_sha_verified": true,
+    "gpu_driver": "NVIDIA GeForce RTX 4060 Ti, 580.126.20",
+    "runtime": "not reached; shell syntax failure before runtime probe",
+    "preflight_status": "not reached",
+    "remote_trap_cleanup": "unverified; no cleanup marker emitted"
+  },
+  "validators": "not_run_or_failed",
+  "semantic_result": {
+    "execution_status": "unknown_artifact_not_retrieved",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "accepted_record_ids": [],
+    "accepted_gap_ids": [],
+    "classification": "remote_setup_shell_syntax_failure_before_tcav; no semantic result exists",
+    "tcav_command_executed": false
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "unverified; no cleanup marker emitted (SSH exited 2)",
+    "local_extract": "raw deleted after sanitized audit; deletion verified by exact size and SHA-256",
+    "local_worktree_source_changes": false,
+    "closure_commit_or_push": false
+  }
+}

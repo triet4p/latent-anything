@@ -1,0 +1,80 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "5c38b63f01d280939790e415de699ab285a228de",
+  "use_case": "TCAV",
+  "attempt": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 127,
+    "embedded_remote_status": 1,
+    "transport_diagnostic": "LF-normalized complete remote payload; remote post-run bundle extraction failed because bare python was unavailable",
+    "remote_target": "authenticated remote CUDA host",
+    "command_boundary": "ssh.exe trietlm@192.168.30.244 bash -s; one frozen TCAV use-case command"
+  },
+  "raw_capture": {
+    "name": "temporary local raw capture (deleted)",
+    "bytes": 5179,
+    "sha256": "4ad5ed13168709fba25289e608caa3c6e9603a7dc483f5a80dee53724ea1a95e",
+    "marker_counts": {
+      "L04_USE_CASE": 1,
+      "L04_CODE_SHA": 1,
+      "L04_REMOTE_HEAD": 1,
+      "L04_STATUS": 1,
+      "L04_BUNDLE_B64_BEGIN": 0,
+      "L04_BUNDLE_B64_END": 0
+    },
+    "embedded_use_case": "TCAV",
+    "embedded_code_sha": "5c38b63f01d280939790e415de699ab285a228de",
+    "raw_deleted_after_sanitized_record": false
+  },
+  "sanitization": {
+    "credential_pattern_matches": 0,
+    "fixture_prompt_literal_matches": 0,
+    "remote_disposable_path_matches_redacted": 2,
+    "prompt_text_retained": false,
+    "sanitized_record_verified_before_raw_deletion": false,
+    "raw_deleted_after_sanitized_record": false,
+    "raw_deletion_policy_violation": true
+  },
+  "remote_facts": {
+    "source_sha_verified": true,
+    "gpu_driver": "NVIDIA GeForce RTX 4060 Ti, 580.126.20",
+    "runtime": {
+      "python": "3.13.12",
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.38",
+      "torch": "2.10.0",
+      "torch_cuda": "12.8",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "numpy": "2.4.6",
+      "cuda_available": true,
+      "device": "NVIDIA GeForce RTX 4060 Ti"
+    },
+    "preflight_status": "pass",
+    "tcav_stdout_sha256": "07501a284810f69d407ec27f50760bf421d6a8685452dd36c1dfe9dd3192a2db",
+    "tcav_stderr_sha256": "124b25b330910879bb1069c213f6e031344c99a1cb30a7eb2fc0a71a46bc1cbf",
+    "remote_trap_cleanup": "pass"
+  },
+  "semantic_result": {
+    "tcav_command_exit": 1,
+    "execution_status": "unknown_artifact_not_retrieved",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "accepted_record_ids": [],
+    "accepted_gap_ids": [],
+    "classification": "post_execution_bundle_extraction_failure; semantic TCAV result unavailable"
+  },
+  "validators": {
+    "artifact": "not_run_bundle_missing",
+    "run": "not_run_bundle_missing",
+    "failure": "not_run_bundle_missing"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "removed by remote trap",
+    "local_extract": "no envelopes retained; raw capture deleted before verified extraction (policy violation)",
+    "local_worktree_source_changes": false,
+    "closure_commit_or_push": false
+  }
+}
