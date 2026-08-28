@@ -89,12 +89,31 @@ TunedLogitLens run is documented in
 uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-The preflight import/version assertion must use that identical `uv` prefix.
-Execution remains direct authenticated PowerShell `ssh.exe` with LF-normalized
-stdin, raw capture before parsing, explicit remote cleanup marker, and immediate
-`$LASTEXITCODE` capture. The attempt2 artifact/run/failure JSON files and the
-sanitized SSH audit are required committed fixtures for the regression test;
-they remain D0 setup evidence and do not become semantic evidence.
+The preflight import/version/CUDA assertion must use that identical `uv`
+prefix. The complete wrapper contract is in the [M14 operational
+procedure](../docs/M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+an LF-normalized PowerShell script is piped directly to
+`ssh.exe target 'bash -s --' ...`; it creates a temporary `preflight.py` with a single-quoted
+heredoc, clones and verifies the exact SHA, isolates all UV/HF/datasets/
+transformers caches under one workdir, runs preflight and CLI with the exact
+prefix above, captures and bundles before cleanup, uses `echo` markers, removes
+and verifies the full workdir, emits cleanup PASS only after successful removal,
+exports `LATENT_ANYTHING_RUN_NETWORK=1` and
+`LATENT_ANYTHING_NETWORK_DEVICE=cuda` for both preflight and CLI, and captures
+`$LASTEXITCODE` immediately. `python -c`, escaped `printf`, and
+nested remote command quoting are forbidden because native PowerShell parsing
+can strip quotes/backslashes and corrupt the remote script.
+
+The latest SHA `515fe06855efaadc9607be0de9753fd2a1c015e3` recovery is recorded
+in the sanitized [audit](../artifacts/m14/l04-explanations.ssh.TunedLogitLens.515fe06855efaadc9607be0de9753fd2a1c015e3.recovery.audit.json)
+and [exit record](../artifacts/m14/l04-explanations.ssh.TunedLogitLens.515fe06855efaadc9607be0de9753fd2a1c015e3.recovery.exit.txt).
+The raw capture was CRLF, 7,140 bytes, SHA-256
+`3fc9865f424e4618d427a4ee8330c8cfa490fee75edaa5e8264a4a1360bff743`; it was
+deleted only after the sanitized audit was verified. The attempt reached the
+GPU preflight transport but failed with `SyntaxError` after quote loss;
+`ssh.exe` and wrapper exit were both `1`, the CLI/model/dataset were not
+reached, cleanup was unverified, and no semantic metrics exist. The audit and
+exit remain retained D0 fixtures; they are not semantic evidence.
 
 The retained attempt-1 partial artifact is immutable, sanitized, and
 self-digest-valid. It intentionally fails the current artifact validator

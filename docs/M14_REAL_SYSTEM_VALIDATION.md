@@ -118,21 +118,134 @@ rewrite the frozen plan:
 uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-Before that invocation, assert imports and versions in the exact same
-environment (and fail before model loading if the assertion fails):
+Before that invocation, assert imports, versions, and CUDA availability in the
+exact same environment (and fail before model loading if the assertion fails).
+The transport wrapper must use the following robust pattern: construct the
+remote Bash script in PowerShell, normalize it to LF, and pipe it directly to
+`ssh.exe` with `target 'bash -s --'`. On the remote side, create a temporary
+`preflight.py` with a single-quoted heredoc, execute it, and then execute the
+CLI with the same exact `uv` prefix:
 
-```text
-uv run --locked --extra transformers --with 'datasets==4.8.5' python -c "import datasets, torch, transformers; assert datasets.__version__ == '4.8.5'; print('datasets', datasets.__version__, 'torch', torch.__version__, 'transformers', transformers.__version__)"
+```powershell
+$remoteScript = @'
+set -eu -o pipefail
+UseCase="$1"
+CodeSha="$2"
+RepoUrl="$3"
+workdir=""
+repo_dir=""
+cache_root=""
+preflight_file=""
+capture_file=""
+bundle_file=""
+cleanup_status=0
+prior_exit=0
+
+workdir="$(mktemp -d /tmp/latent-anything-l04.XXXXXX)"
+case "$workdir" in /tmp/latent-anything-l04.*) ;; *) exit 90;; esac
+repo_dir="$workdir/repo"
+cache_root="$workdir/cache"
+preflight_file="$workdir/preflight.py"
+capture_file="$workdir/remote.capture"
+bundle_file="$workdir/l04-capture.tgz"
+
+cleanup() {
+  prior_exit=$?
+  cleanup_status=0
+  trap - EXIT HUP INT TERM
+  if [ -n "$workdir" ] && [ -d "$workdir" ] && rm -rf -- "$workdir"; then
+    if [ -e "$workdir" ]; then cleanup_status=1; fi
+  else
+    cleanup_status=1
+  fi
+  if [ "$cleanup_status" -eq 0 ]; then
+    echo L04_CLEANUP=PASS
+  else
+    echo L04_CLEANUP=FAIL
+  fi
+  if [ "$prior_exit" -ne 0 ]; then exit "$prior_exit"; fi
+  exit "$cleanup_status"
+}
+trap cleanup EXIT HUP INT TERM
+
+git clone --no-checkout "$RepoUrl" "$repo_dir"
+git -C "$repo_dir" checkout --detach "$CodeSha"
+test "$(git -C "$repo_dir" rev-parse HEAD)" = "$CodeSha"
+export UV_CACHE_DIR="$cache_root/uv"
+export HF_HOME="$cache_root/huggingface"
+export HF_DATASETS_CACHE="$cache_root/datasets"
+export TRANSFORMERS_CACHE="$cache_root/transformers"
+mkdir -p "$UV_CACHE_DIR" "$HF_HOME" "$HF_DATASETS_CACHE" "$TRANSFORMERS_CACHE"
+cd "$repo_dir"
+nvidia-smi
+export LATENT_ANYTHING_RUN_NETWORK=1
+export LATENT_ANYTHING_NETWORK_DEVICE=cuda
+
+cat > "$preflight_file" <<'PY'
+import datasets
+import torch
+import transformers
+
+assert datasets.__version__ == "4.8.5"
+assert torch.cuda.is_available()
+print("datasets", datasets.__version__, "torch", torch.__version__, "transformers", transformers.__version__)
+PY
+uv run --locked --extra transformers --with 'datasets==4.8.5' python "$preflight_file"
+echo L04_USE_CASE="$UseCase"
+status=0
+if uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case "$UseCase" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl 2>&1 | tee "$capture_file"; then
+  status=0
+else
+  status=${PIPESTATUS[0]}
+fi
+
+# Capture and bundle extraction happen before the cleanup trap removes the
+# disposable clone, all caches, the preflight file, and this workdir.
+sha256sum "$capture_file" > "$workdir/remote.capture.sha256"
+find artifacts/m14 -maxdepth 1 -type f -name 'l04-explanations*' -print > "$workdir/files.txt"
+if [ -s "$workdir/files.txt" ]; then
+  tar -czf "$bundle_file" -C "$repo_dir" --files-from "$workdir/files.txt" -C "$workdir" remote.capture.sha256
+  echo L04_BUNDLE_B64_BEGIN
+  base64 -w0 "$bundle_file"
+  echo
+  echo L04_BUNDLE_B64_END
+else
+  echo L04_BUNDLE_UNAVAILABLE
+  if [ "$status" -eq 0 ]; then status=1; fi
+fi
+echo L04_CODE_SHA="$CodeSha"
+echo L04_STATUS="$status"
+exit "$status"
+'@
+$remoteScript = $remoteScript -replace "`r`n", "`n"
+$remoteScript | ssh.exe $remoteTarget 'bash -s --' $UseCase $CodeSha $RepoUrl 2>&1 | Tee-Object -FilePath $rawCapture
+$sshExit = $LASTEXITCODE
 ```
 
-Transport remains direct authenticated `ssh.exe` from Windows PowerShell to
-the disposable detached clone; do not use Git Bash or WSL. Normalize the
-PowerShell here-string to LF before piping it to `ssh.exe ... 'bash -s --'`,
-capture `2>&1 | Tee-Object`, persist and hash raw bytes before parsing, emit an
-explicit cleanup marker from the remote trap, and capture `$LASTEXITCODE`
-immediately after the SSH pipeline. The cleanup marker and outer SSH exit are
-required evidence fields; their absence must be reported as unverified and
-cannot be inferred from a successful inner command.
+The wrapper contract is intentionally complete: it clones the repository with
+`--no-checkout`, checks out and verifies the exact detached SHA, and places the
+UV, Hugging Face, `datasets`, and `transformers` caches under the temporary
+workdir. Every trap variable is initialized before the trap is installed.
+It exports `LATENT_ANYTHING_RUN_NETWORK=1` and
+`LATENT_ANYTHING_NETWORK_DEVICE=cuda` before both preflight and CLI, so the
+same network/device contract is inherited by each. The CLI output is captured
+and hashed, and the artifact bundle is assembled and emitted before cleanup.
+Cleanup removes the entire workdir (clone, all caches, preflight, capture, and
+bundle), verifies the path is absent, emits PASS only when removal and absence
+checks succeed, emits FAIL otherwise, and preserves a non-zero prior command
+exit.
+
+Do not use `python -c`, escaped `printf` marker emitters, or nested remote
+command quoting for this workflow: PowerShell/native parsing can strip quotes,
+backslashes, and intended newlines before Bash receives the script. Markers
+must use `echo`; the cleanup function may emit `L04_CLEANUP=PASS` only after the
+temporary file removal succeeds. Transport remains direct authenticated
+`ssh.exe` from Windows PowerShell to the disposable detached clone; do not use
+Git Bash or WSL. Capture `2>&1 | Tee-Object`, persist and hash raw bytes before
+parsing, and capture `$LASTEXITCODE` immediately after the SSH pipeline. The
+cleanup marker and outer SSH exit are required evidence fields; their absence
+must be reported as unverified and cannot be inferred from a successful inner
+command.
 
 ### Acceptance contract cho mỗi dòng
 

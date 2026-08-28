@@ -147,7 +147,14 @@ Status legend: [ ] pending / [~] in progress / [x] done
   evidenced and are not claimed. The validator now accepts truthful early
   failure provenance but remains fail-closed for any claimed acceptance. The
   aggregation/provenance correction is local and awaits owner review plus a
-  new authorization before any rerun. L04.7 remains D0 and unpromoted.
+  new authorization before any rerun. The latest SHA515fe recovery also failed
+  before the CLI because PowerShell/native nested quoting stripped the
+  preflight's Python quotes and backslashes; `ssh.exe` and wrapper exit were
+  both `1`, with no model/dataset/CLI semantic execution or metrics. Its
+  sanitized audit and exit record are retained after verified raw-capture
+  deletion; cleanup remains unverified. The next run must use the owner-
+  approved exact-`uv` override and the LF-normalized temp-`preflight.py`
+  protocol in the M14 validation procedure. L04.7 remains D0 and unpromoted.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

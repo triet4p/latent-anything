@@ -503,3 +503,23 @@ size bound must be checked before a conversion that can materialize input.
 **Root cause:** The required `datasets` dependency was not provisioned in the exact isolated invocation, and the capture path did not preserve explicit cleanup/exit markers before describing the attempt.
 **Fix / workaround:** Put every required dependency on the exact `uv --with` invocation, run the preflight import in that same environment, emit an explicit cleanup marker, capture `$LASTEXITCODE` immediately, and normalize PowerShell stdin to LF before direct `ssh.exe` transport. Treat the resulting early failure as D0 with `network: not attempted` and `resource_peak: not measured`; never infer semantic metrics or cleanup.
 **Watch out for:** Any remote retry that uses a fresh `uv` environment or pipes a multiline Bash script from PowerShell; setup, semantic execution, cleanup, and outer transport exit are separate evidence boundaries.
+
+## [2026-08-29] Nested PowerShell quoting corrupts remote Bash preflight
+
+**Symptom:** The TunedLogitLens recovery reached the remote host but the
+preflight assertion arrived as `assert datasets.__version__ == 4.8.5`, causing
+`SyntaxError`; escaped `printf` markers also arrived with literal `n` suffixes.
+The CLI and model were never reached, while cleanup and the outer exit marker
+were not evidenced.
+**Root cause:** PowerShell/native nested quoting stripped Python quotes,
+backslashes, and intended newlines before the Bash script was interpreted.
+**Fix / workaround:** Ban `python -c`, escaped `printf`, and nested remote
+command quoting for this workflow. Use an LF-normalized PowerShell script
+piped directly to `ssh.exe target 'bash -s --' ...`; create `preflight.py` via a
+single-quoted heredoc with imports, version, and CUDA assertions; execute it
+and the CLI with `uv run --locked --extra transformers --with 'datasets==4.8.5'`;
+use `echo` markers; emit cleanup PASS only after `rm` succeeds; and capture
+`$LASTEXITCODE` immediately.
+**Watch out for:** Any change that reintroduces inline Python or an escaped
+marker in the remote wrapper. A transport failure is D0 with no semantic
+metrics, regardless of where the remote transcript stopped.

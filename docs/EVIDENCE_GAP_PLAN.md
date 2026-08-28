@@ -148,12 +148,32 @@ validation procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-o
 uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-Its import/version preflight must use the identical `uv` environment. The
-transport is direct authenticated PowerShell `ssh.exe` with LF-normalized Bash
-stdin; raw stdout/stderr is hashed before parsing, and explicit remote cleanup
-and immediate outer `$LASTEXITCODE` markers are mandatory. The attempt2
+Its import/version/CUDA preflight must use the identical `uv` environment. The
+complete wrapper contract is in the [M14 operational
+procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+an LF-normalized PowerShell script is piped directly to
+`ssh.exe target 'bash -s --' ...`; the remote script creates a temporary `preflight.py` with a
+single-quoted heredoc, clones and verifies the exact SHA, isolates all
+UV/HF/datasets/transformers caches under one workdir, runs preflight and the
+CLI with the exact prefix above, captures and bundles before cleanup, and uses
+`echo` markers. Cleanup removes and verifies the full workdir, emits PASS only
+after `rm` succeeds, and PowerShell captures `$LASTEXITCODE` immediately.
+The wrapper exports `LATENT_ANYTHING_RUN_NETWORK=1` and
+`LATENT_ANYTHING_NETWORK_DEVICE=cuda` before both preflight and CLI.
+`python -c`, escaped `printf`, and nested remote command quoting are forbidden
+because native PowerShell parsing can strip quotes/backslashes and corrupt the
+script. Raw stdout/stderr is hashed before parsing. The attempt2
 artifact/run/failure files and sanitized SSH audit are required committed
 fixtures for the validator regression and remain setup D0 only.
+
+The latest SHA515fe protocol-failure audit records the CRLF raw capture
+(7,140 bytes; SHA-256
+`3fc9865f424e4618d427a4ee8330c8cfa490fee75edaa5e8264a4a1360bff743`), exact
+quote-loss `SyntaxError`, malformed cleanup marker, SSH/wrapper exit `1`, and
+no CLI/model/dataset semantic execution. Cleanup remained unverified. The
+sanitized audit was validated before the raw capture was deleted; only the
+audit and one-byte exit record are retained, with no secrets, corpus text,
+logits, hidden states, or model payload.
 
 ## Exhaustive row inventory
 

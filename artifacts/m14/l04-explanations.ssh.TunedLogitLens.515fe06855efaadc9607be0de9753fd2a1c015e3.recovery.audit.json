@@ -1,0 +1,108 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "515fe06855efaadc9607be0de9753fd2a1c015e3",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": null,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 1,
+    "remote_wrapper_exit": 1,
+    "command_count": 1,
+    "result_count": 0,
+    "bundle_result_count": 0,
+    "transport_diagnostic": "Setup/preflight failure. The remote script reached the exact detached SHA and nvidia-smi, but PowerShell/native stdin transformed escaped newline and quote characters: markers became literal n suffixes and the datasets version assertion reached Python without quotes, producing SyntaxError. The actual TunedLogitLens CLI invocation was not reached; no retry authorized."
+  },
+  "forensic_findings": {
+    "quote_loss": {
+      "cause": "PowerShell/native nested quoting stripped Python string quotes and backslashes from the piped remote script",
+      "expected_assertion": "assert datasets.__version__ == '4.8.5'",
+      "observed_assertion": "assert datasets.__version__ == 4.8.5",
+      "exception": "SyntaxError: invalid syntax",
+      "marker_effect": "escaped printf newline sequences became literal n suffixes"
+    },
+    "required_protocol": "LF-normalized PowerShell script piped directly to ssh.exe target 'bash -s --' args; remote single-quoted heredoc creates preflight.py; exact uv command runs that file and the CLI; markers use echo; cleanup emits PASS only after rm succeeds; capture LASTEXITCODE immediately"
+  },
+  "marker_audit": {
+    "singleton_gate": "FAIL; required markers were not emitted as exact lines",
+    "security_singletons": {
+      "L04_REMOTE_SHA_observed": "515fe06855efaadc9607be0de9753fd2a1c015e3",
+      "L04_SOURCE_SHA_VERIFIED": true,
+      "L04_NVIDIA_SMI": "pass; NVIDIA GeForce RTX 4060 Ti; driver 580.126.20; CUDA 13.0"
+    },
+    "missing_required_markers": [
+      "L04_REMOTE_SHA exact line",
+      "L04_USE_CASE",
+      "L04_CODE_SHA",
+      "L04_STATUS",
+      "L04_BUNDLE_B64_BEGIN",
+      "L04_BUNDLE_B64_END",
+      "L04_CLEANUP=PASS exact line"
+    ],
+    "malformed_observations": [
+      "L04_REMOTE_SHA=<sha>nL04_REMOTE_HOST=di-servernL04_NVIDIA_SMI_BEGINn",
+      "L04_CLEANUP=PASSn"
+    ]
+  },
+  "raw_capture": {
+    "capture_id": "TunedLogitLens-recovery-attempt-1-515fe068",
+    "bytes": 7140,
+    "sha256": "3fc9865f424e4618d427a4ee8330c8cfa490fee75edaa5e8264a4a1360bff743",
+    "crlf_line_count": 190,
+    "deletion_verified": true
+  },
+  "sanitization": {
+    "scan_result": "PASS; sanitized audit contains no secrets, credentials, corpus text, prompt literals, logits, hidden states, or model payload",
+    "raw_capture_scan": {
+      "secret_or_credential_matches": 0,
+      "corpus_text_matches": 0,
+      "prompt_literal_matches": 0,
+      "logit_payload_matches": 0,
+      "hidden_state_payload_matches": 0,
+      "model_or_dataset_payload_matches": 0
+    },
+    "raw_capture_sha256_verified": true,
+    "raw_capture_size_verified": true,
+    "sanitized_record_verified_before_raw_deletion": true
+  },
+  "bundle": {
+    "member_count": 0,
+    "members": [],
+    "archive_created": false,
+    "exact_member_gate": "FAIL; preflight exited before file-list and bundle stages"
+  },
+  "semantic_result": {
+    "classification": "setup_or_protocol_failure",
+    "execution_status": "not_run",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "model_loaded": false,
+    "dataset_loaded": false,
+    "cli_invocation_reached": false,
+    "preflight_error": "SyntaxError in datasets version assertion because required Python string quotes were lost in the remote stdin payload",
+    "semantic_metrics": null,
+    "resource_budget": "not applicable; no model execution"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "remote trap executed rm -rf and reported malformed L04_CLEANUP=PASSn; exact required cleanup marker is unverified",
+    "local_extract": "none; bundle was not created",
+  "raw_retained": false,
+  "raw_deleted_after_sanitized_record": true,
+  "raw_deletion_verified": true,
+  "raw_deletion": "Deleted after exact size/SHA verification; post-delete absence verified.",
+    "closure_commit_or_push": false
+  },
+  "command": "uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl",
+  "environment": {
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "dataset": "Salesforce/wikitext@f776294184f13b8ff2337b3841cf9269a6216d1e / wikitext-2-raw-v1",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "model_revision_execution": "not reached",
+    "dataset_revision_execution": "not reached"
+  },
+  "no_retry": true
+}
