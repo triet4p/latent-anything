@@ -325,7 +325,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             if provenance.get("network") != "enabled":
                 errors.append("real direct lens runtime provenance is invalid")
         elif is_real_tuned:
-            if provenance.get("network") != "enabled":
+            active_status = _active_status(artifact)
+            allowed_networks = {"enabled"} if active_status == REAL_TUNED_LENS_STATUS else {"enabled", "not attempted"}
+            if provenance.get("network") not in allowed_networks:
                 errors.append("real tuned lens runtime provenance is invalid")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")

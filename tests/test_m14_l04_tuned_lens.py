@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import json
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from types import SimpleNamespace
@@ -358,6 +359,26 @@ def test_real_failed_cuda_artifact_keeps_d0_and_validates_provenance(
     assert validate_failure(result["failure"], plan, result["artifact"]) == []
 
 
+def test_historical_attempt2_missing_datasets_is_validator_consistent() -> None:
+    from scripts._m14_l04_validate import validate_artifact, validate_failure, validate_run_record
+    from scripts.m14_l04_contract import load_plan
+
+    root = Path("artifacts/m14")
+    artifact = json.loads((root / "l04-explanations.TunedLogitLens.attempt2.partial.json").read_text(encoding="utf-8"))
+    run_record = json.loads((root / "l04-explanations.TunedLogitLens.attempt2.run.json").read_text(encoding="utf-8"))
+    failure = json.loads((root / "l04-explanations.TunedLogitLens.attempt2.failure.json").read_text(encoding="utf-8"))
+    plan = load_plan()
+
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["provenance"]["network"] == "not attempted"
+    assert artifact["provenance"]["resource_peak"] == "not measured"
+    assert failure["exception_type"] == "ModuleNotFoundError"
+    assert failure["exception"] == "No module named 'datasets'"
+    assert validate_artifact(artifact, plan) == []
+    assert validate_run_record(run_record, artifact, plan) == []
+    assert validate_failure(failure, plan, artifact) == []
+
+
 def _validator_fixture(
     *, malformed_first_direct: object | None = None
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -534,6 +555,22 @@ def test_validator_rejects_accepted_overrun_even_when_budget_flag_is_false(
         {"model": {"id": "model", "revision": "revision"}, "thresholds_and_controls": {"lens": {}}},
     )
     assert any("exceed" in error for error in errors)
+
+
+def test_validator_rejects_claimed_tuned_acceptance_without_enabled_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from scripts import _m14_l04_validate_tuned_lens as validator
+
+    entry, artifact, manifest = _validator_fixture()
+    monkeypatch.setattr(validator, "read_manifest", lambda _path: (manifest, "raw"))
+    entry["provenance"]["network"] = "not attempted"
+    errors = validator.validate_real_tuned_lens_execution(
+        entry,
+        artifact,
+        {"model": {"id": "model", "revision": "revision"}, "thresholds_and_controls": {"lens": {}}},
+    )
+    assert errors
 
 
 @pytest.mark.parametrize("bad_value", [None, True, "bad", float("nan"), float("inf")])
