@@ -55,7 +55,9 @@ def failure_envelope(
     error: BaseException | None = None,
     failure_ref: str | None = None,
     run_record: dict[str, Any] | None = None,
+    resources: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    observed = resources or {}
     result = {
         "schema_version": "m14-l04-explanations-failure-v1",
         "lane": "L04",
@@ -72,14 +74,14 @@ def failure_envelope(
         "model": plan["model"],
         "plan_sha256": plan_digest(plan),
         "resource": {
-            "device": "not used",
-            "network": "not attempted",
+            "device": observed.get("device", "not used"),
+            "network": observed.get("network", "not attempted"),
             "credentials": "not used",
-            "cleanup": "not applicable; no model was loaded",
+            "cleanup": observed.get("cleanup", "not applicable; no model was loaded"),
         },
-        "network": "not attempted",
+        "network": observed.get("network", "not attempted"),
         "credentials_redacted": True,
-        "cleanup": "not applicable; no model was loaded",
+        "cleanup": observed.get("cleanup", "not applicable; no model was loaded"),
         "blocker_owner": "explanation",
         "artifact_written": True,
         "failure_ref": failure_ref,

@@ -68,6 +68,12 @@ Status legend: [ ] pending / [~] in progress / [x] done
   computation remains pending L04.4--L04.10; tuned lens remains blocked until
   the pinned WikiText subset is provisioned. See
   [`task_79_l04_3_summary.md`](../../artifacts/task_79_l04_3_summary.md).
+- [x] Implement the L04.4 Integrated Gradients support-only handler with the
+  frozen 16/64-step, baseline, randomized-target, seeded-repeat, finite and
+  no-mutation controls, independent group bootstrap summaries, and strict
+  real-CUDA/network provenance gating. Offline injected fakes remain
+  evidence-ineligible; no real CUDA run, final artifact, or ledger promotion
+  was performed. See [`task_79_l04_4_summary.md`](../../artifacts/task_79_l04_4_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

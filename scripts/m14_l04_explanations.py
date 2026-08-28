@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -97,11 +98,23 @@ def run_real(
     run_name = f"{stem}.run.json"
     failure_name = f"{stem}.failure.json"
     handler = None if handlers is None else handlers.get(use_case)
+    # Preserve the offline dispatcher behavior unless the caller has
+    # explicitly opted into the real CUDA/network lane.
+    if handlers is None and use_case == "IntegratedGradients" and os.environ.get("LATENT_ANYTHING_RUN_NETWORK") == "1":
+        from scripts._m14_l04_integrated_gradients import run_integrated_gradients
+
+        handler = run_integrated_gradients
     status = PENDING[use_case]
-    injected = handler is not None
+    injected = handlers is not None
     error: BaseException | None = None
     handler_result: dict[str, Any] = {}
     handler_result_digest: str | None = None
+    resources: dict[str, Any] = {
+        "device": "not used",
+        "network": "not attempted",
+        "resource_peak": "not measured",
+        "cleanup": "not applicable; no model was loaded",
+    }
     if handler is not None:
         try:
             handler_result = dict(handler(plan, rows))
@@ -109,27 +122,47 @@ def run_real(
                 handler_result_digest = hashlib.sha256(
                     json.dumps(handler_result, sort_keys=True, separators=(",", ":")).encode()
                 ).hexdigest()
-            status = "injected_offline_non_eligible"
+            status = (
+                "injected_offline_non_eligible" if handlers is not None else str(handler_result.get("status", "failed"))
+            )
+            if status == "failed":
+                error = RuntimeError(str(handler_result.get("failure_reason", "real execution failed")))
+            if isinstance(handler_result.get("resources"), dict):
+                resources.update(handler_result["resources"])
         except Exception as exc:  # noqa: BLE001 - retain every injected failure
             error = exc
             status = "failed"
             handler_result = {}
+            error_resources = getattr(exc, "resources", None)
+            if isinstance(error_resources, dict):
+                resources.update(error_resources)
     fixture = fixture_metadata(plan, raw, rows)
-    artifact = build_artifact(plan, fixture, use_case, status, failure_name, injected=injected)
+    artifact = build_artifact(
+        plan,
+        fixture,
+        use_case,
+        status,
+        failure_name,
+        injected=injected,
+        execution_result=handler_result if handler_result and not injected else None,
+        resources=resources,
+    )
     provenance = artifact["provenance"]
     if handler_result_digest is not None:
-        provenance["injected_handler_result_digest"] = handler_result_digest
+        provenance["injected_handler_result_digest" if injected else "execution_result_digest"] = handler_result_digest
         artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     safe_write(output_dir / partial_name, artifact)
-    resources = {
-        "device": "not used",
-        "network": "not attempted",
-        "resource_peak": "not measured",
-        "cleanup": "not applicable; no model was loaded",
-    }
     run = build_run_record(plan, artifact, use_case, status, resources, artifact_name=partial_name)
     safe_write(output_dir / run_name, run)
-    failure = failure_envelope(plan, use_case, status, error=error, failure_ref=failure_name, run_record=run)
+    failure = failure_envelope(
+        plan,
+        use_case,
+        status,
+        error=error,
+        failure_ref=failure_name,
+        run_record=run,
+        resources=resources,
+    )
     safe_write(output_dir / failure_name, failure)
     return {
         "status": status,
@@ -163,7 +196,14 @@ def main(argv: list[str] | None = None) -> None:
         plan_path=args.plan, fixture_path=args.fixture, use_case=args.use_case, output_dir=args.output_dir
     )
     print(json.dumps(result, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
-    raise SystemExit(1)
+    plan = load_plan(args.plan)
+    valid = (
+        validate_artifact(result["artifact"], plan)
+        + validate_run_record(result["run_record"], result["artifact"], plan)
+        + validate_failure(result["failure"], plan, result["artifact"])
+    )
+    if valid or result["status"] != "passed_real_cuda":
+        raise SystemExit(1)
 
 
 run_one_use_case = run_real

@@ -7,6 +7,7 @@ from typing import Any
 
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_digest import canonical_digest, source_map_digest
+from scripts._m14_l04_validate_ig import validate_real_ig_execution
 from scripts.m14_l04_contract import plan_digest
 
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -20,6 +21,7 @@ PENDING_STATUSES = {
 }
 INJECTED_STATUS = "injected_offline_non_eligible"
 FAILED_STATUS = "failed"
+REAL_IG_STATUS = "passed_real_cuda"
 TUNED_USE_CASE = "TunedLogitLens"
 EXPECTED_STATUS = {
     "IntegratedGradients": "not_implemented_pending_L04.4",
@@ -77,7 +79,11 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         errors.append("artifact identity is invalid")
     if artifact.get("plan_sha256") != plan_digest(plan):
         errors.append("artifact plan digest is invalid")
-    if artifact.get("artifact_sha256") != canonical_digest(artifact, "artifact_sha256"):
+    try:
+        artifact_digest_valid = artifact.get("artifact_sha256") == canonical_digest(artifact, "artifact_sha256")
+    except (TypeError, ValueError):
+        artifact_digest_valid = False
+    if not artifact_digest_valid:
         errors.append("artifact self-digest is invalid")
     if artifact.get("model") != plan.get("model"):
         errors.append("artifact model provenance is invalid")
@@ -111,16 +117,23 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             for field in ("record_id", "support_only", "model", "integration", "adapter"):
                 if entry.get(field) != expected.get(field):
                     errors.append(f"artifact execution {field} mapping is invalid")
-            if entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
+            if entry.get("status") == REAL_IG_STATUS:
+                if entry.get("evidence_eligible") is not True:
+                    errors.append("real Integrated Gradients execution must be evidence-eligible")
+            elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
+            active_name = artifact.get("use_case")
+            active_key = active_name if isinstance(active_name, str) else ""
             allowed_status = (
-                {EXPECTED_STATUS.get(artifact.get("use_case")), INJECTED_STATUS, FAILED_STATUS}
+                {EXPECTED_STATUS.get(active_key), INJECTED_STATUS, FAILED_STATUS, REAL_IG_STATUS}
                 if expected.get("use_case") == artifact.get("use_case")
                 else {expected_status}
             )
             if entry.get("status") not in allowed_status:
                 errors.append(f"artifact execution status for {entry.get('use_case')} is invalid")
+            if entry.get("status") == REAL_IG_STATUS:
+                errors.extend(validate_real_ig_execution(entry, artifact, plan))
     expected_records = [item["record_id"] for item in plan["record_order"]]
     records = artifact.get("records")
     record_ids = (
@@ -140,7 +153,8 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 errors.append("dispatcher records cannot contain eligible or accepted evidence")
                 break
         active_use_case = artifact.get("use_case")
-        active_record = RECORD_FOR_USE_CASE.get(active_use_case)
+        active_key = active_use_case if isinstance(active_use_case, str) else ""
+        active_record = RECORD_FOR_USE_CASE.get(active_key)
         execution_list = executions if isinstance(executions, list) else []
         active_status = next(
             (
@@ -193,9 +207,31 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             errors.append("artifact model identity provenance is invalid")
         if provenance.get("integration") != "TransformerLMIntegration" or provenance.get("adapter") != "N/A":
             errors.append("artifact integration provenance is invalid")
-        if provenance.get("evidence_origin") not in {"dispatcher-only-no-model", "dependency-injected-offline"}:
+        if provenance.get("evidence_origin") not in {
+            "dispatcher-only-no-model",
+            "dependency-injected-offline",
+            "real-cuda",
+        }:
             errors.append("artifact evidence origin is invalid")
-        if provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
+        is_real_ig = (
+            artifact.get("use_case") == "IntegratedGradients" and provenance.get("evidence_origin") == "real-cuda"
+        )
+        if is_real_ig:
+            active_status = _active_status(artifact)
+            allowed_networks = {"enabled"} if active_status == REAL_IG_STATUS else {"enabled", "not attempted"}
+            if provenance.get("network") not in allowed_networks:
+                errors.append("real Integrated Gradients runtime provenance is invalid")
+            if provenance.get("device") in {None, "", "not used"}:
+                errors.append("real Integrated Gradients CUDA device provenance is missing")
+            if active_status == REAL_IG_STATUS:
+                if provenance.get("deterministic_algorithms") is not True:
+                    errors.append("real Integrated Gradients deterministic setting is missing")
+                if not isinstance(provenance.get("runtime_versions"), dict):
+                    errors.append("real Integrated Gradients runtime tool versions are missing")
+                peak = provenance.get("resource_peak")
+                if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
+                    errors.append("real Integrated Gradients CUDA peak resource is missing")
+        elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:
             errors.append("artifact integration factory identity is invalid")
@@ -247,16 +283,19 @@ def validate_failure(
     failure: dict[str, Any], plan: dict[str, Any], artifact: dict[str, Any] | None = None
 ) -> list[str]:
     errors: list[str] = []
-    allowed = {"failed", "blocked_missing_corpus", "injected_offline_non_eligible", *PENDING_STATUSES}
+    allowed = {"failed", "blocked_missing_corpus", "injected_offline_non_eligible", REAL_IG_STATUS, *PENDING_STATUSES}
     if failure.get("schema_version") != "m14-l04-explanations-failure-v1" or failure.get("lane") != "L04":
         errors.append("failure identity is invalid")
     if failure.get("status") not in allowed:
         errors.append("failure status is invalid")
-    expected_failure_status = EXPECTED_STATUS.get(failure.get("use_case"))
-    if failure.get("use_case") in EXPECTED_STATUS and failure.get("status") not in {
+    failure_use_case = failure.get("use_case")
+    failure_key = failure_use_case if isinstance(failure_use_case, str) else ""
+    expected_failure_status = EXPECTED_STATUS.get(failure_key)
+    if failure_key in EXPECTED_STATUS and failure.get("status") not in {
         expected_failure_status,
         INJECTED_STATUS,
         FAILED_STATUS,
+        REAL_IG_STATUS,
     }:
         errors.append("failure status is not allowed for this use case")
     if failure.get("plan_sha256") != plan_digest(plan):
@@ -301,15 +340,18 @@ def validate_failure(
         )
         if not isinstance(active, dict) or active.get("failure_ref") != failure.get("failure_ref"):
             errors.append("failure/artifact reference linkage is invalid")
-    if failure.get("status") in PENDING_STATUSES | {"blocked_missing_corpus", "injected_offline_non_eligible"} and (
-        failure.get("exception") is not None or failure.get("exception_type") is not None
-    ):
+    if failure.get("status") in PENDING_STATUSES | {
+        "blocked_missing_corpus",
+        "injected_offline_non_eligible",
+        REAL_IG_STATUS,
+    } and (failure.get("exception") is not None or failure.get("exception_type") is not None):
         errors.append("non-failed status cannot contain an exception")
     if failure.get("status") == "failed" and (
         failure.get("exception_type") is None or failure.get("exception") is None
     ):
         errors.append("failed status must retain the execution exception")
-    if failure.get("stage") != ("execution" if failure.get("status") == FAILED_STATUS else "dispatch"):
+    expected_stage = "execution" if failure.get("status") == FAILED_STATUS else "dispatch"
+    if failure.get("stage") != expected_stage:
         errors.append("failure stage is inconsistent with status")
     return errors
 

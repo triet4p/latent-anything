@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added the M14 L04.4 Integrated Gradients support-only execution handler with
+  frozen baseline, sensitivity, seed, and no-mutation controls plus
+  fail-closed real-CUDA provenance validation.
+
 ### Changed
 
 - Added the offline M14 L04 explanation contract checker and deterministic

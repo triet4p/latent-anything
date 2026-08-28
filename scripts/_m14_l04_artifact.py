@@ -54,6 +54,8 @@ def build_artifact(
     failure_ref: str | None,
     *,
     injected: bool = False,
+    execution_result: dict[str, Any] | None = None,
+    resources: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     executions = [
         execution_template(
@@ -65,6 +67,20 @@ def build_artifact(
     ]
     current = next(item for item in executions if item["use_case"] == use_case)
     current["failure_ref"] = failure_ref
+    if execution_result is not None and not injected:
+        for key in (
+            "status",
+            "evidence_eligible",
+            "acceptance",
+            "metrics",
+            "controls",
+            "token_ids",
+            "layer",
+            "native_hidden_state_index",
+            "seeds",
+        ):
+            if key in execution_result:
+                current[key] = execution_result[key]
     records = []
     for item in plan["record_order"]:
         record_status = (
@@ -75,6 +91,21 @@ def build_artifact(
         record = _record_template(plan, item, record_status)
         if item["record_id"] == current["record_id"]:
             record["failure_ref"] = failure_ref
+        if execution_result is not None and not injected and item["record_id"] == current["record_id"]:
+            for key in (
+                "status",
+                "evidence_level",
+                "metrics",
+                "confidence_intervals",
+                "controls",
+                "acceptance",
+                "token_ids",
+                "layer",
+                "native_hidden_state_index",
+                "seed",
+            ):
+                if key in execution_result:
+                    record[key] = execution_result[key]
         records.append(record)
     artifact = {
         "schema_version": "m14-l04-explanations-artifact-v1",
@@ -108,14 +139,27 @@ def build_artifact(
             "integration": "TransformerLMIntegration",
             "integration_factory": INTEGRATION_FACTORY,
             "adapter": "N/A",
-            "evidence_origin": "dependency-injected-offline" if injected else "dispatcher-only-no-model",
-            "network": "not attempted",
+            "evidence_origin": "dependency-injected-offline"
+            if injected
+            else (
+                "real-cuda"
+                if execution_result is not None or (resources or {}).get("device") == "cuda"
+                else "dispatcher-only-no-model"
+            ),
+            "network": (resources or {}).get("network", "not attempted"),
             "credentials": "not used",
-            "cleanup": "not applicable; no model was loaded",
+            "cleanup": (resources or {}).get("cleanup", "not applicable; no model was loaded"),
             "use_case": use_case,
             "plan_sha256": plan_digest(plan),
         },
         "plan_sha256": plan_digest(plan),
     }
+    if execution_result is not None and not injected:
+        provenance = artifact["provenance"]
+        if isinstance(provenance, dict):
+            provenance.update(execution_result.get("provenance", {}))
+        artifact["raw_summaries"] = execution_result.get("raw_summaries", [])
+        artifact["seeds"] = execution_result.get("seeds", [])
+        artifact["token_ids"] = execution_result.get("token_ids", {})
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     return artifact
