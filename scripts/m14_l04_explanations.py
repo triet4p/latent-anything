@@ -109,6 +109,10 @@ def run_real(
             from scripts._m14_l04_tcav import run_tcav
 
             handler = run_tcav
+        elif use_case == "DirectLogitLens":
+            from scripts._m14_l04_direct_lens import run_direct_logit_lens
+
+            handler = run_direct_logit_lens
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None

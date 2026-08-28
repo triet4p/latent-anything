@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added the M14 L04.6 direct logit-lens Phase A handler with all-native-state
+  parity, target/non-target held-out diagnostics, seeded controls, and
+  fail-closed support-only artifact validation. No D0 record was promoted.
+
 - Added the M14 L04.5 TCAV real-CUDA handler and fail-closed train/holdout,
   seeded-null, intervention, and artifact validation path. The owner-reviewed
   exact-SHA execution is retained as a semantic failed/D0/non-eligible result;

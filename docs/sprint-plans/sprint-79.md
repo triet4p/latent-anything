@@ -91,6 +91,13 @@ Status legend: [ ] pending / [~] in progress / [x] done
   1 and 2 remain auditable transport/capture failures; no rerun, D3 promotion,
   or coverage-count change occurred. See
   [`task_79_l04_5_summary.md`](../../artifacts/task_79_l04_5_summary.md).
+- [x] Implement the offline L04.6 Direct Logit Lens Phase A handler around the
+  concrete `TransformerLMIntegration` boundary. It captures all 13 native
+  hidden states, verifies terminal post-`ln_f` parity, records held-out
+  target/non-target diagnostics with seeded null controls, and emits strict
+  partial/run/failure envelopes. The handler is support-only and remains D0;
+  no real CUDA execution or evidence promotion was performed. See
+  [`task_79_l04_6_summary.md`](../../artifacts/task_79_l04_6_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

@@ -79,7 +79,10 @@ def build_artifact(
             "metrics",
             "controls",
             "control_raw",
+            "diagnostics",
+            "provenance",
             "token_ids",
+            "target_token_strings",
             "layer",
             "native_hidden_state_index",
             "seeds",
@@ -175,6 +178,7 @@ def build_artifact(
         if isinstance(provenance, dict):
             provenance.update(execution_result.get("provenance", {}))
         artifact["raw_summaries"] = execution_result.get("raw_summaries", [])
+        artifact["diagnostics"] = execution_result.get("diagnostics", {})
         artifact["seeds"] = execution_result.get("seeds", [])
         artifact["token_ids"] = execution_result.get("token_ids", {})
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")

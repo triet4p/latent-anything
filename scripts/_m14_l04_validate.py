@@ -7,6 +7,7 @@ from typing import Any
 
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_digest import canonical_digest, source_map_digest
+from scripts._m14_l04_validate_direct_lens import validate_real_direct_lens_execution
 from scripts._m14_l04_validate_ig import validate_real_ig_execution
 from scripts._m14_l04_validate_tcav import validate_real_tcav_execution
 from scripts.m14_l04_contract import plan_digest
@@ -23,6 +24,7 @@ PENDING_STATUSES = {
 INJECTED_STATUS = "injected_offline_non_eligible"
 FAILED_STATUS = "failed"
 REAL_IG_STATUS = "passed_real_cuda"
+REAL_DIRECT_LENS_STATUS = "passed_real_cuda"
 TUNED_USE_CASE = "TunedLogitLens"
 EXPECTED_STATUS = {
     "IntegratedGradients": "not_implemented_pending_L04.4",
@@ -127,6 +129,8 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                     errors.append("real Integrated Gradients execution must be evidence-eligible")
             elif entry.get("status") == REAL_IG_STATUS and entry.get("use_case") == "TCAV":
                 errors.extend(validate_real_tcav_execution(entry, artifact, plan))
+            elif entry.get("status") == REAL_DIRECT_LENS_STATUS and entry.get("use_case") == "DirectLogitLens":
+                errors.extend(validate_real_direct_lens_execution(entry, artifact, plan))
             elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
@@ -173,8 +177,7 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         for record in records:
             if not isinstance(record, dict) or (
                 not (
-                    tcav_accepted
-                    and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    tcav_accepted and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
                 )
                 and (record.get("evidence_level") != "D0" or record.get("acceptance") is not False)
             ):
@@ -251,6 +254,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             artifact.get("use_case") == "IntegratedGradients" and provenance.get("evidence_origin") == "real-cuda"
         )
         is_real_tcav = artifact.get("use_case") == "TCAV" and provenance.get("evidence_origin") == "real-cuda"
+        is_real_direct = (
+            artifact.get("use_case") == "DirectLogitLens" and provenance.get("evidence_origin") == "real-cuda"
+        )
         if is_real_ig:
             active_status = _active_status(artifact)
             allowed_networks = {"enabled"} if active_status == REAL_IG_STATUS else {"enabled", "not attempted"}
@@ -269,6 +275,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         elif is_real_tcav:
             if provenance.get("network") != "enabled":
                 errors.append("real TCAV runtime provenance is invalid")
+        elif is_real_direct:
+            if provenance.get("network") != "enabled":
+                errors.append("real direct lens runtime provenance is invalid")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:
