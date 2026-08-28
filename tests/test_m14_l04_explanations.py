@@ -29,6 +29,23 @@ def test_frozen_plan_and_fixture_have_independent_canonical_digests() -> None:
     assert result["pair_sha256"] == "7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c"
 
 
+def test_contract_facade_reexports_each_private_responsibility() -> None:
+    import scripts._m14_l04_contract_common as common
+    import scripts._m14_l04_fixture_contract as fixture_contract
+    import scripts._m14_l04_plan_contract as plan_contract
+    import scripts._m14_l04_token_contract as token_contract
+    import scripts.m14_l04_contract as facade
+
+    assert facade.ContractValidationError is common.ContractValidationError
+    assert facade.plan_digest is plan_contract.plan_digest
+    assert facade.validate_plan is plan_contract.validate_plan
+    assert facade.validate_fixture is fixture_contract.validate_fixture
+    assert facade.fixture_digests is fixture_contract.fixture_digests
+    assert facade.validate_target_tokens is token_contract.validate_target_tokens
+    assert facade.PLAN_PATH == plan_contract.PLAN_PATH
+    assert facade.FIXTURE_PATH == fixture_contract.FIXTURE_PATH
+
+
 def test_plan_digest_does_not_mutate_plan() -> None:
     plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
     before = plan["plan_sha256"]
