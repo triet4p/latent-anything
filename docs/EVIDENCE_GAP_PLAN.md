@@ -95,6 +95,43 @@ It must continue to report the honest current 33/63 and 33/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
+### L04 design freeze (Sprint 79 L04.1)
+
+The five L04 records are preregistered in dependency order in
+[`l04-explanations.plan.json`](../artifacts/m14/l04-explanations.plan.json):
+TCAV (`THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018`), direct plus
+holdout-calibrated affine tuned lens
+(`THY-T05-LOGIT-LENS-TUNED-LENS`), disentanglement
+(`THY-T03-DISENTANGLEMENT`), true clean/corrupted interchange patching
+(`THY-T05-ACTIVATION-PATCHING`), and additive steering
+(`THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING`).
+TCAV and lens depend on the completed L03 linear-probing boundary;
+disentanglement, patching, and steering depend on TCAV; the resulting graph is
+acyclic with no SCC. Current D0/D1 levels remain unchanged.
+
+L04 pins `openai-community/gpt2` at
+`e7da7f221d5bf496a48136c0cd264e630fe9fcc8` under MIT access and uses the
+concrete `TransformerLMIntegration`; `ModelAdapter` is intentionally N/A.
+The authored task/factor fixture
+[`l04-prompt-factor-fixture.jsonl`](../artifacts/m14/l04-prompt-factor-fixture.jsonl)
+has 24 rows/12 groups, an explicit classification task, exactly one clean and
+one corrupted condition per `causal_pair_id`, group-preserving train/holdout
+assignment, and frozen content/split/pair SHA-256 digests. It is a controlled
+synthetic fixture with limited external validity and cannot by itself establish
+D3. All seven real model/integration use cases (IG, TCAV, direct lens, tuned
+lens, disentanglement, true interchange patching, additive steering) must
+execute on the CUDA server through authenticated direct PowerShell `ssh.exe` at
+an exact detached code SHA; Git Bash/WSL and local CPU real-model evidence are
+out of scope. True interchange patching, additive steering, direct lens, and
+separately fit holdout-calibrated tuned lens remain distinct executions. Tuned
+lens is blocked/D0 until the authoritative pinned WikiText-2 subset is
+provisioned and its content/split digests exist. Thresholds, formulas,
+aggregation units, comparator strictness, and randomized, shuffled, null,
+off-target, and zero-strength controls are frozen in the machine-readable plan.
+Each remote SSH invocation runs exactly one parameterized use case with raw
+stdout/stderr capture and owner review before the next; a blocked tuned-lens
+attempt is isolated and cannot poison unrelated records.
+
 ## Exhaustive row inventory
 
 Each row appears exactly once below. Detailed prerequisites, commands, tests,
@@ -168,11 +205,14 @@ by 78.38 itself.
   `artifacts/m14/l01-core.json` / `l02-geometry.json`.
 - **L03–L06 analysis and explanations:** pin GPT-2
   `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` and its
-  license/access; use
-  train/holdout labels, shuffled-label/raw-input/capacity controls, seed
-  confidence intervals, selectivity and intervention metrics; write the L03,
-  L04, L05, and L06 artifacts. A real-model requirement is never satisfied by
-  a compact fixture.
+  license/access; use train/holdout labels, shuffled-label/raw-input/capacity
+  controls, seed confidence intervals, selectivity and intervention metrics;
+  write the L03, L04, L05, and L06 artifacts. For L04, every real model or
+  integration use case is a CUDA-server run transported by authenticated direct
+  PowerShell `ssh.exe` with an exact-SHA isolated clone; local CPU is limited to
+  offline checks. The L04 host is exactly `trietlm@192.168.30.244`. A
+  real-model requirement is never satisfied by a compact fixture, and an
+  authored fixture alone is never a D3 claim.
 - **L08/L13–L16 bounded model/planning lanes:** preserve existing compact D2
   negative results, held-out splits, codebook/non-collapse controls, sequence
   masks, rollout drift, action bounds, fixed-zero/random-shooting controls,

@@ -1,0 +1,300 @@
+{
+  "schema_version": "m14-l04-explanations-plan-v1",
+  "lane": "L04",
+  "status": "design-frozen-pending-implementation",
+  "owner": "explanation",
+  "hash_contract": {
+    "algorithm": "SHA-256",
+    "canonicalization": "Parse UTF-8 JSON, recursively sort object keys lexicographically, preserve array order, omit the top-level plan_sha256 field, serialize with ensure_ascii=true and separators=(',', ':'), append exactly one LF, then hash the UTF-8 bytes.",
+    "line_endings": "Canonical bytes use LF regardless of checkout line endings; no BOM; recorded plan_sha256 is the digest of those unsigned canonical bytes."
+  },
+  "facts": [
+    "Current M14 and evidence-ledger status is D0 for TCAV, tuned lens, and disentanglement; D1 for activation patching and steering; no L04 D2/D3 artifact exists.",
+    "The real model boundary is TransformerLMIntegration, not ModelAdapter. ModelAdapter is N/A by deliberate architecture/ADR because GPT-2 exposes tokenized forward states and an LM head rather than encode/decode latent-space semantics.",
+    "Current activation_patch.py is a VAE encode/latent-delta/decode method and current steering.py is a NumPy latent-state method; neither is evidence of transformer clean/corrupted interchange patching or causal steering.",
+    "Current integrated_gradients.py and tcav.py have focused offline tests but no validator-backed real-model artifact, predeclared control envelope, or CUDA evidence."
+  ],
+  "inferences_and_limits": [
+    "The authored fixture is suitable for a controlled D2/D3 protocol demonstration only; it does not establish external semantic validity or a general language-model explanation claim by itself.",
+    "A failed or underpowered real run remains a retained failure and cannot be promoted by changing thresholds, labels, or evidence level.",
+    "Direct logit lens is not tuned lens. A tuned-lens claim requires a separately fit affine translator and holdout calibration record; absent that record the tuned-lens row remains D0."
+  ],
+  "record_order": [
+    {
+      "order": 1,
+      "record_id": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+      "capability": "TCAV concept direction and sensitivity",
+      "current": "D0",
+      "target": "D3",
+      "depends_on": ["THY-T05-LINEAR-PROBING"],
+      "dependency_reason": "Use the closed L03 transformer hidden-state extraction boundary; no new generic analysis protocol.",
+      "blocker": "Real CUDA run, factor fixture, controls, and immutable artifact are not yet executed."
+    },
+    {
+      "order": 2,
+      "record_id": "THY-T05-LOGIT-LENS-TUNED-LENS",
+      "capability": "Direct logit lens plus separately calibrated affine tuned lens",
+      "current": "D0",
+      "target": "D3",
+      "depends_on": ["THY-T05-LINEAR-PROBING"],
+      "dependency_reason": "Reuse the pinned GPT-2 hidden-state and tokenization boundary; direct-lens parity is an internal prerequisite, not evidence promotion.",
+      "blocker": "A holdout-calibrated affine translator and real CUDA artifact are not yet executed."
+    },
+    {
+      "order": 3,
+      "record_id": "THY-T03-DISENTANGLEMENT",
+      "capability": "Factor separation and held-out disentanglement controls",
+      "current": "D0",
+      "target": "D2",
+      "depends_on": ["THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"],
+      "dependency_reason": "Factor direction/sensitivity outputs are required inputs to the factor-separation benchmark.",
+      "blocker": "Factor-labeled held-out benchmark and null/shuffle artifact are not yet executed."
+    },
+    {
+      "order": 4,
+      "record_id": "THY-T05-ACTIVATION-PATCHING",
+      "capability": "Causal clean/corrupted interchange activation patching",
+      "current": "D1",
+      "target": "D3",
+      "depends_on": ["THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"],
+      "dependency_reason": "Use TCAV-selected layer/token directions and the same real prompt boundary before causal intervention.",
+      "blocker": "The existing VAE latent-delta method is not transformer interchange patching; a real clean/corrupted causal runner and thresholds are absent."
+    },
+    {
+      "order": 5,
+      "record_id": "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING",
+      "capability": "Selective additive hidden-state steering with causal controls",
+      "current": "D1",
+      "target": "D3",
+      "depends_on": ["THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"],
+      "dependency_reason": "Use a frozen concept direction and target token before measuring intervention and off-target effects.",
+      "blocker": "The existing steering method is latent NumPy state only; a real transformer CUDA run and selective controls are absent."
+    }
+  ],
+  "scc_and_blockers": {
+    "strongly_connected_components": [],
+    "dependency_order_is_acyclic": true,
+    "queue_source": "artifacts/task_79.1_execution_queue.json",
+    "global_blockers": [
+      "Every real L04 use case must run on the CUDA server; local CPU is limited to offline contract/unit checks.",
+      "The pinned GPT-2 weights and Transformers extra must be available under the exact revision and license metadata.",
+      "No L04 record may be promoted without an immutable artifact, run record, failure record when applicable, and validator-backed hashes."
+    ]
+  },
+  "architecture_audit": {
+    "integrated_gradients": "src/latent_anything/integrated_gradients.py:23,86,133,339; config/result/report/orchestration are already bounded to activation-space scalar attribution.",
+    "tcav": "src/latent_anything/tcav.py:64,419,471,569,685,712,747; public facade owns domain/result/orchestration while model/statistics helpers remain separate.",
+    "transformer_boundary": "src/latent_anything/integrations/transformer_lm.py:1,49,303,344,472,552; concrete tokenized hidden-state/LM-head integration, not ModelAdapter.",
+    "existing_interventions": "src/latent_anything/methods/activation_patch.py:22,166,192 is VAE latent encode/decode; src/latent_anything/methods/steering.py:22,180 is NumPy trajectory steering; both are out of scope for transformer causal claims.",
+    "rule_of_three": "No generic L04 analysis/intervention protocol is justified or introduced. Keep TCAV/IG/lens lifecycles concrete and add a transformer runner only when its real use case is implemented; do not merge unlike VAE, latent-state, and transformer-hook responsibilities.",
+    "consistency_result": "Responsibilities are consistent for planning; the real gap is evidence/runner semantics, not an SRP refactor."
+  },
+  "local_checks": {
+    "offline_contract": "uv run python -m scripts.m14_l04_explanations --check --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl",
+    "focused_tests": "uv run pytest tests/test_integrated_gradients.py tests/test_tcav.py -q",
+    "evidence_validator": "uv run python scripts/validate_evidence_ledger.py",
+    "docs": "uv run mkdocs build --strict",
+    "hygiene": "git diff --check",
+    "graph": "graphify update ."
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "revision_url": "https://huggingface.co/openai-community/gpt2/commit/e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "license_source_url": "https://huggingface.co/openai-community/gpt2",
+    "license_access": "MIT; public Hugging Face access; record model-card/license response and cache manifest at run time",
+    "backend": "PyTorch + Transformers",
+    "package_constraints": "transformers>=4.45,<5.0; tokenizers>=0.20,<1.0; torch>=2.5,<3.0; install with uv --extra transformers",
+    "adapter_applicability": {
+      "ModelAdapter": "N/A (deliberate architecture/ADR)",
+      "real_boundary": "latent_anything.integrations.transformer_lm.TransformerLMIntegration",
+      "forbidden_substitute": "Do not create a fake ModelAdapter or claim adapter applicability for GPT-2."
+    }
+  },
+  "fixture": {
+    "path": "artifacts/m14/l04-prompt-factor-fixture.jsonl",
+    "source": "Project-authored English prompts; no external corpus text copied.",
+    "license_access": "MIT repository artifact; authored content is intentionally small and synthetic.",
+    "external_validity": "Limited. This fixture must not be used alone to claim D3 or broad natural-language validity; real GPT-2 execution is still mandatory.",
+    "content_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+    "split_sha256": "7d788c18212bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b",
+    "pair_sha256": "7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c",
+    "digest_contract": {
+      "content": "SHA-256 of the exact raw fixture file bytes, including JSONL line order and one LF per row, encoded as UTF-8 with no BOM; no parsing or normalization is applied.",
+      "split": "Build payload {schema:'l04-fixture-split-v1', rows:[{row_id,group_id,split}]} using exactly those fields in that order; sort rows by (group_id,row_id); serialize compact JSON with ensure_ascii=true, separators=(',',':'), preserve array order, append exactly one LF, encode UTF-8 with no BOM, then SHA-256.",
+      "pair": "Build payload {schema:'l04-fixture-pair-v1', pairs:[{causal_pair_id,group_id,clean_row_id,corrupted_row_id,split}]} using exactly those fields in that order; emit one object per pair from its clean row, sort pairs by (causal_pair_id), serialize compact JSON with ensure_ascii=true, separators=(',',':'), preserve array order, append exactly one LF, encode UTF-8 with no BOM, then SHA-256.",
+      "independent_recompute": "A validator must recompute all three digests and fail closed on any mismatch; split and pair payloads must not include prompt text, labels, or fields outside the listed canonical payloads."
+    },
+    "rows": 24,
+    "groups": 12,
+    "pairs": 12,
+    "split": {
+      "train_groups": ["g01", "g02", "g03", "g04", "g05", "g06", "g07", "g08"],
+      "holdout_groups": ["g09", "g10", "g11", "g12"],
+      "rule": "Group is the split unit; both conditions of every causal pair stay in one split; no prompt, row, pair, or group crosses train/holdout.",
+      "causal_pair_mapping": {"clean": "safe/positive scene", "corrupted": "unsafe/negative counterpart", "pair_rule": "Each causal_pair_id has exactly one clean and one corrupted row, identical task, shared group_id, and one split."},
+      "labels": ["animal_cat", "tone_positive"],
+      "target_texts": [" true", " false"]
+    }
+  },
+  "tokenization_and_sampling": {
+    "tokenizer": "GPT2TokenizerFast from the pinned model revision",
+    "max_length": 32,
+    "padding": "longest within batch",
+    "truncation": true,
+    "target_position": "last non-padding prompt token; target_text is scored as the next-token class",
+    "target_token_requirement": "Resolve target_text to exactly one GPT-2 token and record token id/string; abort as failed if this invariant is false. The expected one-token property of ` true` and ` false` is only an offline contract check, not a pre-run fact or evidence claim.",
+    "target_token_offline_contract": {"target_texts": [" true", " false"], "expected_token_count": 1, "check": "Pinned GPT2TokenizerFast must tokenize each target_text to exactly one token with no added special token; fail closed otherwise."},
+    "hidden_layer": 6,
+    "native_hidden_state_index": 7,
+    "layer_indexing_rule": "Transformer block h.L intervention maps to native output_hidden_states index L+1; record both indices.",
+    "seeds": [17, 29, 41, 53, 67],
+    "bootstrap_replicates": 2000,
+    "direction_fit": "Train groups only; normalize direction on the train partition; no holdout fitting or threshold tuning.",
+    "strength_grid": [0.0, 0.25, 0.5, 1.0],
+    "ig_steps": [16, 64],
+    "determinism": "Set Python, NumPy, and Torch seeds; record deterministic-algorithm setting, CUDA device, and tool versions."
+  },
+  "semantic_contracts": {
+    "true_interchange_patch": "Capture clean and corrupted hidden activations at the frozen layer/token, replace the corrupted activation with the clean activation during a corrupted forward pass, and measure recovery against clean/corrupted endpoints.",
+    "additive_intervention": "Compute hidden := hidden + strength * direction as a separate diagnostic. It is not an interchange patch and cannot satisfy the activation-patching record by renaming.",
+    "direct_lens": "Apply the model LM head under the integration's documented normalization semantics and report layerwise token probabilities.",
+    "tuned_lens": "Fit an affine translator per layer on train groups only, freeze it, calibrate/report on holdout groups only, and compare against direct lens. A direct lens result must never be labeled tuned.",
+    "model_adapter": "N/A for this lane; all records name TransformerLMIntegration as the concrete integration."
+  },
+  "tuned_lens_corpus": {
+    "status": "blocked-until-provisioned; tuned-lens record remains D0",
+    "dataset_id": "Salesforce/wikitext",
+    "config": "wikitext-2-raw-v1",
+    "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+    "source_url": "https://huggingface.co/datasets/Salesforce/wikitext/tree/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-2-raw-v1",
+    "license_access": "CC BY-SA 3.0 and GFDL as shown by the authoritative Salesforce/wikitext dataset card at the pinned revision; retain attribution and license metadata.",
+    "official_sizes": {"train_rows": 36718, "validation_rows": 3760},
+    "selection": "Download only the pinned config; drop blank text; canonicalize each remaining row as UTF-8 text with original split/index; sort by SHA-256(text) then original index; select first 8192 train rows for translator fit and first 2048 validation rows for calibration.",
+    "seed": 79,
+    "max_tokens_per_row": 128,
+    "content_sha256": "pending-until-authorized-acquisition",
+    "split_sha256": "pending-until-authorized-acquisition",
+    "no_fixture_substitution": "The 16 authored train rows are insufficient for tuned-lens fitting; do not fit a full affine translator from the authored fixture. Until this corpus is acquired and digested, tuned lens is blocked/D0 and no tuned-lens artifact is runnable.",
+    "retention": "Do not commit or redistribute corpus text; retain only source/revision/license metadata, subset indices, digests, and sanitized metrics."
+  },
+  "real_use_case_checklist": [
+    {"use_case":"IntegratedGradients","record_id":null,"support_only":true,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"real activation-space scalar attribution, completeness and sensitivity controls"},
+    {"use_case":"TCAV","record_id":"THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018","support_only":false,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"real hidden-state extraction, TCAV direction, target-token sensitivity, intervention agreement"},
+    {"use_case":"DirectLogitLens","record_id":null,"support_only":true,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"all native hidden states and direct LM-head lens parity; never label as tuned"},
+    {"use_case":"TunedLogitLens","record_id":"THY-T05-LOGIT-LENS-TUNED-LENS","support_only":false,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"adequately sized pinned WikiText-2 train-only affine translator fit and holdout-only calibration; blocked until corpus digests exist"},
+    {"use_case":"Disentanglement","record_id":"THY-T03-DISENTANGLEMENT","support_only":false,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"factor-separation metric on held-out groups with shuffled/raw-token nulls"},
+    {"use_case":"TrueActivationPatching","record_id":"THY-T05-ACTIVATION-PATCHING","support_only":false,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"clean/corrupted forward pair with true hidden-state interchange, off-target and zero controls"},
+    {"use_case":"AdditiveSteering","record_id":"THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING","support_only":false,"model":"openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","adapter":"N/A","cuda_server_required":true,"test":"additive hidden-state steering strength grid with randomized/off-target/zero controls"}
+  ],
+  "metric_formulas": {
+    "aggregation": "Compute per causal pair or per group first; aggregate the independent group/pair estimates across groups. Never treat the two rows in a pair as independent observations.",
+    "task_margin": "For each prompt, task_margin = logit(target_token) - logit(the_other_class_token), measured in logits; this is the scalar target for IG, TCAV, patching, and steering.",
+    "ig_completeness": "relative_error = abs(sum(attribution) - (task_margin(x) - task_margin(baseline))) / max(abs(task_margin(x) - task_margin(baseline)), 1e-12), dimensionless.",
+    "ig_stability": "cosine_16_64 = dot(a16,a64)/(||a16||_2*||a64||_2), dimensionless; aggregate median over groups.",
+    "tcav_sensitivity": "score = mean_group(1[directional_derivative(target_logit, concept_direction) > 0]), dimensionless; report group bootstrap 95% CI and compare against shuffled/random directions.",
+    "tcav_intervention": "agreement = mean_group(1[sign(target_logit(+d)-target_logit(-d)) == sign(directional_derivative)]), dimensionless.",
+    "disentanglement": "heldout_gain = metric(real factor labels) - metric(group-preserving shuffled labels), dimensionless; report group-level bootstrap CI.",
+    "patch_recovery": "recovery = (task_margin(patched_corrupted)-task_margin(corrupted))/max(abs(task_margin(clean)-task_margin(corrupted)), 1e-12), dimensionless; off-target effect is absolute paired change in task_margin.",
+    "steering_effect": "target_effect = paired_mean(target_logit_margin(steered)-target_logit_margin(baseline)), measured in logits; selectivity = target_effect - mean(off_target_effects), also logits.",
+    "lens": "token_nll = -log(p[target_token]); calibration_kl = mean_token KL(p_true || p_translated) in nats; improvement = direct_value - tuned_value, with train fit and holdout calibration reported separately.",
+    "confidence": "All confidence intervals are two-sided percentile bootstrap 95% intervals over independent groups/pairs, with seed-specific estimates retained."
+  },
+  "thresholds_and_controls": {
+    "integrated_gradients": {
+      "completeness_relative_error_max": 0.001,
+      "step_16_vs_64_attribution_cosine_min": 0.95,
+      "randomized_target_cosine_max": 0.25,
+      "controls": ["zero baseline", "batch-mean baseline", "random target", "seeded repeat", "finite/no-mutation"]
+    },
+    "tcav": {
+      "heldout_accuracy_min": 0.60,
+      "heldout_accuracy_wilson_lower_min": 0.55,
+      "bootstrap_ci_lower_min": 0.50,
+      "corrected_empirical_p_max": 0.05,
+      "intervention_agreement_min": 0.80,
+      "controls": ["shuffled concept labels", "random concept directions", "matched-norm null", "off-target target token", "zero-strength identity"]
+    },
+    "disentanglement": {
+      "heldout_gain_over_shuffled_min": 0.10,
+      "bootstrap_ci_lower_min": 0.05,
+      "controls": ["group-preserving shuffle", "factor permutation", "raw-token baseline", "seeded repeat"]
+    },
+    "activation_patching": {
+      "recovery_ci_lower_strict_gt": 0.10,
+      "off_target_absolute_effect_max": 0.10,
+      "zero_strength_identity_atol": 1e-06,
+      "controls": ["clean endpoint", "corrupted endpoint", "true interchange", "off-target layer/token", "shuffled direction", "zero-strength"]
+    },
+    "steering": {
+      "target_effect_ci_lower_strict_gt_logits": 0.05,
+      "selectivity_ci_lower_strict_gt_logits": 0.05,
+      "off_target_absolute_effect_max_logits": 0.10,
+      "zero_strength_identity_atol": 1e-06,
+      "controls": ["zero strength", "randomized direction", "shuffled labels", "off-target token", "matched-norm direction"]
+    },
+    "lens": {
+      "direct_parity_rtol": 1e-06,
+      "direct_parity_atol": 1e-06,
+      "tuned_holdout_kl_improvement_strict_gt_nats": 0.01,
+      "tuned_holdout_calibration_ci_lower_strict_gt": 0.01,
+      "controls": ["direct lens", "affine tuned lens", "train/holdout separation", "shuffled translator target", "terminal post-ln_f parity"]
+    },
+    "policy": "Thresholds are frozen before real execution. Unless a field says max/atol, every *_min or *_strict_gt threshold uses strict > comparison; max/atol fields use <=. Report point estimate, units, aggregation unit, 95% CI, null distribution, comparator, and pass/fail for every control. Any unjustifiable zero-effect gate is blocked rather than accepted."
+  },
+  "resource_budget": {
+    "device": "CUDA server only for all real model/integration use cases",
+    "reference_hardware": "RTX 4060 Ti 8GB, CUDA 12.8 (verify and record actual host)",
+    "vram_peak_gb_max": 6.0,
+    "host_rss_gb_max": 4.0,
+    "runtime_minutes_max": 30,
+    "network": "Enabled only for first pinned model acquisition; validation run must record network attempts and may be offline after cache verification.",
+    "failure_policy": "Budget overrun is a retained failure/blocker, never a threshold relaxation."
+  },
+  "artifact_schema": {
+    "final_artifact": "artifacts/m14/l04-explanations.json",
+    "final_schema": "m14-l04-explanations-artifact-v1",
+    "required_top_level": ["schema_version", "lane", "accepted_gap_ids", "evidence_level", "partial_promotion", "model", "integration", "fixture", "tokenization", "split", "records", "controls", "provenance", "artifact_sha256", "plan_sha256"],
+    "record_fields": ["record_id", "capability", "evidence_level", "status", "layer", "native_hidden_state_index", "token_ids", "seed", "metrics", "confidence_intervals", "controls", "acceptance", "failure_ref"],
+    "run_record": "artifacts/m14/l04-explanations.run.json; schema m14-l04-explanations-run-v1; require code_sha, plan_sha256, artifact_sha256, exact command, model/revision, environment/tool versions, device, resource_peak, network, credentials_redacted, cleanup, status, timestamps.",
+    "failure_record": "artifacts/m14/l04-explanations.attemptN.failure.json; schema m14-l04-explanations-failure-v1; preserve failing command, stage, exception, stdout/stderr digest, code/model/plan SHA, resource/network facts, cleanup result, and blocker/waiver owner.",
+    "privacy": "Do not publish model weights, credentials, unrestricted cache paths, or prompt material outside the committed authored fixture; retain hashes and sanitized capture audit."
+  },
+  "atomic_tasks": [
+    {"id":"L04.1","status":"done-planning-only","scope":"Freeze this plan, authored fixture, record IDs/order, schemas, thresholds, model/license, adapter boundary, and remote protocol.","acceptance":["Plan and fixture hashes are recorded","No source/tests changed","Docs/queue references point to this plan","Local validators/docs checks pass"]},
+    {"id":"L04.2","status":"pending","scope":"Add side-effect-free contract/check validation for fixture, split digest, token invariants, and plan schema; keep current APIs and Rule of Three boundaries.","acceptance":["--check is offline and deterministic","Malformed fixture/split/target token fails closed","Focused tests pass","No generic analysis protocol introduced"]},
+    {"id":"L04.3","status":"pending","scope":"Implement the concrete L04 runner and artifact/run/failure envelopes around TransformerLMIntegration; no ModelAdapter.","acceptance":["Five ledger records and seven use cases map to source/tests","Every threshold/control is emitted","Failure artifacts are retained after each use case","Resource/network/cleanup fields are complete"]},
+    {"id":"L04.4","status":"pending","scope":"Execute only the real CUDA IntegratedGradients use case against TransformerLMIntegration.","acceptance":["One IG record is emitted with real GPT-2, completeness, sensitivity, and controls","Failure is preserved before the next use case","IG is support-only and cannot promote a ledger record"]},
+    {"id":"L04.5","status":"pending","scope":"Execute only the real CUDA TCAV use case against TransformerLMIntegration.","acceptance":["TCAV record uses train-only directions and held-out group/pair aggregation","Null/control CIs and strict thresholds are emitted","Failure is preserved before the next use case"]},
+    {"id":"L04.6","status":"pending","scope":"Execute only the real CUDA direct-logit-lens use case across native hidden states.","acceptance":["Direct-lens parity and layer/token provenance are emitted","Direct lens is support-only and never labeled tuned","Failure is preserved before the next use case"]},
+    {"id":"L04.7","status":"blocked-until-corpus","scope":"Execute only the real CUDA tuned-logit-lens use case after pinned WikiText-2 subset acquisition and digest verification.","acceptance":["No fit uses the 16 authored fixture rows","Affine translators fit on 8192 corpus train rows and calibrate on 2048 validation rows","If corpus status remains blocked, retain an explicit D0 failure/blocker and do not run"]},
+    {"id":"L04.8","status":"pending","scope":"Execute only the real CUDA disentanglement use case after TCAV.","acceptance":["Factor metric is computed on held-out groups with shuffled/raw-token nulls","Pair/group aggregation and strict positive gain gate are emitted","Failure is preserved before the next use case"]},
+    {"id":"L04.9","status":"pending","scope":"Execute only the real CUDA true clean/corrupted interchange activation-patching use case.","acceptance":["Clean activation replaces corrupted activation at the frozen layer/token","Recovery, off-target, randomized, and zero-strength controls are separate","No additive or VAE method is relabeled as interchange patching"]},
+    {"id":"L04.10","status":"pending","scope":"Execute only the real CUDA additive steering use case after the patching record.","acceptance":["Hidden := hidden + strength * direction is measured over the frozen strength grid","Positive target effect/selectivity and off-target/random/zero controls are emitted","Failure is preserved before finalization"]},
+    {"id":"L04.11","status":"pending","scope":"Validate/sign each partial and final artifact, reconcile ledger/M14/Sprint79, update Graphify, and publish a failure-preserving summary.","acceptance":["Validator passes or records exact blocker","Evidence statuses remain unchanged until artifact qualifies","Graphify update/query shows new plan relationships","No release claim is made from authored fixture alone"]}
+  ],
+  "remote_cuda_workflow": {
+    "transport_rule": "Direct authenticated ssh.exe from Windows PowerShell only; no Git Bash, WSL, or edits to a persistent server checkout.",
+    "precondition": "Run only after the owner-approved implementation commit is pushed and reachable from origin; L04.1 itself does not commit or push.",
+    "powershell_commands": [
+      "$CodeSha = (git rev-parse HEAD).Trim()",
+      "$RemoteTarget = 'trietlm@192.168.30.244'",
+      "$RepoUrl = (git remote get-url origin).Trim()",
+      "$UseCase = 'integrated_gradients' # choose exactly one value matching L04.4, L04.5, L04.6, L04.7, L04.8, L04.9, or L04.10; owner reviews before the next run",
+      "$RawCapture = Join-Path (Get-Location) \"artifacts/m14/l04-explanations.ssh.$UseCase.$CodeSha.raw.txt\"",
+      "$RemoteScript = @'\nset -eu\nUseCase=\"$1\"\nCodeSha=\"$2\"\nRepoUrl=\"$3\"\ncase \"$UseCase\" in integrated_gradients|tcav|direct_logit_lens|tuned_logit_lens|disentanglement|true_activation_patching|additive_steering) ;; *) exit 64;; esac\nworkdir=\"$(mktemp -d /tmp/latent-anything-l04.XXXXXX)\"\ncase \"$workdir\" in /tmp/latent-anything-l04.*) ;; *) exit 90;; esac\ntest -d \"$workdir\"\ntrap 'rm -rf -- \"$workdir\"' EXIT HUP INT TERM\ngit clone --no-checkout \"$RepoUrl\" \"$workdir/repo\"\ncd \"$workdir/repo\"\ngit checkout --detach \"$CodeSha\"\ntest \"$(git rev-parse HEAD)\" = \"$CodeSha\"\nexport HF_HOME=\"$workdir/hf\"\nexport UV_CACHE_DIR=\"$workdir/uv\"\nnvidia-smi\nuv sync --locked --extra transformers\nexport LATENT_ANYTHING_RUN_NETWORK=1\nexport LATENT_ANYTHING_NETWORK_DEVICE=cuda\nstatus=0\nif uv run --extra transformers python -m scripts.m14_l04_explanations --run-real --use-case \"$UseCase\" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl; then :; else status=$?; fi\nfind artifacts/m14 -maxdepth 1 -type f -name 'l04-explanations*' -print > \"$workdir/files.txt\"\ntest -s \"$workdir/files.txt\"\ntar -czf \"$workdir/l04-capture.tgz\" --files-from \"$workdir/files.txt\"\nprintf '%s\\n' L04_USE_CASE=\"$UseCase\"\nprintf '%s\\n' L04_CODE_SHA=\"$CodeSha\"\nprintf '%s\\n' L04_STATUS=\"$status\"\nprintf '%s\\n' L04_BUNDLE_B64_BEGIN\nbase64 -w0 \"$workdir/l04-capture.tgz\"\nprintf '%s\\n' L04_BUNDLE_B64_END\nexit \"$status\"\n'@\n$RemoteScript | ssh.exe $RemoteTarget 'bash -s --' $UseCase $CodeSha $RepoUrl 2>&1 | Tee-Object -FilePath $RawCapture",
+      "$SshExit = $LASTEXITCODE",
+      "$RawDigest = (Get-FileHash -Algorithm SHA256 $RawCapture).Hash.ToLowerInvariant()",
+      "Parse and persist raw bytes first; then extract L04_BUNDLE_B64 markers, verify the embedded use-case/status/code SHA and artifact hashes, retain a sanitized capture audit, and only then report this individual use-case status."
+    ],
+    "capture_rule": "Exactly one parameterized UseCase is run per SSH invocation; no loop. Each invocation writes a partial artifact or failure for that use case, captures stdout and stderr with 2>&1 | Tee-Object, saves LASTEXITCODE immediately, hashes raw bytes before parsing, and requires owner review before the next use case.",
+    "exact_sha_rule": "The remote checkout is created with mktemp under /tmp/latent-anything-l04.*, detached at $CodeSha, and verified by git rev-parse before execution; a different SHA is invalid evidence.",
+    "cleanup_rule": "The remote trap removes only the remotely generated mktemp workdir after capture, including repo, HF cache, uv cache, and temporary outputs; no initial client-computed rm -rf and no persistent checkout access are allowed."
+  },
+  "graphify_checkpoints": [
+    "Before implementation: graphify query for L04 capability/dependencies and graphify path from TCAV/IG to TransformerLMIntegration.",
+    "After each source/artifact change: graphify update .",
+    "Before owner review: graphify query for all five frozen record IDs and explain TransformerLMIntegration/ModelAdapter boundary."
+  ],
+  "plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a"
+}

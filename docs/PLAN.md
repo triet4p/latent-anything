@@ -53,7 +53,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** planning contract is recorded in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md); implementation, real-system evidence, release-candidate gates, and `1.0.0` publication remain pending.
+- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** planning contract is recorded in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md); Sprint 79 L04.1 is design-frozen in the machine-readable [L04 plan](../artifacts/m14/l04-explanations.plan.json), while implementation, real-system evidence, release-candidate gates, and `1.0.0` publication remain pending.
 
 ## Carryover Evidence Gates
 

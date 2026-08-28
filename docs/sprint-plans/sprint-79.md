@@ -44,6 +44,17 @@ Status legend: [ ] pending / [~] in progress / [x] done
   [`task_79_logit_lens_summary.md`](../../artifacts/task_79_logit_lens_summary.md).
   This remains separate from the resolved structured hook/output blocker and
   does not promote L11.
+- [x] Freeze M14 L04 design before implementation: the five record IDs and
+  dependency order, explicit task/clean-corrupted prompt pairs and
+  content/split/pair digests, exact GPT-2 revision/license, the blocked/D0
+  pinned WikiText-2 tuned-lens corpus, seven real use-case executions,
+  TransformerLMIntegration boundary (`ModelAdapter` is intentionally N/A),
+  direct-vs-tuned lens and interchange-vs-additive semantics, exact formulas
+  and strict positive thresholds/controls, artifact/run/failure schemas, and
+  the direct PowerShell `ssh.exe` CUDA workflow are recorded in
+  [`l04-explanations.plan.json`](../../artifacts/m14/l04-explanations.plan.json)
+  and [`task_79_l04_1_summary.md`](../../artifacts/task_79_l04_1_summary.md).
+  This planning task changes no source/tests and does not promote any L04 row.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

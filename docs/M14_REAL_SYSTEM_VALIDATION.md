@@ -27,9 +27,13 @@ second source of truth.
   device, versions, seed, network policy, resource peak và artifact hash.
 - Không tải model khi lập kế hoạch. Không dùng mock để thay real model ở lane
   tích hợp. Pure algorithm phải dùng real dataset/system substitute (ghi rõ).
-- Remote CUDA chỉ được chạy qua `.agents/skills/remote-cuda-test/SKILL.md`:
-  commit/push trước, disposable clone đúng SHA, Bash/WSL/Git Bash, isolated
-  caches, kiểm tra NVIDIA/CUDA/compiler, trap cleanup, không sửa checkout server.
+- Remote CUDA phải giữ các invariant của
+  `.agents/skills/remote-cuda-test/SKILL.md` (exact SHA, disposable clone,
+  isolated caches, NVIDIA/CUDA check, cleanup, không sửa checkout server).
+  Với L04, owner override yêu cầu transport là authenticated `ssh.exe` trực
+  tiếp từ Windows PowerShell; không dùng Git Bash hoặc WSL. L04 không chạy
+  remote trong giai đoạn planning và không dùng local CPU để thay real-model
+  evidence.
 - GitHub Actions cần tài khoản external có quyền; nếu thiếu thì là blocker,
   không đổi workflow để giả PASS. Sprint 80 dừng trước tag/publish nếu còn
   blocker, waiver chưa được owner ký, hoặc bằng chứng dưới ngưỡng 95% core /
@@ -42,7 +46,7 @@ second source of truth.
 | L01 | LatentSpace, LatentValue, PipelineContract, Result | `latent_space.py`, `latent_value.py`, `pipeline.py`, `adapters/conv_vae.py` → core tests and `scripts/m14_l01_core.py`, D2 | sklearn digits split; existing ConvVAE + AnalysisPipeline/PCA; NumPy/PyTorch CPU | local; `uv run python scripts/m14_l01_core.py` and `uv run pytest tests/test_m14_l01_core.py -q` | held-out reconstruction vs zero baseline, finite shapes/dtypes, stable schema/digest, no input mutation; `artifacts/m14/l01-core.json` | resource peak not measured; M14 estimate only; offline; output artifact/run record retained | verified D2; no blocker; API owner |
 | L02 | geometry: covariance, projection, SO3/SE3, DTW, smoothing | `geometry.py`, `projection.py`, `pose.py`, `dtw.py`, `temporal.py`, `scripts/m14_l02_plan.py`, `scripts/m14_l02_data.py`, `scripts/m14_l02_metrics.py`, `scripts/m14_l02_envelope.py`, `scripts/m14_l02_geometry.py` → focused tests, D1/D2 synthetic; design contract [`l02-geometry.plan.json`](../artifacts/m14/l02-geometry.plan.json) | real sklearn digits held-out substitute with existing ConvVAE; model-induced latent sequences (not recorded physical trajectories); NumPy/SciPy CPU | local; side-effect-free validation: `uv run python -m scripts.m14_l02_geometry --check`; real runner: `uv run python -m scripts.m14_l02_geometry`; focused tests: `uv run pytest tests/test_m14_l02_geometry.py -q` | six independent manifold/T03-SLERP/T04-LERP/Riemannian/T04-SLERP/DTW verdicts with train-only density, 128 independent pair-path DTW trials, chance/shuffled/raw-pixel strong controls, endpoint/norm/angle tolerances; accepted artifact remains `artifacts/m14/l02-geometry.json` | offline; peak RSS not measured; retain run record and remove temporary plots/cache | 79.4C invocation fix; partial verified D2 for 4/6 records; manifold and DTW records failed honestly; no stable Fréchet or physical-trajectory claim; geometry owner |
 | L03 | analysis: KMeans, probes, feature ranking | `clustering.py`, `probes.py`, `mlp_probe.py` → analysis tests, D2; concrete `TransformerLMIntegration` real forward path | GPT-2 hidden states on `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; sklearn digits labels | remote CUDA; `uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py tests/test_m14_l03_analysis.py -q`; `uv run python -m scripts.m14_l03_analysis --run-real` | three independent accepted D2 records with seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json` self-digest `60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`; run record `0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a` | RTX 4060 Ti, CUDA 12.8, disposable clone/cache cleanup; report capture audit retained, raw transcript superseded and deleted | verified D2 forward-only; separate Sprint 79 transformer-hook verification passed 8/8 on exact SHA strict CUDA, resolving the structured hook/output cleanup blocker; no separate GPT-2 ModelAdapter or L11 claim; analysis owner |
-| L04 | IntegratedGradients, TCAV, sensitivity/intervention controls | `integrated_gradients.py`, `tcav.py` → focused tests, D1 | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real prompt/label fixture | local CPU; `uv run pytest tests/test_integrated_gradients.py tests/test_tcav.py -q` | completeness/sensitivity, selectivity, seeded CI and causal intervention; `artifacts/m14/l04-explanations.json` | ~2–4 GB, network on first run; retain manifest, delete weights if disposable | planned; D3 absent until run; explanation owner |
+| L04 | IntegratedGradients, TCAV, sensitivity/intervention controls | `integrated_gradients.py`, `tcav.py` → focused tests, D1; design freeze [`l04-explanations.plan.json`](../artifacts/m14/l04-explanations.plan.json) | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; authored task/factor fixture with explicit clean/corrupted pairs and content/split/pair digests; real boundary `TransformerLMIntegration`; `ModelAdapter=N/A` by ADR | seven sequential real use cases (IG, TCAV, direct lens, tuned lens, disentanglement, true interchange patching, additive steering) on CUDA server through authenticated direct PowerShell `ssh.exe`; local CPU only offline checks; exact commands and cleanup are frozen in the L04 plan | completeness/sensitivity, selectivity, seeded 95% CI, shuffled/random/null/off-target/zero-strength controls, true interchange patching distinct from additive intervention, and separately fit holdout-calibrated affine tuned lens; `artifacts/m14/l04-explanations.json` plus per-use-case run/failure records | RTX 4060 Ti 8GB reference, CUDA 12.8; ~4 GB RSS/≤6 GB VRAM budget; acquire exact revision once, retain hashes/audit, remove disposable clone/cache; tuned lens is blocked/D0 until pinned WikiText-2 corpus subset/digests exist; authored fixture alone cannot claim D3 | planned; D3 absent until real CUDA run and validator-backed artifact; explanation owner |
 | L05 | GaussianMixtureDensity, OOD, covariance/geodesic density | `density.py`, `geodesic.py` → density/geodesic tests, D1/D2 | real GPT-2 states + held-out prompts; sklearn GMM backend | local CPU; `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` | calibration, held-out AUROC threshold predeclared, path feasibility; `artifacts/m14/l05-density.json` | <3 GB; no secrets; remove cache | planned; threshold not yet evidenced; geometry owner |
 | L06 | SAE, FeatureAtlas, cross-seed stability | `sae_evaluation.py`, `_sae_atlas.py` → SAE tests, D1/D2 | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real text corpus fixture | local CPU; `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` | dead-feature, reconstruction, cross-seed stability and atlas hash; `artifacts/m14/l06-sae.json` | ~4 GB; network only model; purge temporary corpus | planned; D3 gap; introspection owner |
 | L07 | SubspaceProjection, steering, activation patch, LERP | `methods/activation_patch.py`, `methods/steering.py`, `projection.py`, `methods/lerp.py` → intervention tests, D1 | GPT-2 hidden states and VAE latents; PyTorch CPU | local; `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q` | paired control effect, reversibility/shape safety, no mutation; `artifacts/m14/l07-interventions.json` | <4 GB; offline after models; delete outputs | planned; cross-adapter evidence required; manipulation owner |
@@ -63,6 +67,40 @@ second source of truth.
 | L22 | ArtifactStore, portable envelopes, cache, stream, recorder/tracking | `portable.py`, `artifact_store.py`, `runtime/cache.py`, `rollout_pipeline.py`, `run_record.py`, `experiment_recorder.py` → focused tests, D1/D2 | real Arrow/SQLite filesystem; MLflow/W&B optional backends | local isolated temp; `uv run pytest tests/test_portable.py tests/test_portable_results.py tests/test_artifact_store.py tests/test_latent_anything/test_cache.py tests/test_sprint75_streaming.py tests/test_run_record.py tests/test_run_record_portable.py tests/test_experiment_recorder.py tests/test_mlflow_recorder.py tests/test_wandb_recorder.py -q` | schema-v1 round trip/migration, path safety, resume/cancel, provider atomicity; `artifacts/m14/l22-runtime.json` | <1 GB, offline; tracking credentials only in opt-in lane; delete temp DB/artifacts | planned; external tracking account may block; runtime owner |
 | L23 | registry/plugins/config/CLI/serialization/security | `registry.py`, `_plugin_builtins.py`, `plugin_discovery.py`, `plugin_groups.py`, `plugin_metadata.py`, `cli.py`, `config.py`, `pipeline_config.py` → registry/plugin/CLI tests, D1 | all 32 built-ins, 5 entry-point groups, hello-world separately installed plugin; base + each extra | local clean env; `uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q` | import isolation, discovery, install/uninstall, schema migrations, negative paths, secret/path/zip safety; `artifacts/m14/l23-contract.json` | <2 GB, no network except plugin install fixture; uninstall temp plugin/cache | planned; external GitHub Actions account blocker; API owner |
 | L24 | packaging/docs/performance/release gates | `pyproject.toml`, `docs/M14_REAL_SYSTEM_VALIDATION.md`, `scripts/validate_evidence_ledger.py`, `.github/workflows/ci.yml`, `.github/workflows/optional-extras.yml`, `.github/workflows/release.yml` → full tests, MkDocs, Ruff/Pyright | clean base/all 12 profiles, supported Python/platform tiers, wheel/sdist | local then remote CI; `uv sync --locked --all-extras`; `uv run pytest -q`; `uv run mkdocs build --strict` | no diff/check errors, strict docs, type/lint/test pass, wheel import, performance budgets; `artifacts/m14/l24-rc.json` | build isolated; no secrets in artifacts; delete dist/site/temp | planned; external Actions account and unresolved evidence thresholds; release owner |
+
+## L04.1 preregistration / design freeze
+
+The machine-readable [L04 plan](../artifacts/m14/l04-explanations.plan.json) is
+the source of truth for the five record IDs, dependency order, exact model
+revision, authored fixture and digests, token/layer/seed/resource budgets,
+thresholds, controls, artifact/run/failure schemas, and atomic implementation
+tasks. The committed fixture is
+[`l04-prompt-factor-fixture.jsonl`](../artifacts/m14/l04-prompt-factor-fixture.jsonl):
+24 rows in 12 groups, with an explicit group-preserving train/holdout split and
+content/split/pair SHA-256 values. It is project-authored MIT-repository content,
+not an external corpus; its external validity is limited and it cannot alone
+support a D3 claim.
+
+The seven executions are sequential: IntegratedGradients (support-only), TCAV,
+direct logit lens (support-only), separately holdout-calibrated affine tuned
+lens, disentanglement, true clean/corrupted interchange activation patching,
+and additive steering. The five ledger records are the non-support executions.
+Each fixture
+`causal_pair_id` has exactly one clean and one corrupted condition and remains
+inside one group/split. The existing VAE
+`activation_patch.py` and NumPy latent `steering.py` remain their own methods;
+they are not relabeled as TransformerLM causal evidence. GPT-2 uses the concrete
+`TransformerLMIntegration`; `ModelAdapter=N/A` is intentional. Direct
+PowerShell `ssh.exe` with configured authentication, exact-SHA detached clone,
+isolated caches, report capture before cleanup, and disposable-clone cleanup
+are mandatory for every real model/integration use case in this lane. Each SSH
+run receives exactly one parameterized use case and is reviewed before the next;
+there is no seven-use-case loop. Tuned
+lens additionally requires the pinned `Salesforce/wikitext` /
+`wikitext-2-raw-v1` corpus at revision
+`f776294184f13b8ff2337b3841cf9269a6216d1e` (CC BY-SA 3.0/GFDL); until its
+bounded subset content/split digests are provisioned, that use case is blocked
+and remains D0. Local CPU commands are contract/unit checks only.
 
 ### Acceptance contract cho mỗi dòng
 
