@@ -194,6 +194,17 @@ Status legend: [ ] pending / [~] in progress / [x] done
   provenance. The direct base64-to-bash recipe is **NOT REUSABLE** for later
   lanes until L04.8 implements and tests remote-temp-file decode, decoder exit
   `0`, decoded-SHA comparison, execution, and cleanup. L04.7 is complete.
+- [x] Implement L04.8 Phase A locally/offline around a private SRP CPU
+  logistic/Brier probe, causal-group aggregation, deterministic derangement and
+  factor-permutation controls, target-token-excluded raw-token baseline, and
+  fail-closed artifact validation. The fake runner-to-artifact validator,
+  imbalance/degenerate-bootstrap, slot-reversal, leakage, and tamper tests
+  pass. Real CUDA execution, resource evidence, and the replacement remote
+  temp-file transport remain the next owner-gated steps; no L04.8 promotion is
+  claimed. The final review pass also binds process-peak RSS provenance,
+  reserved CUDA memory, canonical model digests, truthful D0 failure stages,
+  factor-permutation supervision, and raw-token excluded-column digests. See
+  [`task_79_l04_8_summary.md`](../../artifacts/task_79_l04_8_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

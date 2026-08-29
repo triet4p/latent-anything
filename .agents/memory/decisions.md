@@ -955,3 +955,76 @@ decoder reports invalid input.
 preflight that decodes, requires decoder exit `0`, hashes and compares decoded
 bytes with the announced local SHA-256, executes only after comparison, and
 cleans up the temporary file. No replacement transport was tested in L04.7.
+
+## [2026-08-29] Use a deterministic CPU logistic/Brier protocol for M14 L04.8
+
+**Decision:** L04.8 uses one balanced class-weighted linear logistic probe per
+factor, with train-only float64 standardization, an intercept, fixed L2 `C=1.0`,
+and fixed CPU `torch.optim.LBFGS` settings. Row quality is `1-(p-y)^2`,
+aggregated first within the two-row causal group and then macro-averaged over
+`animal_cat` and `tone_positive`. Each of the five frozen seeds retains its
+own four-group percentile bootstrap and must pass both strict gates; seeds are
+never pooled.
+
+**Alternatives considered:** Accuracy, AUROC, pooled bootstrap, row-level
+resampling, a DCI/MIG replacement, or holdout-fitted standardization and
+thresholds.
+
+**Reason:** The authored fixture has only four independent holdout groups and
+an intentionally imbalanced animal factor. Brier quality remains finite for
+degenerate bootstrap resamples, while group-first aggregation preserves the
+causal unit and train-only fitting prevents leakage.
+
+**Consequences:** Shuffle, factor-permutation, raw-token, and seeded-repeat
+controls are diagnostics whose pass flags are recomputed by the validator.
+The raw-token baseline excludes padding and the two output target-token IDs;
+no prompts, logits, hidden tensors, or text are retained. L04.8 Phase A is
+implemented offline-first and remains D2-only until the real CUDA envelope
+passes the frozen runtime and resource gates.
+
+## [2026-08-29] Bind L04.8 evidence to the authored fixture and resource budget
+
+**Decision:** A real L04.8 envelope must retain only sanitized per-row holdout
+identities, factor labels, predictions, fixture hashes, probe digests, and
+target-token IDs/decoded strings. The handler accepts only the exact ordered
+authored fixture (train `g01`--`g08`, holdout `g09`--`g12`) and records elapsed,
+CUDA allocated, reserved, and RSS resource evidence. Acceptance requires the
+validator-recomputed 1,800-second / 6-GiB CUDA / 4-GiB RSS limits and an
+unchanged model parameter digest.
+
+**Alternatives considered:** Retain only aggregate group scores, accept caller
+group ordering, trust runtime pass flags, or treat resource flags as metadata.
+
+**Reason:** Aggregate-only evidence cannot expose row/pair/role leakage or
+tampering, and an accepted result without independently checked resource and
+mutation facts is not reproducible evidence.
+
+**Consequences:** The validator recomputes row Brier quality, causal-group and
+factor macro aggregation, gains, bootstrap intervals, control linkage, fixture
+hashes, target-token linkage, and resource gates. Raw prompts/features/logits/
+hidden tensors remain prohibited; real execution is still required before D2
+promotion.
+
+## [2026-08-29] Make accepted L04.8 provenance independently auditable
+
+**Decision:** Accepted L04.8 D2 evidence records normalized Linux process peak
+RSS from `resource.getrusage(RUSAGE_SELF).ru_maxrss` (KiB to bytes), both CUDA
+allocated and reserved peaks, canonical named/ordered/shape-aware model
+parameter digests before and after execution, and explicit execution stage.
+Factor permutation retains a sanitized train-row supervision mapping/digest.
+The raw-token control retains only row-order/tokenizer/config and matrix
+digests; target-token columns are required to have an independently computed
+all-zero digest. Preflight and partial failures remain truthful D0 envelopes.
+
+**Alternatives considered:** Current RSS snapshots, allocated-only GPU limits,
+an opaque parameter byte concatenation, retaining token sequences/features, or
+using a generic execution/failure stage.
+
+**Reason:** A single current RSS sample and self-reported flags cannot prove
+peak resource compliance, model non-mutation, supervision linkage, or absence
+of output-token leakage. Explicit stage/resource semantics let the validator
+distinguish an unattempted preflight failure from a partial CUDA execution.
+
+**Consequences:** D2 validation is Linux-CUDA specific and requires complete
+resource/digest provenance; non-D2 failures may omit unavailable measurements
+only when their stage precedes the corresponding resource/model boundary.
