@@ -58,10 +58,11 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 
 workdir=$(mktemp -d /tmp/latent-anything-l04.XXXXXX)
-case "$workdir" in
-    /tmp/latent-anything-l04.*) ;;
-    *) emit_status INVALID_WORKDIR >&2; exit 70 ;;
-esac
+if [[ ! "$workdir" =~ ^/tmp/latent-anything-l04\.[[:alnum:]]{6}$ ]] || [[ ! -d "$workdir" || -L "$workdir" ]]; then
+    emit_status INVALID_WORKDIR >&2
+    exit 70
+fi
+printf 'L04_WORKDIR=%s\n' "$workdir"
 repo_dir="$workdir/repo"
 cache_root="$workdir/cache"
 preflight_file="$workdir/preflight.py"

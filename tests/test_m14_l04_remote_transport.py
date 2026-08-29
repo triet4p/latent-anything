@@ -10,6 +10,8 @@ import re
 import shutil
 import subprocess
 import sys
+import time
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -34,7 +36,11 @@ def _ssh_path() -> str:
     return executable
 
 
-def _build_only(payload_path: Path, raw_capture_path: Path) -> dict[str, object]:
+def _build_only(
+    payload_path: Path,
+    raw_capture_path: Path,
+    timeout_seconds: int | None = None,
+) -> dict[str, object]:
     command = [
         _pwsh(),
         "-NoProfile",
@@ -54,6 +60,7 @@ def _build_only(payload_path: Path, raw_capture_path: Path) -> dict[str, object]
         "https://github.com/example/repo.git",
         "-RawCapturePath",
         str(raw_capture_path),
+        *([] if timeout_seconds is None else ["-TransportTimeoutSeconds", str(timeout_seconds)]),
         "-BuildOnly",
     ]
     result = subprocess.run(command, check=False, capture_output=True, text=True)
@@ -79,6 +86,8 @@ def test_build_only_normalizes_crlf_and_redacts_operational_values(tmp_path: Pat
     assert manifest["use_case"] == "Disentanglement"
     assert manifest["secrets_redacted"] is True
     assert manifest["raw_capture_path_redacted"] == "<raw-capture-path>"
+    assert manifest["transport_timeout_seconds"] == 3600
+    assert manifest["kill_grace_seconds"] == 30
     serialized = json.dumps(manifest)
     for value in (str(payload_path), str(raw_capture_path), "example.com", "github.com/example"):
         assert value not in serialized
@@ -111,6 +120,41 @@ def test_build_only_accepts_dry_run_alias(tmp_path: Path) -> None:
     result = subprocess.run(command, check=False, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["mode"] == "build-only"
+
+
+@pytest.mark.parametrize("timeout_seconds", [2400, 7200])
+def test_build_only_accepts_transport_timeout_bounds(tmp_path: Path, timeout_seconds: int) -> None:
+    manifest = _build_only(PAYLOAD, tmp_path / "raw.capture", timeout_seconds)
+    assert manifest["transport_timeout_seconds"] == timeout_seconds
+
+
+@pytest.mark.parametrize("timeout_seconds", [2399, 7201])
+def test_transport_timeout_bounds_are_rejected(tmp_path: Path, timeout_seconds: int) -> None:
+    command = [
+        _pwsh(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshPath",
+        _ssh_path(),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "Disentanglement",
+        "-CodeSha",
+        "a" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(tmp_path / "raw.capture"),
+        "-TransportTimeoutSeconds",
+        str(timeout_seconds),
+        "-BuildOnly",
+    ]
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    assert result.returncode != 0
 
 
 def test_invalid_parameters_are_rejected_before_build(tmp_path: Path) -> None:
@@ -149,6 +193,11 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "UseShellExecute = $false" in seam
     assert "StandardInput.BaseStream.Write" in seam
     assert "ReadToEndAsync" in seam
+    assert "Stopwatch]::GetTimestamp" in seam
+    assert "Kill($true)" in seam
+    assert "WaitForExit($killWaitMilliseconds)" in seam
+    assert "transport_termination_incomplete" in seam
+    assert "TimeoutSeconds" in seam
     assert "<<'L04_PAYLOAD_B64'" in helper
     assert "base64 -d" in helper
     assert "L04_TRANSPORT_DECODE_STATUS" in helper
@@ -168,6 +217,8 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "L04_BUNDLE_B64_BEGIN" in payload
     assert "L04_BUNDLE_B64_END" in payload
     assert "L04_CLEANUP=PASS" in payload
+    assert "L04_WORKDIR=%s" in payload
+    assert "expected_markers" in helper
     assert "python -c" not in payload
     assert "ssh " not in payload
 
@@ -177,7 +228,9 @@ import base64
 import hashlib
 import json
 import os
+import subprocess
 import sys
+import time
 from pathlib import Path
 
 stdin_bytes = sys.stdin.buffer.read()
@@ -186,6 +239,10 @@ capture_path.write_text(
     json.dumps({"argv": sys.argv, "stdin_b64": base64.b64encode(stdin_bytes).decode()}),
     encoding="utf-8",
 )
+mode = os.environ.get("FAKE_MODE", "success")
+if mode == "never-read":
+    time.sleep(60)
+    raise SystemExit(0)
 text = stdin_bytes.decode("utf-8")
 assert not text.startswith("\ufeff")
 assert "\r" not in text
@@ -195,7 +252,7 @@ decoded = base64.b64decode(blob, validate=True)
 actual = hashlib.sha256(decoded).hexdigest()
 print("L04_TRANSPORT_DECODE_STATUS=0")
 print(f"L04_TRANSPORT_DECODE_SHA256={actual}")
-if os.environ.get("FAKE_MODE") == "mismatch":
+if mode == "mismatch":
     print("L04_TRANSPORT_DECODE_MATCH=FAIL")
     print("L04_PAYLOAD_EXECUTED=FAIL")
     sys.exit(65)
@@ -203,12 +260,28 @@ if actual != announced:
     print("L04_TRANSPORT_DECODE_MATCH=FAIL")
     sys.exit(65)
 print("L04_TRANSPORT_DECODE_MATCH=PASS")
-if os.environ.get("FAKE_MODE") == "early":
+if mode == "early":
     print("FAKE_EARLY_EXIT=PASS")
     print("fake early exit", file=sys.stderr)
     sys.exit(7)
-if os.environ.get("FAKE_MODE") == "broken":
+if mode == "broken":
     os._exit(9)
+if mode == "child":
+    subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys,time; print('CHILD_STDOUT', flush=True); "
+                "print('CHILD_STDERR', file=sys.stderr, flush=True); time.sleep(60)"
+            ),
+        ],
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+    time.sleep(60)
+if mode == "hang":
+    time.sleep(60)
 print("L04_PAYLOAD_EXECUTED=PASS")
 print("L04_TRANSPORT_CLEANUP=PASS")
 """
@@ -260,6 +333,29 @@ def test_internal_seam_nonexistent_executable_still_writes_raw_capture(tmp_path:
     report = json.loads(result.stdout)
     assert report["raw_capture_written_before_parse"] is True
     assert report["exception_type"]
+
+
+@pytest.mark.parametrize("mode", ["never-read", "hang", "child"])
+def test_internal_seam_timeout_is_bounded_kills_tree_and_writes_raw(tmp_path: Path, mode: str) -> None:
+    bootstrap = b"x" * (2 * 1024 * 1024) if mode == "never-read" else _fake_bootstrap()
+    command, _capture_path, raw_path, env = _fake_command(
+        tmp_path,
+        mode,
+        timeout_seconds=2,
+        bootstrap_bytes=bootstrap,
+    )
+    started = time.monotonic()
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env)
+    elapsed = time.monotonic() - started
+    assert elapsed < 40
+    assert result.returncode == 70
+    assert raw_path.is_file()
+    report = json.loads(result.stdout)
+    assert report["deadline_exceeded"] is True
+    assert report["raw_capture_written_before_parse"] is True
+    assert report["cleanup_status"] in {"not_required", "unknown"}
+    if mode == "child":
+        assert report["transport_termination_incomplete"] is False
 
 
 def test_raw_write_failure_never_reports_stale_target(tmp_path: Path) -> None:
@@ -404,6 +500,54 @@ def test_bundle_contract_excludes_history_and_requires_exact_attempt_set() -> No
     assert not current.fullmatch("l04-explanations.Disentanglement.attempt2.partial.jsonl")
 
 
+def test_workdir_contract_validates_normal_exact_path_before_marker() -> None:
+    payload = PAYLOAD.read_text(encoding="utf-8")
+    validation = re.compile(r"^/tmp/latent-anything-l04\.[A-Za-z0-9]{6}$")
+    assert validation.fullmatch("/tmp/latent-anything-l04.A1b2C3")
+    assert not validation.fullmatch("/tmp/latent-anything-l04.too-long")
+    assert not validation.fullmatch("/tmp/latent-anything-l04.")
+    assert not validation.fullmatch("/tmp/other.A1b2C3")
+    validation_text = 'if [[ ! "$workdir" =~ ^/tmp/latent-anything-l04\\.[[:alnum:]]{6}$ ]]'
+    assert validation_text in payload
+    assert payload.index(validation_text) < payload.index("L04_WORKDIR=%s")
+    assert "latent-anything-l04.*" not in payload
+    assert '[[ ! -d "$workdir" || -L "$workdir" ]]' in payload
+
+
+def test_raw_publication_state_preserves_first_success_on_later_failure() -> None:
+    seam = SEAM.read_text(encoding="utf-8")
+    assert "if ($state.raw_capture_write_succeeded) { return }" in seam
+    assert "raw_capture_finalization_error" in seam
+
+    state: dict[str, object] = {
+        "succeeded": False,
+        "path": None,
+        "digest": None,
+        "finalization_error": None,
+    }
+
+    def publish(writer: Callable[[], str], phase: str) -> None:
+        if state["succeeded"]:
+            return
+        try:
+            digest = writer()
+            state["succeeded"] = True
+            state["path"] = "<raw-capture-path>"
+            state["digest"] = digest
+        except OSError as error:
+            if phase == "finalization":
+                state["finalization_error"] = type(error).__name__
+
+    publish(lambda: "first-current-digest", "timeout")
+    publish(lambda: (_ for _ in ()).throw(OSError("injected")), "finalization")
+    assert state == {
+        "succeeded": True,
+        "path": "<raw-capture-path>",
+        "digest": "first-current-digest",
+        "finalization_error": None,
+    }
+
+
 def _fake_bootstrap() -> bytes:
     payload = b"fake payload\n"
     digest = hashlib.sha256(payload).hexdigest()
@@ -411,12 +555,18 @@ def _fake_bootstrap() -> bytes:
     return (f"PayloadSha256='{digest}'\nbase64 -d <<'L04_PAYLOAD_B64'\n{blob}\nL04_PAYLOAD_B64\n").encode()
 
 
-def _fake_command(tmp_path: Path, mode: str = "success") -> tuple[list[str], Path, Path, dict[str, str]]:
+def _fake_command(
+    tmp_path: Path,
+    mode: str = "success",
+    *,
+    timeout_seconds: int = 3600,
+    bootstrap_bytes: bytes | None = None,
+) -> tuple[list[str], Path, Path, dict[str, str]]:
     fake_ssh = tmp_path / "fake_ssh.py"
     fake_ssh.write_text(FAKE_SSH, encoding="utf-8")
     capture_path = tmp_path / "fake-capture.json"
     bootstrap_path = tmp_path / "bootstrap.bin"
-    bootstrap_path.write_bytes(_fake_bootstrap())
+    bootstrap_path.write_bytes(_fake_bootstrap() if bootstrap_bytes is None else bootstrap_bytes)
     raw_path = tmp_path / f"raw-{mode}.capture"
     driver = tmp_path / "invoke-seam.ps1"
     driver.write_text(
@@ -428,7 +578,8 @@ $result = Invoke-L04TransportProcess `
     -SshExecutable $env:L04_SSH_EXECUTABLE `
     -ArgumentList $arguments `
     -BootstrapBytes $bootstrap `
-    -RawCapturePath $env:L04_RAW_PATH
+    -RawCapturePath $env:L04_RAW_PATH `
+    -TimeoutSeconds ([int]$env:L04_TIMEOUT_SECONDS)
 $result | ConvertTo-Json -Compress
 if ($result.transport_error -ne $null) {{ exit 70 }}
 if ($result.ssh_exit -eq $null) {{ exit 70 }}
@@ -445,6 +596,7 @@ exit $result.ssh_exit
             "L04_RAW_PATH": str(raw_path),
             "FAKE_CAPTURE_PATH": str(capture_path),
             "FAKE_MODE": mode,
+            "L04_TIMEOUT_SECONDS": str(timeout_seconds),
         }
     )
     command = [_pwsh(), "-NoProfile", "-File", str(driver)]

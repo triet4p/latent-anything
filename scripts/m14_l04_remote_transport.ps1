@@ -9,6 +9,7 @@ param(
     [Parameter(Mandatory = $true)] [string]$CodeSha,
     [Parameter(Mandatory = $true)] [string]$RepoUrl,
     [Parameter(Mandatory = $true)] [string]$RawCapturePath,
+    [ValidateRange(2400, 7200)] [int]$TransportTimeoutSeconds = 3600,
     [switch]$BuildOnly,
     [Alias("DryRun")] [switch]$DryRunMode
 )
@@ -94,7 +95,9 @@ $manifest = [ordered]@{
     use_case = $UseCase; code_sha = $normalizedCodeSha
     payload = [ordered]@{ sha256 = $payloadSha256; bytes = $payloadBytes.Length }
     bootstrap = [ordered]@{ sha256 = $bootstrapSha256; bytes = $bootstrapBytes.Length }
-    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_TRANSPORT_CLEANUP", "L04_USE_CASE", "L04_CODE_SHA", "L04_STATUS", "L04_CLEANUP", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END")
+    transport_timeout_seconds = $TransportTimeoutSeconds
+    kill_grace_seconds = 30
+    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_TRANSPORT_CLEANUP", "L04_USE_CASE", "L04_CODE_SHA", "L04_WORKDIR", "L04_STATUS", "L04_CLEANUP", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END")
     command_args_redacted = @("<ssh.exe>", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
 }
@@ -102,13 +105,20 @@ if ($BuildOnly -or $DryRunMode) { $manifest | ConvertTo-Json -Depth 8 -Compress;
 
 $seamPath = Join-Path $PSScriptRoot "_m14_l04_transport_seam.psm1"
 Import-Module $seamPath -Force
-$capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList @($RemoteTarget, "bash", "-s", "--", $UseCase, $normalizedCodeSha, $RepoUrl) -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath
+$capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList @($RemoteTarget, "bash", "-s", "--", $UseCase, $normalizedCodeSha, $RepoUrl) -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath -TimeoutSeconds $TransportTimeoutSeconds
 [ordered]@{
     schema_version = "m14-l04-remote-transport-capture-v1"
     ssh_exit = $capture.ssh_exit; raw_capture_sha256 = $capture.raw_capture_sha256
     raw_capture_written_before_parse = $capture.raw_capture_written_before_parse
+    raw_capture_write_succeeded = $capture.raw_capture_write_succeeded
     payload_sha256 = $payloadSha256; bootstrap_sha256 = $bootstrapSha256
     transport_error = $capture.transport_error; exception_type = $capture.exception_type
+    transport_errors = $capture.transport_errors
+    deadline_exceeded = $capture.deadline_exceeded
+    transport_termination_incomplete = $capture.transport_termination_incomplete
+    cleanup_status = $capture.cleanup_status
+    raw_capture_path = $capture.raw_capture_path
+    raw_capture_finalization_error = $capture.raw_capture_finalization_error
 } | ConvertTo-Json -Depth 8 -Compress
 if ($capture.transport_error -ne $null) { exit 70 }
 exit $capture.ssh_exit
