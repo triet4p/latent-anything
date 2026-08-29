@@ -561,3 +561,22 @@ GPU, or package-download steps.
 **Root cause:** Native PowerShell pipeline serialization and remote shell parsing rewrote script bytes and status markers before Bash interpreted them.
 **Fix / workaround:** Normalize all CR to LF, encode exact UTF-8 without BOM bytes with `ConvertToBase64String`, pipe the ASCII envelope to `ssh.exe target 'base64 -d | bash -s --'`, and retain local digest plus remote start markers.
 **Watch out for:** Keep the embedded remote status, cleanup marker, and outer `$LASTEXITCODE` as separate evidence fields; a transport exit 2 after cleanup is not a semantic rerun.
+
+## [2026-08-29] Direct base64-to-bash transport needs decoder integrity verification
+
+**Symptom:** The final owner-authorized TunedLogitLens run completed semantic
+execution, emitted start/status/cleanup markers, and passed artifact, run,
+failure, and audit-linkage validation, but its raw capture retained
+`base64: invalid input`.
+**Root cause:** Piping the Base64 stream directly into `base64 -d | bash -s --`
+did not independently establish that the bytes accepted by the decoder matched
+the locally announced script digest; the remote digest marker recorded intent,
+not decoded-byte integrity.
+**Fix / workaround:** Keep the run's semantic D3 evidence and warning
+transparent, but do not reuse this direct recipe. A future transport preflight
+must decode into a remote temporary file, require decoder exit `0`, hash the
+decoded bytes and compare them with the announced local SHA-256, then execute
+and clean up the file. This replacement was not tested in L04.7.
+**Watch out for:** Never promote a transport-integrity claim from start/status
+markers alone; keep semantic acceptance and decoded-byte provenance as separate
+verdicts.

@@ -178,8 +178,22 @@ Status legend: [ ] pending / [~] in progress / [x] done
   the outer SSH transport exited `2` after the wrapper's CRLF-sensitive numeric
   status error. The attempt3 artifact/run/failure and sanitized recovery audit
   remain byte-preserved historical payload evidence; the sanitized recovery
-  audit has only its scoped failure SHA metadata corrected, with no payload
-  rewrite, promotion, or rerun claimed.
+  audit has only its scoped failure SHA metadata corrected. The final
+  owner-authorized corrected run at SHA `278a9f7` now passes the artifact,
+  run-record, and failure validators as accepted D3 with seed 79 and the
+  common shuffled-target mask; no retry occurred. It recorded
+  `THY-T05-LOGIT-LENS-TUNED-LENS`, layer `6`, native hidden-state index `7`,
+  holdout improvement `6.5803880806` nats, conservative lower bound
+  `6.5399008976` nats, all controls PASS, and RTX 4060 Ti resource-budget PASS
+  (`1116.8708012` s, `2065599488` allocated CUDA bytes, `2161827840` RSS
+  bytes). Its sanitized audit records `L04_REMOTE_SCRIPT_START=PASS`,
+  `L04_STATUS=0`, `L04_CLEANUP=PASS`, outer SSH exit `0`, and all four evidence
+  validators with zero errors. The raw capture also retained
+  `base64: invalid input`; decoded script bytes were not independently
+  hash-verified, so semantic D3 acceptance does not claim stronger transport
+  provenance. The direct base64-to-bash recipe is **NOT REUSABLE** for later
+  lanes until L04.8 implements and tests remote-temp-file decode, decoder exit
+  `0`, decoded-SHA comparison, execution, and cleanup. L04.7 is complete.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

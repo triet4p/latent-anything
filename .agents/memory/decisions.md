@@ -936,3 +936,22 @@ validator can independently recompute every control pass flag.
 **Alternatives considered:** Reuse the source mask, use only the target mask, or silently pad/truncate the target to the source shape.
 **Reason:** The control compares source hidden states with a permuted target teacher; source-only masking can score target padding as real supervision when variable-length rows are paired. The intersection preserves the frozen architecture, objective, permutation, and seed while making the control semantically valid.
 **Consequences:** Fit and evaluation must use the exact intersection policy, provenance must name it, and regression tests must demonstrate that padded target logits cannot change the control or the main tuned metric.
+
+## [2026-08-29] Do not reuse direct Base64-to-Bash transport without decoded-byte verification
+
+**Decision:** Treat the direct PowerShell `base64 -d | bash -s --` envelope as
+historical evidence only after the final L04.7 capture reported
+`base64: invalid input`; it is not reusable for subsequent evidence lanes.
+
+**Alternatives considered:** Promote the run from its successful semantic
+markers, or claim that the announced local script digest independently proves
+the bytes accepted by the decoder.
+
+**Reason:** Start/status/cleanup markers and validator-clean artifacts establish
+semantic evidence, but they do not establish decoded-byte integrity when the
+decoder reports invalid input.
+
+**Consequences:** L04.8 must implement and test a remote temporary-file
+preflight that decodes, requires decoder exit `0`, hashes and compares decoded
+bytes with the announced local SHA-256, executes only after comparison, and
+cleans up the temporary file. No replacement transport was tested in L04.7.

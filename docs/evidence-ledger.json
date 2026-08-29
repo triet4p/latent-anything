@@ -345,6 +345,22 @@
         {"role": "test", "path": "tests/test_latent_anything/test_activation_patch.py"}
       ]
     },
+    "THY-T05-LOGIT-LENS-TUNED-LENS": {
+      "status": "D3",
+      "evidence": [
+        {"role": "source", "path": "scripts/_m14_l04_artifact.py"},
+        {"role": "source", "path": "scripts/_m14_l04_tuned_lens.py"},
+        {"role": "source", "path": "scripts/_m14_l04_validate_tuned_lens.py"},
+        {"role": "test", "path": "tests/test_m14_l04_tuned_lens.py"},
+        {"role": "benchmark", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-wikitext-2-manifest.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt4.partial.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt4.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt4.failure.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.TunedLogitLens.278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5.recovery.audit.json"}
+      ]
+    },
     "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023": {
       "status": "D1",
       "evidence": [

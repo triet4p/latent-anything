@@ -10,12 +10,12 @@ machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **33/63 core (52.4%)** and
-**33/65 overall (50.8%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **34/63 core (54.0%)** and
+**34/65 overall (52.3%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **32 current D0/D1
-rows** in this plan: **30 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **27 additional core qualifiers** are required to reach
+denominator adds two applicable X01 rows. There are exactly **31 current D0/D1
+rows** in this plan: **29 core** and **2 non-core**. A qualifying row is D2 or
+D3, so at least **26 additional core qualifiers** are required to reach
 `ceil(0.95 × 63) = 60`; at least **26 additional overall qualifiers** are
 required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
 binding gate. Headline model, causal explanation, and named integration claims
@@ -91,7 +91,7 @@ The validator command is:
 uv run python scripts/validate_evidence_ledger.py
 ```
 
-It must continue to report the honest current 33/63 and 33/65 result while
+It must continue to report the honest current 34/63 and 34/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
@@ -131,8 +131,11 @@ reached real CUDA execution but failed D0 at tuned-lens aggregation. A later
 setup D0 failed before model loading with `ModuleNotFoundError: datasets` because
 the isolated environment omitted same-environment provisioning; it has no
 semantic metrics, and its cleanup and outer SSH exit are not evidenced or
-claimed. Corrected code awaits a separately authorized validation run at a new
-SHA. Thresholds,
+claimed. The final corrected run at exact SHA
+`278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5` now has a validator-clean D3
+artifact with acceptance true; its sanitized audit records the real CUDA
+execution, fit seed `79`, common shuffled-target mask policy, metrics,
+controls, resource budget, and cleanup. Thresholds,
 formulas,
 aggregation units, comparator strictness, and randomized, shuffled, null,
 off-target, and zero-strength controls are frozen in the machine-readable plan.
@@ -140,7 +143,20 @@ Each remote SSH invocation runs exactly one parameterized use case with raw
 stdout/stderr capture and owner review before the next; a blocked tuned-lens
 attempt is isolated and cannot poison unrelated records.
 
-For the next TunedLogitLens execution, the frozen plan remains immutable and
+The final TunedLogitLens semantic/artifact evidence remains accepted at D3:
+the remote start/status/cleanup markers and outer SSH exit were successful, the
+full bundle was captured, and artifact, run-record, failure, and audit-linkage
+validators returned no errors. The raw capture nevertheless retained
+`base64: invalid input`; the decoded script bytes were not independently
+hash-verified, so the audit does not claim stronger transport provenance. The
+historical direct `base64 -d | bash -s --` recipe is **NOT REUSABLE** for L04.8
+or later lanes until a future preflight decodes into a remote temporary file,
+requires decoder exit `0`, computes and compares the decoded SHA-256 with the
+announced local digest, then executes and cleans up that file. This replacement
+was not tested in L04.7; L04.8 must own and verify it before another remote
+evidence run.
+
+For any future TunedLogitLens execution, the frozen plan remains immutable and
 the owner-approved operational override is the exact command in the [M14
 validation procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
 
@@ -153,9 +169,11 @@ and all four exact package constraints. A local PowerShell preflight using a
 safe temporary `.py` file (never `python -c`) is mandatory before SSH for
 dependency/import compatibility only; it does not require local CUDA. The
 recorded diagnostic passed `datasets==4.8.5`, `transformers==4.57.6`,
-`tokenizers==0.22.2`, and `huggingface-hub==0.35.3`. The
-complete wrapper contract is in the [M14 operational
-procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+`tokenizers==0.22.2`, and `huggingface-hub==0.35.3`. The historical wrapper
+record is in the [M14 operational
+procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved);
+the transport advisory there makes clear that this direct recipe is not
+reusable until the L04.8 decoded-byte preflight is implemented and tested:
 an LF-normalized PowerShell script is piped directly to
 `ssh.exe target 'bash -s --' ...`; the remote script creates a temporary `preflight.py` with a
 single-quoted heredoc, clones and verifies the exact SHA, isolates all
@@ -219,7 +237,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
-| `THY-T05-LOGIT-LENS-TUNED-LENS` | D0 | yes | yes | D3 | L04 | Real CUDA computation and controls passed, but retained attempt3 is validator-rejected/D0 because artifact assembly omitted fit seed 79; corrected source awaits owner-reviewed rerun |
+| `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
 | `THY-T06-STOCHASTIC-TRANSITION` | D0 | yes | no | D2 | L15 | Later implementation evidence is not mapped to this ID |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
 | `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |

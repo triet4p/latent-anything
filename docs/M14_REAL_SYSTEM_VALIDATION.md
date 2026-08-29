@@ -46,7 +46,7 @@ second source of truth.
 | L01 | LatentSpace, LatentValue, PipelineContract, Result | `latent_space.py`, `latent_value.py`, `pipeline.py`, `adapters/conv_vae.py` → core tests and `scripts/m14_l01_core.py`, D2 | sklearn digits split; existing ConvVAE + AnalysisPipeline/PCA; NumPy/PyTorch CPU | local; `uv run python scripts/m14_l01_core.py` and `uv run pytest tests/test_m14_l01_core.py -q` | held-out reconstruction vs zero baseline, finite shapes/dtypes, stable schema/digest, no input mutation; `artifacts/m14/l01-core.json` | resource peak not measured; M14 estimate only; offline; output artifact/run record retained | verified D2; no blocker; API owner |
 | L02 | geometry: covariance, projection, SO3/SE3, DTW, smoothing | `geometry.py`, `projection.py`, `pose.py`, `dtw.py`, `temporal.py`, `scripts/m14_l02_plan.py`, `scripts/m14_l02_data.py`, `scripts/m14_l02_metrics.py`, `scripts/m14_l02_envelope.py`, `scripts/m14_l02_geometry.py` → focused tests, D1/D2 synthetic; design contract [`l02-geometry.plan.json`](../artifacts/m14/l02-geometry.plan.json) | real sklearn digits held-out substitute with existing ConvVAE; model-induced latent sequences (not recorded physical trajectories); NumPy/SciPy CPU | local; side-effect-free validation: `uv run python -m scripts.m14_l02_geometry --check`; real runner: `uv run python -m scripts.m14_l02_geometry`; focused tests: `uv run pytest tests/test_m14_l02_geometry.py -q` | six independent manifold/T03-SLERP/T04-LERP/Riemannian/T04-SLERP/DTW verdicts with train-only density, 128 independent pair-path DTW trials, chance/shuffled/raw-pixel strong controls, endpoint/norm/angle tolerances; accepted artifact remains `artifacts/m14/l02-geometry.json` | offline; peak RSS not measured; retain run record and remove temporary plots/cache | 79.4C invocation fix; partial verified D2 for 4/6 records; manifold and DTW records failed honestly; no stable Fréchet or physical-trajectory claim; geometry owner |
 | L03 | analysis: KMeans, probes, feature ranking | `clustering.py`, `probes.py`, `mlp_probe.py` → analysis tests, D2; concrete `TransformerLMIntegration` real forward path | GPT-2 hidden states on `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; sklearn digits labels | remote CUDA; `uv run pytest tests/test_clustering.py tests/test_probes.py tests/test_mlp_probe.py tests/test_m14_l03_analysis.py -q`; `uv run python -m scripts.m14_l03_analysis --run-real` | three independent accepted D2 records with seeded train/holdout metrics, baseline and memorization controls; `artifacts/m14/l03-analysis.json` self-digest `60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`; run record `0bcaf14ef465f2ef5c5c909237d1f573596a77fa2ca51d042db74248cf4ca03a` | RTX 4060 Ti, CUDA 12.8, disposable clone/cache cleanup; report capture audit retained, raw transcript superseded and deleted | verified D2 forward-only; separate Sprint 79 transformer-hook verification passed 8/8 on exact SHA strict CUDA, resolving the structured hook/output cleanup blocker; no separate GPT-2 ModelAdapter or L11 claim; analysis owner |
-| L04 | IntegratedGradients, TCAV, sensitivity/intervention controls | `integrated_gradients.py`, `tcav.py` → focused tests, D1; design freeze [`l04-explanations.plan.json`](../artifacts/m14/l04-explanations.plan.json) | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; authored task/factor fixture with explicit clean/corrupted pairs and content/split/pair digests; real boundary `TransformerLMIntegration`; `ModelAdapter=N/A` by ADR | local offline contract: `uv run python -m scripts.m14_l04_explanations --check`; seven sequential real use cases (IG, TCAV, direct lens, tuned lens, disentanglement, true interchange patching, additive steering) on CUDA server through authenticated direct PowerShell `ssh.exe`; local CPU only offline checks; exact commands and cleanup are frozen in the L04 plan | completeness/sensitivity, selectivity, seeded 95% CI, shuffled/random/null/off-target/zero-strength controls, true interchange patching distinct from additive intervention, and separately fit holdout-calibrated affine tuned lens; `artifacts/m14/l04-explanations.json` plus per-use-case run/failure records | RTX 4060 Ti 8GB reference, CUDA 12.8; ~4 GB RSS/≤6 GB VRAM budget; acquire exact revision once, retain hashes/audit, remove disposable clone/cache; pinned WikiText-2 subset is provisioned, but corrected tuned-lens code awaits separately authorized new-SHA CUDA validation after `dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422` failed D0 at aggregation; a later setup D0 (`ModuleNotFoundError: datasets`) omitted same-environment provisioning and has no semantic metrics; its cleanup and outer SSH exit are not evidenced or claimed; authored fixture alone cannot claim D3 | planned; D3 absent until real CUDA run and validator-backed artifact; explanation owner |
+| L04 | IntegratedGradients, TCAV, sensitivity/intervention controls | `integrated_gradients.py`, `tcav.py` → focused tests, D1; design freeze [`l04-explanations.plan.json`](../artifacts/m14/l04-explanations.plan.json) | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; authored task/factor fixture with explicit clean/corrupted pairs and content/split/pair digests; real boundary `TransformerLMIntegration`; `ModelAdapter=N/A` by ADR | local offline contract: `uv run python -m scripts.m14_l04_explanations --check`; seven sequential real use cases (IG, TCAV, direct lens, tuned lens, disentanglement, true interchange patching, additive steering) on CUDA server through authenticated direct PowerShell `ssh.exe`; local CPU only offline checks; exact commands and cleanup are frozen in the L04 plan | completeness/sensitivity, selectivity, seeded 95% CI, shuffled/random/null/off-target/zero-strength controls, true interchange patching distinct from additive intervention, and separately fit holdout-calibrated affine tuned lens; `artifacts/m14/l04-explanations.json` plus per-use-case run/failure records | RTX 4060 Ti 8GB reference, CUDA 12.8; ~4 GB RSS/≤6 GB VRAM budget; acquire exact revision once, retain hashes/audit, remove disposable clone/cache; pinned WikiText-2 subset is provisioned and the corrected TunedLogitLens run at SHA `278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5` produced validator-clean accepted D3 evidence; the historical attempt3 D0 remains preserved and unpromoted; final audit records the observed transport warning and cleanup PASS | L04.7 corrected TunedLogitLens D3 accepted; remaining L04 use cases planned; explanation owner |
 | L05 | GaussianMixtureDensity, OOD, covariance/geodesic density | `density.py`, `geodesic.py` → density/geodesic tests, D1/D2 | real GPT-2 states + held-out prompts; sklearn GMM backend | local CPU; `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` | calibration, held-out AUROC threshold predeclared, path feasibility; `artifacts/m14/l05-density.json` | <3 GB; no secrets; remove cache | planned; threshold not yet evidenced; geometry owner |
 | L06 | SAE, FeatureAtlas, cross-seed stability | `sae_evaluation.py`, `_sae_atlas.py` → SAE tests, D1/D2 | GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real text corpus fixture | local CPU; `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` | dead-feature, reconstruction, cross-seed stability and atlas hash; `artifacts/m14/l06-sae.json` | ~4 GB; network only model; purge temporary corpus | planned; D3 gap; introspection owner |
 | L07 | SubspaceProjection, steering, activation patch, LERP | `methods/activation_patch.py`, `methods/steering.py`, `projection.py`, `methods/lerp.py` → intervention tests, D1 | GPT-2 hidden states and VAE latents; PyTorch CPU | local; `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q` | paired control effect, reversibility/shape safety, no mutation; `artifacts/m14/l07-interventions.json` | <4 GB; offline after models; delete outputs | planned; cross-adapter evidence required; manipulation owner |
@@ -102,9 +102,9 @@ lens additionally requires the pinned `Salesforce/wikitext` /
 8192/2048 subset is now provisioned and bound by the committed manifest,
 content/split digests, and selection metadata. The first owner-authorized
 exact-SHA run (`dcc76ba7f064b5b6dc2e09c20d741da4cc6e5422`) reached real CUDA
-execution and failed D0 at tuned-lens aggregation; corrected code awaits a
-separately authorized validation run at a new SHA. Local CPU commands are
-contract/unit checks only.
+execution and failed D0 at tuned-lens aggregation; the corrected validation
+below supersedes that blocked result. Local CPU commands are contract/unit
+checks only.
 
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
@@ -121,6 +121,25 @@ status encoding produced outer SSH exit `2`; this is transport evidence, not a
 semantic rerun or promotion. The three attempt3 payload files are retained
 byte-for-byte and are not rewritten; the sanitized recovery audit received
 only the scoped failure SHA metadata correction recorded in the task summary.
+
+The final owner-authorized corrected run at exact SHA
+`278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5` completed one real
+GPT-2/TransformerLMIntegration TunedLogitLens execution on the pinned
+WikiText-2 subset. It produced a validator-clean D3 artifact with acceptance
+true, fit seed `79`, bootstrap seeds `[17, 29, 41, 53, 67]`, layer `6`, native
+hidden-state index `7`, holdout improvement `6.5803880806` nats, conservative
+lower bound `6.5399008976` nats, all controls passing, and resource budget
+passing on an RTX 4060 Ti (`1116.8708012` seconds,
+`2065599488` allocated CUDA bytes, `2161827840` RSS bytes). The shuffled
+target policy is explicitly `source_attention_mask &
+permuted_target_attention_mask`; artifact, run-record, and failure validators
+all returned no errors. The sanitized audit records the raw capture and
+bundle hashes, and retains the observed base64 decoder warning as transport
+evidence; remote cleanup emitted `L04_CLEANUP=PASS` and no retry occurred.
+The semantic/artifact evidence is accepted at D3, but the decoded script bytes
+were not independently hash-verified because the raw capture also contained
+`base64: invalid input`; this run therefore does not establish stronger
+transport provenance.
 
 #### TunedLogitLens operational override (owner-approved)
 
@@ -182,9 +201,17 @@ try {
 The remote heredoc must additionally assert imports, versions, and CUDA
 availability in that exact same environment, failing before model loading if the
 assertion fails.
-The transport wrapper must use the following robust pattern: construct the
-remote Bash script in PowerShell, normalize it to LF, and pipe it directly to
-`ssh.exe` with `target 'bash -s --'`. On the remote side, create a temporary
+The following wrapper is the historical owner-approved pattern used for the
+final run. It is **NOT REUSABLE** for L04.8 or subsequent lanes: the final raw
+capture contained `base64: invalid input`, and the decoded script bytes were
+not independently hash-verified even though semantic execution completed.
+Before any future lane, upgrade the transport preflight to decode into a
+remote temporary file, require the decoder exit code to be zero, compute and
+compare the decoded SHA-256 with the announced local digest, then execute and
+clean up that temporary file. That replacement protocol was not tested here.
+The historical wrapper constructs the remote Bash script in PowerShell,
+normalizes it to LF, and pipes it directly to `ssh.exe` with
+`target 'bash -s --'`. On the remote side, create a temporary
 `preflight.py` with a single-quoted heredoc, execute it, and then execute the
 CLI with the same exact `uv` prefix:
 
@@ -304,15 +331,17 @@ $remoteScriptBase64 | ssh.exe $remoteTarget 'base64 -d | bash -s --' $UseCase $C
 $sshExit = $LASTEXITCODE
 ```
 
-The wrapper contract is intentionally complete: PowerShell computes the
+The historical wrapper contract was intended to be complete: PowerShell computes the
 SHA-256 over the exact UTF-8/no-BOM/LF bytes, encodes those bytes with
 `ConvertToBase64String`, and sends the ASCII envelope through one direct
 authenticated `ssh.exe` invocation. The remote `base64 -d | bash -s --`
 decoder emits a start marker and the announced local script digest before it
-executes the decoded bytes. The digest marker binds the capture to the local
-payload; the raw capture must retain that marker and the local hash in its
-sanitized audit. This avoids native PowerShell stdin newline and nested-quote
-rewrites while allowing the decoder to ignore a transport newline.
+executes the decoded bytes. The digest marker records the intended local
+payload; it does not independently verify the bytes accepted by the decoder.
+The raw capture must retain that marker, the local hash, and any decoder
+diagnostic in its sanitized audit. This avoids native PowerShell stdin newline
+and nested-quote rewrites, but the final run demonstrates that it is not a
+sufficient transport-integrity check by itself.
 
 The wrapper then clones the repository with
 `--no-checkout`, checks out and verifies the exact detached SHA, and places the
@@ -330,8 +359,10 @@ exit.
 Do not use raw multiline PowerShell stdin, `python -c`, escaped `printf` marker
 emitters, or nested remote command quoting for this workflow:
 PowerShell/native parsing can strip quotes, backslashes, and intended newlines
-before Bash receives the script. The only accepted transport is the
-LF-normalized UTF-8/no-BOM base64 envelope above. Markers must use `echo`; the
+before Bash receives the script. The LF-normalized UTF-8/no-BOM base64 envelope
+above is historical evidence only and is **not an approved reusable transport**
+until the L04.8 remote-temp-file decode/exit/SHA comparison preflight is
+implemented and tested. Markers must use `echo`; the
 cleanup function may emit `L04_CLEANUP=PASS` only after the
 temporary file removal succeeds. Transport remains direct authenticated
 `ssh.exe` from Windows PowerShell to the disposable detached clone; do not use

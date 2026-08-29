@@ -61,12 +61,53 @@ artifact/run-record digests were rechecked against the retained files. The
 partial, run, and failure artifact bytes were not rewritten; only sanitized
 audit metadata is in scope for this correction.
 
+## Final owner-authorized real CUDA run
+
+Exactly one corrected run was executed at SHA
+`278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5` through the direct PowerShell
+Base64 `ssh.exe` wrapper. The remote clone verified that detached SHA and ran
+real GPT-2 through `TransformerLMIntegration` on the pinned WikiText-2
+revision. The result is accepted D3: layer `6`, native hidden-state index `7`,
+fit seed `79`, bootstrap seeds `[17, 29, 41, 53, 67]`, holdout improvement
+`6.5803880806` nats, conservative lower bound `6.5399008976` nats, all
+controls PASS, and resource budget PASS on an RTX 4060 Ti (`1116.8708012` s,
+`2065599488` allocated CUDA bytes, `2161827840` RSS bytes). Artifact,
+run-record, and failure validators all returned no errors.
+
+The single connection returned `L04_STATUS=0` and `L04_CLEANUP=PASS`; the raw
+capture was `6879774` bytes with SHA-256
+`cd00dfd71812305b96c5528826868c5a3fb3fc0c74ac01e80396e6abfed593be`, and the
+bundle was `2644019` bytes with SHA-256
+`5fb4cca0e55fcabb94238ae9f3264d87d756a7881a4fb3b749b1c3ea74888c8e`.
+The raw capture retained one observed `base64: invalid input` warning from the
+transport while the decoded wrapper completed successfully; this warning is
+not suppressed. The semantic/artifact evidence remains accepted at D3, but the
+decoded script bytes were not independently hash-verified, so no stronger
+transport provenance is claimed. The sanitized final audit is
+`artifacts/m14/l04-explanations.ssh.TunedLogitLens.278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5.recovery.audit.json`.
+Raw deletion was performed only after audit/linkage validation and exact
+size/SHA verification; post-delete absence is recorded in the audit. No retry
+occurred.
+
+Final attempt4 payload hashes:
+
+| File | Bytes | SHA-256 |
+|---|---:|---|
+| `artifacts/m14/l04-explanations.TunedLogitLens.attempt4.failure.json` | 10651 | `5caaccdb19643892cc6994ceb6e0d00f2755784eb1eea98a3e8c1c849b334596` |
+| `artifacts/m14/l04-explanations.TunedLogitLens.attempt4.partial.json` | 3331715 | `351e0ea131328ab87afca79a518511128d60d11011155a62193b8ab2bd5430c7` |
+| `artifacts/m14/l04-explanations.TunedLogitLens.attempt4.run.json` | 5452 | `bbb12118cba87df3b4667595dc622955d251f94a159ee62ba8e06d747ab36725` |
+| `artifacts/m14/l04-explanations.ssh.TunedLogitLens.278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5.recovery.audit.json` | 6516 | `b6ca56bad243724d3790bfea557d182996ea261974920994704b47ce4907eeaf` |
+
 ## Verification status
 
 Completed verification: focused L04 `120 passed`; full suite `1772 passed,
 36 skipped, 39 warnings`; adversarial tuned-lens validators `39 passed`;
 Ruff check and format pass; explicit strict Pyright for changed source and
 test `0 errors, 0 warnings`; strict MkDocs build pass with temporary output
-removed; `git diff --check` pass; and `graphify update .` pass. No SSH/CUDA
-was used for these local gates. Git closure is performed in the two commits
-that follow this summary update.
+removed; `git diff --check` pass; and `graphify update .` pass. The final
+remote CUDA validation is documented above; no additional SSH/CUDA connection
+was used after that single authorized run. The direct
+`base64 -d | bash -s --` recipe is NOT REUSABLE for subsequent lanes until a
+future L04.8 preflight decodes into a remote temporary file, requires decoder
+exit `0`, compares the decoded SHA-256 with the announced local digest, then
+executes and cleans up; that replacement was not tested here.
