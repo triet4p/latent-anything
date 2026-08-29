@@ -32,6 +32,7 @@ EPOCHS = 1
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 GRAD_CLIP_NORM = 1.0
+SHUFFLED_TARGET_MASK_POLICY = "source_attention_mask & permuted_target_attention_mask"
 MAX_ELAPSED_SECONDS = 1800.0
 MAX_GPU_BYTES = 6 * 1024**3
 MAX_RSS_BYTES = 4 * 1024**3
@@ -156,11 +157,12 @@ def fit_translators(
             batch_size=BATCH_SIZE,
             device=device,
         ):
+            shuffled_mask = source_mask.to(dtype=torch.bool) & _target_mask.to(dtype=torch.bool)
             for layer in FITTED_LAYERS:
                 values = source_hidden[layer].float()
                 for control, translators, teacher, mask in (
                     ("true", true, source_teacher, source_mask),
-                    ("shuffled", shuffled, target_teacher, source_mask),
+                    ("shuffled", shuffled, target_teacher, shuffled_mask),
                 ):
                     predicted = _project(model, translators[layer](values), apply_final_norm=True)
                     loss = _kl_loss(teacher, predicted, mask, torch)
@@ -209,7 +211,7 @@ def evaluate_translators(
     token_counts: list[int] = []
     global_abs = 0.0
     global_rel = 0.0
-    for source_mask, source_hidden, source_teacher, _target_mask, _target_hidden, shuffled_teacher in _paired_batches(
+    for source_mask, source_hidden, source_teacher, target_mask, _target_hidden, shuffled_teacher in _paired_batches(
         texts,
         shuffled_texts,
         integration=integration,
@@ -218,8 +220,9 @@ def evaluate_translators(
         batch_size=BATCH_SIZE,
         device=device,
     ):
+        shuffled_mask = source_mask.to(dtype=torch.bool) & target_mask.to(dtype=torch.bool)
         token_counts.extend(source_mask.to(dtype=torch.int64).sum(dim=1).detach().cpu().tolist())
-        terminal_error = (_project(model, source_hidden[12], apply_final_norm=False) - source_teacher).abs()
+        terminal_error = (_project(model, source_hidden[12], apply_final_norm=False) - source_teacher).detach().abs()
         global_abs = max(global_abs, float(terminal_error.max()))
         global_rel = max(global_rel, float((terminal_error / torch.clamp(source_teacher.abs(), min=1e-12)).max()))
         for layer in NATIVE_LAYERS:
@@ -227,14 +230,14 @@ def evaluate_translators(
             direct[layer].extend(row_token_kl(source_teacher, direct_logits, source_mask).tolist())
             if layer == 12:
                 tuned[layer].extend(row_token_kl(source_teacher, source_teacher, source_mask).tolist())
-                shuffled[layer].extend(row_token_kl(shuffled_teacher, shuffled_teacher, source_mask).tolist())
+                shuffled[layer].extend(row_token_kl(shuffled_teacher, shuffled_teacher, shuffled_mask).tolist())
             else:
                 tuned_logits = _project(model, translators[layer](source_hidden[layer].float()), apply_final_norm=True)
                 shuffled_logits = _project(
                     model, shuffled_translators[layer](source_hidden[layer].float()), apply_final_norm=True
                 )
                 tuned[layer].extend(row_token_kl(source_teacher, tuned_logits, source_mask).tolist())
-                shuffled[layer].extend(row_token_kl(shuffled_teacher, shuffled_logits, source_mask).tolist())
+                shuffled[layer].extend(row_token_kl(shuffled_teacher, shuffled_logits, shuffled_mask).tolist())
     return direct, tuned, shuffled, token_counts, global_abs, global_rel
 
 
@@ -560,6 +563,7 @@ def run_tuned_logit_lens(
                 "fit_layers": list(FITTED_LAYERS),
                 "native_layers": list(NATIVE_LAYERS),
                 "objective": "tokenwise KL(p_true || q_translated) in nats over every non-padding position",
+                "shuffled_target_mask_policy": SHUFFLED_TARGET_MASK_POLICY,
                 "optimizer": "AdamW",
                 "epochs": EPOCHS,
                 "batch_size": BATCH_SIZE,
@@ -608,6 +612,7 @@ __all__ = [
     "FITTED_LAYERS",
     "NATIVE_LAYERS",
     "REAL_STATUS",
+    "SHUFFLED_TARGET_MASK_POLICY",
     "_project",
     "fit_translators",
     "run_tuned_logit_lens",

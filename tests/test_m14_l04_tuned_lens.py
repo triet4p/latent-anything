@@ -67,6 +67,9 @@ def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
 ) -> None:
     """Exercise run_tuned_logit_lens through its real aggregation caller."""
     from scripts import _m14_l04_tuned_lens as tuned_lens
+    from scripts import _m14_l04_validate_tuned_lens as validator
+    from scripts._m14_l04_artifact import build_artifact
+    from scripts._m14_l04_data import fixture_metadata
     from scripts.m14_l04_contract import load_plan
 
     fitted_layers = tuple(range(12))
@@ -79,11 +82,24 @@ def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
         "validation": [{**row, "text": "x"} for row in validation_rows],
     }
     manifest: dict[str, Any] = {
+        "source": {
+            "dataset_id": "Salesforce/wikitext",
+            "config": "wikitext-2-raw-v1",
+            "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+        },
         "content_sha256": "content",
         "split_sha256": "split",
         "splits": {
-            "train": {"official_rows": 36718, "selected": []},
-            "validation": {"official_rows": 3760, "selected": []},
+            "train": {
+                "official_rows": 36718,
+                "selected": [{"index": row["index"], "text_sha256": row["text_sha256"]} for row in selected["train"]],
+            },
+            "validation": {
+                "official_rows": 3760,
+                "selected": [
+                    {"index": row["index"], "text_sha256": row["text_sha256"]} for row in selected["validation"]
+                ],
+            },
         },
     }
 
@@ -113,8 +129,8 @@ def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
         # These terminal values would make macro_improvement reject the
         # mappings if the production caller forgot to filter layer 12.
         direct[12] = [100.0] * 2048
-        tuned[12] = [-100.0] * 2048
-        shuffled[12] = [-50.0] * 2048
+        tuned[12] = [0.0] * 2048
+        shuffled[12] = [50.0] * 2048
         return (
             translators,
             translators,
@@ -140,6 +156,7 @@ def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
     monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
     monkeypatch.setenv("LATENT_ANYTHING_NETWORK_DEVICE", "cuda")
     monkeypatch.setattr(tuned_lens, "read_manifest", lambda _path: (manifest, "raw"))
+    monkeypatch.setattr(validator, "read_manifest", lambda _path: (manifest, "raw"))
     monkeypatch.setattr(tuned_lens, "load_selected_rows", lambda _path, **_kwargs: selected)
     monkeypatch.setattr(tuned_lens, "_fit_and_evaluate", fake_fit_and_evaluate)
 
@@ -154,6 +171,24 @@ def test_production_runner_filters_terminal_layer_from_evaluator_outputs(
     assert result["acceptance"] is True
     assert result["raw_summaries"][0]["native_layers"] == list(native_layers)
     assert all(row["macro_improvement"] == 1.0 for row in result["raw_summaries"][0]["rows"])
+
+    from scripts._m14_l04_fixture_contract import read_fixture
+
+    fixture_raw, fixture_rows = read_fixture(Path("artifacts/m14/l04-prompt-factor-fixture.jsonl"))
+    artifact = build_artifact(
+        load_plan(),
+        fixture_metadata(load_plan(), fixture_raw, fixture_rows),
+        "TunedLogitLens",
+        result["status"],
+        "l04-explanations.TunedLogitLens.attempt-regression.failure.json",
+        execution_result=result,
+        resources=result["resources"],
+    )
+    assert artifact["executions"][3]["seed"] == 79
+    assert artifact["executions"][3]["layer"] == 6
+    from scripts._m14_l04_validate import validate_artifact
+
+    assert validate_artifact(artifact, load_plan()) == []
 
 
 def test_terminal_projection_is_not_double_normalized() -> None:
@@ -306,6 +341,79 @@ def test_fit_reuses_one_model_forward_per_corpus_batch() -> None:
     assert model.forward_count == (5 + BATCH_SIZE - 1) // BATCH_SIZE
 
 
+def test_shuffled_target_uses_common_source_and_target_mask_for_fit_and_evaluation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from scripts import _m14_l04_tuned_lens as tuned_lens
+
+    source_mask = torch.tensor([[True, True, False]])
+    target_mask = torch.tensor([[True, False, False]])
+    source_hidden = tuple(torch.tensor([[[1.0, 0.0], [0.0, 1.0], [9.0, 9.0]]]) for _ in range(13))
+    source_teacher = torch.tensor([[[3.0, 0.0, 0.0, 0.0], [0.0, 3.0, 0.0, 0.0], [0.0, 0.0, 3.0, 0.0]]])
+    target_teacher = source_teacher.clone()
+    target_teacher[:, 1:, :] = torch.tensor([[[100.0, -100.0, 50.0, -50.0], [-80.0, 70.0, -60.0, 90.0]]])
+
+    class _Model(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.transformer = torch.nn.Module()
+            self.transformer.ln_f = torch.nn.Identity()
+            self.lm_head = torch.nn.Linear(2, 4, bias=False)
+
+    model = _Model()
+    batches = [
+        (source_mask, source_hidden, source_teacher, target_mask, source_hidden, target_teacher),
+    ]
+    monkeypatch.setattr(tuned_lens, "_paired_batches", lambda *_args, **_kwargs: iter(batches))
+    seen_masks: list[torch.Tensor] = []
+    original_kl = tuned_lens._kl_loss  # pyright: ignore[reportPrivateUsage]  # deliberate white-box mask-observation seam
+
+    def recording_kl(teacher: Any, predicted: Any, mask: Any, torch_module: Any) -> Any:
+        seen_masks.append(mask.detach().cpu().clone())
+        return original_kl(teacher, predicted, mask, torch_module)
+
+    monkeypatch.setattr(tuned_lens, "_kl_loss", recording_kl)
+    tuned_lens.fit_translators(
+        model=model,
+        integration=object(),
+        source_texts=["source"],
+        shuffled_texts=["target"],
+        max_length=3,
+        device=torch.device("cpu"),
+        torch=torch,
+    )
+    expected_common_mask = source_mask & target_mask
+    assert seen_masks[1] is not None
+    assert all(torch.equal(mask, expected_common_mask) for mask in seen_masks[1::2])
+
+    identity = {layer: torch.nn.Identity() for layer in range(12)}
+
+    def evaluate_with(target_logits: torch.Tensor) -> tuple[Any, ...]:
+        current = [
+            (source_mask, source_hidden, source_teacher, target_mask, source_hidden, target_logits),
+        ]
+        monkeypatch.setattr(tuned_lens, "_paired_batches", lambda *_args, **_kwargs: iter(current))
+        return tuned_lens.evaluate_translators(
+            model=model,
+            integration=object(),
+            texts=["source"],
+            shuffled_texts=["target"],
+            translators=identity,
+            shuffled_translators=identity,
+            max_length=3,
+            device=torch.device("cpu"),
+            torch=torch,
+        )
+
+    baseline = evaluate_with(target_teacher)
+    altered_padding = target_teacher.clone()
+    altered_padding[:, 1:, :] *= 17.0
+    altered = evaluate_with(altered_padding)
+    repeated = evaluate_with(target_teacher)
+    assert baseline == altered == repeated
+    assert baseline[1] == altered[1]
+
+
 def test_tuned_lens_injected_dispatch_remains_non_eligible(tmp_path: Path) -> None:
     from scripts.m14_l04_explanations import run_real
 
@@ -437,6 +545,7 @@ def _validator_fixture(
         "fit_layers": list(FITTED_LAYERS),
         "native_layers": list(NATIVE_LAYERS),
         "objective": "tokenwise KL(p_true || q_translated) in nats over every non-padding position",
+        "shuffled_target_mask_policy": "source_attention_mask & permuted_target_attention_mask",
         "optimizer": "AdamW",
         "epochs": 1,
         "batch_size": 4,
@@ -571,6 +680,20 @@ def test_validator_rejects_claimed_tuned_acceptance_without_enabled_network(
         {"model": {"id": "model", "revision": "revision"}, "thresholds_and_controls": {"lens": {}}},
     )
     assert errors
+
+
+def test_validator_rejects_unbound_shuffled_target_mask_policy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from scripts import _m14_l04_validate_tuned_lens as validator
+
+    entry, artifact, manifest = _validator_fixture()
+    monkeypatch.setattr(validator, "read_manifest", lambda _path: (manifest, "raw"))
+    entry["provenance"]["shuffled_target_mask_policy"] = "source_attention_mask"
+    errors = validator.validate_real_tuned_lens_execution(
+        entry, artifact, {"model": {"id": "model", "revision": "revision"}, "thresholds_and_controls": {"lens": {}}}
+    )
+    assert any("optimizer/dataset/manifest provenance" in error for error in errors)
 
 
 @pytest.mark.parametrize("bad_value", [None, True, "bad", float("nan"), float("inf")])

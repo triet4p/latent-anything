@@ -94,6 +94,7 @@ def build_artifact(
             "target_token_strings",
             "layer",
             "native_hidden_state_index",
+            "seed",
             "seeds",
             "no_mutation",
         ):

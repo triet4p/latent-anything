@@ -19,6 +19,7 @@ from scripts._m14_l04_tuned_lens import (
     MAX_GPU_BYTES,
     MAX_RSS_BYTES,
     NATIVE_LAYERS,
+    SHUFFLED_TARGET_MASK_POLICY,
 )
 from scripts._m14_l04_tuned_lens_metrics import improvement_metric
 from scripts._m14_l04_wikitext_runtime import read_manifest
@@ -153,6 +154,7 @@ def _validate_real_tuned_lens_execution(
             "fit_layers": list(FITTED_LAYERS),
             "native_layers": list(NATIVE_LAYERS),
             "objective": "tokenwise KL(p_true || q_translated) in nats over every non-padding position",
+            "shuffled_target_mask_policy": SHUFFLED_TARGET_MASK_POLICY,
             "optimizer": "AdamW",
             "epochs": 1,
             "batch_size": 4,
