@@ -1,0 +1,151 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "2a6de8dbb98f824b247da23e2bc1e3cea5efea3a",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 2,
+    "remote_wrapper_exit": 2,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "transport_diagnostic": "The exact detached SHA, nvidia-smi, dependency/CUDA preflight, model load, dataset provisioning, and TunedLogitLens execution completed. The CLI returned L04_STATUS=1 because the artifact validator rejected the real execution record for missing fit seed linkage. The cleanup trap emitted one exact L04_CLEANUP=PASS, then Bash reported a numeric-argument error while preserving the non-zero status; no retry was authorized."
+  },
+  "forensic_findings": {
+    "validator": {
+      "errors": [
+        "tuned lens layer/seed linkage is invalid"
+      ],
+      "cause": "The accepted TunedLogitLens execution entry records layer 6, native hidden-state index 7, and bootstrap seeds [17, 29, 41, 53, 67], but omits the required fit seed 79. The real provenance records fit_seed=79.",
+      "validator_result": "validate_artifact failed; validate_run_record and validate_failure passed"
+    },
+    "remote_wrapper": {
+      "observed_error": "bash: line 99: exit: 1 followed by : numeric argument required",
+      "semantic_execution_completed": true,
+      "cleanup_marker_exact": true
+    }
+  },
+  "marker_audit": {
+    "singleton_gate": "PASS for emitted wrapper markers; remote shell emitted a post-status numeric-argument error",
+    "security_singletons": {
+      "L04_SOURCE_SHA_VERIFIED": true,
+      "L04_NVIDIA_SMI": "pass; NVIDIA GeForce RTX 4060 Ti; driver 580.126.20; CUDA 13.0",
+      "L04_PREFLIGHT": "pass; datasets 4.8.5; transformers 4.57.6; tokenizers 0.22.2; huggingface-hub 0.35.3; torch 2.10.0+cu128; CUDA available",
+      "L04_USE_CASE": "TunedLogitLens",
+      "L04_CODE_SHA": "2a6de8dbb98f824b247da23e2bc1e3cea5efea3a",
+      "L04_STATUS": "1",
+      "L04_BUNDLE": "present; base64 markers emitted",
+      "L04_REMOTE_TRAP_CLEANUP": "PASS"
+    }
+  },
+  "raw_capture": {
+    "capture_id": "TunedLogitLens-recovery-attempt-1-2a6de8d",
+    "bytes": 5162543,
+    "sha256": "de097a5c48f87a3cc768596a3a5d88afa4826370d515bb0417f395e8f0620b77",
+    "crlf_line_count": 135,
+    "deletion_verified": true
+  },
+  "sanitization": {
+    "scan_result": "PASS; the decoded audit excludes the opaque base64 bundle payload and contains no secrets, credentials, corpus text, prompt literals, logits, hidden states, or model payload",
+    "raw_capture_scan": {
+      "secret_or_credential_matches": 0,
+      "corpus_text_matches": 0,
+      "prompt_literal_matches": 0,
+      "logit_payload_matches": 0,
+      "hidden_state_payload_matches": 0,
+      "model_or_dataset_payload_matches": 0
+    },
+    "raw_capture_sha256_verified": true,
+    "raw_capture_size_verified": true,
+    "sanitized_record_verified_before_raw_deletion": true
+  },
+  "bundle": {
+    "archive_bytes": 1355985,
+    "archive_sha256": "6a87f9b84a525463de39fdb28198c200de055cadce4cab7f51dbcc4b2f700651",
+    "member_count": 41,
+    "new_members": [
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.failure.json",
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.partial.json",
+      "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.run.json"
+    ],
+    "path_traversal_count": 0,
+    "exact_member_gate": "PASS; archive decoded and contained the three new attempt3 outputs plus retained prior L04 evidence members"
+  },
+  "semantic_result": {
+    "classification": "real_cuda_execution_validator_failure",
+    "execution_status": "passed_real_cuda",
+    "evidence_level": "D3 attempted; validator-rejected",
+    "evidence_eligible": false,
+    "model_loaded": true,
+    "dataset_loaded": true,
+    "cli_invocation_reached": true,
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "dataset": "Salesforce/wikitext@f776294184f13b8ff2337b3841cf9269a6216d1e / wikitext-2-raw-v1",
+    "device": "NVIDIA GeForce RTX 4060 Ti; CUDA 13.0 driver environment; torch CUDA 12.8 build",
+    "runtime_versions": {
+      "python": "3.13.12",
+      "torch": "2.10.0",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "datasets": "4.8.5",
+      "huggingface-hub": "0.35.3",
+      "numpy": "2.4.6"
+    },
+    "metrics_summary": {
+      "tuned_holdout_kl_improvement_nats": 6.580388080637628,
+      "tuned_holdout_calibration_ci_lower_nats": 6.539900897599401,
+      "fit_seed": 79,
+      "bootstrap_seeds": [17, 29, 41, 53, 67],
+      "train_rows": 8192,
+      "validation_rows": 2048,
+      "controls": "direct/affine lens finite, shuffled translator target, terminal post-ln_f parity, and train/holdout separation all recorded passing in the artifact"
+    },
+    "resource_peak": {
+      "elapsed_seconds": 1180.887760314159,
+      "max_rss_bytes": 2166382592,
+      "max_memory_allocated_bytes": 2167476736,
+      "max_memory_reserved_bytes": 2776629248,
+      "budget_pass": true
+    },
+    "validator_blocker": "The execution entry omitted seed=79; do not promote the artifact until the validator-consistent source fix is reviewed and a newly authorized run is performed."
+  },
+  "artifacts": {
+    "partial_path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.partial.json",
+    "partial_bytes": 3331576,
+    "partial_sha256": "d00ca9bd4ab4799a8d128d1bf22b366758adaeccf9da16021953fd703e3d6cc6",
+    "run_path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.run.json",
+    "run_bytes": 5452,
+    "run_sha256": "8f9676e0535e1e306946aef3a28dfbd4d36fd3ebfc580bde93619a77ae7efa0e",
+    "failure_path": "artifacts/m14/l04-explanations.TunedLogitLens.attempt3.failure.json",
+    "failure_bytes": 10651,
+    "failure_sha256": "86e4fb9eea59553bd9a703c757f5c2fb04312633bc4077ca1f1aa92dd6e8fa0a",
+    "internal_artifact_sha256": "44109d60262bd9248f4cc94d87211235f4c84a5c03788668679901a3f1c40a45",
+    "internal_run_record_sha256": "b3cd510abed20b4b03174c157073e55c462827a14ee8d9815b4e5bd50b03a91f"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "remote trap emitted exact L04_CLEANUP=PASS",
+    "local_extract": "temporary bundle extraction and archive removed after audit verification",
+    "raw_retained": false,
+    "raw_deleted_after_sanitized_record": true,
+    "raw_deletion_verified": true,
+    "raw_deletion": "Deleted after exact size/SHA verification and sanitized audit validation; post-delete absence verified.",
+    "closure_commit_or_push": false
+  },
+  "command": "uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl",
+  "environment": {
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "dataset": "Salesforce/wikitext@f776294184f13b8ff2337b3841cf9269a6216d1e / wikitext-2-raw-v1",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "network": "enabled",
+    "model_revision_execution": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "dataset_revision_execution": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+  },
+  "no_retry": true
+}

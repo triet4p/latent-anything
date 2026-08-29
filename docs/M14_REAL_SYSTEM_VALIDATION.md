@@ -106,6 +106,22 @@ execution and failed D0 at tuned-lens aggregation; corrected code awaits a
 separately authorized validation run at a new SHA. Local CPU commands are
 contract/unit checks only.
 
+The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
+the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
+improvement, `6.5399008976` nats conservative lower bound, passing controls,
+and passing resource caps on an RTX 4060 Ti (`1180.8877603` seconds,
+`2167476736` allocated CUDA bytes, `2166382592` RSS bytes). It is still
+D0/evidence-ineligible: artifact validation rejected the execution entry
+because artifact assembly dropped the singular fit `seed=79` while retaining
+bootstrap seeds. The same historical run also exposed that the shuffled-target
+control must mask `source_attention_mask & permuted_target_attention_mask`;
+the local correction and validator provenance binding are now covered by
+regressions. The remote wrapper emitted cleanup PASS, then its CRLF-sensitive
+status encoding produced outer SSH exit `2`; this is transport evidence, not a
+semantic rerun or promotion. The three attempt3 payload files are retained
+byte-for-byte and are not rewritten; the sanitized recovery audit received
+only the scoped failure SHA metadata correction recorded in the task summary.
+
 #### TunedLogitLens operational override (owner-approved)
 
 The frozen plan remains immutable. Its remote command predates the pinned
@@ -175,6 +191,9 @@ CLI with the same exact `uv` prefix:
 ```powershell
 $remoteScript = @'
 set -eu -o pipefail
+RemoteScriptSha="${4:?missing remote script sha256}"
+echo L04_REMOTE_SCRIPT_START=PASS
+echo L04_REMOTE_SCRIPT_SHA256="$RemoteScriptSha"
 UseCase="$1"
 CodeSha="$2"
 RepoUrl="$3"
@@ -274,12 +293,28 @@ echo L04_CODE_SHA="$CodeSha"
 echo L04_STATUS="$status"
 exit "$status"
 '@
-$remoteScript = $remoteScript -replace "`r`n", "`n"
-$remoteScript | ssh.exe $remoteTarget 'bash -s --' $UseCase $CodeSha $RepoUrl 2>&1 | Tee-Object -FilePath $rawCapture
+$remoteScript = $remoteScript.Replace("`r`n", "`n").Replace("`r", "`n")
+$utf8NoBom = [Text.UTF8Encoding]::new($false)
+$remoteScriptBytes = $utf8NoBom.GetBytes($remoteScript)
+$remoteScriptSha256 = [Convert]::ToHexString(
+    [Security.Cryptography.SHA256]::HashData($remoteScriptBytes)
+).ToLowerInvariant()
+$remoteScriptBase64 = [Convert]::ToBase64String($remoteScriptBytes)
+$remoteScriptBase64 | ssh.exe $remoteTarget 'base64 -d | bash -s --' $UseCase $CodeSha $RepoUrl $remoteScriptSha256 2>&1 | Tee-Object -FilePath $rawCapture
 $sshExit = $LASTEXITCODE
 ```
 
-The wrapper contract is intentionally complete: it clones the repository with
+The wrapper contract is intentionally complete: PowerShell computes the
+SHA-256 over the exact UTF-8/no-BOM/LF bytes, encodes those bytes with
+`ConvertToBase64String`, and sends the ASCII envelope through one direct
+authenticated `ssh.exe` invocation. The remote `base64 -d | bash -s --`
+decoder emits a start marker and the announced local script digest before it
+executes the decoded bytes. The digest marker binds the capture to the local
+payload; the raw capture must retain that marker and the local hash in its
+sanitized audit. This avoids native PowerShell stdin newline and nested-quote
+rewrites while allowing the decoder to ignore a transport newline.
+
+The wrapper then clones the repository with
 `--no-checkout`, checks out and verifies the exact detached SHA, and places the
 UV, Hugging Face, `datasets`, and `transformers` caches under the temporary
 workdir. Every trap variable is initialized before the trap is installed.
@@ -292,10 +327,12 @@ bundle), verifies the path is absent, emits PASS only when removal and absence
 checks succeed, emits FAIL otherwise, and preserves a non-zero prior command
 exit.
 
-Do not use `python -c`, escaped `printf` marker emitters, or nested remote
-command quoting for this workflow: PowerShell/native parsing can strip quotes,
-backslashes, and intended newlines before Bash receives the script. Markers
-must use `echo`; the cleanup function may emit `L04_CLEANUP=PASS` only after the
+Do not use raw multiline PowerShell stdin, `python -c`, escaped `printf` marker
+emitters, or nested remote command quoting for this workflow:
+PowerShell/native parsing can strip quotes, backslashes, and intended newlines
+before Bash receives the script. The only accepted transport is the
+LF-normalized UTF-8/no-BOM base64 envelope above. Markers must use `echo`; the
+cleanup function may emit `L04_CLEANUP=PASS` only after the
 temporary file removal succeeds. Transport remains direct authenticated
 `ssh.exe` from Windows PowerShell to the disposable detached clone; do not use
 Git Bash or WSL. Capture `2>&1 | Tee-Object`, persist and hash raw bytes before

@@ -219,7 +219,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
-| `THY-T05-LOGIT-LENS-TUNED-LENS` | D0 | yes | yes | D3 | L04 | Benchmark-only row lacks layerwise model artifact |
+| `THY-T05-LOGIT-LENS-TUNED-LENS` | D0 | yes | yes | D3 | L04 | Real CUDA computation and controls passed, but retained attempt3 is validator-rejected/D0 because artifact assembly omitted fit seed 79; corrected source awaits owner-reviewed rerun |
 | `THY-T06-STOCHASTIC-TRANSITION` | D0 | yes | no | D2 | L15 | Later implementation evidence is not mapped to this ID |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
 | `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |

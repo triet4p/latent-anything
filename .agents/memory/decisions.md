@@ -929,3 +929,10 @@ validator can independently recompute every control pass flag.
 
   Alternatives rejected: MSE-only fitting, fixture substitution, layerwise-only
   acceptance, and caching all hidden/logit tensors.
+
+## [2026-08-29] Mask shuffled tuned-lens targets by the common valid-token set
+
+**Decision:** Compute the shuffled-target control only at positions valid in both the source attention mask and the permuted target attention mask.
+**Alternatives considered:** Reuse the source mask, use only the target mask, or silently pad/truncate the target to the source shape.
+**Reason:** The control compares source hidden states with a permuted target teacher; source-only masking can score target padding as real supervision when variable-length rows are paired. The intersection preserves the frozen architecture, objective, permutation, and seed while making the control semantically valid.
+**Consequences:** Fit and evaluation must use the exact intersection policy, provenance must name it, and regression tests must demonstrate that padded target logits cannot change the control or the main tuned metric.

@@ -540,3 +540,24 @@ TunedLogitLens CLI invocation.
 **Watch out for:** Treat an ad-hoc overlay incompatibility as setup D0 with no
 semantic metrics; do not infer model/dataset execution from successful clone,
 GPU, or package-download steps.
+
+## [2026-08-29] Artifact assembly can drop execution-level seed linkage
+
+**Symptom:** A real TunedLogitLens computation produced passing metrics and resource measurements, but the accepted execution entry failed independent validation because it contained only bootstrap seeds and omitted fit seed 79.
+**Root cause:** The production artifact builder copied the plural `seeds` field without copying the singular `seed` field from the execution result.
+**Fix / workaround:** Copy `seed` at the execution boundary and exercise a successful real-run-shaped payload through `build_artifact()` and the full validator.
+**Watch out for:** Any new result field that is present in a handler payload but must also survive artifact assembly; test execution and record linkage separately.
+
+## [2026-08-29] Shuffled target padding is not valid supervision
+
+**Symptom:** The shuffled-target tuned-lens control reused the source mask, allowing positions that were padding in a variable-length permuted target to enter the fit or metric.
+**Root cause:** Paired source and permuted target rows can have different attention-mask shapes even when tensors are padded to one batch length.
+**Fix / workaround:** Use the intersection `source_attention_mask & permuted_target_attention_mask` for shuffled fit and evaluation, bind the policy in provenance, and test invariance to padded target logits.
+**Watch out for:** Do not apply the intersection to the main direct/tuned source metrics; only the shuffled target teacher requires both masks.
+
+## [2026-08-29] Base64 is required for PowerShell-to-Bash L04 transport
+
+**Symptom:** Raw PowerShell multiline stdin transported CRLF and nested quoting artifacts into Bash, producing a numeric-argument SSH exit error after semantic execution and cleanup.
+**Root cause:** Native PowerShell pipeline serialization and remote shell parsing rewrote script bytes and status markers before Bash interpreted them.
+**Fix / workaround:** Normalize all CR to LF, encode exact UTF-8 without BOM bytes with `ConvertToBase64String`, pipe the ASCII envelope to `ssh.exe target 'base64 -d | bash -s --'`, and retain local digest plus remote start markers.
+**Watch out for:** Keep the embedded remote status, cleanup marker, and outer `$LASTEXITCODE` as separate evidence fields; a transport exit 2 after cleanup is not a semantic rerun.

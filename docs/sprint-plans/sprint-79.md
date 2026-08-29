@@ -161,6 +161,25 @@ Status legend: [ ] pending / [~] in progress / [x] done
   emitted, and SSH/wrapper exits were both `1`. The sanitized audit and exit
   remain D0 fixtures after verified raw deletion. L04.7 remains D0 and
   unpromoted.
+- [x] Close the L04.7 post-real-run correction locally: production artifact
+  assembly now preserves execution-level fit `seed=79` alongside the five
+  bootstrap seeds, the shuffled-target fit/evaluation mask is explicitly
+  `source_attention_mask & permuted_target_attention_mask`, and the validator
+  binds that policy in provenance. A realistic successful-run regression now
+  sends the actual `run_tuned_logit_lens()` payload through `build_artifact()`
+  and the full validator; a variable-length regression proves padded shuffled
+  target positions cannot affect fit/evaluation metrics or determinism. The
+  latest retained SHA `2a6de8d` real CUDA computation recorded tuned holdout
+  improvement `6.5803880806` nats, conservative lower bound `6.5399008976`
+  nats, all declared controls passing, and resource budget passing on an RTX
+  4060 Ti (`1180.8877603` s, `2167476736` allocated bytes,
+  `2166382592` RSS bytes), but remains D0/evidence-ineligible because the
+  execution artifact omitted the singular fit seed. Its cleanup marker passed;
+  the outer SSH transport exited `2` after the wrapper's CRLF-sensitive numeric
+  status error. The attempt3 artifact/run/failure and sanitized recovery audit
+  remain byte-preserved historical payload evidence; the sanitized recovery
+  audit has only its scoped failure SHA metadata corrected, with no payload
+  rewrite, promotion, or rerun claimed.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
