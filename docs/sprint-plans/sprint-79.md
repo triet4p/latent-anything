@@ -154,7 +154,13 @@ Status legend: [ ] pending / [~] in progress / [x] done
   sanitized audit and exit record are retained after verified raw-capture
   deletion; cleanup remains unverified. The next run must use the owner-
   approved exact-`uv` override and the LF-normalized temp-`preflight.py`
-  protocol in the M14 validation procedure. L04.7 remains D0 and unpromoted.
+  protocol in the M14 validation procedure. The latest SHA3273 recovery then
+  failed during preflight because an ad-hoc `datasets` overlay selected
+  `huggingface-hub==1.26.0`, incompatible with `transformers==4.57.6`; its
+  CLI/model/dataset path was not reached or planned, one exact cleanup PASS was
+  emitted, and SSH/wrapper exits were both `1`. The sanitized audit and exit
+  remain D0 fixtures after verified raw deletion. L04.7 remains D0 and
+  unpromoted.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

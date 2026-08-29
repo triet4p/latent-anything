@@ -1,0 +1,101 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "3273b23bc4b490114518559a994ef5e50523524a",
+  "use_case": "TunedLogitLens",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": null,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "remote_target": "trietlm@192.168.30.244",
+    "remote_hostname": "di-server",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 1,
+    "remote_wrapper_exit": 1,
+    "command_count": 1,
+    "result_count": 0,
+    "bundle_result_count": 0,
+    "transport_diagnostic": "The exact detached SHA clone and nvidia-smi preflight succeeded. The exact uv environment provisioned datasets==4.8.5, but the preflight stopped importing transformers because huggingface-hub==1.26.0 violated transformers' requirement huggingface-hub>=0.34.0,<1.0. The TunedLogitLens CLI was not reached and no retry was authorized."
+  },
+  "marker_audit": {
+    "singleton_gate": "FAIL; preflight stopped before semantic and bundle markers",
+    "observed_exact_markers": {
+      "L04_CLEANUP=PASS": 1
+    },
+    "missing_required_markers": [
+      "L04_REMOTE_SHA exact line",
+      "L04_USE_CASE",
+      "L04_CODE_SHA",
+      "L04_STATUS",
+      "L04_BUNDLE_B64_BEGIN",
+      "L04_BUNDLE_B64_END"
+    ],
+    "malformed_observations": []
+  },
+  "raw_capture": {
+    "capture_id": "TunedLogitLens-recovery-attempt-1-3273b23",
+    "bytes": 6520,
+    "sha256": "de202995badfeef9de3d2bdd145ca0194848ab4104af6f143ff5b390e6cd4702",
+    "crlf_line_count": 129,
+    "deletion_verified": true
+  },
+  "sanitization": {
+    "scan_result": "PASS; sanitized audit contains no secrets, credentials, corpus text, prompt literals, logits, hidden states, or model payload",
+    "raw_capture_scan": {
+      "secret_or_credential_matches": 0,
+      "corpus_text_matches": 0,
+      "prompt_literal_matches": 0,
+      "logit_payload_matches": 0,
+      "hidden_state_payload_matches": 0,
+      "model_or_dataset_payload_matches": 0
+    },
+    "raw_capture_sha256_verified": true,
+    "raw_capture_size_verified": true,
+    "sanitized_record_verified_before_raw_deletion": true
+  },
+  "bundle": {
+    "member_count": 0,
+    "members": [],
+    "archive_created": false,
+    "exact_member_gate": "NOT REACHED; preflight failed before capture and bundle extraction"
+  },
+  "semantic_result": {
+    "classification": "setup_or_protocol_failure",
+    "execution_status": "not_run",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "model_loaded": false,
+    "dataset_loaded": false,
+    "cli_invocation_reached": false,
+    "preflight_error": "ImportError: huggingface-hub>=0.34.0,<1.0 is required for a normal functioning of transformers, but found huggingface-hub==1.26.0",
+    "semantic_metrics": null,
+    "bootstrap": null,
+    "resource_budget": "not measured; no model execution",
+    "network": "enabled for disposable clone/package provisioning; no semantic model or dataset request reached"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "wrapper emitted one exact L04_CLEANUP=PASS after removing and checking the full workdir",
+    "local_extract": "none; bundle was not created",
+    "raw_retained": false,
+    "raw_deleted_after_sanitized_record": true,
+    "raw_deletion_verified": true,
+    "raw_deletion": "Deleted after exact size/SHA verification; post-delete absence verified.",
+    "closure_commit_or_push": false
+  },
+  "command": "uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl",
+  "environment": {
+    "python": "CPython 3.13.12",
+    "torch": "import reached but version not emitted before transformer failure",
+    "transformers": "import failed before version emission",
+    "huggingface_hub": "1.26.0",
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "dataset": "Salesforce/wikitext@f776294184f13b8ff2337b3841cf9269a6216d1e / wikitext-2-raw-v1; corpus load not reached",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "cuda": "nvidia-smi passed; torch.cuda.is_available assertion not reached",
+    "model_revision_execution": "not reached",
+    "dataset_revision_execution": "not reached"
+  },
+  "no_retry": true
+}

@@ -145,10 +145,15 @@ the owner-approved operational override is the exact command in the [M14
 validation procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
 
 ```text
-uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-Its import/version/CUDA preflight must use the identical `uv` environment. The
+The remote import/version/CUDA preflight must use the identical `uv` environment
+and all four exact package constraints. A local PowerShell preflight using a
+safe temporary `.py` file (never `python -c`) is mandatory before SSH for
+dependency/import compatibility only; it does not require local CUDA. The
+recorded diagnostic passed `datasets==4.8.5`, `transformers==4.57.6`,
+`tokenizers==0.22.2`, and `huggingface-hub==0.35.3`. The
 complete wrapper contract is in the [M14 operational
 procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
 an LF-normalized PowerShell script is piped directly to
@@ -165,6 +170,15 @@ because native PowerShell parsing can strip quotes/backslashes and corrupt the
 script. Raw stdout/stderr is hashed before parsing. The attempt2
 artifact/run/failure files and sanitized SSH audit are required committed
 fixtures for the validator regression and remain setup D0 only.
+
+The latest SHA `3273b23bc4b490114518559a994ef5e50523524a` is also setup D0:
+the preflight stopped because an ad-hoc `datasets` overlay selected
+`huggingface-hub==1.26.0`, incompatible with `transformers==4.57.6`. The CLI,
+model, and WikiText corpus were not reached or planned; no semantic metrics,
+gates, bootstrap, or resources exist. One exact `L04_CLEANUP=PASS` was emitted,
+SSH and wrapper exits were both `1`, and the raw capture was sanitized and
+deleted after audit verification. Its audit and one-byte exit remain retained
+D0 fixtures.
 
 The latest SHA515fe protocol-failure audit records the CRLF raw capture
 (7,140 bytes; SHA-256

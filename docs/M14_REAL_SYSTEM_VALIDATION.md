@@ -115,11 +115,57 @@ operational override for TunedLogitLens; it must be run in the same isolated
 rewrite the frozen plan:
 
 ```text
-uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-Before that invocation, assert imports, versions, and CUDA availability in the
-exact same environment (and fail before model loading if the assertion fails).
+Before opening SSH, a local PowerShell preflight is mandatory. It checks
+dependency resolver/import compatibility only; it deliberately does not require
+local CUDA and is not real-model evidence. Write a safe temporary `.py` file
+with a literal single-quoted here-string, run it with the exact resolver prefix
+below, and never use `python -c` or nested command quoting. The recorded local
+diagnostic passed the compatible versions `datasets==4.8.5`,
+`transformers==4.57.6`, `tokenizers==0.22.2`, and
+`huggingface-hub==0.35.3`:
+
+```powershell
+$localPreflightFile = (New-TemporaryFile).FullName
+$localPreflightSource = @'
+from importlib.metadata import version
+
+import datasets
+import huggingface_hub
+import tokenizers
+import transformers
+
+expected = {
+    "datasets": "4.8.5",
+    "transformers": "4.57.6",
+    "tokenizers": "0.22.2",
+    "huggingface-hub": "0.35.3",
+}
+observed = {package: version(package) for package in expected}
+assert observed == expected, (observed, expected)
+print(observed)
+'@
+[IO.File]::WriteAllText(
+    $localPreflightFile,
+    $localPreflightSource,
+    [Text.UTF8Encoding]::new($false)
+)
+try {
+    & uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python $localPreflightFile
+    $localPreflightExit = $LASTEXITCODE
+    if ($localPreflightExit -ne 0) {
+        throw "Local preflight failed with exit $localPreflightExit"
+    }
+} finally {
+    Remove-Item -LiteralPath $localPreflightFile -Force -ErrorAction SilentlyContinue
+}
+```
+
+The remote heredoc must additionally assert imports, versions, and CUDA
+availability in that exact same environment, failing before model loading if the
+assertion fails.
 The transport wrapper must use the following robust pattern: construct the
 remote Bash script in PowerShell, normalize it to LF, and pipe it directly to
 `ssh.exe` with `target 'bash -s --'`. On the remote side, create a temporary
@@ -182,18 +228,29 @@ export LATENT_ANYTHING_RUN_NETWORK=1
 export LATENT_ANYTHING_NETWORK_DEVICE=cuda
 
 cat > "$preflight_file" <<'PY'
+from importlib.metadata import version
+
 import datasets
+import huggingface_hub
+import tokenizers
 import torch
 import transformers
 
-assert datasets.__version__ == "4.8.5"
+expected = {
+    "datasets": "4.8.5",
+    "transformers": "4.57.6",
+    "tokenizers": "0.22.2",
+    "huggingface-hub": "0.35.3",
+}
+observed = {package: version(package) for package in expected}
+assert observed == expected
 assert torch.cuda.is_available()
-print("datasets", datasets.__version__, "torch", torch.__version__, "transformers", transformers.__version__)
+print(observed, "torch", torch.__version__)
 PY
-uv run --locked --extra transformers --with 'datasets==4.8.5' python "$preflight_file"
+uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python "$preflight_file"
 echo L04_USE_CASE="$UseCase"
 status=0
-if uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case "$UseCase" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl 2>&1 | tee "$capture_file"; then
+if uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case "$UseCase" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl 2>&1 | tee "$capture_file"; then
   status=0
 else
   status=${PIPESTATUS[0]}

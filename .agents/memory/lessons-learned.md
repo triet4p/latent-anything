@@ -523,3 +523,20 @@ use `echo` markers; emit cleanup PASS only after `rm` succeeds; and capture
 **Watch out for:** Any change that reintroduces inline Python or an escaped
 marker in the remote wrapper. A transport failure is D0 with no semantic
 metrics, regardless of where the remote transcript stopped.
+
+## [2026-08-29] Pin the full Transformers resolver for TunedLogitLens
+
+**Symptom:** The SHA3273 recovery provisioned `datasets==4.8.5` through an
+ad-hoc overlay, but resolved `huggingface-hub==1.26.0`; importing
+`transformers==4.57.6` then failed before the CLI, model, or corpus path.
+**Root cause:** Pinning only `datasets` left the overlay resolver free to pick a
+Hub release incompatible with the Transformers release used by the project.
+**Fix / workaround:** Before SSH, run a local PowerShell preflight from a safe
+temporary `.py` file (never `python -c`) and assert all four metadata versions:
+`datasets==4.8.5`, `transformers==4.57.6`, `tokenizers==0.22.2`, and
+`huggingface-hub==0.35.3`. Use the identical full `uv run --locked --extra
+transformers --with ...` prefix for the remote heredoc preflight and the sole
+TunedLogitLens CLI invocation.
+**Watch out for:** Treat an ad-hoc overlay incompatibility as setup D0 with no
+semantic metrics; do not infer model/dataset execution from successful clone,
+GPU, or package-download steps.

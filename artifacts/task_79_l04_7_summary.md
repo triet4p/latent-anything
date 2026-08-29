@@ -86,11 +86,16 @@ TunedLogitLens run is documented in
 [`M14_REAL_SYSTEM_VALIDATION.md`](../docs/M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
 
 ```text
-uv run --locked --extra transformers --with 'datasets==4.8.5' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
 ```
 
-The preflight import/version/CUDA assertion must use that identical `uv`
-prefix. The complete wrapper contract is in the [M14 operational
+The remote preflight import/version/CUDA assertion must use that identical `uv`
+prefix, including all four exact package constraints. Before SSH, a local
+PowerShell preflight using a safe temporary `.py` file (never `python -c`) is
+mandatory for dependency/import compatibility only; it does not require local
+CUDA. The recorded diagnostic passed the compatible versions
+`datasets==4.8.5`, `transformers==4.57.6`, `tokenizers==0.22.2`, and
+`huggingface-hub==0.35.3`. The complete wrapper contract is in the [M14 operational
 procedure](../docs/M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
 an LF-normalized PowerShell script is piped directly to
 `ssh.exe target 'bash -s --' ...`; it creates a temporary `preflight.py` with a single-quoted
@@ -103,6 +108,15 @@ exports `LATENT_ANYTHING_RUN_NETWORK=1` and
 `$LASTEXITCODE` immediately. `python -c`, escaped `printf`, and
 nested remote command quoting are forbidden because native PowerShell parsing
 can strip quotes/backslashes and corrupt the remote script.
+
+The latest SHA `3273b23bc4b490114518559a994ef5e50523524a` recovery is a setup
+D0. Its preflight imported the isolated environment but stopped because an
+ad-hoc `datasets` overlay resolved `huggingface-hub==1.26.0`, incompatible with
+`transformers==4.57.6`; the CLI, model, and WikiText corpus were not reached or
+planned, and no semantic metrics, gates, bootstrap, or resources exist. The
+wrapper emitted one exact `L04_CLEANUP=PASS`, while SSH and wrapper exits were
+both `1`; the raw capture was sanitized and deleted after verification. The
+sanitized audit and one-byte exit are retained as D0 fixtures.
 
 The latest SHA `515fe06855efaadc9607be0de9753fd2a1c015e3` recovery is recorded
 in the sanitized [audit](../artifacts/m14/l04-explanations.ssh.TunedLogitLens.515fe06855efaadc9607be0de9753fd2a1c015e3.recovery.audit.json)
