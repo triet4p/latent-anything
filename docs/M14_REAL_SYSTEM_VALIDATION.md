@@ -201,14 +201,71 @@ try {
 The remote heredoc must additionally assert imports, versions, and CUDA
 availability in that exact same environment, failing before model loading if the
 assertion fails.
+
+### Reusable L04 transport (authoritative)
+
+All L04 real runs use the two-file boundary below. The PowerShell helper owns
+only exact-byte transport and raw stdout/stderr capture; the Bash payload owns
+the disposable clone, isolated caches, dependency/CUDA preflight, one CLI
+invocation, bundle emission, and cleanup. This replaces the historical wrapper
+below; the historical block is retained only as failure evidence and must not
+be copied into a new run.
+
+The current implementation gate is Phase A: the helper and payload are tested
+locally/offline, while exact remote Bash `find`/`tar` behavior and CUDA/model
+execution remain Phase B after commit/push and owner approval.
+
+Run it directly from Windows PowerShell with the authenticated native
+`ssh.exe` path. First build and inspect the sanitized manifest without opening
+the connection:
+
+```powershell
+$CodeSha = (git rev-parse HEAD).Trim()
+$SshPath = (Get-Command ssh.exe -ErrorAction Stop).Source
+$RawCapture = Join-Path (Get-Location) "artifacts/m14/l04-disentanglement.raw.txt"
+& pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 `
+  -SshExecutable $SshPath `
+  -RemoteTarget "trietlm@192.168.30.244" `
+  -PayloadPath (Join-Path (Get-Location) "scripts/m14_l04_remote_payload.sh") `
+  -UseCase Disentanglement `
+  -CodeSha $CodeSha `
+  -RepoUrl "https://github.com/trietlm/latent-anything.git" `
+  -RawCapturePath $RawCapture `
+  -BuildOnly
+```
+
+The manifest contains only payload/bootstrap SHA-256 and byte counts, expected
+markers, and redacted command arguments. The helper normalizes CRLF/CR to LF,
+encodes UTF-8 without BOM, sends a single-quoted Base64 heredoc through
+`System.Diagnostics.ProcessStartInfo`, and writes the raw capture before any
+parsing. The remote bootstrap decodes into a collision-resistant temporary
+file, emits `L04_TRANSPORT_DECODE_STATUS`, compares the decoded-byte SHA-256,
+refuses mismatch or decoder failure, executes `bash <decoded-temp>`, preserves
+the semantic exit, removes the file, verifies absence, and emits a distinct
+`L04_TRANSPORT_CLEANUP` marker.
+
+Raw capture publication is collision-safe: the internal lifecycle seam writes
+and flushes a new same-directory temporary file, atomically replaces/moves the
+requested target only after close succeeds, and reports
+`raw_capture_write_succeeded=false` without hashing a stale target when
+publication fails.
+
+The Bash payload is invoked with the canonical PascalCase use case and exact
+40-character detached SHA. It must emit `L04_USE_CASE`, `L04_CODE_SHA`,
+`L04_STATUS`, `L04_BUNDLE_B64_BEGIN/END`, and `L04_CLEANUP`. Its dependency
+preflight uses the pinned `uv` resolver and checks imports, versions, and CUDA
+before the sole `scripts.m14_l04_explanations --run-real` invocation. The
+artifact bundle snapshots only the three newly created partial/run/failure
+artifacts for the current use case and attempt, rejects traversal, mixed
+attempts, missing members, and unrelated history, then emits the bundle before
+the cleanup trap removes the clone and all isolated caches. Do not run this
+boundary from Git Bash, WSL, a local Bash shell, or a pre-existing remote
+checkout.
+
 The following wrapper is the historical owner-approved pattern used for the
 final run. It is **NOT REUSABLE** for L04.8 or subsequent lanes: the final raw
 capture contained `base64: invalid input`, and the decoded script bytes were
 not independently hash-verified even though semantic execution completed.
-Before any future lane, upgrade the transport preflight to decode into a
-remote temporary file, require the decoder exit code to be zero, compute and
-compare the decoded SHA-256 with the announced local digest, then execute and
-clean up that temporary file. That replacement protocol was not tested here.
 The historical wrapper constructs the remote Bash script in PowerShell,
 normalizes it to LF, and pipes it directly to `ssh.exe` with
 `target 'bash -s --'`. On the remote side, create a temporary

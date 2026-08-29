@@ -150,18 +150,25 @@ validators returned no errors. The raw capture nevertheless retained
 `base64: invalid input`; the decoded script bytes were not independently
 hash-verified, so the audit does not claim stronger transport provenance. The
 historical direct `base64 -d | bash -s --` recipe is **NOT REUSABLE** for L04.8
-or later lanes until a future preflight decodes into a remote temporary file,
-requires decoder exit `0`, computes and compares the decoded SHA-256 with the
-announced local digest, then executes and cleans up that file. This replacement
-was not tested in L04.7; L04.8 must own and verify it before another remote
-evidence run.
+or later lanes. The reusable replacement is now checked in as
+[`m14_l04_remote_transport.ps1`](../scripts/m14_l04_remote_transport.ps1) and
+[`m14_l04_remote_payload.sh`](../scripts/m14_l04_remote_payload.sh): the
+PowerShell helper normalizes and hashes exact UTF-8/no-BOM/LF bytes, launches
+the native `ssh.exe` with `ProcessStartInfo`, and writes raw stdout/stderr
+before parsing; its remote bootstrap decodes to a temporary file, requires
+decoder exit `0`, compares the decoded SHA-256, executes, and verifies cleanup.
+The separate Bash payload owns the exact detached clone, isolated caches,
+same-environment preflight, one CLI invocation, bundle-before-cleanup, and
+full-workdir cleanup. Offline build-only/static tests cover this contract;
+another remote run remains owner-gated until the helper is committed and
+executed from authenticated Windows PowerShell.
 
 For any future TunedLogitLens execution, the frozen plan remains immutable and
-the owner-approved operational override is the exact command in the [M14
-validation procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved):
+the owner-approved operational override is the reusable helper described in
+the [M14 validation procedure](M14_REAL_SYSTEM_VALIDATION.md#reusable-l04-transport-authoritative):
 
 ```text
-uv run --locked --extra transformers --with 'datasets==4.8.5' --with 'transformers==4.57.6' --with 'tokenizers==0.22.2' --with 'huggingface-hub==0.35.3' python -m scripts.m14_l04_explanations --run-real --use-case TunedLogitLens --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl
+pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 -SshExecutable (Get-Command ssh.exe).Source -RemoteTarget trietlm@192.168.30.244 -PayloadPath scripts/m14_l04_remote_payload.sh -UseCase TunedLogitLens -CodeSha (git rev-parse HEAD).Trim() -RepoUrl https://github.com/trietlm/latent-anything.git -RawCapturePath artifacts/m14/l04-tuned-logit-lens.raw.txt
 ```
 
 The remote import/version/CUDA preflight must use the identical `uv` environment
@@ -170,18 +177,17 @@ safe temporary `.py` file (never `python -c`) is mandatory before SSH for
 dependency/import compatibility only; it does not require local CUDA. The
 recorded diagnostic passed `datasets==4.8.5`, `transformers==4.57.6`,
 `tokenizers==0.22.2`, and `huggingface-hub==0.35.3`. The historical wrapper
-record is in the [M14 operational
-procedure](M14_REAL_SYSTEM_VALIDATION.md#tunedlogitlens-operational-override-owner-approved);
-the transport advisory there makes clear that this direct recipe is not
-reusable until the L04.8 decoded-byte preflight is implemented and tested:
-an LF-normalized PowerShell script is piped directly to
-`ssh.exe target 'bash -s --' ...`; the remote script creates a temporary `preflight.py` with a
+record is retained in the [M14 operational
+procedure](M14_REAL_SYSTEM_VALIDATION.md#reusable-l04-transport-authoritative)
+as audit evidence only. New executions must use the reusable helper/payload;
+the old direct `ssh.exe target 'bash -s --' ...` recipe is not an operational
+instruction. The payload creates a temporary `preflight.py` with a
 single-quoted heredoc, clones and verifies the exact SHA, isolates all
 UV/HF/datasets/transformers caches under one workdir, runs preflight and the
-CLI with the exact prefix above, captures and bundles before cleanup, and uses
-`echo` markers. Cleanup removes and verifies the full workdir, emits PASS only
-after `rm` succeeds, and PowerShell captures `$LASTEXITCODE` immediately.
-The wrapper exports `LATENT_ANYTHING_RUN_NETWORK=1` and
+single CLI, captures and bundles before cleanup, and uses explicit markers.
+Cleanup removes and verifies the full workdir, emits PASS only after `rm`
+succeeds, and the PowerShell helper captures the SSH exit immediately. The
+payload exports `LATENT_ANYTHING_RUN_NETWORK=1` and
 `LATENT_ANYTHING_NETWORK_DEVICE=cuda` before both preflight and CLI.
 `python -c`, escaped `printf`, and nested remote command quoting are forbidden
 because native PowerShell parsing can strip quotes/backslashes and corrupt the

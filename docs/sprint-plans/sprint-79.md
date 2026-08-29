@@ -205,6 +205,16 @@ Status legend: [ ] pending / [~] in progress / [x] done
   reserved CUDA memory, canonical model digests, truthful D0 failure stages,
   factor-permutation supervision, and raw-token excluded-column digests. See
   [`task_79_l04_8_summary.md`](../../artifacts/task_79_l04_8_summary.md).
+- [x] Implement the reusable L04 remote transport prerequisite locally/offline:
+  [`m14_l04_remote_transport.ps1`](../../scripts/m14_l04_remote_transport.ps1)
+  performs exact-byte LF/UTF-8 normalization, decoded-byte SHA verification,
+  direct native `ssh.exe` capture, and sanitized build-only manifests;
+  [`m14_l04_remote_payload.sh`](../../scripts/m14_l04_remote_payload.sh) owns
+  the disposable detached clone, isolated caches, same-environment preflight,
+  one canonical-use-case CLI invocation, bundle-before-cleanup, and full
+  cleanup. Offline PowerShell/static tests pass; no remote execution or D3
+  promotion is claimed until the owner runs the committed helper from
+  authenticated Windows PowerShell. The frozen M14 plan is unchanged.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

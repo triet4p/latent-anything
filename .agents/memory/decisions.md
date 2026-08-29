@@ -1028,3 +1028,27 @@ distinguish an unattempted preflight failure from a partial CUDA execution.
 **Consequences:** D2 validation is Linux-CUDA specific and requires complete
 resource/digest provenance; non-D2 failures may omit unavailable measurements
 only when their stage precedes the corresponding resource/model boundary.
+
+## [2026-08-29] Use a two-stage decoded-byte-verified L04 transport
+
+**Decision:** All future L04 remote runs use
+`scripts/m14_l04_remote_transport.ps1` for exact-byte transport/capture and
+`scripts/m14_l04_remote_payload.sh` for remote clone, preflight, one CLI,
+bundle, and cleanup semantics. The helper normalizes CRLF/CR to LF, encodes
+UTF-8 without BOM, decodes into a remote temporary file, checks decoder exit
+and decoded SHA-256, then executes and verifies removal. It launches native
+`ssh.exe` through `ProcessStartInfo` from Windows PowerShell.
+
+**Alternatives considered:** The historical direct `base64 -d | bash -s --`
+pipeline, ad-hoc nested PowerShell/Bash quoting, and a generic launcher that
+mixes transport with CUDA semantics.
+
+**Reason:** Historical captures included a decoder warning without decoded-byte
+proof, while CRLF and nested quoting caused earlier failures. Two focused
+boundaries preserve exact bytes and keep transport independently reusable from
+CUDA/model behavior.
+
+**Consequences:** Every remote invocation must use the helper/payload pair and
+its transport and semantic markers. The helper has no CUDA knowledge; remote
+execution remains owner-gated and must be started from authenticated Windows
+PowerShell.

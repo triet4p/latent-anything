@@ -580,3 +580,19 @@ and clean up the file. This replacement was not tested in L04.7.
 **Watch out for:** Never promote a transport-integrity claim from start/status
 markers alone; keep semantic acceptance and decoded-byte provenance as separate
 verdicts.
+
+## [2026-08-29] Keep the transport bootstrap literal and the payload separate
+
+**Symptom:** A PowerShell double-quoted here-string expands Bash variables such
+as `$?`, `$@`, and temporary-path variables before the remote shell receives
+the bootstrap, silently corrupting its exit and cleanup semantics.
+**Root cause:** PowerShell interpolation and native pipeline quoting operate on
+the same source that is intended to be remote Bash, so line-ending or quoting
+changes can occur before decoding.
+**Fix / workaround:** Build the bootstrap from a single-quoted PowerShell
+here-string with explicit SHA/Base64 placeholders, replace only those safe
+values, and send exact UTF-8 bytes through `ProcessStartInfo`. Keep all clone,
+cache, CUDA, CLI, bundle, and cleanup behavior in a separate Bash payload.
+**Watch out for:** Do not use WSL/Git Bash or direct Base64-to-Bash execution;
+test the build-only manifest and decoded-byte gates before any authenticated
+remote run.
