@@ -52,6 +52,9 @@ def read_rows(integration: Any, rows: Sequence[Mapping[str, Any]], max_length: i
     masks = encoded["attention_mask"].detach().cpu().numpy()
     result: list[dict[str, Any]] = []
     for index, row in enumerate(rows):
+        condition = row.get("condition")
+        if not isinstance(condition, str) or condition not in {"clean", "corrupted"}:
+            raise ValueError(f"row {row.get('row_id')!r} has invalid or missing condition")
         mask = np.asarray(masks[index], dtype=np.int64)
         if not np.any(mask):
             raise ValueError(f"row {row['row_id']!r} has no non-padding token")
@@ -60,6 +63,7 @@ def read_rows(integration: Any, rows: Sequence[Mapping[str, Any]], max_length: i
                 "row_id": str(row["row_id"]),
                 "group_id": str(row["group_id"]),
                 "causal_pair_id": str(row["causal_pair_id"]),
+                "condition": condition,
                 "split": str(row["split"]),
                 "input_ids": np.asarray(ids[index], dtype=np.int64),
                 "attention_mask": mask,

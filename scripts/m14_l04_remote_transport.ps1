@@ -97,7 +97,7 @@ $manifest = [ordered]@{
     bootstrap = [ordered]@{ sha256 = $bootstrapSha256; bytes = $bootstrapBytes.Length }
     transport_timeout_seconds = $TransportTimeoutSeconds
     kill_grace_seconds = 30
-    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_TRANSPORT_CLEANUP", "L04_USE_CASE", "L04_CODE_SHA", "L04_WORKDIR", "L04_STATUS", "L04_CLEANUP", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END")
+    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_TRANSPORT_CLEANUP", "L04_USE_CASE", "L04_CODE_SHA", "L04_WORKDIR", "L04_CLI_STATUS", "L04_BUNDLE_STATUS", "L04_STATUS", "L04_CLEANUP", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END")
     command_args_redacted = @("<ssh.exe>", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
 }

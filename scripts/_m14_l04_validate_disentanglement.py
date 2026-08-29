@@ -42,7 +42,7 @@ MAX_CUDA_ALLOCATED_BYTES = 6 * 1024**3
 MAX_RSS_BYTES = 4 * 1024**3
 MODEL_DIGEST_ALGORITHM = "sha256/canonical-ordered-named-parameters-v1"
 RSS_SOURCE = "resource.getrusage(RUSAGE_SELF).ru_maxrss"
-RSS_UNIT = "KiB"
+RSS_UNIT = "bytes"
 
 
 def _finite(value: Any) -> bool:

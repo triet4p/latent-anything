@@ -24,6 +24,7 @@ from scripts._m14_l04_disentanglement_metrics import (
 )
 from scripts._m14_l04_disentanglement_runtime import binary_token_bow, excluded_columns_digest, fit_logistic_probe
 from scripts._m14_l04_fixture_contract import FIXTURE_PATH, read_fixture
+from scripts._m14_l04_tcav_runtime import read_rows
 from scripts._m14_l04_validate import validate_artifact, validate_failure, validate_run_record
 from scripts._m14_l04_validate_disentanglement import validate_real_disentanglement_execution
 from scripts.m14_l04_contract import load_plan
@@ -78,6 +79,43 @@ def test_probe_uses_train_only_standardization_and_is_repeatable() -> None:
     np.testing.assert_array_equal(first.weights, second.weights)
     np.testing.assert_array_equal(first.predict_proba(features), second.predict_proba(features))
     assert first.scale[1] == 1.0  # zero variance handling is explicit and finite
+
+
+def test_actual_tcav_reader_preserves_authored_condition_and_rejects_missing_or_tampered() -> None:
+    _raw, authored = read_fixture(FIXTURE_PATH)
+
+    class Integration:
+        def tokenize(self, prompts: tuple[str, ...], *, max_length: int, return_tensors: str) -> dict[str, Any]:
+            assert len(prompts) in {1, len(authored)}
+            assert max_length == 32
+            assert return_tensors == "pt"
+            return {
+                "input_ids": torch.ones((len(prompts), 3), dtype=torch.long),
+                "attention_mask": torch.tensor([[1, 1, 1]] * len(prompts), dtype=torch.long),
+            }
+
+    real_rows = read_rows(Integration(), authored, 32)
+    assert [row["condition"] for row in real_rows] == [row["condition"] for row in authored]
+
+    missing = dict(authored[0])
+    missing.pop("condition")
+    with pytest.raises(ValueError, match="invalid or missing condition"):
+        read_rows(Integration(), [missing], 32)
+    tampered = dict(authored[0])
+    tampered["condition"] = "not-a-condition"
+    with pytest.raises(ValueError, match="invalid or missing condition"):
+        read_rows(Integration(), [tampered], 32)
+
+
+def test_linux_ru_maxrss_is_normalized_to_bytes(monkeypatch: pytest.MonkeyPatch) -> None:
+    resource = pytest.importorskip("resource")
+    monkeypatch.setattr(disentanglement_handler.sys, "platform", "linux")
+    monkeypatch.setattr(resource, "getrusage", lambda _who: type("Usage", (), {"ru_maxrss": 1234})())
+    assert disentanglement_handler.__dict__["_rss_measurement"]() == (
+        1234 * 1024,
+        "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+        "bytes",
+    )
 
 
 def test_handler_scoring_deduplicates_eight_train_group_ids() -> None:
@@ -153,30 +191,21 @@ def test_actual_handler_path_reaches_scoring_with_duplicate_pair_rows(monkeypatc
         def __init__(self, **_kwargs: object) -> None:
             self.tokenizer = FakeTokenizer()
 
+        def tokenize(self, prompts: tuple[str, ...], *, max_length: int, return_tensors: str) -> dict[str, Any]:
+            assert len(prompts) in {1, len(authored)}
+            assert max_length == 32
+            assert return_tensors == "pt"
+            return {
+                "input_ids": torch.ones((len(prompts), 3), dtype=torch.long),
+                "attention_mask": torch.tensor([[1, 1, 1]] * len(prompts), dtype=torch.long),
+            }
+
         def _backend(self) -> tuple[object, object, object]:
             return torch.nn.Linear(4, 4), self.tokenizer, type("Config", (), {"vocab_size": 16})()
-
-    def fake_read_rows(
-        _integration: object, source_rows: list[dict[str, Any]], _max_length: int
-    ) -> list[dict[str, Any]]:
-        return [
-            {
-                "row_id": row["row_id"],
-                "group_id": row["group_id"],
-                "causal_pair_id": row["causal_pair_id"],
-                "condition": row["condition"],
-                "split": row["split"],
-                "input_ids": np.asarray([1 + index % 4, 2 + index % 4, 3]),
-                "attention_mask": np.asarray([1, 1, 1]),
-                "target_position": 2,
-            }
-            for index, row in enumerate(source_rows)
-        ]
 
     def fake_capture(_model: object, source_rows: list[dict[str, Any]], _layer: int) -> np.ndarray:
         return np.asarray([[float(index % 4), float(index // 4), 0.0, 1.0] for index in range(len(source_rows))])
 
-    monkeypatch.setattr(disentanglement_handler, "read_rows", fake_read_rows)
     monkeypatch.setattr(disentanglement_handler, "capture_activations", fake_capture)
     monkeypatch.setattr(disentanglement_handler, "parameter_digest", lambda _model: "digest")
     monkeypatch.setattr(disentanglement_handler, "_rss_bytes", lambda: 1)
@@ -197,6 +226,12 @@ def test_actual_handler_path_reaches_scoring_with_duplicate_pair_rows(monkeypatc
     result = disentanglement_handler.run_disentanglement(plan, authored, integration_factory=FakeIntegration)
     assert len(result["raw_summaries"]) == 5
     assert all(len(summary["shuffled_group_mapping"]) == 8 for summary in result["raw_summaries"])
+    expected_conditions = {row["row_id"]: row["condition"] for row in authored if row["split"] == "holdout"}
+    assert all(
+        item["condition"] == expected_conditions[item["row_id"]]
+        for summary in result["raw_summaries"]
+        for item in summary["holdout_evidence"]
+    )
 
 
 def test_raw_token_bow_excludes_padding_and_never_builds_vocab_from_holdout() -> None:
@@ -384,7 +419,7 @@ def _successful_result(plan: dict[str, Any]) -> dict[str, Any]:
                 "max_memory_reserved_bytes": 1,
                 "max_rss_bytes": 1,
                 "rss_source": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
-                "rss_unit": "KiB",
+                "rss_unit": "bytes",
             },
             "budget_pass": True,
             "stage": "complete",
@@ -417,7 +452,7 @@ def _successful_result(plan: dict[str, Any]) -> dict[str, Any]:
                 "max_memory_reserved_bytes": 1,
                 "max_rss_bytes": 1,
                 "rss_source": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
-                "rss_unit": "KiB",
+                "rss_unit": "bytes",
             },
             "cleanup": "fake cleanup",
         },
@@ -479,6 +514,7 @@ def test_resource_and_mutation_flags_are_fail_closed(
         ("max_memory_reserved_bytes", 6 * 1024**3 + 1),
         ("max_rss_bytes", float("nan")),
         ("rss_source", "psutil.Process.memory_info().rss"),
+        ("rss_unit", "KiB"),
     ),
 )
 def test_adversarial_resource_evidence_is_rejected(

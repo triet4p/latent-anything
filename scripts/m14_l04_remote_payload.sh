@@ -32,6 +32,19 @@ emit_status() {
     status_emitted=1
 }
 
+bundle_gate_failure() {
+    local reason="$1"
+    local cli_status="$2"
+    local final_status=66
+    printf '%s\n' "$reason" >&2
+    printf 'L04_BUNDLE_STATUS=66\n'
+    if [[ "$cli_status" -ne 0 ]]; then
+        final_status="$cli_status"
+    fi
+    emit_status "$final_status"
+    exit "$final_status"
+}
+
 cleanup() {
     prior_exit=$?
     trap - EXIT HUP INT TERM
@@ -142,6 +155,7 @@ if uv run --locked --extra transformers \
 else
     cli_status=$?
 fi
+printf 'L04_CLI_STATUS=%s\n' "$cli_status"
 
 after_members_file="$workdir/after-members.nul"
 find artifacts/m14 -maxdepth 1 -type f \
@@ -149,33 +163,28 @@ find artifacts/m14 -maxdepth 1 -type f \
     sort -z > "$after_members_file"
 mapfile -d '' new_members < <(comm -z -13 "$before_members_file" "$after_members_file")
 if [[ "${#new_members[@]}" -ne 3 ]]; then
-    emit_status BUNDLE_INPUTS_MISSING >&2
-    exit 66
+    bundle_gate_failure BUNDLE_INPUTS_MISSING "$cli_status"
 fi
 
 attempt=''
 for member in "${new_members[@]}"; do
     if [[ ! "$member" =~ ^l04-explanations\.${UseCase}\.(attempt[0-9]+)\.(partial|run|failure)\.json$ ]]; then
-        emit_status BUNDLE_INPUTS_INVALID >&2
-        exit 66
+        bundle_gate_failure BUNDLE_INPUTS_INVALID "$cli_status"
     fi
     if [[ -z "$attempt" ]]; then
         attempt="${BASH_REMATCH[1]}"
     elif [[ "$attempt" != "${BASH_REMATCH[1]}" ]]; then
-        emit_status BUNDLE_INPUTS_MIXED_ATTEMPTS >&2
-        exit 66
+        bundle_gate_failure BUNDLE_INPUTS_MIXED_ATTEMPTS "$cli_status"
     fi
     candidate="$repo_dir/artifacts/m14/$member"
     if [[ ! -f "$candidate" || -L "$candidate" || "$member" == */* || "$member" == *..* ]]; then
-        emit_status BUNDLE_INPUTS_INVALID >&2
-        exit 66
+        bundle_gate_failure BUNDLE_INPUTS_INVALID "$cli_status"
     fi
 done
 for suffix in partial run failure; do
     expected="l04-explanations.${UseCase}.${attempt}.${suffix}.json"
     if [[ ! " ${new_members[*]} " == *" $expected "* ]]; then
-        emit_status BUNDLE_INPUTS_INCOMPLETE >&2
-        exit 66
+        bundle_gate_failure BUNDLE_INPUTS_INCOMPLETE "$cli_status"
     fi
 done
 
@@ -184,9 +193,22 @@ for member in "${new_members[@]}"; do
     printf 'artifacts/m14/%s\0' "$member"
 done | sort -z > "$members_file"
 bundle_file="$workdir/l04-capture.tgz"
-tar --null --files-from="$members_file" -czf "$bundle_file" -C "$repo_dir"
-emit_status "$cli_status"
-printf '%s\n' L04_BUNDLE_B64_BEGIN
-base64 -w0 "$bundle_file"
-printf '\n%s\n' L04_BUNDLE_B64_END
-exit "$cli_status"
+set +e
+tar --null -czf "$bundle_file" -C "$repo_dir" --files-from="$members_file"
+bundle_status=$?
+set -e
+printf 'L04_BUNDLE_STATUS=%s\n' "$bundle_status"
+if [[ "$cli_status" -ne 0 ]]; then
+    final_status="$cli_status"
+elif [[ "$bundle_status" -ne 0 ]]; then
+    final_status="$bundle_status"
+else
+    final_status=0
+fi
+emit_status "$final_status"
+if [[ "$bundle_status" -eq 0 ]]; then
+    printf '%s\n' L04_BUNDLE_B64_BEGIN
+    base64 -w0 "$bundle_file"
+    printf '\n%s\n' L04_BUNDLE_B64_END
+fi
+exit "$final_status"

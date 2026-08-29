@@ -82,7 +82,7 @@ def _rss_measurement() -> tuple[int, str, str]:
             raise ValueError("process peak RSS is negative")
         if sys.platform == "darwin":
             return raw, "resource.getrusage(RUSAGE_SELF).ru_maxrss", "bytes"
-        return raw * 1024, "resource.getrusage(RUSAGE_SELF).ru_maxrss", "KiB"
+        return raw * 1024, "resource.getrusage(RUSAGE_SELF).ru_maxrss", "bytes"
     except (ImportError, OSError):
         try:
             import psutil

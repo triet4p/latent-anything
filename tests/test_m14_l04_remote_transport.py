@@ -472,7 +472,13 @@ def test_bundle_contract_excludes_history_and_requires_exact_attempt_set() -> No
     assert "after-members.nul" in payload
     assert "comm -z -13" in payload
     assert "sort -z" in payload
-    assert "--null --files-from" in payload
+    assert 'tar --null -czf "$bundle_file" -C "$repo_dir" --files-from="$members_file"' in payload
+    assert "set +e" in payload
+    assert "set -e" in payload
+    assert "L04_CLI_STATUS" in payload
+    assert "L04_BUNDLE_STATUS" in payload
+    assert payload.index("L04_CLI_STATUS") < payload.index("after_members_file=")
+    assert payload.index("L04_BUNDLE_STATUS") < payload.index("L04_BUNDLE_B64_BEGIN")
     assert "BUNDLE_INPUTS_MIXED_ATTEMPTS" in payload
     assert "BUNDLE_INPUTS_INCOMPLETE" in payload
     assert "l04-explanations.${UseCase}.attempt*.json" in payload
@@ -498,6 +504,28 @@ def test_bundle_contract_excludes_history_and_requires_exact_attempt_set() -> No
     }
     assert not current.fullmatch("../l04-explanations.Disentanglement.attempt2.run.json")
     assert not current.fullmatch("l04-explanations.Disentanglement.attempt2.partial.jsonl")
+
+
+@pytest.mark.parametrize(
+    ("cli_status", "bundle_status", "expected_final"),
+    ((1, 66, 1), (0, 66, 66)),
+)
+def test_bundle_gate_exit_precedence_is_explicit_and_marker_values_remain_distinct(
+    cli_status: int, bundle_status: int, expected_final: int
+) -> None:
+    payload = PAYLOAD.read_text(encoding="utf-8")
+    assert 'local cli_status="$2"' in payload
+    assert 'printf \'L04_BUNDLE_STATUS=66\\n\'' in payload
+    assert payload.count('bundle_gate_failure BUNDLE_INPUTS_') == 5
+    assert all('"$cli_status"' in payload[line_start:line_start + 100] for line_start in (
+        match.start() for match in re.finditer(r"bundle_gate_failure BUNDLE_INPUTS_", payload)
+    ))
+    final = cli_status if cli_status != 0 else bundle_status
+    assert final == expected_final
+    markers = f"L04_CLI_STATUS={cli_status}\nL04_BUNDLE_STATUS={bundle_status}\nL04_STATUS={final}\n"
+    assert f"L04_CLI_STATUS={cli_status}" in markers
+    assert f"L04_BUNDLE_STATUS={bundle_status}" in markers
+    assert f"L04_CLI_STATUS={cli_status}" != f"L04_BUNDLE_STATUS={bundle_status}"
 
 
 def test_workdir_contract_validates_normal_exact_path_before_marker() -> None:

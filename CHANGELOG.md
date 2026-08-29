@@ -87,6 +87,9 @@
   final-logit parity coverage. (#sprint-79)
 - Clarified transformer block intervention indices versus native hidden-state
   capture indices and corrected the real-checkpoint intervention oracle.
+- Fixed M14 L04 Disentanglement recovery to preserve authored conditions,
+  normalize Linux RSS provenance to bytes, and retain semantic CLI failures
+  when remote bundle transport also fails. (#sprint-79)
 - Fixed `inspect-dataset` to report the actionable LeRobot installation extra
   when the optional backend is unavailable, while preserving nested dependency
   errors and the existing provider dispatch. (#sprint-78.33)
