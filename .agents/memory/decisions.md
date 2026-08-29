@@ -1052,3 +1052,23 @@ CUDA/model behavior.
 its transport and semantic markers. The helper has no CUDA knowledge; remote
 execution remains owner-gated and must be started from authenticated Windows
 PowerShell.
+
+## [2026-08-29] Separate semantic CLI and bundle transport statuses
+
+**Decision:** The L04 remote payload emits `L04_CLI_STATUS` immediately after
+the single CLI, captures tar under an explicit non-errexit boundary as
+`L04_BUNDLE_STATUS`, and returns the non-zero CLI status before a non-zero
+bundle status.
+
+**Alternatives considered:** Keep one `L04_STATUS`, let `set -e` abort before
+bundle creation, or let a bundle failure overwrite a semantic CLI failure.
+
+**Reason:** The preserved `ce4e66e` audit proved that semantic failure and tar
+failure can happen in one invocation. Separate markers and a deterministic
+precedence rule keep the exact three-artifact failure evidence available while
+preventing transport packaging from being mistaken for semantic execution.
+
+**Consequences:** Audit parsers and future remote reports must record CLI,
+bundle, SSH, and PowerShell/helper exits independently. A semantic failure may
+still produce a valid D0 bundle; a bundle failure never promotes or masks the
+semantic outcome.

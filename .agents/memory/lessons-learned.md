@@ -621,3 +621,29 @@ after remote `mktemp`.
 **Watch out for:** Keep the semantic cap (1800 seconds) separate from the
 transport budget, never retry a timed-out single invocation implicitly, and do
 not claim remote cleanup when its verified marker is absent.
+
+## [2026-08-29] Remote bundle failures can hide a completed semantic failure
+
+**Symptom:** The first L04.8 Disentanglement run reached the real CLI and
+produced the three expected attempt artifacts, but the payload's GNU tar command
+placed `-C` after `--files-from`; tar exited 2, no bundle markers were emitted,
+and the semantic `condition` failure plus the bundle failure were conflated.
+
+**Root cause:** `read_rows()` discarded the authored `condition`, so the
+production handler raised `KeyError('condition')`; the remote payload then
+used an invalid tar option order and had only one undifferentiated status
+marker. Linux `ru_maxrss` was also converted to bytes while labelled `KiB`.
+
+**Fix / workaround:** Preserve and validate the exact `clean`/`corrupted`
+condition in the shared reader, normalize Linux RSS to bytes with
+`rss_unit='bytes'`, and emit `L04_CLI_STATUS` immediately after the CLI and
+`L04_BUNDLE_STATUS` from an explicit non-errexit tar capture. Bundle with
+`tar --null -czf "$bundle_file" -C "$repo_dir" --files-from="$members_file"`;
+the final exit remains the CLI status when non-zero, otherwise the bundle
+status.
+
+**Watch out for:** Every L04 remote audit must distinguish CLI, bundle, SSH,
+and PowerShell/helper exits. A semantic failure with a successful exact
+three-artifact bundle is useful D0 evidence; a bundle failure must never be
+reported as a semantic result, and a KiB label must never accompany a
+byte-normalized RSS value.

@@ -1,0 +1,121 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "ce4e66eb5c70bee7852e07ec239415643bd74493",
+  "use_case": "Disentanglement",
+  "transport_attempt": 2,
+  "semantic_execution_ordinal": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 2,
+    "helper_process_exit": 1,
+    "remote_semantic_exit": 2,
+    "bundle_exit": 2,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 0,
+    "transport_diagnostic": "Exact-byte transport decoded and verified the committed payload. The remote dependency and CUDA preflight completed, one real Disentanglement CLI invocation ran, and the semantic failure envelope was emitted. The exact three-file bundle input set was discovered, but GNU tar failed because the committed -C option followed --files-from; no retry is authorized."
+  },
+  "marker_audit": {
+    "transport_markers": {
+      "L04_TRANSPORT_PAYLOAD_SHA256": "92eb0f637339eb4c9f92d2f78a3b0a53616819bbf24e401e211139ddc475033a",
+      "L04_TRANSPORT_DECODE_STATUS": "0",
+      "L04_TRANSPORT_DECODE_SHA256": "92eb0f637339eb4c9f92d2f78a3b0a53616819bbf24e401e211139ddc475033a",
+      "L04_TRANSPORT_DECODE_MATCH": "PASS",
+      "L04_WORKDIR": "/tmp/latent-anything-l04.2seeid",
+      "L04_USE_CASE": "Disentanglement",
+      "L04_CODE_SHA": "ce4e66eb5c70bee7852e07ec239415643bd74493",
+      "L04_STATUS": "2",
+      "L04_CLEANUP": "PASS",
+      "L04_TRANSPORT_CLEANUP": "PASS"
+    },
+    "bootstrap_sha256": "e5e500b2f38be067d6344af0b1ca3eb7d21a5dbf6130c06ceac282b7ac6da74c",
+    "observed_remote_preflight": {
+      "nvidia_smi": "PASS",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "driver": "580.126.20",
+      "cuda_reported_by_driver": "13.0",
+      "dependency_preflight": "PASS",
+      "python": "3.13.12",
+      "torch": "2.10.0",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.35.3"
+    },
+    "missing_required_markers": [
+      "L04_BUNDLE_B64_BEGIN",
+      "L04_BUNDLE_B64_END"
+    ],
+    "transport_error": null
+  },
+  "execution": {
+    "cli": "uv run python -m scripts.m14_l04_explanations --run-real --use-case Disentanglement",
+    "invocation_count": 1,
+    "status": "failed",
+    "exception_type": "RealExecutionError",
+    "exception": "'condition'",
+    "model": "openai-community/gpt2",
+    "model_revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "integration_factory": "latent_anything.integrations.transformer_lm.TransformerLMIntegration",
+    "backend": "cuda",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "acceptance": false,
+    "accepted_record_ids": [],
+    "metrics": {},
+    "controls": {}
+  },
+  "validation": {
+    "artifact": "PASS",
+    "run_record": "PASS",
+    "failure": "PASS",
+    "artifact_sha256": "dfb8bf181b04de7d1aaf8ef440b053b44cdbd9faea0aac46de88a84ffc9d18a3",
+    "run_record_sha256": "9ee43201b04e2e760f2bbe78fa3273ba451444351efc4ae56772605b041faa1c",
+    "failure_sha256": "c113ef219f003a4449d869f39fb8657589b9b5caf0913a2cc91bf188b7805ee0",
+    "code_sha_linkage": "PASS",
+    "plan_and_fixture_linkage": "PASS",
+    "d2_acceptance_id": null
+  },
+  "bundle": {
+    "members_discovered": [
+      "artifacts/m14/l04-explanations.Disentanglement.attempt1.failure.json",
+      "artifacts/m14/l04-explanations.Disentanglement.attempt1.partial.json",
+      "artifacts/m14/l04-explanations.Disentanglement.attempt1.run.json"
+    ],
+    "member_count": 3,
+    "same_attempt": true,
+    "relative_paths_safe": true,
+    "archive_created": false,
+    "exact_member_gate": "PASS for find/comm/mapfile input set; FAIL at tar archive creation",
+    "failure": "tar option order made -C ineffective and tar exited 2",
+    "bundle_sha256": null
+  },
+  "resources": {
+    "cuda_device": "NVIDIA GeForce RTX 4060 Ti",
+    "elapsed_seconds": 17.748477997258306,
+    "max_memory_allocated_bytes": 529430016,
+    "max_memory_reserved_bytes": 572522496,
+    "max_rss_bytes": 1603592192,
+    "rss_source": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+    "rss_unit": "KiB",
+    "model_mutation": "not measured"
+  },
+  "cleanup": {
+    "remote_workdir": "/tmp/latent-anything-l04.2seeid",
+    "remote_cleanup_marker": "L04_CLEANUP=PASS",
+    "transport_cleanup_marker": "L04_TRANSPORT_CLEANUP=PASS",
+    "remote_disposable_clone_and_caches": "removed by payload cleanup trap",
+    "local_extract": "none; no bundle was emitted",
+    "unknown_prior_orphan_touched": false
+  },
+  "raw_capture": {
+    "path": "artifacts/m14/l04-explanations.ssh.Disentanglement.ce4e66eb5c70bee7852e07ec239415643bd74493.raw.txt",
+    "bytes": 37978,
+    "sha256": "8d19a5f5043c445da638d1437206d5e3413e23fd846d8f1b35fc5474053047af",
+    "sanitized_summary_written_before_deletion": true,
+    "raw_deleted_after_verified_sanitization": false
+  }
+}

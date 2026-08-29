@@ -222,6 +222,22 @@ Status legend: [ ] pending / [~] in progress / [x] done
   Phase B Disentanglement attempt timed out during dependency setup before the
   CLI/bundle and remains D0 with cleanup unknown; no retry or cleanup-only SSH
   is allowed. The frozen M14 plan is unchanged.
+- [x] Close the L04.8 recovery defects from the preserved `ce4e66e` audit:
+  the shared authored-fixture reader now carries the exact `condition` into
+  Disentanglement evidence and fails closed for missing/invalid values; Linux
+  `ru_maxrss` is normalized to bytes and retained with `rss_unit=bytes`; and
+  the remote payload uses the canonical NUL-safe tar order. The payload emits
+  `L04_CLI_STATUS` immediately after the single CLI, captures tar under an
+  explicit non-errexit boundary, emits `L04_BUNDLE_STATUS`, bundles exactly
+  the three current-attempt artifacts even after a semantic CLI failure, and
+  preserves the CLI-first/bundle-second final exit policy. Focused offline
+  regressions cover the actual reader, production holdout path, RSS
+  normalization/mislabelling, tar contract, and status separation. The
+  `ce4e66e` audit remains byte-for-byte preserved: D0 only, with the actual
+  `KeyError('condition')`, remote CLI-only validators, absent bundle, missing
+  unverified raw capture deletion, cleanup PASS markers, and no promotion.
+  No remote rerun or commit is authorized by this executor; see
+  [`task_79_l04_8_recovery_fix_summary.md`](../../artifacts/task_79_l04_8_recovery_fix_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

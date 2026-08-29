@@ -347,3 +347,18 @@ whether it affects core or headline coverage; no waiver can hide an applicable
 core gap or authorize a stable-release claim. Sprint 79 owns execution and
 artifact signing; Sprint 80 remains stop-before-release until the validator is
 at least 95% core and 90% overall and all headline D3 claims are satisfied.
+
+### L04.8 recovery correction record
+
+The immutable `ce4e66e` Disentanglement audit remains a truthful D0 failure:
+the real CLI reached production and raised `KeyError('condition')`, only the
+CLI-side validators were available, the exact bundle was absent after GNU tar
+option-order failure, raw deletion was not verified, cleanup markers were
+`PASS`, and no evidence was promoted. The recovery implementation now carries
+the exact authored `clean`/`corrupted` condition through the shared reader,
+rejects missing or tampered conditions, normalizes Linux peak RSS to bytes with
+coherent source/unit provenance, and separates `L04_CLI_STATUS` from
+`L04_BUNDLE_STATUS` while preserving the CLI-first exit policy. The NUL-safe
+bundle command and exact three-member gate remain frozen. This is a local
+correction only; the row remains D0 until a newly authorized direct
+PowerShell `ssh.exe` run produces a complete, independently validated bundle.

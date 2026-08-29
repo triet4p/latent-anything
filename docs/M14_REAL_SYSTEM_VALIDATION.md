@@ -537,3 +537,27 @@ cho người dùng, còn snapshot/ledger vẫn là nguồn máy móc chuẩn. Ch
 không cho phép xóa alias, bump version, tag, publish, hay tuyên bố release
 readiness. Metadata vẫn là `0.1.0b1`; `0.9.0` chỉ là epoch pre-stable dự kiến và
 các blocker evidence/workflow phải được giải quyết trước khi release.
+
+### L04.8 recovery correction after `ce4e66e`
+
+The preserved audit
+[`l04-explanations.ssh.Disentanglement.ce4e66...failure.audit.json`](../artifacts/m14/l04-explanations.ssh.Disentanglement.ce4e66eb5c70bee7852e07ec239415643bd74493.failure.audit.json)
+is immutable D0 evidence (SHA-256
+`b7f0d54740c4a7f0dfe71eb626f4f752ce88b511369f70bafc4b3f0415930fd3`). It
+records the real CLI reaching the Disentanglement handler and failing with
+`KeyError('condition')`; artifact, run-record, and failure validators ran only
+on the CLI-side envelope; the bundle was absent because the old tar ordering
+failed; raw deletion was not verified; cleanup markers were both `PASS`; and
+no promotion was made.
+
+The local recovery correction preserves the authored `condition` through the
+shared reader and validates it as exactly `clean` or `corrupted`, requires
+coherent byte-normalized Linux RSS provenance (`max_rss_bytes`, source, and
+`rss_unit=bytes`), and freezes the NUL-safe bundle command as
+`tar --null -czf "$bundle_file" -C "$repo_dir" --files-from="$members_file"`.
+The payload now emits `L04_CLI_STATUS` immediately after the CLI,
+`L04_BUNDLE_STATUS` from an explicit non-errexit tar capture, and preserves
+the CLI-first/bundle-second exit policy. A successful bundle contains exactly
+the three current-attempt partial/run/failure artifacts even when the CLI has
+a semantic failure. This correction is offline-only; a new owner-authorized
+PowerShell `ssh.exe` run is required before any L04.8 D2 claim.
