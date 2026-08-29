@@ -72,6 +72,21 @@ def macro_group_quality(group_factor: Mapping[str, Mapping[str, float]]) -> dict
     return result
 
 
+def group_macro_quality_and_gain(
+    real_group_factor_quality: Mapping[str, Mapping[str, float]],
+    shuffled_group_factor_quality: Mapping[str, Mapping[str, float]],
+) -> tuple[dict[str, float], dict[str, float], dict[str, float]]:
+    """Return real/shuffled group macros and subtract them in runtime order."""
+    real_group_quality = macro_group_quality(real_group_factor_quality)
+    shuffled_group_quality = macro_group_quality(shuffled_group_factor_quality)
+    if set(real_group_quality) != set(shuffled_group_quality):
+        raise ValueError("real and shuffled quality groups differ")
+    gain_by_group = {
+        group: float(real_group_quality[group] - shuffled_group_quality[group]) for group in sorted(real_group_quality)
+    }
+    return real_group_quality, shuffled_group_quality, gain_by_group
+
+
 def deterministic_group_derangement(groups: Sequence[str], seed: int) -> list[dict[str, Any]]:
     """Map each group to another group and mark the mandatory slot reversal."""
     names = sorted(str(group) for group in groups)
@@ -166,6 +181,7 @@ __all__ = [
     "deterministic_group_derangement",
     "group_factor_quality",
     "fixture_row_summary",
+    "group_macro_quality_and_gain",
     "macro_group_quality",
     "mapping_digest",
     "metric",

@@ -22,6 +22,7 @@ from scripts._m14_l04_disentanglement_metrics import (
     deterministic_group_derangement,
     fixture_row_summary,
     group_factor_quality,
+    group_macro_quality_and_gain,
     macro_group_quality,
     mapping_digest,
     metric,
@@ -262,7 +263,7 @@ def _run_seed(
     raw_by_factor, raw_group, raw_probabilities, raw_fit = _fit_quality(
         raw_train, train_labels, raw_holdout, holdout_rows, holdout_labels, torch=torch
     )
-    gains = {group: float(real_group[group] - shuffled_group[group]) for group in sorted(real_group)}
+    real_group, shuffled_group, gains = group_macro_quality_and_gain(real_by_factor, shuffled_by_factor)
     gain_values = [gains[group] for group in sorted(gains)]
     primary = metric(
         gain_values,

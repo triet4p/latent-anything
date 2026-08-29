@@ -20,6 +20,7 @@ from scripts._m14_l04_disentanglement_metrics import (
     brier_quality,
     deterministic_group_derangement,
     fixture_row_summary,
+    group_macro_quality_and_gain,
     mapping_digest,
     metric,
 )
@@ -476,13 +477,9 @@ def _validate_summary_metrics(
         for item in expected_mapping
     ):
         errors.append("disentanglement shuffle is not a reversed slot derangement")
-    expected_gain = {
-        group: recomputed_quality["real"][group]["animal_cat"] / 2.0
-        + recomputed_quality["real"][group]["tone_positive"] / 2.0
-        - recomputed_quality["shuffled"][group]["animal_cat"] / 2.0
-        - recomputed_quality["shuffled"][group]["tone_positive"] / 2.0
-        for group in expected_groups
-    }
+    _real_group_quality, _shuffled_group_quality, expected_gain = group_macro_quality_and_gain(
+        recomputed_quality["real"], recomputed_quality["shuffled"]
+    )
     if any(not _close(gains[group], expected_gain[group]) for group in expected_groups):
         errors.append("disentanglement group gains are not real-minus-shuffled macro quality")
     recomputed = metric(

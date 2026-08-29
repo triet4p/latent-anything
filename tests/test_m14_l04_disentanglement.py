@@ -18,6 +18,7 @@ from scripts._m14_l04_disentanglement_metrics import (
     deterministic_group_derangement,
     fixture_row_summary,
     group_factor_quality,
+    group_macro_quality_and_gain,
     mapping_digest,
     metric,
     shuffled_labels,
@@ -29,6 +30,11 @@ from scripts._m14_l04_validate import validate_artifact, validate_failure, valid
 from scripts._m14_l04_validate_disentanglement import validate_real_disentanglement_execution
 from scripts.m14_l04_contract import load_plan
 from scripts.m14_l04_explanations import run_real
+
+RECOVERY_ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "m14"
+RECOVERY_PARTIAL = RECOVERY_ARTIFACT_DIR / "l04-explanations.Disentanglement.attempt1.partial.json"
+RECOVERY_RUN = RECOVERY_ARTIFACT_DIR / "l04-explanations.Disentanglement.attempt1.run.json"
+RECOVERY_FAILURE = RECOVERY_ARTIFACT_DIR / "l04-explanations.Disentanglement.attempt1.failure.json"
 
 
 def _rows() -> list[dict[str, Any]]:
@@ -49,6 +55,49 @@ def test_brier_quality_and_group_unit_are_finite_for_imbalanced_labels() -> None
     )
     assert set(values) == {"g01", "g02"}
     assert values["g01"]["animal_cat"] == pytest.approx(0.59)
+
+
+def test_group_macro_quality_and_gain_preserves_runtime_subtraction_order() -> None:
+    real = {"g01": {"animal_cat": 0.1, "tone_positive": 0.2}}
+    shuffled = {"g01": {"animal_cat": 0.05, "tone_positive": 0.15}}
+    real_macro, shuffled_macro, gain = group_macro_quality_and_gain(real, shuffled)
+    assert real_macro == {"g01": float(np.mean([0.1, 0.2]))}
+    assert shuffled_macro == {"g01": float(np.mean([0.05, 0.15]))}
+    assert gain == {"g01": real_macro["g01"] - shuffled_macro["g01"]}
+
+
+def _retained_recovery_payloads() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    artifact = json.loads(RECOVERY_PARTIAL.read_text(encoding="utf-8"))
+    run = json.loads(RECOVERY_RUN.read_text(encoding="utf-8"))
+    failure = json.loads(RECOVERY_FAILURE.read_text(encoding="utf-8"))
+    return artifact, run, failure, load_plan()
+
+
+def test_retained_sha9b36068_artifact_accepts_shared_recomputation_and_roundtrips() -> None:
+    artifact, run, failure, plan = _retained_recovery_payloads()
+    assert validate_artifact(artifact, plan) == []
+    assert validate_run_record(run, artifact, plan) == []
+    assert validate_failure(failure, plan, artifact) == []
+    active = next(item for item in artifact["executions"] if item["use_case"] == "Disentanglement")
+    assert validate_real_disentanglement_execution(active, artifact, plan) == []
+    assert json.loads(json.dumps(artifact, sort_keys=True)) == artifact
+    assert json.loads(json.dumps(run, sort_keys=True)) == run
+    assert json.loads(json.dumps(failure, sort_keys=True)) == failure
+
+
+@pytest.mark.parametrize("direction", (np.inf, -np.inf))
+def test_retained_artifact_rejects_one_ulp_ci_tamper(direction: float) -> None:
+    artifact, _run, _failure, plan = _retained_recovery_payloads()
+    active = next(item for item in artifact["executions"] if item["use_case"] == "Disentanglement")
+    interval = active["raw_summaries"][0]["heldout_gain"]["confidence_interval_95"]
+    interval[1] = float(np.nextafter(interval[1], direction))
+    assert validate_artifact(artifact, plan)
+    assert validate_real_disentanglement_execution(active, artifact, plan)
+
+
+def test_disentanglement_thresholds_are_strict_at_equality() -> None:
+    assert metric([0.10, 0.10, 0.10, 0.10], seed=17, point_threshold=0.10, ci_lower_threshold=0.05)["pass"] is False
+    assert metric([0.05, 0.05, 0.05, 0.05], seed=17, point_threshold=0.0, ci_lower_threshold=0.05)["pass"] is False
 
 
 def test_degenerate_bootstrap_is_finite_and_deterministic() -> None:
