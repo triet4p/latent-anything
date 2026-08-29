@@ -214,7 +214,14 @@ Status legend: [ ] pending / [~] in progress / [x] done
   one canonical-use-case CLI invocation, bundle-before-cleanup, and full
   cleanup. Offline PowerShell/static tests pass; no remote execution or D3
   promotion is claimed until the owner runs the committed helper from
-  authenticated Windows PowerShell. The frozen M14 plan is unchanged.
+  authenticated Windows PowerShell. The helper now uses one monotonic
+  transport deadline (default 3600 seconds, range 2400–7200) across setup,
+  semantic execution, bundle/cleanup, and capture; timeout termination kills
+  the process tree with a bounded 30-second grace. The payload emits a
+  sanitized `L04_WORKDIR` marker immediately after `mktemp`. The first single
+  Phase B Disentanglement attempt timed out during dependency setup before the
+  CLI/bundle and remains D0 with cleanup unknown; no retry or cleanup-only SSH
+  is allowed. The frozen M14 plan is unchanged.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

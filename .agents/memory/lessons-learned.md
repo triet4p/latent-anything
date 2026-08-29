@@ -596,3 +596,28 @@ cache, CUDA, CLI, bundle, and cleanup behavior in a separate Bash payload.
 **Watch out for:** Do not use WSL/Git Bash or direct Base64-to-Bash execution;
 test the build-only manifest and decoded-byte gates before any authenticated
 remote run.
+
+## [2026-08-29] Remote transport timeout must include dependency setup
+
+**Symptom:** The first committed L04.8 Disentanglement invocation reached the
+exact detached clone and passed transport decode plus GPU-driver discovery, but
+the fixed 120-second wait expired while `uv` downloaded Torch/CUDA wheels. No
+semantic CLI result, bundle, or cleanup marker was available.
+
+**Root cause:** The transport timeout covered the whole setup/semantic/bundle
+boundary but was too short for a cold disposable environment containing large
+CUDA wheels. The old seam also used synchronous stdin/write, process wait, and
+unbounded output-drain result retrieval, so a timeout could lose raw evidence.
+
+**Fix / workaround:** Expose a public `TransportTimeoutSeconds` budget with a
+3600-second default and a 2400–7200 range. Start one monotonic deadline before
+process creation; use bounded async stdin write/flush/close, process wait,
+stream draining, and raw publication. On expiry kill the entire process tree,
+wait at most 30 seconds, retain best-effort raw evidence, and report
+`transport_termination_incomplete` plus cleanup `unknown` when termination is
+not confirmed. Emit the sanitized absolute `L04_WORKDIR` marker immediately
+after remote `mktemp`.
+
+**Watch out for:** Keep the semantic cap (1800 seconds) separate from the
+transport budget, never retry a timed-out single invocation implicitly, and do
+not claim remote cleanup when its verified marker is absent.

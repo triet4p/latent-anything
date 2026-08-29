@@ -163,12 +163,21 @@ full-workdir cleanup. Offline build-only/static tests cover this contract;
 another remote run remains owner-gated until the helper is committed and
 executed from authenticated Windows PowerShell.
 
+The helper's `-TransportTimeoutSeconds` defaults to 3600 and is restricted to
+2400–7200 seconds. One monotonic deadline covers setup, the semantic command,
+bundle creation, cleanup, asynchronous stdin and output draining, and raw
+publication; the semantic protocol cap remains 1800 seconds. Expiry kills the
+entire process tree, waits no more than the fixed 30-second grace, and records
+`transport_termination_incomplete` plus cleanup `unknown` if termination is
+not confirmed. The payload emits a sanitized absolute `L04_WORKDIR` marker
+immediately after `mktemp`; it never uses wildcard cleanup.
+
 For any future TunedLogitLens execution, the frozen plan remains immutable and
 the owner-approved operational override is the reusable helper described in
 the [M14 validation procedure](M14_REAL_SYSTEM_VALIDATION.md#reusable-l04-transport-authoritative):
 
 ```text
-pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 -SshExecutable (Get-Command ssh.exe).Source -RemoteTarget trietlm@192.168.30.244 -PayloadPath scripts/m14_l04_remote_payload.sh -UseCase TunedLogitLens -CodeSha (git rev-parse HEAD).Trim() -RepoUrl https://github.com/trietlm/latent-anything.git -RawCapturePath artifacts/m14/l04-tuned-logit-lens.raw.txt
+pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 -SshExecutable (Get-Command ssh.exe).Source -RemoteTarget trietlm@192.168.30.244 -PayloadPath scripts/m14_l04_remote_payload.sh -UseCase TunedLogitLens -CodeSha (git rev-parse HEAD).Trim() -RepoUrl https://github.com/trietlm/latent-anything.git -RawCapturePath artifacts/m14/l04-tuned-logit-lens.raw.txt -TransportTimeoutSeconds 3600
 ```
 
 The remote import/version/CUDA preflight must use the identical `uv` environment
@@ -189,6 +198,9 @@ Cleanup removes and verifies the full workdir, emits PASS only after `rm`
 succeeds, and the PowerShell helper captures the SSH exit immediately. The
 payload exports `LATENT_ANYTHING_RUN_NETWORK=1` and
 `LATENT_ANYTHING_NETWORK_DEVICE=cuda` before both preflight and CLI.
+The required remote marker set also includes `L04_WORKDIR`, emitted only after
+the exact normal workdir path has been validated; cleanup remains a verified
+marker rather than a wildcard-based assumption.
 `python -c`, escaped `printf`, and nested remote command quoting are forbidden
 because native PowerShell parsing can strip quotes/backslashes and corrupt the
 script. Raw stdout/stderr is hashed before parsing. The attempt2
@@ -212,6 +224,15 @@ no CLI/model/dataset semantic execution. Cleanup remained unverified. The
 sanitized audit was validated before the raw capture was deleted; only the
 audit and one-byte exit record are retained, with no secrets, corpus text,
 logits, hidden states, or model payload.
+
+The first Phase B `Disentanglement` attempt at the pushed SHA
+`ac371125e83ac07553c7291183b089559c4b063d` is retained as setup D0: transport
+decode and SHA matching passed, `nvidia-smi` observed an RTX 4060 Ti, but the
+single connection timed out while downloading the dependency environment
+before the CLI. No semantic exit, bundle, metrics, acceptance ID, or remote
+cleanup marker was observed; cleanup is unknown and no cleanup-only SSH or
+implicit retry is allowed. Its sanitized audit is retained without the raw
+capture.
 
 ## Exhaustive row inventory
 

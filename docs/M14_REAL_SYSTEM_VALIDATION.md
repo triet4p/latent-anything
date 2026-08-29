@@ -231,6 +231,7 @@ $RawCapture = Join-Path (Get-Location) "artifacts/m14/l04-disentanglement.raw.tx
   -CodeSha $CodeSha `
   -RepoUrl "https://github.com/trietlm/latent-anything.git" `
   -RawCapturePath $RawCapture `
+  -TransportTimeoutSeconds 3600 `
   -BuildOnly
 ```
 
@@ -250,9 +251,20 @@ requested target only after close succeeds, and reports
 `raw_capture_write_succeeded=false` without hashing a stale target when
 publication fails.
 
+The transport timeout is a single monotonic budget (default 3600 seconds,
+allowed range 2400–7200) spanning process start, asynchronous stdin write/
+flush/close, remote execution, stdout/stderr drain, and raw-capture
+publication. On expiry the seam kills the entire process tree and waits at most
+the fixed 30-second termination grace, then performs bounded stream draining
+and best-effort raw publication. A missing termination confirmation is reported
+as `transport_termination_incomplete` with cleanup status `unknown`; it is not
+converted into a successful cleanup claim. This transport budget is separate
+from the semantic 1800-second protocol cap and covers setup, semantic work,
+bundle creation, and cleanup.
+
 The Bash payload is invoked with the canonical PascalCase use case and exact
 40-character detached SHA. It must emit `L04_USE_CASE`, `L04_CODE_SHA`,
-`L04_STATUS`, `L04_BUNDLE_B64_BEGIN/END`, and `L04_CLEANUP`. Its dependency
+`L04_WORKDIR`, `L04_STATUS`, `L04_BUNDLE_B64_BEGIN/END`, and `L04_CLEANUP`. Its dependency
 preflight uses the pinned `uv` resolver and checks imports, versions, and CUDA
 before the sole `scripts.m14_l04_explanations --run-real` invocation. The
 artifact bundle snapshots only the three newly created partial/run/failure
@@ -261,6 +273,14 @@ attempts, missing members, and unrelated history, then emits the bundle before
 the cleanup trap removes the clone and all isolated caches. Do not run this
 boundary from Git Bash, WSL, a local Bash shell, or a pre-existing remote
 checkout.
+
+The payload emits `L04_WORKDIR=<absolute mktemp path>` immediately after
+creating its disposable work directory. The marker is sanitized audit evidence
+only; cleanup remains a pass only when the remote trap verifies that exact
+directory is absent. A Phase B Disentanglement attempt at the committed SHA
+timed out during dependency preflight before CLI or bundle creation and is
+recorded as D0 with cleanup unknown; no cleanup-only SSH or implicit retry is
+permitted.
 
 The following wrapper is the historical owner-approved pattern used for the
 final run. It is **NOT REUSABLE** for L04.8 or subsequent lanes: the final raw

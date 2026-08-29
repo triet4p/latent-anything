@@ -1,0 +1,82 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "ac371125e83ac07553c7291183b089559c4b063d",
+  "use_case": "Disentanglement",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": null,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": null,
+    "helper_exit": 70,
+    "remote_semantic_exit": null,
+    "bundle_exit": null,
+    "command_count": 0,
+    "result_count": 0,
+    "bundle_result_count": 0,
+    "transport_diagnostic": "The exact-byte transport decoded the committed payload successfully, but the 120-second local wait expired while the remote dependency preflight was still downloading packages. The client terminated that single ssh process; no semantic CLI result or bundle was observed and no rerun is authorized."
+  },
+  "marker_audit": {
+    "transport_markers": {
+      "L04_TRANSPORT_PAYLOAD_SHA256": "eb78542c0061af7f7733e75398d584c0f9967e9218754c8ce2482bb938651c37",
+      "L04_TRANSPORT_DECODE_STATUS": "0",
+      "L04_TRANSPORT_DECODE_SHA256": "eb78542c0061af7f7733e75398d584c0f9967e9218754c8ce2482bb938651c37",
+      "L04_TRANSPORT_DECODE_MATCH": "PASS",
+      "L04_USE_CASE": "Disentanglement",
+      "L04_CODE_SHA": "ac371125e83ac07553c7291183b089559c4b063d"
+    },
+    "observed_remote_preflight": {
+      "nvidia_smi": "PASS",
+      "gpu": "NVIDIA GeForce RTX 4060 Ti",
+      "driver": "580.126.20",
+      "cuda_reported_by_driver": "13.0",
+      "dependency_preflight": "INCOMPLETE_TIMEOUT"
+    },
+    "missing_required_markers": [
+      "L04_STATUS",
+      "L04_CLEANUP",
+      "L04_TRANSPORT_CLEANUP",
+      "L04_BUNDLE_B64_BEGIN",
+      "L04_BUNDLE_B64_END"
+    ],
+    "transport_error": "TimeoutException"
+  },
+  "runtime": {
+    "torch_cuda": "not_verified",
+    "compiler": "not_verified",
+    "model": "not_loaded",
+    "model_revision": "not_reached",
+    "integration": "not_reached",
+    "metrics": "not_measured",
+    "controls": "not_measured",
+    "resources": "GPU driver observed; process and CUDA allocation budgets not measured",
+    "model_mutation": "not_measured",
+    "accepted_id": null,
+    "evidence_level": "D0",
+    "evidence_eligible": false
+  },
+  "bundle": {
+    "member_count": 0,
+    "archive_created": false,
+    "exact_member_gate": "NOT_REACHED; dependency preflight timed out before the CLI could create attempt artifacts"
+  },
+  "semantic_result": {
+    "classification": "setup_dependency_timeout",
+    "execution_status": "not_run",
+    "reason": "The remote uv dependency preflight was still downloading Torch and related CUDA wheels when the fixed transport wait expired; the Disentanglement CLI was not invoked."
+  },
+  "raw_capture": {
+    "path": "artifacts/m14/l04-explanations.Disentanglement.transport.ac371125e83ac07553c7291183b089559c4b063d.raw.txt",
+    "bytes": 4458,
+    "sha256": "a9cf0f01036307e8f45d9d2170104478d4882769bba26ac8aea2f9e5ae4e1540",
+    "sanitized_summary_written_before_deletion": true,
+    "raw_deleted_after_verified_sanitization": true
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "not_observed_due_to_client_timeout",
+    "remote_cleanup_marker": "absent",
+    "local_extract": "none; no bundle was emitted",
+    "closure_commit_or_push": true
+  }
+}
