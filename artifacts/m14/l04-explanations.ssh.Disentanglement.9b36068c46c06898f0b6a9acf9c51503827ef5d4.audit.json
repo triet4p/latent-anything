@@ -1,0 +1,199 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "9b36068c46c06898f0b6a9acf9c51503827ef5d4",
+  "use_case": "Disentanglement",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": 1,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "ssh_executable": "C:\\WINDOWS\\System32\\OpenSSH\\ssh.exe",
+    "remote_target": "trietlm@192.168.30.244",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 1,
+    "remote_wrapper_exit": 1,
+    "cli_status": 1,
+    "bundle_status": 0,
+    "final_status": 1,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "payload_sha256": "78d8dd6717bb4d8ed4fe44232da53fe5484f8f119f07276a0123f8bb7b2604cb",
+    "transport_decode_status": 0,
+    "transport_decode_sha256": "78d8dd6717bb4d8ed4fe44232da53fe5484f8f119f07276a0123f8bb7b2604cb",
+    "transport_decode_match": "PASS",
+    "transport_termination_incomplete": false,
+    "raw_capture_written_before_parse": true,
+    "raw_capture_write_succeeded": true,
+    "remote_workdir": "/tmp/latent-anything-l04.2gFdDe",
+    "remote_workdir_start_marker": "PASS",
+    "marker_audit": "PASS; CLI, bundle, final-status, use-case, code-SHA, and cleanup markers were each emitted once"
+  },
+  "raw_capture": {
+    "capture_id": "Disentanglement-attempt1-9b36068",
+    "bytes": 263550,
+    "sha256": "5a752666df8d5094f1bfc18b7bc22cd8b33f6e339c5a1468f083d53eaa484bd9",
+    "deletion_verified": true,
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "archive_bytes": 25739,
+    "archive_sha256": "81becb3b0a9daaa5bd793f3e31cc5b81d235941efb49d3fba668d767151642df",
+    "exact_member_count": 3,
+    "path_traversal_count": 0,
+    "exact_member_gate": "PASS; exactly the attempt1 partial, run, and failure artifacts were present",
+    "members": [
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt1.failure.json",
+        "bytes": 12022,
+        "sha256": "a3ac607d23cc61ec55ca053dd8b691a8b87856f63a29d043c281bd2ba08ce708",
+        "internal_sha256": "ddaafa74b821a44eaca903bfeb00cfab3493b9ca01da50f658861f999e03252e"
+      },
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt1.partial.json",
+        "bytes": 205240,
+        "sha256": "931319999d5229c6e426f0d117218c7f9828812c78af0a6b4544f2e26e3ebb63",
+        "internal_sha256": "d06f7b54224a1c195dd00204f66872516a916a98fc56ec30c8962fb3bb064774"
+      },
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt1.run.json",
+        "bytes": 6003,
+        "sha256": "e3b3c09b677c678f79296fd05bd72f996158e2d2560b12e935e2613b4d1f9b9a",
+        "internal_sha256": "4af3b594a0433fe2754bbec893c1ecb765d334e6df2a44f12c865a1a96b5e633"
+      }
+    ]
+  },
+  "semantic_result": {
+    "classification": "real_cuda_execution_validator_failure",
+    "execution_status": "passed_real_cuda",
+    "evidence_level": "D2",
+    "artifact_acceptance": true,
+    "artifact_evidence_eligible": true,
+    "promotion": false,
+    "blocker": "The local validator rejected four bootstrap confidence intervals because the remote JSON values differ from local recomputation by one floating-point ULP; CLI status 1 is preserved.",
+    "model_loaded": true,
+    "dataset_loaded": true,
+    "cli_invocation_reached": true,
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "fixture": {
+      "rows": 24,
+      "content_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+      "pair_sha256": "7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c",
+      "split_sha256": "7d788c18212bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b",
+      "holdout_groups": ["g09", "g10", "g11", "g12"],
+      "fixture_linkage_rows": 24,
+      "condition_values": ["clean", "corrupted"]
+    },
+    "runtime": {
+      "device": "NVIDIA GeForce RTX 4060 Ti",
+      "cuda_driver": "13.0",
+      "python": "3.13.12",
+      "torch": "2.10.0",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "numpy": "2.4.6",
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.38",
+      "network": "enabled",
+      "execution_backend": "cuda",
+      "deterministic_algorithms": true
+    },
+    "per_seed_metrics": [
+      {
+        "seed": 17,
+        "point_estimate": 0.4052891349333866,
+        "reported_ci95": [0.350221791681139, 0.4775347932329139],
+        "independent_ci95": [0.350221791681139, 0.4775347932329138],
+        "point_and_gate": "PASS",
+        "ci_exact": false,
+        "ci_difference": "one ULP at upper bound"
+      },
+      {
+        "seed": 29,
+        "point_estimate": 0.3929594897706408,
+        "reported_ci95": [0.2978104060894444, 0.5148439752309228],
+        "independent_ci95": [0.29781040608944437, 0.5148439752309228],
+        "point_and_gate": "PASS",
+        "ci_exact": false,
+        "ci_difference": "one ULP at lower bound"
+      },
+      {
+        "seed": 41,
+        "point_estimate": 0.4052891349333866,
+        "reported_ci95": [0.350221791681139, 0.4775347932329139],
+        "independent_ci95": [0.350221791681139, 0.4775347932329138],
+        "point_and_gate": "PASS",
+        "ci_exact": false,
+        "ci_difference": "one ULP at upper bound"
+      },
+      {
+        "seed": 53,
+        "point_estimate": 0.4116880983018577,
+        "reported_ci95": [0.3111409594652141, 0.5354188122755232],
+        "independent_ci95": [0.3111409594652141, 0.5354188122755232],
+        "point_and_gate": "PASS",
+        "ci_exact": true,
+        "ci_difference": null
+      },
+      {
+        "seed": 67,
+        "point_estimate": 0.4052891349333866,
+        "reported_ci95": [0.350221791681139, 0.4775347932329139],
+        "independent_ci95": [0.350221791681139, 0.4775347932329138],
+        "point_and_gate": "PASS",
+        "ci_exact": false,
+        "ci_difference": "one ULP at upper bound"
+      }
+    ],
+    "controls": {
+      "group_preserving_shuffle": "PASS",
+      "factor_permutation": "PASS",
+      "raw_token_baseline": "PASS; target IDs excluded; vocab_size=50257",
+      "seeded_repeat": "PASS",
+      "all_seed_positive_gain_gate": "PASS"
+    },
+    "resource_peak": {
+      "elapsed_seconds": 19.15050490759313,
+      "max_memory_allocated_bytes": 529430016,
+      "max_memory_reserved_bytes": 572522496,
+      "max_rss_bytes": 1603584000,
+      "rss_source": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+      "rss_unit": "bytes",
+      "budget_pass": true
+    },
+    "model_mutation": {
+      "algorithm": "sha256/canonical-ordered-named-parameters-v1",
+      "before": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9",
+      "after": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9",
+      "no_mutation": true
+    }
+  },
+  "validators": {
+    "artifact": [
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered"
+    ],
+    "run_record": [],
+    "failure": [],
+    "real_disentanglement_execution": [
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered",
+      "disentanglement bootstrap interval was tampered"
+    ],
+    "self_digests": "PASS; artifact, run-record, and failure self-digests recomputed exactly",
+    "linkage": "PASS; source SHA, use case, plan SHA, artifact references, failure reference, and three bundle members match"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "remote trap emitted L04_CLEANUP=PASS",
+    "transport_payload_cleanup": "remote wrapper emitted L04_TRANSPORT_CLEANUP=PASS",
+    "local_bundle_extraction": "verified before raw deletion",
+    "raw_deleted_after_sanitized_record": true,
+    "post_delete_absence_verified": true,
+    "no_retry": true,
+    "closure_commit_or_push": false
+  }
+}

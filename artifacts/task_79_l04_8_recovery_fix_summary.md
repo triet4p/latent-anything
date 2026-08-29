@@ -74,3 +74,19 @@ directory was revalidated as an untracked normal directory (not a symlink) and
 removed with native PowerShell `Remove-Item -LiteralPath -Recurse -Force`, then
 verified absent. Final Graphify rebuild: 12,310 nodes, 24,349 edges, and 974
 communities. No commit or remote execution was performed.
+
+## SHA9b36068 Phase B compatibility follow-up
+
+The one owner-authorized Disentanglement real-CUDA run produced the retained
+partial/run/failure artifacts and a sanitized audit. It reached the pinned
+GPT-2 `TransformerLMIntegration` boundary on CUDA with an exact three-member
+bundle and verified remote/transport cleanup. The original CLI status was `1`
+because the validator's factor-by-factor gain expression differed from the
+runtime macro-then-subtract expression by a one-to-two ULP floating-point-order
+mismatch in four bootstrap bounds (seed29=1; seeds17/41/67=2).
+`group_macro_quality_and_gain()` now centralizes that order;
+the validator still derives factor qualities independently and retains exact
+CI comparison. The four SHA9b36068 evidence files remain byte-for-byte
+unchanged, validate cleanly after shared recomputation, and remain historical
+D0/current-compatibility evidence rather than a retroactive promotion. A new
+real run is required for any current evidence claim.

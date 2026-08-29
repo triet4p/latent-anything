@@ -647,3 +647,25 @@ and PowerShell/helper exits. A semantic failure with a successful exact
 three-artifact bundle is useful D0 evidence; a bundle failure must never be
 reported as a semantic result, and a KiB label must never accompany a
 byte-normalized RSS value.
+
+## [2026-08-29] Cross-environment floating-point order can invalidate a valid gate
+
+**Symptom:** The first real CUDA Disentanglement execution produced an accepted
+D2 artifact and passed every point estimate and strict positive-gain gate, but
+the local validator rejected four bootstrap confidence intervals as tampered.
+The remote and local values differed by a one-to-two ULP floating-point-order
+mismatch at four bounds (seed29=1; seeds17/41/67=2), so the CLI exited 1 and
+the evidence could not be promoted.
+**Root cause:** Runtime subtraction used the exact sequence
+`macro(real) - macro(shuffled)`, while the validator used an algebraically
+equivalent factor-by-factor `/ 2` expression. IEEE-754 evaluation order
+produced slightly different serialized bootstrap inputs across environments.
+**Fix / workaround:** Added the pure shared
+`group_macro_quality_and_gain()` helper. Runtime and validator now use the same
+macro-then-subtract order; the validator still independently derives factor
+qualities from retained probabilities and keeps exact CI equality checks.
+The retained SHA9b36068 artifact now validates without tolerance.
+**Watch out for:** Do not replace exact CI comparisons with tolerances or round
+serialized metrics. Any `np.nextafter` perturbation must fail closed, and a
+historical D0/failed run is not retroactively promoted; a new real execution is
+required after a compatibility fix.

@@ -238,6 +238,18 @@ Status legend: [ ] pending / [~] in progress / [x] done
   unverified raw capture deletion, cleanup PASS markers, and no promotion.
   No remote rerun or commit is authorized by this executor; see
   [`task_79_l04_8_recovery_fix_summary.md`](../../artifacts/task_79_l04_8_recovery_fix_summary.md).
+- [x] Execute the single owner-authorized SHA9b36068 Disentanglement Phase B
+  run through direct authenticated PowerShell `ssh.exe`. The fresh detached
+  CUDA clone loaded the pinned GPT-2 through the real
+  `TransformerLMIntegration`, emitted an exact three-artifact bundle, and
+  passed remote cleanup/resource/model-mutation controls. The artifact's D2
+  point estimates and strict gates passed for all frozen seeds, but the local
+  validator initially exposed a one-to-two ULP floating-point-order mismatch
+  (seed29=1; seeds17/41/67=2); the shared
+  macro/gain helper now makes the retained artifact validator-clean. The run's
+  historical CLI status remains `1` and must not be retroactively promoted;
+  a new real execution is required for current evidence after this compatibility
+  correction. See the SHA9b36068 sanitized audit.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
