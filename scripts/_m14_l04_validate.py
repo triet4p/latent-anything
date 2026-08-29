@@ -8,6 +8,7 @@ from typing import Any
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_digest import canonical_digest, source_map_digest
 from scripts._m14_l04_validate_direct_lens import validate_real_direct_lens_execution
+from scripts._m14_l04_validate_disentanglement import validate_real_disentanglement_execution
 from scripts._m14_l04_validate_ig import validate_real_ig_execution
 from scripts._m14_l04_validate_tcav import validate_real_tcav_execution
 from scripts._m14_l04_validate_tuned_lens import validate_real_tuned_lens_execution
@@ -24,6 +25,26 @@ PENDING_STATUSES = {
 }
 INJECTED_STATUS = "injected_offline_non_eligible"
 FAILED_STATUS = "failed"
+EXECUTION_STAGES = {
+    "dispatch",
+    "execution",
+    "preflight",
+    "dependency_check",
+    "cuda_check",
+    "model_load",
+    "scoring",
+    "cleanup",
+    "complete",
+}
+PRE_CUDA_STAGES = {"dispatch", "preflight", "dependency_check"}
+CUDA_STAGE_ORDER = (
+    "cuda_check",
+    "model_load",
+    "scoring",
+    "cleanup",
+    "complete",
+)
+DEVICE_PLACEHOLDERS = {"", "not used", "not attempted", "cpu", "cuda"}
 REAL_IG_STATUS = "passed_real_cuda"
 REAL_DIRECT_LENS_STATUS = "passed_real_cuda"
 REAL_TUNED_LENS_STATUS = "passed_real_cuda"
@@ -48,6 +69,7 @@ GAP_FOR_USE_CASE = {
     "TCAV": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
 }
 TCAV_ACCEPTED_RECORD_ID = "t05_tcav"
+DISENTANGLEMENT_ACCEPTED_RECORD_ID = "THY-T03-DISENTANGLEMENT"
 
 
 def _source_errors(value: dict[str, Any], label: str) -> list[str]:
@@ -72,6 +94,40 @@ def _source_errors(value: dict[str, Any], label: str) -> list[str]:
     for field in ("runner_source_sha256", "contract_source_sha256", "implementation_source_sha256"):
         if not isinstance(value.get(field), str) or not re.fullmatch(r"[0-9a-f]{64}", value[field]):
             errors.append(f"{label} {field} has invalid format")
+    return errors
+
+
+def _execution_tuple_errors(value: dict[str, Any], label: str) -> list[str]:
+    """Validate stage/backend/device/network as one fail-closed execution tuple."""
+    errors: list[str] = []
+    attempted = value.get("execution_attempted")
+    backend = value.get("execution_backend")
+    stage = value.get("stage")
+    network = value.get("network")
+    device = value.get("device")
+    if stage is None:
+        # Preserve validation of historical D0/D3 artifacts that predate the
+        # stage field; all newly constructed envelopes always include it.
+        return []
+    if not isinstance(attempted, bool) or backend not in {"cuda", "none"} or stage not in EXECUTION_STAGES:
+        return [f"{label} execution stage/backend tuple is invalid"]
+    if attempted is not (backend == "cuda"):
+        errors.append(f"{label} execution attempt/backend provenance is incoherent")
+    is_placeholder = device is None or (isinstance(device, str) and device in DEVICE_PLACEHOLDERS)
+    if stage in PRE_CUDA_STAGES:
+        if attempted or backend != "none" or not is_placeholder or network != "not attempted":
+            errors.append(f"{label} pre-CUDA execution tuple is invalid")
+        resource_peak = value.get("resource_peak")
+        if resource_peak is not None and resource_peak != "not measured":
+            errors.append(f"{label} resource peak was recorded before CUDA execution")
+        return errors
+    if stage in CUDA_STAGE_ORDER and attempted is not True:
+        errors.append(f"{label} post-CUDA stage must record an attempted CUDA backend")
+    if attempted is True:
+        if is_placeholder or not isinstance(device, str):
+            errors.append(f"{label} attempted CUDA execution is missing a concrete device")
+        if network != "enabled":
+            errors.append(f"{label} attempted CUDA execution must have enabled network state")
     return errors
 
 
@@ -135,6 +191,8 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 errors.extend(validate_real_direct_lens_execution(entry, artifact, plan))
             elif entry.get("status") == REAL_TUNED_LENS_STATUS and entry.get("use_case") == "TunedLogitLens":
                 errors.extend(validate_real_tuned_lens_execution(entry, artifact, plan))
+            elif entry.get("status") == REAL_TUNED_LENS_STATUS and entry.get("use_case") == "Disentanglement":
+                errors.extend(validate_real_disentanglement_execution(entry, artifact, plan))
             elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
@@ -193,6 +251,16 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         and artifact.get("accepted_record_ids") == ["THY-T05-LOGIT-LENS-TUNED-LENS"]
         and artifact.get("accepted_gap_ids") == ["THY-T05-LOGIT-LENS-TUNED-LENS"]
     )
+    disentanglement_accepted = (
+        artifact.get("use_case") == "Disentanglement"
+        and active_status == REAL_TUNED_LENS_STATUS
+        and isinstance(active_execution, dict)
+        and active_execution.get("evidence_eligible") is True
+        and active_execution.get("acceptance") is True
+        and artifact.get("evidence_level") == "D2"
+        and artifact.get("accepted_record_ids") == [DISENTANGLEMENT_ACCEPTED_RECORD_ID]
+        and artifact.get("accepted_gap_ids") == [DISENTANGLEMENT_ACCEPTED_RECORD_ID]
+    )
     if isinstance(records, list):
         for record in records:
             if not isinstance(record, dict) or (
@@ -203,6 +271,10 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                     )
                     or (
                         tuned_accepted
+                        and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    )
+                    or (
+                        disentanglement_accepted
                         and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
                     )
                 )
@@ -248,6 +320,12 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         )
         if active_record.get("evidence_level") != "D3" or active_record.get("acceptance") is not True:
             errors.append("accepted tuned lens record must be D3 and accepted")
+    elif disentanglement_accepted:
+        active_record = next(
+            (r for r in artifact.get("records", []) if r.get("record_id") == RECORD_FOR_USE_CASE["Disentanglement"]), {}
+        )
+        if active_record.get("evidence_level") != "D2" or active_record.get("acceptance") is not True:
+            errors.append("accepted disentanglement record must be D2 and accepted")
     elif (
         artifact.get("accepted_record_ids") != []
         or artifact.get("accepted_gap_ids") != []
@@ -285,10 +363,13 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             errors.append("artifact evidence origin is invalid")
         execution_attempted = provenance.get("execution_attempted")
         execution_backend = provenance.get("execution_backend")
+        stage = provenance.get("stage")
         if not isinstance(execution_attempted, bool) or execution_backend not in {"cuda", "none"}:
             errors.append("artifact execution attempt/backend provenance is invalid")
         elif execution_attempted is not (execution_backend == "cuda"):
             errors.append("artifact execution attempt/backend provenance is incoherent")
+        if stage is not None and stage not in EXECUTION_STAGES:
+            errors.append("artifact execution stage provenance is invalid")
         is_real_ig = (
             artifact.get("use_case") == "IntegratedGradients" and provenance.get("evidence_origin") == "real-cuda"
         )
@@ -298,6 +379,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         )
         is_real_tuned = (
             artifact.get("use_case") == "TunedLogitLens" and provenance.get("evidence_origin") == "real-cuda"
+        )
+        is_real_disentanglement = (
+            artifact.get("use_case") == "Disentanglement" and provenance.get("evidence_origin") == "real-cuda"
         )
         if provenance.get("evidence_origin") == "real-cuda" and (
             execution_attempted is not True or execution_backend != "cuda"
@@ -329,10 +413,20 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
             allowed_networks = {"enabled"} if active_status == REAL_TUNED_LENS_STATUS else {"enabled", "not attempted"}
             if provenance.get("network") not in allowed_networks:
                 errors.append("real tuned lens runtime provenance is invalid")
+        elif is_real_disentanglement:
+            if provenance.get("network") != "enabled":
+                errors.append("real disentanglement runtime provenance is invalid")
+            if provenance.get("device") in {None, "", "not used"}:
+                errors.append("real disentanglement CUDA device provenance is missing")
+            if active_status == REAL_TUNED_LENS_STATUS:
+                peak = provenance.get("resource_peak")
+                if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
+                    errors.append("real disentanglement CUDA peak resource is missing")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:
             errors.append("artifact integration factory identity is invalid")
+        errors.extend(_execution_tuple_errors(provenance, "artifact"))
         errors.extend(_source_errors(provenance, "artifact"))
     if not isinstance(provenance, dict) or artifact.get("use_case") != provenance.get("use_case"):
         errors.append("artifact use-case provenance linkage is invalid")
@@ -377,6 +471,7 @@ def validate_run_record(run: dict[str, Any], artifact: dict[str, Any], plan: dic
         errors.append("run record partial artifact field is invalid")
     if not SHA1_RE.fullmatch(str(run.get("code_sha", ""))):
         errors.append("run record code SHA is invalid")
+    errors.extend(_execution_tuple_errors(run, "run record"))
     errors.extend(_source_errors(run, "run record"))
     return errors
 
@@ -452,9 +547,25 @@ def validate_failure(
         failure.get("exception_type") is None or failure.get("exception") is None
     ):
         errors.append("failed status must retain the execution exception")
-    expected_stage = "execution" if failure.get("status") == FAILED_STATUS else "dispatch"
-    if failure.get("stage") != expected_stage:
-        errors.append("failure stage is inconsistent with status")
+    stage = failure.get("stage")
+    if failure.get("status") == FAILED_STATUS:
+        if stage not in EXECUTION_STAGES - {"complete"}:
+            errors.append("failed execution stage is not a truthful partial stage")
+    elif stage not in {"dispatch", "complete"}:
+        errors.append("non-failed failure stage is inconsistent with status")
+    resource = failure.get("resource")
+    if not isinstance(resource, dict):
+        errors.append("failure resource envelope is missing")
+    else:
+        errors.extend(_execution_tuple_errors(resource, "failure resource"))
+        if resource.get("stage") is not None and resource.get("stage") != stage:
+            errors.append("failure resource stage provenance is incoherent")
+        if (
+            failure.get("status") == FAILED_STATUS
+            and stage == "dispatch"
+            and resource.get("execution_attempted") is True
+        ):
+            errors.append("failed execution cannot claim dispatch stage after starting")
     return errors
 
 

@@ -29,9 +29,19 @@ def seed_everything(seed: int, torch: Any) -> None:
 
 
 def parameter_digest(model: Any) -> str:
+    """Hash parameters in canonical named, ordered, shape-aware form."""
     digest = hashlib.sha256()
-    for parameter in model.parameters():
-        digest.update(parameter.detach().cpu().numpy().tobytes())
+    named_parameters = model.named_parameters()
+    for name, parameter in named_parameters:
+        value = parameter.detach().cpu().contiguous().numpy()
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(str(value.dtype).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(repr(tuple(value.shape)).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(value.tobytes(order="C"))
+        digest.update(b"\0")
     return digest.hexdigest()
 
 

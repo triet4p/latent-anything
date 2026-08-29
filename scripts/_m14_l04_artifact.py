@@ -12,6 +12,8 @@ TCAV_RECORD_ID = "t05_tcav"
 TCAV_GAP_ID = "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018"
 TUNED_RECORD_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
 TUNED_GAP_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
+DISENTANGLEMENT_RECORD_ID = "THY-T03-DISENTANGLEMENT"
+DISENTANGLEMENT_GAP_ID = "THY-T03-DISENTANGLEMENT"
 
 
 def _record_template(plan: dict[str, Any], item: dict[str, Any], status: str) -> dict[str, Any]:
@@ -68,6 +70,13 @@ def build_artifact(
     execution_backend = (resources or {}).get("execution_backend")
     if execution_backend is None:
         execution_backend = "cuda" if execution_attempted and not injected else "none"
+    execution_stage = (resources or {}).get("stage")
+    if execution_stage is None:
+        execution_stage = (
+            "complete" if status == "passed_real_cuda" else ("cleanup" if execution_attempted else "dispatch")
+        )
+    elif execution_stage == "dispatch" and execution_attempted and execution_result is not None:
+        execution_stage = "complete" if status == "passed_real_cuda" else "cleanup"
     executions = [
         execution_template(
             plan,
@@ -89,14 +98,20 @@ def build_artifact(
             "controls",
             "control_raw",
             "diagnostics",
+            "raw_summaries",
+            "fixture_linkage",
+            "budget_pass",
             "provenance",
             "token_ids",
             "target_token_strings",
+            "raw_token_linkage",
             "layer",
             "native_hidden_state_index",
             "seed",
             "seeds",
             "no_mutation",
+            "model_parameter_digest_before",
+            "model_parameter_digest_after",
         ):
             if key in execution_result:
                 current[key] = execution_result[key]
@@ -116,8 +131,16 @@ def build_artifact(
         and execution_result.get("evidence_eligible") is True
         and execution_result.get("acceptance") is True
     )
-    if accepted_tcav or accepted_tuned:
-        current["evidence_level"] = "D3"
+    accepted_disentanglement = bool(
+        use_case == "Disentanglement"
+        and not injected
+        and execution_result is not None
+        and execution_result.get("status") == "passed_real_cuda"
+        and execution_result.get("evidence_eligible") is True
+        and execution_result.get("acceptance") is True
+    )
+    if accepted_tcav or accepted_tuned or accepted_disentanglement:
+        current["evidence_level"] = "D2" if accepted_disentanglement else "D3"
         current["acceptance"] = True
     records = []
     for item in plan["record_order"]:
@@ -149,9 +172,15 @@ def build_artifact(
         "schema_version": "m14-l04-explanations-artifact-v1",
         "lane": "L04",
         "use_case": use_case,
-        "accepted_gap_ids": [TCAV_GAP_ID] if accepted_tcav else ([TUNED_GAP_ID] if accepted_tuned else []),
-        "accepted_record_ids": [TCAV_RECORD_ID] if accepted_tcav else ([TUNED_RECORD_ID] if accepted_tuned else []),
-        "evidence_level": "D3" if (accepted_tcav or accepted_tuned) else "D0",
+        "accepted_gap_ids": [TCAV_GAP_ID]
+        if accepted_tcav
+        else ([TUNED_GAP_ID] if accepted_tuned else ([DISENTANGLEMENT_GAP_ID] if accepted_disentanglement else [])),
+        "accepted_record_ids": [TCAV_RECORD_ID]
+        if accepted_tcav
+        else (
+            [TUNED_RECORD_ID] if accepted_tuned else ([DISENTANGLEMENT_RECORD_ID] if accepted_disentanglement else [])
+        ),
+        "evidence_level": "D2" if accepted_disentanglement else ("D3" if (accepted_tcav or accepted_tuned) else "D0"),
         "partial_promotion": True,
         "model": plan["model"],
         "integration": "TransformerLMIntegration",
@@ -181,10 +210,12 @@ def build_artifact(
             if injected
             else ("real-cuda" if execution_attempted and execution_backend == "cuda" else "dispatcher-only-no-model"),
             "network": (resources or {}).get("network", "not attempted"),
+            "device": (resources or {}).get("device", "not used"),
             "credentials": "not used",
             "cleanup": (resources or {}).get("cleanup", "not applicable; no model was loaded"),
             "execution_attempted": execution_attempted,
             "execution_backend": execution_backend,
+            "stage": execution_stage,
             "resource_peak": (resources or {}).get("resource_peak", "not measured"),
             "use_case": use_case,
             "plan_sha256": plan_digest(plan),
@@ -196,8 +227,11 @@ def build_artifact(
         if isinstance(provenance, dict):
             provenance.update(execution_result.get("provenance", {}))
         artifact["raw_summaries"] = execution_result.get("raw_summaries", [])
+        artifact["fixture_linkage"] = execution_result.get("fixture_linkage", [])
         artifact["diagnostics"] = execution_result.get("diagnostics", {})
         artifact["seeds"] = execution_result.get("seeds", [])
         artifact["token_ids"] = execution_result.get("token_ids", {})
+        artifact["target_token_strings"] = execution_result.get("target_token_strings", {})
+        artifact["raw_token_linkage"] = execution_result.get("raw_token_linkage", {})
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     return artifact

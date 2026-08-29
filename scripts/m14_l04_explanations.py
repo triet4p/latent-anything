@@ -117,6 +117,10 @@ def run_real(
             from scripts._m14_l04_tuned_lens import run_tuned_logit_lens
 
             handler = run_tuned_logit_lens
+        elif use_case == "Disentanglement":
+            from scripts._m14_l04_disentanglement import run_disentanglement
+
+            handler = run_disentanglement
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None
@@ -129,6 +133,7 @@ def run_real(
         "cleanup": "not applicable; no model was loaded",
         "execution_attempted": bool(handler is not None and not injected),
         "execution_backend": "cuda" if handler is not None and not injected else "none",
+        "stage": "dispatch",
     }
     if handler is not None:
         try:
@@ -151,6 +156,8 @@ def run_real(
             error_resources = getattr(exc, "resources", None)
             if isinstance(error_resources, dict):
                 resources.update(error_resources)
+            if resources.get("stage") == "dispatch" and resources.get("execution_attempted") is True:
+                resources["stage"] = "execution"
     fixture = fixture_metadata(plan, raw, rows)
     artifact = build_artifact(
         plan,

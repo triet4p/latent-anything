@@ -22,6 +22,17 @@ def build_run_record(
     *,
     artifact_name: str | None = None,
 ) -> dict[str, Any]:
+    attempted = resources.get("execution_attempted")
+    if not isinstance(attempted, bool):
+        attempted = resources.get("network") == "enabled"
+    backend = resources.get("execution_backend")
+    if backend not in {"cuda", "none"}:
+        backend = "cuda" if attempted else "none"
+    stage = resources.get("stage")
+    if stage is None:
+        stage = "complete" if status == "passed_real_cuda" else ("cleanup" if attempted else "dispatch")
+    elif stage == "dispatch" and attempted:
+        stage = "complete" if status == "passed_real_cuda" else "cleanup"
     result = {
         "schema_version": "m14-l04-explanations-run-v1",
         "lane": "L04",
@@ -37,6 +48,9 @@ def build_run_record(
         "device": resources.get("device", "not used"),
         "resource_peak": resources.get("resource_peak", "not measured"),
         "network": resources.get("network", "not attempted"),
+        "execution_attempted": attempted,
+        "execution_backend": backend,
+        "stage": stage,
         "credentials_redacted": True,
         "cleanup": resources.get("cleanup", "not applicable; no model was loaded"),
         "status": status,
@@ -59,14 +73,25 @@ def failure_envelope(
     run_record: dict[str, Any] | None = None,
     resources: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    observed = resources or {}
+    observed = resources or (run_record if isinstance(run_record, dict) else {})
+    attempted = observed.get("execution_attempted")
+    if not isinstance(attempted, bool):
+        attempted = observed.get("network") == "enabled"
+    backend = observed.get("execution_backend")
+    if backend not in {"cuda", "none"}:
+        backend = "cuda" if attempted else "none"
+    failure_stage = observed.get("stage")
+    if failure_stage is None:
+        failure_stage = "complete" if status == "passed_real_cuda" else ("cleanup" if attempted else "dispatch")
+    elif failure_stage == "dispatch" and attempted:
+        failure_stage = "complete" if status == "passed_real_cuda" else "cleanup"
     result = {
         "schema_version": "m14-l04-explanations-failure-v1",
         "lane": "L04",
         "status": status,
         "use_case": use_case,
         "command": f"{COMMAND} --use-case {use_case}",
-        "stage": "dispatch" if error is None else "execution",
+        "stage": failure_stage,
         "exception_type": None if error is None else type(error).__name__,
         "exception": None if error is None else str(error),
         "stdout_stderr_sha256": None,
@@ -80,10 +105,16 @@ def failure_envelope(
             "network": observed.get("network", "not attempted"),
             "credentials": "not used",
             "cleanup": observed.get("cleanup", "not applicable; no model was loaded"),
+            "execution_attempted": attempted,
+            "execution_backend": backend,
+            "stage": failure_stage,
+            "resource_peak": observed.get("resource_peak", "not measured"),
         },
         "network": observed.get("network", "not attempted"),
         "credentials_redacted": True,
         "cleanup": observed.get("cleanup", "not applicable; no model was loaded"),
+        "execution_attempted": attempted,
+        "execution_backend": backend,
         "blocker_owner": "explanation",
         "artifact_written": True,
         "failure_ref": failure_ref,
