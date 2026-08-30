@@ -10,6 +10,7 @@ param(
     [Parameter(Mandatory = $true)] [string]$RepoUrl,
     [Parameter(Mandatory = $true)] [string]$RawCapturePath,
     [ValidateRange(2400, 7200)] [int]$TransportTimeoutSeconds = 3600,
+    [ValidateRange(1, 300)] [int]$SshConnectTimeoutSeconds = 15,
     [switch]$BuildOnly,
     [Alias("DryRun")] [switch]$DryRunMode,
     [switch]$Postprocess,
@@ -99,16 +100,25 @@ $manifest = [ordered]@{
     payload = [ordered]@{ sha256 = $payloadSha256; bytes = $payloadBytes.Length }
     bootstrap = [ordered]@{ sha256 = $bootstrapSha256; bytes = $bootstrapBytes.Length }
     transport_timeout_seconds = $TransportTimeoutSeconds
+    ssh_connect_timeout_seconds = $SshConnectTimeoutSeconds
+    ssh_connection_attempts = 1
+    ssh_batch_mode = $true
     kill_grace_seconds = 30
     expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_WORKDIR", "L04_USE_CASE", "L04_CODE_SHA", "L04_CLI_STATUS", "L04_BUNDLE_STATUS", "L04_STATUS", "L04_BUNDLE_BYTES", "L04_BUNDLE_SHA256", "L04_BUNDLE_MEMBER", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END", "L04_CLEANUP", "L04_TRANSPORT_CLEANUP")
-    command_args_redacted = @("<ssh.exe>", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
+    command_args_redacted = @("<ssh.exe>", "-o", "BatchMode=yes", "-o", "ConnectTimeout=$SshConnectTimeoutSeconds", "-o", "ConnectionAttempts=1", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
 }
 if ($BuildOnly -or $DryRunMode) { $manifest | ConvertTo-Json -Depth 8 -Compress; exit 0 }
 
 $seamPath = Join-Path $PSScriptRoot "_m14_l04_transport_seam.psm1"
 Import-Module $seamPath -Force
-$capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList @($RemoteTarget, "bash", "-s", "--", $UseCase, $normalizedCodeSha, $RepoUrl) -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath -TimeoutSeconds $TransportTimeoutSeconds
+$sshArguments = @(
+    "-o", "BatchMode=yes",
+    "-o", "ConnectTimeout=$SshConnectTimeoutSeconds",
+    "-o", "ConnectionAttempts=1",
+    $RemoteTarget, "bash", "-s", "--", $UseCase, $normalizedCodeSha, $RepoUrl
+)
+$capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList $sshArguments -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath -TimeoutSeconds $TransportTimeoutSeconds
 [ordered]@{
     schema_version = "m14-l04-remote-transport-capture-v1"
     ssh_exit = $capture.ssh_exit; raw_capture_sha256 = $capture.raw_capture_sha256

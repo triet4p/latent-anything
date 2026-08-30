@@ -87,6 +87,25 @@ def test_build_only_normalizes_crlf_and_redacts_operational_values(tmp_path: Pat
     assert manifest["secrets_redacted"] is True
     assert manifest["raw_capture_path_redacted"] == "<raw-capture-path>"
     assert manifest["transport_timeout_seconds"] == 3600
+    assert manifest["ssh_connect_timeout_seconds"] == 15
+    assert manifest["ssh_connection_attempts"] == 1
+    assert manifest["ssh_batch_mode"] is True
+    assert manifest["command_args_redacted"] == [
+        "<ssh.exe>",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=15",
+        "-o",
+        "ConnectionAttempts=1",
+        "<remote-target>",
+        "bash",
+        "-s",
+        "--",
+        "<use-case>",
+        "<code-sha>",
+        "<repo-url>",
+    ]
     assert manifest["kill_grace_seconds"] == 30
     serialized = json.dumps(manifest)
     for value in (str(payload_path), str(raw_capture_path), "example.com", "github.com/example"):
@@ -157,6 +176,65 @@ def test_transport_timeout_bounds_are_rejected(tmp_path: Path, timeout_seconds: 
     assert result.returncode != 0
 
 
+@pytest.mark.parametrize("timeout_seconds", [1, 300])
+def test_build_only_accepts_ssh_connect_timeout_bounds(tmp_path: Path, timeout_seconds: int) -> None:
+    command = [
+        _pwsh(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshPath",
+        _ssh_path(),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "Disentanglement",
+        "-CodeSha",
+        "a" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(tmp_path / "raw.capture"),
+        "-SshConnectTimeoutSeconds",
+        str(timeout_seconds),
+        "-BuildOnly",
+    ]
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["ssh_connect_timeout_seconds"] == timeout_seconds
+
+
+@pytest.mark.parametrize("timeout_seconds", [0, 301])
+def test_ssh_connect_timeout_bounds_are_rejected(tmp_path: Path, timeout_seconds: int) -> None:
+    command = [
+        _pwsh(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshPath",
+        _ssh_path(),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "Disentanglement",
+        "-CodeSha",
+        "a" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(tmp_path / "raw.capture"),
+        "-SshConnectTimeoutSeconds",
+        str(timeout_seconds),
+        "-BuildOnly",
+    ]
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    assert result.returncode != 0
+
+
 def test_invalid_parameters_are_rejected_before_build(tmp_path: Path) -> None:
     command = [
         _pwsh(),
@@ -198,6 +276,9 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "WaitForExit($killWaitMilliseconds)" in seam
     assert "transport_termination_incomplete" in seam
     assert "TimeoutSeconds" in seam
+    assert '"BatchMode=yes"' in helper
+    assert '"ConnectTimeout=$SshConnectTimeoutSeconds"' in helper
+    assert '"ConnectionAttempts=1"' in helper
     assert "<<'L04_PAYLOAD_B64'" in helper
     assert "base64 -d" in helper
     assert "L04_TRANSPORT_DECODE_STATUS" in helper
@@ -296,7 +377,15 @@ def test_real_processstartinfo_fake_ssh_success_and_exact_stdin(tmp_path: Path) 
     assert not stdin_bytes.startswith(b"\xef\xbb\xbf")
     assert b"\r" not in stdin_bytes
     assert hashlib.sha256(stdin_bytes).hexdigest() == hashlib.sha256(_fake_bootstrap()).hexdigest()
+    assert captured["argv"][0] == str(Path(env["L04_FAKE_TARGET"]))
     assert captured["argv"][1:] == [
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=15",
+        "-o",
+        "ConnectionAttempts=1",
+        "user@example.com",
         "bash",
         "-s",
         "--",
@@ -308,6 +397,16 @@ def test_real_processstartinfo_fake_ssh_success_and_exact_stdin(tmp_path: Path) 
     assert "L04_PAYLOAD_EXECUTED=PASS" in raw
     assert "L04_TRANSPORT_CLEANUP=PASS" in raw
     assert json.loads(result.stdout)["raw_capture_written_before_parse"] is True
+
+
+def test_active_l04_runbooks_derive_repo_url_from_origin() -> None:
+    validation = (ROOT / "docs" / "M14_REAL_SYSTEM_VALIDATION.md").read_text(encoding="utf-8")
+    gap_plan = (ROOT / "docs" / "EVIDENCE_GAP_PLAN.md").read_text(encoding="utf-8")
+    stale_url = "https://github.com/trietlm/latent-anything.git"
+    for document in (validation, gap_plan):
+        assert "$RepoUrl = (git remote get-url origin).Trim()" in document
+        assert "-RepoUrl $RepoUrl" in document
+        assert stale_url not in document
 
 
 @pytest.mark.parametrize("mode", ["mismatch", "early", "broken"])
@@ -515,11 +614,12 @@ def test_bundle_gate_exit_precedence_is_explicit_and_marker_values_remain_distin
 ) -> None:
     payload = PAYLOAD.read_text(encoding="utf-8")
     assert 'local cli_status="$2"' in payload
-    assert 'printf \'L04_BUNDLE_STATUS=66\\n\'' in payload
-    assert payload.count('bundle_gate_failure BUNDLE_INPUTS_') == 5
-    assert all('"$cli_status"' in payload[line_start:line_start + 100] for line_start in (
-        match.start() for match in re.finditer(r"bundle_gate_failure BUNDLE_INPUTS_", payload)
-    ))
+    assert "printf 'L04_BUNDLE_STATUS=66\\n'" in payload
+    assert payload.count("bundle_gate_failure BUNDLE_INPUTS_") == 5
+    assert all(
+        '"$cli_status"' in payload[line_start : line_start + 100]
+        for line_start in (match.start() for match in re.finditer(r"bundle_gate_failure BUNDLE_INPUTS_", payload))
+    )
     final = cli_status if cli_status != 0 else bundle_status
     assert final == expected_final
     markers = f"L04_CLI_STATUS={cli_status}\nL04_BUNDLE_STATUS={bundle_status}\nL04_STATUS={final}\n"
@@ -601,7 +701,11 @@ def _fake_command(
         f"""
 Import-Module '{SEAM}'
 $bootstrap = [System.IO.File]::ReadAllBytes($env:L04_BOOTSTRAP_PATH)
-$arguments = @($env:L04_FAKE_TARGET, 'bash', '-s', '--', 'Disentanglement', ('c' * 40), 'https://github.com/example/repo.git')
+$arguments = @(
+    $env:L04_FAKE_TARGET, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
+    '-o', 'ConnectionAttempts=1', 'user@example.com', 'bash', '-s', '--',
+    'Disentanglement', ('c' * 40), 'https://github.com/example/repo.git'
+)
 $result = Invoke-L04TransportProcess `
     -SshExecutable $env:L04_SSH_EXECUTABLE `
     -ArgumentList $arguments `
