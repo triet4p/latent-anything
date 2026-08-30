@@ -11,7 +11,10 @@ param(
     [Parameter(Mandatory = $true)] [string]$RawCapturePath,
     [ValidateRange(2400, 7200)] [int]$TransportTimeoutSeconds = 3600,
     [switch]$BuildOnly,
-    [Alias("DryRun")] [switch]$DryRunMode
+    [Alias("DryRun")] [switch]$DryRunMode,
+    [switch]$Postprocess,
+    [string]$ArtifactOutputDir = (Join-Path (Get-Location) "artifacts/m14"),
+    [string]$AuditOutputPath = ""
 )
 
 Set-StrictMode -Version Latest
@@ -97,7 +100,7 @@ $manifest = [ordered]@{
     bootstrap = [ordered]@{ sha256 = $bootstrapSha256; bytes = $bootstrapBytes.Length }
     transport_timeout_seconds = $TransportTimeoutSeconds
     kill_grace_seconds = 30
-    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_TRANSPORT_CLEANUP", "L04_USE_CASE", "L04_CODE_SHA", "L04_WORKDIR", "L04_CLI_STATUS", "L04_BUNDLE_STATUS", "L04_STATUS", "L04_CLEANUP", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END")
+    expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_WORKDIR", "L04_USE_CASE", "L04_CODE_SHA", "L04_CLI_STATUS", "L04_BUNDLE_STATUS", "L04_STATUS", "L04_BUNDLE_BYTES", "L04_BUNDLE_SHA256", "L04_BUNDLE_MEMBER", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END", "L04_CLEANUP", "L04_TRANSPORT_CLEANUP")
     command_args_redacted = @("<ssh.exe>", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
 }
@@ -121,4 +124,18 @@ $capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentLis
     raw_capture_finalization_error = $capture.raw_capture_finalization_error
 } | ConvertTo-Json -Depth 8 -Compress
 if ($capture.transport_error -ne $null) { exit 70 }
+if ($Postprocess -and $capture.raw_capture_write_succeeded) {
+    if ([string]::IsNullOrWhiteSpace($AuditOutputPath)) {
+        $AuditOutputPath = Join-Path $ArtifactOutputDir ("l04-explanations.ssh.$UseCase.$normalizedCodeSha.audit.json")
+    }
+    & uv run python -m scripts.m14_l04_remote_postprocess `
+        --retain `
+        --raw-capture $RawCapturePath `
+        --source-sha $normalizedCodeSha `
+        --use-case $UseCase `
+        --artifact-dir $ArtifactOutputDir `
+        --audit $AuditOutputPath
+    $postprocessExit = $LASTEXITCODE
+    if ($postprocessExit -ne 0) { exit $postprocessExit }
+}
 exit $capture.ssh_exit

@@ -207,6 +207,16 @@ else
 fi
 emit_status "$final_status"
 if [[ "$bundle_status" -eq 0 ]]; then
+    bundle_bytes=$(wc -c < "$bundle_file")
+    bundle_sha256=$(sha256sum "$bundle_file" | awk '{print $1}')
+    printf 'L04_BUNDLE_BYTES=%s\n' "$bundle_bytes"
+    printf 'L04_BUNDLE_SHA256=%s\n' "$bundle_sha256"
+    while IFS= read -r -d '' member; do
+        candidate="$repo_dir/$member"
+        member_bytes=$(wc -c < "$candidate")
+        member_sha256=$(sha256sum "$candidate" | awk '{print $1}')
+        printf 'L04_BUNDLE_MEMBER=%s|%s|%s\n' "$member" "$member_bytes" "$member_sha256"
+    done < "$members_file"
     printf '%s\n' L04_BUNDLE_B64_BEGIN
     base64 -w0 "$bundle_file"
     printf '\n%s\n' L04_BUNDLE_B64_END
