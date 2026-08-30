@@ -45,7 +45,8 @@
 - Recorded one owner-authorized exact-SHA M14 L04.9 real-CUDA attempt as a
   non-promoting D0 semantic failure: true-interchange recovery failed and the
   single retention attempt failed closed on a producer failure-stage mismatch.
-  Preserved the byte-exact raw capture and sanitized sidecar; no retry or
+  Preserved and hash-verified the byte-exact raw capture before the owner
+  exception deleted it; the sanitized sidecar records the deletion. No retry or
   evidence-ledger promotion occurred.
 
 - Promoted the owner-verified L04.8 Disentanglement record to D2/eligible for

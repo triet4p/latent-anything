@@ -780,3 +780,20 @@ non-promoting sidecar when an older raw capture cannot be reconstructed.
 semantic failure after changing envelope semantics; preserve the raw bytes,
 record the exact mismatch, and test both successful completion and failed
 cleanup-stage paths.
+
+## [2026-08-30] Owner-exception deletion must preserve a sanitized audit
+
+**Symptom:** A historical raw capture could not pass standard finalization
+because its embedded failed semantic result still claimed the `complete`
+stage, even though a sanitized pending sidecar had been committed.
+
+**Fix / workaround:** Verify the exact path, size, and SHA-256 before deleting
+only that literal raw path under an explicit owner exception. Update the
+sidecar with the prior digest, deletion reason, pre-delete hash/size, verified
+absence, `standard_finalize=false`, and `repository_promotion=false`; preserve
+all bundle/member hashes, markers, and validator errors. Record that deletion
+is irreversible and does not promote the semantic result.
+
+**Watch out for:** Never use a broad glob or recursive deletion for exception
+cleanup, and never claim `deleted_verified` from the standard finalizer when
+that finalizer did not run.

@@ -198,13 +198,60 @@ def test_injected_activation_failure_is_sanitized_without_secret_payload(tmp_pat
 
 def test_historical_activation_sidecar_is_canonical_and_sanitized() -> None:
     sidecar = json.loads(SIDECAR_PATH.read_bytes())
-    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert (
+        canonical_digest(sidecar, "sidecar_sha256")
+        == sidecar["sidecar_sha256"]
+        == ("41ba907d9101f5e4ce3a038c240520ac51db5fc481b069dc0c5d5ef3fe11e463")
+    )
     assert sidecar["source_sha"] == "3d5d6720ee5fe155ff4a1f1c25814225b66170f3"
     assert sidecar["plan_sha256"] == "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a"
     assert sidecar["use_case"] == "TrueActivationPatching"
     assert sidecar["semantic_status"] == sidecar["validator_status"] == "failed"
     assert sidecar["reason"] == "failure_envelope_stage_mismatch"
-    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["raw_retention_status"] == "deleted_by_owner_exception"
+    assert sidecar["standard_finalize"] is False
+    assert sidecar["owner_exception"] == {
+        "deletion_verification": {
+            "absent_after_delete": True,
+            "pre_delete_bytes": 154600,
+            "pre_delete_sha256": "137bb19ceb983a286ce178553d581a7ba5b37f68bc4f58cecb56c1ed93fcdb3e",
+        },
+        "previous_sidecar_sha256": "d3c283912be5ee6e5b3d2fce6b0452b7e1e11e08a5078855ab8357981e01b920",
+        "reason": (
+            "Historical raw contains an invalid embedded failed+complete execution triad; "
+            "standard finalization is fail-closed and cannot process it."
+        ),
+        "standard_finalize": False,
+    }
+    assert sidecar["archive"] == {
+        "bytes": 19697,
+        "sha256": "379ae82f5f71ce7bce457187534cc4da3f8d3689b293b7b1b8caf7110e4f3385",
+        "source": "embedded in raw capture",
+    }
+    assert sidecar["bundle_members"] == [
+        {
+            "bytes": 13067,
+            "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.failure.json",
+            "sha256": "b42b50a08f1dba7a01dbf7d843f6c8343ccad5a3180288a9296c59b3e3b1357b",
+        },
+        {
+            "bytes": 102114,
+            "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.partial.json",
+            "sha256": "f7fd29470850c397da02f7d6518e90f1c152cea76ac9c50f742376db0e11a4d5",
+        },
+        {
+            "bytes": 6476,
+            "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.run.json",
+            "sha256": "673d6a01af94c5b99aa46a92353f4b79155522278a175350beb249028c21b241",
+        },
+    ]
+    assert sidecar["raw_capture"] == {
+        "bytes": 154600,
+        "path": (
+            "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.3d5d6720ee5fe155ff4a1f1c25814225b66170f3.raw.txt"
+        ),
+        "sha256": "137bb19ceb983a286ce178553d581a7ba5b37f68bc4f58cecb56c1ed93fcdb3e",
+    }
     assert sidecar["raw_markers"] == {
         "bundle_status": 0,
         "cli_status": 1,

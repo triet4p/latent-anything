@@ -66,8 +66,18 @@
     "path": "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.3d5d6720ee5fe155ff4a1f1c25814225b66170f3.raw.txt",
     "sha256": "137bb19ceb983a286ce178553d581a7ba5b37f68bc4f58cecb56c1ed93fcdb3e"
   },
+  "owner_exception": {
+    "deletion_verification": {
+      "absent_after_delete": true,
+      "pre_delete_bytes": 154600,
+      "pre_delete_sha256": "137bb19ceb983a286ce178553d581a7ba5b37f68bc4f58cecb56c1ed93fcdb3e"
+    },
+    "previous_sidecar_sha256": "d3c283912be5ee6e5b3d2fce6b0452b7e1e11e08a5078855ab8357981e01b920",
+    "reason": "Historical raw contains an invalid embedded failed+complete execution triad; standard finalization is fail-closed and cannot process it.",
+    "standard_finalize": false
+  },
   "reason": "failure_envelope_stage_mismatch",
-  "raw_retention_status": "preserved_pending_owner_exception",
+  "raw_retention_status": "deleted_by_owner_exception",
   "repository_promotion": false,
   "resource": {
     "budget_pass": true,
@@ -81,7 +91,8 @@
   },
   "schema_version": "m14-l04-remote-capture-failure-v1",
   "semantic_status": "failed",
-  "sidecar_sha256": "d3c283912be5ee6e5b3d2fce6b0452b7e1e11e08a5078855ab8357981e01b920",
+  "sidecar_sha256": "41ba907d9101f5e4ce3a038c240520ac51db5fc481b069dc0c5d5ef3fe11e463",
+  "standard_finalize": false,
   "source_sha": "3d5d6720ee5fe155ff4a1f1c25814225b66170f3",
   "use_case": "TrueActivationPatching",
   "validator_errors": [

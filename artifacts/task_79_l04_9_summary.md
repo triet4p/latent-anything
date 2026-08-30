@@ -11,9 +11,10 @@ Phase A implementation was completed without model download or CUDA execution.
 One later owner-authorized v1 real-CUDA attempt reached the pinned model and
 produced a raw capture, but its true-interchange recovery gate failed. The
 single `--retain` operation also failed closed because the producer serialized
-a post-scoring semantic failure as `complete`; the raw capture is preserved
-byte-exact and the sanitized sidecar is non-promoting. No D3 evidence was
-promoted.
+a post-scoring semantic failure as `complete`. The raw capture was preserved
+byte-exact during initial retention, then deleted under the explicit owner
+exception after its size/hash were verified; the sanitized sidecar records the
+deletion and remains non-promoting. No D3 evidence was promoted.
 
 ## Contract
 
@@ -59,8 +60,10 @@ resource, and no-mutation controls were recorded. Retention rejected the
 failure envelope's inconsistent stage; the producer now normalizes only fully
 evidenced completed scoring failures to the truthful `cleanup` stage, while the
 validator remains strict for `failed` plus `complete`. The sanitized sidecar records the exact
-raw and bundle/member digests without sensitive execution payloads and keeps
-`repository_promotion=false`, evidence level D0, and no accepted IDs.
+raw and bundle/member digests without sensitive execution payloads, records the
+owner-exception deletion with `standard_finalize=false`, and keeps
+`repository_promotion=false`, evidence level D0, and no accepted IDs. The
+historical raw path is now verified absent and is not recoverable.
 
 ## Verification
 
