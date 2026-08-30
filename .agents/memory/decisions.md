@@ -1072,3 +1072,54 @@ preventing transport packaging from being mistaken for semantic execution.
 bundle, SSH, and PowerShell/helper exits independently. A semantic failure may
 still produce a valid D0 bundle; a bundle failure never promotes or masks the
 semantic outcome.
+
+## [2026-08-29] Keep L04 capture parsing and retention in a local postprocessor
+
+**Decision:** The PowerShell helper only publishes an exact raw capture; a
+separate local `m14_l04_remote_postprocess.py` must verify marker multiplicity,
+bundle/archive/member digests, envelope validators, atomic final retention, and
+raw deletion.
+
+**Alternatives considered:** Let the helper parse/delete inline, trust the
+remote tar listing, or retain only a sanitized audit without the exact payload.
+
+**Reason:** The immutable d9 audit showed semantic D2 was observed but could
+not be closed after the raw payload was deleted. A separate local boundary can
+retain the only raw evidence until the sanitized audit and reopened final
+payloads are independently verified, while remaining testable without SSH or
+CUDA.
+
+**Consequences:** Every L04.8+ capture must announce bundle and member
+size/SHA-256 markers and use `--retain`, `--validate-only`, or `--dry-run`.
+Raw deletion is never inferred from a successful remote exit or performed by
+the transport helper.
+
+## [2026-08-29] Make L04 raw cleanup an explicit second-phase commit
+
+**Decision:** The local L04 postprocessor has two mutating phases. `--retain`
+validates and atomically retains/reopens the three envelopes, then publishes a
+sanitized `retained_pending_finalize` audit while preserving raw bytes.
+`--finalize-delete` independently reopens and revalidates the audit, raw
+capture, and final paths before deleting raw and publishing
+`deleted_verified`. Quarantine-audit failure reverses the rename; a failure
+after quarantine deletion leaves the truthful pending audit and valid payload
+triplet in place without claiming success.
+
+The raw transition is specifically a same-directory atomic quarantine rename:
+`retained_pending_finalize` → `quarantined_pending_delete` →
+`deleted_verified`. If the quarantine audit cannot be published, the rename is
+reversed (or the exact quarantine remains if reversal fails). If final audit
+publication fails after quarantine deletion, the last audit remains
+`quarantined_pending_delete`; no false deletion success is emitted.
+
+**Alternatives considered:** Delete raw during retain, trust a remote success
+exit, or roll back valid payloads when a final audit update fails.
+
+**Reason:** Raw bytes are the recovery source; payloads and audit paths must
+remain truthful even when the final audit publication fails. Separating the
+phases makes the deletion boundary explicit and testable offline.
+
+**Consequences:** `--validate-only` and `--dry-run` write nothing. A remote
+semantic `promotion=true` never implies repository closure; the d9 audit stays
+immutable and its sanitized retention-failure sidecar records
+`repository_promotion=false` without reconstructing the lost triplet.

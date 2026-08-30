@@ -4,6 +4,11 @@
 
 ### Added
 
+- Added the local, offline-tested M14 L04 evidence-retention CLI with explicit
+  `--retain`, `--validate-only`, and `--finalize-delete` phases; the PowerShell
+  helper now captures raw evidence only, while raw deletion requires separate
+  verified finalization. Remote validation remains owner-gated.
+
 - Added the offline-tested, explicitly network-gated WikiText-2 acquisition
   and sanitized manifest pipeline for the frozen M14 L04 tuned-lens corpus.
   The pipeline retains only pinned provenance, counts, selected indices, text

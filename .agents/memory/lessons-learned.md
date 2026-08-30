@@ -669,3 +669,46 @@ The retained SHA9b36068 artifact now validates without tolerance.
 serialized metrics. Any `np.nextafter` perturbation must fail closed, and a
 historical D0/failed run is not retroactively promoted; a new real execution is
 required after a compatibility fix.
+## [2026-08-29] Deleted raw evidence cannot close a semantic run
+
+**Symptom:** The d9 Disentanglement capture recorded passing semantic D2
+metrics and validators, but the evidence was not closeable because the exact
+three-file payload had already been deleted.
+**Root cause:** Raw cleanup was treated as a consequence of a successful
+remote exit instead of a final step guarded by local bundle validation, a
+sanitized audit reopen, and final-path revalidation.
+**Fix / workaround:** Keep the helper capture-only; emit bundle/member
+digests, inspect and extract only validated regular members locally, install
+the triplet atomically, reopen and revalidate final files, write/reopen the
+sanitized audit, and delete raw only after those gates pass. Use a
+same-directory quarantine rename; if post-delete audit publication fails,
+retain the truthful quarantined-pending state rather than claiming success.
+**Watch out for:** Never reconstruct or promote a historical attempt after
+payload loss. The d9 audit remains immutable evidence of observed semantics;
+any new current evidence requires a fresh owner-authorized run.
+
+## [2026-08-29] Retention and raw deletion must be separate transactions
+
+**Symptom:** A one-step retention command could make raw deletion part of the
+same failure surface as payload installation and audit publication.
+
+**Root cause:** Retention, audit publication, and cleanup have different
+rollback guarantees: a pending audit can be made durable while raw bytes must
+remain available until final payload and audit revalidation completes.
+
+**Fix / workaround:** `--retain` now atomically installs/reopens the exact
+triplet and writes a `retained_pending_finalize` audit without deleting raw.
+The separate `--finalize-delete` command reopens and rehashes raw, audit, and
+final payloads before deletion; quarantine-audit failure reverses the rename,
+while post-delete audit failure leaves the exact truthful pending audit and
+valid payloads.
+
+**Watch out for:** `--validate-only` and `--dry-run` are read-only. A remote
+`promotion=true` is only a semantic claim; missing payloads remain
+non-closeable and must be recorded by a sanitized sidecar without fabrication.
+
+**Correction:** Finalization uses a same-directory atomic quarantine rename.
+Before delete, the audit is `quarantined_pending_delete`; a publication
+failure reverses the rename, while a post-delete publication failure leaves
+that truthful pending state instead of restoring raw through a byte rewrite or
+claiming `deleted_verified`.

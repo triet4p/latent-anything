@@ -1,0 +1,138 @@
+{
+  "schema_version": "m14-l04-remote-cuda-audit-v1",
+  "source_sha": "d9b16923eb9108c7bcc8e6bc12ace4ebd16ff506",
+  "use_case": "Disentanglement",
+  "transport_attempt": 1,
+  "semantic_execution_ordinal": 2,
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "ssh_executable": "C:\\WINDOWS\\System32\\OpenSSH\\ssh.exe",
+    "remote_target": "trietlm@192.168.30.244",
+    "invocation_count": 1,
+    "rerun": false,
+    "ssh_exit": 0,
+    "remote_wrapper_exit": 0,
+    "cli_status": 0,
+    "bundle_status": 0,
+    "final_status": 0,
+    "command_count": 1,
+    "result_count": 1,
+    "bundle_result_count": 1,
+    "payload_sha256": "78d8dd6717bb4d8ed4fe44232da53fe5484f8f119f07276a0123f8bb7b2604cb",
+    "transport_decode_status": 0,
+    "transport_decode_sha256": "78d8dd6717bb4d8ed4fe44232da53fe5484f8f119f07276a0123f8bb7b2604cb",
+    "transport_decode_match": "PASS",
+    "transport_termination_incomplete": false,
+    "raw_capture_written_before_parse": true,
+    "raw_capture_write_succeeded": true,
+    "remote_workdir": "/tmp/latent-anything-l04.ijMZXF",
+    "remote_workdir_start_marker": "PASS",
+    "marker_audit": "PASS; each required transport, CLI, bundle, final-status, use-case, code-SHA, and cleanup marker was emitted exactly once"
+  },
+  "raw_capture": {
+    "capture_id": "Disentanglement-final-d9b1692",
+    "bytes": 263566,
+    "sha256": "cc2af8108a5cbc94245e261c6bb14287657698c7d6db8c396dae908fc0bd0e18",
+    "deletion_verified": true,
+    "raw_deleted_after_sanitized_record": true
+  },
+  "bundle": {
+    "archive_bytes": 25750,
+    "archive_sha256": "707ae4e9124f3aa1f3fb2a5bffc56f8f50adb42ab357042299efe5effc7b7eb7",
+    "exact_member_count": 3,
+    "path_traversal_count": 0,
+    "exact_member_gate": "PASS; archive decoded and contained exactly the current attempt2 partial, run, and failure artifacts",
+    "members": [
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt2.failure.json",
+        "bytes": 12022,
+        "sha256": "939e8ee56cdca31c584fe792603cdcda5ad846d3a69b765c7c61f40a9e33ca78",
+        "internal_sha256": "f0b3bf85be723408860619145dbe8de1e6f9f18eb47dadc5c83f7d1aa575b4bf"
+      },
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt2.partial.json",
+        "bytes": 205240,
+        "sha256": "2af3e2ebeb1b35005d9db74b4f57f424f62a702b0e44e9940d82ec65bae0c5b9",
+        "internal_sha256": "ca6aecd190de0a148c65a8fd21e4d4a9b1160fb0a5432ae964ef2dccff3a4d70"
+      },
+      {
+        "path": "artifacts/m14/l04-explanations.Disentanglement.attempt2.run.json",
+        "bytes": 6003,
+        "sha256": "ea73ca299603bef81edefba7aff57fc5f03d67c61ab76b4d6d218e7387e5b167",
+        "internal_sha256": "e8b2d5b5bed55693c43afd9adc60dd62bbda3f9ca93d91558ce9d624f1c20210"
+      }
+    ]
+  },
+  "semantic_result": {
+    "classification": "real_cuda_execution_validator_pass",
+    "execution_status": "passed_real_cuda",
+    "evidence_level": "D2",
+    "artifact_acceptance": true,
+    "artifact_evidence_eligible": true,
+    "promotion": true,
+    "model_loaded": true,
+    "dataset_loaded": true,
+    "cli_invocation_reached": true,
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "runtime": {
+      "device": "NVIDIA GeForce RTX 4060 Ti",
+      "python": "3.13.12",
+      "torch": "2.10.0",
+      "transformers": "4.57.6",
+      "tokenizers": "0.22.2",
+      "numpy": "2.4.6",
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.38",
+      "network": "enabled",
+      "execution_backend": "cuda",
+      "deterministic_algorithms": true
+    },
+    "per_seed_metrics": [
+      {"seed": 17, "point_estimate": 0.4052891349333866, "reported_ci95": [0.350221791681139, 0.4775347932329139], "independent_ci95": [0.350221791681139, 0.4775347932329139], "point_and_gate": "PASS", "ci_exact": true},
+      {"seed": 29, "point_estimate": 0.3929594897706408, "reported_ci95": [0.2978104060894444, 0.5148439752309228], "independent_ci95": [0.2978104060894444, 0.5148439752309228], "point_and_gate": "PASS", "ci_exact": true},
+      {"seed": 41, "point_estimate": 0.4052891349333866, "reported_ci95": [0.350221791681139, 0.4775347932329139], "independent_ci95": [0.350221791681139, 0.4775347932329139], "point_and_gate": "PASS", "ci_exact": true},
+      {"seed": 53, "point_estimate": 0.4116880983018577, "reported_ci95": [0.3111409594652141, 0.5354188122755232], "independent_ci95": [0.3111409594652141, 0.5354188122755232], "point_and_gate": "PASS", "ci_exact": true},
+      {"seed": 67, "point_estimate": 0.4052891349333866, "reported_ci95": [0.350221791681139, 0.4775347932329139], "independent_ci95": [0.350221791681139, 0.4775347932329139], "point_and_gate": "PASS", "ci_exact": true}
+    ],
+    "controls": {
+      "group_preserving_shuffle": "PASS",
+      "factor_permutation": "PASS",
+      "raw_token_baseline": "PASS; target IDs excluded; vocab_size=50257",
+      "seeded_repeat": "PASS",
+      "all_seed_positive_gain_gate": "PASS"
+    },
+    "resource_peak": {
+      "elapsed_seconds": 18.99271005578339,
+      "max_memory_allocated_bytes": 529430016,
+      "max_memory_reserved_bytes": 572522496,
+      "max_rss_bytes": 1604501504,
+      "rss_source": "resource.getrusage(RUSAGE_SELF).ru_maxrss",
+      "rss_unit": "bytes",
+      "budget_pass": true
+    },
+    "model_mutation": {
+      "algorithm": "sha256/canonical-ordered-named-parameters-v1",
+      "before": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9",
+      "after": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9",
+      "no_mutation": true
+    }
+  },
+  "validators": {
+    "artifact": [],
+    "run_record": [],
+    "failure": [],
+    "real_disentanglement_execution": [],
+    "self_digests": "PASS; artifact, run-record, and failure self-digests recomputed exactly",
+    "linkage": "PASS; source SHA, use case, plan SHA, artifact references, failure reference, fixture, and three bundle members match"
+  },
+  "cleanup": {
+    "remote_disposable_clone_and_caches": "remote trap emitted L04_CLEANUP=PASS",
+    "transport_payload_cleanup": "remote wrapper emitted L04_TRANSPORT_CLEANUP=PASS",
+    "local_bundle_extraction": "verified before raw deletion",
+    "raw_deleted_after_sanitized_record": true,
+    "post_delete_absence_verified": true,
+    "no_retry": true,
+    "closure_commit_or_push": false
+  }
+}

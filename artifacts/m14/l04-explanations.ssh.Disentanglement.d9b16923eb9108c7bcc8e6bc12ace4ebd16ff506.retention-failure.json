@@ -1,0 +1,15 @@
+{
+  "schema_version": "m14-l04-retention-failure-v1",
+  "historical_audit_path": "artifacts/m14/l04-explanations.ssh.Disentanglement.d9b16923eb9108c7bcc8e6bc12ace4ebd16ff506.audit.json",
+  "historical_audit_sha256": "1273aa6c20d305193f5f0b0848e332c5a4ddc44938b4eb9b8ebbb1700fcb1003",
+  "source_sha": "d9b16923eb9108c7bcc8e6bc12ace4ebd16ff506",
+  "use_case": "Disentanglement",
+  "observed_remote": {
+    "semantic_evidence_level": "D2",
+    "artifact_evidence_eligible": true,
+    "promotion_claim": true
+  },
+  "repository_promotion": false,
+  "reason": "payload_triplet_absent/raw_absent_nonreconstructable",
+  "sidecar_sha256": "e43ccd8ea069dc37aa233c8eb90348d431c5163d9341d33c1d4b0d79b692856a"
+}

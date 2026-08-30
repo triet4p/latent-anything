@@ -264,7 +264,9 @@ bundle creation, and cleanup.
 
 The Bash payload is invoked with the canonical PascalCase use case and exact
 40-character detached SHA. It must emit `L04_USE_CASE`, `L04_CODE_SHA`,
-`L04_WORKDIR`, `L04_STATUS`, `L04_BUNDLE_B64_BEGIN/END`, and `L04_CLEANUP`. Its dependency
+`L04_WORKDIR`, `L04_STATUS`, `L04_BUNDLE_BYTES`, `L04_BUNDLE_SHA256`, one
+`L04_BUNDLE_MEMBER` per retained member, `L04_BUNDLE_B64_BEGIN/END`, and
+`L04_CLEANUP`. Its dependency
 preflight uses the pinned `uv` resolver and checks imports, versions, and CUDA
 before the sole `scripts.m14_l04_explanations --run-real` invocation. The
 artifact bundle snapshots only the three newly created partial/run/failure
@@ -281,6 +283,70 @@ directory is absent. A Phase B Disentanglement attempt at the committed SHA
 timed out during dependency preflight before CLI or bundle creation and is
 recorded as D0 with cleanup unknown; no cleanup-only SSH or implicit retry is
 permitted.
+
+For L04.8 and later, the helper is capture-only: it never deletes the raw
+capture. The payload announces `L04_BUNDLE_BYTES`, `L04_BUNDLE_SHA256`, and one
+`L04_BUNDLE_MEMBER=<path>|<bytes>|<sha256>` marker for each of the exact three
+partial/run/failure JSON members. After the helper returns, run the local
+postprocessor against the explicit capture:
+
+```powershell
+uv run python -m scripts.m14_l04_remote_postprocess `
+  --retain `
+  --raw-capture $RawCapture `
+  --source-sha $CodeSha `
+  --use-case Disentanglement `
+  --artifact-dir (Join-Path (Get-Location) "artifacts/m14") `
+  --audit (Join-Path (Get-Location) "artifacts/m14/l04-explanations.ssh.Disentanglement.$CodeSha.audit.json")
+```
+
+The same retain call may be requested directly from the transport helper with
+`-Postprocess -ArtifactOutputDir (Join-Path (Get-Location) "artifacts/m14")`;
+the helper passes the actual `$RawCapturePath`, still only captures, and never
+deletes it. After the retain audit is reopened, run the separate finalization
+step:
+
+```powershell
+uv run python -m scripts.m14_l04_remote_postprocess `
+  --finalize-delete `
+  --raw-capture $RawCapture `
+  --source-sha $CodeSha `
+  --use-case Disentanglement `
+  --artifact-dir (Join-Path (Get-Location) "artifacts/m14") `
+  --audit (Join-Path (Get-Location) "artifacts/m14/l04-explanations.ssh.Disentanglement.$CodeSha.audit.json")
+```
+
+`--retain` parses singleton/repeatable markers, verifies archive and member
+digests, inspects tar headers before extraction, runs the existing
+artifact/run/failure validators, and atomically installs only the exact three
+members. It reopens and revalidates final paths, writes and reopens a
+sanitized pending-finalization audit, and leaves raw evidence untouched.
+The retained audit has the exact lifecycle mode
+`retained_pending_finalize`; finalization rejects any other mode before it
+reads or moves raw evidence.
+`--finalize-delete` reopens the audit, raw capture, and final payload triplet,
+rehashes and revalidates them, atomically quarantines raw in its source
+directory, publishes `quarantined_pending_delete`, then deletes the quarantine
+and publishes `deleted_verified`. If quarantine-audit publication fails, the
+rename is reversed; if reversal fails, the quarantine remains with exact bytes
+and a structured error. If final publication fails after quarantine deletion,
+the in-memory raw snapshot is atomically restored and the exact pending audit
+is reopened before returning a structured failure; valid payloads remain and
+the command can be retried. If snapshot restoration also fails, a distinct
+`raw_restore_failed` audit state is published without claiming pending or
+deleted success. `--validate-only` and `--dry-run` perform no writes or
+deletes. A collision, audit failure, validator failure, or final reopen failure
+keeps raw evidence and leaves no newly installed partial triplet.
+
+The d9 Disentanglement audit is immutable historical evidence: it records
+semantic D2 observation and passing validators, but it is non-closeable because
+the payload was lost by premature raw deletion. Do not reconstruct attempt 2,
+rewrite that audit, or promote it. A fresh owner-authorized real execution is
+required for current evidence. The companion
+[`d9 retention-failure sidecar`](../artifacts/m14/l04-explanations.ssh.Disentanglement.d9b16923eb9108c7bcc8e6bc12ace4ebd16ff506.retention-failure.json)
+records the observed remote semantic eligibility/promotion claim separately
+from repository closure (`repository_promotion=false`); a remote
+`promotion=true` is only a semantic claim, never repository closure.
 
 The following wrapper is the historical owner-approved pattern used for the
 final run. It is **NOT REUSABLE** for L04.8 or subsequent lanes: the final raw

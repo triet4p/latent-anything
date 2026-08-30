@@ -249,7 +249,29 @@ Status legend: [ ] pending / [~] in progress / [x] done
   macro/gain helper now makes the retained artifact validator-clean. The run's
   historical CLI status remains `1` and must not be retroactively promoted;
   a new real execution is required for current evidence after this compatibility
-  correction. See the SHA9b36068 sanitized audit.
+ correction. See the SHA9b36068 sanitized audit.
+- [x] Harden L04.8+ evidence retention with the local
+  [`m14_l04_remote_postprocess.py`](../../scripts/m14_l04_remote_postprocess.py)
+  boundary. The capture parser rejects duplicate/missing/inconsistent markers;
+  the postprocessor verifies announced bundle/member hashes, safely inspects
+  the exact three regular JSON members, runs the existing envelope validators,
+  atomically retains and reopens final payloads, writes a sanitized pending
+  audit, and leaves raw evidence for the separate `--finalize-delete` command,
+  which reparses/rebuilds the pending audit, atomically quarantines raw,
+  publishes `quarantined_pending_delete`, then deletes only after all gates
+  pass. The pending audit mode is exactly
+  `retained_pending_finalize` and is checked before raw movement. A
+  quarantine-audit failure reverses the rename; after quarantine deletion, a
+  final-audit failure restores the in-memory raw snapshot and exact pending
+  audit for retry. Snapshot double failure publishes `raw_restore_failed`
+  without claiming pending or deleted success.
+  `--validate-only` and `--dry-run` preserve raw evidence without writes.
+  Synthetic adversarial tar/marker,
+  collision, rollback, idempotence, validator, audit, and reopen tests pass.
+  The d9 audit remains immutable observed-but-non-closeable D2 evidence; its
+  sanitized sidecar records remote semantic eligibility separately from
+  `repository_promotion=false`. No historical payload reconstruction or
+  promotion is allowed.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
