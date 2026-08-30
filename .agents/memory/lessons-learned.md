@@ -758,3 +758,25 @@ Additive hooks may share low-level clone/replace mechanics but must not share
 the semantic API or be relabeled as interchange. Keep model imports lazy so
 offline `--check` remains free of PyTorch/Transformers imports; wiring a
 validator can otherwise violate the no-model contract.
+
+## [2026-08-30] Post-scoring semantic failures must serialize the cleanup stage
+
+**Symptom:** A real activation-patching run completed scoring and emitted a
+`failed` semantic result, but retention rejected the envelope because its
+resource/provenance/run/failure stages still said `complete`.
+
+**Root cause:** Execution completion and semantic acceptance are different
+states. Reusing the successful completion stage for a failed gate created a
+contradictory triad that the strict validator correctly rejected.
+
+**Fix / workaround:** Normalize a failed handler result whose scoring stage is
+`complete` to `cleanup` across resources, provenance, run, and failure before
+digesting the result, but only when execution, cleanup, and the expected
+semantic acceptance structure are all explicit. Keep the validator strict so
+`failed` plus `complete` remains fail-closed, and retain only a sanitized
+non-promoting sidecar when an older raw capture cannot be reconstructed.
+
+**Watch out for:** Do not repair historical raw payloads in place or promote a
+semantic failure after changing envelope semantics; preserve the raw bytes,
+record the exact mismatch, and test both successful completion and failed
+cleanup-stage paths.

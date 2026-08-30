@@ -7,8 +7,13 @@ interchange path for `TrueActivationPatching`. The implementation targets the
 pinned `openai-community/gpt2` revision through the concrete
 `TransformerLMIntegration` boundary; `ModelAdapter` remains `N/A` by design.
 
-This is Phase A only. No model was downloaded, no CUDA execution was run, no
-remote capture was attempted, and no D3 evidence was promoted.
+Phase A implementation was completed without model download or CUDA execution.
+One later owner-authorized v1 real-CUDA attempt reached the pinned model and
+produced a raw capture, but its true-interchange recovery gate failed. The
+single `--retain` operation also failed closed because the producer serialized
+a post-scoring semantic failure as `complete`; the raw capture is preserved
+byte-exact and the sanitized sidecar is non-promoting. No D3 evidence was
+promoted.
 
 ## Contract
 
@@ -44,8 +49,21 @@ remote capture was attempted, and no D3 evidence was promoted.
 The public VAE `ActivationPatch`, public transformer integration API, and frozen
 L04 plan were not changed.
 
+## v1 closure
+
+The attempt used the exact committed source SHA and the frozen plan. It reached
+real CUDA with pinned `openai-community/gpt2` through
+`TransformerLMIntegration` (`ModelAdapter=N/A`), but failed the fixed positive
+recovery gate while the finite off-target, shuffled-donor, zero-strength,
+resource, and no-mutation controls were recorded. Retention rejected the
+failure envelope's inconsistent stage; the producer now normalizes only fully
+evidenced completed scoring failures to the truthful `cleanup` stage, while the
+validator remains strict for `failed` plus `complete`. The sanitized sidecar records the exact
+raw and bundle/member digests without sensitive execution payloads and keeps
+`repository_promotion=false`, evidence level D0, and no accepted IDs.
+
 ## Verification
 
-Focused L04.9 and runner tests pass. Ruff and Pyright pass for the changed
-implementation. Real CUDA verification remains a separate owner-authorized
-phase after review, commit/push, and the current retention protocol.
+Focused regression coverage exercises the completed-scoring semantic failure
+and validator-clean cleanup triad. Local gates are rerun for this closure;
+the v1 real attempt is historical, non-promoting, and was not retried.

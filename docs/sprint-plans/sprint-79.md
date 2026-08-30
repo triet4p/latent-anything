@@ -290,9 +290,12 @@ Status legend: [ ] pending / [~] in progress / [x] done
   `TransformerLMIntegration`/pinned GPT-2 boundary. The private handler now
   performs clean-to-corrupted hidden-state interchange with adjacent
   layer/token, deterministic shuffled-donor, strength-grid, zero-strength,
-  no-mutation, resource, and fail-closed validator controls. Offline/fake
-  contract tests pass; this phase performed no network, model download, CUDA,
-  or remote execution, and therefore promotes no D3 evidence. See
+  no-mutation, resource, and fail-closed validator controls. One later
+  owner-authorized v1 real-CUDA attempt reached the pinned model but failed the
+  fixed true-interchange recovery gate; its single retention attempt also
+  failed closed on a producer failure-stage mismatch. The raw capture remains
+  byte-exact with a sanitized non-promoting D0 sidecar; no D3 evidence was
+  promoted and no retry occurred. See
   [`task_79_l04_9_summary.md`](../../artifacts/task_79_l04_9_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.

@@ -1,0 +1,91 @@
+{
+  "archive": {
+    "bytes": 19697,
+    "sha256": "379ae82f5f71ce7bce457187534cc4da3f8d3689b293b7b1b8caf7110e4f3385",
+    "source": "embedded in raw capture"
+  },
+  "bundle_members": [
+    {
+      "bytes": 13067,
+      "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.failure.json",
+      "sha256": "b42b50a08f1dba7a01dbf7d843f6c8343ccad5a3180288a9296c59b3e3b1357b"
+    },
+    {
+      "bytes": 102114,
+      "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.partial.json",
+      "sha256": "f7fd29470850c397da02f7d6518e90f1c152cea76ac9c50f742376db0e11a4d5"
+    },
+    {
+      "bytes": 6476,
+      "path": "artifacts/m14/l04-explanations.TrueActivationPatching.attempt1.run.json",
+      "sha256": "673d6a01af94c5b99aa46a92353f4b79155522278a175350beb249028c21b241"
+    }
+  ],
+  "code_sha": "3d5d6720ee5fe155ff4a1f1c25814225b66170f3",
+  "contract_source_sha256": "f37cc78cbada44a6ddc8a782e303dd2d32920845d045055dc716ccb79f40d830",
+  "evidence_level": "D0",
+  "fixture": {
+    "content_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+    "pair_sha256": "7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c",
+    "rows": 24,
+    "split_sha256": "7d788c182bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b"
+  },
+  "gates": {
+    "clean_endpoint": true,
+    "corrupted_endpoint": true,
+    "off_target_combined_max_absolute_effect": 0.082366943359375,
+    "off_target_layer_max_absolute_effect": 0.082366943359375,
+    "off_target_token_max_absolute_effect": 0.0609588623046875,
+    "recovery_ci_lower": -0.09254197944193487,
+    "recovery_point_estimate": 0.03699461128888358,
+    "recovery_threshold": 0.1,
+    "shuffled_direction_finite": true,
+    "true_interchange": false,
+    "zero_strength": true
+  },
+  "implementation_source_sha256": "39a9fc2e7bb99c5575ed999619df285e3bbf258cc078292fbdd51b453b10efa6",
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+  },
+  "no_mutation": true,
+  "plan_file_sha256": "098c5f21d48102ace28ea5f7497af014befe097964e1ec8c0887f870c4d62269",
+  "plan_path": "artifacts/m14/l04-explanations.plan.json",
+  "plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+  "raw_markers": {
+    "bundle_status": 0,
+    "cli_status": 1,
+    "decode_match": "PASS",
+    "decode_status": 0,
+    "final_status": 1,
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS"
+  },
+  "raw_capture": {
+    "bytes": 154600,
+    "path": "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.3d5d6720ee5fe155ff4a1f1c25814225b66170f3.raw.txt",
+    "sha256": "137bb19ceb983a286ce178553d581a7ba5b37f68bc4f58cecb56c1ed93fcdb3e"
+  },
+  "reason": "failure_envelope_stage_mismatch",
+  "raw_retention_status": "preserved_pending_owner_exception",
+  "repository_promotion": false,
+  "resource": {
+    "budget_pass": true,
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "elapsed_seconds": 32.799597876146436,
+    "max_memory_allocated_bytes": 529608192,
+    "max_memory_reserved_bytes": 572522496,
+    "max_rss_bytes": 1603219456,
+    "parameter_digest_after": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9",
+    "parameter_digest_before": "896a6d97c3656d9ecf9cb23e30783355e6ad2e0ea9decb9e7c159b40572229b9"
+  },
+  "schema_version": "m14-l04-remote-capture-failure-v1",
+  "semantic_status": "failed",
+  "sidecar_sha256": "d3c283912be5ee6e5b3d2fce6b0452b7e1e11e08a5078855ab8357981e01b920",
+  "source_sha": "3d5d6720ee5fe155ff4a1f1c25814225b66170f3",
+  "use_case": "TrueActivationPatching",
+  "validator_errors": [
+    "failure: ['failed execution stage is not a truthful partial stage']"
+  ],
+  "validator_status": "failed"
+}

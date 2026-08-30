@@ -8,8 +8,9 @@
   handler and fail-closed validator. It performs real clean/corrupted hidden
   activation interchange at the pinned GPT-2/`TransformerLMIntegration`
   boundary, with separate layer/token, shuffled-donor, strength-grid, zero,
-  no-mutation, resource, and immutable-envelope controls. Phase A performed no
-  model download or CUDA/remote execution; no D3 evidence was promoted. See
+  no-mutation, resource, and immutable-envelope controls. Phase A implementation
+  performed no model download or CUDA/remote execution; a later owner-authorized
+  v1 attempt is recorded below and no D3 evidence was promoted. See
   [`task_79_l04_9_summary.md`](artifacts/task_79_l04_9_summary.md).
 
 - Added the local, offline-tested M14 L04 evidence-retention CLI with explicit
@@ -40,6 +41,12 @@
   fail-closed real-CUDA provenance validation.
 
 ### Changed
+
+- Recorded one owner-authorized exact-SHA M14 L04.9 real-CUDA attempt as a
+  non-promoting D0 semantic failure: true-interchange recovery failed and the
+  single retention attempt failed closed on a producer failure-stage mismatch.
+  Preserved the byte-exact raw capture and sanitized sidecar; no retry or
+  evidence-ledger promotion occurred.
 
 - Promoted the owner-verified L04.8 Disentanglement record to D2/eligible for
   exact SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` only. Tracked the exact
