@@ -2,11 +2,13 @@
 
 ## Scope
 
-Implemented the owner-approved local transport hardening patch and recorded the
-follow-up forensic diagnosis of one owner-authorized real CUDA execution. The
-transport/semantic process succeeded, but retention failed closed because
-non-protocol diagnostics were emitted on stdout; the fresh raw remains
-preserved for the next owner-approved fix validation.
+Implemented the owner-approved local transport hardening patch, corrected the
+marker-only stdout violation, and closed one owner-authorized real CUDA
+Disentanglement execution at exact SHA
+`4d3a4b6551d6091ce96c73a704e642867c2f2580`. The semantic result is validator-
+clean D2/eligible evidence; its exact triplet and sanitized audit are tracked
+after `deleted_verified` raw finalization. Earlier timeout and strict-retention
+failure captures remain preserved as non-promoting historical evidence.
 
 ## Changes
 
@@ -32,7 +34,7 @@ preserved for the next owner-approved fix validation.
 
 - `uv run pytest -q tests/test_m14_l04_remote_transport.py` — 36 passed.
 - `uv run pytest -q tests/test_m14_l04_*.py` (PowerShell-expanded file list) —
-  264 passed, 1 skipped.
+  266 passed, 1 skipped.
 - Ruff check and format check for the changed transport test — passed.
 - Pyright (repository strict configuration) for the changed transport test —
   0 errors, 0 warnings, 0 informations.
@@ -40,6 +42,29 @@ preserved for the next owner-approved fix validation.
 - Explanation contract, evidence ledger, `mkdocs build --strict`, and
   `git diff --check` — passed.
 - `graphify update .` — passed; graph rebuilt successfully.
+
+- Final owner-authorized direct PowerShell `ssh.exe` execution at the exact
+  pushed SHA completed with transport decode/cleanup PASS, semantic
+  `passed_real_cuda`, D2/eligible Disentanglement evidence, and remote cleanup
+  PASS. The single local `--retain` and single `--finalize-delete` operations
+  both passed; payload reopen/validators passed and final raw deletion is
+  recorded as `deleted_verified`.
+
+## Current closure
+
+- The final run's semantic status is `passed_real_cuda`, with all
+  Disentanglement controls and the strict held-out gain gate passing.
+- The final archive is 26241 bytes with SHA-256
+  `c222475e9591eed5fbc45f6202aff7edaf83926a8fa7a6a0e85699aacce614d0`; the
+  tracked triplet is reopened and validator-clean.
+- The final audit is
+  `artifacts/m14/l04-explanations.ssh.Disentanglement.4d3a4b6551d6091ce96c73a704e642867c2f2580.audit.json`
+  with final SHA-256
+  `a08f46d6da86c88948b9216637f0ed3216967efeacae9018f5c23aeedec64db2` and
+  `raw_status=deleted_verified`.
+- The 195-byte transport timeout and 266082-byte strict-retention-failure
+  captures each have a minimal sanitized sidecar with exact raw hash/size,
+  stage/reason, semantic reachability, and `repository_promotion=false`.
 
 ## Preserved evidence
 
@@ -49,7 +74,16 @@ The failed raw capture remains untracked and byte-for-byte unchanged:
 - bytes: `195`
 - SHA-256: `5a91d5534d5c47c20df4e176895734b379b342a55817e3f8feb61a325e50535b`
 
+The prior 266082-byte strict-retention-failure raw remains untracked at
+`artifacts/m14/l04-disentanglement.0c7cfa208bc7e9c9d4c1f848f76a0ac189735b19.attempt1.raw.txt`
+with SHA-256
+`176a663119a70d02a440aab4f03de2ba4a2f0f85e3c29d8d53be4bc101d205b0`; its
+sanitized failure sidecar records semantic-known D2 but
+`repository_promotion=false`.
+
 ## Working-tree note
 
-The approved source, test, documentation, changelog, memory, and this summary
-remain uncommitted for owner review. The frozen plan remains unchanged.
+The source, tests, documentation, changelog, memory, tracked final triplet and
+final audit are prepared for the reviewed closure. The two earlier raw captures
+remain untracked and byte-exact with their sanitized non-promoting sidecars.
+The frozen plan remains unchanged.

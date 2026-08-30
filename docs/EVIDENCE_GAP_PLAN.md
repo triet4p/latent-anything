@@ -239,6 +239,20 @@ cleanup marker was observed; cleanup is unknown and no cleanup-only SSH or
 implicit retry is allowed. Its sanitized audit is retained without the raw
 capture.
 
+The current L04.8 Disentanglement execution at exact pushed SHA
+`4d3a4b6551d6091ce96c73a704e642867c2f2580` completed the real CUDA handler and
+passed the strict factor-permutation, group-preserving shuffle, raw-token
+baseline, seeded-repeat, and held-out-gain controls. Its retained triplet and
+sanitized audit are tracked under `artifacts/m14/`; the audit records archive
+SHA-256 `c222475e9591eed5fbc45f6202aff7edaf83926a8fa7a6a0e85699aacce614d0`,
+all member hashes, validator PASS, and final raw status `deleted_verified`.
+The theory row is therefore promoted to D2/eligible only for that SHA. The
+195-byte transport timeout (`5a91d5534d5c47c20df4e176895734b379b342a55817e3f8feb61a325e50535b`)
+and 266082-byte strict-retention failure
+(`176a663119a70d02a440aab4f03de2ba4a2f0f85e3c29d8d53be4bc101d205b0`) remain
+untracked raw captures with sanitized, non-promoting sidecars; neither is
+reconstructed or promoted.
+
 ## Exhaustive row inventory
 
 Each row appears exactly once below. Detailed prerequisites, commands, tests,
@@ -252,7 +266,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |
 | `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D1 | yes | no | D2 | L03 | PCA tests lack quantitative held-out benchmark |
-| `THY-T03-DISENTANGLEMENT` | D0 | yes | yes | D2 | L04 | Benchmark-only row has no factor/control artifact |
+| `THY-T03-DISENTANGLEMENT` | D2 | yes | yes | D2 | L04 | Exact-SHA real CUDA Disentanglement passed controls; retained triplet and deleted-verified audit are tracked |
 | `THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN` | D2 | yes | no | D2 | L02 | Accepted bounded density-geodesic record in the L02 artifact |
 | `THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION` | D2 | yes | no | D2 | L02 | Accepted held-out unit-norm interpolation record in the L02 artifact |
 | `THY-T03-NORMALIZING-FLOWS` | D0 | yes | no | D2 | L05 | Theory-only flow row |
@@ -355,7 +369,7 @@ at least 95% core and 90% overall and all headline D3 claims are satisfied.
 
 ### L04.8 recovery correction record
 
-The immutable `ce4e66e` Disentanglement audit remains a truthful D0 failure:
+The immutable `ce4e66e` Disentanglement audit remains a truthful historical D0 failure:
 the real CLI reached production and raised `KeyError('condition')`, only the
 CLI-side validators were available, the exact bundle was absent after GNU tar
 option-order failure, raw deletion was not verified, cleanup markers were
@@ -365,5 +379,5 @@ rejects missing or tampered conditions, normalizes Linux peak RSS to bytes with
 coherent source/unit provenance, and separates `L04_CLI_STATUS` from
 `L04_BUNDLE_STATUS` while preserving the CLI-first exit policy. The NUL-safe
 bundle command and exact three-member gate remain frozen. This is a local
-correction only; the row remains D0 until a newly authorized direct
-PowerShell `ssh.exe` run produces a complete, independently validated bundle.
+correction only; it remains D0 and is not changed by the independently
+validated current SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` closure above.

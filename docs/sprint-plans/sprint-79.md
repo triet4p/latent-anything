@@ -200,8 +200,8 @@ Status legend: [ ] pending / [~] in progress / [x] done
   fail-closed artifact validation. The fake runner-to-artifact validator,
   imbalance/degenerate-bootstrap, slot-reversal, leakage, and tamper tests
   pass. Real CUDA execution, resource evidence, and the replacement remote
-  temp-file transport remain the next owner-gated steps; no L04.8 promotion is
-  claimed. The final review pass also binds process-peak RSS provenance,
+  temp-file transport remained the next owner-gated step at this Phase A
+  checkpoint; no promotion was claimed in that earlier state. The final review pass also binds process-peak RSS provenance,
   reserved CUDA memory, canonical model digests, truthful D0 failure stages,
   factor-permutation supervision, and raw-token excluded-column digests. See
   [`task_79_l04_8_summary.md`](../../artifacts/task_79_l04_8_summary.md).
@@ -276,6 +276,16 @@ Status legend: [ ] pending / [~] in progress / [x] done
   sanitized sidecar records remote semantic eligibility separately from
   `repository_promotion=false`. No historical payload reconstruction or
   promotion is allowed.
+- [x] Close the current L04.8 Disentanglement evidence on exact pushed SHA
+  `4d3a4b6551d6091ce96c73a704e642867c2f2580`. One direct authenticated
+  PowerShell `ssh.exe` run reached the real CUDA handler, passed all frozen
+  Disentanglement controls and the held-out gain gate, and produced an
+  eligible D2 record. The exact triplet and sanitized audit are tracked; the
+  archive/member hashes and validator reopen are PASS, and finalization records
+  `deleted_verified` for the raw capture. Repository promotion is limited to
+  this SHA. The prior timeout and strict-retention-failure raws remain
+  untracked with sanitized `repository_promotion=false` sidecars; historical
+  audits remain unchanged.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

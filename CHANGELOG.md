@@ -33,6 +33,12 @@
 
 ### Changed
 
+- Promoted the owner-verified L04.8 Disentanglement record to D2/eligible for
+  exact SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` only. Tracked the exact
+  validated triplet and sanitized audit after `deleted_verified` raw
+  finalization; prior timeout and retention-failure captures remain
+  non-promoting historical evidence.
+
 - Kept L04 retention stdout marker/Base64-only by routing remote GPU and CLI
   diagnostics to stderr while preserving command exit and protocol statuses.
 
