@@ -294,7 +294,8 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "checkout --quiet --detach" in payload
     assert "UV_CACHE_DIR" in payload
     assert "HF_DATASETS_CACHE" in payload
-    assert "nvidia-smi" in payload
+    assert "nvidia-smi >&2" in payload
+    assert "--fixture artifacts/m14/l04-prompt-factor-fixture.jsonl >&2; then" in payload
     assert "L04_BUNDLE_B64_BEGIN" in payload
     assert "L04_BUNDLE_B64_END" in payload
     assert "L04_CLEANUP=PASS" in payload

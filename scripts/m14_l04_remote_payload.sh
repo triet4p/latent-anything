@@ -99,7 +99,7 @@ export LATENT_ANYTHING_NETWORK_DEVICE=cuda
 cd "$repo_dir"
 printf 'L04_USE_CASE=%s\n' "$UseCase"
 printf 'L04_CODE_SHA=%s\n' "${CodeSha,,}"
-nvidia-smi
+nvidia-smi >&2
 
 cat > "$preflight_file" <<'PY'
 import importlib
@@ -150,7 +150,7 @@ if uv run --locked --extra transformers \
     --run-real \
     --use-case "$UseCase" \
     --plan artifacts/m14/l04-explanations.plan.json \
-    --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl; then
+    --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl >&2; then
     cli_status=0
 else
     cli_status=$?

@@ -100,6 +100,26 @@ def _capture(files: dict[str, bytes], source_sha: str, *, archive: bytes | None 
     ).encode()
 
 
+def test_representative_marker_and_base64_capture_is_parseable(tmp_path: Path) -> None:
+    _source, files, source_sha = _source_triplet(tmp_path)
+    markers, members, archive = postprocess.parse_capture(_capture(files, source_sha))
+    assert markers["L04_USE_CASE"] == USE_CASE
+    assert markers["L04_CODE_SHA"] == source_sha
+    assert len(members) == 3
+    assert hashlib.sha256(archive).hexdigest() == markers["L04_BUNDLE_SHA256"]
+
+
+def test_unexpected_stdout_noise_is_rejected(tmp_path: Path) -> None:
+    _source, files, source_sha = _source_triplet(tmp_path)
+    capture = _capture(files, source_sha).replace(
+        b"L04_TRANSPORT_DECODE_STATUS=0\n",
+        b"L04_TRANSPORT_DECODE_STATUS=0\nNVIDIA-SMI diagnostic\n",
+        1,
+    )
+    with pytest.raises(postprocess.RetentionError, match="unexpected text"):
+        postprocess.parse_capture(capture)
+
+
 def _write_capture(tmp_path: Path, files: dict[str, bytes], source_sha: str, *, archive: bytes | None = None) -> Path:
     path = tmp_path / "raw.capture"
     path.write_bytes(_capture(files, source_sha, archive=archive))
