@@ -4,6 +4,14 @@
 
 ### Added
 
+- Added the offline-tested, network-gated M14 L04.9 true activation-patching
+  handler and fail-closed validator. It performs real clean/corrupted hidden
+  activation interchange at the pinned GPT-2/`TransformerLMIntegration`
+  boundary, with separate layer/token, shuffled-donor, strength-grid, zero,
+  no-mutation, resource, and immutable-envelope controls. Phase A performed no
+  model download or CUDA/remote execution; no D3 evidence was promoted. See
+  [`task_79_l04_9_summary.md`](artifacts/task_79_l04_9_summary.md).
+
 - Added the local, offline-tested M14 L04 evidence-retention CLI with explicit
   `--retain`, `--validate-only`, and `--finalize-delete` phases; the PowerShell
   helper now captures raw evidence only, while raw deletion requires separate

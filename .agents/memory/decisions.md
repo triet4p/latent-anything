@@ -1160,3 +1160,25 @@ or injected protocol noise.
 **Consequences:** Payload changes must keep stdout limited to declared markers
 and the bounded Base64 bundle; ordinary stderr remains retained, while
 marker-like stderr continues to fail validation.
+
+## [2026-08-30] Keep true activation interchange private to the GPT-2 boundary
+
+**Decision:** Implement M14 L04.9 clean/corrupted activation interchange as a
+private `TransformerLMIntegration`-bound handler and validator. It replaces a
+clean donor hidden activation in a corrupted forward and never reuses the
+additive `HiddenStateIntervention`, VAE `ActivationPatch`, or introduces a
+generic `ModelAdapter` protocol. Keep the frozen compatibility control key
+`shuffled_direction`, but serialize explicit shuffled-donor semantics.
+
+**Alternatives considered:** Relabel additive steering as patching, extend the
+public integration API, or fabricate adapter applicability for GPT-2.
+
+**Reason:** The architecture deliberately treats `TransformerLMIntegration`
+as the real transformer boundary and the existing VAE method as a separate
+capability. A private boundary preserves semantic and Rule-of-Three scope.
+
+**Consequences:** True patching remains a D3-only real-CUDA claim, with paired
+clean/corrupted endpoints, fixed target margin, held-out group aggregation,
+off-target layer/token controls, deterministic donor derangement, zero identity,
+no-mutation, and immutable run/failure envelopes. Phase A itself is offline and
+cannot promote evidence.

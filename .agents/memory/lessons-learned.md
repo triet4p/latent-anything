@@ -751,3 +751,10 @@ the parser strict and retain tests for unexpected stdout and marker-like stderr.
 **Watch out for:** Add every new remote diagnostic command to stderr explicitly;
 do not weaken marker ordering, unknown-marker, or stdout-noise rejection to make
 an otherwise malformed capture retainable.
+
+**Lesson (2026-08-30):** A true activation-patching control must preserve the
+donor-versus-recipient distinction through runtime, evidence, and validation.
+Additive hooks may share low-level clone/replace mechanics but must not share
+the semantic API or be relabeled as interchange. Keep model imports lazy so
+offline `--check` remains free of PyTorch/Transformers imports; wiring a
+validator can otherwise violate the no-model contract.

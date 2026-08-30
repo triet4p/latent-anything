@@ -286,6 +286,14 @@ Status legend: [ ] pending / [~] in progress / [x] done
   this SHA. The prior timeout and strict-retention-failure raws remain
   untracked with sanitized `repository_promotion=false` sidecars; historical
   audits remain unchanged.
+- [x] Implement L04.9 Phase A true activation patching around the concrete
+  `TransformerLMIntegration`/pinned GPT-2 boundary. The private handler now
+  performs clean-to-corrupted hidden-state interchange with adjacent
+  layer/token, deterministic shuffled-donor, strength-grid, zero-strength,
+  no-mutation, resource, and fail-closed validator controls. Offline/fake
+  contract tests pass; this phase performed no network, model download, CUDA,
+  or remote execution, and therefore promotes no D3 evidence. See
+  [`task_79_l04_9_summary.md`](../../artifacts/task_79_l04_9_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
