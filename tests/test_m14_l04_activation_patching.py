@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -31,6 +32,7 @@ from scripts._m14_l04_activation_patching import (
 from scripts._m14_l04_artifact import build_artifact
 from scripts._m14_l04_contract_common import canonical_json_bytes
 from scripts._m14_l04_data import fixture_metadata
+from scripts._m14_l04_digest import canonical_digest
 from scripts._m14_l04_fixture_contract import read_fixture
 from scripts._m14_l04_validate import validate_artifact, validate_failure, validate_run_record
 from scripts._m14_l04_validate_activation_patching import (
@@ -39,6 +41,10 @@ from scripts._m14_l04_validate_activation_patching import (
 )
 from scripts.m14_l04_contract import FIXTURE_PATH, PLAN_PATH, load_plan
 from scripts.m14_l04_explanations import run_real
+
+SIDECAR_PATH = Path(__file__).resolve().parents[1] / (
+    "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.3d5d6720ee5fe155ff4a1f1c25814225b66170f3.sidecar.json"
+)
 
 
 class _FakeBlock(nn.Module):
@@ -188,6 +194,301 @@ def test_injected_activation_failure_is_sanitized_without_secret_payload(tmp_pat
     assert "PROMPT SECRET" not in serialized
     assert result["failure"]["exception"] == "true_activation_patching_failed:execution"
     assert plan["model"]["id"] in serialized
+
+
+def test_historical_activation_sidecar_is_canonical_and_sanitized() -> None:
+    sidecar = json.loads(SIDECAR_PATH.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source_sha"] == "3d5d6720ee5fe155ff4a1f1c25814225b66170f3"
+    assert sidecar["plan_sha256"] == "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a"
+    assert sidecar["use_case"] == "TrueActivationPatching"
+    assert sidecar["semantic_status"] == sidecar["validator_status"] == "failed"
+    assert sidecar["reason"] == "failure_envelope_stage_mismatch"
+    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["raw_markers"] == {
+        "bundle_status": 0,
+        "cli_status": 1,
+        "decode_match": "PASS",
+        "decode_status": 0,
+        "final_status": 1,
+        "remote_cleanup": "PASS",
+        "transport_cleanup": "PASS",
+    }
+    assert sidecar["validator_errors"] == ["failure: ['failed execution stage is not a truthful partial stage']"]
+    assert sidecar["repository_promotion"] is False
+    serialized = SIDECAR_PATH.read_text(encoding="utf-8").lower()
+    assert not any(token in serialized for token in ("prompt", "tensor", "stdout", "stderr", "/tmp/", "192.168."))
+
+
+def _completed_activation_execution() -> dict[str, Any]:
+    execution = copy.deepcopy(
+        next(
+            item
+            for item in _accepted_activation_artifact()["executions"]
+            if item["use_case"] == "TrueActivationPatching"
+        )
+    )
+    execution["confidence_intervals"] = {
+        str(item["seed"]): item["recovery"]["confidence_interval_95"] for item in execution["raw_summaries"]
+    }
+    return execution
+
+
+def test_completed_activation_success_remains_complete(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    active = next(item for item in result["artifact"]["executions"] if item["use_case"] == "TrueActivationPatching")
+    assert result["status"] == "passed_real_cuda"
+    assert active["resources"]["stage"] == "complete"
+    assert active["provenance"]["stage"] == "complete"
+    assert result["run_record"]["stage"] == "complete"
+    assert result["failure"]["stage"] == "complete"
+    assert validate_artifact(result["artifact"], load_plan(PLAN_PATH)) == []
+
+
+@pytest.mark.parametrize("stage", ["preflight", "cuda_check", "model_load"])
+def test_activation_early_failure_stage_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, stage: str
+) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+    from scripts._m14_l04_tcav_runtime import RealExecutionError
+
+    execution_attempted = stage != "preflight"
+    resources = {
+        "stage": stage,
+        "execution_attempted": execution_attempted,
+        "execution_backend": "cuda" if execution_attempted else "none",
+        "network": "enabled" if execution_attempted else "not attempted",
+        "cleanup": "pending",
+    }
+
+    def fail(_plan: dict[str, Any], _rows: list[dict[str, Any]]) -> dict[str, Any]:
+        raise RealExecutionError("injected early failure", resources)
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", fail)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    assert result["status"] == "failed"
+    assert result["artifact"]["provenance"]["stage"] == stage
+    assert result["run_record"]["stage"] == stage
+    assert result["failure"]["stage"] == stage
+
+
+def test_malformed_completed_activation_failure_remains_fail_closed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    execution.update({"status": "failed", "evidence_eligible": False, "acceptance": False, "evidence_level": "D0"})
+    execution["controls"]["true_interchange"]["pass"] = False
+    execution["resources"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution["provenance"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution["raw_summaries"] = [{}]
+    execution["fixture_linkage"] = [{}]
+    execution["resources"]["cleanup"] = "synchronized cleared emptied"
+    execution["provenance"]["cleanup"] = "synchronized cleared emptied"
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    assert result["artifact"]["provenance"]["stage"] == "complete"
+    assert result["run_record"]["stage"] == "complete"
+    errors = validate_failure(result["failure"], load_plan(PLAN_PATH), result["artifact"])
+    assert any("failed execution stage is not a truthful partial stage" in error for error in errors)
+
+
+@pytest.mark.parametrize("field", ["raw_summaries", "fixture_linkage"])
+def test_malformed_activation_list_entries_remain_fail_closed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, field: str
+) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    execution.update({"status": "failed", "evidence_eligible": False, "acceptance": False, "evidence_level": "D0"})
+    execution["controls"]["true_interchange"]["pass"] = False
+    execution["resources"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution["provenance"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution[field] = [None]
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    assert result["artifact"]["provenance"]["stage"] == "complete"
+    assert result["run_record"]["stage"] == "complete"
+
+
+def test_failed_complete_with_all_recomputed_gates_passing_is_not_normalized(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    execution.update({"status": "failed", "evidence_eligible": False, "acceptance": False, "evidence_level": "D0"})
+    execution["resources"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution["provenance"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    assert result["artifact"]["provenance"]["stage"] == "complete"
+    assert result["run_record"]["stage"] == "complete"
+    errors = validate_failure(result["failure"], load_plan(PLAN_PATH), result["artifact"])
+    assert any("failed execution stage is not a truthful partial stage" in error for error in errors)
+
+
+def test_declared_recovery_forgery_cannot_trigger_normalization(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    execution.update({"status": "failed", "evidence_eligible": False, "acceptance": False, "evidence_level": "D0"})
+    for summary in execution["raw_summaries"]:
+        for evidence in summary["holdout_evidence"]:
+            evidence["recovery"] = 0.0
+        summary["recovery"] = _metric(
+            [0.0, 0.0, 0.0, 0.0],
+            seed=summary["seed"],
+            threshold=RECOVERY_CI_LOWER_THRESHOLD,
+            comparator=">",
+            units="normalized causal recovery",
+        )
+    execution["metrics"]["recovery"] = {
+        str(summary["seed"]): summary["recovery"] for summary in execution["raw_summaries"]
+    }
+    execution["confidence_intervals"] = {
+        str(summary["seed"]): summary["recovery"]["confidence_interval_95"] for summary in execution["raw_summaries"]
+    }
+    execution["resources"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+    execution["provenance"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    assert result["artifact"]["provenance"]["stage"] == "complete"
+    assert result["run_record"]["stage"] == "complete"
+    errors = validate_failure(result["failure"], load_plan(PLAN_PATH), result["artifact"])
+    assert any("failed execution stage is not a truthful partial stage" in error for error in errors)
+
+
+def test_completed_activation_gate_failure_is_cleanup_stage_d0(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from scripts import _m14_l04_activation_patching as activation_module
+
+    execution = _completed_activation_execution()
+    execution.update(
+        {
+            "status": "failed",
+            "evidence_eligible": False,
+            "acceptance": False,
+            "evidence_level": "D0",
+            "failure_reason": "one or more true activation patching gates failed",
+        }
+    )
+    execution["controls"]["true_interchange"]["pass"] = False
+    for summary in execution["raw_summaries"]:
+        for evidence in summary["holdout_evidence"]:
+            evidence["true_interchange_margin"] = evidence["corrupted_margin"]
+            evidence["recovery"] = 0.0
+        summary["recovery"] = _metric(
+            [0.0, 0.0, 0.0, 0.0],
+            seed=summary["seed"],
+            threshold=RECOVERY_CI_LOWER_THRESHOLD,
+            comparator=">",
+            units="normalized causal recovery",
+        )
+    execution["metrics"]["recovery"] = {
+        str(summary["seed"]): summary["recovery"] for summary in execution["raw_summaries"]
+    }
+    execution["confidence_intervals"] = {
+        str(summary["seed"]): summary["recovery"]["confidence_interval_95"] for summary in execution["raw_summaries"]
+    }
+    execution["resources"].update(
+        {
+            "stage": "complete",
+            "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied",
+        }
+    )
+    execution["provenance"].update(
+        {"stage": "complete", "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied"}
+    )
+
+    monkeypatch.setattr(activation_module, "run_true_activation_patching", lambda _plan, _rows: execution)
+    monkeypatch.setenv("LATENT_ANYTHING_RUN_NETWORK", "1")
+    result = run_real(
+        plan_path=PLAN_PATH,
+        fixture_path=FIXTURE_PATH,
+        use_case="TrueActivationPatching",
+        output_dir=tmp_path,
+    )
+
+    active = next(item for item in result["artifact"]["executions"] if item["use_case"] == "TrueActivationPatching")
+    assert result["status"] == "failed"
+    assert result["artifact"]["evidence_level"] == "D0"
+    assert result["artifact"]["provenance"]["stage"] == "cleanup"
+    assert active["resources"]["stage"] == "cleanup"
+    assert active["provenance"]["stage"] == "cleanup"
+    assert result["run_record"]["stage"] == "cleanup"
+    assert result["failure"]["stage"] == "cleanup"
+    assert validate_artifact(result["artifact"], load_plan(PLAN_PATH)) == []
+    assert validate_run_record(result["run_record"], result["artifact"], load_plan(PLAN_PATH)) == []
+    assert validate_failure(result["failure"], load_plan(PLAN_PATH), result["artifact"]) == []
 
 
 def _accepted_activation_artifact() -> dict[str, Any]:

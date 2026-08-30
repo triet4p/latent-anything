@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, cast
 
 from scripts._m14_l04_activation_patching import (
     BOOTSTRAP_REPLICATES,
@@ -45,6 +45,51 @@ EVIDENCE_NUMERIC_FIELDS = (
     "zero_strength_error",
 )
 SUMMARY_METRIC_FIELDS = ("recovery", "off_target", "off_target_layer", "off_target_token", "zero_strength")
+COMPLETED_CLEANUP = "CUDA synchronized; model gradients cleared; CUDA cache emptied"
+SUMMARY_KEYS = frozenset(
+    {
+        "seed",
+        "train_pairs",
+        "holdout_pairs",
+        "holdout_evidence",
+        "recovery",
+        "off_target",
+        "off_target_layer",
+        "off_target_token",
+        "zero_strength",
+        "shuffled_direction",
+        "finite",
+        "bootstrap_replicates",
+    }
+)
+EVIDENCE_KEYS = frozenset(
+    {
+        "pair_id",
+        "group_id",
+        "split",
+        "clean_row_id",
+        "corrupted_row_id",
+        "clean_condition",
+        "corrupted_condition",
+        "clean_target_position",
+        "corrupted_target_position",
+        "clean_previous_valid_position",
+        "corrupted_previous_valid_position",
+        "clean_margin",
+        "corrupted_margin",
+        "true_interchange_margin",
+        "off_target_layer_margin",
+        "off_target_token_margin",
+        "shuffled_donor_margin",
+        "zero_strength_margin",
+        "recovery",
+        "off_target_layer_effect",
+        "off_target_token_effect",
+        "shuffled_donor_effect",
+        "zero_strength_error",
+        "strength_grid",
+    }
+)
 
 
 def _expected_linkage(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -107,6 +152,200 @@ def _resource_errors(entry: Mapping[str, Any], provenance: Mapping[str, Any]) ->
         errors.append("activation patching parameter digests are missing, malformed, or mismatched")
     if entry.get("no_mutation") is not True:
         errors.append("activation patching model mutation control failed")
+    return errors
+
+
+def _derived_recovery(item: Mapping[str, Any]) -> float | None:
+    clean = item.get("clean_margin")
+    corrupted = item.get("corrupted_margin")
+    true_interchange = item.get("true_interchange_margin")
+    if not all(_finite(value) for value in (clean, corrupted, true_interchange)):
+        return None
+    clean_value = cast(float, clean)
+    corrupted_value = cast(float, corrupted)
+    true_interchange_value = cast(float, true_interchange)
+    denominator = float(clean_value) - float(corrupted_value)
+    if not math.isfinite(denominator) or abs(denominator) <= 1e-12:
+        return None
+    return (float(true_interchange_value) - float(corrupted_value)) / abs(denominator)
+
+
+def _recomputed_recovery(
+    evidence: Sequence[Mapping[str, Any]], holdout_groups: set[str], seed: int
+) -> tuple[dict[str, Any], bool] | None:
+    grouped: dict[str, list[float]] = {}
+    declared_matches = True
+    for item in evidence:
+        group = str(item.get("group_id"))
+        derived = _derived_recovery(item)
+        if derived is None:
+            return None
+        if not _finite(item.get("recovery")) or not math.isclose(
+            float(item["recovery"]), derived, rel_tol=0.0, abs_tol=1e-12
+        ):
+            declared_matches = False
+        grouped.setdefault(group, []).append(derived)
+    if any(group not in grouped or not grouped[group] for group in holdout_groups):
+        return None
+    return (
+        _metric(
+            [sum(grouped[group]) / len(grouped[group]) for group in sorted(holdout_groups)],
+            seed=seed,
+            threshold=RECOVERY_CI_LOWER_THRESHOLD,
+            comparator=">",
+            units="normalized causal recovery",
+        ),
+        declared_matches,
+    )
+
+
+def validate_completed_activation_failure_structure(
+    entry: dict[str, Any], plan: dict[str, Any], rows: Sequence[Mapping[str, Any]], resources: Mapping[str, Any]
+) -> list[str]:
+    """Validate the complete-scoring shape before failed-stage normalization."""
+    errors: list[str] = []
+    result_resources = entry.get("resources")
+    provenance = entry.get("provenance")
+    controls = entry.get("controls")
+    if (
+        not isinstance(result_resources, Mapping)
+        or not isinstance(provenance, Mapping)
+        or not isinstance(controls, Mapping)
+    ):
+        return ["activation patching completed failure structure is missing nested envelopes"]
+    if (
+        entry.get("status") != "failed"
+        or entry.get("evidence_eligible") is not False
+        or entry.get("acceptance") is not False
+    ):
+        errors.append("activation patching completed failure status/acceptance is invalid")
+    if entry.get("evidence_level") != "D0":
+        errors.append("activation patching completed failure must be D0")
+    if entry.get("record_id") != RECORD_ID or entry.get("support_only") is not False:
+        errors.append("activation patching completed failure record boundary is invalid")
+    model = plan.get("model")
+    if not isinstance(model, Mapping) or provenance.get("model_revision") != model.get("revision"):
+        errors.append("activation patching completed failure model provenance is invalid")
+    if (
+        entry.get("layer") != LAYER
+        or entry.get("native_hidden_state_index") != NATIVE_HIDDEN_STATE_INDEX
+        or entry.get("token_ids") != TARGET_TOKEN_IDS
+        or entry.get("target_token_strings") != TARGET_TOKEN_STRINGS
+    ):
+        errors.append("activation patching completed failure target linkage is invalid")
+    if entry.get("seed") != SEEDS[0] or entry.get("seeds") != list(SEEDS):
+        errors.append("activation patching completed failure seeds are not frozen")
+    expected_linkage = _expected_linkage(rows)
+    if entry.get("fixture_linkage") != expected_linkage:
+        errors.append("activation patching completed failure fixture linkage is not exact")
+    expected_fields = (
+        "metrics",
+        "confidence_intervals",
+        "raw_summaries",
+        "fixture_linkage",
+        "budget_pass",
+        "no_mutation",
+        "model_parameter_digest_before",
+        "model_parameter_digest_after",
+    )
+    if any(field not in entry for field in expected_fields):
+        errors.append("activation patching completed failure semantic fields are missing")
+    summaries = entry.get("raw_summaries")
+    if (
+        not isinstance(summaries, list)
+        or len(summaries) != len(SEEDS)
+        or [item.get("seed") if isinstance(item, Mapping) else None for item in summaries] != list(SEEDS)
+    ):
+        errors.append("activation patching completed failure summaries are not the frozen ordered seeds")
+        summaries = []
+    frozen_pairs: dict[str, dict[str, Mapping[str, Any]]] = {}
+    for row in rows:
+        frozen_pairs.setdefault(str(row["causal_pair_id"]), {})[str(row["condition"])] = row
+    train_pairs = sorted(pair for pair, value in frozen_pairs.items() if value["clean"]["split"] == "train")
+    holdout_pairs = sorted(pair for pair, value in frozen_pairs.items() if value["clean"]["split"] == "holdout")
+    holdout_groups = {str(row["group_id"]) for row in rows if row["split"] == "holdout"}
+    independently_failed_gate = False
+    for summary in summaries:
+        if not isinstance(summary, Mapping) or set(summary) != set(SUMMARY_KEYS):
+            errors.append("activation patching completed failure summary schema is invalid")
+            continue
+        if summary.get("train_pairs") != train_pairs or summary.get("holdout_pairs") != holdout_pairs:
+            errors.append("activation patching completed failure pair domains are invalid")
+        evidence = summary.get("holdout_evidence")
+        if not isinstance(evidence, list) or not evidence:
+            errors.append("activation patching completed failure evidence is missing")
+            continue
+        if {str(item.get("pair_id")) for item in evidence if isinstance(item, Mapping)} != set(holdout_pairs):
+            errors.append("activation patching completed failure evidence membership is invalid")
+        for item in evidence:
+            if not isinstance(item, Mapping) or set(item) != set(EVIDENCE_KEYS):
+                errors.append("activation patching completed failure evidence schema is invalid")
+                continue
+            expected = frozen_pairs.get(str(item.get("pair_id")), {})
+            if (
+                not expected
+                or item.get("group_id") != str(expected["clean"]["group_id"])
+                or item.get("split") != "holdout"
+                or item.get("clean_row_id") != str(expected["clean"]["row_id"])
+                or item.get("corrupted_row_id") != str(expected["corrupted"]["row_id"])
+                or item.get("clean_condition") != "clean"
+                or item.get("corrupted_condition") != "corrupted"
+                or str(item.get("group_id")) not in holdout_groups
+                or any(not _finite(item.get(field)) for field in EVIDENCE_NUMERIC_FIELDS)
+            ):
+                errors.append("activation patching completed failure evidence linkage or metrics are invalid")
+            curve = item.get("strength_grid")
+            if not isinstance(curve, Mapping) or set(curve) != {str(value) for value in STRENGTH_GRID}:
+                errors.append("activation patching completed failure strength grid is invalid")
+        if isinstance(summary.get("recovery"), Mapping) and all(
+            isinstance(item, Mapping) and set(item) == set(EVIDENCE_KEYS) for item in evidence
+        ):
+            recomputed_recovery = _recomputed_recovery(evidence, holdout_groups, int(summary["seed"]))
+            if (
+                recomputed_recovery is None
+                or not recomputed_recovery[1]
+                or summary["recovery"] != recomputed_recovery[0]
+            ):
+                errors.append("activation patching completed failure recovery was not independently recomputed")
+            elif recomputed_recovery[0]["pass"] is False:
+                independently_failed_gate = True
+    expected_controls = {
+        "clean_endpoint",
+        "corrupted_endpoint",
+        "true_interchange",
+        "off_target_layer",
+        "off_target_token",
+        "off_target_combined",
+        "shuffled_direction",
+        "zero_strength",
+    }
+    if set(controls) != expected_controls or any(
+        not isinstance(controls.get(name), Mapping) for name in expected_controls
+    ):
+        errors.append("activation patching completed failure controls are invalid")
+    metrics = entry.get("metrics")
+    confidence_intervals = entry.get("confidence_intervals")
+    if not isinstance(metrics, Mapping) or not isinstance(metrics.get("recovery"), Mapping):
+        errors.append("activation patching completed failure metrics are invalid")
+    if not isinstance(confidence_intervals, Mapping) or set(confidence_intervals) != {str(seed) for seed in SEEDS}:
+        errors.append("activation patching completed failure confidence intervals are invalid")
+    for mapping in (resources, result_resources, provenance):
+        if (
+            mapping.get("stage") != "complete"
+            or mapping.get("execution_attempted") is not True
+            or mapping.get("execution_backend") != "cuda"
+            or mapping.get("network") != "enabled"
+            or mapping.get("cleanup") != COMPLETED_CLEANUP
+        ):
+            errors.append("activation patching completed failure execution envelope is invalid")
+    errors.extend(_resource_errors(entry, provenance))
+    peak = provenance.get("resource_peak")
+    if isinstance(peak, Mapping) and not budget_pass(peak):
+        independently_failed_gate = True
+    if entry.get("no_mutation") is False:
+        independently_failed_gate = True
+    if not independently_failed_gate:
+        errors.append("activation patching completed failure has no independently recomputed failed gate")
     return errors
 
 
@@ -270,13 +509,12 @@ def validate_real_activation_patching_execution(
             errors.append("activation patching evidence contains non-finite metrics")
             continue
         for item in evidence:
-            denominator = float(item["clean_margin"]) - float(item["corrupted_margin"])
-            if not math.isfinite(denominator) or abs(denominator) <= 1e-12:
+            derived_recovery = _derived_recovery(item)
+            if derived_recovery is None:
                 errors.append("activation patching denominator is non-finite or too small")
-            expected_recovery = (float(item["true_interchange_margin"]) - float(item["corrupted_margin"])) / max(
-                abs(denominator), 1e-12
-            )
-            if not math.isclose(float(item["recovery"]), expected_recovery, rel_tol=0.0, abs_tol=1e-12):
+            if derived_recovery is not None and not math.isclose(
+                float(item["recovery"]), derived_recovery, rel_tol=0.0, abs_tol=1e-12
+            ):
                 errors.append("activation patching recovery was not recomputed from endpoints")
             if not math.isclose(
                 float(item["off_target_layer_effect"]),
@@ -336,18 +574,12 @@ def validate_real_activation_patching_execution(
         )
         if summary.get("finite") is not expected_summary_finite:
             errors.append("activation patching summary finite flag was not recomputed")
-        recomputed_recovery = _metric(
-            [
-                sum(float(item["recovery"]) for item in evidence if str(item["group_id"]) == group)
-                / sum(1 for item in evidence if str(item["group_id"]) == group)
-                for group in sorted(holdout_groups)
-            ],
-            seed=int(seed),
-            threshold=RECOVERY_CI_LOWER_THRESHOLD,
-            comparator=">",
-            units="normalized causal recovery",
-        )
-        if summary.get("recovery") != recomputed_recovery:
+        recomputed_recovery = _recomputed_recovery(evidence, holdout_groups, int(seed))
+        if (
+            recomputed_recovery is None
+            or not recomputed_recovery[1]
+            or summary.get("recovery") != recomputed_recovery[0]
+        ):
             errors.append("activation patching recovery metric was not independently recomputed")
 
         def group_metric(key: str, evidence_rows: list[Mapping[str, Any]], seed_value: int) -> dict[str, Any]:
@@ -551,6 +783,7 @@ def validate_real_true_activation_patching_execution(
 
 
 __all__ = [
+    "validate_completed_activation_failure_structure",
     "REAL_ACTIVATION_PATCHING_STATUS",
     "validate_real_activation_patching_execution",
     "validate_real_true_activation_patching_execution",

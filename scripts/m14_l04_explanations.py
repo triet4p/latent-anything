@@ -160,10 +160,6 @@ def run_real(
     if handler is not None:
         try:
             handler_result = dict(handler(plan, rows))
-            if handler_result:
-                handler_result_digest = hashlib.sha256(
-                    json.dumps(handler_result, sort_keys=True, separators=(",", ":")).encode()
-                ).hexdigest()
             status = (
                 "injected_offline_non_eligible" if handlers is not None else str(handler_result.get("status", "failed"))
             )
@@ -171,6 +167,31 @@ def run_real(
                 error = RuntimeError(str(handler_result.get("failure_reason", "real execution failed")))
             if isinstance(handler_result.get("resources"), dict):
                 resources.update(handler_result["resources"])
+            if use_case == "TrueActivationPatching":
+                from scripts._m14_l04_validate_activation_patching import (
+                    validate_completed_activation_failure_structure,
+                )
+
+                structure_errors = validate_completed_activation_failure_structure(
+                    handler_result, plan, rows, resources
+                )
+            else:
+                structure_errors = ["not an activation patching result"]
+            if not structure_errors:
+                # A completed scoring pass that fails its semantic gates is a
+                # non-promoting partial result. Keep the strict validator's
+                # distinction between successful completion and failed cleanup.
+                resources["stage"] = "cleanup"
+                result_resources = handler_result.get("resources")
+                if isinstance(result_resources, dict):
+                    result_resources["stage"] = "cleanup"
+                result_provenance = handler_result.get("provenance")
+                if isinstance(result_provenance, dict):
+                    result_provenance["stage"] = "cleanup"
+            if handler_result:
+                handler_result_digest = hashlib.sha256(
+                    json.dumps(handler_result, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
         except Exception as exc:  # noqa: BLE001 - retain every injected failure
             error = exc
             status = "failed"
