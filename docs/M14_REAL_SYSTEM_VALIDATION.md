@@ -222,6 +222,7 @@ the connection:
 ```powershell
 $CodeSha = (git rev-parse HEAD).Trim()
 $SshPath = (Get-Command ssh.exe -ErrorAction Stop).Source
+$RepoUrl = (git remote get-url origin).Trim()
 $RawCapture = Join-Path (Get-Location) "artifacts/m14/l04-disentanglement.raw.txt"
 & pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 `
   -SshExecutable $SshPath `
@@ -229,15 +230,17 @@ $RawCapture = Join-Path (Get-Location) "artifacts/m14/l04-disentanglement.raw.tx
   -PayloadPath (Join-Path (Get-Location) "scripts/m14_l04_remote_payload.sh") `
   -UseCase Disentanglement `
   -CodeSha $CodeSha `
-  -RepoUrl "https://github.com/trietlm/latent-anything.git" `
+  -RepoUrl $RepoUrl `
   -RawCapturePath $RawCapture `
+  -SshConnectTimeoutSeconds 15 `
   -TransportTimeoutSeconds 3600 `
   -BuildOnly
 ```
 
-The manifest contains only payload/bootstrap SHA-256 and byte counts, expected
-markers, and redacted command arguments. The helper normalizes CRLF/CR to LF,
-encodes UTF-8 without BOM, sends a single-quoted Base64 heredoc through
+The manifest contains payload/bootstrap SHA-256 and byte counts, native SSH
+connection settings, expected markers, and redacted command arguments. The
+helper normalizes CRLF/CR to LF, encodes UTF-8 without BOM, sends a
+single-quoted Base64 heredoc through
 `System.Diagnostics.ProcessStartInfo`, and writes the raw capture before any
 parsing. The remote bootstrap decodes into a collision-resistant temporary
 file, emits `L04_TRANSPORT_DECODE_STATUS`, compares the decoded-byte SHA-256,

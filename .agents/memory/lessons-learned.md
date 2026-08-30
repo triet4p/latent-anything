@@ -712,3 +712,24 @@ Before delete, the audit is `quarantined_pending_delete`; a publication
 failure reverses the rename, while a post-delete publication failure leaves
 that truthful pending state instead of restoring raw through a byte rewrite or
 claiming `deleted_verified`.
+
+## [2026-08-30] Active L04 runbooks can drift from the checkout origin
+
+**Symptom:** The reusable L04 examples hardcoded a `trietlm` GitHub clone URL,
+while the checked-out repository origin was the `triet4p` URL; a reachability
+failure occurred before clone, so the mismatch was not otherwise observable.
+
+**Root cause:** The helper correctly accepts a caller-supplied repository URL,
+but operational documentation copied a historical owner URL instead of using
+the repository's configured origin. The helper also inherited OpenSSH's
+unbounded connect timeout because native options were not in its argument list.
+
+**Fix / workaround:** Derive `$RepoUrl` from `git remote get-url origin`, keep
+the helper's credential-free URL validation, and pass native
+`BatchMode=yes`, `ConnectTimeout=15`, and `ConnectionAttempts=1`; retain the
+separate long end-to-end transport deadline for remote setup and evidence.
+
+**Watch out for:** Before any owner-authorized run, check the exact SHA in the
+configured origin and inspect the sanitized native SSH options; never infer a
+clone or semantic failure from a transport attempt that emitted no remote
+markers.

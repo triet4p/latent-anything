@@ -1123,3 +1123,24 @@ phases makes the deletion boundary explicit and testable offline.
 semantic `promotion=true` never implies repository closure; the d9 audit stays
 immutable and its sanitized retention-failure sidecar records
 `repository_promotion=false` without reconstructing the lost triplet.
+
+## [2026-08-30] Bind L04 clone source to Git origin and bound native SSH connect
+
+**Decision:** Keep the L04 helper's repository URL caller-supplied and validated,
+derive operational examples from `git remote get-url origin`, and enforce native
+OpenSSH `BatchMode=yes`, `ConnectTimeout=15` by default (validated 1–300), and
+`ConnectionAttempts=1` before the existing end-to-end transport deadline.
+
+**Alternatives considered:** Keep a hardcoded repository owner in runbooks,
+rely on the host's unbounded OpenSSH defaults, or make connection retries an
+independent semantic attempt.
+
+**Reason:** The configured checkout origin is the source-of-truth for the exact
+pushed SHA, while the remote CUDA host and repository owner are separate
+configuration domains. Native connection bounds make early reachability and
+authentication failures deterministic without changing the outer budget that
+covers setup, execution, bundling, cleanup, and raw capture.
+
+**Consequences:** Future L04 runs cannot silently clone a stale owner fork or
+wait through native SSH retries; build-only manifests record the native bounds,
+and a connection failure remains a raw, non-semantic D0 result.

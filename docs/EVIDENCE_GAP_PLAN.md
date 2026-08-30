@@ -176,8 +176,9 @@ For any future TunedLogitLens execution, the frozen plan remains immutable and
 the owner-approved operational override is the reusable helper described in
 the [M14 validation procedure](M14_REAL_SYSTEM_VALIDATION.md#reusable-l04-transport-authoritative):
 
-```text
-pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 -SshExecutable (Get-Command ssh.exe).Source -RemoteTarget trietlm@192.168.30.244 -PayloadPath scripts/m14_l04_remote_payload.sh -UseCase TunedLogitLens -CodeSha (git rev-parse HEAD).Trim() -RepoUrl https://github.com/trietlm/latent-anything.git -RawCapturePath artifacts/m14/l04-tuned-logit-lens.raw.txt -TransportTimeoutSeconds 3600
+```powershell
+$RepoUrl = (git remote get-url origin).Trim()
+pwsh -NoProfile -File scripts/m14_l04_remote_transport.ps1 -SshExecutable (Get-Command ssh.exe).Source -RemoteTarget trietlm@192.168.30.244 -PayloadPath scripts/m14_l04_remote_payload.sh -UseCase TunedLogitLens -CodeSha (git rev-parse HEAD).Trim() -RepoUrl $RepoUrl -RawCapturePath artifacts/m14/l04-tuned-logit-lens.raw.txt -SshConnectTimeoutSeconds 15 -TransportTimeoutSeconds 3600
 ```
 
 The remote import/version/CUDA preflight must use the identical `uv` environment

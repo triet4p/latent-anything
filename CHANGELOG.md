@@ -33,6 +33,10 @@
 
 ### Changed
 
+- Bounded native OpenSSH L04 transport connection setup with batch mode, a
+  validated 15-second default connect timeout, and one connection attempt;
+  operational examples now clone from the configured Git origin.
+
 - Recorded the single owner-approved acquisition of the pinned M14 L04
   WikiText-2 tuned-lens subset. The retained manifest contains only
   provenance, counts, selected indices, text hashes, and independent
