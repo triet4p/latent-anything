@@ -1,0 +1,16 @@
+{
+  "schema_version": "m14-l04-remote-capture-failure-v1",
+  "source_sha": "732d819338b4b06ac9f2d672b9dc46c2d8149e99",
+  "use_case": "Disentanglement",
+  "stage": "transport",
+  "reason": "The bounded SSH connection timed out before the remote command was reached.",
+  "semantic_known": false,
+  "semantic_result": "not_reached",
+  "repository_promotion": false,
+  "raw_capture": {
+    "path": "artifacts/m14/l04-disentanglement.raw.txt",
+    "bytes": 195,
+    "sha256": "5a91d5534d5c47c20df4e176895734b379b342a55817e3f8feb61a325e50535b"
+  },
+  "cleanup": "not_observed"
+}

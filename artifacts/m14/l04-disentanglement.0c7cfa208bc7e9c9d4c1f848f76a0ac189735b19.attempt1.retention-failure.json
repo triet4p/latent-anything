@@ -1,0 +1,18 @@
+{
+  "schema_version": "m14-l04-remote-capture-failure-v1",
+  "source_sha": "0c7cfa208bc7e9c9d4c1f848f76a0ac189735b19",
+  "use_case": "Disentanglement",
+  "stage": "retention",
+  "reason": "Real CUDA execution and bundle validation completed, but strict retention rejected non-protocol stdout diagnostics; the capture was not promotable.",
+  "semantic_known": true,
+  "semantic_result": "passed_real_cuda",
+  "semantic_evidence_level": "D2",
+  "semantic_evidence_eligible": true,
+  "repository_promotion": false,
+  "raw_capture": {
+    "path": "artifacts/m14/l04-disentanglement.0c7cfa208bc7e9c9d4c1f848f76a0ac189735b19.attempt1.raw.txt",
+    "bytes": 266082,
+    "sha256": "176a663119a70d02a440aab4f03de2ba4a2f0f85e3c29d8d53be4bc101d205b0"
+  },
+  "cleanup": "remote cleanup passed; local retention failed closed"
+}
