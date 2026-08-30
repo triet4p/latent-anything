@@ -14,6 +14,8 @@ TUNED_RECORD_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
 TUNED_GAP_ID = "THY-T05-LOGIT-LENS-TUNED-LENS"
 DISENTANGLEMENT_RECORD_ID = "THY-T03-DISENTANGLEMENT"
 DISENTANGLEMENT_GAP_ID = "THY-T03-DISENTANGLEMENT"
+ACTIVATION_PATCHING_RECORD_ID = "THY-T05-ACTIVATION-PATCHING"
+ACTIVATION_PATCHING_GAP_ID = "THY-T05-ACTIVATION-PATCHING"
 
 
 def _record_template(plan: dict[str, Any], item: dict[str, Any], status: str) -> dict[str, Any]:
@@ -112,6 +114,7 @@ def build_artifact(
             "no_mutation",
             "model_parameter_digest_before",
             "model_parameter_digest_after",
+            "resources",
         ):
             if key in execution_result:
                 current[key] = execution_result[key]
@@ -139,7 +142,15 @@ def build_artifact(
         and execution_result.get("evidence_eligible") is True
         and execution_result.get("acceptance") is True
     )
-    if accepted_tcav or accepted_tuned or accepted_disentanglement:
+    accepted_activation = bool(
+        use_case == "TrueActivationPatching"
+        and not injected
+        and execution_result is not None
+        and execution_result.get("status") == "passed_real_cuda"
+        and execution_result.get("evidence_eligible") is True
+        and execution_result.get("acceptance") is True
+    )
+    if accepted_tcav or accepted_tuned or accepted_disentanglement or accepted_activation:
         current["evidence_level"] = "D2" if accepted_disentanglement else "D3"
         current["acceptance"] = True
     records = []
@@ -174,13 +185,29 @@ def build_artifact(
         "use_case": use_case,
         "accepted_gap_ids": [TCAV_GAP_ID]
         if accepted_tcav
-        else ([TUNED_GAP_ID] if accepted_tuned else ([DISENTANGLEMENT_GAP_ID] if accepted_disentanglement else [])),
+        else (
+            [TUNED_GAP_ID]
+            if accepted_tuned
+            else (
+                [DISENTANGLEMENT_GAP_ID]
+                if accepted_disentanglement
+                else ([ACTIVATION_PATCHING_GAP_ID] if accepted_activation else [])
+            )
+        ),
         "accepted_record_ids": [TCAV_RECORD_ID]
         if accepted_tcav
         else (
-            [TUNED_RECORD_ID] if accepted_tuned else ([DISENTANGLEMENT_RECORD_ID] if accepted_disentanglement else [])
+            [TUNED_RECORD_ID]
+            if accepted_tuned
+            else (
+                [DISENTANGLEMENT_RECORD_ID]
+                if accepted_disentanglement
+                else ([ACTIVATION_PATCHING_RECORD_ID] if accepted_activation else [])
+            )
         ),
-        "evidence_level": "D2" if accepted_disentanglement else ("D3" if (accepted_tcav or accepted_tuned) else "D0"),
+        "evidence_level": "D2"
+        if accepted_disentanglement
+        else ("D3" if (accepted_tcav or accepted_tuned or accepted_activation) else "D0"),
         "partial_promotion": True,
         "model": plan["model"],
         "integration": "TransformerLMIntegration",

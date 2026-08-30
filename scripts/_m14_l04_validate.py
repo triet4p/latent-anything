@@ -7,6 +7,7 @@ from typing import Any
 
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_digest import canonical_digest, source_map_digest
+from scripts._m14_l04_validate_activation_patching import validate_real_true_activation_patching_execution
 from scripts._m14_l04_validate_direct_lens import validate_real_direct_lens_execution
 from scripts._m14_l04_validate_disentanglement import validate_real_disentanglement_execution
 from scripts._m14_l04_validate_ig import validate_real_ig_execution
@@ -70,6 +71,7 @@ GAP_FOR_USE_CASE = {
 }
 TCAV_ACCEPTED_RECORD_ID = "t05_tcav"
 DISENTANGLEMENT_ACCEPTED_RECORD_ID = "THY-T03-DISENTANGLEMENT"
+ACTIVATION_PATCHING_ACCEPTED_RECORD_ID = "THY-T05-ACTIVATION-PATCHING"
 
 
 def _source_errors(value: dict[str, Any], label: str) -> list[str]:
@@ -193,6 +195,8 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 errors.extend(validate_real_tuned_lens_execution(entry, artifact, plan))
             elif entry.get("status") == REAL_TUNED_LENS_STATUS and entry.get("use_case") == "Disentanglement":
                 errors.extend(validate_real_disentanglement_execution(entry, artifact, plan))
+            elif entry.get("status") == REAL_TUNED_LENS_STATUS and entry.get("use_case") == "TrueActivationPatching":
+                errors.extend(validate_real_true_activation_patching_execution(entry, artifact, plan))
             elif entry.get("evidence_eligible") is not False or entry.get("acceptance") is not False:
                 errors.append("dispatcher artifact cannot contain eligible or accepted evidence")
             expected_status = _expected_status(expected, artifact.get("use_case"), active_status)
@@ -261,6 +265,16 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         and artifact.get("accepted_record_ids") == [DISENTANGLEMENT_ACCEPTED_RECORD_ID]
         and artifact.get("accepted_gap_ids") == [DISENTANGLEMENT_ACCEPTED_RECORD_ID]
     )
+    activation_patching_accepted = (
+        artifact.get("use_case") == "TrueActivationPatching"
+        and active_status == REAL_TUNED_LENS_STATUS
+        and isinstance(active_execution, dict)
+        and active_execution.get("evidence_eligible") is True
+        and active_execution.get("acceptance") is True
+        and artifact.get("evidence_level") == "D3"
+        and artifact.get("accepted_record_ids") == [ACTIVATION_PATCHING_ACCEPTED_RECORD_ID]
+        and artifact.get("accepted_gap_ids") == [ACTIVATION_PATCHING_ACCEPTED_RECORD_ID]
+    )
     if isinstance(records, list):
         for record in records:
             if not isinstance(record, dict) or (
@@ -275,6 +289,10 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                     )
                     or (
                         disentanglement_accepted
+                        and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
+                    )
+                    or (
+                        activation_patching_accepted
                         and record.get("record_id") == RECORD_FOR_USE_CASE.get(str(artifact.get("use_case")))
                     )
                 )
@@ -326,6 +344,17 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         )
         if active_record.get("evidence_level") != "D2" or active_record.get("acceptance") is not True:
             errors.append("accepted disentanglement record must be D2 and accepted")
+    elif activation_patching_accepted:
+        active_record = next(
+            (
+                r
+                for r in artifact.get("records", [])
+                if r.get("record_id") == RECORD_FOR_USE_CASE["TrueActivationPatching"]
+            ),
+            {},
+        )
+        if active_record.get("evidence_level") != "D3" or active_record.get("acceptance") is not True:
+            errors.append("accepted activation patching record must be D3 and accepted")
     elif (
         artifact.get("accepted_record_ids") != []
         or artifact.get("accepted_gap_ids") != []
@@ -383,6 +412,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
         is_real_disentanglement = (
             artifact.get("use_case") == "Disentanglement" and provenance.get("evidence_origin") == "real-cuda"
         )
+        is_real_activation_patching = (
+            artifact.get("use_case") == "TrueActivationPatching" and provenance.get("evidence_origin") == "real-cuda"
+        )
         if provenance.get("evidence_origin") == "real-cuda" and (
             execution_attempted is not True or execution_backend != "cuda"
         ):
@@ -422,6 +454,13 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 peak = provenance.get("resource_peak")
                 if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
                     errors.append("real disentanglement CUDA peak resource is missing")
+        elif is_real_activation_patching:
+            if provenance.get("network") != "enabled" or provenance.get("device") in {None, "", "not used"}:
+                errors.append("real activation patching runtime provenance is invalid")
+            if _active_status(artifact) == REAL_TUNED_LENS_STATUS:
+                peak = provenance.get("resource_peak")
+                if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
+                    errors.append("real activation patching CUDA peak resource is missing")
         elif provenance.get("network") != "not attempted" or provenance.get("credentials") != "not used":
             errors.append("artifact resource provenance is invalid")
         if provenance.get("integration_factory") != INTEGRATION_FACTORY:

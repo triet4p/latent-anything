@@ -58,6 +58,24 @@ PENDING = {
 
 Handler = Callable[[dict[str, Any], list[dict[str, Any]]], dict[str, Any]]
 
+ACTIVATION_FAILURE_CODES = {
+    "preflight",
+    "dependency_check",
+    "cuda_check",
+    "model_load",
+    "scoring",
+    "cleanup",
+    "execution",
+}
+
+
+def _sanitize_activation_error(error: BaseException, resources: dict[str, Any]) -> RuntimeError:
+    code = getattr(error, "reason_code", None)
+    if not isinstance(code, str) or code not in ACTIVATION_FAILURE_CODES:
+        stage = resources.get("stage")
+        code = stage if isinstance(stage, str) and stage in ACTIVATION_FAILURE_CODES else "execution"
+    return RuntimeError(f"true_activation_patching_failed:{code}")
+
 
 def check(plan_path: Path = PLAN_PATH, fixture_path: Path = FIXTURE_PATH) -> dict[str, str]:
     """Perform the existing side-effect-free offline contract check."""
@@ -121,6 +139,10 @@ def run_real(
             from scripts._m14_l04_disentanglement import run_disentanglement
 
             handler = run_disentanglement
+        elif use_case == "TrueActivationPatching":
+            from scripts._m14_l04_activation_patching import run_true_activation_patching
+
+            handler = run_true_activation_patching
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None
@@ -158,6 +180,8 @@ def run_real(
                 resources.update(error_resources)
             if resources.get("stage") == "dispatch" and resources.get("execution_attempted") is True:
                 resources["stage"] = "execution"
+        if error is not None and use_case == "TrueActivationPatching":
+            error = _sanitize_activation_error(error, resources)
     fixture = fixture_metadata(plan, raw, rows)
     artifact = build_artifact(
         plan,
