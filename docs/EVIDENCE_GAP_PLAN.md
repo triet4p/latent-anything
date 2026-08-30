@@ -202,6 +202,10 @@ payload exports `LATENT_ANYTHING_RUN_NETWORK=1` and
 The required remote marker set also includes `L04_WORKDIR`, emitted only after
 the exact normal workdir path has been validated; cleanup remains a verified
 marker rather than a wildcard-based assumption.
+The payload routes `nvidia-smi` and the CLI's JSON diagnostics to stderr so
+stdout remains limited to declared L04 markers and the bounded Base64 bundle;
+the retention parser therefore remains strict on unexpected stdout and
+marker-like stderr.
 `python -c`, escaped `printf`, and nested remote command quoting are forbidden
 because native PowerShell parsing can strip quotes/backslashes and corrupt the
 script. Raw stdout/stderr is hashed before parsing. The attempt2

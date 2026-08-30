@@ -287,6 +287,12 @@ timed out during dependency preflight before CLI or bundle creation and is
 recorded as D0 with cleanup unknown; no cleanup-only SSH or implicit retry is
 permitted.
 
+The reusable payload keeps stdout marker/Base64-only for the retention parser:
+`nvidia-smi` diagnostics and the CLI's human-readable JSON result are redirected
+to stderr, while their exit statuses and the declared L04 markers remain
+unchanged. Ordinary stderr diagnostics are retained in the raw capture; unknown
+or marker-like stdout/stderr protocol lines still fail closed.
+
 For L04.8 and later, the helper is capture-only: it never deletes the raw
 capture. The payload announces `L04_BUNDLE_BYTES`, `L04_BUNDLE_SHA256`, and one
 `L04_BUNDLE_MEMBER=<path>|<bytes>|<sha256>` marker for each of the exact three

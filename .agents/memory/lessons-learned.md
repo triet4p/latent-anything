@@ -733,3 +733,21 @@ separate long end-to-end transport deadline for remote setup and evidence.
 configured origin and inspect the sanitized native SSH options; never infer a
 clone or semantic failure from a transport attempt that emitted no remote
 markers.
+
+## [2026-08-30] L04 diagnostics must not share the marker stdout channel
+
+**Symptom:** A successful real CUDA payload produced valid markers and a valid
+bundle, but retention failed on `stdout contains unexpected text outside
+declared markers`.
+
+**Root cause:** `nvidia-smi` and the real CLI both wrote ordinary diagnostic or
+result JSON text to stdout, while the retention grammar intentionally accepts
+only declared L04 assignments and the bounded Base64 body there.
+
+**Fix / workaround:** Redirect those two sources to stderr in the committed
+payload, preserving their exit statuses and the raw diagnostic evidence; keep
+the parser strict and retain tests for unexpected stdout and marker-like stderr.
+
+**Watch out for:** Add every new remote diagnostic command to stderr explicitly;
+do not weaken marker ordering, unknown-marker, or stdout-noise rejection to make
+an otherwise malformed capture retainable.

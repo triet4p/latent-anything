@@ -223,8 +223,9 @@ Status legend: [ ] pending / [~] in progress / [x] done
   CLI/bundle and remains D0 with cleanup unknown; no retry or cleanup-only SSH
   is allowed. Native OpenSSH now runs with batch mode, one connection attempt,
   and a validated 15-second connect-timeout default; active runbook examples
-  derive the clone URL from the configured Git origin. The frozen M14 plan is
-  unchanged.
+  derive the clone URL from the configured Git origin. The payload keeps stdout
+  marker/Base64-only by routing NVIDIA-SMI and CLI diagnostics to stderr; the
+  frozen M14 plan is unchanged.
 - [x] Close the L04.8 recovery defects from the preserved `ce4e66e` audit:
   the shared authored-fixture reader now carries the exact `condition` into
   Disentanglement evidence and fails closed for missing/invalid values; Linux

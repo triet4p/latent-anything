@@ -2,8 +2,11 @@
 
 ## Scope
 
-Implemented the owner-approved local transport hardening patch. No SSH, CUDA,
-remote repository, commit, or push action was performed during this task.
+Implemented the owner-approved local transport hardening patch and recorded the
+follow-up forensic diagnosis of one owner-authorized real CUDA execution. The
+transport/semantic process succeeded, but retention failed closed because
+non-protocol diagnostics were emitted on stdout; the fresh raw remains
+preserved for the next owner-approved fix validation.
 
 ## Changes
 
@@ -12,6 +15,11 @@ remote repository, commit, or push action was performed during this task.
 - Forced native OpenSSH `BatchMode=yes`, `ConnectTimeout=<value>`, and
   `ConnectionAttempts=1` while preserving the existing outer
   `TransportTimeoutSeconds` deadline semantics.
+- Kept the retention protocol's stdout marker/Base64-only contract by routing
+  `nvidia-smi` and CLI JSON diagnostics to stderr without changing their exit
+  statuses.
+- Added a forensic retention finding: the embedded archive and all three
+  announced member hashes remain intact despite the failed retain attempt.
 - Exposed the SSH timeout, attempt count, and batch-mode settings in the
   sanitized BuildOnly manifest.
 - Added exact-argv, manifest, bounds, and active-runbook URL invariant tests.

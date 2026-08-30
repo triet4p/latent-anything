@@ -33,6 +33,9 @@
 
 ### Changed
 
+- Kept L04 retention stdout marker/Base64-only by routing remote GPU and CLI
+  diagnostics to stderr while preserving command exit and protocol statuses.
+
 - Bounded native OpenSSH L04 transport connection setup with batch mode, a
   validated 15-second default connect timeout, and one connection attempt;
   operational examples now clone from the configured Git origin.

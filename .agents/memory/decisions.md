@@ -1144,3 +1144,19 @@ covers setup, execution, bundling, cleanup, and raw capture.
 **Consequences:** Future L04 runs cannot silently clone a stale owner fork or
 wait through native SSH retries; build-only manifests record the native bounds,
 and a connection failure remains a raw, non-semantic D0 result.
+
+## [2026-08-30] Keep L04 protocol stdout marker-only
+
+**Decision:** Keep the L04 retention parser strict and route non-protocol remote
+diagnostics, including `nvidia-smi` and CLI JSON, to stderr.
+
+**Alternatives considered:** Relax the parser to accept known diagnostic text or
+discard diagnostics before raw capture.
+
+**Reason:** The raw capture must preserve useful diagnostics while the parser's
+declared stdout grammar remains unambiguous and fail-closed against accidental
+or injected protocol noise.
+
+**Consequences:** Payload changes must keep stdout limited to declared markers
+and the bounded Base64 bundle; ordinary stderr remains retained, while
+marker-like stderr continues to fail validation.
