@@ -24,9 +24,11 @@ USE_CASES = (
     "Disentanglement",
     "TrueActivationPatching",
     "AdditiveSteering",
+    "L049V2StageA",
+    "L049V2StageB",
 )
 MEMBER_RE = re.compile(
-    r"^artifacts/m14/l04-explanations\.(?P<use_case>[A-Za-z]+)\.(?P<attempt>attempt[0-9]+)\.(?P<kind>partial|run|failure)\.json$"
+    r"^artifacts/m14/l04-explanations\.(?P<use_case>[A-Za-z0-9]+)\.(?P<attempt>attempt[0-9]+)\.(?P<kind>partial|run|failure)\.json$"
 )
 REQUIRED_SINGLETON_MARKERS = (
     "L04_TRANSPORT_PAYLOAD_SHA256",

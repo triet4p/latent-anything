@@ -9,6 +9,7 @@ import io
 import json
 import tarfile
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -16,10 +17,38 @@ from scripts import _m14_l04_retention_transaction as transaction
 from scripts import m14_l04_remote_postprocess as postprocess
 from scripts._m14_l04_digest import canonical_digest, code_sha
 from scripts._m14_l04_retention_transaction import write_atomic
+from scripts._m14_l049_v2_fixture import TRAIN_FIXTURE_PATH, read_rows
+from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes, top_level_cli_sha256
+from scripts._m14_l049_v2_stage_a import build_stage_a_artifact
 from scripts.m14_l04_explanations import run_real
 
 USE_CASE = "Disentanglement"
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _write_v2_stage_a_triad(directory: Path, artifact: dict[str, object], source_sha: str) -> None:
+    common = {
+        "schema_version": "m14-l04.9-v2-transport-envelope-v1",
+        "use_case": "L049V2StageA",
+        "attempt": "attempt1",
+        "source_commit_sha": source_sha,
+        "stage": artifact["stage"],
+        "status": artifact["status"],
+        "artifact_sha256": artifact["artifact_sha256"],
+    }
+    values = {
+        "partial": {**common, "kind": "partial", "artifact": artifact},
+        "run": {**common, "kind": "run", "artifact_name": "l04-explanations.L049V2StageA.attempt1.partial.json"},
+        "failure": {
+            **common,
+            "kind": "failure",
+            "failure_ref": "l04-explanations.L049V2StageA.attempt1.failure.json",
+        },
+    }
+    for kind, value in values.items():
+        (directory / f"l04-explanations.L049V2StageA.attempt1.{kind}.json").write_bytes(
+            canonical_json_bytes(value) + b"\n"
+        )
 
 
 def _source_triplet(tmp_path: Path, attempt: int = 1) -> tuple[Path, dict[str, bytes], str]:
@@ -107,6 +136,118 @@ def test_representative_marker_and_base64_capture_is_parseable(tmp_path: Path) -
     assert markers["L04_CODE_SHA"] == source_sha
     assert len(members) == 3
     assert hashlib.sha256(archive).hexdigest() == markers["L04_BUNDLE_SHA256"]
+
+
+def test_v2_stage_a_fake_capture_retains_and_finalizes_exact_triad(tmp_path: Path) -> None:
+    """The v2 CLI triad must traverse the real retention transaction."""
+    _raw, train_rows = read_rows(TRAIN_FIXTURE_PATH)
+    addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
+    artifact = build_stage_a_artifact(
+        train_rows,
+        addendum,
+        source_sha256="a" * 64,
+        cli_sha256=top_level_cli_sha256("stage_a_train_selection"),
+    )
+    source_sha = code_sha()
+    triad_dir = tmp_path / "triad"
+    triad_dir.mkdir()
+    _write_v2_stage_a_triad(triad_dir, artifact, source_sha)
+    files = {
+        f"artifacts/m14/{path.name}": path.read_bytes()
+        for path in triad_dir.glob("l04-explanations.L049V2StageA.attempt1.*.json")
+    }
+    archive = _archive(files)
+    members = "".join(
+        f"L04_BUNDLE_MEMBER={path}|{len(data)}|{hashlib.sha256(data).hexdigest()}\n"
+        for path, data in sorted(files.items())
+    )
+    bundle_sha = hashlib.sha256(archive).hexdigest()
+    capture = (
+        "\n".join(
+            [
+                f"L04_TRANSPORT_PAYLOAD_SHA256={'a' * 64}",
+                "L04_TRANSPORT_DECODE_STATUS=0",
+                f"L04_TRANSPORT_DECODE_SHA256={'a' * 64}",
+                "L04_TRANSPORT_DECODE_MATCH=PASS",
+                "L04_WORKDIR=/tmp/latent-anything-l04.synthetic",
+                "L04_USE_CASE=L049V2StageA",
+                f"L04_CODE_SHA={source_sha}",
+                "L04_CLI_STATUS=0",
+                "L04_BUNDLE_STATUS=0",
+                "L04_STATUS=0",
+                f"L04_BUNDLE_BYTES={len(archive)}",
+                f"L04_BUNDLE_SHA256={bundle_sha}",
+            ]
+        )
+        + "\n"
+        + members
+        + "L04_BUNDLE_B64_BEGIN\n"
+        + base64.b64encode(archive).decode("ascii")
+        + "\nL04_BUNDLE_B64_END\nL04_CLEANUP=PASS\nL04_TRANSPORT_CLEANUP=PASS\n"
+    ).encode()
+    raw_path = tmp_path / "raw.capture"
+    raw_path.write_bytes(capture)
+    artifact_dir = tmp_path / "retained"
+    audit_path = tmp_path / "audit.json"
+    pending = postprocess.retain_capture(
+        raw_capture_path=raw_path,
+        source_sha=source_sha,
+        use_case="L049V2StageA",
+        artifact_dir=artifact_dir,
+        audit_path=audit_path,
+        fixture_path=TRAIN_FIXTURE_PATH,
+        retain=True,
+    )
+    assert pending["raw_status"] == "retained_pending_finalize"
+    finalized = postprocess.finalize_delete(
+        raw_capture_path=raw_path,
+        source_sha=source_sha,
+        use_case="L049V2StageA",
+        artifact_dir=artifact_dir,
+        audit_path=audit_path,
+        fixture_path=TRAIN_FIXTURE_PATH,
+    )
+    assert finalized["raw_status"] == "deleted_verified"
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"fixture_path": TRAIN_FIXTURE_PATH},
+        {"fixture_path": TRAIN_FIXTURE_PATH, "candidate_path": TRAIN_FIXTURE_PATH},
+    ],
+)
+def test_v2_stage_b_requires_all_owner_inputs_before_mutation(tmp_path: Path, kwargs: dict[str, Path | None]) -> None:
+    raw_path = tmp_path / "raw.capture"
+    raw_path.write_bytes(b"not parsed")
+    artifact_dir = tmp_path / "retained"
+    with pytest.raises(postprocess.RetentionError, match="requires holdout fixture"):
+        postprocess.retain_capture(
+            raw_capture_path=raw_path,
+            source_sha="a" * 40,
+            use_case="L049V2StageB",
+            artifact_dir=artifact_dir,
+            audit_path=tmp_path / "audit.json",
+            **cast(Any, kwargs),
+            retain=True,
+        )
+    assert not artifact_dir.exists()
+
+
+def test_v2_stage_a_rejects_stage_b_inputs_before_parsing(tmp_path: Path) -> None:
+    raw_path = tmp_path / "raw.capture"
+    raw_path.write_bytes(b"not parsed")
+    with pytest.raises(postprocess.RetentionError, match="does not accept Stage B"):
+        postprocess.retain_capture(
+            raw_capture_path=raw_path,
+            source_sha="a" * 40,
+            use_case="L049V2StageA",
+            artifact_dir=tmp_path / "retained",
+            audit_path=tmp_path / "audit.json",
+            candidate_path=TRAIN_FIXTURE_PATH,
+            retain=True,
+        )
 
 
 def test_unexpected_stdout_noise_is_rejected(tmp_path: Path) -> None:

@@ -69,6 +69,105 @@ def _build_only(
     return json.loads(result.stdout)
 
 
+def _build_only_v2(
+    tmp_path: Path,
+    *,
+    use_case: str = "L049V2StageB",
+    train: str = "C:/owner/train.jsonl",
+    holdout: str = "C:/owner/holdout.jsonl",
+    seed: str = "C:/owner/holdout.seed",
+    candidate: str = "C:/owner/candidate.json",
+    output: str = "",
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            _pwsh(),
+            "-NoProfile",
+            "-File",
+            str(HELPER),
+            "-SshPath",
+            _ssh_path(),
+            "-RemoteTarget",
+            "user@example.com",
+            "-PayloadPath",
+            str(PAYLOAD),
+            "-UseCase",
+            use_case,
+            "-CodeSha",
+            "a" * 40,
+            "-RepoUrl",
+            "https://github.com/example/repo.git",
+            "-RawCapturePath",
+            str(tmp_path / "raw.capture"),
+            "-V2TrainFixturePath",
+            train,
+            "-V2HoldoutFixturePath",
+            holdout,
+            "-V2HoldoutSeedPath",
+            seed,
+            "-V2CandidateManifestPath",
+            candidate,
+            "-V2OutputPath",
+            output,
+            "-BuildOnly",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_v2_stage_b_build_manifest_requires_and_redacts_owner_paths(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path)
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads(result.stdout)
+    assert manifest["v2_inputs"] == {
+        "train_fixture": "<owner-provisioned-path>",
+        "holdout_fixture": "<owner-provisioned-path>",
+        "holdout_seed": "<owner-provisioned-path>",
+        "candidate_manifest": "<owner-provisioned-path>",
+        "output": "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json",
+        "contents": "redacted",
+    }
+    serialized = json.dumps(manifest)
+    for value in ("C:/owner/train.jsonl", "C:/owner/holdout.jsonl", "C:/owner/holdout.seed", "C:/owner/candidate.json"):
+        assert value not in serialized
+
+
+def test_v2_stage_a_build_manifest_derives_clone_output(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, use_case="L049V2StageA", holdout="", seed="", candidate="")
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads(result.stdout)
+    assert manifest["v2_inputs"]["output"] == "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json"
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"train": ""},
+        {"holdout": ""},
+        {"seed": ""},
+        {"candidate": ""},
+    ],
+)
+def test_v2_stage_b_build_manifest_rejects_missing_owner_path(tmp_path: Path, kwargs: dict[str, str]) -> None:
+    result = _build_only_v2(tmp_path, **kwargs)
+    assert result.returncode != 0
+    assert "requires" in result.stderr
+
+
+def test_v2_stage_a_rejects_stage_b_only_paths(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, use_case="L049V2StageA", holdout="C:/owner/holdout.jsonl")
+    assert result.returncode != 0
+    assert "rejects Stage B-only" in result.stderr
+
+
+def test_v2_output_path_cannot_be_overridden(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, output="/tmp/outside.json")
+    assert result.returncode != 0
+    assert "cannot be overridden" in result.stderr
+
+
 def test_build_only_normalizes_crlf_and_redacts_operational_values(tmp_path: Path) -> None:
     source = b"\xef\xbb\xbf#!/usr/bin/env bash\r\n# UTF-8: cafe\xc3\xa9\r\nexit 0\r"
     payload_path = tmp_path / "payload.sh"

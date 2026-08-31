@@ -1,0 +1,116 @@
+{
+  "authoring": {
+    "manifest": {
+      "generator": "scripts._m14_l049_v2_fixture.generate_rows",
+      "generator_revision": "v1",
+      "holdout_content_sha256": "295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f",
+      "holdout_groups": 24,
+      "holdout_seed_commitment_sha256": "b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1",
+      "manifest_sha256": "c63059b05fb45c984bdff2ebd7ecaeee0ff0ca98dab3cc81b845bedb2e1c83c7",
+      "near_duplicate_policy": "unique family and vocabulary tokens; no cross-split shared lexical identifiers",
+      "prompt_families_disjoint": true,
+      "rows_per_group": 2,
+      "schema_version": "m14-l04.9-v2-authoring-manifest-v1",
+      "train_groups": 36,
+      "train_seed": 79049,
+      "vocabulary_disjoint": true
+    },
+    "generator": "scripts._m14_l049_v2_fixture.generate_rows",
+    "generator_revision": "v1",
+    "manifest_digest_rule": "sha256(canonical UTF-8 JSON object with manifest_sha256 omitted, sorted keys, compact separators, LF terminated)",
+    "manifest_file_sha256": "2849b07fd719a0a761f433892fcc031c2ab17012a538daba322dd6fa50674974",
+    "manifest_sha256": "c63059b05fb45c984bdff2ebd7ecaeee0ff0ca98dab3cc81b845bedb2e1c83c7",
+    "not_human_blind": true,
+    "withheld_computationally": true
+  },
+  "addendum_sha256": "dea04fa5ce916327832324f882a951a69121dccd6f5cfa3e8cb0194d17a67243",
+  "candidate_selection": {
+    "consensus_min_wins": 4,
+    "fold_count": 6,
+    "fold_validation_groups": 6,
+    "layers": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "offsets": [0, -1, -2],
+    "oof_groups": 36,
+    "oof_min_positive_groups": 24,
+    "oof_lower_ci_strict_gt": 0.05,
+    "oof_fold_mean_strict_gt": 0.0,
+    "ranking": ["mean_recovery_desc", "lower_ci_desc", "layer_asc", "offset_order_0_-1_-2"]
+  },
+  "controls": [
+    "true_clean_donor_replacement",
+    "zero_strength_identity",
+    "wrong_token_diagnostic",
+    "adjacent_layer_diagnostic",
+    "additive_diagnostic",
+    "matched_norm_random_diagnostic",
+    "label_stratified_shuffled_donor"
+  ],
+  "fixture": {
+    "holdout_content_sha256": "295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f",
+    "holdout_groups": 24,
+    "holdout_rows": 48,
+    "holdout_seed_commitment_sha256": "b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1",
+    "row_keys": [
+      "row_id",
+      "group_id",
+      "causal_pair_id",
+      "condition",
+      "split",
+      "prompt_family",
+      "prompt",
+      "target_text",
+      "factor_labels"
+    ],
+    "rows_per_group": 2,
+    "schema": "m14-l04.9-v2-causal-pair-v1",
+    "train_groups": 36,
+    "train_rows": 72
+  },
+  "parent_plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+  "power": {
+    "assumptions": {
+      "bootstrap_replicates": 2000,
+      "decision_lower_ci": 0.05,
+      "effect_mean": 0.16,
+      "effect_sd": 0.3,
+      "groups": 24,
+      "null_mean": 0.0,
+      "simulations": 2000
+    },
+    "false_negative_risk": 0.43799999999999994,
+    "false_positive_rate": 0.0115,
+    "power": 0.562,
+    "result_sha256": "2102e8bb02e092f4cef5ac5b42290019e2fae3393d4c089fa8e7aa2c494ba431",
+    "schema": "m14-l04.9-v2-power-v1",
+    "seed": 7904901
+  },
+  "runtime_boundary": {
+    "device": "cuda",
+    "dtype": "model-native hidden-state dtype; no implicit cast in the hook",
+    "integration": "TransformerLMIntegration",
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "model_adapter": "N/A",
+    "random_draw_count": "frozen by the committed runner; no draws in Stage A",
+    "recipient": "corrupted forward at the selected layer and token offset",
+    "source": "clean donor activation from the paired clean forward",
+    "token_boundary": "offset 0 is target token; negative offsets resolve prior valid positions independently"
+  },
+  "protocol": {
+    "directional_recovery": "(patched-corrupted)/(clean-corrupted)",
+    "denominator_epsilon": 1e-12,
+    "d3_scope": "held-out causal recovery plus donor specificity; not localization",
+    "stage_b_bootstrap_seeds": [1701, 2901, 4101, 5301, 6701],
+    "stage_b_recovery_lower_ci_strict_gt": 0.1,
+    "stage_b_shuffled_margin_lower_ci_strict_gt": 0.05,
+    "stage_b_seed_semantics": "reproducibility summaries, not independent samples"
+  },
+  "schema_version": "m14-l04.9-v2-addendum-v1",
+  "stage_b_bootstrap_seeds": [1701, 2901, 4101, 5301, 6701],
+  "train_seed": 79049,
+  "v1_denylist": {
+    "artifact_sha256": "historical-v1-failure-nonpromoting",
+    "groups": ["g09", "g10", "g11", "g12"],
+    "record_id": "THY-T05-ACTIVATION-PATCHING"
+  },
+  "v1_exposed_holdout_groups": ["g09", "g10", "g11", "g12"]
+}

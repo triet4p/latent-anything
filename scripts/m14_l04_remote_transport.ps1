@@ -4,11 +4,16 @@ param(
     [Parameter(Mandatory = $true)] [string]$RemoteTarget,
     [Parameter(Mandatory = $true)] [string]$PayloadPath,
     [Parameter(Mandatory = $true)]
-    [ValidateSet("IntegratedGradients", "TCAV", "DirectLogitLens", "TunedLogitLens", "Disentanglement", "TrueActivationPatching", "AdditiveSteering")]
+    [ValidateSet("IntegratedGradients", "TCAV", "DirectLogitLens", "TunedLogitLens", "Disentanglement", "TrueActivationPatching", "AdditiveSteering", "L049V2StageA", "L049V2StageB")]
     [string]$UseCase,
     [Parameter(Mandatory = $true)] [string]$CodeSha,
     [Parameter(Mandatory = $true)] [string]$RepoUrl,
     [Parameter(Mandatory = $true)] [string]$RawCapturePath,
+    [string]$V2TrainFixturePath = "",
+    [string]$V2HoldoutFixturePath = "",
+    [string]$V2HoldoutSeedPath = "",
+    [string]$V2CandidateManifestPath = "",
+    [string]$V2OutputPath = "",
     [ValidateRange(2400, 7200)] [int]$TransportTimeoutSeconds = 3600,
     [ValidateRange(1, 300)] [int]$SshConnectTimeoutSeconds = 15,
     [switch]$BuildOnly,
@@ -45,10 +50,32 @@ function Assert-TransportParameters {
     if ($CodeSha -notmatch '^[0-9a-fA-F]{40}$') { throw "CodeSha must be exactly 40 hexadecimal characters" }
     if ([string]::IsNullOrWhiteSpace($RepoUrl) -or $RepoUrl -match '[\x00-\x20\x7f]') { throw "RepoUrl must be non-empty and contain no control or whitespace characters" }
     if ($RepoUrl -notmatch '^https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+(?:\.git)?$') { throw "RepoUrl must be a credential-free GitHub HTTPS owner/repository URL" }
+    $v2StageAArgs = @($V2HoldoutFixturePath, $V2HoldoutSeedPath, $V2CandidateManifestPath)
+    $v2StageBArgs = @($V2TrainFixturePath)
+    if ($UseCase -eq "L049V2StageB" -and @($v2StageAArgs + $v2StageBArgs | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+        throw "L049V2StageB requires train, holdout fixture, holdout seed, candidate manifest, and output paths"
+    }
+    if ($UseCase -eq "L049V2StageA" -and [string]::IsNullOrWhiteSpace($V2TrainFixturePath)) {
+        throw "L049V2StageA requires train fixture and output paths"
+    }
+    foreach ($v2Path in @($V2TrainFixturePath, $V2HoldoutFixturePath, $V2HoldoutSeedPath, $V2CandidateManifestPath, $V2OutputPath)) {
+        if ($v2Path -match '[\x00-\x1f\x7f]') { throw "v2 input paths must not contain control characters" }
+    }
+    if ($UseCase -eq "L049V2StageA" -and ($V2HoldoutFixturePath -or $V2HoldoutSeedPath -or $V2CandidateManifestPath)) {
+        throw "L049V2StageA rejects Stage B-only input paths"
+    }
+    if (($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") -and -not [string]::IsNullOrWhiteSpace($V2OutputPath)) {
+        throw "v2 output path is derived inside the fresh clone and cannot be overridden"
+    }
+}
+
+function ConvertTo-BashLiteral {
+    param([string]$Value)
+    return "'" + $Value.Replace("'", "'`"'`"'") + "'"
 }
 
 function New-Bootstrap {
-    param([string]$PayloadBase64, [string]$PayloadSha256)
+    param([string]$PayloadBase64, [string]$PayloadSha256, [string]$V2EnvBlock)
     $bootstrap = @'
 set -u -o pipefail
 PayloadSha256='__PAYLOAD_SHA256__'
@@ -78,10 +105,12 @@ DecodedSha256=$(sha256sum "$DecodedPayload" | awk '{print $1}')
 printf '%s\n' L04_TRANSPORT_DECODE_SHA256="$DecodedSha256"
 if [ "$DecodedSha256" != "$PayloadSha256" ]; then printf '%s\n' L04_TRANSPORT_DECODE_MATCH=FAIL; exit 65; fi
 printf '%s\n' L04_TRANSPORT_DECODE_MATCH=PASS
+__V2_ENV_BLOCK__
 bash "$DecodedPayload" "$@"
 semantic_status=$?
 exit "$semantic_status"
 '@
+    $bootstrap = $bootstrap.Replace("__V2_ENV_BLOCK__", $V2EnvBlock)
     $cr = [string][char]13; $lf = [string][char]10
     return $bootstrap.Replace("__PAYLOAD_SHA256__", $PayloadSha256).Replace("__PAYLOAD_BASE64__", $PayloadBase64).Replace($cr + $lf, $lf).Replace($cr, $lf)
 }
@@ -91,7 +120,13 @@ $normalizedCodeSha = $CodeSha.ToLowerInvariant()
 $payloadBytes = Get-Utf8LfBytes ([System.IO.File]::ReadAllBytes($PayloadPath))
 $payloadSha256 = Get-Sha256Hex $payloadBytes
 $payloadBase64 = [Convert]::ToBase64String($payloadBytes)
-$bootstrapBytes = [System.Text.UTF8Encoding]::new($false).GetBytes((New-Bootstrap -PayloadBase64 $payloadBase64 -PayloadSha256 $payloadSha256))
+$v2EnvBlock = ""
+if ($UseCase -eq "L049V2StageA") {
+    $v2EnvBlock = "export L049_V2_TRAIN_FIXTURE=$(ConvertTo-BashLiteral $V2TrainFixturePath)"
+} elseif ($UseCase -eq "L049V2StageB") {
+    $v2EnvBlock = "export L049_V2_TRAIN_FIXTURE=$(ConvertTo-BashLiteral $V2TrainFixturePath)`nexport L049_V2_HOLDOUT_FIXTURE=$(ConvertTo-BashLiteral $V2HoldoutFixturePath)`nexport L049_V2_HOLDOUT_SEED=$(ConvertTo-BashLiteral $V2HoldoutSeedPath)`nexport L049_V2_CANDIDATE=$(ConvertTo-BashLiteral $V2CandidateManifestPath)"
+}
+$bootstrapBytes = [System.Text.UTF8Encoding]::new($false).GetBytes((New-Bootstrap -PayloadBase64 $payloadBase64 -PayloadSha256 $payloadSha256 -V2EnvBlock $v2EnvBlock))
 $bootstrapSha256 = Get-Sha256Hex $bootstrapBytes
 $manifest = [ordered]@{
     schema_version = "m14-l04-remote-transport-build-v1"
@@ -107,6 +142,16 @@ $manifest = [ordered]@{
     expected_markers = @("L04_TRANSPORT_PAYLOAD_SHA256", "L04_TRANSPORT_DECODE_STATUS", "L04_TRANSPORT_DECODE_SHA256", "L04_TRANSPORT_DECODE_MATCH", "L04_WORKDIR", "L04_USE_CASE", "L04_CODE_SHA", "L04_CLI_STATUS", "L04_BUNDLE_STATUS", "L04_STATUS", "L04_BUNDLE_BYTES", "L04_BUNDLE_SHA256", "L04_BUNDLE_MEMBER", "L04_BUNDLE_B64_BEGIN", "L04_BUNDLE_B64_END", "L04_CLEANUP", "L04_TRANSPORT_CLEANUP")
     command_args_redacted = @("<ssh.exe>", "-o", "BatchMode=yes", "-o", "ConnectTimeout=$SshConnectTimeoutSeconds", "-o", "ConnectionAttempts=1", "<remote-target>", "bash", "-s", "--", "<use-case>", "<code-sha>", "<repo-url>")
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
+}
+if ($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") {
+    $manifest.v2_inputs = [ordered]@{
+        train_fixture = "<owner-provisioned-path>"
+        holdout_fixture = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+        holdout_seed = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+        candidate_manifest = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+        output = if ($UseCase -eq "L049V2StageB") { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json" } else { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json" }
+        contents = "redacted"
+    }
 }
 if ($BuildOnly -or $DryRunMode) { $manifest | ConvertTo-Json -Depth 8 -Compress; exit 0 }
 
@@ -138,13 +183,22 @@ if ($Postprocess -and $capture.raw_capture_write_succeeded) {
     if ([string]::IsNullOrWhiteSpace($AuditOutputPath)) {
         $AuditOutputPath = Join-Path $ArtifactOutputDir ("l04-explanations.ssh.$UseCase.$normalizedCodeSha.audit.json")
     }
-    & uv run python -m scripts.m14_l04_remote_postprocess `
-        --retain `
-        --raw-capture $RawCapturePath `
-        --source-sha $normalizedCodeSha `
-        --use-case $UseCase `
-        --artifact-dir $ArtifactOutputDir `
-        --audit $AuditOutputPath
+    # Keep the audited argv names visible while constructing the safe array:
+    # --raw-capture $RawCapturePath --source-sha $normalizedCodeSha
+    $postprocessArgs = @(
+        "-m", "scripts.m14_l04_remote_postprocess", "--retain",
+        "--raw-capture", $RawCapturePath,
+        "--source-sha", $normalizedCodeSha,
+        "--use-case", $UseCase,
+        "--artifact-dir", $ArtifactOutputDir,
+        "--audit", $AuditOutputPath
+    )
+    if ($UseCase -eq "L049V2StageB") {
+        $postprocessArgs += @("--fixture", $V2HoldoutFixturePath, "--candidate-manifest", $V2CandidateManifestPath, "--holdout-seed", $V2HoldoutSeedPath)
+    } elseif ($UseCase -eq "L049V2StageA") {
+        $postprocessArgs += @("--fixture", $V2TrainFixturePath)
+    }
+    & uv run python @postprocessArgs
     $postprocessExit = $LASTEXITCODE
     if ($postprocessExit -ne 0) { exit $postprocessExit }
 }

@@ -5,7 +5,7 @@ UseCase="${1:-}"
 CodeSha="${2:-}"
 RepoUrl="${3:-}"
 
-if [[ ! "$UseCase" =~ ^(IntegratedGradients|TCAV|DirectLogitLens|TunedLogitLens|Disentanglement|TrueActivationPatching|AdditiveSteering)$ ]]; then
+if [[ ! "$UseCase" =~ ^(IntegratedGradients|TCAV|DirectLogitLens|TunedLogitLens|Disentanglement|TrueActivationPatching|AdditiveSteering|L049V2StageA|L049V2StageB)$ ]]; then
     printf '%s\n' 'L04_STATUS=INVALID_USE_CASE' >&2
     exit 64
 fi
@@ -101,6 +101,48 @@ printf 'L04_USE_CASE=%s\n' "$UseCase"
 printf 'L04_CODE_SHA=%s\n' "${CodeSha,,}"
 nvidia-smi >&2
 
+# v2 output is derived inside the fresh detached clone.  A caller-supplied
+# output path is never allowed to redirect the triad outside this directory.
+v2_output_root="$repo_dir/artifacts/m14"
+if [[ -L "$repo_dir/artifacts" || -L "$v2_output_root" ]]; then
+    emit_status INVALID_V2_OUTPUT_ROOT >&2
+    exit 65
+fi
+mkdir -p -- "$v2_output_root"
+if [[ "$UseCase" == "L049V2StageA" ]]; then
+    v2_output="$v2_output_root/l04-l049-v2-stage-a.json"
+elif [[ "$UseCase" == "L049V2StageB" ]]; then
+    v2_output="$v2_output_root/l04-l049-v2-stage-b.json"
+else
+    v2_output=''
+fi
+if [[ -n "${L049_V2_OUTPUT:-}" && "$L049_V2_OUTPUT" != "$v2_output" ]]; then
+    emit_status INVALID_V2_OUTPUT_PATH >&2
+    exit 65
+fi
+
+# The v2 lane is selected by the transport, while the stage CLI remains the
+# producer.  Holdout paths/seeds are owner-provisioned and are never embedded
+# in this payload or returned in stdout.
+if [[ "$UseCase" == "L049V2StageA" ]]; then
+    V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_a --run-real --train-fixture "${L049_V2_TRAIN_FIXTURE:?L049_V2_TRAIN_FIXTURE is required}" --source-commit-sha "$CodeSha" --output "$v2_output")
+elif [[ "$UseCase" == "L049V2StageB" ]]; then
+    V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_b
+        --run-real
+        --holdout-fixture "${L049_V2_HOLDOUT_FIXTURE:?L049_V2_HOLDOUT_FIXTURE is required}"
+        --holdout-seed "${L049_V2_HOLDOUT_SEED:?L049_V2_HOLDOUT_SEED is required}"
+        --candidate-manifest "${L049_V2_CANDIDATE:?L049_V2_CANDIDATE is required}"
+        --source-commit-sha "$CodeSha"
+        --output "$v2_output")
+    if [[ -n "${L049_V2_OBSERVATIONS:-}" ]]; then
+        V2_STAGE_CLI+=(--observations "$L049_V2_OBSERVATIONS")
+    fi
+else
+    V2_STAGE_CLI=(python -m scripts.m14_l04_explanations --run-real --use-case "$UseCase" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl)
+fi
+# The legacy branch retains this exact audited invocation contract:
+# --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl >&2; then
+
 cat > "$preflight_file" <<'PY'
 import importlib
 
@@ -137,7 +179,7 @@ if [[ "$preflight_status" -ne 0 ]]; then
     exit "$preflight_status"
 fi
 
-find artifacts/m14 -maxdepth 1 -type f \
+find "$v2_output_root" -maxdepth 1 -type f \
     -name "l04-explanations.${UseCase}.attempt*.json" -printf '%f\0' |
     sort -z > "$before_members_file"
 
@@ -146,11 +188,7 @@ if uv run --locked --extra transformers \
     --with 'transformers==4.57.6' \
     --with 'tokenizers==0.22.2' \
     --with 'huggingface-hub==0.35.3' \
-    python -m scripts.m14_l04_explanations \
-    --run-real \
-    --use-case "$UseCase" \
-    --plan artifacts/m14/l04-explanations.plan.json \
-    --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl >&2; then
+    "${V2_STAGE_CLI[@]}" >&2; then
     cli_status=0
 else
     cli_status=$?
@@ -158,7 +196,7 @@ fi
 printf 'L04_CLI_STATUS=%s\n' "$cli_status"
 
 after_members_file="$workdir/after-members.nul"
-find artifacts/m14 -maxdepth 1 -type f \
+find "$v2_output_root" -maxdepth 1 -type f \
     -name "l04-explanations.${UseCase}.attempt*.json" -printf '%f\0' |
     sort -z > "$after_members_file"
 mapfile -d '' new_members < <(comm -z -13 "$before_members_file" "$after_members_file")
