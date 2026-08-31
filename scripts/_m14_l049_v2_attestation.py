@@ -94,6 +94,15 @@ def build_runtime_attestation(
             "budget_cpu_bytes": 0,
             "budget_gpu_bytes": 0,
         }
+    cleanup = resources.get("cleanup")
+    cleanup_hook_count = (
+        int(cleanup["hooks_remaining"])
+        if isinstance(cleanup, Mapping)
+        and cleanup.get("attempted") is True
+        and cleanup.get("completed") is False
+        and isinstance(cleanup.get("hooks_remaining"), int)
+        else 0
+    )
     attestation: dict[str, Any] = {
         "schema_version": RUNTIME_ATTESTATION_SCHEMA,
         "stage": stage,
@@ -129,7 +138,7 @@ def build_runtime_attestation(
             "forwards": forward_count,
         },
         "parameters": {"before_sha256": zero_digest, "after_sha256": zero_digest},
-        "cleanup_hook_count": 0,
+        "cleanup_hook_count": cleanup_hook_count,
         "resources": peak_resources,
         "cli_sha256": cli_sha256,
         "runtime_module_digests": {"producer": source_sha256, "integration": source_sha256},

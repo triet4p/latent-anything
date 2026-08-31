@@ -236,7 +236,7 @@ def mapping_digest(mapping: object) -> str | None:
         return None
 
 
-def real_resources(resources: object) -> list[str]:
+def real_resources(resources: object, *, allow_failure: bool = False) -> list[str]:
     if not isinstance(resources, Mapping):
         return ["Stage B real-runtime resources are missing"]
     errors: list[str] = []
@@ -250,7 +250,7 @@ def real_resources(resources: object) -> list[str]:
         errors.append("Stage B real-runtime resource provenance is incomplete")
     if resources.get("execution_attempted") is not True or resources.get("execution_backend") != "cuda":
         errors.append("Stage B real-runtime execution was not evidenced")
-    if resources.get("stage") != "real_runtime":
+    if resources.get("stage") != "real_runtime" and not (allow_failure and resources.get("stage") == "cleanup"):
         errors.append("real-runtime stage marker is invalid")
     if resources.get("model") != EXPECTED_MODEL or resources.get("model_revision") != EXPECTED_MODEL:
         errors.append("Stage B GPT2 revision is not pinned")
@@ -278,12 +278,34 @@ def real_resources(resources: object) -> list[str]:
         or any(not _nonnegative(intervention.get(key)) for key in intervention)
     ):
         errors.append("Stage B intervention execution evidence is missing or malformed")
-    if (
-        not isinstance(cleanup, Mapping)
-        or set(cleanup) != {"hook_count", "completed"}
-        or cleanup.get("completed") is not True
-        or cleanup.get("hook_count") != 0
-    ):
+    cleanup_success = (
+        isinstance(cleanup, Mapping)
+        and set(cleanup) == {"hook_count", "completed"}
+        and cleanup.get("completed") is True
+        and cleanup.get("hook_count") == 0
+    )
+    cleanup_failure = (
+        allow_failure
+        and isinstance(cleanup, Mapping)
+        and set(cleanup) == {"attempted", "completed", "hooks_remaining", "error_type", "reason", "stage"}
+        and cleanup.get("attempted") is True
+        and cleanup.get("completed") is False
+        and _nonnegative(cleanup.get("hooks_remaining"))
+        and cleanup.get("error_type")
+        in {
+            "CleanupError",
+            "Exception",
+            "MemoryError",
+            "OSError",
+            "RuntimeError",
+            "TimeoutError",
+            "TypeError",
+            "ValueError",
+        }
+        and cleanup.get("reason") in {"finalizer_exception", "finalizer_invalid_result"}
+        and cleanup.get("stage") == "cleanup"
+    )
+    if not cleanup_success and not cleanup_failure:
         errors.append("Stage B cleanup execution evidence is missing or malformed")
 
     def _bounded_peak(value: object, budget: object) -> bool:
@@ -309,6 +331,28 @@ def real_resources(resources: object) -> list[str]:
         or any(value is None or value < 0 for value in counter_values)
     ):
         errors.append("real-runtime operation counters are missing or malformed")
+    if isinstance(hook, Mapping) and isinstance(counters, Mapping):
+        registered = safe_int(hook.get("registered"))
+        removed = safe_int(hook.get("removed"))
+        hook_total = safe_int(counters.get("hooks"))
+        if (
+            registered is None
+            or removed is None
+            or hook_total is None
+            or registered != hook_total
+            or removed > registered
+        ):
+            errors.append("real-runtime hook registration/removal counters are inconsistent")
+        else:
+            remaining = registered - removed
+            if cleanup_failure and isinstance(cleanup, Mapping) and cleanup.get("hooks_remaining") != remaining:
+                errors.append("real-runtime cleanup remaining hooks are not counter-derived")
+            if (
+                cleanup_success
+                and isinstance(cleanup, Mapping)
+                and (cleanup.get("hook_count") != remaining or remaining != 0)
+            ):
+                errors.append("real-runtime successful cleanup hooks are not fully removed")
     return errors
 
 
@@ -389,6 +433,7 @@ def runtime_attestation_errors(
     addendum_sha256: object,
     cli_sha256: object,
     execution_resources: object = None,
+    partial_failure: bool = False,
 ) -> list[str]:
     """Independently validate every structured attestation primitive."""
     errors: list[str] = []
@@ -453,6 +498,23 @@ def runtime_attestation_errors(
         candidate_count=candidate_count,
         seed_count=seed_count,
     )
+    protocol_counts = dict(expected_counts)
+    if partial_failure and isinstance(execution_resources, Mapping):
+        partial_counts = execution_resources.get("operation_counts")
+        if isinstance(partial_counts, Mapping) and set(partial_counts) == {
+            "candidate_evaluations",
+            "hooks",
+            "captures",
+            "patches",
+            "controls",
+            "forwards",
+        }:
+            for key in partial_counts:
+                value = safe_int(partial_counts.get(key))
+                if value is not None and 0 <= value <= protocol_counts[key]:
+                    expected_counts[key] = value
+                else:
+                    errors.append("partial runtime operation counter exceeds protocol bound")
     if attestation.get("counts") != expected_counts:
         errors.append("runtime attestation execution counts are invalid")
     expected_chain = [
@@ -477,7 +539,13 @@ def runtime_attestation_errors(
         or parameters.get("before_sha256") != parameters.get("after_sha256")
     ):
         errors.append("runtime attestation parameter identity is invalid")
-    if attestation.get("cleanup_hook_count") != 0:
+    expected_cleanup_hook_count = 0
+    if partial_failure and isinstance(execution_resources, Mapping):
+        cleanup = execution_resources.get("cleanup")
+        if isinstance(cleanup, Mapping) and cleanup.get("completed") is False:
+            parsed_remaining = safe_int(cleanup.get("hooks_remaining"))
+            expected_cleanup_hook_count = -1 if parsed_remaining is None else parsed_remaining
+    if attestation.get("cleanup_hook_count") != expected_cleanup_hook_count:
         errors.append("runtime attestation cleanup count is invalid")
     expected_resources = {
         "peak_cpu_bytes": 0,
@@ -487,6 +555,13 @@ def runtime_attestation_errors(
         "budget_cpu_bytes": 0,
         "budget_gpu_bytes": 0,
     }
+    if partial_failure and isinstance(execution_resources, Mapping):
+        counters = execution_resources.get("operation_counts")
+        if not isinstance(counters, Mapping) or any(
+            attestation.get("counts", {}).get(key) != counters.get(key)
+            for key in ("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards")
+        ):
+            errors.append("partial runtime operation counters are not execution-bound")
     if mode == "real" and isinstance(execution_resources, Mapping):
         peak = execution_resources.get("resource_peak")
         if isinstance(peak, Mapping):
@@ -501,7 +576,7 @@ def runtime_attestation_errors(
     resources = attestation.get("resources")
     if resources != expected_resources:
         errors.append("runtime attestation resource peaks or units are invalid")
-    if mode == "real" and isinstance(execution_resources, Mapping):
+    if mode == "real" and isinstance(execution_resources, Mapping) and not partial_failure:
         hook = execution_resources.get("hook")
         intervention = execution_resources.get("intervention")
         cleanup = execution_resources.get("cleanup")
@@ -515,7 +590,11 @@ def runtime_attestation_errors(
             "registered": hook.get("registered"),
             "capture_calls": hook.get("capture_calls"),
             "removed": hook.get("removed"),
-        } != {"registered": expected_counts["hooks"], "capture_calls": expected_counts["captures"], "removed": 0}:
+        } != {
+            "registered": expected_counts["hooks"],
+            "capture_calls": expected_counts["captures"],
+            "removed": expected_counts["hooks"],
+        }:
             errors.append("runtime attestation hook counts are not execution-bound")
         if not isinstance(intervention, Mapping) or {
             "patch_calls": intervention.get("patch_calls"),

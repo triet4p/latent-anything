@@ -38,7 +38,12 @@ def _runtime_resources(counters: Mapping[str, int]) -> dict[str, Any]:
         "device": "cuda",
         "backend": "cuda",
         "dtype": "float32",
-        "hook": {"registered": counts["hooks"], "capture_calls": counts["captures"], "removed": 0},
+        "hook": {
+            "registered": counts["hooks"],
+            "capture_calls": counts["captures"],
+            # ActivationCaptureSession removes every hook on context exit.
+            "removed": counts["hooks"],
+        },
         "intervention": {
             "patch_calls": counts["patches"],
             "control_calls": counts["controls"],
@@ -67,12 +72,60 @@ def _pair_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, dict[str, Mapping
     return pairs
 
 
+def _last_valid_position(result: Any, offset: int, *, role: str, sequence_length: int) -> int:
+    """Resolve one endpoint against its own mask and output sequence."""
+    mask = np.asarray(getattr(result, "attention_mask", None))
+    if mask.ndim != 2 or mask.shape[0] < 1:
+        raise ValueError(f"{role} attention mask must be a non-empty 2D batch")
+    valid = np.flatnonzero(mask[0].astype(bool))
+    if valid.size == 0:
+        raise ValueError(f"{role} attention mask has no valid tokens")
+    position = int(valid[-1]) + int(offset)
+    if position < 0 or position >= sequence_length:
+        raise ValueError(f"{role} endpoint position {position} is outside sequence length {sequence_length}")
+    return position
+
+
+def _hidden(result: Any, layer: int, *, role: str) -> np.ndarray:
+    native_index = int(layer) + 1
+    states = {int(state.layer): np.asarray(state.values) for state in result.hidden_states}
+    values = states.get(native_index)
+    if values is None:
+        raise ValueError(f"{role} native hidden state {native_index} is missing")
+    if values.ndim != 3 or values.shape[0] < 1:
+        raise ValueError(f"{role} hidden state has invalid shape {values.shape}")
+    return values
+
+
+def _patch_positions(
+    clean: Any,
+    corrupt: Any,
+    clean_hidden: np.ndarray,
+    corrupt_hidden: np.ndarray,
+    offset: int,
+) -> tuple[int, int]:
+    clean_position = _last_valid_position(
+        clean, offset, role="clean source", sequence_length=int(clean_hidden.shape[1])
+    )
+    corrupt_position = _last_valid_position(
+        corrupt, offset, role="corrupt recipient", sequence_length=int(corrupt_hidden.shape[1])
+    )
+    if clean_hidden.shape[2] != corrupt_hidden.shape[2]:
+        raise ValueError(
+            f"clean/corrupt hidden dimensions differ: {clean_hidden.shape[2]} vs {corrupt_hidden.shape[2]}"
+        )
+    return clean_position, corrupt_position
+
+
 def _margin(integration: TransformerLMIntegration, result: Any, target_text: str) -> float:
     _model, tokenizer, _config = integration._backend()  # type: ignore[attr-defined]
     ids = tokenizer.encode(target_text, add_special_tokens=False)
     if not ids:
         raise ValueError("target text did not tokenize")
-    position = int(result.attention_mask[0].sum()) - 1
+    logits = np.asarray(result.logits)
+    if logits.ndim != 3:
+        raise ValueError(f"logits have invalid shape {logits.shape}")
+    position = _last_valid_position(result, 0, role="margin", sequence_length=int(logits.shape[1]))
     true_id = int(tokenizer.encode(" true", add_special_tokens=False)[0])
     false_id = int(tokenizer.encode(" false", add_special_tokens=False)[0])
     del target_text
@@ -132,20 +185,20 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
         if pair_id not in corrupt_cache:
             corrupt_cache[pair_id] = _forward(integration, str(pair["corrupted"]["prompt"]), counters=counters)
         corrupt = corrupt_cache[pair_id]
-        clean_hidden = dict((state.layer, state.values) for state in clean.hidden_states)[layer + 1]
-        corrupt_hidden = dict((state.layer, state.values) for state in corrupt.hidden_states)[layer + 1]
-        position = max(0, int(corrupt.attention_mask[0].sum()) - 1 + int(offset))
+        clean_hidden = _hidden(clean, layer, role="clean source")
+        corrupt_hidden = _hidden(corrupt, layer, role="corrupt recipient")
+        clean_position, corrupt_position = _patch_positions(clean, corrupt, clean_hidden, corrupt_hidden, int(offset))
         direction = np.zeros_like(corrupt_hidden)
-        direction[0, position] = clean_hidden[0, position] - corrupt_hidden[0, position]
+        direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
         patched = _forward(
             integration,
-            str(row["prompt"]),
+            str(pair["corrupted"]["prompt"]),
             capture_layers=(layer + 1,),
             intervention=HiddenStateIntervention(
                 layer=layer,
                 direction=direction,
                 strength=1.0,
-                token_indices=[(0, position)],
+                token_indices=[(0, corrupt_position)],
             ),
             counters=counters,
             operation="patch",
@@ -181,11 +234,11 @@ def build_stage_b_runtime(
         corrupt = _forward(integration, str(pair["corrupted"]["prompt"]), counters=counters)
         clean_margin = _margin(integration, clean, str(pair["clean"]["target_text"]))
         corrupted_margin = _margin(integration, corrupt, str(pair["corrupted"]["target_text"]))
-        clean_hidden = dict((state.layer, state.values) for state in clean.hidden_states)[layer + 1]
-        corrupt_hidden = dict((state.layer, state.values) for state in corrupt.hidden_states)[layer + 1]
-        position = max(0, int(corrupt.attention_mask[0].sum()) - 1 + offset)
+        clean_hidden = _hidden(clean, layer, role="clean source")
+        corrupt_hidden = _hidden(corrupt, layer, role="corrupt recipient")
+        clean_position, corrupt_position = _patch_positions(clean, corrupt, clean_hidden, corrupt_hidden, int(offset))
         direction = np.zeros_like(corrupt_hidden)
-        direction[0, position] = clean_hidden[0, position] - corrupt_hidden[0, position]
+        direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
         patched = _forward(
             integration,
             str(pair["corrupted"]["prompt"]),
@@ -194,7 +247,7 @@ def build_stage_b_runtime(
                 layer=layer,
                 direction=direction,
                 strength=1.0,
-                token_indices=[(0, position)],
+                token_indices=[(0, corrupt_position)],
             ),
             counters=counters,
             operation="patch",
@@ -229,4 +282,4 @@ def build_stage_b_runtime(
     return observations, _runtime_resources(counters)
 
 
-__all__ = ["build_stage_a_runtime"]
+__all__ = ["build_stage_a_runtime", "build_stage_b_runtime"]

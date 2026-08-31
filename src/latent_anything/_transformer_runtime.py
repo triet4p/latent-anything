@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from contextlib import nullcontext
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -16,6 +17,59 @@ from latent_anything._transformer_analysis import (
 )
 from latent_anything._transformer_backend import tokenize
 from latent_anything.capture import ActivationCaptureSession
+
+
+class TransformerRuntimeShapeError(ValueError):
+    """Sanitized shape-contract failure from one transformer forward.
+
+    The error deliberately contains only tensor field names and integer
+    shapes.  It is safe to carry through a failure envelope without exposing
+    prompts, token IDs, or tensor values.
+    """
+
+    def __init__(self, field: str, expected: tuple[int, ...], actual: object) -> None:
+        self.field = field
+        self.expected_shape = expected
+        self.actual_shape = actual if isinstance(actual, tuple) else None
+        super().__init__(f"transformer_runtime_shape_error:{field}:expected={expected}:actual={actual}")
+
+
+def _shape(value: object) -> tuple[int, ...] | None:
+    raw = getattr(value, "shape", None)
+    if raw is None:
+        return None
+    try:
+        return tuple(int(size) for size in raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _validate_forward_shapes(
+    input_ids: object,
+    attention_mask: object,
+    logits: object,
+    native_hidden_states: object,
+) -> None:
+    """Enforce the full-prompt batch/sequence contract before indexing."""
+    input_shape = _shape(input_ids)
+    if input_shape is None or len(input_shape) != 2:
+        raise TransformerRuntimeShapeError("input_ids", (0, 0), input_shape)
+    mask_shape = _shape(attention_mask)
+    if mask_shape != input_shape:
+        raise TransformerRuntimeShapeError("attention_mask", input_shape, mask_shape)
+    logits_shape = _shape(logits)
+    expected_logits_prefix = input_shape
+    if logits_shape is None or len(logits_shape) != 3 or logits_shape[:2] != expected_logits_prefix:
+        raise TransformerRuntimeShapeError("logits", (*expected_logits_prefix, -1), logits_shape)
+    if native_hidden_states is None:
+        return
+    if not isinstance(native_hidden_states, Sequence):
+        raise TransformerRuntimeShapeError("hidden_states", (0, *input_shape, -1), None) from None
+    states = tuple(cast(Sequence[Any], native_hidden_states))
+    for index, state in enumerate(states):
+        state_shape = _shape(state)
+        if state_shape is None or len(state_shape) != 3 or state_shape[:2] != expected_logits_prefix:
+            raise TransformerRuntimeShapeError(f"hidden_states[{index}]", (*expected_logits_prefix, -1), state_shape)
 
 
 @dataclass(frozen=True)
@@ -46,7 +100,13 @@ def run_generation(
     encoded = tokenize(tokenizer, request.prompt, max_length=request.max_length, return_tensors="pt")
     input_ids = encoded["input_ids"].to(device)
     attention_mask = encoded["attention_mask"].to(device)
-    _, seq_len = input_ids.shape
+    input_shape = _shape(input_ids)
+    if input_shape is None or len(input_shape) != 2:
+        raise TransformerRuntimeShapeError("input_ids", (0, 0), input_shape)
+    mask_shape = _shape(attention_mask)
+    if mask_shape != input_shape:
+        raise TransformerRuntimeShapeError("attention_mask", input_shape, mask_shape)
+    _, seq_len = input_shape
 
     num_layers = int(getattr(config, "num_hidden_layers", default_num_layers))
     if request.capture_layers:
@@ -106,9 +166,15 @@ def run_generation(
             output_hidden_states=True,
         )
 
-    final_logits = outputs.logits.detach().cpu().numpy().copy()
+    final_logits_tensor = getattr(outputs, "logits", None)
+    native_hidden_states = getattr(outputs, "hidden_states", None)
+    _validate_forward_shapes(input_ids, attention_mask, final_logits_tensor, native_hidden_states)
+    if need_capture and native_hidden_states is None:
+        raise TransformerRuntimeShapeError("hidden_states", (*input_shape, -1), None)
+    if final_logits_tensor is None:
+        raise TransformerRuntimeShapeError("logits", (*input_ids.shape, -1), None)
+    final_logits = final_logits_tensor.detach().cpu().numpy().copy()
     final_logits.setflags(write=False)
-    native_hidden_states = outputs.hidden_states
     captured_states: list[tuple[int, np.ndarray, dict[str, str]]] = []
     lens_results: list[tuple[int, np.ndarray, np.ndarray, list[list[list[tuple[int, float]]]], int]] = []
 

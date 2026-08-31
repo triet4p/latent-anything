@@ -6,13 +6,16 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
 import pytest
 
 from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
 from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
+from scripts._m14_l049_v2_real_runtime import _hidden, _patch_positions
 from scripts._m14_l049_v2_retention import build_retention_record, validate_retention_record
 from scripts._m14_l049_v2_schema import (
     STAGE_B_SEEDS,
@@ -31,6 +34,9 @@ from scripts._m14_l049_v2_validate_stage_b import validate_stage_b_impl
 
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_PATH = ROOT / "artifacts/m14/l04-l049-v2-train.jsonl"
+STAGE_A_FAILURE_SIDECAR = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json"
+)
 SOURCE_COMMIT = "1" * 40
 SOURCE_TREE = "2" * 64
 
@@ -40,6 +46,298 @@ def _base() -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
     addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
     artifact = build_stage_a_artifact(rows, addendum, source_sha256="a" * 64)
     return rows, addendum, artifact
+
+
+def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
+    sidecar = json.loads(STAGE_A_FAILURE_SIDECAR.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source"] == {
+        "commit_sha": "41828c2e12e1efacb80e8cb5a0c62e4e69a688b2",
+        "tree_sha256": "1178bd4a339d773fb74c86b4046b087311a0b70d",
+        "use_case": "L049V2StageA",
+    }
+    assert sidecar["raw_capture"] == {
+        "bytes": 7314,
+        "sha256": "9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f",
+    }
+    assert sidecar["reason_code"] == "sequence_alignment_index_error"
+    assert sidecar["artifact"]["failure"] == "no_triad"
+    assert sidecar["artifact"]["audit"] == "not_created"
+    assert sidecar["repository_promotion"] is False
+    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    serialized = json.dumps(sidecar, sort_keys=True)
+    assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
+
+
+def test_real_runtime_uses_independent_clean_source_and_corrupt_recipient_positions() -> None:
+    clean_hidden = np.arange(1 * 22 * 4, dtype=np.float32).reshape(1, 22, 4)
+    corrupt_hidden = np.arange(1 * 21 * 4, dtype=np.float32).reshape(1, 21, 4) + 100.0
+    clean = SimpleNamespace(attention_mask=np.ones((1, 22), dtype=np.int64), hidden_states=[])
+    corrupt = SimpleNamespace(attention_mask=np.ones((1, 21), dtype=np.int64), hidden_states=[])
+    clean_position, corrupt_position = _patch_positions(clean, corrupt, clean_hidden, corrupt_hidden, -1)
+    assert (clean_position, corrupt_position) == (20, 19)
+    direction = np.zeros_like(corrupt_hidden)
+    direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
+    np.testing.assert_array_equal(direction[0, 19], clean_hidden[0, 20] - corrupt_hidden[0, 19])
+    assert np.count_nonzero(direction) == 4
+
+
+def test_real_runtime_hidden_layer_helper_rejects_missing_native_index() -> None:
+    result = SimpleNamespace(hidden_states=[SimpleNamespace(layer=0, values=np.zeros((1, 3, 4)))])
+    with pytest.raises(ValueError, match="native hidden state 7 is missing"):
+        _hidden(result, 6, role="clean source")
+
+
+def test_real_stage_a_index_error_emits_sanitized_d0_artifact() -> None:
+    rows, addendum, _ = _base()
+    finalized = False
+    resources: dict[str, Any] = {
+        "stage": "real_runtime",
+        "execution_attempted": True,
+        "execution_backend": "cuda",
+        "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "model_revision": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "integration": "TransformerLMIntegration",
+        "model_adapter": "N/A",
+        "device": "cuda",
+        "backend": "cuda",
+        "dtype": "float32",
+        "hook": {"registered": 0, "capture_calls": 0, "removed": 0},
+        "intervention": {"patch_calls": 0, "control_calls": 0, "forward_calls": 0},
+        "operation_counts": {
+            "candidate_evaluations": 1,
+            "hooks": 0,
+            "captures": 1,
+            "patches": 0,
+            "controls": 0,
+            "forwards": 1,
+        },
+        "cleanup": {"hook_count": 0, "completed": True},
+        "resource_peak": {
+            "peak_cpu_bytes": 1,
+            "peak_gpu_bytes": 1,
+            "unit": "bytes",
+            "budget_cpu_bytes": 6_000_000_000,
+            "budget_gpu_bytes": 6_000_000_000,
+        },
+        "no_mutation": True,
+    }
+
+    def finalize() -> dict[str, Any]:
+        nonlocal finalized
+        finalized = True
+        return {key: value for key, value in resources.items() if key != "finalize"}
+
+    resources["finalize"] = finalize
+
+    def failing_score(*_args: Any) -> float:
+        raise IndexError("prompt payload must never be serialized")
+
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": failing_score, "resources": resources},
+    )
+    assert finalized is True
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["evidence_eligible"] is False
+    assert artifact["selection"]["failure"] == {"exception_type": "IndexError"}
+    assert "prompt payload" not in json.dumps(artifact)
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def _real_resources_for_failure() -> dict[str, Any]:
+    return {
+        "stage": "real_runtime",
+        "execution_attempted": True,
+        "execution_backend": "cuda",
+        "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "model_revision": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "integration": "TransformerLMIntegration",
+        "model_adapter": "N/A",
+        "device": "cuda",
+        "backend": "cuda",
+        "dtype": "float32",
+        "hook": {"registered": 1, "capture_calls": 1, "removed": 0},
+        "intervention": {"patch_calls": 0, "control_calls": 0, "forward_calls": 1},
+        "operation_counts": {
+            "candidate_evaluations": 1,
+            "hooks": 1,
+            "captures": 1,
+            "patches": 0,
+            "controls": 0,
+            "forwards": 1,
+        },
+        "cleanup": {"hook_count": 1, "completed": True},
+        "resource_peak": {
+            "peak_cpu_bytes": 1,
+            "peak_gpu_bytes": 1,
+            "unit": "bytes",
+            "budget_cpu_bytes": 6_000_000_000,
+            "budget_gpu_bytes": 6_000_000_000,
+        },
+        "no_mutation": True,
+    }
+
+
+def test_stage_a_cleanup_failure_alone_is_sanitized_and_validator_clean() -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_failure()
+    calls = 0
+
+    class SecretCleanupError(RuntimeError):
+        pass
+
+    def finalize() -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        raise SecretCleanupError("cleanup prompt secret must never escape")
+
+    resources["finalize"] = finalize
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": resources},
+    )
+    assert calls == 1
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["selection"]["consensus_candidate"] is None
+    assert artifact["selection"]["score_records"] == []
+    assert artifact["resources"]["cleanup"] == {
+        "attempted": True,
+        "completed": False,
+        "hooks_remaining": 1,
+        "error_type": "CleanupError",
+        "reason": "finalizer_exception",
+        "stage": "cleanup",
+    }
+    assert "cleanup prompt secret" not in json.dumps(artifact)
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_stage_a_runtime_and_cleanup_failures_preserve_primary_error() -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_failure()
+    calls = 0
+
+    def finalize() -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        raise RuntimeError("cleanup secret must never escape")
+
+    resources["finalize"] = finalize
+
+    def score(*_args: Any) -> float:
+        raise IndexError("runtime prompt secret must never escape")
+
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": score, "resources": resources},
+    )
+    assert calls == 1
+    assert artifact["selection"]["failure"] == {"exception_type": "IndexError"}
+    assert artifact["resources"]["cleanup"]["error_type"] == "RuntimeError"
+    assert artifact["resources"]["cleanup"]["completed"] is False
+    assert "prompt secret" not in json.dumps(artifact)
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+@pytest.mark.parametrize("finalizer_result", [None, {"stage": "cleanup"}])
+def test_stage_a_invalid_finalizer_result_is_sanitized_and_validator_clean(finalizer_result: object) -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_failure()
+    calls = 0
+
+    def finalize() -> object:
+        nonlocal calls
+        calls += 1
+        return finalizer_result
+
+    resources["finalize"] = finalize
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": resources},
+    )
+    assert calls == 1
+    assert artifact["selection"]["failure"] == {"exception_type": "TypeError"}
+    assert artifact["resources"]["cleanup"] == {
+        "attempted": True,
+        "completed": False,
+        "hooks_remaining": 1,
+        "error_type": "TypeError",
+        "reason": "finalizer_invalid_result",
+        "stage": "cleanup",
+    }
+    assert artifact["runtime_attestation"]["cleanup_hook_count"] == 1
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+@pytest.mark.parametrize("forged_remaining", [0, 999_999])
+def test_stage_a_rehashed_forged_cleanup_remaining_hooks_fails_validation(forged_remaining: int) -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_failure()
+
+    def finalize() -> object:
+        raise RuntimeError("cleanup failure")
+
+    resources["finalize"] = finalize
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": resources},
+    )
+    artifact["resources"]["cleanup"]["hooks_remaining"] = forged_remaining
+    artifact["runtime_attestation"]["cleanup_hook_count"] = forged_remaining
+    artifact["runtime_attestation"]["attestation_sha256"] = canonical_digest(
+        artifact["runtime_attestation"], "attestation_sha256"
+    )
+    artifact["attestation_sha256"] = artifact["runtime_attestation"]["attestation_sha256"]
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    errors = validate_stage_a(artifact, rows, addendum)
+    assert any("counter-derived" in error or "cleanup count" in error for error in errors)
+
+
+def test_stage_a_cli_runtime_index_error_writes_complete_d0_triad(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import torch
+
+    import scripts._m14_l049_v2_real_runtime as real_runtime
+    from scripts.m14_l049_v2_stage_a import main
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+
+    def failing_runtime(_rows: Any) -> Any:
+        raise IndexError("prompt payload must never reach the envelope")
+
+    monkeypatch.setattr(real_runtime, "build_stage_a_runtime", failing_runtime)
+    output = tmp_path / "artifact.json"
+    main(
+        [
+            "--train-fixture",
+            str(TRAIN_PATH),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    triad = sorted(tmp_path.glob("l04-explanations.L049V2StageA.attempt1.*.json"))
+    assert [path.suffixes[-2] for path in triad] == [".failure", ".partial", ".run"]
+    partial = json.loads(next(path for path in triad if path.name.endswith(".partial.json")).read_bytes())
+    assert partial["artifact"]["status"] == "stage_a_failed"
+    assert partial["artifact"]["evidence_level"] == "D0"
+    assert "prompt payload" not in json.dumps(partial)
 
 
 def _synthetic_stage_b() -> tuple[dict[str, Any], list[dict[str, Any]], bytes, dict[str, Any], dict[str, Any]]:
@@ -379,7 +677,7 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
             "device": "cuda",
             "backend": "cuda",
             "dtype": "float32",
-            "hook": {"registered": 1296, "capture_calls": 1368, "removed": 0},
+            "hook": {"registered": 1296, "capture_calls": 1368, "removed": 1296},
             "intervention": {"patch_calls": 1296, "control_calls": 0, "forward_calls": 1368},
             "operation_counts": {
                 "candidate_evaluations": 2592,
@@ -412,7 +710,7 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
         "device": "cuda",
         "backend": "cuda",
         "dtype": "float32",
-        "hook": {"registered": 24, "capture_calls": 552, "removed": 0},
+        "hook": {"registered": 24, "capture_calls": 552, "removed": 24},
         "intervention": {"patch_calls": 24, "control_calls": 480, "forward_calls": 552},
         "operation_counts": {
             "candidate_evaluations": 120,
@@ -540,7 +838,7 @@ def test_injected_real_stage_a_records_d1_attestation_and_executes_scorer() -> N
         "device": "cuda",
         "backend": "cuda",
         "dtype": "float32",
-        "hook": {"registered": 1296, "capture_calls": 1368, "removed": 0},
+        "hook": {"registered": 1296, "capture_calls": 1368, "removed": 1296},
         "intervention": {"patch_calls": 1296, "control_calls": 0, "forward_calls": 1368},
         "operation_counts": {
             "candidate_evaluations": 2592,

@@ -9,13 +9,14 @@ No real model downloads occur.
 from __future__ import annotations
 
 import inspect
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pytest
 import torch
 from torch import nn
 
+from latent_anything._transformer_runtime import TransformerRuntimeShapeError
 from latent_anything.integrations.transformer_lm import (
     GPT2_HIDDEN_DIM,
     GPT2_NUM_LAYERS,
@@ -143,6 +144,21 @@ class FakeGPT2Model(nn.Module):
 
         # Use SimpleNamespace to avoid Python class-scope closure issues.
         return type("FakeOutput", (), {"logits": result_logits, "hidden_states": result_hs})()
+
+
+class MismatchedLengthFakeGPT2Model(FakeGPT2Model):
+    """Fake backend exposing an invalid shortened full-prompt output."""
+
+    def forward(  # type: ignore[reportUnknownMemberType]
+        self,
+        input_ids: object,
+        attention_mask: object | None = None,
+        output_hidden_states: bool = False,
+    ) -> object:
+        result = cast(Any, super().forward(input_ids, attention_mask, output_hidden_states))
+        if result.hidden_states is not None:
+            result.hidden_states = tuple(state[:, :-1, :] for state in result.hidden_states)
+        return result
 
 
 class TupleFakeGPT2Model(FakeGPT2Model):
@@ -538,6 +554,16 @@ class TestTransformerLMIntegration:
 
 
 class TestFakeBackendPipeline:
+    def test_generate_rejects_shortened_full_prompt_outputs(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        pipe = TransformerLMIntegration()
+        fake_model = MismatchedLengthFakeGPT2Model()
+        fake_tokenizer = FakeTokenizer()
+        monkeypatch.setattr(pipe, "_backend", lambda: (fake_model, fake_tokenizer, fake_model.config))
+
+        with pytest.raises(TransformerRuntimeShapeError, match=r"hidden_states\[0\]") as captured:
+            pipe.generate(TransformerGenerationRequest(prompt="shape-secret", max_length=22, top_k_logit_lens=0))
+        assert "shape-secret" not in str(captured.value)
+
     def test_generate_with_no_capture_returns_valid_result(self, monkeypatch: pytest.MonkeyPatch) -> None:
         pipe = TransformerLMIntegration()
 

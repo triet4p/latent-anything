@@ -19,7 +19,7 @@ from scripts._m14_l04_digest import canonical_digest, code_sha
 from scripts._m14_l04_retention_transaction import write_atomic
 from scripts._m14_l049_v2_fixture import TRAIN_FIXTURE_PATH, read_rows
 from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes, top_level_cli_sha256
-from scripts._m14_l049_v2_stage_a import build_stage_a_artifact
+from scripts._m14_l049_v2_stage_a import build_stage_a_artifact, run_real_stage_a
 from scripts.m14_l04_explanations import run_real
 
 USE_CASE = "Disentanglement"
@@ -189,6 +189,126 @@ def test_v2_stage_a_fake_capture_retains_and_finalizes_exact_triad(tmp_path: Pat
     raw_path.write_bytes(capture)
     artifact_dir = tmp_path / "retained"
     audit_path = tmp_path / "audit.json"
+    pending = postprocess.retain_capture(
+        raw_capture_path=raw_path,
+        source_sha=source_sha,
+        use_case="L049V2StageA",
+        artifact_dir=artifact_dir,
+        audit_path=audit_path,
+        fixture_path=TRAIN_FIXTURE_PATH,
+        retain=True,
+    )
+    assert pending["raw_status"] == "retained_pending_finalize"
+    finalized = postprocess.finalize_delete(
+        raw_capture_path=raw_path,
+        source_sha=source_sha,
+        use_case="L049V2StageA",
+        artifact_dir=artifact_dir,
+        audit_path=audit_path,
+        fixture_path=TRAIN_FIXTURE_PATH,
+    )
+    assert finalized["raw_status"] == "deleted_verified"
+
+
+@pytest.mark.parametrize("failure_mode", ["cleanup_only", "runtime_and_cleanup"])
+def test_v2_stage_a_d0_cleanup_failure_retains_and_finalizes(tmp_path: Path, failure_mode: str) -> None:
+    """Incomplete real attempts with cleanup failure retain the exact triad."""
+    _raw, train_rows = read_rows(TRAIN_FIXTURE_PATH)
+    addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
+    resources: dict[str, Any] = {
+        "stage": "real_runtime",
+        "execution_attempted": True,
+        "execution_backend": "cuda",
+        "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "model_revision": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "integration": "TransformerLMIntegration",
+        "model_adapter": "N/A",
+        "device": "cuda",
+        "backend": "cuda",
+        "dtype": "float32",
+        "hook": {"registered": 1, "capture_calls": 1, "removed": 0},
+        "intervention": {"patch_calls": 0, "control_calls": 0, "forward_calls": 1},
+        "operation_counts": {
+            "candidate_evaluations": 1,
+            "hooks": 1,
+            "captures": 1,
+            "patches": 0,
+            "controls": 0,
+            "forwards": 1,
+        },
+        "cleanup": {"hook_count": 1, "completed": True},
+        "resource_peak": {
+            "peak_cpu_bytes": 1,
+            "peak_gpu_bytes": 1,
+            "unit": "bytes",
+            "budget_cpu_bytes": 6_000_000_000,
+            "budget_gpu_bytes": 6_000_000_000,
+        },
+        "no_mutation": True,
+    }
+
+    def finalize() -> dict[str, Any]:
+        raise RuntimeError("cleanup prompt secret must never escape")
+
+    resources["finalize"] = finalize
+
+    def score(*_args: Any) -> float:
+        if failure_mode == "runtime_and_cleanup":
+            raise IndexError("runtime prompt secret must never escape")
+        return 0.0
+
+    artifact = run_real_stage_a(
+        train_rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": score, "resources": resources},
+        cli_sha256=top_level_cli_sha256("stage_a_train_selection"),
+    )
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["resources"]["cleanup"]["completed"] is False
+    assert "prompt secret" not in json.dumps(artifact)
+    source_sha = code_sha()
+    triad_dir = tmp_path / "triad-d0"
+    triad_dir.mkdir()
+    _write_v2_stage_a_triad(triad_dir, artifact, source_sha)
+    files = {
+        f"artifacts/m14/{path.name}": path.read_bytes()
+        for path in triad_dir.glob("l04-explanations.L049V2StageA.attempt1.*.json")
+    }
+    archive = _archive(files)
+    members = "".join(
+        f"L04_BUNDLE_MEMBER={path}|{len(data)}|{hashlib.sha256(data).hexdigest()}\n"
+        for path, data in sorted(files.items())
+    )
+    bundle_sha = hashlib.sha256(archive).hexdigest()
+    capture = (
+        "\n".join(
+            [
+                f"L04_TRANSPORT_PAYLOAD_SHA256={'a' * 64}",
+                "L04_TRANSPORT_DECODE_STATUS=0",
+                f"L04_TRANSPORT_DECODE_SHA256={'a' * 64}",
+                "L04_TRANSPORT_DECODE_MATCH=PASS",
+                "L04_WORKDIR=/tmp/latent-anything-l04.synthetic-d0",
+                "L04_USE_CASE=L049V2StageA",
+                f"L04_CODE_SHA={source_sha}",
+                "L04_CLI_STATUS=1",
+                "L04_BUNDLE_STATUS=0",
+                "L04_STATUS=1",
+                f"L04_BUNDLE_BYTES={len(archive)}",
+                f"L04_BUNDLE_SHA256={bundle_sha}",
+            ]
+        )
+        + "\n"
+        + members
+        + "L04_BUNDLE_B64_BEGIN\n"
+        + base64.b64encode(archive).decode("ascii")
+        + "\nL04_BUNDLE_B64_END\nL04_CLEANUP=PASS\nL04_TRANSPORT_CLEANUP=PASS\n"
+    ).encode()
+    raw_path = tmp_path / "raw-d0.capture"
+    raw_path.write_bytes(capture)
+    artifact_dir = tmp_path / "retained-d0"
+    audit_path = tmp_path / "audit-d0.json"
     pending = postprocess.retain_capture(
         raw_capture_path=raw_path,
         source_sha=source_sha,

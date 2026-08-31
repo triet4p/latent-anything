@@ -8,12 +8,14 @@ from typing import Any, cast
 import numpy as np
 
 from scripts._m14_l049_v2_schema import (
+    TRAIN_GROUP_COUNT,
     V2_STAGE_A_SCHEMA,
     CommitmentPolicy,
     candidate_grid,
     canonical_json_bytes,
     digest_bytes,
     fixture_digest,
+    is_digest,
     top_level_cli_sha256,
 )
 from scripts._m14_l049_v2_validate_common import (
@@ -135,6 +137,116 @@ def validate_stage_a_impl(
     selection = artifact.get("selection")
     if not isinstance(selection, Mapping):
         return errors + ["Stage A selection is missing"]
+
+    # A runtime exception before selection completes is still a valid,
+    # non-promoting Stage A outcome.  It must retain only sanitized exception
+    # metadata and the execution counters, never fabricate a zero-score
+    # protocol fixture.
+    if artifact.get("status") == "stage_a_failed":
+        expected_failure_keys = {
+            "candidate_grid",
+            "score_records",
+            "folds",
+            "consensus_candidate",
+            "consensus_wins",
+            "oof_evidence",
+            "oof_metric",
+            "train_group_ids",
+            "failure",
+        }
+        if set(selection) != expected_failure_keys:
+            errors.append("Stage A runtime-failure selection fields are invalid")
+        if selection.get("candidate_grid") != candidate_grid():
+            errors.append("Stage A runtime-failure candidate grid is invalid")
+        if selection.get("score_records") != [] or selection.get("folds") != [] or selection.get("oof_evidence") != []:
+            errors.append("Stage A runtime-failure selection contains candidate evidence")
+        if selection.get("consensus_candidate") is not None or selection.get("consensus_wins") != 0:
+            errors.append("Stage A runtime-failure selection contains a candidate")
+        if selection.get("oof_metric") is not None:
+            errors.append("Stage A runtime-failure OOF metric must be absent")
+        if selection.get("train_group_ids") != sorted(groups_map):
+            errors.append("Stage A runtime-failure train group order is invalid")
+        failure = selection.get("failure")
+        if (
+            not isinstance(failure, Mapping)
+            or set(failure) - {"exception_type", "shape_field", "expected_shape", "actual_shape"}
+            or not isinstance(failure.get("exception_type"), str)
+            or not failure.get("exception_type")
+        ):
+            errors.append("Stage A runtime-failure metadata is invalid")
+        elif "shape_field" in failure and (
+            not isinstance(failure.get("shape_field"), str)
+            or not isinstance(failure.get("expected_shape"), list)
+            or not isinstance(failure.get("actual_shape"), list)
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["expected_shape"])
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["actual_shape"])
+        ):
+            errors.append("Stage A runtime-failure shape metadata is invalid")
+        if artifact.get("evidence_level") != "D0" or artifact.get("evidence_eligible") is not False:
+            errors.append("Stage A runtime failure must remain D0 and ineligible")
+        resources = artifact.get("resources")
+        if not isinstance(resources, Mapping):
+            errors.append("Stage A runtime-failure resources are missing")
+            mode = "synthetic"
+        elif resources.get("execution_backend") == "cuda":
+            mode = "real"
+            errors.extend(real_resources(resources, allow_failure=True))
+        else:
+            mode = "synthetic"
+            if (
+                resources.get("execution_attempted") is not False
+                or resources.get("execution_backend") != "none"
+                or resources.get("stage") not in {"dispatch", "preflight", "dependency_check"}
+                or resources.get("no_mutation") is not True
+            ):
+                errors.append("Stage A pre-CUDA runtime failure provenance is invalid")
+            counters = resources.get("operation_counts")
+            if (
+                not isinstance(counters, Mapping)
+                or set(counters)
+                != {
+                    "candidate_evaluations",
+                    "hooks",
+                    "captures",
+                    "patches",
+                    "controls",
+                    "forwards",
+                }
+                or any(
+                    not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in counters.values()
+                )
+            ):
+                errors.append("Stage A pre-CUDA runtime counters are invalid")
+        expected_selection_sha = digest_bytes(canonical_json_bytes(selection))
+        errors.extend(
+            runtime_attestation_errors(
+                artifact.get("runtime_attestation"),
+                stage="stage_a_train_selection",
+                mode=mode,
+                group_count=TRAIN_GROUP_COUNT,
+                pair_count=TRAIN_GROUP_COUNT,
+                candidate_count=len(candidate_grid()),
+                seed_count=1,
+                fixture_sha256=artifact.get("train_fixture_sha256"),
+                candidate_sha256=expected_selection_sha,
+                source_sha256=artifact.get("source_sha256"),
+                addendum_sha256=artifact.get("addendum_sha256"),
+                cli_sha256=top_level_cli_sha256("stage_a_train_selection"),
+                execution_resources=resources,
+                partial_failure=True,
+            )
+        )
+        attestation = artifact.get("runtime_attestation")
+        if not isinstance(attestation, Mapping) or artifact.get("attestation_sha256") != attestation.get(
+            "attestation_sha256"
+        ):
+            errors.append("Stage A attestation binding is invalid")
+        if not is_digest(artifact.get("source_sha256")):
+            errors.append("Stage A source commitment is invalid")
+        if artifact.get("artifact_sha256") != canonical_artifact_digest(artifact, "artifact_sha256"):
+            errors.append("Stage A artifact digest is invalid")
+        return errors
+
     expected_grid = candidate_grid()
     if selection.get("candidate_grid") != expected_grid or selection.get("train_group_ids") != sorted(groups_map):
         errors.append("Stage A candidate grid or train group order is invalid")
@@ -311,8 +423,6 @@ def validate_stage_a_impl(
         "attestation_sha256"
     ):
         errors.append("Stage A attestation binding is invalid")
-    from scripts._m14_l049_v2_schema import is_digest
-
     if not is_digest(artifact.get("source_sha256")):
         errors.append("Stage A source commitment is invalid")
     if artifact.get("artifact_sha256") != canonical_artifact_digest(artifact, "artifact_sha256"):

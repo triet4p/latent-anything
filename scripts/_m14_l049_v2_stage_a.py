@@ -11,6 +11,7 @@ import numpy as np
 from scripts._m14_l049_v2_attestation import build_runtime_attestation
 from scripts._m14_l049_v2_schema import (
     BOOTSTRAP_REPLICATES,
+    EXPECTED_RUNTIME_MODEL,
     OOF_RECOVERY_THRESHOLD,
     PARENT_PLAN_SHA256,
     PUBLIC_TRAIN_SEED,
@@ -26,6 +27,100 @@ from scripts._m14_l049_v2_schema import (
 )
 
 ScoreFunction = Callable[[Mapping[str, Any], int, int], float]
+
+_CLEANUP_ERROR_TYPES = frozenset(
+    {"CleanupError", "Exception", "MemoryError", "OSError", "RuntimeError", "TimeoutError", "TypeError", "ValueError"}
+)
+_FINALIZER_RESOURCE_FIELDS = frozenset(
+    {
+        "stage",
+        "execution_attempted",
+        "execution_backend",
+        "model",
+        "model_revision",
+        "integration",
+        "model_adapter",
+        "device",
+        "backend",
+        "dtype",
+        "hook",
+        "intervention",
+        "operation_counts",
+        "cleanup",
+        "resource_peak",
+        "no_mutation",
+    }
+)
+_COUNTER_FIELDS = frozenset(("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards"))
+
+
+def _valid_finalizer_resources(value: object) -> bool:
+    if not isinstance(value, Mapping) or set(value) != _FINALIZER_RESOURCE_FIELDS:
+        return False
+    if (
+        value.get("stage") != "real_runtime"
+        or value.get("execution_attempted") is not True
+        or value.get("execution_backend") != "cuda"
+        or value.get("model") != EXPECTED_RUNTIME_MODEL
+        or value.get("model_revision") != EXPECTED_RUNTIME_MODEL
+        or value.get("integration") != "TransformerLMIntegration"
+        or value.get("model_adapter") != "N/A"
+        or value.get("device") != "cuda"
+        or value.get("backend") != "cuda"
+        or value.get("dtype") != "float32"
+        or value.get("no_mutation") is not True
+    ):
+        return False
+    counters = value.get("operation_counts")
+    if (
+        not isinstance(counters, Mapping)
+        or set(counters) != _COUNTER_FIELDS
+        or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counters.values())
+    ):
+        return False
+    hook = value.get("hook")
+    if (
+        not isinstance(hook, Mapping)
+        or set(hook) != {"registered", "capture_calls", "removed"}
+        or hook.get("registered") != counters["hooks"]
+        or hook.get("capture_calls") != counters["captures"]
+        or hook.get("removed") != hook.get("registered")
+    ):
+        return False
+    intervention = value.get("intervention")
+    if (
+        not isinstance(intervention, Mapping)
+        or set(intervention) != {"patch_calls", "control_calls", "forward_calls"}
+        or intervention.get("patch_calls") != counters["patches"]
+        or intervention.get("control_calls") != counters["controls"]
+        or intervention.get("forward_calls") != counters["forwards"]
+    ):
+        return False
+    cleanup = value.get("cleanup")
+    if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
+        return False
+    peak = value.get("resource_peak")
+    peak_fields = ("peak_cpu_bytes", "peak_gpu_bytes", "budget_cpu_bytes", "budget_gpu_bytes")
+    return not (
+        not isinstance(peak, Mapping)
+        or set(peak) != set((*peak_fields, "unit"))
+        or peak.get("unit") != "bytes"
+        or any(
+            not isinstance(peak.get(key), int) or isinstance(peak.get(key), bool) or peak.get(key) < 0
+            for key in peak_fields
+        )
+        or peak["peak_cpu_bytes"] > peak["budget_cpu_bytes"]
+        or peak["peak_gpu_bytes"] > peak["budget_gpu_bytes"]
+    )
+
+
+class _ResourceFinalizerError(RuntimeError):
+    """Internal boundary preserving a finalizer failure separately."""
+
+    def __init__(self, cleanup_error: BaseException, *, reason: str) -> None:
+        self.cleanup_error = cleanup_error
+        self.reason = reason
+        super().__init__("runtime resource finalizer failed")
 
 
 def _candidate_key(candidate: Mapping[str, int]) -> tuple[int, int]:
@@ -209,9 +304,13 @@ def build_stage_a_artifact(
     )
     finalizer = resource_payload.pop("finalize", None)
     if callable(finalizer):
-        finalized = finalizer()
-        if not isinstance(finalized, Mapping):
-            raise ValueError("runtime resource finalizer returned an invalid mapping")
+        try:
+            finalized = finalizer()
+        except Exception as error:  # noqa: BLE001 - promote as a D0 cleanup failure
+            raise _ResourceFinalizerError(error, reason="finalizer_exception") from error
+        if not _valid_finalizer_resources(finalized):
+            error = TypeError("runtime resource finalizer returned an invalid mapping")
+            raise _ResourceFinalizerError(error, reason="finalizer_invalid_result") from error
         resource_payload = dict(finalized)
     raw = canonical_fixture_bytes(rows)
     artifact: dict[str, Any] = {
@@ -266,6 +365,169 @@ def build_stage_a_artifact(
     return artifact
 
 
+def _safe_runtime_error(error: BaseException) -> dict[str, Any]:
+    """Return failure metadata without serializing prompts or tensor payloads."""
+    details: dict[str, Any] = {"exception_type": type(error).__name__}
+    field = getattr(error, "field", None)
+    expected = getattr(error, "expected_shape", None)
+    actual = getattr(error, "actual_shape", None)
+    if isinstance(field, str) and isinstance(expected, tuple) and isinstance(actual, tuple):
+        details["shape_field"] = field
+        details["expected_shape"] = [int(value) for value in expected]
+        details["actual_shape"] = [int(value) for value in actual]
+    return details
+
+
+def _cleanup_error_type(error: BaseException) -> str:
+    name = type(error).__name__
+    return name if name in _CLEANUP_ERROR_TYPES else "CleanupError"
+
+
+def _cleanup_failure(error: BaseException, prior: Mapping[str, Any], *, reason: str) -> dict[str, Any]:
+    hook = prior.get("hook")
+    registered = hook.get("registered") if isinstance(hook, Mapping) else 0
+    removed = hook.get("removed") if isinstance(hook, Mapping) else 0
+    if not isinstance(registered, int) or isinstance(registered, bool) or registered < 0:
+        registered = 0
+    if not isinstance(removed, int) or isinstance(removed, bool) or removed < 0:
+        removed = 0
+    hooks_remaining = max(registered - removed, 0)
+    return {
+        "attempted": True,
+        "completed": False,
+        "hooks_remaining": hooks_remaining,
+        "error_type": _cleanup_error_type(error),
+        "reason": reason,
+        "stage": "cleanup",
+    }
+
+
+def _failure_resources(
+    resources: Mapping[str, Any] | None,
+    *,
+    cleanup_error: BaseException | None = None,
+    cleanup_reason: str = "finalizer_exception",
+) -> dict[str, Any]:
+    payload = dict(resources or {})
+    finalizer = payload.pop("finalize", None)
+    if cleanup_error is None and callable(finalizer):
+        try:
+            finalized = finalizer()
+        except Exception as error:  # noqa: BLE001 - preserve primary runtime failure
+            cleanup_error = error
+        else:
+            if _valid_finalizer_resources(finalized):
+                payload = dict(finalized)
+            else:
+                cleanup_error = TypeError("runtime resource finalizer returned an invalid mapping")
+                cleanup_reason = "finalizer_invalid_result"
+    payload.pop("finalize", None)
+    attempted = payload.get("execution_attempted") is True
+    if attempted:
+        payload["stage"] = "cleanup"
+        if cleanup_error is not None:
+            payload["cleanup"] = _cleanup_failure(cleanup_error, payload, reason=cleanup_reason)
+        else:
+            cleanup = payload.get("cleanup")
+            if isinstance(cleanup, Mapping):
+                cleanup_payload = dict(cleanup)
+                cleanup_payload.setdefault("hook_count", 0)
+                cleanup_payload.setdefault("completed", True)
+                payload["cleanup"] = cleanup_payload
+    else:
+        payload.setdefault("stage", "preflight")
+        payload.setdefault("execution_attempted", False)
+        payload.setdefault("execution_backend", "none")
+        payload.setdefault("device", "not used")
+        payload.setdefault("no_mutation", True)
+    return payload
+
+
+def build_stage_a_failure_artifact(
+    rows: Sequence[Mapping[str, Any]],
+    addendum: Mapping[str, Any],
+    *,
+    source_sha256: str,
+    error: BaseException,
+    resources: Mapping[str, Any] | None = None,
+    cleanup_error: BaseException | None = None,
+    cleanup_reason: str = "finalizer_exception",
+    cli_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Build a truthful non-promoting artifact after an incomplete real run."""
+    resource_payload = _failure_resources(resources, cleanup_error=cleanup_error, cleanup_reason=cleanup_reason)
+    attempted = resource_payload.get("execution_backend") == "cuda"
+    resource_payload.setdefault("model", EXPECTED_RUNTIME_MODEL)
+    resource_payload.setdefault("model_revision", EXPECTED_RUNTIME_MODEL)
+    resource_payload.setdefault("integration", "TransformerLMIntegration")
+    resource_payload.setdefault("model_adapter", "N/A")
+    resource_payload.setdefault("backend", "cuda" if attempted else "none")
+    resource_payload.setdefault("dtype", "float32")
+    resource_payload.setdefault("network", "enabled" if attempted else "not attempted")
+    resource_payload.setdefault("resource_peak", {"peak_cpu_bytes": 0, "peak_gpu_bytes": 0, "unit": "bytes"})
+    resource_payload.setdefault("hook", {"registered": 0, "capture_calls": 0, "removed": 0})
+    resource_payload.setdefault("intervention", {"patch_calls": 0, "control_calls": 0, "forward_calls": 0})
+    resource_payload.setdefault(
+        "operation_counts",
+        dict.fromkeys(("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards"), 0),
+    )
+    resource_payload.setdefault("cleanup", {"hook_count": 0, "completed": True})
+    resource_payload.setdefault("no_mutation", True)
+    raw = canonical_fixture_bytes(rows)
+    selection: dict[str, Any] = {
+        "candidate_grid": candidate_grid(),
+        "score_records": [],
+        "folds": [],
+        "consensus_candidate": None,
+        "consensus_wins": 0,
+        "oof_evidence": [],
+        "oof_metric": None,
+        "train_group_ids": sorted({str(row["group_id"]) for row in rows}),
+        "failure": _safe_runtime_error(error),
+    }
+    selection_sha = digest_bytes(canonical_json_bytes(selection))
+    resolved_cli_sha = cli_sha256 or top_level_cli_sha256("stage_a_train_selection")
+    if resolved_cli_sha is None:
+        raise ValueError("Stage A top-level CLI digest is unavailable")
+    mode = "real" if attempted else "synthetic"
+    attestation = build_runtime_attestation(
+        stage="stage_a_train_selection",
+        mode=mode,
+        group_count=TRAIN_GROUP_COUNT,
+        pair_count=TRAIN_GROUP_COUNT,
+        candidate_count=len(candidate_grid()),
+        seed_count=1,
+        fixture_sha256=digest_bytes(raw),
+        candidate_sha256=selection_sha,
+        source_sha256=str(source_sha256),
+        addendum_sha256=canonical_digest(addendum, "addendum_sha256"),
+        cli_sha256=resolved_cli_sha,
+        resources=resource_payload,
+        operation_counts=resource_payload["operation_counts"],
+    )
+    artifact: dict[str, Any] = {
+        "schema_version": V2_STAGE_A_SCHEMA,
+        "stage": "stage_a_train_selection",
+        "status": "stage_a_failed",
+        "evidence_level": "D0",
+        "evidence_eligible": False,
+        "repository_promotion": False,
+        "parent_plan_sha256": PARENT_PLAN_SHA256,
+        "addendum_schema": V2_ADDENDUM_SCHEMA,
+        "addendum_sha256": canonical_digest(addendum, "addendum_sha256"),
+        "source_sha256": str(source_sha256),
+        "public_train_seed": PUBLIC_TRAIN_SEED,
+        "train_fixture_sha256": digest_bytes(raw),
+        "holdout_commitment": dict(addendum["fixture"]),
+        "selection": selection,
+        "resources": resource_payload,
+        "runtime_attestation": attestation,
+        "attestation_sha256": attestation["attestation_sha256"],
+    }
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    return artifact
+
+
 def run_real_stage_a(
     rows: Sequence[Mapping[str, Any]],
     addendum: Mapping[str, Any],
@@ -282,13 +544,16 @@ def run_real_stage_a(
     """
     scorer = runtime.get("score")
     resources = runtime.get("resources")
+    runtime_error = runtime.get("error")
+    if not isinstance(runtime_error, BaseException):
+        runtime_error = RuntimeError("real Stage A runtime was not available")
     if not callable(scorer) or not isinstance(resources, Mapping):
-        return build_stage_a_artifact(
+        return build_stage_a_failure_artifact(
             rows,
             addendum,
             source_sha256=source_sha256,
-            scorer=lambda _row, _layer, _offset: 0.0,
-            execution_mode="synthetic",
+            error=runtime_error,
+            resources=resources,
             cli_sha256=cli_sha256,
         )
     try:
@@ -301,13 +566,24 @@ def run_real_stage_a(
             execution_mode="real",
             cli_sha256=cli_sha256,
         )
-    except (TypeError, ValueError, OverflowError):
-        return build_stage_a_artifact(
+    except _ResourceFinalizerError as error:
+        return build_stage_a_failure_artifact(
             rows,
             addendum,
             source_sha256=source_sha256,
-            scorer=lambda _row, _layer, _offset: 0.0,
-            execution_mode="synthetic",
+            error=error.cleanup_error,
+            resources=resources,
+            cleanup_error=error.cleanup_error,
+            cleanup_reason=error.reason,
+            cli_sha256=cli_sha256,
+        )
+    except Exception as error:  # noqa: BLE001 - every runtime failure is a D0 triad
+        return build_stage_a_failure_artifact(
+            rows,
+            addendum,
+            source_sha256=source_sha256,
+            error=error,
+            resources=resources,
             cli_sha256=cli_sha256,
         )
 
@@ -315,6 +591,7 @@ def run_real_stage_a(
 __all__ = [
     "ScoreFunction",
     "build_stage_a_artifact",
+    "build_stage_a_failure_artifact",
     "default_train_score",
     "outer_folds",
     "run_real_stage_a",

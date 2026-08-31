@@ -66,6 +66,7 @@ def main(argv: list[str] | None = None) -> None:
     source_sha = hashlib.sha256(Path(__file__).with_name("_m14_l049_v2_stage_a.py").read_bytes()).hexdigest()
     cli_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     if args.run_real:
+        runtime: dict[str, object]
         try:
             import torch
 
@@ -75,8 +76,18 @@ def main(argv: list[str] | None = None) -> None:
 
             scorer, resources = build_stage_a_runtime(rows)
             runtime = {"score": scorer, "resources": resources}
-        except (ImportError, RuntimeError, TypeError, ValueError):
-            runtime = {}
+        except Exception as error:  # noqa: BLE001 - preserve every real-attempt failure as D0
+            runtime = {
+                "error": error,
+                "resources": {
+                    "stage": "preflight",
+                    "execution_attempted": False,
+                    "execution_backend": "none",
+                    "device": "not used",
+                    "network": "not attempted",
+                    "no_mutation": True,
+                },
+            }
         artifact = run_real_stage_a(rows, addendum, source_sha256=source_sha, runtime=runtime, cli_sha256=cli_sha)
     else:
         artifact = build_stage_a_artifact(rows, addendum, source_sha256=source_sha, cli_sha256=cli_sha)
