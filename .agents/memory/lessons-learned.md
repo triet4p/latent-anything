@@ -1072,7 +1072,9 @@ delete each literal path under explicit owner authorization, and record
 `deleted_by_owner_exception`, `standard_finalize=false`,
 `repository_promotion=false`, preserved hashes/sizes, bundle metadata, and
 pre/post absence proof in the sanitized sidecar. This deletion is irreversible
-and must never be described as a successful run or standard finalization.
+and must never be described as a successful run or standard finalization. If
+the audit is canonically rebuilt to distinguish archive member names from
+source-unique local paths, preserve both the prior and rebuilt audit digests.
 
 **Watch out for:** Never infer a sixth bundle target from metadata without a
 path, broaden a cleanup with a glob, alter the preserved digests, or delete

@@ -4,7 +4,8 @@
 
 This local atomic task records the local remediation and sanitized assessment
 of the current b295a506 incident without network, SSH, CUDA, holdout, retry, or
-promotion. The captured evidence remains pending for owner review.
+promotion. The captured evidence was later deleted under the explicit owner
+exception recorded below; it was never finalized or promoted.
 
 ## Changes
 
@@ -53,7 +54,8 @@ promotion/finalization, the proven stale projection bug, and an explicitly
 unknown GPU subfield because the raw capture does not expose which CUDA peak
 query was asymmetric. Selection evaluation count 2592 is discarded and not
 reusable. Raw, bundle, and relocated triad bytes/digests remain unchanged and
-pending; the audit was rebuilt and is bound by its new exact size/SHA-256. The
+pending before the explicit owner-exception cleanup; the audit was rebuilt and
+is bound by its new exact size/SHA-256. The
 bundle member names remain generic only inside the archived bundle metadata.
 
 The earlier 13bf incident remains separately recorded as an explicit
@@ -63,7 +65,8 @@ owner-exception deletion and is not standard retention finalization.
 
 Focused Stage A, ResourceTracker, and retention validation cover the atomic
 CUDA-pair and source-unique-path contracts. The earlier transport and mutex
-gates remain passing from the reviewed b295a506 baseline. The current incident
-evidence remains present and pending; no remote invocation, retry, holdout
-access, promotion, or standard finalization was performed in this remediation.
+gates remain passing from the reviewed b295a506 baseline. The five exact
+sidecar-bound evidence files were deleted after literal pre-delete verification;
+the post-delete absence proof is recorded in the sidecar. No remote invocation,
+retry, holdout access, promotion, or standard finalization was performed.
 Graphify is updated after source and test changes.

@@ -387,10 +387,10 @@ occurred. See
   PowerShell 5.1 canonicalization and concurrent-launch regressions prove that
   only one child can start. Historical retention assertions bind to exact
   recorded evidence paths. The current one-completed/one-aborted-launch
-  incident remains a pending D0 assessment with promotion and finalization
-  false; its raw, audit, bundle, and triad hashes are bound in the sanitized
-  incident assessment sidecar. No SSH, CUDA, holdout, retry, or evidence
-  deletion was performed by this remediation.
+  incident was initially recorded as a pending D0 assessment with promotion
+  and finalization false; its raw, audit, bundle, and triad hashes remain bound
+  in the sanitized incident assessment sidecar. The later owner-exception
+  cleanup is recorded in the following item.
 - [x] Remediate the current b295a506 evidence boundary locally. CUDA peak
   publication is now atomic across allocated/reserved queries and failed
   finalizer normalization trusts one complete live counter snapshot. The
@@ -398,9 +398,10 @@ occurred. See
   rebuilt from 2638 bytes/SHA `c9fdfcfa5f60a010c403e143062ee6f7a9820f588308b7f13912240093456fd4`
   to 3276 bytes/SHA `914d374748e803513d3aeba04c556fa17584ebdabd3efdad4dcde6bf26e43a91`
   to distinguish generic archive member names from source-unique local paths.
-  The sanitized assessment remains pending D0 with one SSH/CLI invocation,
-  2592 discarded evaluations, unknown GPU subfield, and promotion/finalization
-  false. No remote retry, holdout access, or promotion occurred.
+  The sanitized assessment is now `deleted_by_owner_exception` D0 with one
+  SSH/CLI invocation, 2592 discarded evaluations, unknown GPU subfield, and
+  promotion/finalization false. Pre-delete hashes, verification, and
+  post-delete absence are recorded; no remote retry or holdout access occurred.
 - [x] Close the current L049 v2 incident evidence under the explicit owner
   exception. The raw capture, audit, and three triad files were each verified
   at their exact sidecar-recorded size/SHA-256, regular-file/no-reparse and
