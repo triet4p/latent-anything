@@ -30,9 +30,14 @@ from scripts._m14_l049_v2_schema import (
     fixture_digest,
     top_level_cli_sha256,
 )
-from scripts._m14_l049_v2_stage_a import build_stage_a_artifact, run_real_stage_a
+from scripts._m14_l049_v2_stage_a import (
+    build_stage_a_artifact,
+    normalize_attempted_real_resources,
+    run_real_stage_a,
+)
 from scripts._m14_l049_v2_stage_b import (
     build_stage_b_failure_artifact,
+    build_stage_b_validation_rejected_artifact,
     evaluate_stage_b,
     label_stratified_shuffled_mapping,
 )
@@ -51,6 +56,9 @@ CURRENT_STAGE_A_FAILURE_SIDECAR = ROOT / (
 )
 CURRENT_STAGE_A_RESOURCE_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.66455a526f6974b31974f058dda341817dea2998.assessment.sidecar.json"
+)
+CURRENT_STAGE_A_VALIDATION_REJECTION_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.8cfe9b0a47c001f7f228f33313d5c99be8ee9cb5.assessment.sidecar.json"
 )
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
@@ -101,6 +109,24 @@ def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
     }
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
+
+
+def test_validation_rejection_sidecar_is_canonical_and_pending() -> None:
+    sidecar = json.loads(CURRENT_STAGE_A_VALIDATION_REJECTION_ASSESSMENT.read_bytes())
+    assert (
+        canonical_digest(sidecar, "sidecar_sha256")
+        == sidecar["sidecar_sha256"]
+        == "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a"
+    )
+    assert sidecar["raw_capture"] == {
+        "bytes": 5791,
+        "sha256": "85255e5eb1924e3e30946e93a530ab7746dc0ed560bfff20c3124df59bf1dd06",
+    }
+    assert sidecar["artifact"]["failure_kind"] == "validation_rejected"
+    assert sidecar["artifact"]["validation_codes"] == ["validation_rejected_unavailable_resource"]
+    assert sidecar["artifact"]["selected_candidate"] is None
+    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["repository_promotion"] is False
 
 
 def test_current_failed_stage_a_sidecar_records_validator_misclassification() -> None:
@@ -532,7 +558,7 @@ def test_real_stage_a_measured_zero_peak_is_rejected_after_rehash() -> None:
     )
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     errors = validate_stage_a(artifact, rows, addendum)
-    assert "Stage B measured resource provenance is invalid" in errors
+    assert "Stage A measured resource provenance is invalid" in errors
 
 
 def test_stage_a_recomputes_directional_recovery_from_primitive_margins() -> None:
@@ -699,6 +725,95 @@ def test_real_stage_a_semantic_gate_failure_cli_writes_complete_d0_triad(
     assert artifact["selection_complete"] is True
     assert artifact["evidence_level"] == "D0"
     assert validate_stage_a(artifact, read_rows(TRAIN_PATH)[1], json.loads(V2_ADDENDUM_PATH.read_bytes())) == []
+
+
+def test_real_stage_a_resource_projection_drops_untrusted_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import torch
+
+    import scripts._m14_l049_v2_real_runtime as real_runtime
+    import scripts.m14_l049_v2_stage_a as cli
+
+    resources = _real_resources_for_complete_selection()
+    resources["resource_peak"]["measurement_reason"] = "resource secret must never escape"
+    resources["untrusted_extra"] = {"nested_secret": "must never escape"}
+    resources["hook"]["nested_secret"] = "must never escape"
+    resources["resource_peak"]["nested_secret"] = {"deep": "must never escape"}
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(real_runtime, "build_stage_a_runtime", lambda _rows: (lambda *_args: 0.0, resources))
+    output = tmp_path / "artifact.json"
+    cli.main(
+        [
+            "--train-fixture",
+            str(TRAIN_PATH),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    artifact = json.loads(output.read_bytes())
+    assert artifact["failure_kind"] == "semantic_gate"
+    assert artifact["selection_complete"] is True
+    assert "failure" not in artifact["selection"]
+    assert artifact["evidence_level"] == "D0"
+    assert validate_stage_a(artifact, read_rows(TRAIN_PATH)[1], json.loads(V2_ADDENDUM_PATH.read_bytes())) == []
+    assert "resource secret" not in json.dumps(artifact)
+    assert "must never escape" not in json.dumps(artifact)
+    assert set(artifact["resources"]) == {
+        "stage",
+        "execution_attempted",
+        "execution_backend",
+        "model",
+        "model_revision",
+        "integration",
+        "model_adapter",
+        "device",
+        "backend",
+        "dtype",
+        "hook",
+        "intervention",
+        "operation_counts",
+        "cleanup",
+        "resource_peak",
+        "no_mutation",
+    }
+    assert len(list(tmp_path.glob("l04-explanations.L049V2StageA.attempt1.*.json"))) == 3
+
+
+@pytest.mark.parametrize("bad_scalar", [float("nan"), float("inf"), float("-inf"), 10**1000, "not-a-number"])
+def test_real_resource_projection_is_fail_closed_for_adversarial_scalars(bad_scalar: object) -> None:
+    resources = _real_resources_for_complete_selection()
+    resources["network"] = "legacy network secret"
+    resources["nested_sentinel"] = {"secret": "must not escape"}
+    resources["operation_counts"]["forwards"] = bad_scalar
+    resources["resource_peak"]["elapsed_seconds"] = bad_scalar
+    projected = normalize_attempted_real_resources(resources)
+    assert set(projected) == {
+        "stage",
+        "execution_attempted",
+        "execution_backend",
+        "model",
+        "model_revision",
+        "integration",
+        "model_adapter",
+        "device",
+        "backend",
+        "dtype",
+        "hook",
+        "intervention",
+        "operation_counts",
+        "cleanup",
+        "resource_peak",
+        "no_mutation",
+    }
+    assert "network" not in json.dumps(projected)
+    assert "must not escape" not in json.dumps(projected)
+    assert projected["operation_counts"]["forwards"] == 0
+    assert projected["resource_peak"]["measurement_status"] == "unavailable"
+    assert projected["resource_peak"]["measurement_reason"] == "tracker_unstarted"
 
 
 def test_stage_a_cleanup_failure_alone_is_sanitized_and_validator_clean() -> None:
@@ -1029,8 +1144,74 @@ def test_stage_b_cli_evaluation_failure_is_attempted_real_d0(monkeypatch: pytest
     artifact = json.loads(output.read_bytes())
     assert artifact["status"] == "stage_b_failed"
     assert artifact["failure"] == {"exception_type": "IndexError"}
+
     assert artifact["seed_summaries"] == []
     assert "evaluation prompt secret" not in json.dumps(artifact)
+
+
+def test_stage_b_validation_rejection_fallback_is_checked_by_real_validator() -> None:
+    candidate, holdout, seed, addendum, _observations = _synthetic_stage_b()
+    resources = attempted_runtime_resources()
+    resources["resource_peak"]["measurement_reason"] = "Stage B resource secret must never escape"
+    resources["untrusted_extra"] = {"nested_secret": "must never escape"}
+    resources["cleanup"]["nested_secret"] = "must never escape"
+    artifact = build_stage_b_validation_rejected_artifact(
+        holdout,
+        candidate,
+        addendum,
+        seed,
+        source_sha256=str(candidate["source_sha256"]),
+        resources=resources,
+        validation_codes=["validation_rejected_unavailable_resource"],
+        cli_sha256=top_level_cli_sha256("stage_b_holdout_evaluation"),
+    )
+    assert artifact["failure_kind"] == "validation_rejected"
+    assert artifact["evaluation_complete"] is False
+    assert artifact["failure"] == {"validation_codes": ["validation_rejected_unavailable_resource"]}
+    assert (
+        validate_stage_b_impl(
+            artifact,
+            holdout,
+            seed,
+            candidate,
+            addendum,
+            read_rows(TRAIN_PATH)[1],
+            policy=CommitmentPolicy.from_addendum(addendum),
+        )
+        == []
+    )
+    assert "resource secret" not in json.dumps(artifact)
+    assert "must never escape" not in json.dumps(artifact)
+    assert "untrusted_extra" not in json.dumps(artifact)
+
+
+def test_stage_b_success_resource_projection_drops_untrusted_values() -> None:
+    candidate, holdout, seed, addendum, observations = _synthetic_stage_b()
+    resources = _real_resources_for_complete_selection()
+    resources["network"] = "legacy network secret"
+    resources["resource_peak"]["nested_sentinel"] = {"secret": "must not escape"}
+    artifact = evaluate_stage_b(holdout, observations, candidate, addendum, seed, resources=resources)
+    assert set(artifact["resources"]) == {
+        "stage",
+        "execution_attempted",
+        "execution_backend",
+        "model",
+        "model_revision",
+        "integration",
+        "model_adapter",
+        "device",
+        "backend",
+        "dtype",
+        "hook",
+        "intervention",
+        "operation_counts",
+        "cleanup",
+        "resource_peak",
+        "no_mutation",
+    }
+    serialized = json.dumps(artifact)
+    assert "legacy network secret" not in serialized
+    assert "must not escape" not in serialized
 
 
 def test_v2_addendum_and_stage_a_bind_public_boundary() -> None:

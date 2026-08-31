@@ -20,7 +20,36 @@ V2_FIXTURE_SCHEMA = "m14-l04.9-v2-causal-pair-v1"
 V2_STAGE_A_SCHEMA = "m14-l04.9-v2-stage-a-v2"
 V2_STAGE_B_SCHEMA = "m14-l04.9-v2-stage-b-v1"
 RUNTIME_ATTESTATION_SCHEMA = "m14-l04.9-v2-runtime-attestation-v1"
-STAGE_A_FAILURE_KINDS = ("runtime_exception", "semantic_gate")
+STAGE_A_FAILURE_KINDS = ("runtime_exception", "semantic_gate", "validation_rejected")
+VALIDATION_REJECTION_CODES = (
+    "validation_rejected_unavailable_resource",
+    "validation_rejected_measured_resource",
+    "validation_rejected_attestation",
+    "validation_rejected_artifact_digest",
+    "validation_rejected_contract",
+)
+
+
+def validation_rejection_codes(errors: Sequence[str]) -> list[str]:
+    """Map validator prose to a small, non-sensitive rejection-code allowlist."""
+    codes: list[str] = []
+    for error in errors:
+        lowered = str(error).lower()
+        if "unavailable resource provenance" in lowered:
+            code = "validation_rejected_unavailable_resource"
+        elif "measured resource provenance" in lowered:
+            code = "validation_rejected_measured_resource"
+        elif "attestation" in lowered or "runtime operation" in lowered:
+            code = "validation_rejected_attestation"
+        elif "artifact digest" in lowered:
+            code = "validation_rejected_artifact_digest"
+        else:
+            code = "validation_rejected_contract"
+        if code not in codes:
+            codes.append(code)
+    return codes or ["validation_rejected_contract"]
+
+
 RUNTIME_EVENT_CODES = (
     "fixture_loaded",
     "candidate_scored",
@@ -365,6 +394,8 @@ __all__ = [
     "V2_STAGE_B_SCHEMA",
     "RUNTIME_ATTESTATION_SCHEMA",
     "STAGE_A_FAILURE_KINDS",
+    "VALIDATION_REJECTION_CODES",
+    "validation_rejection_codes",
     "RUNTIME_EVENT_CODES",
     "EXPECTED_RUNTIME_MODEL",
     "EXPECTED_RUNTIME_INTEGRATION",

@@ -6,10 +6,12 @@ import argparse
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
 
 from scripts._m14_l049_v2_fixture import read_rows, validate_rows
-from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes
+from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes, validation_rejection_codes
+from scripts._m14_l049_v2_stage_b import build_stage_b_validation_rejected_artifact
 from scripts._m14_l049_v2_validate import validate_stage_b
 
 
@@ -127,10 +129,25 @@ def main(argv: list[str] | None = None) -> None:
         observations = json.loads(args.observations.read_bytes())
         artifact = evaluate_stage_b(rows, observations, candidate, addendum, seed, resources=None, cli_sha256=cli_sha)
     validation = validate_stage_b(artifact, rows, seed, candidate, addendum)
+    if validation and args.run_real:
+        artifact = build_stage_b_validation_rejected_artifact(
+            rows,
+            candidate,
+            addendum,
+            seed,
+            source_sha256=str(candidate.get("source_sha256", "")),
+            resources=artifact.get("resources") if isinstance(artifact.get("resources"), Mapping) else None,
+            validation_codes=validation_rejection_codes(validation),
+            cli_sha256=cli_sha,
+        )
+        validation = validate_stage_b(artifact, rows, seed, candidate, addendum)
     if validation:
-        raise SystemExit("; ".join(validation))
-    args.output.write_bytes(canonical_json_bytes(artifact) + b"\n")
-    _write_attempt_triad(args.output, artifact, args.source_commit_sha)
+        raise SystemExit("real Stage B artifact validation failed" if args.run_real else "; ".join(validation))
+    try:
+        args.output.write_bytes(canonical_json_bytes(artifact) + b"\n")
+        _write_attempt_triad(args.output, artifact, args.source_commit_sha)
+    except Exception as error:  # noqa: BLE001 - no recursive artifact fabrication
+        raise SystemExit("Stage B triad serialization failed") from error
     print(
         json.dumps(
             {

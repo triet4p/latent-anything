@@ -11,6 +11,7 @@ from scripts._m14_l049_v2_schema import (
     STAGE_A_FAILURE_KINDS,
     TRAIN_GROUP_COUNT,
     V2_STAGE_A_SCHEMA,
+    VALIDATION_REJECTION_CODES,
     CommitmentPolicy,
     candidate_grid,
     canonical_json_bytes,
@@ -166,7 +167,7 @@ def validate_stage_a_impl(
     selection_complete = artifact.get("selection_complete")
     if failure_kind is not None and failure_kind not in STAGE_A_FAILURE_KINDS:
         errors.append("Stage A failure discriminator is invalid")
-    if artifact.get("status") == "stage_a_failed" and failure_kind == "runtime_exception":
+    if artifact.get("status") == "stage_a_failed" and failure_kind in {"runtime_exception", "validation_rejected"}:
         # A runtime exception before selection completes is still a valid,
         # non-promoting Stage A outcome.  It must retain only sanitized
         # exception metadata and execution counters, never fabricate a
@@ -197,21 +198,32 @@ def validate_stage_a_impl(
         if selection.get("train_group_ids") != sorted(groups_map):
             errors.append("Stage A runtime-failure train group order is invalid")
         failure = selection.get("failure")
-        if (
-            not isinstance(failure, Mapping)
-            or set(failure) - {"exception_type", "shape_field", "expected_shape", "actual_shape"}
-            or not isinstance(failure.get("exception_type"), str)
-            or not failure.get("exception_type")
-        ):
+        allowed_failure = (
+            {"validation_codes"}
+            if failure_kind == "validation_rejected"
+            else {"exception_type", "shape_field", "expected_shape", "actual_shape"}
+        )
+        if not isinstance(failure, Mapping) or set(failure) - allowed_failure:
             errors.append("Stage A runtime-failure metadata is invalid")
-        elif "shape_field" in failure and (
-            not isinstance(failure.get("shape_field"), str)
-            or not isinstance(failure.get("expected_shape"), list)
-            or not isinstance(failure.get("actual_shape"), list)
-            or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["expected_shape"])
-            or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["actual_shape"])
-        ):
-            errors.append("Stage A runtime-failure shape metadata is invalid")
+        elif failure_kind == "validation_rejected":
+            codes = failure.get("validation_codes")
+            if (
+                not isinstance(codes, list)
+                or not codes
+                or any(not isinstance(code, str) or code not in VALIDATION_REJECTION_CODES for code in codes)
+            ):
+                errors.append("Stage A validation-rejection codes are invalid")
+        elif failure_kind == "runtime_exception":
+            if not isinstance(failure.get("exception_type"), str) or not failure.get("exception_type"):
+                errors.append("Stage A runtime-failure metadata is invalid")
+            elif "shape_field" in failure and (
+                not isinstance(failure.get("shape_field"), str)
+                or not isinstance(failure.get("expected_shape"), list)
+                or not isinstance(failure.get("actual_shape"), list)
+                or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["expected_shape"])
+                or any(not isinstance(value, int) or isinstance(value, bool) for value in failure["actual_shape"])
+            ):
+                errors.append("Stage A runtime-failure shape metadata is invalid")
         if artifact.get("evidence_level") != "D0" or artifact.get("evidence_eligible") is not False:
             errors.append("Stage A runtime failure must remain D0 and ineligible")
         resources = artifact.get("resources")
@@ -220,7 +232,7 @@ def validate_stage_a_impl(
             mode = "synthetic"
         elif resources.get("execution_backend") == "cuda":
             mode = "real"
-            errors.extend(real_resources(resources, allow_failure=True))
+            errors.extend(real_resources(resources, allow_failure=True, stage="Stage A"))
         else:
             mode = "synthetic"
             if (
@@ -433,7 +445,7 @@ def validate_stage_a_impl(
         real_pass = (
             artifact.get("status") == "stage_a_complete" and expected_metric is not None and expected_metric["pass"]
         )
-        errors.extend(real_resources(resources, require_measured=bool(real_pass)))
+        errors.extend(real_resources(resources, require_measured=bool(real_pass), stage="Stage A"))
         if (
             artifact.get("evidence_level") != ("D1" if real_pass else "D0")
             or artifact.get("evidence_eligible") is not real_pass

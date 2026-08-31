@@ -236,9 +236,11 @@ def mapping_digest(mapping: object) -> str | None:
         return None
 
 
-def real_resources(resources: object, *, allow_failure: bool = False, require_measured: bool = False) -> list[str]:
+def real_resources(
+    resources: object, *, allow_failure: bool = False, require_measured: bool = False, stage: str = "Stage B"
+) -> list[str]:
     if not isinstance(resources, Mapping):
-        return ["Stage B real-runtime resources are missing"]
+        return [f"{stage} real-runtime resources are missing"]
     errors: list[str] = []
 
     def _nonnegative(value: object) -> bool:
@@ -247,21 +249,21 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
 
     missing = REAL_RESOURCE_FIELDS - set(resources)
     if missing:
-        errors.append("Stage B real-runtime resource provenance is incomplete")
+        errors.append(f"{stage} real-runtime resource provenance is incomplete")
     if resources.get("execution_attempted") is not True or resources.get("execution_backend") != "cuda":
-        errors.append("Stage B real-runtime execution was not evidenced")
+        errors.append(f"{stage} real-runtime execution was not evidenced")
     if resources.get("stage") != "real_runtime" and not (allow_failure and resources.get("stage") == "cleanup"):
         errors.append("real-runtime stage marker is invalid")
     if resources.get("model") != EXPECTED_MODEL or resources.get("model_revision") != EXPECTED_MODEL:
-        errors.append("Stage B GPT2 revision is not pinned")
+        errors.append(f"{stage} GPT2 revision is not pinned")
     if resources.get("integration") != EXPECTED_RUNTIME_INTEGRATION or resources.get("model_adapter") != "N/A":
-        errors.append("Stage B integration boundary is invalid")
+        errors.append(f"{stage} integration boundary is invalid")
     if (
         resources.get("device") != "cuda"
         or resources.get("backend") != "cuda"
         or resources.get("dtype") != EXPECTED_RUNTIME_DTYPE
     ):
-        errors.append("Stage B CUDA device/backend evidence is invalid")
+        errors.append(f"{stage} CUDA device/backend evidence is invalid")
     hook = resources.get("hook")
     intervention = resources.get("intervention")
     cleanup = resources.get("cleanup")
@@ -271,13 +273,13 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
         or set(hook) != {"registered", "capture_calls", "removed"}
         or any(not _nonnegative(hook.get(key)) for key in hook)
     ):
-        errors.append("Stage B hook execution evidence is missing or malformed")
+        errors.append(f"{stage} hook execution evidence is missing or malformed")
     if (
         not isinstance(intervention, Mapping)
         or set(intervention) != {"patch_calls", "control_calls", "forward_calls"}
         or any(not _nonnegative(intervention.get(key)) for key in intervention)
     ):
-        errors.append("Stage B intervention execution evidence is missing or malformed")
+        errors.append(f"{stage} intervention execution evidence is missing or malformed")
     cleanup_success = (
         isinstance(cleanup, Mapping)
         and set(cleanup) == {"hook_count", "completed"}
@@ -306,7 +308,7 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
         and cleanup.get("stage") == "cleanup"
     )
     if not cleanup_success and not cleanup_failure:
-        errors.append("Stage B cleanup execution evidence is missing or malformed")
+        errors.append(f"{stage} cleanup execution evidence is missing or malformed")
 
     def _bounded_peak(value: object, budget: object) -> bool:
         peak_value = safe_int(value)
@@ -339,11 +341,11 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
         or not _bounded_peak(peak.get("peak_gpu_bytes"), peak.get("budget_gpu_bytes"))
         or not _bounded_peak(peak.get("peak_gpu_reserved_bytes"), peak.get("budget_gpu_bytes"))
     ):
-        errors.append("Stage B resource peak evidence is missing or exceeds budget")
+        errors.append(f"{stage} resource peak evidence is missing or exceeds budget")
     elif peak.get("peak_gpu_reserved_bytes", 0) < peak.get("peak_gpu_bytes", 0):
-        errors.append("Stage B reserved GPU peak is below allocated GPU peak")
+        errors.append(f"{stage} reserved GPU peak is below allocated GPU peak")
     elif peak.get("measurement_status") not in {"available", "unavailable"}:
-        errors.append("Stage B resource measurement status is invalid")
+        errors.append(f"{stage} resource measurement status is invalid")
     elif peak.get("measurement_status") == "available":
 
         def _positive_int(value: object) -> bool:
@@ -372,7 +374,7 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
             or not isinstance(peak.get("gpu_device"), str)
             or not peak.get("gpu_device", "").startswith("cuda:")
         ):
-            errors.append("Stage B measured resource provenance is invalid")
+            errors.append(f"{stage} measured resource provenance is invalid")
     else:
         reason = peak.get("measurement_reason")
 
@@ -446,11 +448,11 @@ def real_resources(resources: object, *, allow_failure: bool = False, require_me
             )
         )
         if not source_shape_valid or not source_value_valid:
-            errors.append("Stage B unavailable resource provenance is invalid")
+            errors.append(f"{stage} unavailable resource provenance is invalid")
         if require_measured:
             errors.append("measured resource provenance is required for eligible evidence")
     if resources.get("no_mutation") is not True:
-        errors.append("Stage B no-mutation gate failed")
+        errors.append(f"{stage} no-mutation gate failed")
     counters = resources.get("operation_counts")
     counter_values = [safe_int(counters.get(key)) for key in counters] if isinstance(counters, Mapping) else []
     if (

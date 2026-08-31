@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any, cast
 
@@ -18,6 +19,7 @@ from scripts._m14_l049_v2_schema import (
     TRAIN_GROUP_COUNT,
     V2_ADDENDUM_SCHEMA,
     V2_STAGE_A_SCHEMA,
+    VALIDATION_REJECTION_CODES,
     candidate_grid,
     canonical_digest,
     canonical_fixture_bytes,
@@ -54,6 +56,27 @@ _FINALIZER_RESOURCE_FIELDS = frozenset(
     }
 )
 _COUNTER_FIELDS = frozenset(("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards"))
+_MAX_RESOURCE_VALUE = 6_000_000_000
+
+
+def _finite_positive_float_value(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        converted = float(value)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    return converted if math.isfinite(converted) and converted > 0 else None
+
+
+def _bounded_nonnegative_int(value: object) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    try:
+        converted = int(value)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    return converted if 0 <= converted <= _MAX_RESOURCE_VALUE else None
 
 
 def attempted_real_resources() -> dict[str, Any]:
@@ -92,6 +115,148 @@ def attempted_real_resources() -> dict[str, Any]:
         },
         "no_mutation": True,
     }
+
+
+def synthetic_resources() -> dict[str, Any]:
+    """Return the deliberately minimal non-runtime resource envelope."""
+    return {
+        "stage": "protocol_fixture",
+        "execution_backend": "cpu",
+        "execution_attempted": False,
+        "no_mutation": True,
+    }
+
+
+def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Project an untrusted runtime envelope onto the canonical resource schema."""
+    baseline = attempted_real_resources()
+    if not isinstance(resources, Mapping):
+        return baseline
+    counters = resources.get("operation_counts")
+    counter_values = (
+        {key: _bounded_nonnegative_int(counters.get(key)) for key in _COUNTER_FIELDS}
+        if isinstance(counters, Mapping) and set(counters) == set(_COUNTER_FIELDS)
+        else {}
+    )
+    if counter_values and all(value is not None for value in counter_values.values()):
+        copied = {key: cast(int, counter_values[key]) for key in _COUNTER_FIELDS}
+        baseline["operation_counts"] = copied
+        baseline["hook"] = {
+            "registered": copied["hooks"],
+            "capture_calls": copied["captures"],
+            "removed": copied["hooks"],
+        }
+        baseline["intervention"] = {
+            "patch_calls": copied["patches"],
+            "control_calls": copied["controls"],
+            "forward_calls": copied["forwards"],
+        }
+    hook = resources.get("hook")
+    if isinstance(hook, Mapping):
+        registered = hook.get("registered")
+        removed = hook.get("removed")
+        registered_value = _bounded_nonnegative_int(registered)
+        removed_value = _bounded_nonnegative_int(removed)
+        if registered_value is not None and removed_value is not None and removed_value <= registered_value:
+            baseline["hook"]["registered"] = registered_value
+            baseline["hook"]["removed"] = removed_value
+            baseline["operation_counts"]["hooks"] = registered_value
+    projected_peak: dict[str, Any] | None = None
+    peak = resources.get("resource_peak")
+    if isinstance(peak, Mapping):
+        reasons = {
+            "cuda_unavailable",
+            "cuda_reset_failed",
+            "cuda_peak_query_failed",
+            "cuda_zero_peak",
+            "rss_unavailable",
+            "clock_invalid",
+            "tracker_unstarted",
+        }
+        int_fields = (
+            "peak_cpu_bytes",
+            "peak_gpu_bytes",
+            "peak_gpu_reserved_bytes",
+            "budget_cpu_bytes",
+            "budget_gpu_bytes",
+        )
+        scalar_ints = {key: _bounded_nonnegative_int(peak.get(key)) for key in int_fields}
+        basic_peak = peak.get("unit") == "bytes" and all(value is not None for value in scalar_ints.values())
+        status = peak.get("measurement_status")
+        reason = peak.get("measurement_reason")
+        if basic_peak and status == "available" and reason is None:
+            elapsed = _finite_positive_float_value(peak.get("elapsed_seconds"))
+            peak_cpu = cast(int, scalar_ints["peak_cpu_bytes"])
+            peak_gpu = cast(int, scalar_ints["peak_gpu_bytes"])
+            peak_reserved = cast(int, scalar_ints["peak_gpu_reserved_bytes"])
+            budget_cpu = cast(int, scalar_ints["budget_cpu_bytes"])
+            budget_gpu = cast(int, scalar_ints["budget_gpu_bytes"])
+            source_ok = (
+                peak.get("elapsed_source") == "time.perf_counter"
+                and elapsed is not None
+                and peak.get("cpu_source")
+                in {"resource.ru_maxrss_linux_kib", "resource.ru_maxrss_macos_bytes", "psutil.Process.memory_info.rss"}
+                and peak.get("gpu_source") == "torch.cuda.max_memory_allocated"
+                and peak.get("gpu_reserved_source") == "torch.cuda.max_memory_reserved"
+                and isinstance(peak.get("gpu_device"), str)
+                and peak["gpu_device"].startswith("cuda:")
+                and peak["gpu_device"][5:].isdigit()
+                and peak_cpu > 0
+                and peak_gpu > 0
+                and peak_reserved > 0
+                and peak_cpu <= budget_cpu
+                and peak_gpu <= budget_gpu
+                and peak_reserved <= budget_gpu
+                and peak_reserved >= peak_gpu
+            )
+            if source_ok:
+                projected_peak = {
+                    **{key: cast(int, scalar_ints[key]) for key in int_fields},
+                    "unit": "bytes",
+                    "measurement_status": "available",
+                    "measurement_reason": None,
+                    "elapsed_seconds": elapsed,
+                    "elapsed_source": "time.perf_counter",
+                    "cpu_source": str(peak["cpu_source"]),
+                    "gpu_source": "torch.cuda.max_memory_allocated",
+                    "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+                    "gpu_device": f"cuda:{str(peak['gpu_device'])[5:]}",
+                }
+        elif basic_peak and status == "unavailable" and reason in reasons:
+            projected_peak = dict(baseline["resource_peak"])
+            projected_peak["measurement_reason"] = reason
+            projected_peak["elapsed_seconds"] = None
+            projected_peak["elapsed_source"] = "time.perf_counter"
+            if reason in {"cuda_unavailable", "cuda_reset_failed", "cuda_peak_query_failed", "cuda_zero_peak"}:
+                projected_peak["gpu_device"] = "unavailable"
+                projected_peak["gpu_source"] = "unavailable"
+                projected_peak["gpu_reserved_source"] = "unavailable"
+            if reason == "rss_unavailable":
+                projected_peak["cpu_source"] = "unavailable"
+    if projected_peak is not None:
+        baseline["resource_peak"] = projected_peak
+    cleanup = resources.get("cleanup")
+    if isinstance(cleanup, Mapping):
+        if cleanup == {"hook_count": 0, "completed": True}:
+            baseline["cleanup"] = {"hook_count": 0, "completed": True}
+        elif (
+            cleanup.get("attempted") is True
+            and cleanup.get("completed") is False
+            and cleanup.get("error_type") in _CLEANUP_ERROR_TYPES
+            and cleanup.get("reason") in {"finalizer_exception", "finalizer_invalid_result"}
+            and cleanup.get("stage") == "cleanup"
+        ):
+            registered = int(baseline["hook"]["registered"])
+            removed = int(baseline["hook"]["removed"])
+            baseline["cleanup"] = {
+                "attempted": True,
+                "completed": False,
+                "hooks_remaining": registered - removed,
+                "error_type": cleanup["error_type"],
+                "reason": cleanup["reason"],
+                "stage": "cleanup",
+            }
+    return baseline
 
 
 def _valid_finalizer_resources(value: object) -> bool:
@@ -387,17 +552,11 @@ def build_stage_a_artifact(
     if execution_mode not in {"synthetic", "real"}:
         raise ValueError("Stage A execution mode is invalid")
     selection = select_stage_a(rows, scorer)
+    source_resources = resources if isinstance(resources, Mapping) else {}
+    finalizer = source_resources.get("finalize")
     resource_payload = (
-        dict(resources)
-        if resources is not None
-        else {
-            "stage": "protocol_fixture",
-            "execution_backend": "cpu",
-            "execution_attempted": False,
-            "no_mutation": True,
-        }
+        normalize_attempted_real_resources(source_resources) if execution_mode == "real" else synthetic_resources()
     )
-    finalizer = resource_payload.pop("finalize", None)
     if callable(finalizer):
         try:
             finalized = finalizer()
@@ -406,7 +565,7 @@ def build_stage_a_artifact(
         if not _valid_finalizer_resources(finalized):
             error = TypeError("runtime resource finalizer returned an invalid mapping")
             raise _ResourceFinalizerError(error, reason="finalizer_invalid_result") from error
-        resource_payload = dict(cast(Mapping[str, Any], finalized))
+        resource_payload = normalize_attempted_real_resources(cast(Mapping[str, Any], finalized))
     raw = canonical_fixture_bytes(rows)
     artifact: dict[str, Any] = {
         "schema_version": V2_STAGE_A_SCHEMA,
@@ -505,8 +664,13 @@ def _failure_resources(
     cleanup_error: BaseException | None = None,
     cleanup_reason: str = "finalizer_exception",
 ) -> dict[str, Any]:
-    payload: dict[str, Any] = dict(cast(Mapping[str, Any], resources or {}))
-    finalizer = payload.pop("finalize", None)
+    source: Mapping[str, Any] = resources if isinstance(resources, Mapping) else {}
+    finalizer = source.get("finalize")
+    payload = (
+        normalize_attempted_real_resources(source)
+        if source.get("execution_backend") == "cuda"
+        else synthetic_resources()
+    )
     if cleanup_error is None and callable(finalizer):
         try:
             finalized = finalizer()
@@ -514,11 +678,10 @@ def _failure_resources(
             cleanup_error = error
         else:
             if _valid_finalizer_resources(finalized):
-                payload = dict(cast(Mapping[str, Any], finalized))
+                payload = normalize_attempted_real_resources(cast(Mapping[str, Any], finalized))
             else:
                 cleanup_error = TypeError("runtime resource finalizer returned an invalid mapping")
                 cleanup_reason = "finalizer_invalid_result"
-    payload.pop("finalize", None)
     attempted = payload.get("execution_attempted") is True
     if attempted:
         payload["stage"] = "cleanup"
@@ -560,7 +723,6 @@ def build_stage_a_failure_artifact(
     resource_payload.setdefault("model_adapter", "N/A")
     resource_payload.setdefault("backend", "cuda" if attempted else "none")
     resource_payload.setdefault("dtype", "float32")
-    resource_payload.setdefault("network", "enabled" if attempted else "not attempted")
     resource_payload.setdefault("resource_peak", {"peak_cpu_bytes": 0, "peak_gpu_bytes": 0, "unit": "bytes"})
     resource_payload.setdefault("hook", {"registered": 0, "capture_calls": 0, "removed": 0})
     resource_payload.setdefault("intervention", {"patch_calls": 0, "control_calls": 0, "forward_calls": 0})
@@ -623,6 +785,52 @@ def build_stage_a_failure_artifact(
         "runtime_attestation": attestation,
         "attestation_sha256": attestation["attestation_sha256"],
     }
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    return artifact
+
+
+def build_stage_a_validation_rejected_artifact(
+    rows: Sequence[Mapping[str, Any]],
+    addendum: Mapping[str, Any],
+    *,
+    source_sha256: str,
+    resources: Mapping[str, Any] | None,
+    validation_codes: Sequence[str],
+    cli_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Build a sanitized D0 after the primary artifact fails validation."""
+    codes = [code for code in validation_codes if code in VALIDATION_REJECTION_CODES]
+    if not codes:
+        codes = ["validation_rejected_contract"]
+    artifact = build_stage_a_failure_artifact(
+        rows,
+        addendum,
+        source_sha256=source_sha256,
+        error=RuntimeError("validation rejected"),
+        resources=normalize_attempted_real_resources(resources),
+        cli_sha256=cli_sha256,
+    )
+    selection = dict(artifact["selection"])
+    selection["failure"] = {"validation_codes": codes}
+    artifact["selection"] = selection
+    artifact["failure_kind"] = "validation_rejected"
+    artifact["selection_complete"] = False
+    artifact["runtime_attestation"] = build_runtime_attestation(
+        stage="stage_a_train_selection",
+        mode="real",
+        group_count=TRAIN_GROUP_COUNT,
+        pair_count=TRAIN_GROUP_COUNT,
+        candidate_count=len(candidate_grid()),
+        seed_count=1,
+        fixture_sha256=artifact["train_fixture_sha256"],
+        candidate_sha256=digest_bytes(canonical_json_bytes(selection)),
+        source_sha256=source_sha256,
+        addendum_sha256=artifact["addendum_sha256"],
+        cli_sha256=cli_sha256 or top_level_cli_sha256("stage_a_train_selection") or "",
+        resources=artifact["resources"],
+        operation_counts=artifact["resources"]["operation_counts"],
+    )
+    artifact["attestation_sha256"] = artifact["runtime_attestation"]["attestation_sha256"]
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     return artifact
 
@@ -692,8 +900,10 @@ __all__ = [
     "attempted_real_resources",
     "build_stage_a_artifact",
     "build_stage_a_failure_artifact",
+    "build_stage_a_validation_rejected_artifact",
     "default_train_score",
     "outer_folds",
+    "normalize_attempted_real_resources",
     "run_real_stage_a",
     "select_stage_a",
 ]

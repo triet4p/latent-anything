@@ -12,6 +12,7 @@ from scripts._m14_l049_v2_schema import (
     RECOVERY_THRESHOLD,
     STAGE_B_SEEDS,
     V2_STAGE_B_SCHEMA,
+    VALIDATION_REJECTION_CODES,
     CommitmentPolicy,
     candidate_grid,
     canonical_fixture_bytes,
@@ -80,6 +81,7 @@ def validate_stage_b_impl(
         "acceptance",
         "failure_kind",
         "failure",
+        "evaluation_complete",
         "repository_promotion",
         "candidate_artifact_sha256",
         "parent_plan_sha256",
@@ -130,8 +132,11 @@ def validate_stage_b_impl(
             "holdout_seed_commitment_sha256"
         ) != commitment.get("holdout_seed_commitment_sha256"):
             errors.append("Stage B holdout seed commitment mismatch")
-    if artifact.get("failure_kind") == "runtime_exception":
+    if artifact.get("failure_kind") in {"runtime_exception", "validation_rejected"}:
         failure = artifact.get("failure")
+        expected_failure = (
+            {"validation_codes"} if artifact.get("failure_kind") == "validation_rejected" else {"exception_type"}
+        )
         if (
             artifact.get("status") != "stage_b_failed"
             or artifact.get("evidence_level") != "D0"
@@ -139,11 +144,20 @@ def validate_stage_b_impl(
             or artifact.get("promotion_candidate") is not False
             or artifact.get("acceptance") is not False
             or not isinstance(failure, Mapping)
-            or set(failure) != {"exception_type"}
-            or not isinstance(failure.get("exception_type"), str)
-            or not failure.get("exception_type")
+            or set(failure) != expected_failure
             or artifact.get("seed_summaries") != []
+            or artifact.get("evaluation_complete") is not False
         ):
+            errors.append("Stage B runtime-failure envelope is invalid")
+        elif artifact.get("failure_kind") == "validation_rejected":
+            codes = failure.get("validation_codes")
+            if (
+                not isinstance(codes, list)
+                or not codes
+                or any(not isinstance(code, str) or code not in VALIDATION_REJECTION_CODES for code in codes)
+            ):
+                errors.append("Stage B validation-rejection codes are invalid")
+        elif not isinstance(failure.get("exception_type"), str) or not failure.get("exception_type"):
             errors.append("Stage B runtime-failure envelope is invalid")
         resources = artifact.get("resources")
         errors.extend(real_resources(resources, allow_failure=True))
@@ -168,6 +182,8 @@ def validate_stage_b_impl(
         if artifact.get("artifact_sha256") != canonical_artifact_digest(artifact, "artifact_sha256"):
             errors.append("Stage B artifact digest is invalid")
         return errors
+    if artifact.get("evaluation_complete") is not True:
+        errors.append("Stage B successful/evaluation discriminator is invalid")
     mapping_value = artifact.get("shuffled_mapping")
     mapping: Mapping[str, str] = cast(Mapping[str, str], mapping_value) if isinstance(mapping_value, Mapping) else {}
     pair_ids = sorted({str(row.get("causal_pair_id")) for row in holdout_rows})

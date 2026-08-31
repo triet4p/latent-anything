@@ -28,7 +28,7 @@ from scripts._m14_l049_v2_schema import (
     fixture_digest,
     top_level_cli_sha256,
 )
-from scripts._m14_l049_v2_stage_a import attempted_real_resources
+from scripts._m14_l049_v2_stage_a import normalize_attempted_real_resources
 
 
 def label_stratified_shuffled_mapping(
@@ -209,7 +209,17 @@ def evaluate_stage_b(
     accepted = all(
         summary["recovery"]["pass"] and summary["paired_true_minus_shuffled"]["pass"] for summary in seed_summaries
     )
-    backend = str((resources or {}).get("execution_backend", "synthetic"))
+    backend = "cuda" if isinstance(resources, Mapping) and resources.get("execution_backend") == "cuda" else "synthetic"
+    resource_payload = (
+        normalize_attempted_real_resources(resources)
+        if backend == "cuda"
+        else {
+            "stage": "synthetic_fixture",
+            "execution_backend": "synthetic",
+            "execution_attempted": False,
+            "no_mutation": True,
+        }
+    )
     evidence_level = "D2" if accepted and backend == "cuda" else "D0"
     artifact: dict[str, Any] = {
         "schema_version": V2_STAGE_B_SCHEMA,
@@ -221,6 +231,7 @@ def evaluate_stage_b(
         "acceptance": accepted,
         "failure_kind": None,
         "failure": None,
+        "evaluation_complete": True,
         "repository_promotion": False,
         "candidate_artifact_sha256": candidate_sha,
         "parent_plan_sha256": candidate_artifact.get("parent_plan_sha256"),
@@ -243,15 +254,7 @@ def evaluate_stage_b(
             "matched_norm_random": "separately_serialized",
             "zero_strength": "exact selected-logit and relevant-output digest identity",
         },
-        "resources": dict(
-            resources
-            or {
-                "stage": "synthetic_fixture",
-                "execution_backend": "synthetic",
-                "execution_attempted": False,
-                "no_mutation": True,
-            }
-        ),
+        "resources": resource_payload,
     }
     mode = "real" if backend == "cuda" else "synthetic"
     resolved_cli_sha = cli_sha256 or top_level_cli_sha256("stage_b_holdout_evaluation")
@@ -299,11 +302,8 @@ def build_stage_b_failure_artifact(
     resolved_cli = cli_sha256 or top_level_cli_sha256("stage_b_holdout_evaluation")
     if resolved_cli is None:
         raise ValueError("Stage B top-level CLI digest is unavailable")
-    resource_payload = dict(resources)
-    counters = resource_payload.get("operation_counts")
-    if not isinstance(counters, Mapping):
-        resource_payload = attempted_real_resources()
-        counters = resource_payload["operation_counts"]
+    resource_payload = normalize_attempted_real_resources(resources)
+    counters = resource_payload["operation_counts"]
     failure: dict[str, Any] = {"exception_type": type(error).__name__}
     attestation = build_runtime_attestation(
         stage="stage_b_holdout_evaluation",
@@ -330,6 +330,7 @@ def build_stage_b_failure_artifact(
         "acceptance": False,
         "failure_kind": "runtime_exception",
         "failure": failure,
+        "evaluation_complete": False,
         "repository_promotion": False,
         "candidate_artifact_sha256": candidate_sha,
         "parent_plan_sha256": candidate.get("parent_plan_sha256"),
@@ -354,6 +355,42 @@ def build_stage_b_failure_artifact(
         "runtime_attestation": attestation,
         "attestation_sha256": attestation["attestation_sha256"],
     }
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    return artifact
+
+
+def build_stage_b_validation_rejected_artifact(
+    rows: Sequence[Mapping[str, Any]],
+    candidate: Mapping[str, Any],
+    addendum: Mapping[str, Any],
+    holdout_seed: bytes,
+    *,
+    source_sha256: str,
+    resources: Mapping[str, Any] | None,
+    validation_codes: Sequence[str],
+    cli_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Build a sanitized D0 after the primary holdout artifact is rejected."""
+    from scripts._m14_l049_v2_schema import VALIDATION_REJECTION_CODES
+
+    codes = [code for code in validation_codes if code in VALIDATION_REJECTION_CODES]
+    if not codes:
+        codes = ["validation_rejected_contract"]
+    from scripts._m14_l049_v2_stage_a import normalize_attempted_real_resources
+
+    artifact = build_stage_b_failure_artifact(
+        rows,
+        candidate,
+        addendum,
+        holdout_seed,
+        source_sha256=source_sha256,
+        error=RuntimeError("validation rejected"),
+        resources=normalize_attempted_real_resources(resources),
+        cli_sha256=cli_sha256,
+    )
+    artifact["failure_kind"] = "validation_rejected"
+    artifact["failure"] = {"validation_codes": codes}
+    artifact["evaluation_complete"] = False
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     return artifact
 
