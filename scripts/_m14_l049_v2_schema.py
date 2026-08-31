@@ -20,6 +20,7 @@ V2_FIXTURE_SCHEMA = "m14-l04.9-v2-causal-pair-v1"
 V2_STAGE_A_SCHEMA = "m14-l04.9-v2-stage-a-v1"
 V2_STAGE_B_SCHEMA = "m14-l04.9-v2-stage-b-v1"
 RUNTIME_ATTESTATION_SCHEMA = "m14-l04.9-v2-runtime-attestation-v1"
+STAGE_A_FAILURE_KINDS = ("runtime_exception", "semantic_gate")
 RUNTIME_EVENT_CODES = (
     "fixture_loaded",
     "candidate_scored",
@@ -363,6 +364,7 @@ __all__ = [
     "V2_STAGE_A_SCHEMA",
     "V2_STAGE_B_SCHEMA",
     "RUNTIME_ATTESTATION_SCHEMA",
+    "STAGE_A_FAILURE_KINDS",
     "RUNTIME_EVENT_CODES",
     "EXPECTED_RUNTIME_MODEL",
     "EXPECTED_RUNTIME_INTEGRATION",

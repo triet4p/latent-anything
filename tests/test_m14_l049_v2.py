@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -36,6 +37,9 @@ ROOT = Path(__file__).resolve().parents[1]
 TRAIN_PATH = ROOT / "artifacts/m14/l04-l049-v2-train.jsonl"
 STAGE_A_FAILURE_SIDECAR = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json"
+)
+CURRENT_STAGE_A_FAILURE_SIDECAR = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.3b15627585a0fc07e28c0f8b5d0118630f3ded5d.sidecar.json"
 )
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
@@ -84,6 +88,51 @@ def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
         "reason": "no_triad_bundle_status_66",
         "standard_finalize": False,
     }
+    serialized = json.dumps(sidecar, sort_keys=True)
+    assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
+
+
+def test_current_failed_stage_a_sidecar_records_validator_misclassification() -> None:
+    sidecar = json.loads(CURRENT_STAGE_A_FAILURE_SIDECAR.read_bytes())
+    assert (
+        canonical_digest(sidecar, "sidecar_sha256")
+        == sidecar["sidecar_sha256"]
+        == "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9"
+    )
+    assert sidecar["source"] == {
+        "commit_sha": "3b15627585a0fc07e28c0f8b5d0118630f3ded5d",
+        "tree_sha256": "2052472177cb7284027571241fbdeb41ff7dd8c2",
+        "use_case": "L049V2StageA",
+    }
+    assert sidecar["raw_capture"] == {
+        "bytes": 6008,
+        "sha256": "757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212",
+    }
+    assert sidecar["markers"] == {
+        "bundle_status": 66,
+        "cli_status": 1,
+        "final_status": 1,
+        "remote_cleanup": "PASS",
+        "transport_cleanup": "PASS",
+        "transport_decode_match": "PASS",
+        "transport_decode_status": 0,
+    }
+    assert sidecar["semantic"] == {
+        "evidence_status": "unavailable_validator_rejection",
+        "selection_status": "reached",
+        "status": "selection_reached",
+    }
+    assert sidecar["artifact"] == {
+        "audit": "not_created",
+        "bundle": "not_created",
+        "failure": "no_triad",
+        "partial": "not_created",
+        "run": "not_created",
+        "selected_candidate": None,
+    }
+    assert sidecar["reason_code"] == "semantic_gate_d0_validator_misclassification"
+    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["repository_promotion"] is False
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
 
@@ -162,6 +211,8 @@ def test_real_stage_a_index_error_emits_sanitized_d0_artifact() -> None:
     assert artifact["status"] == "stage_a_failed"
     assert artifact["evidence_level"] == "D0"
     assert artifact["evidence_eligible"] is False
+    assert artifact["failure_kind"] == "runtime_exception"
+    assert artifact["selection_complete"] is False
     assert artifact["selection"]["failure"] == {"exception_type": "IndexError"}
     assert "prompt payload" not in json.dumps(artifact)
     assert validate_stage_a(artifact, rows, addendum) == []
@@ -199,6 +250,143 @@ def _real_resources_for_failure() -> dict[str, Any]:
         },
         "no_mutation": True,
     }
+
+
+def _real_resources_for_complete_selection() -> dict[str, Any]:
+    resources = _real_resources_for_failure()
+    resources.update(
+        {
+            "hook": {"registered": 1296, "capture_calls": 1368, "removed": 1296},
+            "intervention": {"patch_calls": 1296, "control_calls": 0, "forward_calls": 1368},
+            "operation_counts": {
+                "candidate_evaluations": 2592,
+                "hooks": 1296,
+                "captures": 1368,
+                "patches": 1296,
+                "controls": 0,
+                "forwards": 1368,
+            },
+            "cleanup": {"hook_count": 0, "completed": True},
+        }
+    )
+    return resources
+
+
+def test_real_stage_a_semantic_gate_failure_is_validator_clean() -> None:
+    rows, addendum, _ = _base()
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": _real_resources_for_complete_selection()},
+    )
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["evidence_eligible"] is False
+    assert artifact["failure_kind"] == "semantic_gate"
+    assert artifact["selection_complete"] is True
+    assert "failure" not in artifact["selection"]
+    assert artifact["selection"]["score_records"]
+    assert artifact["selection"]["folds"]
+    assert artifact["selection"]["consensus_candidate"] is not None
+    assert artifact["selection"]["oof_metric"]["pass"] is False
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_real_stage_a_semantic_no_consensus_is_validator_clean() -> None:
+    rows, addendum, _ = _base()
+    targets = [
+        0,
+        0,
+        1,
+        1,
+        1,
+        2,
+        0,
+        0,
+        0,
+        2,
+        3,
+        5,
+        2,
+        2,
+        3,
+        3,
+        4,
+        5,
+        0,
+        3,
+        5,
+        5,
+        5,
+        5,
+        0,
+        1,
+        2,
+        3,
+        3,
+        4,
+        1,
+        2,
+        2,
+        2,
+        3,
+        4,
+    ]
+
+    def score(row: Mapping[str, Any], layer: int, offset: int) -> float:
+        group_index = int(str(row["group_id"])[-3:]) - 1
+        return 1.0 if (layer, offset) == (targets[group_index], 0) else -1.0
+
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": score, "resources": _real_resources_for_complete_selection()},
+    )
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["failure_kind"] == "semantic_gate"
+    assert artifact["selection_complete"] is True
+    assert artifact["selection"]["consensus_candidate"] is None
+    assert 0 < artifact["selection"]["consensus_wins"] < 4
+    assert artifact["selection"]["oof_metric"]["pass"] is False
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_real_stage_a_semantic_gate_failure_cli_writes_complete_d0_triad(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import torch
+
+    import scripts._m14_l049_v2_real_runtime as real_runtime
+    from scripts.m14_l049_v2_stage_a import main
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(
+        real_runtime,
+        "build_stage_a_runtime",
+        lambda _rows: (lambda *_args: 0.0, _real_resources_for_complete_selection()),
+    )
+    output = tmp_path / "artifact.json"
+    main(
+        [
+            "--train-fixture",
+            str(TRAIN_PATH),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    triad = sorted(tmp_path.glob("l04-explanations.L049V2StageA.attempt1.*.json"))
+    assert [path.suffixes[-2] for path in triad] == [".failure", ".partial", ".run"]
+    partial = json.loads(next(path for path in triad if path.name.endswith(".partial.json")).read_bytes())
+    artifact = partial["artifact"]
+    assert artifact["failure_kind"] == "semantic_gate"
+    assert artifact["selection_complete"] is True
+    assert artifact["evidence_level"] == "D0"
+    assert validate_stage_a(artifact, read_rows(TRAIN_PATH)[1], json.loads(V2_ADDENDUM_PATH.read_bytes())) == []
 
 
 def test_stage_a_cleanup_failure_alone_is_sanitized_and_validator_clean() -> None:

@@ -8,6 +8,7 @@ from typing import Any, cast
 import numpy as np
 
 from scripts._m14_l049_v2_schema import (
+    STAGE_A_FAILURE_KINDS,
     TRAIN_GROUP_COUNT,
     V2_STAGE_A_SCHEMA,
     CommitmentPolicy,
@@ -97,6 +98,8 @@ def validate_stage_a_impl(
         "evidence_level",
         "evidence_eligible",
         "repository_promotion",
+        "failure_kind",
+        "selection_complete",
         "parent_plan_sha256",
         "addendum_schema",
         "addendum_sha256",
@@ -138,11 +141,17 @@ def validate_stage_a_impl(
     if not isinstance(selection, Mapping):
         return errors + ["Stage A selection is missing"]
 
-    # A runtime exception before selection completes is still a valid,
-    # non-promoting Stage A outcome.  It must retain only sanitized exception
-    # metadata and the execution counters, never fabricate a zero-score
-    # protocol fixture.
-    if artifact.get("status") == "stage_a_failed":
+    failure_kind = artifact.get("failure_kind")
+    selection_complete = artifact.get("selection_complete")
+    if failure_kind is not None and failure_kind not in STAGE_A_FAILURE_KINDS:
+        errors.append("Stage A failure discriminator is invalid")
+    if artifact.get("status") == "stage_a_failed" and failure_kind == "runtime_exception":
+        # A runtime exception before selection completes is still a valid,
+        # non-promoting Stage A outcome.  It must retain only sanitized
+        # exception metadata and execution counters, never fabricate a
+        # zero-score protocol fixture.
+        if selection_complete is not False:
+            errors.append("Stage A runtime failure selection-complete flag is invalid")
         expected_failure_keys = {
             "candidate_grid",
             "score_records",
@@ -247,6 +256,16 @@ def validate_stage_a_impl(
             errors.append("Stage A artifact digest is invalid")
         return errors
 
+    if artifact.get("status") == "stage_a_failed" and failure_kind == "semantic_gate":
+        if selection_complete is not True:
+            errors.append("Stage A semantic failure selection-complete flag is invalid")
+        if "failure" in selection:
+            errors.append("Stage A semantic failure must not contain runtime failure metadata")
+    elif artifact.get("status") == "stage_a_failed":
+        errors.append("Stage A failed status discriminator is invalid")
+    elif selection_complete is not True or failure_kind is not None:
+        errors.append("Stage A successful/protocol discriminator is invalid")
+
     expected_grid = candidate_grid()
     if selection.get("candidate_grid") != expected_grid or selection.get("train_group_ids") != sorted(groups_map):
         errors.append("Stage A candidate grid or train group order is invalid")
@@ -322,7 +341,8 @@ def validate_stage_a_impl(
                 )
     best = max(wins, key=lambda key: (-wins[key], candidate_key({"layer": key[0], "offset": key[1]})), default=None)
     expected_wins = wins.get(best, 0) if best is not None else 0
-    if selection.get("consensus_candidate") != ({"layer": best[0], "offset": best[1]} if best is not None else None):
+    expected_consensus = {"layer": best[0], "offset": best[1]} if best is not None and expected_wins >= 4 else None
+    if selection.get("consensus_candidate") != expected_consensus:
         errors.append("Stage A consensus identity is invalid")
     if selection.get("consensus_wins") != expected_wins:
         errors.append("Stage A consensus count is invalid")
