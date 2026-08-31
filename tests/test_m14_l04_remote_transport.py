@@ -63,10 +63,19 @@ internal static class FakeSsh
         var marker = Environment.GetEnvironmentVariable("L04_FAKE_SSH_MARKER");
         if (String.IsNullOrEmpty(marker)) return 91;
         File.AppendAllText(marker, Process.GetCurrentProcess().Id + "|" + String.Join("|", args) + Environment.NewLine);
+        var stdinPath = Environment.GetEnvironmentVariable("L04_FAKE_SSH_STDIN_PATH");
         using (var input = Console.OpenStandardInput())
         {
             var buffer = new byte[8192];
-            while (input.Read(buffer, 0, buffer.Length) > 0) { }
+            using (var captured = String.IsNullOrEmpty(stdinPath) ? null : new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    if (captured != null) captured.Write(buffer, 0, read);
+                }
+                if (captured != null) File.WriteAllBytes(stdinPath, captured.ToArray());
+            }
         }
         Thread.Sleep(3000);
         Console.WriteLine("FAKE_SSH=PASS");
@@ -138,43 +147,56 @@ def _build_only_v2(
     *,
     use_case: str = "L049V2StageB",
     train: str = "C:/owner/train.jsonl",
-    holdout: str = "C:/owner/holdout.jsonl",
-    seed: str = "C:/owner/holdout.seed",
-    candidate: str = "C:/owner/candidate.json",
+    holdout: str = "/secure/holdout.jsonl",
+    seed: str = "/secure/holdout.seed",
+    candidate: str = "/secure/candidate.json",
     output: str = "",
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [
-            _pwsh(),
-            "-NoProfile",
-            "-File",
-            str(HELPER),
-            "-SshPath",
-            _ssh_path(),
-            "-RemoteTarget",
-            "user@example.com",
-            "-PayloadPath",
-            str(PAYLOAD),
-            "-UseCase",
-            use_case,
-            "-CodeSha",
-            "a" * 40,
-            "-RepoUrl",
-            "https://github.com/example/repo.git",
-            "-RawCapturePath",
-            str(tmp_path / "raw.capture"),
-            "-V2TrainFixturePath",
-            train,
+    arguments = [
+        _pwsh(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshPath",
+        _ssh_path(),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        use_case,
+        "-CodeSha",
+        "a" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(tmp_path / "raw.capture"),
+    ]
+    if use_case.casefold() == "l049v2stagea":
+        arguments += ["-V2TrainFixturePath", train]
+        if holdout or seed or candidate:
+            arguments += [
+                "-V2HoldoutFixturePath",
+                holdout,
+                "-V2HoldoutSeedPath",
+                seed,
+                "-V2CandidateManifestPath",
+                candidate,
+            ]
+    else:
+        arguments += [
             "-V2HoldoutFixturePath",
             holdout,
             "-V2HoldoutSeedPath",
             seed,
             "-V2CandidateManifestPath",
             candidate,
-            "-V2OutputPath",
-            output,
-            "-BuildOnly",
-        ],
+        ]
+        if train != "C:/owner/train.jsonl":
+            arguments += ["-V2TrainFixturePath", train]
+    arguments += ["-V2OutputPath", output, "-BuildOnly"]
+    return subprocess.run(
+        arguments,
         check=False,
         capture_output=True,
         text=True,
@@ -186,7 +208,7 @@ def test_v2_stage_b_build_manifest_requires_and_redacts_owner_paths(tmp_path: Pa
     assert result.returncode == 0, result.stderr
     manifest = json.loads(result.stdout)
     assert manifest["v2_inputs"] == {
-        "train_fixture": "<owner-provisioned-path>",
+        "train_fixture": None,
         "holdout_fixture": "<owner-provisioned-path>",
         "holdout_seed": "<owner-provisioned-path>",
         "candidate_manifest": "<owner-provisioned-path>",
@@ -194,7 +216,7 @@ def test_v2_stage_b_build_manifest_requires_and_redacts_owner_paths(tmp_path: Pa
         "contents": "redacted",
     }
     serialized = json.dumps(manifest)
-    for value in ("C:/owner/train.jsonl", "C:/owner/holdout.jsonl", "C:/owner/holdout.seed", "C:/owner/candidate.json"):
+    for value in ("C:/owner/train.jsonl", "/secure/holdout.jsonl", "/secure/holdout.seed", "/secure/candidate.json"):
         assert value not in serialized
 
 
@@ -203,6 +225,7 @@ def test_v2_stage_a_build_manifest_derives_clone_output(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = json.loads(result.stdout)
     assert manifest["v2_inputs"]["output"] == "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json"
+    assert manifest["v2_inputs"]["train_fixture"] == "<fresh-clone>/artifacts/m14/l04-l049-v2-train.jsonl"
 
 
 def test_use_case_binding_is_canonical_and_build_digest_is_case_invariant(
@@ -222,19 +245,140 @@ def test_use_case_binding_is_canonical_and_build_digest_is_case_invariant(
             assert manifest == expected
 
 
-@pytest.mark.parametrize(
-    "kwargs",
-    [
-        {"train": ""},
-        {"holdout": ""},
-        {"seed": ""},
-        {"candidate": ""},
-    ],
-)
+@pytest.mark.parametrize("kwargs", [{"holdout": ""}, {"seed": ""}, {"candidate": ""}])
 def test_v2_stage_b_build_manifest_rejects_missing_owner_path(tmp_path: Path, kwargs: dict[str, str]) -> None:
     result = _build_only_v2(tmp_path, **kwargs)
     assert result.returncode != 0
     assert "requires" in result.stderr
+
+
+def test_v2_stage_b_build_manifest_does_not_require_unused_train_path(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, train="")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["v2_inputs"]["train_fixture"] is None
+
+
+def test_v2_stage_b_rejects_unused_train_path(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, train="/secure/unused-train.jsonl")
+    assert result.returncode != 0
+    assert "unused train fixture" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    [
+        "C:/owner/holdout.jsonl",
+        r"\\server\share\holdout.jsonl",
+        "/secure/owner\\holdout.jsonl",
+        "/secure/../outside.jsonl",
+        r"F:\ai-ml\latent-anything\artifacts\holdout.jsonl",
+        "/mnt/f/ai-ml/latent-anything/artifacts/holdout.jsonl",
+        "relative/holdout.jsonl",
+    ],
+)
+def test_v2_stage_b_rejects_local_or_unsafe_remote_paths(tmp_path: Path, bad_path: str) -> None:
+    result = _build_only_v2(tmp_path, holdout=bad_path)
+    assert result.returncode != 0
+    assert "Stage B holdout fixture path" in result.stderr
+    assert bad_path not in result.stderr
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_fake_remote_stage_a_uses_clone_fixture_and_never_exports_local_path(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    fake_ssh = _compile_fake_ssh(tmp_path)
+    marker = tmp_path / "fake ssh launches.log"
+    stdin_path = tmp_path / "bootstrap bytes.bin"
+    raw_path = tmp_path / "stage-a.raw"
+    local_fixture = r"F:\ai-ml\latent-anything\artifacts\m14\l04-l049-v2-train.jsonl"
+    command = [
+        shell_factory(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshExecutable",
+        str(fake_ssh),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "L049V2StageA",
+        "-CodeSha",
+        "a" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(raw_path),
+        "-V2TrainFixturePath",
+        local_fixture,
+    ]
+    env = dict(os.environ, L04_FAKE_SSH_MARKER=str(marker), L04_FAKE_SSH_STDIN_PATH=str(stdin_path))
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=30)
+    assert result.returncode == 0, result.stderr
+    assert stdin_path.is_file()
+    bootstrap = stdin_path.read_bytes()
+    assert local_fixture.encode() not in bootstrap
+    assert b"L049_V2_TRAIN_FIXTURE" not in bootstrap
+    bootstrap_text = bootstrap.decode("utf-8")
+    payload_b64 = bootstrap_text.split("<<'L04_PAYLOAD_B64'\n", 1)[1].split("\nL04_PAYLOAD_B64", 1)[0]
+    payload = base64.b64decode(payload_b64, validate=True)
+    assert b"artifacts/m14/l04-l049-v2-train.jsonl" in payload
+    launch = marker.read_text(encoding="utf-8")
+    assert local_fixture not in launch
+    assert "|L049V2StageA|" in launch
+    assert raw_path.is_file()
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_fake_remote_stage_b_bootstrap_contains_only_safe_remote_inputs(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    fake_ssh = _compile_fake_ssh(tmp_path)
+    marker = tmp_path / "fake ssh launches.log"
+    stdin_path = tmp_path / "bootstrap bytes.bin"
+    raw_path = tmp_path / "stage-b.raw"
+    remote_paths = [
+        "/secure/holdout dir/owner'fixture.jsonl",
+        "/secure/seed file/holdout.seed",
+        '/secure/candidate dir/manifest".json',
+    ]
+    command = [
+        shell_factory(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshExecutable",
+        str(fake_ssh),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "L049V2StageB",
+        "-CodeSha",
+        "b" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(raw_path),
+        "-V2HoldoutFixturePath",
+        remote_paths[0],
+        "-V2HoldoutSeedPath",
+        remote_paths[1],
+        "-V2CandidateManifestPath",
+        remote_paths[2],
+    ]
+    env = dict(os.environ, L04_FAKE_SSH_MARKER=str(marker), L04_FAKE_SSH_STDIN_PATH=str(stdin_path))
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=30)
+    assert result.returncode == 0, result.stderr
+    bootstrap = stdin_path.read_bytes()
+    assert b"L049_V2_TRAIN_FIXTURE" not in bootstrap
+    for remote_path in remote_paths:
+        assert remote_path.replace("'", "'\"'\"'").encode() in bootstrap
+    assert b"F:\\ai-ml\\latent-anything" not in bootstrap
+    assert raw_path.is_file()
 
 
 def test_v2_stage_a_rejects_stage_b_only_paths(tmp_path: Path) -> None:
@@ -499,6 +643,12 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "expected_markers" in helper
     assert "python -c" not in payload
     assert "ssh " not in payload
+    assert "train_fixture_rel='artifacts/m14/l04-l049-v2-train.jsonl'" in payload
+    assert 'readlink -f -- "$train_fixture"' in payload
+    assert 'git -C "$repo_dir" ls-files --error-unmatch -- "$train_fixture_rel"' in payload
+    assert 'if [[ ! -f "$train_fixture" || -L "$train_fixture" ]]' in payload
+    assert "export L049_V2_TRAIN_FIXTURE=" not in helper
+    assert "Assert-RemotePosixInput" in helper
 
 
 FAKE_SSH = r"""

@@ -67,6 +67,9 @@ CURRENT_INCIDENT_ASSESSMENT = ROOT / (
 CURRENT_B295_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.b295a506933e18f6d9139b0439f0e80d6ed441e8.assessment.sidecar.json"
 )
+CURRENT_A205_RAW_ONLY_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
@@ -326,6 +329,39 @@ def test_current_b295_assessment_binds_owner_exception_evidence_deletion() -> No
     assert sidecar["owner_exception"]["post_delete_absence"]["all_files_absent"] is True
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
+
+
+def test_current_a205_raw_only_assessment_is_canonical_and_pending() -> None:
+    sidecar = json.loads(CURRENT_A205_RAW_ONLY_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source"] == {
+        "commit_sha": "a205ca7f0f4714c045027094208804c479a85445",
+        "tree_sha256": "a96ca4612c5b04a5bf7a370baec20b17d4b28b9f",
+        "use_case": "L049V2StageA",
+        "exact_source_verified": True,
+    }
+    raw = sidecar["evidence"]["raw_capture"]
+    assert raw["bytes"] == 6598
+    assert raw["sha256"] == "6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674"
+    assert raw["written_before_parse"] is True
+    assert raw["present"] is True
+    assert sidecar["status"] == "pending"
+    assert sidecar["execution"]["selection_status"] == "not_reached"
+    assert sidecar["execution"]["model_adapter_integration"] == "not_reached"
+    assert sidecar["execution"]["resource_finalizer_status"] == "not_reached"
+    assert sidecar["assessment"]["failure_kind"] == "remote_stage_input_missing"
+    assert sidecar["assessment"]["promotion"] is False
+    assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["evidence"]["audit"] is None
+    assert sidecar["evidence"]["bundle"] is None
+    assert sidecar["evidence"]["triad"] is None
+    assert sidecar["markers"]["remote_cleanup"] == "PASS"
+    assert sidecar["markers"]["transport_cleanup"] == "PASS"
+    assert sidecar["markers"]["cli_status"] == 1
+    assert sidecar["markers"]["bundle_status"] == 66
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(secret not in serialized for secret in ("holdout plaintext", "traceback", "begin private"))
+    assert "f:\\ai-ml\\latent-anything" not in serialized
 
 
 class _FakeCuda:

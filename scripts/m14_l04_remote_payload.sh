@@ -125,7 +125,34 @@ fi
 # producer.  Holdout paths/seeds are owner-provisioned and are never embedded
 # in this payload or returned in stdout.
 if [[ "$UseCase" == "L049V2StageA" ]]; then
-    V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_a --run-real --train-fixture "${L049_V2_TRAIN_FIXTURE:?L049_V2_TRAIN_FIXTURE is required}" --source-commit-sha "$CodeSha" --output "$v2_output")
+    # Stage A's public train fixture is repository-owned.  Resolve it only
+    # after checkout so a Windows caller path can never leak into the remote
+    # Linux command.  Reject symlinks and any resolution outside this clone.
+    train_fixture_rel='artifacts/m14/l04-l049-v2-train.jsonl'
+    train_fixture="$repo_dir/$train_fixture_rel"
+    if [[ "$train_fixture" != "$repo_dir/"* || "$train_fixture" == *..* ]]; then
+        emit_status INVALID_TRAIN_FIXTURE_PATH >&2
+        exit 65
+    fi
+    if [[ ! -f "$train_fixture" || -L "$train_fixture" ]]; then
+        emit_status INVALID_TRAIN_FIXTURE_PATH >&2
+        exit 65
+    fi
+    repo_real=$(readlink -f -- "$repo_dir") || { emit_status INVALID_TRAIN_FIXTURE_PATH >&2; exit 65; }
+    fixture_real=$(readlink -f -- "$train_fixture") || { emit_status INVALID_TRAIN_FIXTURE_PATH >&2; exit 65; }
+    case "$fixture_real" in
+        "$repo_real"/*) ;;
+        *) emit_status INVALID_TRAIN_FIXTURE_PATH >&2; exit 65 ;;
+    esac
+    tracked_fixture=$(git -C "$repo_dir" ls-files --error-unmatch -- "$train_fixture_rel" 2>/dev/null) || {
+        emit_status INVALID_TRAIN_FIXTURE_PATH >&2
+        exit 65
+    }
+    if [[ "$tracked_fixture" != "$train_fixture_rel" ]]; then
+        emit_status INVALID_TRAIN_FIXTURE_PATH >&2
+        exit 65
+    fi
+    V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_a --run-real --train-fixture "$train_fixture" --source-commit-sha "$CodeSha" --output "$v2_output")
 elif [[ "$UseCase" == "L049V2StageB" ]]; then
     V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_b
         --run-real

@@ -56,10 +56,9 @@ function Assert-TransportParameters {
     if ($CodeSha -notmatch '^[0-9a-fA-F]{40}$') { throw "CodeSha must be exactly 40 hexadecimal characters" }
     if ([string]::IsNullOrWhiteSpace($RepoUrl) -or $RepoUrl -match '[\x00-\x20\x7f]') { throw "RepoUrl must be non-empty and contain no control or whitespace characters" }
     if ($RepoUrl -notmatch '^https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+(?:\.git)?$') { throw "RepoUrl must be a credential-free GitHub HTTPS owner/repository URL" }
-    $v2StageAArgs = @($V2HoldoutFixturePath, $V2HoldoutSeedPath, $V2CandidateManifestPath)
-    $v2StageBArgs = @($V2TrainFixturePath)
-    if ($UseCase -eq "L049V2StageB" -and @($v2StageAArgs + $v2StageBArgs | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
-        throw "L049V2StageB requires train, holdout fixture, holdout seed, candidate manifest, and output paths"
+    $v2StageBArgs = @($V2HoldoutFixturePath, $V2HoldoutSeedPath, $V2CandidateManifestPath)
+    if ($UseCase -eq "L049V2StageB" -and @($v2StageBArgs | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+        throw "L049V2StageB requires holdout fixture, holdout seed, and candidate manifest paths"
     }
     if ($UseCase -eq "L049V2StageA" -and [string]::IsNullOrWhiteSpace($V2TrainFixturePath)) {
         throw "L049V2StageA requires train fixture and output paths"
@@ -73,6 +72,41 @@ function Assert-TransportParameters {
     if (($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") -and -not [string]::IsNullOrWhiteSpace($V2OutputPath)) {
         throw "v2 output path is derived inside the fresh clone and cannot be overridden"
     }
+    if ($UseCase -eq "L049V2StageB") {
+        if (-not [string]::IsNullOrWhiteSpace($V2TrainFixturePath)) {
+            throw "L049V2StageB rejects the unused train fixture path"
+        }
+        foreach ($remotePath in @(
+            [pscustomobject]@{ Name = "holdout fixture"; Value = $V2HoldoutFixturePath },
+            [pscustomobject]@{ Name = "holdout seed"; Value = $V2HoldoutSeedPath },
+            [pscustomobject]@{ Name = "candidate manifest"; Value = $V2CandidateManifestPath }
+        )) {
+            Assert-RemotePosixInput -Name $remotePath.Name -Value $remotePath.Value
+        }
+    }
+}
+
+function Assert-RemotePosixInput {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Name,
+        [Parameter(Mandatory = $true)] [string]$Value
+    )
+    if ([string]::IsNullOrWhiteSpace($Value)) { throw "Stage B $Name path is required" }
+    if ($Value -match '[\x00-\x1f\x7f]') { throw "Stage B $Name path contains control characters" }
+    if ($Value -match '\\') { throw "Stage B $Name path must use POSIX separators" }
+    if ($Value -match '^[A-Za-z]:') { throw "Stage B $Name path must not be a Windows drive path" }
+    if ($Value -match '^//') { throw "Stage B $Name path must not be a UNC path" }
+    if ($Value -notmatch '^/[^/].*$') { throw "Stage B $Name path must be an absolute POSIX path" }
+    if ($Value -match '(^|/)\.\.?(/|$)') { throw "Stage B $Name path must not contain traversal components" }
+    if ($Value -match '^/(?:mnt|cygdrive)/[A-Za-z](?:/|$)') {
+        throw "Stage B $Name path must not be a local Windows workspace path"
+    }
+    $workspace = ((Get-Location).Path -replace '\\', '/').TrimEnd('/')
+    $normalized = $Value.TrimEnd('/')
+    if ($normalized -ieq $workspace -or $normalized.StartsWith($workspace + '/', [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Stage B $Name path must not reference the local workspace"
+    }
+    if ($Value.EndsWith('/')) { throw "Stage B $Name path must identify a file" }
 }
 
 function ConvertTo-BashLiteral {
@@ -139,9 +173,11 @@ $payloadSha256 = Get-Sha256Hex $payloadBytes
 $payloadBase64 = [Convert]::ToBase64String($payloadBytes)
 $v2EnvBlock = ""
 if ($UseCase -eq "L049V2StageA") {
-    $v2EnvBlock = "export L049_V2_TRAIN_FIXTURE=$(ConvertTo-BashLiteral $V2TrainFixturePath)"
+    # Stage A owns its public train fixture in the detached clone.  The
+    # caller's path is local-only and is used later by postprocess validation.
+    $v2EnvBlock = ""
 } elseif ($UseCase -eq "L049V2StageB") {
-    $v2EnvBlock = "export L049_V2_TRAIN_FIXTURE=$(ConvertTo-BashLiteral $V2TrainFixturePath)`nexport L049_V2_HOLDOUT_FIXTURE=$(ConvertTo-BashLiteral $V2HoldoutFixturePath)`nexport L049_V2_HOLDOUT_SEED=$(ConvertTo-BashLiteral $V2HoldoutSeedPath)`nexport L049_V2_CANDIDATE=$(ConvertTo-BashLiteral $V2CandidateManifestPath)"
+    $v2EnvBlock = "export L049_V2_HOLDOUT_FIXTURE=$(ConvertTo-BashLiteral $V2HoldoutFixturePath)`nexport L049_V2_HOLDOUT_SEED=$(ConvertTo-BashLiteral $V2HoldoutSeedPath)`nexport L049_V2_CANDIDATE=$(ConvertTo-BashLiteral $V2CandidateManifestPath)"
 }
 $bootstrapBytes = [System.Text.UTF8Encoding]::new($false).GetBytes((New-Bootstrap -PayloadBase64 $payloadBase64 -PayloadSha256 $payloadSha256 -V2EnvBlock $v2EnvBlock))
 $bootstrapSha256 = Get-Sha256Hex $bootstrapBytes
@@ -162,7 +198,7 @@ $manifest = [ordered]@{
 }
 if ($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") {
     $manifest.v2_inputs = [ordered]@{
-        train_fixture = "<owner-provisioned-path>"
+        train_fixture = if ($UseCase -eq "L049V2StageA") { "<fresh-clone>/artifacts/m14/l04-l049-v2-train.jsonl" } else { $null }
         holdout_fixture = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
         holdout_seed = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
         candidate_manifest = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
