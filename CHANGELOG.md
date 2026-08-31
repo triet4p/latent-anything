@@ -49,6 +49,17 @@
 
 ### Changed
 
+- Corrected the v2 causal Stage A path to capture private GPT-2 block outputs
+  before the terminal `ln_f`, including block `h.11`, while preserving the
+  public native hidden-state contract where the terminal index is post-`ln_f`.
+  Clean and corrupted source/recipient positions are resolved independently,
+  and candidate scores now serialize primitive margins so the validator
+  recomputes signed directional recovery rather than trusting averaged raw
+  margins. Added tuple/list hook-lifecycle and terminal-normalization
+  regression coverage; no historical evidence or sidecar was changed.
+  The Stage A artifact schema is versioned as v2 for the new primitive-margin
+  records.
+
 - Added honest real-runtime resource provenance for M14 L04.9 v2: CUDA peak
   allocated/reserved bytes are reset before model load and read after
   synchronization, process RSS is measured with an explicit Linux source or

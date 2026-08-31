@@ -351,6 +351,15 @@ occurred. See
   the prior sidecar digest, verified absence, `standard_finalize=false`, exact
   transport markers/hashes, and no triad/audit/selection or promotion. No raw
   parsing payload, sensitive body, retry, or holdout access occurred.
+- [x] Correct v2 causal scoring at the model boundary. The private runtime now
+  captures exact raw GPT-2 block outputs `h.0`--`h.11` (with `h.11` before
+  `ln_f`) while the public native terminal hidden index remains post-`ln_f`.
+  Stage A uses independently resolved clean-source/corrupt-recipient positions
+  and pair-level signed directional recovery from serialized primitive clean,
+  corrupted, and patched margins; validation recomputes the primitive metric.
+  Tuple/list outputs, terminal-normalization parity, zero-strength identity,
+  variable endpoint lengths, and hook cleanup are covered. Historical D0
+  assessment sidecars and evidence bytes remain unchanged.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

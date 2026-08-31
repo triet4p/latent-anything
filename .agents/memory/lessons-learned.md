@@ -946,3 +946,27 @@ chain the prior sidecar digest, and record the fixed reason
 **Watch out for:** Preserve only sanitized transport and semantic D0 metadata;
 do not reconstruct deleted payloads, imply standard finalization, or broaden
 the deletion target beyond the verified five files.
+
+## [2026-08-31] Causal patching must use raw block outputs and paired recovery
+
+**Symptom:** A final-layer intervention can patch the wrong representation when
+ native hidden-state indices are treated as raw block indices; averaging clean
+ and patched margins across the two labels also hides the signed causal
+ recovery being measured.
+
+**Root cause:** GPT-2 native hidden index `n_layers` is the post-`ln_f` state,
+ while the intervention hook runs on the raw output of block `h.(n_layers-1)`.
+ The two causal rows have different target labels, so their raw margins cannot
+ be averaged before calculating recovery.
+
+**Fix / workaround:** Keep the public native result unchanged, but use a
+ private hook capture for exact raw `h.0`--`h.11` values. Resolve clean source
+ and corrupted recipient positions against their own masks, apply the same
+ layer hook, and compute `(patched-corrupted)/(clean-corrupted)` per row before
+ group aggregation. Serialize primitive endpoints and have the validator
+ recompute the metric.
+
+**Watch out for:** Terminal-layer parity requires replacing the raw residual
+ before `ln_f`; zero-strength must reproduce the corrupted logits exactly,
+ tuple/list hook outputs must be reconstructed safely, and every hook must be
+ removed on both success and exception.
