@@ -165,6 +165,7 @@ def test_current_failed_stage_a_sidecar_records_validator_misclassification() ->
 def test_current_stage_a_resource_assessment_is_canonical_and_sanitized() -> None:
     sidecar = json.loads(CURRENT_STAGE_A_RESOURCE_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "d45dcaca9b4cfbe1bf6c8b3f4507b9b80afb483f5b5609d965883fdc9c4dc8b1"
     assert sidecar["source"]["commit_sha"] == "66455a526f6974b31974f058dda341817dea2998"
     assert sidecar["raw_capture"] == {
         "bytes": 54754,
@@ -173,7 +174,39 @@ def test_current_stage_a_resource_assessment_is_canonical_and_sanitized() -> Non
     assert sidecar["resource_assessment"]["reason_code"] == "measured_source_with_zero_peaks"
     assert sidecar["resource_assessment"]["resource_provenance_valid"] is False
     assert sidecar["artifact"]["evidence_level"] == "D0"
-    assert sidecar["retention"]["raw_retention_status"] == "retained_pending_finalize"
+    assert sidecar["transport"] == {
+        "payload_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+        "decode_status": 0,
+        "decode_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+        "decode_match": "PASS",
+        "cli_status": 0,
+        "bundle_status": 0,
+        "final_status": 0,
+        "bundle_bytes": 36149,
+        "bundle_sha256": "28e3df35ecb6817ae86804df511e232a3ba377d0993752826fc4fb93d2a5883e",
+        "cleanup": "PASS",
+        "transport_cleanup": "PASS",
+    }
+    assert set(sidecar["deleted_evidence"]) == {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.66455a526f6974b31974f058dda341817dea2998.raw.txt",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.failure.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.partial.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.run.json",
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.66455a526f6974b31974f058dda341817dea2998.audit.json",
+    }
+    assert sidecar["retention"]["raw_retention_status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["reason"] == "historical_resource_provenance_invalid_measured_zero_peaks"
+    assert (
+        sidecar["retention"]["previous_sidecar_sha256"]
+        == "84dfffd53c28fb12cbb3ee8640616c3f95f1b938d076e075437ea5c290447f75"
+    )
+    assert sidecar["retention"]["standard_finalize"] is False
+    assert sidecar["owner_exception"]["deletion_verification"]["absent_after_delete"] is True
+    assert all(
+        item["absent_after_delete"] is True
+        for item in sidecar["owner_exception"]["deletion_verification"]["files"].values()
+    )
+    assert all(not (ROOT / path).exists() for path in sidecar["deleted_evidence"])
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("prompt", "holdout", "traceback", "private key"))
 

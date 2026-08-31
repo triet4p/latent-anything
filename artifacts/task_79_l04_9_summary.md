@@ -128,6 +128,10 @@ was `-0.06929667790730794` (lower CI95 `-0.18785552316241794`) with 13/24
 positive groups, so the preregistered gate failed. Its historical resource
 envelope reported measured CUDA/CPU sources with zero peaks. A separate
 canonical sanitized assessment sidecar records this provenance failure as
-`measured_source_with_zero_peaks`, keeps the raw and retention audit pending,
-and makes no promotion claim. The raw, triplet, and audit remain byte-exact
-and untouched.
+`measured_source_with_zero_peaks`, and makes no promotion claim. After the
+explicit owner exception, all five
+historical raw/triplet/audit paths were verified by exact pre-delete size/SHA-256
+and deleted individually; the sidecar records
+`historical_resource_provenance_invalid_measured_zero_peaks`, the prior
+canonical digest, and verified absence. This is not standard finalization and
+no evidence was promoted.

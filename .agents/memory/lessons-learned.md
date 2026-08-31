@@ -929,3 +929,20 @@ transport marker, record the exact reason sequence
 chain the previous sidecar digest, and attest post-delete absence. Keep the
 attempt D0 and non-promoting; owner-exception deletion is irreversible and is
 not standard retention finalization.
+
+## [2026-08-31] Delete historical resource-invalid evidence only by exact manifest
+
+**Symptom:** A retained historical D0 can become invalid under a corrected
+resource schema when measured sources report zero peaks, so standard finalize
+cannot truthfully certify it.
+
+**Fix / workaround:** Verify `HEAD`/`origin`, the prior canonical sidecar,
+promotion=false, and every raw/triplet/audit path against an exact pre-delete
+size/SHA-256 manifest. Delete only those literal paths, attest each absence,
+chain the prior sidecar digest, and record the fixed reason
+`historical_resource_provenance_invalid_measured_zero_peaks` with
+`standard_finalize=false`.
+
+**Watch out for:** Preserve only sanitized transport and semantic D0 metadata;
+do not reconstruct deleted payloads, imply standard finalization, or broaden
+the deletion target beyond the verified five files.

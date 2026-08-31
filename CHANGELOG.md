@@ -84,6 +84,13 @@
   silently falling back to synthetic scoring. No real-CUDA rerun or evidence
   promotion was performed.
 
+- Recorded the owner-authorized cleanup of the historical SHA-66455 Stage A
+  D0 resource-invalid capture. The raw, triplet, and pending audit paths were
+  individually size/hash verified and deleted; the sanitized assessment
+  sidecar chains the prior digest, preserves transport and semantic D0
+  metadata, records `historical_resource_provenance_invalid_measured_zero_peaks`,
+  and attests absence without claiming standard finalization or promotion.
+
 - Recorded the owner-authorized exact-SHA M14 L04.9 v2 Stage A attempt as a
   non-promoting D0 semantic failure: aligned scoring reached a gate failure,
   but the single retention attempt failed closed on a producer failure-stage
