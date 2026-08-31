@@ -111,12 +111,12 @@ def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
 
 
-def test_validation_rejection_sidecar_is_canonical_and_pending() -> None:
+def test_validation_rejection_sidecar_records_owner_exception_delete() -> None:
     sidecar = json.loads(CURRENT_STAGE_A_VALIDATION_REJECTION_ASSESSMENT.read_bytes())
     assert (
         canonical_digest(sidecar, "sidecar_sha256")
         == sidecar["sidecar_sha256"]
-        == "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a"
+        == "56b2a93b9ca9da42aa66e09a32fb9a99af7aee569f34e7bfdd58f86f97613abb"
     )
     assert sidecar["raw_capture"] == {
         "bytes": 5791,
@@ -125,7 +125,13 @@ def test_validation_rejection_sidecar_is_canonical_and_pending() -> None:
     assert sidecar["artifact"]["failure_kind"] == "validation_rejected"
     assert sidecar["artifact"]["validation_codes"] == ["validation_rejected_unavailable_resource"]
     assert sidecar["artifact"]["selected_candidate"] is None
-    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["raw_retention_status"] == "deleted_by_owner_exception"
+    assert sidecar["standard_finalize"] is False
+    assert sidecar["retention"]["reason"] == "no_triad_bundle_status_66/validation_rejected_unavailable_resource"
+    assert sidecar["retention"]["previous_sidecar_sha256"] == (
+        "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a"
+    )
+    assert sidecar["owner_exception"]["deletion_verification"]["absent_after_delete"] is True
     assert sidecar["repository_promotion"] is False
 
 

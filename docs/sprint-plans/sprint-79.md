@@ -364,8 +364,9 @@ occurred. See
   Stage B. Validator rejection now yields an independently validated,
   non-promoting D0 triad with an allowlisted rejection code and normalized
   unavailable-resource provenance; successful semantic D0 and eligible D1/D2
-  paths remain strict. The 5791-byte failed attempt is preserved pending owner
-  exception in a sanitized assessment sidecar.
+  paths remain strict. The 5791-byte failed attempt was deleted under the
+  explicit owner exception recorded in its sanitized assessment sidecar;
+  standard finalization and promotion remain false.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

@@ -930,6 +930,20 @@ chain the previous sidecar digest, and attest post-delete absence. Keep the
 attempt D0 and non-promoting; owner-exception deletion is irreversible and is
 not standard retention finalization.
 
+## [2026-08-31] Validation-rejected raw requires the same owner-exception chain
+
+**Symptom:** A validator-rejected real attempt can have trustworthy transport
+markers but no triad, leaving its raw capture pending after Git close.
+
+**Fix / workaround:** Verify the exact resolved raw path, regular-file status,
+size, and SHA-256 against the tracked sanitized sidecar. Delete only that
+literal path under explicit owner authorization, then record
+`deleted_by_owner_exception`, `standard_finalize=false`, the reason
+`no_triad_bundle_status_66/validation_rejected_unavailable_resource`, the
+prior sidecar digest, preserved transport markers, and verified absence.
+Keep D0, nonpromotion, and no-triad state explicit; this is irreversible and
+is not standard retention finalization.
+
 ## [2026-08-31] Delete historical resource-invalid evidence only by exact manifest
 
 **Symptom:** A retained historical D0 can become invalid under a corrected

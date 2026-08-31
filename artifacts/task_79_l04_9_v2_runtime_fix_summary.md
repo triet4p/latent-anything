@@ -98,11 +98,12 @@ normalizes invalid unavailable-resource provenance to the validator-supported
 schema, independently validates the fallback artifact, and emits the exact
 partial/run/failure triad before any retention attempt. Stage B uses the same
 boundary and records `evaluation_complete=false`; successful semantic D0 and
-eligible D1/D2 paths remain strict. The 5791-byte failed capture is preserved
-pending owner exception in a sanitized assessment sidecar; no prompts,
-holdout material, traceback, or raw exception body is recorded.
+eligible D1/D2 paths remain strict. The 5791-byte failed capture was deleted
+under the explicit owner exception recorded by its sanitized assessment
+sidecar; no prompts, holdout material, traceback, or raw exception body is
+recorded.
 
 The follow-up changed the private Stage A/Stage B schemas, validators, real
 CLIs, and v2 tests, and added the canonical sanitized assessment sidecar for
-the preserved 5791-byte raw. The raw remains untracked and byte-exact pending
-the owner’s retention decision.
+the 5791-byte raw. The raw was verified absent after the explicit owner
+exception; promotion remains false and standard finalization was not used.

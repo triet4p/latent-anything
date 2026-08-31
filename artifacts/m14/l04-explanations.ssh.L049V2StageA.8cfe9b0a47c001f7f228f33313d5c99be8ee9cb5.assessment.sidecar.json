@@ -37,7 +37,7 @@
     "validator_reason": "validation_rejected_unavailable_resource"
   },
   "repository_promotion": false,
-  "raw_retention_status": "preserved_pending_owner_exception",
+  "raw_retention_status": "deleted_by_owner_exception",
   "standard_finalize": false,
   "transport": {
     "payload_sha256": null,
@@ -46,5 +46,33 @@
     "bootstrap_sha256": null,
     "bootstrap_status": "not_recorded"
   },
-  "sidecar_sha256": "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a"
+  "retention": {
+    "raw_retention_status": "deleted_by_owner_exception",
+    "repository_promotion": false,
+    "standard_finalize": false,
+    "previous_sidecar_sha256": "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a",
+    "reason": "no_triad_bundle_status_66/validation_rejected_unavailable_resource"
+  },
+  "deleted_evidence": {
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.8cfe9b0a47c001f7f228f33313d5c99be8ee9cb5.raw.txt": {
+      "bytes": 5791,
+      "sha256": "85255e5eb1924e3e30946e93a530ab7746dc0ed560bfff20c3124df59bf1dd06"
+    }
+  },
+  "owner_exception": {
+    "reason": "no_triad_bundle_status_66/validation_rejected_unavailable_resource",
+    "standard_finalize": false,
+    "previous_sidecar_sha256": "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a",
+    "deletion_verification": {
+      "absent_after_delete": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.8cfe9b0a47c001f7f228f33313d5c99be8ee9cb5.raw.txt": {
+          "pre_delete_bytes": 5791,
+          "pre_delete_sha256": "85255e5eb1924e3e30946e93a530ab7746dc0ed560bfff20c3124df59bf1dd06",
+          "absent_after_delete": true
+        }
+      }
+    }
+  },
+  "sidecar_sha256": "56b2a93b9ca9da42aa66e09a32fb9a99af7aee569f34e7bfdd58f86f97613abb"
 }
