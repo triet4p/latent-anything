@@ -121,3 +121,13 @@ pending/final audit chain; it does not recompute deleted bytes.
 Focused regression coverage exercises the completed-scoring semantic failure
 and validator-clean cleanup triad. Local gates are rerun for this closure;
 the v1 real attempt is historical, non-promoting, and was not retried.
+
+The retained SHA-66455 v2 Stage A capture is a complete semantic-gate D0:
+candidate layer 10/offset 0 won all six folds, while the OOF point estimate
+was `-0.06929667790730794` (lower CI95 `-0.18785552316241794`) with 13/24
+positive groups, so the preregistered gate failed. Its historical resource
+envelope reported measured CUDA/CPU sources with zero peaks. A separate
+canonical sanitized assessment sidecar records this provenance failure as
+`measured_source_with_zero_peaks`, keeps the raw and retention audit pending,
+and makes no promotion claim. The raw, triplet, and audit remain byte-exact
+and untouched.

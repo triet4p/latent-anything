@@ -49,6 +49,16 @@
 
 ### Changed
 
+- Added honest real-runtime resource provenance for M14 L04.9 v2: CUDA peak
+  allocated/reserved bytes are reset before model load and read after
+  synchronization, process RSS is measured with an explicit Linux source or
+  unavailable reason, and elapsed time covers the complete attempt through
+  cleanup. The independent validator rejects forged/zero measured peaks and
+  requires available nonzero measurements for D1/D2. The retained
+  SHA-66455 semantic D0's historical zero peaks are documented by a separate
+  sanitized pending assessment sidecar; no raw, triplet, or audit bytes were
+  changed.
+
 - Hardened the v2 real Stage A failure boundary for cleanup-finalizer errors:
   attempted CUDA D0 artifacts now retain sanitized, validator-supported
   incomplete-cleanup provenance without retrying the finalizer or masking the

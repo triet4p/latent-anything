@@ -894,6 +894,26 @@ preregistered gate to fail for D0.
 semantic D0 artifacts may contain complete candidate evidence while remaining
 ineligible and non-promoting.
 
+## [2026-08-31] Real resource peaks need provenance, not default zeros
+
+**Symptom:** A real CUDA Stage A artifact completed semantic scoring but
+reported zero CPU/GPU peaks under measured sources, making resource evidence
+indistinguishable from a failed measurement.
+
+**Root cause:** The runtime emitted a fixed zero-valued resource block instead
+of measuring the attempt from model load through cleanup; the validator
+accepted zero peaks and could not independently detect source/value mismatch.
+
+**Fix / workaround:** Reset CUDA peak counters before model construction,
+synchronize before reading allocated/reserved peaks, measure Linux RSS with an
+explicit source (or an allowlisted unavailable reason), and record elapsed
+`perf_counter` time. Require available, positive, budget-bounded measurements
+for D1/D2 while retaining explicit unavailable measurements as ineligible D0.
+
+**Watch out for:** Never turn an unavailable measurement into a zero-valued
+success, accept a measured-source zero/negative peak, or include exception
+text in the resource envelope.
+
 ## [2026-08-31] Close semantic D0 raw only through an owner exception
 
 **Symptom:** A semantic-gate D0 attempt can have trustworthy transport markers

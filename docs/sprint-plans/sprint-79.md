@@ -327,6 +327,14 @@ occurred. See
   complete candidate/no-consensus selections validate independently while
   runtime failures remain empty-selection, non-promoting triads; D1 remains
   strict.
+- [x] Harden real Stage A/Stage B resource provenance. The runtime now tracks
+  elapsed time from model load through cleanup, CUDA allocated/reserved peaks
+  after synchronization, and Linux process RSS with explicit source/unit and
+  unavailable reason fields. Independent validation rejects measured-source
+  zero/negative or source/value mismatches and requires nonzero measurements
+  for D1/D2. The retained SHA-66455 evidence remains a genuine semantic D0,
+  but its historical zero peaks are recorded in a separate sanitized pending
+  assessment sidecar; no evidence was promoted.
 - [x] Close the v2 failed-attempt evidence state locally under the explicit
   owner exception. The 6008-byte raw capture was verified at SHA-256
   `757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212` and

@@ -1,0 +1,54 @@
+{
+  "schema_version": "m14-l049-v2-stage-a-resource-assessment-v1",
+  "source": {
+    "commit_sha": "66455a526f6974b31974f058dda341817dea2998",
+    "tree_sha256": "fdc671374098c981ef37625d65e7ed63a9fcdf10",
+    "use_case": "L049V2StageA"
+  },
+  "raw_capture": {
+    "bytes": 54754,
+    "sha256": "c366462b3f5dee243832e539db7c4495a018e8988305d2c54c0e83fdcd36767f"
+  },
+  "artifact": {
+    "partial_bytes": 211642,
+    "partial_sha256": "0a31e331a2f5197b1604f88a14fffeed01aeb6eace19c5ba31940829e7fa19b4",
+    "artifact_sha256": "4e76db5452212ce0ab57230feb8a713068388b7e82ac82160c686223757a9a1d",
+    "attestation_sha256": "4ea454a4a283f2afe0b41420d50d4ad01ff2da6c0815fde49e473f1e892fc4bd",
+    "status": "stage_a_failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_complete": true,
+    "failure_kind": "semantic_gate",
+    "repository_promotion": false
+  },
+  "result": {
+    "consensus_candidate": {"layer": 10, "offset": 0},
+    "consensus_wins": 6,
+    "fold_winner_count": 6,
+    "oof_metric": {
+      "point_estimate": -0.06929667790730794,
+      "lower_ci_95": -0.18785552316241794,
+      "threshold": 0.05,
+      "positive_groups": 13,
+      "required_positive_groups": 24,
+      "all_fold_means_positive": false,
+      "pass": false
+    }
+  },
+  "resource_assessment": {
+    "resource_provenance_valid": false,
+    "reason_code": "measured_source_with_zero_peaks",
+    "measurement_status": "invalid",
+    "peak_cpu_bytes": 0,
+    "peak_gpu_bytes": 0,
+    "source": "torch.cuda.max_memory_allocated",
+    "unit": "bytes"
+  },
+  "retention": {
+    "raw_retention_status": "retained_pending_finalize",
+    "pending_audit_sha256": "17ea45007ac446daf283fce19d35024ec6f28b9985b3fa19d3fa3cf86a4b89b1",
+    "repository_promotion": false,
+    "standard_finalize": false
+  },
+  "sidecar_sha256": "84dfffd53c28fb12cbb3ee8640616c3f95f1b938d076e075437ea5c290447f75"
+}
