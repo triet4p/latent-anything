@@ -653,6 +653,15 @@ This is a pre-1.0 beta, not an API-stability promise and not a claim that every 
 
 ### Fixed
 
+- Fixed the L04.9 v2 remote fixture boundary: Stage A now derives and
+  validates the repository-owned train fixture inside the fresh detached
+  clone instead of exporting a caller-local Windows path. Stage B no longer
+  couples to an unused train fixture and rejects unsafe non-POSIX,
+  workspace-leaking, or traversal input paths before SSH bootstrap creation.
+  Native Windows PowerShell 5.1 and pwsh fake-remote regressions cover
+  quoting and argv/environment separation. The first a205ca7 real attempt
+  remains a pending, raw-only D0 assessment with no retry or promotion.
+
 - Made release-note extraction fail when a matching changelog section contains only a version heading and no release body content.
 - Prevented `AnalysisPipeline` cache entries from crossing between adapters that share hyperparameters but have different learned or randomly initialized state.
 - Ensured cached analysis runs always fit the current stateful Layer A method instead of returning a transformed array while leaving the method unfitted.

@@ -1,0 +1,71 @@
+{
+  "schema_version": "m14-l04.9-v2-raw-only-incident-assessment-v1",
+  "status": "pending",
+  "source": {
+    "commit_sha": "a205ca7f0f4714c045027094208804c479a85445",
+    "tree_sha256": "a96ca4612c5b04a5bf7a370baec20b17d4b28b9f",
+    "use_case": "L049V2StageA",
+    "exact_source_verified": true
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.raw.txt",
+      "bytes": 6598,
+      "sha256": "6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674",
+      "written_before_parse": true,
+      "present": true
+    },
+    "audit": null,
+    "bundle": null,
+    "triad": null
+  },
+  "execution": {
+    "completed_payloads": 1,
+    "ssh_launches_reported": 1,
+    "remote_cli_invocations": 1,
+    "retry_performed": false,
+    "second_launch_aborted": false,
+    "remote_reach": "reached",
+    "cuda_proof": "PASS",
+    "model_adapter_integration": "not_reached",
+    "selection_status": "not_reached",
+    "resource_finalizer_status": "not_reached"
+  },
+  "markers": {
+    "transport_payload_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+    "transport_decode_status": 0,
+    "transport_decode_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+    "transport_decode_match": "PASS",
+    "use_case": "L049V2StageA",
+    "code_sha": "a205ca7f0f4714c045027094208804c479a85445",
+    "cli_status": 1,
+    "bundle_status": 66,
+    "final_status": 1,
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "workdir_marker": "present_redacted"
+  },
+  "assessment": {
+    "artifact_status": "stage_a_failed",
+    "failure_kind": "remote_stage_input_missing",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_status": "not_reached",
+    "runtime_status": "not_reached",
+    "model_status": "not_reached",
+    "finalizer_status": "not_reached",
+    "local_path_leakage": "caller_local_absolute_path_forwarded_to_remote_environment",
+    "root_cause": "Stage A transport exported a caller-local path instead of the repository-owned clone-relative fixture",
+    "promotion": false,
+    "finalization": false,
+    "standard_finalize": false,
+    "repository_promotion": false
+  },
+  "retention": {
+    "raw_only": true,
+    "status": "pending",
+    "recommendation": "Preserve raw capture for owner review; no audit, bundle, or triad was produced and no finalization or promotion is permitted."
+  },
+  "redaction": "Sanitized metadata only; local absolute paths, remote ephemeral paths, holdout material, secrets, and execution bodies omitted.",
+  "sidecar_sha256": "6a0e1bc27aa8d5594232b1ea503e916ec9aaa41e6df8670254875c54d6d0bb09"
+}

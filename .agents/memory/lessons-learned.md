@@ -1123,3 +1123,26 @@ late-failure fallback resources so a closure is invoked at most once.
 relationships explicit, classify cross-field violations separately from field
 shape/type violations, and test real-shaped Stage A/Stage B tracker wiring;
 never rely only on hand-mutating a public resource dictionary.
+
+## [2026-09-01] Never export local fixture paths into a remote checkout
+
+**Symptom:** The first real L049 v2 Stage A attempt reached CUDA but failed
+before model setup because the remote Linux process received a Windows caller
+path for the train fixture.
+
+**Root cause:** The PowerShell wrapper interpolated its local
+`V2TrainFixturePath` directly into the remote Bash environment. A fresh remote
+clone cannot resolve drive-letter or local workspace paths.
+
+**Fix / workaround:** Derive Stage A's public train fixture from the exact
+repo-relative path inside the detached clone, reject symlinks and resolutions
+outside that clone, and confirm the path is tracked. Keep the caller path only
+for local postprocess validation. Stage B has no train-fixture dependency; its
+owner-provisioned inputs must be absolute POSIX paths and are rejected when
+they contain Windows drive/UNC syntax, backslashes, local-workspace forms, or
+traversal components.
+
+**Watch out for:** Build-only and fake-remote tests must inspect the generated
+bootstrap and argv, not just the manifest. A transport decode/cleanup PASS does
+not establish that remote input paths are valid, and a raw-only D0 capture must
+not be retried or treated as semantic evidence.

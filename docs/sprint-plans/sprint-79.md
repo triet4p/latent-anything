@@ -420,6 +420,15 @@ occurred. See
   live-counter, Stage B shared-envelope/idempotence, rejection-matrix, and
   late-failure no-double-finalizer regressions are covered; public validation
   remains independent.
+- [x] Correct the first owner-authorized a205ca7 Stage A transport attempt:
+  the remote payload now derives and validates the tracked train fixture inside
+  its fresh detached clone, while Stage B accepts only sanitized absolute POSIX
+  holdout/seed/candidate paths and no longer exports the unused train path.
+  Native PowerShell/pwsh build-only and fake-remote regressions cover local
+  path non-leakage, quoting, traversal, symlink/fixture checks, and argv/env
+  separation. The raw-only a205ca7 D0 assessment remains pending; its raw
+  capture is preserved byte-exact, with no audit/triad/bundle, no promotion,
+  and no retry after the proven remote input-path failure.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
