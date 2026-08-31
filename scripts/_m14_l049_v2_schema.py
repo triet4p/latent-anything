@@ -38,6 +38,16 @@ FINALIZER_REJECTION_CODES = (
     "finalizer_hook_fields",
     "finalizer_intervention_fields",
     "finalizer_cleanup_fields",
+    "finalizer_resource_peak_shape",
+    "finalizer_resource_peak_primitive_types",
+    "finalizer_resource_peak_elapsed",
+    "finalizer_resource_peak_source_device",
+    "finalizer_resource_peak_status_reason",
+    "finalizer_resource_peak_availability_provenance",
+    "finalizer_resource_peak_budget",
+    "finalizer_resource_peak_cross_invariants",
+    # Retained for historical incident sidecars; new producer diagnostics use
+    # the deterministic resource-peak subcodes above.
     "finalizer_resource_peak_fields",
     "finalizer_cross_field_invariants",
 )

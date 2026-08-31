@@ -16,6 +16,8 @@ import pytest
 
 import scripts._m14_l049_v2_real_runtime as real_runtime
 import scripts._m14_l049_v2_stage_a as stage_a_module
+import scripts._m14_l049_v2_validate_common as validate_common
+import scripts.m14_l049_v2_resource_probe as resource_probe
 from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
 from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
@@ -69,6 +71,9 @@ CURRENT_B295_ASSESSMENT = ROOT / (
 )
 CURRENT_A205_RAW_ONLY_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.assessment.sidecar.json"
+)
+CURRENT_5D6_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.assessment.sidecar.json"
 )
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
@@ -369,6 +374,60 @@ def test_current_a205_raw_only_assessment_is_canonical_and_pending() -> None:
     assert "f:\\ai-ml\\latent-anything" not in serialized
 
 
+def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
+    sidecar = json.loads(CURRENT_5D6_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "d93f45fbc059616093855b7de10b626a19914467938b8bf0dd287a0222c3f96e"
+    assert sidecar["source"] == {
+        "commit_sha": "5d6d8fb5e06890cf9615936f049681a6d1e52228",
+        "tree_sha256": "07bea97c9c4b55919fa707d473e2cecf7e1392a6",
+        "use_case": "L049V2StageA",
+        "exact_source_verified": True,
+    }
+    assert sidecar["status"] == "pending"
+    assert sidecar["execution"] == {
+        "completed_payloads": 1,
+        "ssh_launches_reported": 1,
+        "remote_cli_invocations": 1,
+        "retry_performed": False,
+        "second_launch_aborted": False,
+        "remote_reach": "reached",
+        "cuda_proof": "PASS",
+        "remote_cleanup": "PASS",
+        "transport_cleanup": "PASS",
+        "mutex_key_sha256": "80741d63253909a313149b756cf1668f0a339fd191ee7bf4a114bc74b7a276fb",
+        "argv_sha256": "d8066963bd854746f2d1d2a3be716e64f1cca58602854bd75572bf7053a5159a",
+    }
+    raw = sidecar["evidence"]["raw_capture"]
+    assert raw["bytes"] == 9779
+    assert raw["sha256"] == "6dd1741c94b5af2fc084667129197304b5de2b51d023920a22164a33d342c4d2"
+    triad = sidecar["evidence"]["triad"]
+    assert sidecar["evidence"]["audit"]["sha256"] == "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827"
+    assert sidecar["evidence"]["bundle"]["sha256"] == "87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe"
+    assert all(sidecar["evidence"]["triad"][kind]["present"] for kind in ("partial", "run", "failure"))
+    assert all(sidecar["source"]["commit_sha"] in triad[kind]["path"] for kind in ("partial", "run", "failure"))
+    assert sidecar["evidence"]["audit"]["rebuild"] == {
+        "status": "canonical_retain_reopened",
+        "previous_bytes": 3234,
+        "previous_sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
+        "current_bytes": 3234,
+        "current_sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
+        "archive_member_names_preserved": True,
+        "source_unique_local_paths": True,
+    }
+    assert sidecar["assessment"]["evidence_level"] == "D0"
+    assert sidecar["assessment"]["selection_reuse"] == "discarded_not_reusable"
+    assert sidecar["assessment"]["resource_measurement"]["exact_peak_subcondition"] == "unknown"
+    assert sidecar["assessment"]["root_cause"]["cuda_device_contract_inference"]["status"] == (
+        "not_supported_by_artifact"
+    )
+    assert sidecar["assessment"]["promotion"] is False
+    assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["retention"]["status"] == "pending"
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(secret not in serialized for secret in ("traceback", "begin private", "f:\\ai-ml"))
+
+
 class _FakeCuda:
     def __init__(self) -> None:
         self.calls: list[str] = []
@@ -426,6 +485,29 @@ def test_resource_tracker_records_nonzero_cuda_and_linux_rss_provenance(monkeypa
     }
 
 
+def test_resource_tracker_reset_failure_preserves_attempted_canonical_device() -> None:
+    class _ResetFailCuda(_FakeCuda):
+        def reset_peak_memory_stats(self, device: int) -> None:
+            assert device == 0
+            raise RuntimeError("secret reset detail")
+
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=_ResetFailCuda()),
+        resource_module=SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=1)),
+        clock=iter((1.0, 2.0)).__next__,
+    )
+    tracker.start()
+    tracker.finish()
+    resources = real_runtime._runtime_resources(real_runtime._new_counters(), tracker)
+    peak = resources["resource_peak"]
+    assert peak["measurement_reason"] == "cuda_reset_failed"
+    assert peak["gpu_device"] == "cuda:0"
+    assert peak["gpu_source"] == peak["gpu_reserved_source"] == "unavailable"
+    assert peak["peak_gpu_bytes"] == peak["peak_gpu_reserved_bytes"] == 0
+    assert stage_a_module._finalizer_rejection_code(resources) is None
+    assert validate_common.real_resources(resources) == []
+
+
 def test_resource_tracker_marks_zero_peak_unavailable_without_exception_text() -> None:
     cuda = _FakeCuda()
     cuda.max_memory_allocated = lambda _device: 0  # type: ignore[method-assign]
@@ -439,6 +521,10 @@ def test_resource_tracker_marks_zero_peak_unavailable_without_exception_text() -
     peak = tracker.resource_peak()
     assert peak["measurement_status"] == "unavailable"
     assert peak["measurement_reason"] == "cuda_zero_peak"
+    assert peak["gpu_device"] == "cuda:0"
+    resources = real_runtime._runtime_resources(real_runtime._new_counters(), tracker)
+    assert stage_a_module._finalizer_rejection_code(resources) is None
+    assert validate_common.real_resources(resources) == []
     assert "exception" not in json.dumps(peak).lower()
 
 
@@ -473,6 +559,10 @@ def test_resource_tracker_publishes_no_asymmetric_or_invalid_cuda_pair(
     assert peak["peak_gpu_reserved_bytes"] == 0
     assert peak["gpu_source"] == "unavailable"
     assert peak["gpu_reserved_source"] == "unavailable"
+    assert peak["gpu_device"] == "cuda:0"
+    resources = real_runtime._runtime_resources(real_runtime._new_counters(), tracker)
+    assert stage_a_module._finalizer_rejection_code(resources) is None
+    assert validate_common.real_resources(resources) == []
 
 
 @pytest.mark.parametrize("failing_query", ["allocated", "reserved"])
@@ -493,6 +583,10 @@ def test_resource_tracker_clears_cuda_pair_when_either_query_raises(failing_quer
     assert peak["measurement_status"] == "unavailable"
     assert peak["measurement_reason"] == "cuda_peak_query_failed"
     assert peak["peak_gpu_bytes"] == peak["peak_gpu_reserved_bytes"] == 0
+    assert peak["gpu_device"] == "cuda:0"
+    resources = real_runtime._runtime_resources(real_runtime._new_counters(), tracker)
+    assert stage_a_module._finalizer_rejection_code(resources) is None
+    assert validate_common.real_resources(resources) == []
     assert "secret" not in json.dumps(peak)
 
 
@@ -1212,7 +1306,7 @@ def test_stage_a_production_runtime_closure_publishes_live_resources(
         (
             "float_peak",
             lambda value: value["resource_peak"].update({"peak_cpu_bytes": 1.0}),
-            "finalizer_resource_peak_fields",
+            "finalizer_resource_peak_primitive_types",
         ),
         (
             "hook_counter_invariant",
@@ -1232,14 +1326,14 @@ def test_stage_a_production_runtime_closure_publishes_live_resources(
         (
             "reserved_below_allocated",
             lambda value: value["resource_peak"].update({"peak_gpu_bytes": 3, "peak_gpu_reserved_bytes": 2}),
-            "finalizer_cross_field_invariants",
+            "finalizer_resource_peak_cross_invariants",
         ),
         (
             "unknown_query_failure",
             lambda value: value["resource_peak"].update(
                 {"measurement_status": "unavailable", "measurement_reason": "query secret"}
             ),
-            "finalizer_resource_peak_fields",
+            "finalizer_resource_peak_status_reason",
         ),
     ],
 )
@@ -1271,6 +1365,321 @@ def test_finalizer_checker_accepts_sanitized_query_failure() -> None:
     )
     assert stage_a_module._finalizer_rejection_code(value) is None
     assert stage_a_module._valid_finalizer_resources(value) is True
+
+
+@pytest.mark.parametrize(
+    ("label", "mutate", "expected"),
+    [
+        ("peak_shape", lambda value: value["resource_peak"].pop("unit"), "finalizer_resource_peak_shape"),
+        (
+            "peak_bool",
+            lambda value: value["resource_peak"].update({"peak_cpu_bytes": True}),
+            "finalizer_resource_peak_primitive_types",
+        ),
+        (
+            "peak_numpy_integer",
+            lambda value: value["resource_peak"].update({"peak_cpu_bytes": np.int64(1)}),
+            "finalizer_resource_peak_primitive_types",
+        ),
+        (
+            "peak_float_integer",
+            lambda value: value["resource_peak"].update({"peak_cpu_bytes": 1.0}),
+            "finalizer_resource_peak_primitive_types",
+        ),
+        (
+            "peak_nan_elapsed",
+            lambda value: value["resource_peak"].update({"elapsed_seconds": float("nan")}),
+            "finalizer_resource_peak_elapsed",
+        ),
+        (
+            "peak_negative_elapsed",
+            lambda value: value["resource_peak"].update({"elapsed_seconds": -1.0}),
+            "finalizer_resource_peak_elapsed",
+        ),
+        (
+            "peak_source",
+            lambda value: value["resource_peak"].update({"gpu_source": "secret-source"}),
+            "finalizer_resource_peak_source_device",
+        ),
+        (
+            "peak_device",
+            lambda value: value["resource_peak"].update({"gpu_device": "device-secret"}),
+            "finalizer_resource_peak_source_device",
+        ),
+        (
+            "peak_status",
+            lambda value: value["resource_peak"].update({"measurement_status": "unknown"}),
+            "finalizer_resource_peak_status_reason",
+        ),
+        (
+            "peak_reason",
+            lambda value: value["resource_peak"].update({"measurement_reason": "query-secret"}),
+            "finalizer_resource_peak_status_reason",
+        ),
+        (
+            "peak_availability",
+            lambda value: value["resource_peak"].update({"gpu_source": "unavailable"}),
+            "finalizer_resource_peak_availability_provenance",
+        ),
+        (
+            "peak_budget_type",
+            lambda value: value["resource_peak"].update({"budget_gpu_bytes": 6_000_000_001}),
+            "finalizer_resource_peak_budget",
+        ),
+        (
+            "peak_budget_exceeded",
+            lambda value: value["resource_peak"].update({"peak_gpu_bytes": 5_999_999_999, "budget_gpu_bytes": 1}),
+            "finalizer_resource_peak_budget",
+        ),
+        (
+            "peak_cross_invariant",
+            lambda value: value["resource_peak"].update({"peak_gpu_bytes": 2, "peak_gpu_reserved_bytes": 1}),
+            "finalizer_resource_peak_cross_invariants",
+        ),
+    ],
+)
+def test_finalizer_resource_peak_subcodes_are_ordered_and_non_sensitive(label: str, mutate: Any, expected: str) -> None:
+    del label
+    value = _real_resources_for_complete_selection()
+    mutate(value)
+    code = stage_a_module._finalizer_rejection_code(value)
+    assert code == expected
+    assert code in stage_a_module.FINALIZER_REJECTION_CODES
+    assert "secret" not in json.dumps({"finalizer_rejection_code": code})
+
+
+def test_resource_peak_device_contract_rejects_noncanonical_text_independently() -> None:
+    resources = _real_resources_for_complete_selection()
+    resources["resource_peak"]["gpu_device"] = "cuda:GPU"
+    assert stage_a_module._finalizer_rejection_code(resources) == "finalizer_resource_peak_source_device"
+    errors = validate_common.real_resources(resources)
+    assert errors
+    assert all("cuda:GPU" not in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    ("label", "reason", "mutate", "valid"),
+    [
+        (
+            "rss_fully_unavailable_with_attempted_device",
+            "rss_unavailable",
+            lambda peak: peak.update(
+                {
+                    "peak_cpu_bytes": 0,
+                    "peak_gpu_bytes": 0,
+                    "peak_gpu_reserved_bytes": 0,
+                    "cpu_source": "unavailable",
+                    "gpu_source": "unavailable",
+                    "gpu_reserved_source": "unavailable",
+                    "gpu_device": "cuda:0",
+                    "measurement_status": "unavailable",
+                    "measurement_reason": "rss_unavailable",
+                    "elapsed_seconds": None,
+                }
+            ),
+            False,
+        ),
+        (
+            "rss_measured_gpu",
+            "rss_unavailable",
+            lambda peak: peak.update(
+                {
+                    "peak_cpu_bytes": 0,
+                    "cpu_source": "unavailable",
+                    "measurement_status": "unavailable",
+                    "measurement_reason": "rss_unavailable",
+                    "elapsed_seconds": None,
+                }
+            ),
+            True,
+        ),
+        (
+            "clock_measured_gpu",
+            "clock_invalid",
+            lambda peak: peak.update(
+                {"measurement_status": "unavailable", "measurement_reason": "clock_invalid", "elapsed_seconds": None}
+            ),
+            True,
+        ),
+        (
+            "clock_fully_unavailable",
+            "clock_invalid",
+            lambda peak: peak.update(
+                {
+                    "peak_cpu_bytes": 0,
+                    "peak_gpu_bytes": 0,
+                    "peak_gpu_reserved_bytes": 0,
+                    "cpu_source": "unavailable",
+                    "gpu_source": "unavailable",
+                    "gpu_reserved_source": "unavailable",
+                    "gpu_device": "unavailable",
+                    "measurement_status": "unavailable",
+                    "measurement_reason": "clock_invalid",
+                    "elapsed_seconds": None,
+                }
+            ),
+            True,
+        ),
+    ],
+)
+def test_producer_and_independent_validator_agree_on_unavailable_gpu_contract(
+    label: str, reason: str, mutate: Any, valid: bool
+) -> None:
+    del label, reason
+    resources = _real_resources_for_complete_selection()
+    mutate(resources["resource_peak"])
+    producer_valid = stage_a_module._finalizer_rejection_code(resources) is None
+    public_valid = validate_common.real_resources(resources) == []
+    assert producer_valid is valid
+    assert public_valid is valid
+    if not valid:
+        assert stage_a_module._finalizer_rejection_code(resources) == "finalizer_resource_peak_availability_provenance"
+
+
+@pytest.mark.parametrize("reason", sorted(stage_a_module._FINALIZER_MEASUREMENT_REASONS))
+def test_finalizer_checker_accepts_each_allowlisted_unavailable_reason(reason: str) -> None:
+    value = _real_resources_for_complete_selection()
+    peak = value["resource_peak"]
+    peak.update({"measurement_status": "unavailable", "measurement_reason": reason})
+    if reason in {"cuda_unavailable", "cuda_reset_failed", "cuda_peak_query_failed", "cuda_zero_peak"}:
+        peak.update(
+            {
+                "peak_gpu_bytes": 0,
+                "peak_gpu_reserved_bytes": 0,
+                "gpu_source": "unavailable",
+                "gpu_reserved_source": "unavailable",
+                "gpu_device": "unavailable",
+            }
+        )
+    elif reason in {"tracker_unstarted", "resource_measurement_invalid"}:
+        peak.update(
+            {
+                "peak_cpu_bytes": 0,
+                "peak_gpu_bytes": 0,
+                "peak_gpu_reserved_bytes": 0,
+                "cpu_source": "unavailable",
+                "gpu_source": "unavailable",
+                "gpu_reserved_source": "unavailable",
+                "gpu_device": "unavailable",
+            }
+        )
+    elif reason == "rss_unavailable":
+        peak.update({"peak_cpu_bytes": 0, "cpu_source": "unavailable"})
+    assert stage_a_module._finalizer_rejection_code(value) is None
+    assert stage_a_module._valid_finalizer_resources(value) is True
+
+
+def test_resource_probe_uses_production_tracker_without_model_or_fixture(capsys: pytest.CaptureFixture[str]) -> None:
+    class _ProbeTorch:
+        cuda = _FakeCuda()
+
+        @staticmethod
+        def empty(shape: tuple[int, ...], *, device: str) -> object:
+            assert shape == (1,)
+            assert device == "cuda"
+            return object()
+
+    resources, rejection = resource_probe.run_resource_probe(_ProbeTorch)
+    assert rejection is None
+    assert resources["operation_counts"] == dict.fromkeys(real_runtime._COUNT_KEYS, 0)
+    assert resources["resource_peak"]["measurement_status"] == "available"
+    resource_probe.emit_resource_probe(resources, rejection)
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert {line.split("=", 1)[0] for line in lines} == {
+        "L049_V2_RESOURCE_PROBE_STATUS",
+        "L049_V2_RESOURCE_PROBE_FINALIZER_CODE",
+        "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS",
+        "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON",
+        "L049_V2_RESOURCE_PROBE_CPU_PROVENANCE",
+        "L049_V2_RESOURCE_PROBE_GPU_PROVENANCE",
+        "L049_V2_RESOURCE_PROBE_DEVICE_CANONICAL",
+        "L049_V2_RESOURCE_PROBE_CLEANUP",
+    }
+    output = "\n".join(lines)
+    assert resource_probe.validate_resource_probe_output(output) == []
+    assert "PASS" in output
+    assert "openai-community" not in output
+    assert "train" not in output.lower()
+    assert "F:\\" not in output
+
+
+def test_resource_probe_unavailable_path_is_sanitized(capsys: pytest.CaptureFixture[str]) -> None:
+    class _UnavailableCuda:
+        @staticmethod
+        def is_available() -> bool:
+            return False
+
+    class _UnavailableTorch:
+        cuda = _UnavailableCuda()
+
+    resources, rejection = resource_probe.run_resource_probe(_UnavailableTorch)
+    assert rejection is None
+    assert resources["resource_peak"]["measurement_reason"] == "cuda_unavailable"
+    resource_probe.emit_resource_probe(resources, rejection)
+    output = capsys.readouterr().out
+    assert resource_probe.validate_resource_probe_output(output) == []
+    assert "L049_V2_RESOURCE_PROBE_STATUS=PASS" in output
+    assert "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=cuda_unavailable" in output
+    assert "traceback" not in output.lower()
+
+
+def test_resource_probe_emitter_allowlists_untrusted_marker_values(capsys: pytest.CaptureFixture[str]) -> None:
+    class _UnavailableCuda:
+        @staticmethod
+        def is_available() -> bool:
+            return False
+
+    class _UnavailableTorch:
+        cuda = _UnavailableCuda()
+
+    resources, _ = resource_probe.run_resource_probe(_UnavailableTorch)
+    resources["resource_peak"].update(
+        {"measurement_status": {"secret": "status"}, "measurement_reason": "secret-reason"}
+    )
+    resource_probe.emit_resource_probe(resources, "secret-finalizer-code")
+    output = capsys.readouterr().out
+    assert "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS=unknown" in output
+    assert "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=unknown" in output
+    assert "L049_V2_RESOURCE_PROBE_FINALIZER_CODE=finalizer_not_mapping" in output
+    assert resource_probe.validate_resource_probe_output(output) == []
+    assert "secret" not in output
+
+
+def test_resource_probe_validator_rejects_inconsistent_forged_markers() -> None:
+    valid = [
+        "L049_V2_RESOURCE_PROBE_STATUS=PASS",
+        "L049_V2_RESOURCE_PROBE_FINALIZER_CODE=NONE",
+        "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS=unavailable",
+        "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=cuda_zero_peak",
+        "L049_V2_RESOURCE_PROBE_CPU_PROVENANCE=true",
+        "L049_V2_RESOURCE_PROBE_GPU_PROVENANCE=false",
+        "L049_V2_RESOURCE_PROBE_DEVICE_CANONICAL=true",
+        "L049_V2_RESOURCE_PROBE_CLEANUP=PASS",
+    ]
+    for index, replacement in (
+        (0, "L049_V2_RESOURCE_PROBE_STATUS=FAIL"),
+        (1, "L049_V2_RESOURCE_PROBE_FINALIZER_CODE=finalizer_resource_peak_shape"),
+        (2, "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS=unknown"),
+        (5, "L049_V2_RESOURCE_PROBE_GPU_PROVENANCE=true"),
+    ):
+        forged = list(valid)
+        forged[index] = replacement
+        assert resource_probe.validate_resource_probe_output("\n".join(forged))
+
+    available_inconsistent = list(valid)
+    available_inconsistent[2] = "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS=available"
+    available_inconsistent[3] = "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=none"
+    available_inconsistent[4] = "L049_V2_RESOURCE_PROBE_CPU_PROVENANCE=false"
+    assert resource_probe.validate_resource_probe_output("\n".join(available_inconsistent))
+
+    unknown_failure = list(valid)
+    unknown_failure[0] = "L049_V2_RESOURCE_PROBE_STATUS=FAIL"
+    unknown_failure[1] = "L049_V2_RESOURCE_PROBE_FINALIZER_CODE=finalizer_resource_peak_status_reason"
+    unknown_failure[2] = "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS=unknown"
+    unknown_failure[3] = "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=unknown"
+    unknown_failure[4] = "L049_V2_RESOURCE_PROBE_CPU_PROVENANCE=false"
+    unknown_failure[6] = "L049_V2_RESOURCE_PROBE_DEVICE_CANONICAL=false"
+    assert resource_probe.validate_resource_probe_output("\n".join(unknown_failure)) == []
 
 
 def test_stage_a_late_failure_does_not_double_invoke_finalizer(monkeypatch: pytest.MonkeyPatch) -> None:

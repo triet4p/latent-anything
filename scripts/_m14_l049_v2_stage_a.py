@@ -386,9 +386,14 @@ def _finalizer_rejection_code(value: object) -> str | None:
     ):
         return "finalizer_cleanup_fields"
 
-    peak = value.get("resource_peak")
+    return _finalizer_resource_peak_rejection_code(value.get("resource_peak"))
+
+
+def _finalizer_resource_peak_rejection_code(peak: object) -> str | None:
+    """Classify one resource peak with a stable, non-sensitive first failure."""
     if not isinstance(peak, Mapping) or set(peak) != _FINALIZER_PEAK_FIELDS:
-        return "finalizer_resource_peak_fields"
+        return "finalizer_resource_peak_shape"
+
     integer_fields = (
         "peak_cpu_bytes",
         "peak_gpu_bytes",
@@ -396,67 +401,84 @@ def _finalizer_rejection_code(value: object) -> str | None:
         "budget_cpu_bytes",
         "budget_gpu_bytes",
     )
-    if (
-        peak.get("unit") != "bytes"
-        or any(_bounded_nonnegative_int(peak.get(field)) is None for field in integer_fields)
-        or peak.get("measurement_status") not in {"available", "unavailable"}
-        or (
-            peak.get("measurement_reason") is not None
-            and (
-                not isinstance(peak.get("measurement_reason"), str)
-                or peak.get("measurement_reason") not in _FINALIZER_MEASUREMENT_REASONS
-            )
-        )
-        or peak.get("elapsed_seconds") is not None
-        and _finite_nonnegative_float_value(peak.get("elapsed_seconds")) is None
-        or peak.get("elapsed_source") != "time.perf_counter"
-        or peak.get("cpu_source") not in _FINALIZER_CPU_SOURCES
-        or peak.get("gpu_source") not in {"torch.cuda.max_memory_allocated", "unavailable"}
-        or peak.get("gpu_reserved_source") not in {"torch.cuda.max_memory_reserved", "unavailable"}
-        or not isinstance(peak.get("gpu_device"), str)
-    ):
-        return "finalizer_resource_peak_fields"
+    if any(not isinstance(peak.get(field), int) or isinstance(peak.get(field), bool) for field in integer_fields):
+        return "finalizer_resource_peak_primitive_types"
+    if peak.get("unit") != "bytes" or not isinstance(peak.get("unit"), str):
+        return "finalizer_resource_peak_primitive_types"
+    for field in ("elapsed_source", "cpu_source", "gpu_source", "gpu_reserved_source", "gpu_device"):
+        if not isinstance(peak.get(field), str):
+            return "finalizer_resource_peak_primitive_types"
+    if peak.get("measurement_status") is not None and not isinstance(peak.get("measurement_status"), str):
+        return "finalizer_resource_peak_primitive_types"
+    reason = peak.get("measurement_reason")
+    if reason is not None and not isinstance(reason, str):
+        return "finalizer_resource_peak_primitive_types"
+    elapsed = peak.get("elapsed_seconds")
+    if elapsed is not None and (isinstance(elapsed, bool) or not isinstance(elapsed, (int, float))):
+        return "finalizer_resource_peak_primitive_types"
+    if elapsed is not None and _finite_nonnegative_float_value(elapsed) is None:
+        return "finalizer_resource_peak_elapsed"
+    if peak.get("elapsed_source") != "time.perf_counter":
+        return "finalizer_resource_peak_elapsed"
 
-    status = peak["measurement_status"]
-    reason = peak["measurement_reason"]
+    status = peak.get("measurement_status")
+    if status not in {"available", "unavailable"}:
+        return "finalizer_resource_peak_status_reason"
+    if reason is not None and reason not in _FINALIZER_MEASUREMENT_REASONS:
+        return "finalizer_resource_peak_status_reason"
+    if status == "available" and reason is not None:
+        return "finalizer_resource_peak_status_reason"
+    if status == "unavailable" and reason is None:
+        return "finalizer_resource_peak_status_reason"
+
+    if peak.get("cpu_source") not in _FINALIZER_CPU_SOURCES:
+        return "finalizer_resource_peak_source_device"
+    if peak.get("gpu_source") not in {"torch.cuda.max_memory_allocated", "unavailable"}:
+        return "finalizer_resource_peak_source_device"
+    if peak.get("gpu_reserved_source") not in {"torch.cuda.max_memory_reserved", "unavailable"}:
+        return "finalizer_resource_peak_source_device"
+    device = peak.get("gpu_device")
+    canonical_device = device == "unavailable" or (
+        isinstance(device, str) and device.startswith("cuda:") and device[5:].isdigit()
+    )
+    if not canonical_device:
+        return "finalizer_resource_peak_source_device"
+
+    peak_cpu = cast(int, peak["peak_cpu_bytes"])
+    peak_gpu = cast(int, peak["peak_gpu_bytes"])
+    peak_reserved = cast(int, peak["peak_gpu_reserved_bytes"])
+    budget_cpu = cast(int, peak["budget_cpu_bytes"])
+    budget_gpu = cast(int, peak["budget_gpu_bytes"])
+    if any(
+        value < 0 or value > _MAX_RESOURCE_VALUE
+        for value in (peak_cpu, peak_gpu, peak_reserved, budget_cpu, budget_gpu)
+    ):
+        return "finalizer_resource_peak_budget"
+
     if status == "available":
         if (
-            reason is not None
-            or _finite_positive_float_value(peak.get("elapsed_seconds")) is None
-            or peak["peak_cpu_bytes"] <= 0
-            or peak["peak_gpu_bytes"] <= 0
-            or peak["peak_gpu_reserved_bytes"] <= 0
-            or peak["cpu_source"] == "unavailable"
-            or peak["gpu_source"] == "unavailable"
-            or peak["gpu_reserved_source"] == "unavailable"
-            or not peak["gpu_device"].startswith("cuda:")
-            or not peak["gpu_device"][5:].isdigit()
+            _finite_positive_float_value(elapsed) is None
+            or peak_cpu <= 0
+            or peak_gpu <= 0
+            or peak_reserved <= 0
+            or peak.get("cpu_source") == "unavailable"
+            or peak.get("gpu_source") == "unavailable"
+            or peak.get("gpu_reserved_source") == "unavailable"
+            or device == "unavailable"
         ):
-            return "finalizer_resource_peak_fields"
+            return "finalizer_resource_peak_availability_provenance"
     else:
-        if reason is None:
-            return "finalizer_resource_peak_fields"
         cpu_source = peak["cpu_source"]
         gpu_source = peak["gpu_source"]
         reserved_source = peak["gpu_reserved_source"]
         source_value_valid = (
-            (
-                cpu_source == "unavailable"
-                and peak["peak_cpu_bytes"] == 0
-                or cpu_source != "unavailable"
-                and peak["peak_cpu_bytes"] > 0
-            )
-            and (
-                gpu_source == "unavailable"
-                and peak["peak_gpu_bytes"] == 0
-                or gpu_source != "unavailable"
-                and peak["peak_gpu_bytes"] > 0
-            )
+            (cpu_source == "unavailable" and peak_cpu == 0 or cpu_source != "unavailable" and peak_cpu > 0)
+            and (gpu_source == "unavailable" and peak_gpu == 0 or gpu_source != "unavailable" and peak_gpu > 0)
             and (
                 reserved_source == "unavailable"
-                and peak["peak_gpu_reserved_bytes"] == 0
+                and peak_reserved == 0
                 or reserved_source != "unavailable"
-                and peak["peak_gpu_reserved_bytes"] > 0
+                and peak_reserved > 0
             )
         )
         cuda_reason = reason in {
@@ -465,29 +487,49 @@ def _finalizer_rejection_code(value: object) -> str | None:
             "cuda_peak_query_failed",
             "cuda_zero_peak",
         }
+        gpu_pair_unavailable = (
+            gpu_source == "unavailable" and reserved_source == "unavailable" and peak_gpu == 0 and peak_reserved == 0
+        )
+        gpu_pair_measured = (
+            gpu_source == "torch.cuda.max_memory_allocated"
+            and reserved_source == "torch.cuda.max_memory_reserved"
+            and peak_gpu > 0
+            and peak_reserved > 0
+            and device != "unavailable"
+        )
         if (
             not source_value_valid
-            or (cuda_reason and (peak["gpu_source"] != "unavailable" or peak["gpu_reserved_source"] != "unavailable"))
-            or (reason == "rss_unavailable" and peak["cpu_source"] != "unavailable")
+            or (
+                cuda_reason
+                and (
+                    gpu_source != "unavailable"
+                    or reserved_source != "unavailable"
+                    or peak_gpu != 0
+                    or peak_reserved != 0
+                    or (device != "unavailable" and not canonical_device)
+                )
+            )
+            or (reason == "rss_unavailable" and cpu_source != "unavailable")
             or (
                 reason in {"tracker_unstarted", "resource_measurement_invalid"}
                 and (
-                    peak["cpu_source"] != "unavailable"
-                    or peak["gpu_source"] != "unavailable"
-                    or peak["gpu_reserved_source"] != "unavailable"
+                    cpu_source != "unavailable"
+                    or gpu_source != "unavailable"
+                    or reserved_source != "unavailable"
+                    or device != "unavailable"
                 )
             )
-            or (cuda_reason and peak["gpu_device"] != "unavailable" and not peak["gpu_device"].startswith("cuda:"))
+            or (not cuda_reason and gpu_source == "unavailable" and device != "unavailable")
+            or (gpu_source != "unavailable" and device == "unavailable")
+            or (not cuda_reason and reserved_source == "unavailable" and device != "unavailable")
+            or (not cuda_reason and not ((gpu_pair_unavailable and device == "unavailable") or gpu_pair_measured))
         ):
-            return "finalizer_resource_peak_fields"
+            return "finalizer_resource_peak_availability_provenance"
 
-    if (
-        peak["peak_cpu_bytes"] > peak["budget_cpu_bytes"]
-        or peak["peak_gpu_bytes"] > peak["budget_gpu_bytes"]
-        or peak["peak_gpu_reserved_bytes"] > peak["budget_gpu_bytes"]
-        or peak["peak_gpu_reserved_bytes"] < peak["peak_gpu_bytes"]
-    ):
-        return "finalizer_cross_field_invariants"
+    if peak_cpu > budget_cpu or peak_gpu > budget_gpu or peak_reserved > budget_gpu:
+        return "finalizer_resource_peak_budget"
+    if peak_reserved < peak_gpu:
+        return "finalizer_resource_peak_cross_invariants"
     return None
 
 

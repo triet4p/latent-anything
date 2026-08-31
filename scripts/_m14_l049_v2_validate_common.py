@@ -82,6 +82,11 @@ def safe_int(value: object) -> int | None:
     return result if -(1 << 63) <= result < (1 << 63) else None
 
 
+def _canonical_cuda_device(value: object) -> bool:
+    """Accept only the serialized CUDA device spelling, never free text."""
+    return isinstance(value, str) and value.startswith("cuda:") and value[5:].isdigit()
+
+
 def finite_values(values: object, *, expected_len: int | None = None) -> list[float] | None:
     if not isinstance(values, (list, tuple)) or (expected_len is not None and len(values) != expected_len):
         return None
@@ -383,8 +388,7 @@ def real_resources(
             }
             or peak.get("gpu_source") != "torch.cuda.max_memory_allocated"
             or peak.get("gpu_reserved_source") != "torch.cuda.max_memory_reserved"
-            or not isinstance(peak.get("gpu_device"), str)
-            or not peak.get("gpu_device", "").startswith("cuda:")
+            or not _canonical_cuda_device(peak.get("gpu_device"))
         ):
             errors.append(f"{stage} measured resource provenance is invalid")
     else:
@@ -411,12 +415,22 @@ def real_resources(
             "cuda_zero_peak",
         }
         rss_unavailable = reason == "rss_unavailable"
+        gpu_pair_unavailable = (
+            peak.get("gpu_source") == "unavailable"
+            and peak.get("gpu_reserved_source") == "unavailable"
+            and peak.get("peak_gpu_bytes") == 0
+            and peak.get("peak_gpu_reserved_bytes") == 0
+        )
+        gpu_pair_measured = (
+            peak.get("gpu_source") == "torch.cuda.max_memory_allocated"
+            and peak.get("gpu_reserved_source") == "torch.cuda.max_memory_reserved"
+            and _positive_int(peak.get("peak_gpu_bytes"))
+            and _positive_int(peak.get("peak_gpu_reserved_bytes"))
+            and _canonical_cuda_device(peak.get("gpu_device"))
+        )
         source_shape_valid = (
             reason in valid_reasons
-            and (
-                not cuda_unavailable
-                or (peak.get("gpu_source") == "unavailable" and peak.get("gpu_reserved_source") == "unavailable")
-            )
+            and (not cuda_unavailable or gpu_pair_unavailable)
             and (not rss_unavailable or peak.get("cpu_source") == "unavailable")
             and (
                 reason not in {"tracker_unstarted", "resource_measurement_invalid"}
@@ -429,7 +443,12 @@ def real_resources(
             and (
                 not cuda_unavailable
                 or peak.get("gpu_device") == "unavailable"
-                or (isinstance(peak.get("gpu_device"), str) and peak.get("gpu_device", "").startswith("cuda:"))
+                or _canonical_cuda_device(peak.get("gpu_device"))
+            )
+            and (not cuda_unavailable or (peak.get("peak_gpu_bytes") == 0 and peak.get("peak_gpu_reserved_bytes") == 0))
+            and (
+                cuda_unavailable
+                or ((gpu_pair_unavailable and peak.get("gpu_device") == "unavailable") or gpu_pair_measured)
             )
         )
         cpu_source = peak.get("cpu_source")
