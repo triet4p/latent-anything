@@ -49,6 +49,13 @@
 
 ### Changed
 
+- Hardened the real L04.9 v2 Stage A and Stage B post-runtime boundary:
+  validator-rejected artifacts now become independently validated,
+  non-promoting D0 triads with allowlisted rejection codes and normalized
+  unavailable-resource provenance. Valid semantic D0 and eligible D1/D2
+  outcomes remain unchanged; the new 5791-byte failed attempt is preserved
+  pending owner exception in a sanitized sidecar.
+
 - Corrected the v2 causal Stage A path to capture private GPT-2 block outputs
   before the terminal `ln_f`, including block `h.11`, while preserving the
   public native hidden-state contract where the terminal index is post-`ln_f`.

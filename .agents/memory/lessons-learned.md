@@ -967,6 +967,25 @@ the deletion target beyond the verified five files.
  recompute the metric.
 
 **Watch out for:** Terminal-layer parity requires replacing the raw residual
- before `ln_f`; zero-strength must reproduce the corrupted logits exactly,
- tuple/list hook outputs must be reconstructed safely, and every hook must be
- removed on both success and exception.
+before `ln_f`; zero-strength must reproduce the corrupted logits exactly,
+tuple/list hook outputs must be reconstructed safely, and every hook must be
+removed on both success and exception.
+
+## [2026-08-31] Validate real artifacts before triad serialization
+
+**Symptom:** A real CUDA attempt reached post-runtime validation, but a
+validator rejection raised `SystemExit` before the artifact and exact triad
+were written, causing downstream bundle status 66.
+
+**Root cause:** The CLI catch-all covered runtime construction and evaluation
+but ended before `validate_*`, output serialization, and triad writing.
+
+**Fix / workaround:** Treat post-runtime validation rejection as a distinct,
+sanitized `validation_rejected` D0 with `selection_complete`/`evaluation_complete`
+false, no candidate evidence, allowlisted validator codes only, and normalized
+unavailable-resource provenance. Independently validate that fallback before
+writing the triad; write failures must exit without recursive fabrication.
+
+**Watch out for:** Keep semantic D0 and eligible D1/D2 branches strict, never
+serialize validator prose or exception bodies, and preserve only trustworthy
+attempted-real counters.

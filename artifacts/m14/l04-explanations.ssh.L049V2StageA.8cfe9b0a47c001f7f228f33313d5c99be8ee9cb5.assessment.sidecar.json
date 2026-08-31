@@ -1,0 +1,50 @@
+{
+  "schema_version": "m14-l04.9-v2-stage-a-validation-rejection-sidecar-v1",
+  "source": {
+    "commit_sha": "8cfe9b0a47c001f7f228f33313d5c99be8ee9cb5",
+    "tree_sha256": "f89c774075b8716382a0f4bc2e16d63974c3fae6",
+    "use_case": "L049V2StageA"
+  },
+  "raw_capture": {
+    "bytes": 5791,
+    "sha256": "85255e5eb1924e3e30946e93a530ab7746dc0ed560bfff20c3124df59bf1dd06"
+  },
+  "artifact": {
+    "status": "stage_a_failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_complete": false,
+    "failure_kind": "validation_rejected",
+    "validation_codes": ["validation_rejected_unavailable_resource"],
+    "selected_candidate": null,
+    "candidate_evidence": "unavailable"
+  },
+  "markers": {
+    "transport_decode_status": 0,
+    "transport_decode_match": "PASS",
+    "cli_status": 1,
+    "bundle_status": 66,
+    "final_status": 1,
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "triad": "not_created",
+    "bundle_base64": "not_created"
+  },
+  "redaction": "structured metadata only; prompts, holdout material, traceback, paths, and secret bodies omitted",
+  "semantic": {
+    "status": "validation_rejected",
+    "selection_status": "unavailable_after_primary_validation",
+    "validator_reason": "validation_rejected_unavailable_resource"
+  },
+  "repository_promotion": false,
+  "raw_retention_status": "preserved_pending_owner_exception",
+  "standard_finalize": false,
+  "transport": {
+    "payload_sha256": null,
+    "decode_sha256": null,
+    "cli_sha256": null,
+    "bootstrap_sha256": null,
+    "bootstrap_status": "not_recorded"
+  },
+  "sidecar_sha256": "b64cd9c8f0b20652904bae5694dca9c3fa0cf3e6dfaf22f6fcdc6e02aec8ef6a"
+}

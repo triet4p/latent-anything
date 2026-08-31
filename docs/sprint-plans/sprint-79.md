@@ -360,6 +360,12 @@ occurred. See
   Tuple/list outputs, terminal-normalization parity, zero-strength identity,
   variable endpoint lengths, and hook cleanup are covered. Historical D0
   assessment sidecars and evidence bytes remain unchanged.
+- [x] Harden the real post-runtime validation boundary for L04.9 v2 Stage A and
+  Stage B. Validator rejection now yields an independently validated,
+  non-promoting D0 triad with an allowlisted rejection code and normalized
+  unavailable-resource provenance; successful semantic D0 and eligible D1/D2
+  paths remain strict. The 5791-byte failed attempt is preserved pending owner
+  exception in a sanitized assessment sidecar.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

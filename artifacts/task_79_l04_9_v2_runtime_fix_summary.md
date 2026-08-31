@@ -89,3 +89,20 @@ the previous sidecar digest
 `a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9`, and
 verified post-delete absence. The updated sidecar digest is
 `02a355cd6dffe6d85e07a0cce2175c126a4f512056bccb88408cadf744ecde93`.
+
+## Post-runtime validation rejection follow-up
+
+The real Stage A CLI now treats validator rejection as an attempted-real,
+non-promoting D0 outcome. It stores only an allowlisted validation code,
+normalizes invalid unavailable-resource provenance to the validator-supported
+schema, independently validates the fallback artifact, and emits the exact
+partial/run/failure triad before any retention attempt. Stage B uses the same
+boundary and records `evaluation_complete=false`; successful semantic D0 and
+eligible D1/D2 paths remain strict. The 5791-byte failed capture is preserved
+pending owner exception in a sanitized assessment sidecar; no prompts,
+holdout material, traceback, or raw exception body is recorded.
+
+The follow-up changed the private Stage A/Stage B schemas, validators, real
+CLIs, and v2 tests, and added the canonical sanitized assessment sidecar for
+the preserved 5791-byte raw. The raw remains untracked and byte-exact pending
+the owner’s retention decision.
