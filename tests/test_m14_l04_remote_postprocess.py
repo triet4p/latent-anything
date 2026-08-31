@@ -8,6 +8,7 @@ import hashlib
 import io
 import json
 import tarfile
+import time
 from pathlib import Path
 from typing import Any, cast
 
@@ -72,7 +73,10 @@ def _archive(
     pax_member: bool = False,
 ) -> bytes:
     target = io.BytesIO()
-    with tarfile.open(fileobj=target, mode="w:gz", format=tarfile.PAX_FORMAT) as handle:
+    with (
+        gzip.GzipFile(fileobj=target, mode="wb", mtime=0) as compressed,
+        tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as handle,
+    ):
         for path, data in sorted(files.items()):
             if symlink and path.endswith(".failure.json"):
                 info = tarfile.TarInfo(path)
@@ -136,6 +140,14 @@ def test_representative_marker_and_base64_capture_is_parseable(tmp_path: Path) -
     assert markers["L04_CODE_SHA"] == source_sha
     assert len(members) == 3
     assert hashlib.sha256(archive).hexdigest() == markers["L04_BUNDLE_SHA256"]
+
+
+def test_synthetic_archives_are_byte_identical_across_elapsed_time() -> None:
+    files = {"artifacts/m14/example.json": b'{"ok":true}\n'}
+    first = _archive(files)
+    time.sleep(1.1)
+    second = _archive(files)
+    assert first == second
 
 
 def test_v2_stage_a_fake_capture_retains_and_finalizes_exact_triad(tmp_path: Path) -> None:
@@ -449,9 +461,11 @@ def test_marker_integrity_fails_closed(tmp_path: Path, variant: str) -> None:
     elif variant == "missing":
         text = text.replace("L04_BUNDLE_STATUS=0\n", "")
     else:
-        text = text.replace(
-            "L04_BUNDLE_SHA256=" + hashlib.sha256(_archive(files)).hexdigest(), "L04_BUNDLE_SHA256=" + "c" * 64
-        )
+        needle = "L04_BUNDLE_SHA256=" + hashlib.sha256(_archive(files)).hexdigest()
+        replacement = "L04_BUNDLE_SHA256=" + "c" * 64
+        assert needle in text
+        text = text.replace(needle, replacement, 1)
+        assert replacement in text
     raw.write_text(text, encoding="utf-8")
     with pytest.raises(postprocess.RetentionError):
         _call(tmp_path, raw, source_sha)
