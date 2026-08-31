@@ -1078,6 +1078,28 @@ and must never be described as a successful run or standard finalization.
 path, broaden a cleanup with a glob, alter the preserved digests, or delete
 evidence before the exact manifest and untracked/no-reparse checks pass.
 
+## [2026-09-01] Publish CUDA peaks and failed-finalizer counters atomically
+
+**Symptom:** The current real Stage A failure exposed a valid live selection
+counter snapshot alongside stale hook/intervention projections and an invalid
+resource-peak envelope. A single successful CUDA query could also remain
+visible if its paired query failed.
+
+**Root cause:** Resource projections were assembled from independently-timed
+sibling mappings, and `ResourceTracker.finish()` assigned each CUDA peak before
+the pair had passed validation.
+
+**Fix / workaround:** Treat a complete live `operation_counts` mapping as the
+only source for hook/intervention projections. Query allocated and reserved GPU
+peaks into locals, reject bool/non-integral/negative/zero/out-of-budget or
+asymmetric values, and publish both only after the pair is valid; otherwise
+clear both and emit an allowlisted unavailable reason. Keep generic archive
+member names distinct from source-SHA-keyed local retained paths.
+
+**Watch out for:** Do not reuse a failed run's discarded selection, infer which
+GPU subquery failed when raw evidence does not say, or allow a stale projection
+to overwrite live counters.
+
 ## [2026-09-01] Finalizer acceptance and diagnosis must share one checker
 
 **Symptom:** Stage A's finalizer acceptance predicate and its sanitized

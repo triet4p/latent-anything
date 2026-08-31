@@ -2,9 +2,9 @@
 
 ## Scope
 
-This local atomic task records the explicit owner-exception cleanup of the
-identified incident evidence without network, SSH, CUDA, holdout, retry, or
-promotion.
+This local atomic task records the local remediation and sanitized assessment
+of the current b295a506 incident without network, SSH, CUDA, holdout, retry, or
+promotion. The captured evidence remains pending for owner review.
 
 ## Changes
 
@@ -32,28 +32,38 @@ promotion.
   ownership or delete a contender's guard.
 - Historical retention coverage binds to the exact recorded evidence paths,
   preserving absence guarantees without generic `attempt1` collisions.
+- The ResourceTracker now publishes allocated and reserved CUDA peaks as one
+  validated pair. Exceptions, invalid types, negative values, zero values, and
+  asymmetric pairs clear both values and publish an allowlisted unavailable
+  reason. Stage A normalization derives hook/intervention projections only
+  from the complete live operation-count snapshot.
+- v2 retained triad files use source-unique local names keyed by the full
+  lowercase source SHA, while the audit keeps the original generic archive
+  member names in `archive_member_names`. The current b295a506 audit was
+rebuilt from the prior 2638-byte/SHA `c9fdfcfa5f60a010c403e143062ee6f7a9820f588308b7f13912240093456fd4`
+to 3276 bytes/SHA `914d374748e803513d3aeba04c556fa17584ebdabd3efdad4dcde6bf26e43a91`
+to make this distinction; raw, bundle, and triad bytes/digests are unchanged.
 
 ## Current incident assessment
 
 The canonical sanitized assessment is
-`artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.incident-assessment.sidecar.json`.
-It records one completed payload, two reported SSH launches, an aborted
-second launch with uncertain remote reachability, D0 status, and false
-promotion/finalization. The five current raw/audit/triad files were verified
-against their exact recorded sizes and SHA-256 values, then deleted by explicit
-owner exception. Their hashes, sizes, the bundle digest metadata, and
-pre/post absence proof remain in the sidecar; this is not standard retention
-finalization and cannot be recovered from Git.
+`artifacts/m14/l04-explanations.ssh.L049V2StageA.b295a506933e18f6d9139b0439f0e80d6ed441e8.assessment.sidecar.json`.
+It binds one completed payload and one SSH/CLI invocation, D0 status, false
+promotion/finalization, the proven stale projection bug, and an explicitly
+unknown GPU subfield because the raw capture does not expose which CUDA peak
+query was asymmetric. Selection evaluation count 2592 is discarded and not
+reusable. Raw, bundle, and relocated triad bytes/digests remain unchanged and
+pending; the audit was rebuilt and is bound by its new exact size/SHA-256. The
+bundle member names remain generic only inside the archived bundle metadata.
+
+The earlier 13bf incident remains separately recorded as an explicit
+owner-exception deletion and is not standard retention finalization.
 
 ## Verification
 
-Focused Stage A and transport validation pass, including canonical UseCase,
-Global-mutex concurrent-launch, and lock-release coverage on pwsh 7 and native
-Windows PowerShell 5.1. A production-wrapper regression with an isolated fake
-`ssh.exe` also proves mixed-case contenders share one canonical key and launch
-exactly one child. The current incident's five evidence paths are now absent,
-and the canonical sidecar/test assertions verify the exact owner-exception
-record. The full L04 family and repository gates pass locally; no remote
-invocation, retry, holdout access, promotion, or standard finalization was
-performed. Graphify was updated after the source and test changes, with its
-pre-existing zero-node JSON warning retained.
+Focused Stage A, ResourceTracker, and retention validation cover the atomic
+CUDA-pair and source-unique-path contracts. The earlier transport and mutex
+gates remain passing from the reviewed b295a506 baseline. The current incident
+evidence remains present and pending; no remote invocation, retry, holdout
+access, promotion, or standard finalization was performed in this remediation.
+Graphify is updated after source and test changes.

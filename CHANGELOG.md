@@ -49,6 +49,16 @@
 
 ### Changed
 
+- Hardened `ResourceTracker` CUDA peak publication to validate allocated and
+  reserved values atomically; invalid, negative, zero, asymmetric, or failed
+  queries now clear both measurements and publish only an allowlisted
+  unavailable reason. Failed-finalizer normalization derives hook and
+  intervention solely from the complete live operation-count snapshot.
+  Versioned v2 retained triads now use source-SHA-keyed local paths while
+  preserving generic archive member names. The b295a506 incident remains a
+  pending D0 with selection count 2592 explicitly discarded and no promotion
+  or finalization.
+
 - Consolidated M14 L04.9 v2 Stage A finalizer acceptance and diagnostics into
   one producer-independent checker with allowlisted shape, identity,
   operation, cleanup, resource-peak, and cross-field categories. Added

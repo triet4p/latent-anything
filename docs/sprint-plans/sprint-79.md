@@ -391,6 +391,16 @@ occurred. See
   false; its raw, audit, bundle, and triad hashes are bound in the sanitized
   incident assessment sidecar. No SSH, CUDA, holdout, retry, or evidence
   deletion was performed by this remediation.
+- [x] Remediate the current b295a506 evidence boundary locally. CUDA peak
+  publication is now atomic across allocated/reserved queries and failed
+  finalizer normalization trusts one complete live counter snapshot. The
+  raw, bundle, and triad bytes/digests are unchanged. The audit was canonically
+  rebuilt from 2638 bytes/SHA `c9fdfcfa5f60a010c403e143062ee6f7a9820f588308b7f13912240093456fd4`
+  to 3276 bytes/SHA `914d374748e803513d3aeba04c556fa17584ebdabd3efdad4dcde6bf26e43a91`
+  to distinguish generic archive member names from source-unique local paths.
+  The sanitized assessment remains pending D0 with one SSH/CLI invocation,
+  2592 discarded evaluations, unknown GPU subfield, and promotion/finalization
+  false. No remote retry, holdout access, or promotion occurred.
 - [x] Close the current L049 v2 incident evidence under the explicit owner
   exception. The raw capture, audit, and three triad files were each verified
   at their exact sidecar-recorded size/SHA-256, regular-file/no-reparse and
