@@ -54,6 +54,12 @@
   incomplete-cleanup provenance without retrying the finalizer or masking the
   primary runtime exception; successful D1/D2 cleanup remains strict.
 
+- Distinguished attempted-real semantic gate failures from runtime exceptions
+  with frozen `failure_kind` and `selection_complete` fields. Complete
+  semantic D0 selections, including no-consensus outcomes, are independently
+  recomputed and emitted as validator-clean triads without weakening strict D1
+  acceptance.
+
 - Added the canonical sanitized sidecar for the failed v2 Stage A diagnostic,
   binding the exact source/tree/raw/transport commitments and no-triad reason
   `no_triad_bundle_status_66` while recording that no audit or candidate was

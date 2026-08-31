@@ -873,3 +873,23 @@ digest, `standard_finalize=false`, and verified absence.
 execution bodies, or imply semantic eligibility from transport cleanup alone;
 owner-exception deletion is irreversible and must not be reported as standard
 finalization.
+
+## [2026-08-31] Semantic D0 gate failures must not masquerade as runtime failures
+
+**Symptom:** A real Stage A run completed scoring but the CLI emitted no
+triad because the validator rejected its complete selection as an incomplete
+runtime failure.
+
+**Root cause:** `stage_a_failed` represented both runtime exceptions with an
+empty selection and semantic gate failures with full records, folds, candidate
+or no-consensus state, and OOF metrics; the validator branched on status alone.
+
+**Fix / workaround:** Bind the frozen artifact to `failure_kind` and
+`selection_complete`. Validate runtime exceptions through the empty-selection
+branch, and independently recompute complete semantic selections, accepting a
+candidate only when the consensus gate yields one and requiring at least one
+preregistered gate to fail for D0.
+
+**Watch out for:** Never infer runtime failure from `stage_a_failed` alone;
+semantic D0 artifacts may contain complete candidate evidence while remaining
+ineligible and non-promoting.

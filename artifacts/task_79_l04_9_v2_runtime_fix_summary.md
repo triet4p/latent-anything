@@ -37,8 +37,9 @@ promotion was performed.
   cleanup-stage validation, counter-derived hook removal, and protocol bounds.
 * `scripts/_m14_l049_v2_attestation.py` - attested cleanup hooks remaining for
   incomplete real D0 cleanup.
-* `scripts/_m14_l049_v2_validate_stage_a.py` - strict D0 attempted-failure
-  branch with no candidate or eligibility.
+* `scripts/_m14_l049_v2_validate_stage_a.py` - explicit runtime-versus-semantic
+  D0 discriminator and independent complete-selection checks.
+* `scripts/_m14_l049_v2_schema.py` - frozen Stage A failure-kind constants.
 * `tests/test_transformer_lm.py` - shortened hidden-state regression.
 * `tests/test_m14_l049_v2.py` - position, sanitized failure, cleanup-finalizer,
   hook-counter, and CLI triad regressions.
@@ -46,6 +47,8 @@ promotion was performed.
 * `artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json` - canonical sanitized
   failed-attempt no-triad sidecar, now recording owner-exception deletion
   with reason `no_triad_bundle_status_66`.
+* `artifacts/m14/l04-explanations.ssh.L049V2StageA.3b15627585a0fc07e28c0f8b5d0118630f3ded5d.sidecar.json` - sanitized
+  sidecar for the new semantic-selection validator misclassification.
 * `CHANGELOG.md`, `docs/sprint-plans/sprint-79.md`, and
   `.agents/memory/lessons-learned.md` - truthful implementation record.
 
@@ -65,3 +68,18 @@ The previously captured raw diagnostic was verified at 7314 bytes with
 SHA-256 `9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f`
 and deleted under the explicit owner exception; the sidecar records its
 verified absence and deletion is irreversible.
+
+## Follow-up real attempt
+
+One new exact-SHA real-CUDA Stage A attempt reached aligned scoring but
+returned a semantic D0 gate failure. The CLI incorrectly rejected its complete
+selection as a runtime-failure shape before writing the triad; no candidate or
+metrics were retained in the raw evidence. The new discriminator fix separates
+`runtime_exception`/incomplete selection from `semantic_gate`/complete
+selection, including semantic no-consensus, while keeping D1 strict.
+
+The new failed raw capture remains untracked and pending owner review:
+6008 bytes, SHA-256
+`757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212`.
+Its sanitized sidecar records the validator misclassification, no triad or
+audit, and no promotion.

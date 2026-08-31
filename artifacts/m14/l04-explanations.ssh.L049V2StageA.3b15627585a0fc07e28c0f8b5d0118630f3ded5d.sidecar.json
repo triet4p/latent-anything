@@ -1,0 +1,48 @@
+{
+  "artifact": {
+    "audit": "not_created",
+    "bundle": "not_created",
+    "failure": "no_triad",
+    "partial": "not_created",
+    "run": "not_created",
+    "selected_candidate": null
+  },
+  "evidence_level": "D0",
+  "markers": {
+    "bundle_status": 66,
+    "cli_status": 1,
+    "final_status": 1,
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "transport_decode_match": "PASS",
+    "transport_decode_status": 0
+  },
+  "raw_capture": {
+    "bytes": 6008,
+    "sha256": "757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212"
+  },
+  "raw_retention_status": "preserved_pending_owner_exception",
+  "redaction": "structured metadata only; sensitive execution bodies omitted",
+  "reason_code": "semantic_gate_d0_validator_misclassification",
+  "repository_promotion": false,
+  "schema_version": "m14-l04.9-v2-stage-a-failure-sidecar-v1",
+  "semantic": {
+    "evidence_status": "unavailable_validator_rejection",
+    "selection_status": "reached",
+    "status": "selection_reached"
+  },
+  "source": {
+    "commit_sha": "3b15627585a0fc07e28c0f8b5d0118630f3ded5d",
+    "tree_sha256": "2052472177cb7284027571241fbdeb41ff7dd8c2",
+    "use_case": "L049V2StageA"
+  },
+  "transport": {
+    "bootstrap_sha256": null,
+    "bootstrap_status": "not_recorded",
+    "build_payload_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+    "cli_sha256": "9a523d652a6bfe05366909fcfc9e9bce5692f899f8ca03915f951cedca867cc5",
+    "decode_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
+    "payload_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950"
+  },
+  "sidecar_sha256": "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9"
+}

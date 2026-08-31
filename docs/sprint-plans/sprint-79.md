@@ -322,6 +322,11 @@ occurred. See
   incomplete real attempt emits a validator-clean D0 triad with partial
   counters. No CUDA rerun, holdout access, retention finalization, or evidence
   promotion occurred.
+- [x] Separate real semantic-gate D0 outcomes from runtime-exception D0
+  outcomes. Frozen `failure_kind` and `selection_complete` bindings now let
+  complete candidate/no-consensus selections validate independently while
+  runtime failures remain empty-selection, non-promoting triads; D1 remains
+  strict.
 - [x] Close the v2 failed-attempt evidence state locally under the explicit
   owner exception. The raw capture was verified at its recorded size/hash and
   deleted only by literal path; the canonical sanitized Stage A sidecar now
