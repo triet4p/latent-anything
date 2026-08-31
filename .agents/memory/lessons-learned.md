@@ -893,3 +893,19 @@ preregistered gate to fail for D0.
 **Watch out for:** Never infer runtime failure from `stage_a_failed` alone;
 semantic D0 artifacts may contain complete candidate evidence while remaining
 ineligible and non-promoting.
+
+## [2026-08-31] Close semantic D0 raw only through an owner exception
+
+**Symptom:** A semantic-gate D0 attempt can have trustworthy transport markers
+but no triad or audit after validator misclassification, leaving a raw capture
+pending after review.
+
+**Fix / workaround:** Verify the exact resolved raw path, recorded size, and
+SHA-256 against the tracked sanitized sidecar before deleting only that literal
+path under explicit owner authorization. Transition the sidecar to
+`deleted_by_owner_exception` with `standard_finalize=false`, preserve every
+transport marker, record the exact reason sequence
+`no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification`,
+chain the previous sidecar digest, and attest post-delete absence. Keep the
+attempt D0 and non-promoting; owner-exception deletion is irreversible and is
+not standard retention finalization.

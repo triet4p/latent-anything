@@ -328,12 +328,14 @@ occurred. See
   runtime failures remain empty-selection, non-promoting triads; D1 remains
   strict.
 - [x] Close the v2 failed-attempt evidence state locally under the explicit
-  owner exception. The raw capture was verified at its recorded size/hash and
+  owner exception. The 6008-byte raw capture was verified at SHA-256
+  `757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212` and
   deleted only by literal path; the canonical sanitized Stage A sidecar now
-  records `no_triad_bundle_status_66`, prior sidecar digest, verified absence,
-  `standard_finalize=false`, exact transport markers/hashes, and no
-  triad/audit/selection or promotion. No raw parsing payload, sensitive body,
-  retry, or holdout access occurred.
+  records `deleted_by_owner_exception`,
+  `no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification`,
+  the prior sidecar digest, verified absence, `standard_finalize=false`, exact
+  transport markers/hashes, and no triad/audit/selection or promotion. No raw
+  parsing payload, sensitive body, retry, or holdout access occurred.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

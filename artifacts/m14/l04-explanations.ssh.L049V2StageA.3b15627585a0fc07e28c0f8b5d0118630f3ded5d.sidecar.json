@@ -17,13 +17,23 @@
     "transport_decode_match": "PASS",
     "transport_decode_status": 0
   },
+  "owner_exception": {
+    "deletion_verification": {
+      "absent_after_delete": true,
+      "pre_delete_bytes": 6008,
+      "pre_delete_sha256": "757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212"
+    },
+    "previous_sidecar_sha256": "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9",
+    "reason": "no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification",
+    "standard_finalize": false
+  },
   "raw_capture": {
     "bytes": 6008,
     "sha256": "757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212"
   },
-  "raw_retention_status": "preserved_pending_owner_exception",
+  "raw_retention_status": "deleted_by_owner_exception",
   "redaction": "structured metadata only; sensitive execution bodies omitted",
-  "reason_code": "semantic_gate_d0_validator_misclassification",
+  "reason_code": "no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification",
   "repository_promotion": false,
   "schema_version": "m14-l04.9-v2-stage-a-failure-sidecar-v1",
   "semantic": {
@@ -44,5 +54,6 @@
     "decode_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950",
     "payload_sha256": "a78e29527f6f4810729c63a13d61b3e83fdf11de4421c69b4bca0966cdc09950"
   },
-  "sidecar_sha256": "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9"
+  "sidecar_sha256": "02a355cd6dffe6d85e07a0cce2175c126a4f512056bccb88408cadf744ecde93",
+  "standard_finalize": false
 }

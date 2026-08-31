@@ -97,7 +97,7 @@ def test_current_failed_stage_a_sidecar_records_validator_misclassification() ->
     assert (
         canonical_digest(sidecar, "sidecar_sha256")
         == sidecar["sidecar_sha256"]
-        == "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9"
+        == "02a355cd6dffe6d85e07a0cce2175c126a4f512056bccb88408cadf744ecde93"
     )
     assert sidecar["source"] == {
         "commit_sha": "3b15627585a0fc07e28c0f8b5d0118630f3ded5d",
@@ -130,8 +130,22 @@ def test_current_failed_stage_a_sidecar_records_validator_misclassification() ->
         "run": "not_created",
         "selected_candidate": None,
     }
-    assert sidecar["reason_code"] == "semantic_gate_d0_validator_misclassification"
-    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["reason_code"] == "no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification"
+    assert sidecar["raw_retention_status"] == "deleted_by_owner_exception"
+    assert sidecar["standard_finalize"] is False
+    assert sidecar["owner_exception"] == {
+        "deletion_verification": {
+            "absent_after_delete": True,
+            "pre_delete_bytes": 6008,
+            "pre_delete_sha256": "757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212",
+        },
+        "previous_sidecar_sha256": "a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9",
+        "reason": "no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification",
+        "standard_finalize": False,
+    }
+    assert not (
+        ROOT / "artifacts/m14/l04-explanations.ssh.L049V2StageA.3b15627585a0fc07e28c0f8b5d0118630f3ded5d.raw.txt"
+    ).exists()
     assert sidecar["repository_promotion"] is False
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))

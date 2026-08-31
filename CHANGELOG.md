@@ -74,12 +74,14 @@
   silently falling back to synthetic scoring. No real-CUDA rerun or evidence
   promotion was performed.
 
-- Recorded one owner-authorized exact-SHA M14 L04.9 real-CUDA attempt as a
-  non-promoting D0 semantic failure: true-interchange recovery failed and the
-  single retention attempt failed closed on a producer failure-stage mismatch.
-  Preserved and hash-verified the byte-exact raw capture before the owner
-  exception deleted it; the sanitized sidecar records the deletion. No retry or
-  evidence-ledger promotion occurred.
+- Recorded the owner-authorized exact-SHA M14 L04.9 v2 Stage A attempt as a
+  non-promoting D0 semantic failure: aligned scoring reached a gate failure,
+  but the single retention attempt failed closed on a producer failure-stage
+  mismatch. The 6008-byte raw capture was hash-verified before the owner
+  exception deleted it; the sanitized sidecar records
+  `no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification`,
+  the previous sidecar digest, verified absence, and
+  `standard_finalize=false`. No retry or evidence-ledger promotion occurred.
 
 - Promoted the owner-verified L04.8 Disentanglement record to D2/eligible for
   exact SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` only. Tracked the exact

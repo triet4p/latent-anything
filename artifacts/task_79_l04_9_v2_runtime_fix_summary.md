@@ -78,8 +78,14 @@ metrics were retained in the raw evidence. The new discriminator fix separates
 `runtime_exception`/incomplete selection from `semantic_gate`/complete
 selection, including semantic no-consensus, while keeping D1 strict.
 
-The new failed raw capture remains untracked and pending owner review:
+The new failed raw capture was verified before owner-exception deletion:
 6008 bytes, SHA-256
 `757af5cce5b4e8aa4c5b476ecc52d69ae192423179c23b3fc148510a8eafc212`.
 Its sanitized sidecar records the validator misclassification, no triad or
-audit, and no promotion.
+audit, and no promotion. The sidecar now records
+`deleted_by_owner_exception`, `standard_finalize=false`, the exact reason
+`no_triad_bundle_status_66/semantic_gate_d0_validator_misclassification`,
+the previous sidecar digest
+`a6a2afe995abdaa8996e202f51851813f6a7f7ca580715ff90109885afe39fe9`, and
+verified post-delete absence. The updated sidecar digest is
+`02a355cd6dffe6d85e07a0cce2175c126a4f512056bccb88408cadf744ecde93`.
