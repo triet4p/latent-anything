@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -36,6 +37,59 @@ def _native_windows_powershell() -> str:
     if not executable.is_file():
         pytest.skip("native Windows PowerShell 5.1 is required for this compatibility regression")
     return str(executable)
+
+
+def _compile_fake_ssh(tmp_path: Path) -> Path:
+    csc_candidates = [
+        Path(r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"),
+        Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"),
+    ]
+    csc = next((candidate for candidate in csc_candidates if candidate.is_file()), None)
+    if csc is None:
+        pytest.skip("C# compiler is required for the production fake ssh.exe regression")
+    source = tmp_path / "fake ssh source.cs"
+    executable = tmp_path / "ssh.exe"
+    source.write_text(
+        r"""
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+
+internal static class FakeSsh
+{
+    public static int Main(string[] args)
+    {
+        var marker = Environment.GetEnvironmentVariable("L04_FAKE_SSH_MARKER");
+        if (String.IsNullOrEmpty(marker)) return 91;
+        File.AppendAllText(marker, Process.GetCurrentProcess().Id + "|" + String.Join("|", args) + Environment.NewLine);
+        using (var input = Console.OpenStandardInput())
+        {
+            var buffer = new byte[8192];
+            while (input.Read(buffer, 0, buffer.Length) > 0) { }
+        }
+        Thread.Sleep(3000);
+        Console.WriteLine("FAKE_SSH=PASS");
+        return 0;
+    }
+}
+""",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [str(csc), "/nologo", "/target:exe", f"/out:{executable}", str(source)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert executable.is_file()
+    return executable
+
+
+def _single_flight_metadata_path(key: str) -> Path:
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return Path(tempfile.gettempdir()) / "latent-anything-l04-single-flight" / f"l04-{digest}.json"
 
 
 def _ssh_path() -> str:
@@ -149,6 +203,23 @@ def test_v2_stage_a_build_manifest_derives_clone_output(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = json.loads(result.stdout)
     assert manifest["v2_inputs"]["output"] == "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json"
+
+
+def test_use_case_binding_is_canonical_and_build_digest_is_case_invariant(
+    tmp_path: Path,
+) -> None:
+    expected: dict[str, object] | None = None
+    for use_case_variant in ["L049V2StageA", "l049v2stagea", "L049V2STAGEA", "l049V2StAgEa"]:
+        result = _build_only_v2(tmp_path, use_case=use_case_variant, holdout="", seed="", candidate="")
+        assert result.returncode == 0, result.stderr
+        manifest = json.loads(result.stdout)
+        assert manifest["use_case"] == "L049V2StageA"
+        assert manifest["code_sha"] == "a" * 40
+        assert manifest["v2_inputs"]["output"].endswith("l04-l049-v2-stage-a.json")
+        if expected is None:
+            expected = manifest
+        else:
+            assert manifest == expected
 
 
 @pytest.mark.parametrize(
@@ -695,6 +766,295 @@ if ($result.transport_error -ne $null) {{ exit 70 }}
     assert result.returncode == 0, result.stderr
     assert json.loads(capture.read_text(encoding="utf-8")) == values
     assert "ARGV_ROUNDTRIP=PASS" in raw_path.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_single_flight_rejects_concurrent_transport_before_child_start(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    launch_dir = tmp_path / "launches"
+    launch_dir.mkdir()
+    child = tmp_path / "single flight child.py"
+    child.write_text(
+        """
+import os
+import sys
+import time
+from pathlib import Path
+
+Path(os.environ["L04_LAUNCH_DIR"], str(os.getpid())).write_text("started", encoding="utf-8")
+sys.stdin.buffer.read()
+time.sleep(2)
+print("SINGLE_FLIGHT_CHILD=PASS")
+""",
+        encoding="utf-8",
+    )
+    driver = tmp_path / "single flight.ps1"
+    key = f"L049V2StageA|single-flight-test|{tmp_path.name}"
+    metadata_path = _single_flight_metadata_path(key)
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    metadata_path.write_text("{malformed stale metadata", encoding="utf-8")
+    driver.write_text(
+        f"""
+Import-Module '{SEAM}'
+$arguments = @({_powershell_single_quoted(str(child))}, '-single-flight-child')
+try {{
+    $result = Invoke-L04TransportProcess -SshExecutable $env:L04_PYTHON -ArgumentList $arguments `
+        -BootstrapBytes ([byte[]](1, 2, 3)) -RawCapturePath $env:L04_RAW_PATH `
+        -TimeoutSeconds 20 -SingleFlightKey '{key}'
+    $result | ConvertTo-Json -Compress
+    exit 0
+}} catch {{
+    if ($_.Exception.Message -eq 'single_flight_busy') {{ 'SINGLE_FLIGHT=REJECTED'; exit 75 }}
+    throw
+}}
+""",
+        encoding="utf-8-sig",
+    )
+    env = os.environ.copy()
+    env.update({"L04_LAUNCH_DIR": str(launch_dir), "L04_PYTHON": sys.executable})
+    first_env = dict(env, L04_RAW_PATH=str(tmp_path / "first.raw"))
+    second_env = dict(env, L04_RAW_PATH=str(tmp_path / "second.raw"))
+    command = [shell_factory(), "-NoProfile", "-File", str(driver)]
+    first = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=first_env)
+    try:
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and not list(launch_dir.iterdir()):
+            time.sleep(0.05)
+        if not list(launch_dir.iterdir()):
+            first_stdout, first_stderr = first.communicate(timeout=5)
+            raise AssertionError(
+                f"first child did not start; rc={first.returncode}; stdout={first_stdout!r}; stderr={first_stderr!r}"
+            )
+        second = subprocess.run(command, check=False, capture_output=True, text=True, env=second_env, timeout=20)
+        assert second.returncode == 75
+        assert "SINGLE_FLIGHT=REJECTED" in second.stdout
+        assert not (tmp_path / "second.raw").exists()
+    finally:
+        first_stdout, first_stderr = first.communicate(timeout=20)
+    assert first.returncode == 0, first_stderr
+    assert "SINGLE_FLIGHT_CHILD=PASS" in (tmp_path / "first.raw").read_text(encoding="utf-8")
+    assert len(list(launch_dir.iterdir())) == 1
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_single_flight_uses_global_host_wide_mutex_and_allows_cross_process_access(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    key = f"L049V2StageA|global-name|{tmp_path.name}"
+    driver = tmp_path / "global mutex probe.ps1"
+    driver.write_text(
+        f"""
+Import-Module '{SEAM}'
+$lock = Enter-L04SingleFlightLock -Key '{key}' -ArgumentList @('probe')
+try {{
+    'MUTEX_NAME=' + $lock.mutex_name
+    'ACCESS_PROBE=PASS'
+}} finally {{ Exit-L04SingleFlightLock -Lock $lock }}
+""",
+        encoding="utf-8-sig",
+    )
+    result = subprocess.run(
+        [shell_factory(), "-NoProfile", "-File", str(driver)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "MUTEX_NAME=Global\\latent-anything-l04-" in result.stdout
+    assert "ACCESS_PROBE=PASS" in result.stdout
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_production_transport_mixed_case_contenders_share_canonical_global_key(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    fake_ssh = _compile_fake_ssh(tmp_path)
+    marker = tmp_path / "fake ssh launches.log"
+    first_raw = tmp_path / "first.raw"
+    second_raw = tmp_path / "second.raw"
+    code_sha = hashlib.sha1(tmp_path.name.encode("utf-8")).hexdigest()
+    canonical_key = "L049V2StageA|" + code_sha
+    canonical_metadata = _single_flight_metadata_path(canonical_key)
+    lowercase_metadata = _single_flight_metadata_path("l049v2stagea|" + ("A" * 40).lower())
+    common = [
+        "-SshExecutable",
+        str(fake_ssh),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-CodeSha",
+        code_sha.upper(),
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-V2TrainFixturePath",
+        "C:/owner/train.jsonl",
+    ]
+
+    def command(use_case: str, raw_path: Path) -> list[str]:
+        return [
+            shell_factory(),
+            "-NoProfile",
+            "-File",
+            str(HELPER),
+            *common,
+            "-UseCase",
+            use_case,
+            "-RawCapturePath",
+            str(raw_path),
+        ]
+
+    env = dict(os.environ, L04_FAKE_SSH_MARKER=str(marker))
+    first = subprocess.Popen(
+        command("l049v2stagea", first_raw), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+    )
+    first_stdout = ""
+    first_stderr = ""
+    try:
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and not marker.exists():
+            time.sleep(0.02)
+        assert marker.exists(), "production contender did not reach fake ssh.exe"
+        second = subprocess.run(
+            command("L049V2STAGEA", second_raw), check=False, capture_output=True, text=True, env=env, timeout=30
+        )
+        assert second.returncode == 70
+        second_report = json.loads(second.stdout)
+        assert second_report["transport_error"] == "SingleFlightBusy"
+        assert not second_raw.exists()
+        first_stdout, first_stderr = first.communicate(timeout=30)
+        assert canonical_metadata.is_file()
+        metadata = json.loads(canonical_metadata.read_text(encoding="utf-8"))
+        assert metadata["key_sha256"] == hashlib.sha256(canonical_key.encode("utf-8")).hexdigest()
+    finally:
+        if first.poll() is None:
+            first.kill()
+            first.communicate(timeout=10)
+        if canonical_metadata.exists():
+            canonical_metadata.unlink()
+        if lowercase_metadata.exists():
+            lowercase_metadata.unlink()
+    assert first.returncode == 0, first_stderr
+    assert first_stderr == ""
+    first_report = json.loads(first_stdout)
+    assert first_report["transport_error"] is None
+    assert first_report["ssh_exit"] == 0
+    first_raw_text = first_raw.read_text(encoding="utf-8")
+    assert "FAKE_SSH=PASS" in first_raw_text
+    launches = marker.read_text(encoding="utf-8").splitlines()
+    assert len(launches) == 1
+    assert "|L049V2StageA|" in launches[0]
+    assert "|l049v2stagea|" not in launches[0]
+    assert not lowercase_metadata.exists()
+
+
+@pytest.mark.parametrize("mode", ["abandoned", "malformed", "metadata-failure"])
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_single_flight_adversarial_metadata_and_abandoned_owner(
+    tmp_path: Path, mode: str, shell_factory: Callable[[], str]
+) -> None:
+    key = f"L049V2StageA|adversarial|{tmp_path.name}|{mode}"
+    metadata_path = _single_flight_metadata_path(key)
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    if mode == "malformed":
+        metadata_path.write_text("not-json", encoding="utf-8")
+    elif mode == "metadata-failure":
+        metadata_path.mkdir()
+    driver = tmp_path / "adversarial.ps1"
+    driver.write_text(
+        f"""
+Import-Module '{SEAM}'
+$arguments = @('probe')
+if ($env:L04_MODE -eq 'abandoned') {{
+    $lock = Enter-L04SingleFlightLock -Key '{key}' -ArgumentList $arguments
+    exit 0
+}}
+try {{
+    $lock = Enter-L04SingleFlightLock -Key '{key}' -ArgumentList $arguments
+    'LOCK=ACQUIRED'
+    Exit-L04SingleFlightLock -Lock $lock
+    exit 0
+}} catch {{
+    'LOCK_ERROR=' + $_.Exception.Message
+    exit 2
+}}
+""",
+        encoding="utf-8-sig",
+    )
+    env = dict(os.environ, L04_MODE=mode)
+    command = [shell_factory(), "-NoProfile", "-File", str(driver)]
+    try:
+        if mode == "abandoned":
+            abandoned = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=20)
+            assert abandoned.returncode == 0, abandoned.stderr
+            env["L04_MODE"] = "recover"
+            recovered = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=20)
+            assert recovered.returncode == 0, recovered.stderr
+            assert "LOCK=ACQUIRED" in recovered.stdout
+        elif mode == "malformed":
+            result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=20)
+            assert result.returncode == 0, result.stderr
+            assert "LOCK=ACQUIRED" in result.stdout
+        else:
+            result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=20)
+            assert result.returncode == 2
+            assert "single_flight_metadata_write_failed" in result.stdout
+    finally:
+        if metadata_path.is_dir():
+            metadata_path.rmdir()
+        elif metadata_path.exists():
+            metadata_path.unlink()
+
+
+@pytest.mark.parametrize("mode", ["failure", "timeout"])
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_single_flight_releases_after_failure_or_timeout(
+    tmp_path: Path, mode: str, shell_factory: Callable[[], str]
+) -> None:
+    launch_dir = tmp_path / "launches"
+    launch_dir.mkdir()
+    child = tmp_path / "release child.py"
+    child.write_text(
+        """
+import os
+import sys
+import time
+from pathlib import Path
+
+Path(os.environ["L04_LAUNCH_DIR"], str(os.getpid())).write_text("started", encoding="utf-8")
+if os.environ["L04_MODE"] == "failure":
+    raise SystemExit(7)
+time.sleep(30)
+""",
+        encoding="utf-8",
+    )
+    driver = tmp_path / "release.ps1"
+    driver.write_text(
+        f"""
+Import-Module '{SEAM}'
+$arguments = @({_powershell_single_quoted(str(child))})
+$result = Invoke-L04TransportProcess -SshExecutable $env:L04_PYTHON -ArgumentList $arguments `
+    -BootstrapBytes ([byte[]](1, 2, 3)) -RawCapturePath $env:L04_RAW_PATH `
+    -TimeoutSeconds $(if ($env:L04_MODE -eq 'timeout') {{ 1 }} else {{ 10 }}) `
+    -SingleFlightKey 'L049V2StageA|release-test'
+$result | ConvertTo-Json -Compress
+exit 0
+""",
+        encoding="utf-8-sig",
+    )
+    env = os.environ.copy()
+    env.update({"L04_LAUNCH_DIR": str(launch_dir), "L04_MODE": mode, "L04_PYTHON": sys.executable})
+    command = [shell_factory(), "-NoProfile", "-File", str(driver)]
+    first_env = dict(env, L04_RAW_PATH=str(tmp_path / "first.raw"))
+    second_env = dict(env, L04_RAW_PATH=str(tmp_path / "second.raw"))
+    first = subprocess.run(command, check=False, capture_output=True, text=True, env=first_env, timeout=40)
+    second = subprocess.run(command, check=False, capture_output=True, text=True, env=second_env, timeout=40)
+    assert first.returncode == 0, first.stderr
+    assert second.returncode == 0, second.stderr
+    assert len(list(launch_dir.iterdir())) == 2
+    assert (tmp_path / "first.raw").is_file()
+    assert (tmp_path / "second.raw").is_file()
 
 
 @pytest.mark.parametrize("mode", ["never-read", "hang", "child"])

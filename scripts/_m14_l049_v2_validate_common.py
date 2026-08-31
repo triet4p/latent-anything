@@ -21,6 +21,7 @@ from scripts._m14_l049_v2_schema import (
     EXPECTED_RUNTIME_DTYPE,
     EXPECTED_RUNTIME_INTEGRATION,
     EXPECTED_RUNTIME_MODEL,
+    FINALIZER_REJECTION_CODES,
     HOLDOUT_GROUP_COUNT,
     OOF_RECOVERY_THRESHOLD,
     RUNTIME_ATTESTATION_SCHEMA,
@@ -286,10 +287,15 @@ def real_resources(
         and cleanup.get("completed") is True
         and cleanup.get("hook_count") == 0
     )
+    cleanup_fields = {"attempted", "completed", "hooks_remaining", "error_type", "reason", "stage"}
     cleanup_failure = (
         allow_failure
         and isinstance(cleanup, Mapping)
-        and set(cleanup) == {"attempted", "completed", "hooks_remaining", "error_type", "reason", "stage"}
+        and set(cleanup)
+        in (
+            cleanup_fields,
+            cleanup_fields | {"finalizer_rejection_code"},
+        )
         and cleanup.get("attempted") is True
         and cleanup.get("completed") is False
         and _nonnegative(cleanup.get("hooks_remaining"))
@@ -306,6 +312,12 @@ def real_resources(
         }
         and cleanup.get("reason") in {"finalizer_exception", "finalizer_invalid_result"}
         and cleanup.get("stage") == "cleanup"
+        and (
+            cleanup.get("reason") != "finalizer_invalid_result"
+            and "finalizer_rejection_code" not in cleanup
+            or cleanup.get("reason") == "finalizer_invalid_result"
+            and cleanup.get("finalizer_rejection_code") in FINALIZER_REJECTION_CODES
+        )
     )
     if not cleanup_success and not cleanup_failure:
         errors.append(f"{stage} cleanup execution evidence is missing or malformed")
@@ -390,6 +402,7 @@ def real_resources(
             "rss_unavailable",
             "clock_invalid",
             "tracker_unstarted",
+            "resource_measurement_invalid",
         }
         cuda_unavailable = reason in {
             "cuda_unavailable",
@@ -406,7 +419,7 @@ def real_resources(
             )
             and (not rss_unavailable or peak.get("cpu_source") == "unavailable")
             and (
-                reason != "tracker_unstarted"
+                reason not in {"tracker_unstarted", "resource_measurement_invalid"}
                 or (
                     peak.get("cpu_source") == "unavailable"
                     and peak.get("gpu_source") == "unavailable"

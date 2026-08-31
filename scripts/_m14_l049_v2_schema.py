@@ -28,6 +28,16 @@ VALIDATION_REJECTION_CODES = (
     "validation_rejected_artifact_digest",
     "validation_rejected_contract",
 )
+FINALIZER_REJECTION_CODES = (
+    "finalizer_not_mapping",
+    "finalizer_top_level_fields",
+    "finalizer_identity_fields",
+    "finalizer_operation_counts",
+    "finalizer_hook_fields",
+    "finalizer_intervention_fields",
+    "finalizer_cleanup_fields",
+    "finalizer_resource_peak_fields",
+)
 
 
 def validation_rejection_codes(errors: Sequence[str]) -> list[str]:

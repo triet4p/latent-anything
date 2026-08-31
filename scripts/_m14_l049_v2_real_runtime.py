@@ -429,6 +429,9 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
     # so the artifact builder snapshots resources only after selection has
     # completed (rather than publishing the initial all-zero snapshot).
     resources = _runtime_resources(counters, tracker)
+    # Keep the pre-finalizer envelope linked to the private live counters so a
+    # later cleanup/finalizer failure cannot erase completed work as zeros.
+    resources["operation_counts"] = counters
     resources["finalize"] = lambda: tracker.finish() or _runtime_resources(counters, tracker)
     return score, resources
 

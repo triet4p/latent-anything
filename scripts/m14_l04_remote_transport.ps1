@@ -122,6 +122,17 @@ exit "$semantic_status"
 }
 
 Assert-TransportParameters
+$useCaseParameter = $MyInvocation.MyCommand.Parameters["UseCase"]
+$canonicalUseCases = @(
+    $useCaseParameter.Attributes |
+        Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+        ForEach-Object { $_.ValidValues }
+)
+$canonicalUseCaseMatches = @($canonicalUseCases | Where-Object { $_ -ieq $UseCase })
+if ($canonicalUseCaseMatches.Count -ne 1) {
+    throw "UseCase must match exactly one canonical allowed value"
+}
+$UseCase = [string]$canonicalUseCaseMatches[0]
 $normalizedCodeSha = $CodeSha.ToLowerInvariant()
 $payloadBytes = Get-Utf8LfBytes ([System.IO.File]::ReadAllBytes($PayloadPath))
 $payloadSha256 = Get-Sha256Hex $payloadBytes
@@ -169,43 +180,81 @@ $sshArguments = @(
     "-o", "ConnectionAttempts=1",
     $RemoteTarget, "bash", "-s", "--", $UseCase, $normalizedCodeSha, $RepoUrl
 )
-$capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList $sshArguments -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath -TimeoutSeconds $TransportTimeoutSeconds
-[ordered]@{
-    schema_version = "m14-l04-remote-transport-capture-v1"
-    ssh_exit = $capture.ssh_exit; raw_capture_sha256 = $capture.raw_capture_sha256
-    raw_capture_written_before_parse = $capture.raw_capture_written_before_parse
-    raw_capture_write_succeeded = $capture.raw_capture_write_succeeded
-    payload_sha256 = $payloadSha256; bootstrap_sha256 = $bootstrapSha256
-    transport_error = $capture.transport_error; exception_type = $capture.exception_type
-    transport_errors = $capture.transport_errors
-    deadline_exceeded = $capture.deadline_exceeded
-    transport_termination_incomplete = $capture.transport_termination_incomplete
-    cleanup_status = $capture.cleanup_status
-    raw_capture_path = $capture.raw_capture_path
-    raw_capture_finalization_error = $capture.raw_capture_finalization_error
-} | ConvertTo-Json -Depth 8 -Compress
-if ($capture.transport_error -ne $null) { exit 70 }
-if ($Postprocess -and $capture.raw_capture_write_succeeded) {
-    if ([string]::IsNullOrWhiteSpace($AuditOutputPath)) {
-        $AuditOutputPath = Join-Path $ArtifactOutputDir ("l04-explanations.ssh.$UseCase.$normalizedCodeSha.audit.json")
+$singleFlightLock = $null
+try {
+    $singleFlightLock = Enter-L04SingleFlightLock -Key ("$UseCase|$normalizedCodeSha") -ArgumentList $sshArguments
+    } catch {
+        if ($_.Exception.Message -eq "single_flight_busy") {
+            [ordered]@{
+            schema_version = "m14-l04-remote-transport-capture-v1"
+            ssh_exit = $null; raw_capture_sha256 = $null; raw_capture_written_before_parse = $false
+            raw_capture_write_succeeded = $false; payload_sha256 = $payloadSha256; bootstrap_sha256 = $bootstrapSha256
+            transport_error = "SingleFlightBusy"; exception_type = "SingleFlightBusy"
+            transport_errors = @("SingleFlightBusy"); deadline_exceeded = $false
+            transport_termination_incomplete = $false; cleanup_status = "not_required"
+            raw_capture_path = $null; raw_capture_finalization_error = $null
+            } | ConvertTo-Json -Depth 8 -Compress
+            exit 70
+        }
+        # Lock construction/security failures are sanitized and occur before
+        # Process.Start.  Never expose the exception body or start SSH without
+        # the host-wide guard.
+        [ordered]@{
+            schema_version = "m14-l04-remote-transport-capture-v1"
+            ssh_exit = $null; raw_capture_sha256 = $null; raw_capture_written_before_parse = $false
+            raw_capture_write_succeeded = $false; payload_sha256 = $payloadSha256; bootstrap_sha256 = $bootstrapSha256
+            transport_error = "SingleFlightUnavailable"; exception_type = "SingleFlightUnavailable"
+            transport_errors = @("SingleFlightUnavailable"); deadline_exceeded = $false
+            transport_termination_incomplete = $false; cleanup_status = "not_required"
+            raw_capture_path = $null; raw_capture_finalization_error = $null
+        } | ConvertTo-Json -Depth 8 -Compress
+        exit 70
     }
-    # Keep the audited argv names visible while constructing the safe array:
-    # --raw-capture $RawCapturePath --source-sha $normalizedCodeSha
-    $postprocessArgs = @(
-        "-m", "scripts.m14_l04_remote_postprocess", "--retain",
-        "--raw-capture", $RawCapturePath,
-        "--source-sha", $normalizedCodeSha,
-        "--use-case", $UseCase,
-        "--artifact-dir", $ArtifactOutputDir,
-        "--audit", $AuditOutputPath
-    )
-    if ($UseCase -eq "L049V2StageB") {
-        $postprocessArgs += @("--fixture", $V2HoldoutFixturePath, "--candidate-manifest", $V2CandidateManifestPath, "--holdout-seed", $V2HoldoutSeedPath)
-    } elseif ($UseCase -eq "L049V2StageA") {
-        $postprocessArgs += @("--fixture", $V2TrainFixturePath)
+$finalExit = 70
+try {
+    $capture = Invoke-L04TransportProcess -SshExecutable $SshExecutable -ArgumentList $sshArguments -BootstrapBytes $bootstrapBytes -RawCapturePath $RawCapturePath -TimeoutSeconds $TransportTimeoutSeconds -SingleFlightLock $singleFlightLock
+    [ordered]@{
+        schema_version = "m14-l04-remote-transport-capture-v1"
+        ssh_exit = $capture.ssh_exit; raw_capture_sha256 = $capture.raw_capture_sha256
+        raw_capture_written_before_parse = $capture.raw_capture_written_before_parse
+        raw_capture_write_succeeded = $capture.raw_capture_write_succeeded
+        payload_sha256 = $payloadSha256; bootstrap_sha256 = $bootstrapSha256
+        transport_error = $capture.transport_error; exception_type = $capture.exception_type
+        transport_errors = $capture.transport_errors
+        deadline_exceeded = $capture.deadline_exceeded
+        transport_termination_incomplete = $capture.transport_termination_incomplete
+        cleanup_status = $capture.cleanup_status
+        raw_capture_path = $capture.raw_capture_path
+        raw_capture_finalization_error = $capture.raw_capture_finalization_error
+    } | ConvertTo-Json -Depth 8 -Compress
+    if ($capture.transport_error -ne $null) {
+        $finalExit = 70
+    } elseif ($Postprocess -and $capture.raw_capture_write_succeeded) {
+        if ([string]::IsNullOrWhiteSpace($AuditOutputPath)) {
+            $AuditOutputPath = Join-Path $ArtifactOutputDir ("l04-explanations.ssh.$UseCase.$normalizedCodeSha.audit.json")
+        }
+        # Keep the audited argv names visible while constructing the safe array:
+        # --raw-capture $RawCapturePath --source-sha $normalizedCodeSha
+        $postprocessArgs = @(
+            "-m", "scripts.m14_l04_remote_postprocess", "--retain",
+            "--raw-capture", $RawCapturePath,
+            "--source-sha", $normalizedCodeSha,
+            "--use-case", $UseCase,
+            "--artifact-dir", $ArtifactOutputDir,
+            "--audit", $AuditOutputPath
+        )
+        if ($UseCase -eq "L049V2StageB") {
+            $postprocessArgs += @("--fixture", $V2HoldoutFixturePath, "--candidate-manifest", $V2CandidateManifestPath, "--holdout-seed", $V2HoldoutSeedPath)
+        } elseif ($UseCase -eq "L049V2StageA") {
+            $postprocessArgs += @("--fixture", $V2TrainFixturePath)
+        }
+        & uv run python @postprocessArgs
+        $postprocessExit = $LASTEXITCODE
+        $finalExit = if ($postprocessExit -ne 0) { $postprocessExit } else { $capture.ssh_exit }
+    } else {
+        $finalExit = $capture.ssh_exit
     }
-    & uv run python @postprocessArgs
-    $postprocessExit = $LASTEXITCODE
-    if ($postprocessExit -ne 0) { exit $postprocessExit }
+} finally {
+    Exit-L04SingleFlightLock -Lock $singleFlightLock
 }
-exit $capture.ssh_exit
+exit $finalExit

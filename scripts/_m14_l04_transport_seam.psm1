@@ -79,6 +79,212 @@ function Set-L04ProcessArguments {
     return "Arguments"
 }
 
+function Write-L04SingleFlightMetadata {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Path,
+        [Parameter(Mandatory = $true)] [byte[]]$Bytes
+    )
+
+    $directory = [System.IO.Path]::GetDirectoryName($Path)
+    $temporaryPath = Join-Path $directory ("." + [Guid]::NewGuid().ToString("N") + ".tmp")
+    $stream = $null
+    try {
+        $stream = [System.IO.FileStream]::new(
+            $temporaryPath,
+            [System.IO.FileMode]::CreateNew,
+            [System.IO.FileAccess]::Write,
+            [System.IO.FileShare]::None,
+            512,
+            [System.IO.FileOptions]::WriteThrough
+        )
+        $stream.Write($Bytes, 0, $Bytes.Length)
+        $stream.Flush($true)
+        $stream.Dispose()
+        $stream = $null
+        if ([System.IO.File]::Exists($Path)) {
+            $backupPath = $Path + "." + [Guid]::NewGuid().ToString("N") + ".bak"
+            [System.IO.File]::Replace($temporaryPath, $Path, $backupPath, $true)
+            try { [System.IO.File]::Delete($backupPath) } catch { }
+        } else {
+            [System.IO.File]::Move($temporaryPath, $Path)
+        }
+    } finally {
+        if ($null -ne $stream) { try { $stream.Dispose() } catch { } }
+        if ([System.IO.File]::Exists($temporaryPath)) {
+            try { [System.IO.File]::Delete($temporaryPath) } catch { }
+        }
+    }
+}
+
+function New-L04GlobalMutexSecurity {
+    <#
+    Build the narrow ACL needed by a named synchronization object.  The
+    constructor below is intentionally feature-detected by the caller: a
+    runtime that cannot create this descriptor must fail closed rather than
+    silently downgrading a host-wide guard to a session-local one.
+    #>
+    try {
+        $security = [System.Security.AccessControl.MutexSecurity]::new()
+        $rights = [System.Security.AccessControl.MutexRights]::Synchronize -bor
+            [System.Security.AccessControl.MutexRights]::Modify
+        $allow = [System.Security.AccessControl.AccessControlType]::Allow
+        $currentSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
+        if ($null -eq $currentSid) { throw "missing current identity" }
+        $security.AddAccessRule(
+            [System.Security.AccessControl.MutexAccessRule]::new($currentSid, $rights, $allow)
+        )
+        $systemSid = [System.Security.Principal.SecurityIdentifier]::new(
+            [System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null
+        )
+        $security.AddAccessRule(
+            [System.Security.AccessControl.MutexAccessRule]::new($systemSid, $rights, $allow)
+        )
+        return $security
+    } catch {
+        throw "single_flight_global_mutex_security_unavailable"
+    }
+}
+
+function Enter-L04SingleFlightLock {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Key,
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]]$ArgumentList
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Key)) { throw "single_flight_key_invalid" }
+    if ($null -eq $ArgumentList) { throw "single_flight_arguments_invalid" }
+    foreach ($argument in $ArgumentList) {
+        if ($null -eq $argument) { throw "single_flight_arguments_invalid" }
+    }
+    $root = Join-Path ([System.IO.Path]::GetTempPath()) "latent-anything-l04-single-flight"
+    [System.IO.Directory]::CreateDirectory($root) | Out-Null
+    $keyDigest = Get-L04Sha256Hex ([System.Text.UTF8Encoding]::new($false).GetBytes($Key))
+    $mutexName = "Global\latent-anything-l04-" + $keyDigest
+    $metadataPath = Join-Path $root ("l04-" + $keyDigest + ".json")
+    $argumentDigest = Get-L04Sha256Hex (
+        [System.Text.UTF8Encoding]::new($false).GetBytes([string]::Join([char]0, [string[]]$ArgumentList))
+    )
+    $ownerStart = [DateTime]::UtcNow.ToString("o", [Globalization.CultureInfo]::InvariantCulture)
+    $metadata = [ordered]@{
+        schema = "m14-l04-single-flight-v2"
+        key_sha256 = $keyDigest
+        owner_pid = [int]$PID
+        owner_start_utc = $ownerStart
+        argv_sha256 = $argumentDigest
+    }
+    $metadataBytes = [Text.UTF8Encoding]::new($false).GetBytes(($metadata | ConvertTo-Json -Compress))
+    $mutex = $null
+    $acquired = $false
+    try {
+        $createdNew = $false
+        $mutexType = [System.Threading.Mutex]
+        $boolRefType = [bool].MakeByRefType()
+        $securityCtor = $null
+        $optionsCtor = $null
+        $legacyCtor = $null
+        $namedWaitHandleOptionsType = $null
+        foreach ($constructor in $mutexType.GetConstructors()) {
+            $parameterTypes = @($constructor.GetParameters() | ForEach-Object { $_.ParameterType })
+            foreach ($parameterType in $parameterTypes) {
+                if ($parameterType.FullName -eq "System.Threading.NamedWaitHandleOptions") {
+                    $namedWaitHandleOptionsType = $parameterType
+                }
+            }
+            if ($parameterTypes.Count -eq 4 -and
+                $parameterTypes[0] -eq [bool] -and $parameterTypes[1] -eq [string] -and
+                $parameterTypes[2] -eq $boolRefType -and
+                $parameterTypes[3] -eq [System.Security.AccessControl.MutexSecurity]) {
+                $securityCtor = $constructor
+            } elseif ($parameterTypes.Count -eq 3 -and
+                $parameterTypes[0] -eq [bool] -and $parameterTypes[1] -eq [string] -and
+                $null -ne $namedWaitHandleOptionsType -and
+                $parameterTypes[2] -eq $namedWaitHandleOptionsType) {
+                $optionsCtor = $constructor
+            } elseif ($parameterTypes.Count -eq 3 -and
+                $parameterTypes[0] -eq [bool] -and $parameterTypes[1] -eq [string] -and
+                $parameterTypes[2] -eq $boolRefType) {
+                $legacyCtor = $constructor
+            }
+        }
+        try {
+            if ($null -ne $securityCtor) {
+                $security = New-L04GlobalMutexSecurity
+                $mutex = [System.Threading.Mutex]::new($false, $mutexName, [ref]$createdNew, $security)
+            } elseif ($null -ne $optionsCtor) {
+                # Modern .NET removed the ACL-bearing constructor.  The OS
+                # default for a Global synchronization object is retained;
+                # never downgrade the namespace to Local/session scope.
+                # Use the three-argument overload because PowerShell 5.1 and
+                # 7 cannot bind the ref overload consistently.  Ownership is
+                # established by WaitOne below, so createdNew is not needed.
+                $waitHandleOptions = [Activator]::CreateInstance($namedWaitHandleOptionsType)
+                # The default struct is CurrentSessionOnly/CurrentUserOnly;
+                # clear both flags so the Global namespace is truly host-wide.
+                $waitHandleOptions.CurrentSessionOnly = $false
+                $waitHandleOptions.CurrentUserOnly = $false
+                $constructorArguments = [object[]]@(
+                    $false, $mutexName, $waitHandleOptions
+                )
+                $mutex = $optionsCtor.Invoke($constructorArguments)
+            } elseif ($null -ne $legacyCtor) {
+                $mutex = [System.Threading.Mutex]::new($false, $mutexName, [ref]$createdNew)
+            } else {
+                throw "unsupported named mutex constructor"
+            }
+        } catch {
+            throw "single_flight_global_mutex_unavailable"
+        }
+        try {
+            $acquired = $mutex.WaitOne(0)
+        } catch [System.Threading.AbandonedMutexException] {
+            # WaitOne has transferred ownership to this process despite the abandoned owner.
+            $acquired = $true
+        } catch {
+            throw "single_flight_global_mutex_unavailable"
+        }
+        if (-not $acquired) {
+            $mutex.Dispose()
+            $mutex = $null
+            throw "single_flight_busy"
+        }
+        try {
+            Write-L04SingleFlightMetadata -Path $metadataPath -Bytes $metadataBytes
+        } catch {
+            try { $mutex.ReleaseMutex() } catch { }
+            $mutex.Dispose()
+            $mutex = $null
+            throw "single_flight_metadata_write_failed"
+        }
+        return [pscustomobject]@{
+            mutex = $mutex
+            mutex_name = $mutexName
+            metadata_path = $metadataPath
+            key_sha256 = $keyDigest
+            argv_sha256 = $argumentDigest
+            owned = $true
+        }
+    } catch {
+        if ($null -ne $mutex) {
+            if ($acquired) { try { $mutex.ReleaseMutex() } catch { } }
+            try { $mutex.Dispose() } catch { }
+        }
+        throw
+    }
+}
+
+function Exit-L04SingleFlightLock {
+    param([AllowNull()] [object]$Lock)
+
+    if ($null -eq $Lock) { return }
+    $mutex = $Lock.mutex
+    if ($null -ne $mutex) {
+        try {
+            if ($Lock.owned -eq $true) { $mutex.ReleaseMutex() }
+        } catch { }
+        try { $mutex.Dispose() } catch { }
+    }
+}
+
 function Observe-L04Task {
     param([System.Threading.Tasks.Task]$Task)
 
@@ -190,7 +396,9 @@ function Invoke-L04TransportProcess {
         [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]]$ArgumentList,
         [Parameter(Mandatory = $true)] [byte[]]$BootstrapBytes,
         [Parameter(Mandatory = $true)] [string]$RawCapturePath,
-        [ValidateRange(1, 7200)] [int]$TimeoutSeconds = 3600
+        [ValidateRange(1, 7200)] [int]$TimeoutSeconds = 3600,
+        [string]$SingleFlightKey = "",
+        [AllowNull()] [object]$SingleFlightLock = $null
     )
 
     if ($null -eq $ArgumentList) { throw "ArgumentList must not be null" }
@@ -274,6 +482,11 @@ function Invoke-L04TransportProcess {
     $writeTask = $null
     $flushTask = $null
     $killDeadlineTicks = $null
+    $ownedSingleFlightLock = $false
+    if ($null -eq $SingleFlightLock -and -not [string]::IsNullOrWhiteSpace($SingleFlightKey)) {
+        $SingleFlightLock = Enter-L04SingleFlightLock -Key $SingleFlightKey -ArgumentList $ArgumentList
+        $ownedSingleFlightLock = $true
+    }
     try {
         try {
             if ((Get-L04RemainingMilliseconds $deadlineTicks) -le 0) {
@@ -439,6 +652,7 @@ function Invoke-L04TransportProcess {
         if ($process -ne $null) {
             try { $process.Dispose() } catch { & $recordException $_.Exception }
         }
+        if ($ownedSingleFlightLock) { Exit-L04SingleFlightLock -Lock $SingleFlightLock }
     }
 
     $rawDigest = $state.raw_capture_sha256
@@ -459,4 +673,4 @@ function Invoke-L04TransportProcess {
     }
 }
 
-Export-ModuleMember -Function Invoke-L04TransportProcess
+Export-ModuleMember -Function Invoke-L04TransportProcess, Enter-L04SingleFlightLock, Exit-L04SingleFlightLock

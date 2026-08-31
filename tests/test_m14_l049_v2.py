@@ -60,6 +60,9 @@ CURRENT_STAGE_A_RESOURCE_ASSESSMENT = ROOT / (
 CURRENT_STAGE_A_VALIDATION_REJECTION_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.8cfe9b0a47c001f7f228f33313d5c99be8ee9cb5.assessment.sidecar.json"
 )
+CURRENT_INCIDENT_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.incident-assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
@@ -238,9 +241,45 @@ def test_current_stage_a_resource_assessment_is_canonical_and_sanitized() -> Non
         item["absent_after_delete"] is True
         for item in sidecar["owner_exception"]["deletion_verification"]["files"].values()
     )
-    assert all(not (ROOT / path).exists() for path in sidecar["deleted_evidence"])
+    for path, record in sidecar["owner_exception"]["deletion_verification"]["files"].items():
+        assert record["absent_after_delete"] is True
+        assert not (ROOT / path).exists()
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("prompt", "holdout", "traceback", "private key"))
+
+
+def test_current_incident_assessment_binds_retained_evidence_without_secrets() -> None:
+    sidecar = json.loads(CURRENT_INCIDENT_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source"] == {
+        "commit_sha": "13bf46e7b748f6fa64bf5f44cd80c194d1ca889d",
+        "use_case": "L049V2StageA",
+        "exact_source_verified": True,
+    }
+    assert sidecar["status"] == "pending"
+    assert sidecar["assessment"]["promotion"] is False
+    assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["execution"] == {
+        "completed_payloads": 1,
+        "ssh_launches_reported": 2,
+        "second_launch_aborted": True,
+        "second_remote_reach": "uncertain",
+        "invocation_invariant": "not_satisfied",
+        "evidence_limitation": sidecar["execution"]["evidence_limitation"],
+    }
+    assert all(sidecar["evidence"][name]["path"].startswith("artifacts/") for name in ("raw_capture", "audit"))
+    for item in (sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]):
+        path = ROOT / item["path"]
+        payload = path.read_bytes()
+        assert len(payload) == item["bytes"]
+        assert hashlib.sha256(payload).hexdigest() == item["sha256"]
+    for item in sidecar["evidence"]["triad"].values():
+        path = ROOT / item["path"]
+        payload = path.read_bytes()
+        assert len(payload) == item["bytes"]
+        assert hashlib.sha256(payload).hexdigest() == item["sha256"]
+    serialized = json.dumps(sidecar, sort_keys=True)
+    assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
 
 
 class _FakeCuda:
@@ -915,8 +954,78 @@ def test_stage_a_invalid_finalizer_result_is_sanitized_and_validator_clean(final
         "error_type": "TypeError",
         "reason": "finalizer_invalid_result",
         "stage": "cleanup",
+        "finalizer_rejection_code": "finalizer_not_mapping"
+        if finalizer_result is None
+        else "finalizer_top_level_fields",
     }
     assert artifact["runtime_attestation"]["cleanup_hook_count"] == 1
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_stage_a_finalizer_rejection_preserves_live_partial_counters() -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_failure()
+    resources["operation_counts"] = {
+        "candidate_evaluations": 0,
+        "hooks": 0,
+        "captures": 0,
+        "patches": 0,
+        "controls": 0,
+        "forwards": 0,
+    }
+
+    def score(*_args: Any) -> float:
+        resources["operation_counts"]["candidate_evaluations"] += 1
+        return 0.0
+
+    resources["finalize"] = lambda: {"stage": "cleanup"}
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": score, "resources": resources},
+    )
+    counts = artifact["resources"]["operation_counts"]
+    assert counts["candidate_evaluations"] > 0
+    assert artifact["resources"]["cleanup"]["finalizer_rejection_code"] == "finalizer_top_level_fields"
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_stage_a_finalizer_rejection_uses_production_runtime_closure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rows, addendum, _ = _base()
+
+    class FakeIntegration:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+    margin_calls = 0
+
+    def fake_forward(*_args: Any, **_kwargs: Any) -> tuple[Any, dict[int, np.ndarray]]:
+        return object(), {0: np.ones((1, 2, 2), dtype=np.float32)}
+
+    def fake_margin(*_args: Any, **_kwargs: Any) -> float:
+        nonlocal margin_calls
+        value = (1.0, 0.0, 1.0)[margin_calls % 3]
+        margin_calls += 1
+        return value
+
+    monkeypatch.setattr(real_runtime, "TransformerLMIntegration", FakeIntegration)
+    monkeypatch.setattr(real_runtime, "_forward", fake_forward)
+    monkeypatch.setattr(real_runtime, "_raw_hidden", lambda *_args, **_kwargs: np.ones((1, 2, 2), dtype=np.float32))
+    monkeypatch.setattr(real_runtime, "_patch_positions", lambda *_args, **_kwargs: (0, 0))
+    monkeypatch.setattr(real_runtime, "_margin", fake_margin)
+    scorer, resources = real_runtime.build_stage_a_runtime(rows)
+    resources["finalize"] = lambda: {"stage": "cleanup"}
+
+    artifact = run_real_stage_a(
+        rows, addendum, source_sha256="a" * 64, runtime={"score": scorer, "resources": resources}
+    )
+    assert artifact["resources"]["operation_counts"]["candidate_evaluations"] > 0
+    assert artifact["resources"]["cleanup"]["reason"] == "finalizer_invalid_result"
+    assert artifact["resources"]["cleanup"]["finalizer_rejection_code"] == "finalizer_top_level_fields"
+    assert artifact["evidence_level"] == "D0"
     assert validate_stage_a(artifact, rows, addendum) == []
 
 

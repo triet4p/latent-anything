@@ -13,6 +13,7 @@ from scripts._m14_l049_v2_attestation import build_runtime_attestation
 from scripts._m14_l049_v2_schema import (
     BOOTSTRAP_REPLICATES,
     EXPECTED_RUNTIME_MODEL,
+    FINALIZER_REJECTION_CODES,
     OOF_RECOVERY_THRESHOLD,
     PARENT_PLAN_SHA256,
     PUBLIC_TRAIN_SEED,
@@ -138,7 +139,8 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
         if isinstance(counters, Mapping) and set(counters) == set(_COUNTER_FIELDS)
         else {}
     )
-    if counter_values and all(value is not None for value in counter_values.values()):
+    has_valid_counters = bool(counter_values) and all(value is not None for value in counter_values.values())
+    if has_valid_counters:
         copied = {key: cast(int, counter_values[key]) for key in _COUNTER_FIELDS}
         baseline["operation_counts"] = copied
         baseline["hook"] = {
@@ -154,11 +156,19 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
     hook = resources.get("hook")
     if isinstance(hook, Mapping):
         registered = hook.get("registered")
+        capture_calls = hook.get("capture_calls")
         removed = hook.get("removed")
         registered_value = _bounded_nonnegative_int(registered)
+        capture_value = _bounded_nonnegative_int(capture_calls)
         removed_value = _bounded_nonnegative_int(removed)
-        if registered_value is not None and removed_value is not None and removed_value <= registered_value:
+        if (
+            registered_value is not None
+            and capture_value is not None
+            and removed_value is not None
+            and removed_value <= registered_value
+        ):
             baseline["hook"]["registered"] = registered_value
+            baseline["hook"]["capture_calls"] = capture_value
             baseline["hook"]["removed"] = removed_value
             baseline["operation_counts"]["hooks"] = registered_value
     projected_peak: dict[str, Any] | None = None
@@ -172,6 +182,7 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
             "rss_unavailable",
             "clock_invalid",
             "tracker_unstarted",
+            "resource_measurement_invalid",
         }
         int_fields = (
             "peak_cpu_bytes",
@@ -233,6 +244,12 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
                 projected_peak["gpu_reserved_source"] = "unavailable"
             if reason == "rss_unavailable":
                 projected_peak["cpu_source"] = "unavailable"
+        elif basic_peak:
+            projected_peak = dict(baseline["resource_peak"])
+            projected_peak["measurement_reason"] = "resource_measurement_invalid"
+        else:
+            projected_peak = dict(baseline["resource_peak"])
+            projected_peak["measurement_reason"] = "resource_measurement_invalid"
     if projected_peak is not None:
         baseline["resource_peak"] = projected_peak
     cleanup = resources.get("cleanup")
@@ -257,6 +274,98 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
                 "stage": "cleanup",
             }
     return baseline
+
+
+def _finalizer_rejection_code(value: object) -> str | None:
+    """Classify a rejected finalizer result without exposing values or keys."""
+    if not isinstance(value, Mapping):
+        return "finalizer_not_mapping"
+    if set(value) != set(_FINALIZER_RESOURCE_FIELDS):
+        return "finalizer_top_level_fields"
+    identity = {
+        "stage",
+        "execution_attempted",
+        "execution_backend",
+        "model",
+        "model_revision",
+        "integration",
+        "model_adapter",
+        "device",
+        "backend",
+        "dtype",
+        "no_mutation",
+    }
+    if any(key not in value for key in identity):
+        return "finalizer_identity_fields"
+    counters = value.get("operation_counts")
+    if (
+        not isinstance(counters, Mapping)
+        or set(counters) != set(_COUNTER_FIELDS)
+        or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counters.values())
+    ):
+        return "finalizer_operation_counts"
+    hook = value.get("hook")
+    if (
+        not isinstance(hook, Mapping)
+        or set(hook) != {"registered", "capture_calls", "removed"}
+        or hook.get("registered") != counters["hooks"]
+        or hook.get("capture_calls") != counters["captures"]
+        or hook.get("removed") != hook.get("registered")
+    ):
+        return "finalizer_hook_fields"
+    intervention = value.get("intervention")
+    if (
+        not isinstance(intervention, Mapping)
+        or set(intervention) != {"patch_calls", "control_calls", "forward_calls"}
+        or intervention.get("patch_calls") != counters["patches"]
+        or intervention.get("control_calls") != counters["controls"]
+        or intervention.get("forward_calls") != counters["forwards"]
+    ):
+        return "finalizer_intervention_fields"
+    cleanup = value.get("cleanup")
+    if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
+        return "finalizer_cleanup_fields"
+    peak = value.get("resource_peak")
+    expected_peak_fields = {
+        "peak_cpu_bytes",
+        "peak_gpu_bytes",
+        "peak_gpu_reserved_bytes",
+        "unit",
+        "budget_cpu_bytes",
+        "budget_gpu_bytes",
+        "measurement_status",
+        "measurement_reason",
+        "elapsed_seconds",
+        "elapsed_source",
+        "cpu_source",
+        "gpu_source",
+        "gpu_reserved_source",
+        "gpu_device",
+    }
+    if not isinstance(peak, Mapping) or set(peak) != expected_peak_fields:
+        return "finalizer_resource_peak_fields"
+    if (
+        peak.get("unit") != "bytes"
+        or any(
+            _bounded_nonnegative_int(peak.get(key)) is None
+            for key in (
+                "peak_cpu_bytes",
+                "peak_gpu_bytes",
+                "peak_gpu_reserved_bytes",
+                "budget_cpu_bytes",
+                "budget_gpu_bytes",
+            )
+        )
+        or peak.get("measurement_status") not in {"available", "unavailable"}
+        or peak.get("measurement_reason") is not None
+        and not isinstance(peak.get("measurement_reason"), str)
+        or peak.get("peak_cpu_bytes", 0) > peak.get("budget_cpu_bytes", 0)
+        or peak.get("peak_gpu_bytes", 0) > peak.get("budget_gpu_bytes", 0)
+        or peak.get("peak_gpu_reserved_bytes", 0) > peak.get("budget_gpu_bytes", 0)
+        or peak.get("peak_gpu_reserved_bytes", 0) < peak.get("peak_gpu_bytes", 0)
+    ):
+        return "finalizer_resource_peak_fields"
+    return None
 
 
 def _valid_finalizer_resources(value: object) -> bool:
@@ -351,9 +460,16 @@ def _valid_finalizer_resources(value: object) -> bool:
 class _ResourceFinalizerError(RuntimeError):
     """Internal boundary preserving a finalizer failure separately."""
 
-    def __init__(self, cleanup_error: BaseException, *, reason: str) -> None:
+    def __init__(
+        self,
+        cleanup_error: BaseException,
+        *,
+        reason: str,
+        finalizer_rejection_code: str | None = None,
+    ) -> None:
         self.cleanup_error = cleanup_error
         self.reason = reason
+        self.finalizer_rejection_code = finalizer_rejection_code
         super().__init__("runtime resource finalizer failed")
 
 
@@ -564,7 +680,11 @@ def build_stage_a_artifact(
             raise _ResourceFinalizerError(error, reason="finalizer_exception") from error
         if not _valid_finalizer_resources(finalized):
             error = TypeError("runtime resource finalizer returned an invalid mapping")
-            raise _ResourceFinalizerError(error, reason="finalizer_invalid_result") from error
+            raise _ResourceFinalizerError(
+                error,
+                reason="finalizer_invalid_result",
+                finalizer_rejection_code=_finalizer_rejection_code(finalized),
+            ) from error
         resource_payload = normalize_attempted_real_resources(cast(Mapping[str, Any], finalized))
     raw = canonical_fixture_bytes(rows)
     artifact: dict[str, Any] = {
@@ -639,7 +759,13 @@ def _cleanup_error_type(error: BaseException) -> str:
     return name if name in _CLEANUP_ERROR_TYPES else "CleanupError"
 
 
-def _cleanup_failure(error: BaseException, prior: Mapping[str, Any], *, reason: str) -> dict[str, Any]:
+def _cleanup_failure(
+    error: BaseException,
+    prior: Mapping[str, Any],
+    *,
+    reason: str,
+    finalizer_rejection_code: str | None = None,
+) -> dict[str, Any]:
     hook = prior.get("hook")
     registered = hook.get("registered") if isinstance(hook, Mapping) else 0
     removed = hook.get("removed") if isinstance(hook, Mapping) else 0
@@ -648,7 +774,7 @@ def _cleanup_failure(error: BaseException, prior: Mapping[str, Any], *, reason: 
     if not isinstance(removed, int) or isinstance(removed, bool) or removed < 0:
         removed = 0
     hooks_remaining = max(registered - removed, 0)
-    return {
+    cleanup: dict[str, Any] = {
         "attempted": True,
         "completed": False,
         "hooks_remaining": hooks_remaining,
@@ -656,6 +782,13 @@ def _cleanup_failure(error: BaseException, prior: Mapping[str, Any], *, reason: 
         "reason": reason,
         "stage": "cleanup",
     }
+    if reason == "finalizer_invalid_result":
+        cleanup["finalizer_rejection_code"] = (
+            finalizer_rejection_code
+            if finalizer_rejection_code in FINALIZER_REJECTION_CODES
+            else "finalizer_top_level_fields"
+        )
+    return cleanup
 
 
 def _failure_resources(
@@ -663,6 +796,7 @@ def _failure_resources(
     *,
     cleanup_error: BaseException | None = None,
     cleanup_reason: str = "finalizer_exception",
+    finalizer_rejection_code: str | None = None,
 ) -> dict[str, Any]:
     source: Mapping[str, Any] = resources if isinstance(resources, Mapping) else {}
     finalizer = source.get("finalize")
@@ -682,11 +816,17 @@ def _failure_resources(
             else:
                 cleanup_error = TypeError("runtime resource finalizer returned an invalid mapping")
                 cleanup_reason = "finalizer_invalid_result"
+                finalizer_rejection_code = _finalizer_rejection_code(finalized)
     attempted = payload.get("execution_attempted") is True
     if attempted:
         payload["stage"] = "cleanup"
         if cleanup_error is not None:
-            payload["cleanup"] = _cleanup_failure(cleanup_error, payload, reason=cleanup_reason)
+            payload["cleanup"] = _cleanup_failure(
+                cleanup_error,
+                payload,
+                reason=cleanup_reason,
+                finalizer_rejection_code=finalizer_rejection_code,
+            )
         else:
             cleanup = payload.get("cleanup")
             if isinstance(cleanup, Mapping):
@@ -712,10 +852,16 @@ def build_stage_a_failure_artifact(
     resources: Mapping[str, Any] | None = None,
     cleanup_error: BaseException | None = None,
     cleanup_reason: str = "finalizer_exception",
+    finalizer_rejection_code: str | None = None,
     cli_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Build a truthful non-promoting artifact after an incomplete real run."""
-    resource_payload = _failure_resources(resources, cleanup_error=cleanup_error, cleanup_reason=cleanup_reason)
+    resource_payload = _failure_resources(
+        resources,
+        cleanup_error=cleanup_error,
+        cleanup_reason=cleanup_reason,
+        finalizer_rejection_code=finalizer_rejection_code,
+    )
     attempted = resource_payload.get("execution_backend") == "cuda"
     resource_payload.setdefault("model", EXPECTED_RUNTIME_MODEL)
     resource_payload.setdefault("model_revision", EXPECTED_RUNTIME_MODEL)
@@ -882,6 +1028,7 @@ def run_real_stage_a(
             resources=resources,
             cleanup_error=error.cleanup_error,
             cleanup_reason=error.reason,
+            finalizer_rejection_code=error.finalizer_rejection_code,
             cli_sha256=cli_sha256,
         )
     except Exception as error:  # noqa: BLE001 - every runtime failure is a D0 triad
