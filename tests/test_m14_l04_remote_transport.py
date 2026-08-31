@@ -29,6 +29,15 @@ def _pwsh() -> str:
     return executable
 
 
+def _native_windows_powershell() -> str:
+    executable = (
+        Path(os.environ.get("WINDIR", r"C:\Windows")) / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+    )
+    if not executable.is_file():
+        pytest.skip("native Windows PowerShell 5.1 is required for this compatibility regression")
+    return str(executable)
+
+
 def _ssh_path() -> str:
     executable = shutil.which("ssh.exe") or shutil.which("ssh")
     if executable is None:
@@ -40,9 +49,10 @@ def _build_only(
     payload_path: Path,
     raw_capture_path: Path,
     timeout_seconds: int | None = None,
+    executable: str | None = None,
 ) -> dict[str, object]:
     command = [
-        _pwsh(),
+        _pwsh() if executable is None else executable,
         "-NoProfile",
         "-File",
         str(HELPER),
@@ -212,6 +222,18 @@ def test_build_only_normalizes_crlf_and_redacts_operational_values(tmp_path: Pat
     assert base64.b64decode(base64.b64encode(normalized)) == normalized
 
 
+def test_build_only_runs_under_native_windows_powershell_51(tmp_path: Path) -> None:
+    manifest = _build_only(
+        PAYLOAD,
+        tmp_path / "raw.capture",
+        executable=_native_windows_powershell(),
+    )
+    assert manifest["mode"] == "build-only"
+    payload = manifest["payload"]
+    assert isinstance(payload, dict)
+    assert payload["bytes"] == len(PAYLOAD.read_bytes())
+
+
 def test_build_only_accepts_dry_run_alias(tmp_path: Path) -> None:
     raw_capture_path = tmp_path / "raw.capture"
     command = [
@@ -371,7 +393,11 @@ def test_transport_and_payload_static_contracts() -> None:
     assert "StandardInput.BaseStream.Write" in seam
     assert "ReadToEndAsync" in seam
     assert "Stopwatch]::GetTimestamp" in seam
-    assert "Kill($true)" in seam
+    assert "GetMethods() | Where-Object" in seam
+    assert "$process.Kill()" in seam
+    assert "DisposeAsync" not in seam
+    assert "HashData" not in seam
+    assert "File]::Replace($temporaryPath, $fullPath, $backupPath, $true)" in seam
     assert "WaitForExit($killWaitMilliseconds)" in seam
     assert "transport_termination_incomplete" in seam
     assert "TimeoutSeconds" in seam
@@ -414,16 +440,16 @@ import sys
 import time
 from pathlib import Path
 
+mode = os.environ.get("FAKE_MODE", "success")
+if mode == "never-read":
+    time.sleep(60)
+    raise SystemExit(0)
 stdin_bytes = sys.stdin.buffer.read()
 capture_path = Path(os.environ["FAKE_CAPTURE_PATH"])
 capture_path.write_text(
     json.dumps({"argv": sys.argv, "stdin_b64": base64.b64encode(stdin_bytes).decode()}),
     encoding="utf-8",
 )
-mode = os.environ.get("FAKE_MODE", "success")
-if mode == "never-read":
-    time.sleep(60)
-    raise SystemExit(0)
 text = stdin_bytes.decode("utf-8")
 assert not text.startswith("\ufeff")
 assert "\r" not in text
@@ -532,6 +558,143 @@ def test_internal_seam_nonexistent_executable_still_writes_raw_capture(tmp_path:
     report = json.loads(result.stdout)
     assert report["raw_capture_written_before_parse"] is True
     assert report["exception_type"]
+
+
+def test_native_windows_powershell_fake_seam_captures_raw_and_exit(tmp_path: Path) -> None:
+    command, capture_path, raw_path, env = _fake_command(
+        tmp_path,
+        shell=_native_windows_powershell(),
+        path_with_spaces=True,
+    )
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env)
+    assert result.returncode == 0, result.stderr
+    captured = json.loads(capture_path.read_text(encoding="utf-8"))
+    assert captured["argv"][0] == str(Path(env["L04_FAKE_TARGET"]))
+    assert " " in captured["argv"][0]
+    assert raw_path.is_file()
+    report = json.loads(result.stdout)
+    assert report["ssh_exit"] == 0
+    assert report["raw_capture_written_before_parse"] is True
+    assert report["raw_capture_sha256"] == hashlib.sha256(raw_path.read_bytes()).hexdigest()
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_sub_megabyte_no_read_timeout_is_bounded_and_retains_raw(
+    tmp_path: Path,
+    shell_factory: Callable[[], str],
+) -> None:
+    command, _capture_path, raw_path, env = _fake_command(
+        tmp_path,
+        "never-read",
+        timeout_seconds=2,
+        bootstrap_bytes=b"x" * (256 * 1024),
+        shell=shell_factory(),
+    )
+    started = time.monotonic()
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env)
+    elapsed = time.monotonic() - started
+    assert elapsed < 40
+    assert result.returncode == 70
+    assert raw_path.is_file()
+    report = json.loads(result.stdout)
+    assert report["deadline_exceeded"] is True
+    assert report["raw_capture_written_before_parse"] is True
+    assert report["raw_capture_sha256"] == hashlib.sha256(raw_path.read_bytes()).hexdigest()
+    assert report["transport_errors"]
+    assert not list(tmp_path.glob(f".{raw_path.name}.*.tmp*"))
+
+
+def test_windows_argument_fallback_quotes_spaces_and_embedded_quotes(tmp_path: Path) -> None:
+    probe = tmp_path / "argument probe.ps1"
+    probe.write_text(
+        f"""
+Import-Module '{SEAM}'
+$module = Get-Module -Name '_m14_l04_transport_seam'
+$values = @('plain', 'with space', 'quote"inside', 'trailing\\')
+$result = @()
+foreach ($value in $values) {{
+    $result += & $module {{ param($candidate) ConvertTo-L04WindowsArgument -Value $candidate }} $value
+}}
+$result | ConvertTo-Json -Compress
+""",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [_native_windows_powershell(), "-NoProfile", "-File", str(probe)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout) == ["plain", '"with space"', '"quote\\"inside"', "trailing\\"]
+
+
+def _powershell_single_quoted(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_child_argv_roundtrip_handles_empty_quotes_backslashes_and_unicode(
+    tmp_path: Path,
+    shell_factory: Callable[[], str],
+) -> None:
+    child = tmp_path / "space dir" / "argv child.py"
+    child.parent.mkdir()
+    child.write_text(
+        """
+import json
+import os
+import sys
+from pathlib import Path
+
+sys.stdin.buffer.read()
+Path(os.environ["L04_ARGV_CAPTURE"]).write_text(
+    json.dumps(sys.argv[1:], ensure_ascii=False), encoding="utf-8"
+)
+print("ARGV_ROUNDTRIP=PASS")
+""",
+        encoding="utf-8-sig",
+    )
+    values = ["", "with space", 'quote"inside', r"backslash\"quote", "trailing\\", "unicode-你好-🙂"]
+    driver = tmp_path / "argv roundtrip.ps1"
+    argument_lines = ",\n    ".join(_powershell_single_quoted(value) for value in [str(child), *values])
+    driver.write_text(
+        f"""
+Import-Module '{SEAM}'
+$arguments = @(
+    {argument_lines}
+)
+$result = Invoke-L04TransportProcess `
+    -SshExecutable $env:L04_PYTHON `
+    -ArgumentList $arguments `
+    -BootstrapBytes ([byte[]](1, 2, 3)) `
+    -RawCapturePath $env:L04_RAW_PATH `
+    -TimeoutSeconds 30
+$result | ConvertTo-Json -Compress
+if ($result.transport_error -ne $null) {{ exit 70 }}
+""",
+        encoding="utf-8-sig",
+    )
+    capture = tmp_path / "argv capture.json"
+    raw_path = tmp_path / "argv.raw"
+    env = os.environ.copy()
+    env.update(
+        {
+            "L04_ARGV_CAPTURE": str(capture),
+            "L04_PYTHON": sys.executable,
+            "L04_RAW_PATH": str(raw_path),
+        }
+    )
+    result = subprocess.run(
+        [shell_factory(), "-NoProfile", "-File", str(driver)],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(capture.read_text(encoding="utf-8")) == values
+    assert "ARGV_ROUNDTRIP=PASS" in raw_path.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize("mode", ["never-read", "hang", "child"])
@@ -789,8 +952,12 @@ def _fake_command(
     *,
     timeout_seconds: int = 3600,
     bootstrap_bytes: bytes | None = None,
+    shell: str | None = None,
+    path_with_spaces: bool = False,
 ) -> tuple[list[str], Path, Path, dict[str, str]]:
-    fake_ssh = tmp_path / "fake_ssh.py"
+    fake_root = tmp_path / "space dir" if path_with_spaces else tmp_path
+    fake_root.mkdir(exist_ok=True)
+    fake_ssh = fake_root / ("fake ssh.py" if path_with_spaces else "fake_ssh.py")
     fake_ssh.write_text(FAKE_SSH, encoding="utf-8")
     capture_path = tmp_path / "fake-capture.json"
     bootstrap_path = tmp_path / "bootstrap.bin"
@@ -831,5 +998,5 @@ exit $result.ssh_exit
             "L04_TIMEOUT_SECONDS": str(timeout_seconds),
         }
     )
-    command = [_pwsh(), "-NoProfile", "-File", str(driver)]
+    command = [shell or _pwsh(), "-NoProfile", "-File", str(driver)]
     return command, capture_path, raw_path, env

@@ -38,7 +38,13 @@ function Get-Utf8LfBytes {
 
 function Get-Sha256Hex {
     param([byte[]]$Bytes)
-    return ([Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($Bytes))).ToLowerInvariant()
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $sha.ComputeHash($Bytes)
+    } finally {
+        $sha.Dispose()
+    }
+    return ([BitConverter]::ToString($digest) -replace "-", "").ToLowerInvariant()
 }
 
 function Assert-TransportParameters {

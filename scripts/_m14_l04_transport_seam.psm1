@@ -3,6 +3,91 @@ $ErrorActionPreference = "Stop"
 
 $script:L04KillGraceSeconds = 30
 
+function Get-L04Sha256Hex {
+    param([byte[]]$Bytes)
+
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $sha.ComputeHash($Bytes)
+    } finally {
+        $sha.Dispose()
+    }
+    return ([BitConverter]::ToString($digest) -replace "-", "").ToLowerInvariant()
+}
+
+function ConvertTo-L04WindowsArgument {
+    param([string]$Value)
+
+    if ($null -eq $Value -or $Value.Length -eq 0) { return '""' }
+    if ($Value -notmatch '[\s"]') { return $Value }
+
+    $builder = New-Object System.Text.StringBuilder
+    [void]$builder.Append('"')
+    $backslashes = 0
+    for ($index = 0; $index -lt $Value.Length; $index++) {
+        $character = $Value[$index]
+        if ($character -eq [char]92) {
+            $backslashes++
+            continue
+        }
+        if ($character -eq [char]34) {
+            if ($backslashes -gt 0) {
+                [void]$builder.Append([char]92, ($backslashes * 2) + 1)
+            } else {
+                [void]$builder.Append([char]92)
+            }
+            [void]$builder.Append([char]34)
+            $backslashes = 0
+            continue
+        }
+        if ($backslashes -gt 0) {
+            [void]$builder.Append([char]92, $backslashes)
+            $backslashes = 0
+        }
+        [void]$builder.Append($character)
+    }
+    if ($backslashes -gt 0) {
+        [void]$builder.Append([char]92, $backslashes * 2)
+    }
+    [void]$builder.Append([char]34)
+    return $builder.ToString()
+}
+
+function Set-L04ProcessArguments {
+    param(
+        [Parameter(Mandatory = $true)] [System.Diagnostics.ProcessStartInfo]$ProcessStartInfo,
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]]$ArgumentList
+    )
+
+    foreach ($argument in $ArgumentList) {
+        if ($null -eq $argument) { throw "ArgumentList must not contain null" }
+    }
+    $argumentListProperty = $ProcessStartInfo.GetType().GetProperty("ArgumentList")
+    if ($null -ne $argumentListProperty) {
+        $argumentCollection = $argumentListProperty.GetValue($ProcessStartInfo, $null)
+        foreach ($argument in $ArgumentList) {
+            [void]$argumentCollection.Add($argument)
+        }
+        return "ArgumentList"
+    }
+
+    $quotedArguments = @()
+    foreach ($argument in $ArgumentList) {
+        $quotedArguments += ConvertTo-L04WindowsArgument $argument
+    }
+    $ProcessStartInfo.Arguments = [string]::Join(" ", [string[]]$quotedArguments)
+    return "Arguments"
+}
+
+function Observe-L04Task {
+    param([System.Threading.Tasks.Task]$Task)
+
+    if ($null -eq $Task) { return }
+    if ($Task.IsFaulted) {
+        try { $null = $Task.Exception } catch { }
+    }
+}
+
 function Get-L04RemainingMilliseconds {
     param([long]$DeadlineTicks)
 
@@ -70,25 +155,23 @@ function Write-L04RawCapture {
             $true
         )
         try {
-            $writeTask = $stream.WriteAsync($captureBytes, 0, $captureBytes.Length)
-            if (-not (Wait-L04TaskUntilDeadline -Task $writeTask -DeadlineTicks $DeadlineTicks)) {
-                throw [System.TimeoutException]::new("raw capture write deadline expired")
-            }
-            $flushTask = $stream.FlushAsync()
-            if (-not (Wait-L04TaskUntilDeadline -Task $flushTask -DeadlineTicks $DeadlineTicks)) {
-                throw [System.TimeoutException]::new("raw capture flush deadline expired")
-            }
+            $stream.Write($captureBytes, 0, $captureBytes.Length)
+            $stream.Flush($true)
         } finally {
-            $disposeTask = $stream.DisposeAsync().AsTask()
-            if (-not (Wait-L04TaskUntilDeadline -Task $disposeTask -DeadlineTicks $DeadlineTicks)) {
-                throw [System.TimeoutException]::new("raw capture close deadline expired")
-            }
+            $stream.Dispose()
         }
         if ((Get-L04RemainingMilliseconds $DeadlineTicks) -le 0) {
             throw [System.TimeoutException]::new("raw capture publication deadline expired")
         }
         if ([System.IO.File]::Exists($fullPath)) {
-            [System.IO.File]::Replace($temporaryPath, $fullPath, $null, $true)
+            $backupPath = $temporaryPath + ".backup"
+            try {
+                [System.IO.File]::Replace($temporaryPath, $fullPath, $backupPath, $true)
+            } finally {
+                if ([System.IO.File]::Exists($backupPath)) {
+                    [System.IO.File]::Delete($backupPath)
+                }
+            }
         } else {
             [System.IO.File]::Move($temporaryPath, $fullPath)
         }
@@ -104,12 +187,16 @@ function Invoke-L04TransportProcess {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)] [string]$SshExecutable,
-        [Parameter(Mandatory = $true)] [string[]]$ArgumentList,
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]]$ArgumentList,
         [Parameter(Mandatory = $true)] [byte[]]$BootstrapBytes,
         [Parameter(Mandatory = $true)] [string]$RawCapturePath,
         [ValidateRange(1, 7200)] [int]$TimeoutSeconds = 3600
     )
 
+    if ($null -eq $ArgumentList) { throw "ArgumentList must not be null" }
+    foreach ($argument in $ArgumentList) {
+        if ($null -eq $argument) { throw "ArgumentList must not contain null" }
+    }
     $deadlineTicks = [System.Diagnostics.Stopwatch]::GetTimestamp() + [long](
         $TimeoutSeconds * [System.Diagnostics.Stopwatch]::Frequency
     )
@@ -167,11 +254,9 @@ function Invoke-L04TransportProcess {
                 $state.raw_capture_write_succeeded = $true
                 $state.raw_capture_path = $RawCapturePath
                 if (Test-Path -LiteralPath $RawCapturePath -PathType Leaf) {
-                    $state.raw_capture_sha256 = ([Convert]::ToHexString(
-                        [System.Security.Cryptography.SHA256]::HashData(
-                            [System.IO.File]::ReadAllBytes($RawCapturePath)
-                        )
-                    )).ToLowerInvariant()
+                    $state.raw_capture_sha256 = Get-L04Sha256Hex (
+                        [System.IO.File]::ReadAllBytes($RawCapturePath)
+                    )
                 }
             }
         } catch {
@@ -186,6 +271,8 @@ function Invoke-L04TransportProcess {
     $process = $null
     $stdoutTask = $null
     $stderrTask = $null
+    $writeTask = $null
+    $flushTask = $null
     $killDeadlineTicks = $null
     try {
         try {
@@ -200,9 +287,7 @@ function Invoke-L04TransportProcess {
             $psi.RedirectStandardOutput = $true
             $psi.RedirectStandardError = $true
             $psi.CreateNoWindow = $true
-            foreach ($argument in $ArgumentList) {
-                [void]$psi.ArgumentList.Add($argument)
-            }
+            [void](Set-L04ProcessArguments -ProcessStartInfo $psi -ArgumentList $ArgumentList)
             $process = [System.Diagnostics.Process]::new()
             $process.StartInfo = $psi
             if (-not $process.Start()) {
@@ -221,23 +306,29 @@ function Invoke-L04TransportProcess {
 
         if ($state.process_started -and $state.transport_error -eq $null) {
             try {
-                $writeTask = $process.StandardInput.BaseStream.WriteAsync($BootstrapBytes, 0, $BootstrapBytes.Length)
-                if (-not (Wait-L04TaskUntilDeadline -Task $writeTask -DeadlineTicks $deadlineTicks)) {
-                    & $markDeadline
-                    throw [System.TimeoutException]::new("stdin write deadline expired")
+                if ($BootstrapBytes.Length -gt 0) {
+                    $writeTask = $process.StandardInput.BaseStream.WriteAsync($BootstrapBytes, 0, $BootstrapBytes.Length)
+                    if (-not (Wait-L04TaskUntilDeadline -Task $writeTask -DeadlineTicks $deadlineTicks)) {
+                        & $markDeadline
+                        throw [System.TimeoutException]::new("stdin write deadline expired")
+                    }
+                    $flushTask = $process.StandardInput.BaseStream.FlushAsync()
+                    if (-not (Wait-L04TaskUntilDeadline -Task $flushTask -DeadlineTicks $deadlineTicks)) {
+                        & $markDeadline
+                        throw [System.TimeoutException]::new("stdin flush deadline expired")
+                    }
                 }
-                $flushTask = $process.StandardInput.BaseStream.FlushAsync()
-                if (-not (Wait-L04TaskUntilDeadline -Task $flushTask -DeadlineTicks $deadlineTicks)) {
-                    & $markDeadline
-                    throw [System.TimeoutException]::new("stdin flush deadline expired")
-                }
-                $closeTask = $process.StandardInput.DisposeAsync().AsTask()
-                if (-not (Wait-L04TaskUntilDeadline -Task $closeTask -DeadlineTicks $deadlineTicks)) {
-                    & $markDeadline
-                    throw [System.TimeoutException]::new("stdin close deadline expired")
-                }
+                $process.StandardInput.Close()
                 $state.stdin_closed = $true
             } catch {
+                Observe-L04Task $writeTask
+                Observe-L04Task $flushTask
+                try {
+                    $process.StandardInput.Close()
+                    $state.stdin_closed = $true
+                } catch {
+                    & $recordException $_.Exception
+                }
                 & $recordException $_.Exception
             }
         }
@@ -263,7 +354,13 @@ function Invoke-L04TransportProcess {
             $killDeadlineTicks = & $killAndDrainDeadline
             if ($process -ne $null -and $state.process_started) {
                 try {
-                    if (-not $process.HasExited) { $process.Kill($true) }
+                    if (-not $process.HasExited) {
+                        $killTreeMethod = @($process.GetType().GetMethods() | Where-Object {
+                            $_.Name -eq "Kill" -and $_.GetParameters().Count -eq 1 -and
+                            $_.GetParameters()[0].ParameterType -eq [bool]
+                        })
+                        if ($killTreeMethod.Count -gt 0) { $process.Kill($true) } else { $process.Kill() }
+                    }
                 } catch {
                     & $recordException $_.Exception
                 }
@@ -287,20 +384,36 @@ function Invoke-L04TransportProcess {
                     & $recordException $_.Exception
                 }
             }
+            foreach ($task in @($writeTask, $flushTask)) {
+                if ($task -ne $null) {
+                    try {
+                        if (Wait-L04TaskUntilDeadline -Task $task -DeadlineTicks $killDeadlineTicks) {
+                            Observe-L04Task $task
+                        } else {
+                            & $recordError "StdinTaskDrainTimeout"
+                        }
+                    } catch {
+                        Observe-L04Task $task
+                        & $recordException $_.Exception
+                    }
+                }
+            }
             # Publish timeout evidence before potentially blocked inherited stream handles are drained.
             & $publishRawCapture $killDeadlineTicks "timeout"
         }
 
         if ($process -ne $null -and -not $state.stdin_closed) {
             try {
-                $closeTask = $process.StandardInput.DisposeAsync().AsTask()
                 $closeDeadline = if ($killDeadlineTicks -ne $null) { $killDeadlineTicks } else { $deadlineTicks }
-                if (Wait-L04TaskUntilDeadline -Task $closeTask -DeadlineTicks $closeDeadline) {
-                    $state.stdin_closed = $true
-                } else {
+                if ((Get-L04RemainingMilliseconds $closeDeadline) -le 0) {
                     & $recordError "StdinCloseTimeout"
+                } else {
+                    $process.StandardInput.Close()
+                    $state.stdin_closed = $true
                 }
             } catch {
+                Observe-L04Task $writeTask
+                Observe-L04Task $flushTask
                 & $recordException $_.Exception
             }
         }
