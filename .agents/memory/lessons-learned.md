@@ -813,3 +813,59 @@ digest. Select candidates only by train folds, then evaluate a new holdout once.
 **Watch out for:** Do not put a secret seed/path in Stage A source or artifacts,
 do not call seeds independent samples, and do not use old holdout outcomes to
 choose a new fixture, candidate, or threshold.
+
+## [2026-08-31] Full-prompt transformer outputs must be shape-checked before patching
+
+**Symptom:** The v2 real GPT-2 path derived a terminal position from an
+attention mask with 22 valid positions, then indexed a captured hidden tensor
+with sequence length 21. The resulting `IndexError` escaped the narrow Stage A
+exception tuple, so no D0 triad was emitted.
+
+**Fix / workaround:** Validate input/mask/logit/native-hidden batch and
+sequence axes immediately after the direct full-prompt forward. Resolve clean
+source and corrupted recipient positions from each result's own mask, and
+carry runtime failures through a sanitized D0 artifact with partial counters
+and the exact partial/run/failure triad.
+
+**Watch out for:** `TransformerGenerationRequest` is a bounded forward
+request, not a call to Hugging Face `.generate()`. Native hidden-state tuple
+selection does not shorten sequence length; any mismatch is a backend/output
+contract violation and must not be clamped or hidden by a synthetic fallback.
+
+## [2026-08-31] Cleanup finalizers can fail after a real runtime failure
+
+**Symptom:** A real Stage A attempt could fail while its resource finalizer
+also raised, leaving no validator-supported representation of the incomplete
+cleanup and risking a second finalizer invocation while building the D0
+artifact.
+
+**Root cause:** Cleanup was represented only by the successful `{hook_count,
+completed}` shape, and failure-envelope construction retried the callable
+finalizer after the primary runtime exception.
+
+**Fix / workaround:** Consume finalizers once, preserve the primary runtime
+exception, and record attempted-real D0 cleanup failure with an allowlisted
+error type, fixed reason/stage, completion false, and truthful hooks remaining;
+retain strict completed/zero-hook cleanup for D1/D2.
+
+**Watch out for:** Never serialize cleanup exception text, never overwrite the
+primary runtime error with cleanup failure, and never treat incomplete cleanup
+as a successful or eligible run.
+
+## [2026-08-31] Failed raw captures need a canonical no-triad sidecar
+
+**Symptom:** A failed Stage A transport can contain trustworthy marker status
+and raw size/hash but no parseable artifact triad or audit, leaving Git-close
+review without a machine-checkable semantic record.
+
+**Root cause:** The capture path intentionally stops before bundle creation on
+  a sequence-alignment exception, so normal artifact retention cannot create a
+  triplet or validator audit.
+
+**Fix / workaround:** Add one canonical sanitized sidecar binding source
+commit/tree, raw and transport hashes, marker statuses, the fixed reason code,
+and explicit no-triad/no-audit/no-selection D0 state while keeping the raw
+capture byte-exact and pending owner review.
+
+**Watch out for:** Do not reconstruct payloads, include remote paths or
+execution bodies, or imply semantic eligibility from transport cleanup alone.

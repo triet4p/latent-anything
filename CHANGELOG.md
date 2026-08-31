@@ -49,6 +49,23 @@
 
 ### Changed
 
+- Hardened the v2 real Stage A failure boundary for cleanup-finalizer errors:
+  attempted CUDA D0 artifacts now retain sanitized, validator-supported
+  incomplete-cleanup provenance without retrying the finalizer or masking the
+  primary runtime exception; successful D1/D2 cleanup remains strict.
+
+- Added the canonical sanitized sidecar for the failed v2 Stage A diagnostic,
+  binding the exact source/tree/raw/transport commitments and sequence-alignment
+  reason while recording that no triad, audit, or candidate was produced. The
+  raw capture remains preserved pending owner exception review.
+
+- Hardened the L04.9 v2 real runtime after the failed CUDA diagnostic: native
+  transformer outputs now fail closed on full-prompt shape mismatches, clean
+  and corrupted endpoint positions are resolved independently, and runtime
+  exceptions produce truthful D0 triads with partial counters instead of
+  silently falling back to synthetic scoring. No real-CUDA rerun or evidence
+  promotion was performed.
+
 - Recorded one owner-authorized exact-SHA M14 L04.9 real-CUDA attempt as a
   non-promoting D0 semantic failure: true-interchange recovery failed and the
   single retention attempt failed closed on a producer failure-stage mismatch.

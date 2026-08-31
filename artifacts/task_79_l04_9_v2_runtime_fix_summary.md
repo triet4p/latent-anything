@@ -1,0 +1,61 @@
+# Task Summary: Sprint 79 L04.9 v2 runtime failure fix
+
+**Sprint:** Sprint 79
+**Task:** L04.9 v2 Stage A real-runtime shape alignment and D0 triad recovery
+
+## Summary of Work
+
+Added fail-closed full-prompt shape validation to the concrete transformer
+runtime, corrected v2 clean-source/corrupted-recipient position alignment for
+different sequence lengths, and changed real Stage A failures from synthetic
+fallbacks to truthful D0 artifacts with partial operation counters. The v2
+validator and retention path now accept and independently verify incomplete
+runtime-failure artifacts while preserving the strict successful D1 path.
+Attempted-real D0 cleanup failures now retain counter-derived hooks remaining,
+allowlisted cleanup metadata, and attested partial counters; malformed
+finalizer returns are sanitized as non-promoting failures and finalizers run
+once. The failed diagnostic also has a canonical sanitized no-triad sidecar
+binding source/tree/raw/transport commitments and preserved-pending-owner-
+exception state. No CUDA rerun, holdout access, retry, retention finalization,
+or evidence promotion was performed.
+
+## Files Modified
+
+* `src/latent_anything/_transformer_runtime.py` - full-prompt tensor shape
+  contract and sanitized shape exception.
+* `scripts/_m14_l049_v2_real_runtime.py` - independent endpoint positions,
+  hidden/layer checks, recipient-shaped patch direction, canonical corrupted
+  prompt, and Stage B export.
+* `scripts/_m14_l049_v2_stage_a.py` - D0 failure artifact and no synthetic
+  fallback after runtime exceptions.
+* `scripts/m14_l049_v2_stage_a.py` - broad runtime catch and unconditional
+  exact triad emission.
+* `scripts/_m14_l049_v2_validate_common.py` - partial runtime attestation and
+  cleanup-stage validation, counter-derived hook removal, and protocol bounds.
+* `scripts/_m14_l049_v2_attestation.py` - attested cleanup hooks remaining for
+  incomplete real D0 cleanup.
+* `scripts/_m14_l049_v2_validate_stage_a.py` - strict D0 attempted-failure
+  branch with no candidate or eligibility.
+* `tests/test_transformer_lm.py` - shortened hidden-state regression.
+* `tests/test_m14_l049_v2.py` - position, sanitized failure, cleanup-finalizer,
+  hook-counter, and CLI triad regressions.
+* `tests/test_m14_l04_remote_postprocess.py` - D0 retain/finalize regression.
+* `artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json` - canonical sanitized
+  failed-attempt no-triad sidecar.
+* `CHANGELOG.md`, `docs/sprint-plans/sprint-79.md`, and
+  `.agents/memory/lessons-learned.md` - truthful implementation record.
+
+## Testing
+
+* Focused transformer/v2/postprocess suite: `99 passed`.
+* Complete M14 L04 family before the final cleanup schema adjustment:
+  `360 passed, 1 skipped`; the final focused run covers all modified cleanup
+  paths.
+* Scoped Ruff/format and Pyright: passed (`0 errors, 0 warnings, 0
+  informations`).
+* Graphify update and `git diff --check`: passed.
+
+## Additional Notes
+
+The previously captured raw diagnostic remains untouched and untracked;
+SHA-256 is `9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f`.

@@ -316,6 +316,18 @@ occurred. See
   D2 artifact and reopens retained member envelopes; deleted raw bytes are
   accepted only through a verified pending/final audit chain. Synthetic Stage B
   remains D0/non-promoting. No real holdout evaluation or D3 claim has occurred.
+- [x] Correct the v2 real-runtime shape and failure-envelope blockers found by
+  the owner-reviewed Stage A diagnostic. Full-prompt output shapes now fail
+  closed, clean/corrupted patch endpoints are independently aligned, and an
+  incomplete real attempt emits a validator-clean D0 triad with partial
+  counters. No CUDA rerun, holdout access, retention finalization, or evidence
+  promotion occurred.
+- [x] Close the v2 failed-attempt evidence state locally without touching the
+  raw capture. The canonical sanitized Stage A sidecar records the exact
+  source/tree/raw/transport commitments, status markers, sequence-alignment
+  reason, absent triad/audit/selection, and preserved-pending-owner-exception
+  retention state. No raw parsing payload, sensitive body, retry, or promotion
+  was added.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
