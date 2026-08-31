@@ -1152,3 +1152,26 @@ only after literal-path, regular-file, non-reparse, untracked, size, and SHA-256
 checks. The assessment sidecar records both the pre-delete proof and verified
 absence; this is irreversible and must never be described as finalization or
 promotion.
+
+## [2026-09-01] Diagnose resource peaks with bounded, allowlisted subcodes
+
+**Symptom:** A real Stage A run reached CUDA and selection but failed during
+finalizer resource validation with only the broad
+`finalizer_resource_peak_fields` category. The sanitized artifact could not
+prove which peak field was malformed, while partial selection counters were
+not reusable.
+
+**Fix / workaround:** Keep one producer-independent checker, but classify
+resource-peak failures in deterministic mutually exclusive subcodes for shape,
+primitive types, elapsed time, source/device, status/reason, availability
+provenance, budget, and cross-field invariants. Permit only canonical
+`unavailable` or `cuda:N` device values and never echo arbitrary input keys,
+values, paths, or tracebacks. Keep the public validator independent and bind
+the exact subcondition as unknown when the historical sanitized artifact cannot
+establish it.
+
+**Watch out for:** GPU allocated and reserved measurements must be treated as
+an atomic pair. If either query fails or the pair is invalid, clear both
+measurements and mark the provenance unavailable; never present a positive peak
+alongside a stale zero. A resource-only probe may validate tracker/cleanup
+behavior, but it is not a model, selection, holdout, or semantic run.

@@ -1,0 +1,147 @@
+{
+  "schema_version": "m14-l04.9-v2-current-incident-assessment-v4",
+  "status": "pending",
+  "source": {
+    "commit_sha": "5d6d8fb5e06890cf9615936f049681a6d1e52228",
+    "tree_sha256": "07bea97c9c4b55919fa707d473e2cecf7e1392a6",
+    "use_case": "L049V2StageA",
+    "exact_source_verified": true
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.raw.txt",
+      "bytes": 9779,
+      "sha256": "6dd1741c94b5af2fc084667129197304b5de2b51d023920a22164a33d342c4d2",
+      "written_before_parse": true,
+      "present": true
+    },
+    "audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.audit.json",
+      "bytes": 3234,
+      "sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
+      "present": true,
+      "rebuild": {
+        "status": "canonical_retain_reopened",
+        "previous_bytes": 3234,
+        "previous_sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
+        "current_bytes": 3234,
+        "current_sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
+        "archive_member_names_preserved": true,
+        "source_unique_local_paths": true
+      }
+    },
+    "bundle": {
+      "bytes": 2419,
+      "sha256": "87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe",
+      "member_names": [
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.failure.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.partial.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.run.json"
+      ],
+      "bytes_unchanged": true
+    },
+    "triad": {
+      "partial": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.partial.json",
+        "bytes": 7327,
+        "sha256": "da05cad97b10c79722a73731ac60e128e3597942c58703d7d372335f470e44e2",
+        "present": true
+      },
+      "run": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.run.json",
+        "bytes": 395,
+        "sha256": "6ff1393b348d9c6d4e11cb6010fd791333acf9de04903fa01efc9e2956a9b81a",
+        "present": true
+      },
+      "failure": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.failure.json",
+        "bytes": 397,
+        "sha256": "054fd04679932656b79aa09c77f74f9271efe2072d17d4d082529e3e670de7b6",
+        "present": true
+      },
+      "local_paths_source_unique": true,
+      "bytes_unchanged": true
+    }
+  },
+  "execution": {
+    "completed_payloads": 1,
+    "ssh_launches_reported": 1,
+    "remote_cli_invocations": 1,
+    "retry_performed": false,
+    "second_launch_aborted": false,
+    "remote_reach": "reached",
+    "cuda_proof": "PASS",
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "mutex_key_sha256": "80741d63253909a313149b756cf1668f0a339fd191ee7bf4a114bc74b7a276fb",
+    "argv_sha256": "d8066963bd854746f2d1d2a3be716e64f1cca58602854bd75572bf7053a5159a"
+  },
+  "markers": {
+    "transport_payload_sha256": "5c0f9a3132f747b9e23402c7e34a39447bb986055e37d15687f04b90221af2d6",
+    "transport_decode_status": 0,
+    "transport_decode_sha256": "5c0f9a3132f747b9e23402c7e34a39447bb986055e37d15687f04b90221af2d6",
+    "transport_decode_match": "PASS",
+    "use_case": "L049V2StageA",
+    "code_sha": "5d6d8fb5e06890cf9615936f049681a6d1e52228",
+    "cli_status": 0,
+    "bundle_status": 0,
+    "final_status": 0,
+    "bundle_bytes": 2419,
+    "bundle_sha256": "87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe",
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "workdir_marker": "present_redacted"
+  },
+  "assessment": {
+    "artifact_status": "stage_a_failed",
+    "failure_kind": "runtime_exception",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_status": "not_complete",
+    "selection_evaluations": 2592,
+    "selection_reuse": "discarded_not_reusable",
+    "candidate_grid_size": 36,
+    "score_records": 0,
+    "folds": 0,
+    "oof_evidence": "not_produced",
+    "semantic_gate": "not_reached",
+    "operation_counts_observed": {
+      "candidate_evaluations": 2592,
+      "hooks": 1296,
+      "captures": 1368,
+      "patches": 1296,
+      "controls": 0,
+      "forwards": 1368
+    },
+    "resource_measurement": {
+      "status": "unavailable",
+      "reason": "resource_measurement_invalid",
+      "finalizer_rejection_code": "finalizer_resource_peak_fields",
+      "exact_peak_subcondition": "unknown",
+      "gpu_subfield": "unknown"
+    },
+    "atomic_gpu_pair": {
+      "serialized_asymmetric_positive_zero": false,
+      "allocated_reserved_query_asymmetry": "unknown",
+      "pair_cleared_on_query_failure": "not_proven_by_artifact"
+    },
+    "root_cause": {
+      "status": "proven_at_sanitized_category_only",
+      "category": "finalizer_resource_peak_fields",
+      "cuda_device_contract_inference": {
+        "status": "not_supported_by_artifact",
+        "statement": "Canonical attempted CUDA device provenance is now accepted for CUDA measurement failures, but this artifact does not identify a device/source mismatch as the prior failure cause."
+      }
+    },
+    "promotion": false,
+    "finalization": false,
+    "standard_finalize": false,
+    "repository_promotion": false
+  },
+  "retention": {
+    "status": "pending",
+    "recommendation": "Preserve raw, audit, bundle, and source-unique triad evidence for owner review; no promotion or finalization is permitted."
+  },
+  "redaction": "Sanitized metadata only; absolute and remote ephemeral paths, holdout material, secrets, device free text, and execution bodies omitted.",
+  "sidecar_sha256": "d93f45fbc059616093855b7de10b626a19914467938b8bf0dd287a0222c3f96e"
+}

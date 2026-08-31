@@ -420,6 +420,15 @@ occurred. See
   live-counter, Stage B shared-envelope/idempotence, rejection-matrix, and
   late-failure no-double-finalizer regressions are covered; public validation
   remains independent.
+- [x] Harden the resource-peak diagnostics after the 5d6d8fb Stage A D0:
+  resource-finalizer rejection now uses deterministic allowlisted subcodes for
+  shape, primitive types, elapsed time, source/device, status/reason,
+  availability provenance, budget, and cross-field invariants. The committed
+  resource-only probe exercises the production tracker without model, fixture,
+  selection, or holdout inputs and emits only fixed sanitized markers. The
+  current raw, bundle, audit, and source-unique triad evidence remain pending
+  and byte/digest-bound in its assessment sidecar; the exact peak subcondition
+  is unknown, so no semantic result, promotion, or finalization is inferred.
 - [x] Correct the first owner-authorized a205ca7 Stage A transport attempt:
   the remote payload now derives and validates the tracked train fixture inside
   its fresh detached clone, while Stage B accepts only sanitized absolute POSIX

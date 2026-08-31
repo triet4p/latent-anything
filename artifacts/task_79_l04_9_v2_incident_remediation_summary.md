@@ -98,3 +98,35 @@ and the sanitized path-leakage root cause. The raw was deleted under an
 explicit owner exception after exact pre-delete verification; the sidecar
 records its post-delete absence. This is irreversible and is not standard
 finalization or promotion.
+
+## Follow-up: 5d6d8fb resource-peak diagnostic hardening
+
+The owner-authorized real Stage A attempt on source
+`5d6d8fb5e06890cf9615936f049681a6d1e52228` completed transport, CUDA, bundle,
+and cleanup markers, then produced a D0 `runtime_exception` during finalizer
+resource validation. The sanitized artifact records 2592 selection
+evaluations, but no score records, folds, OOF metric, or semantic gate; those
+partial evaluations are discarded and not reusable.
+
+The finalizer checker now emits mutually exclusive, allowlisted resource-peak
+subcodes for shape, primitive types, elapsed time, source/device,
+status/reason, availability provenance, budget, and cross-field invariants.
+It rejects arbitrary GPU source/device text and retains the independent public
+validator. A committed resource-only probe uses the production
+`ResourceTracker`, permits at most one minimal CUDA allocation, and emits only
+fixed sanitized markers; it was not run in this local remediation.
+
+The raw capture is 9779 bytes with SHA-256
+`6dd1741c94b5af2fc084667129197304b5de2b51d023920a22164a33d342c4d2`.
+The 2419-byte bundle is SHA-256
+`87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe`.
+The audit and three triad files are source-unique locally; their exact paths,
+sizes, and digests are bound by
+`artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.assessment.sidecar.json`.
+The archive member names remain generic by design and are distinct from the
+source-unique local paths. The exact peak subcondition and query asymmetry are
+unknown from the sanitized artifact; no resource measurement, semantic
+result, promotion, or finalization is inferred. The new canonical attempted
+CUDA-device contract is a preventive hardening change, not a proven root cause
+for this incident: the sanitized artifact does not identify a device/source
+mismatch.

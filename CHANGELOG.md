@@ -25,6 +25,13 @@
   helper now captures raw evidence only, while raw deletion requires separate
   verified finalization. Remote validation remains owner-gated.
 
+- Added deterministic, allowlisted resource-peak finalizer diagnostics for the
+  M14 L04.9 v2 boundary, plus a resource-only production-tracker probe that
+  does not load a model or access fixtures, selection, or holdout inputs. The
+  5d6d8fb CUDA result remains a pending D0 runtime exception with source-unique
+  evidence bound by a sanitized assessment sidecar; no semantic promotion or
+  finalization is claimed.
+
 - Added the offline-tested, explicitly network-gated WikiText-2 acquisition
   and sanitized manifest pipeline for the frozen M14 L04 tuned-lens corpus.
   The pipeline retains only pinned provenance, counts, selected indices, text
