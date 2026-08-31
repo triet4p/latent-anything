@@ -65,6 +65,57 @@ owner-exception deletion with `standard_finalize=false`, and keeps
 `repository_promotion=false`, evidence level D0, and no accepted IDs. The
 historical raw path is now verified absent and is not recoverable.
 
+## v2 preregistration (Phase A pending)
+
+The v2 addendum is immutable and references the frozen parent plan digest
+`f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a`. It
+deny-lists the exposed v1 holdout groups `g09`--`g12` and all exposed v1
+artifacts forever. The material metric change is directional recovery
+`(patched-corrupted)/(clean-corrupted)` with a finite absolute denominator
+greater than `1e-12`.
+
+The new deterministic fixture has 36 public train groups and 24 withheld
+holdout groups, two balanced clean/corrupted rows per group, disjoint prompt
+families/vocabulary, and no near duplicates. The holdout plaintext and its
+256-bit seed remain outside the repository; only the holdout plaintext hash
+`295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f`, seed
+commitment `b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1`,
+and authoring manifest digest
+`c63059b05fb45c984bdff2ebd7ecaeee0ff0ca98dab3cc81b845bedb2e1c83c7`, plus
+the exact external manifest file hash
+`2849b07fd719a0a761f433892fcc031c2ab17012a538daba322dd6fa50674974`, are
+recorded. The manifest digest omits only its own `manifest_sha256` field under
+the addendum's explicit canonicalization rule. Experimenter authoring is
+disclosed; withholding is computational.
+
+Phase A performs six outer folds over the 36 train groups, ranks the fixed
+12-layer/three-offset candidate grid on the other 30 groups, requires a
+consensus winner in at least four folds, and evaluates 36 out-of-fold groups
+with group bootstrap, positive-fold, and 24-positive-group gates. The frozen
+model-free power sensitivity result uses 2,000 simulation draws and 2,000
+bootstrap resamples per draw. Its digest is
+`2102e8bb02e092f4cef5ac5b42290019e2fae3393d4c089fa8e7aa2c494ba431`, power
+`0.562`, and accepted false-negative risk `0.43799999999999994`.
+
+The offline train-only Stage A output is an ephemeral D0 protocol fixture,
+never a Stage A evidence artifact. It is generated only in temporary test
+locations; an actual Stage A artifact is created only by an authorized CUDA
+run after review and commitment. Stage B is synthetic-testable only until that
+real Stage A digest is committed; its real holdout path/seed are not present
+in the repository. v1's
+exact-three-member retention protocol remains unchanged; v2 uses a separate
+single-artifact transport/retention boundary. v2 artifacts now carry a fixed,
+structurally self-attested runtime transcript bound to the fixture, candidate,
+source, and addendum digests; this is self-attestation only. A final D3
+promotion additionally requires the independent transport/raw-retention audit,
+and synthetic Stage B remains D0/non-promoting. The `--run-real` Stage A and
+Stage B paths are CUDA-only, load the pinned GPT-2 boundary, and can emit D1 or
+D2 only after real capture/intervention execution and all gates pass; the Stage
+B path requires explicit owner-provisioned candidate, holdout fixture, and seed
+commitments. Offline protocol fixtures remain D0. The local D3 constructor
+reopens retained member envelopes and accepts raw deletion only from a verified
+pending/final audit chain; it does not recompute deleted bytes.
+
 ## Verification
 
 Focused regression coverage exercises the completed-scoring semantic failure

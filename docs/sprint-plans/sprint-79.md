@@ -299,6 +299,23 @@ owner exception after size/hash verification; its sanitized non-promoting D0
 sidecar records the deletion. No D3 evidence was promoted and no retry
 occurred. See
   [`task_79_l04_9_summary.md`](../../artifacts/task_79_l04_9_summary.md).
+- [x] Preregister L04.9 v2 offline Phase A after the failed v1 attempt. The
+  immutable addendum references the frozen plan, permanently deny-lists the
+  exposed v1 `g09`--`g12` holdout, changes recovery to a directional metric,
+  and commits only the withheld holdout plaintext hash, 256-bit seed
+  commitment, authoring digest, and power-simulation digest. The public
+  train-only fixture has 36 groups; the computationally withheld holdout has
+  24 groups and remains outside the repository. Six-fold train-only candidate
+  selection, independent validation, synthetic Stage B, and separate v2
+  single-artifact transport/retention are implemented offline. Offline Stage
+  A output is an ephemeral D0 protocol fixture only; the real Stage A artifact
+  is created by an authorized CUDA run after review/commit. Structured runtime
+  attestations are independently recomputed at the artifact boundary; they are
+  self-attestation only, and final D3 promotion additionally requires the
+  transport/raw-retention audit. Stage B D3 construction is separate from the
+  D2 artifact and reopens retained member envelopes; deleted raw bytes are
+  accepted only through a verified pending/final audit chain. Synthetic Stage B
+  remains D0/non-promoting. No real holdout evaluation or D3 claim has occurred.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

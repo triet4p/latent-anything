@@ -797,3 +797,19 @@ is irreversible and does not promote the semantic result.
 **Watch out for:** Never use a broad glob or recursive deletion for exception
 cleanup, and never claim `deleted_verified` from the standard finalizer when
 that finalizer did not run.
+
+## [2026-08-30] Exposed holdouts require a new committed v2 contract
+
+**Symptom:** A failed real run exposed the original holdout groups, making any
+later layer/token or fixture adjustment on those rows vulnerable to holdout
+tuning.
+
+**Fix / workaround:** Preserve the v1 plan and deny-list its exposed groups
+forever. Author a new deterministic train/holdout fixture independently,
+withhold plaintext and the 256-bit seed outside the repository, and commit only
+the holdout hash, seed commitment, schema/count/order metadata, and authoring
+digest. Select candidates only by train folds, then evaluate a new holdout once.
+
+**Watch out for:** Do not put a secret seed/path in Stage A source or artifacts,
+do not call seeds independent samples, and do not use old holdout outcomes to
+choose a new fixture, candidate, or threshold.

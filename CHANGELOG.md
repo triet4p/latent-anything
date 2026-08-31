@@ -13,6 +13,13 @@
   v1 attempt is recorded below and no D3 evidence was promoted. See
   [`task_79_l04_9_summary.md`](artifacts/task_79_l04_9_summary.md).
 
+- Added the preregistered, offline-only M14 L04.9 v2 Phase A train-selection
+  boundary with an immutable addendum, computationally withheld holdout
+  commitments, model-free power sensitivity simulation, six-fold candidate
+  selection, independent Stage A/Stage B validators, and separate
+  single-artifact transport/retention metadata. No holdout plaintext, seed, or
+  D3 evidence is present in the repository.
+
 - Added the local, offline-tested M14 L04 evidence-retention CLI with explicit
   `--retain`, `--validate-only`, and `--finalize-delete` phases; the PowerShell
   helper now captures raw evidence only, while raw deletion requires separate

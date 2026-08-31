@@ -1182,3 +1182,29 @@ clean/corrupted endpoints, fixed target margin, held-out group aggregation,
 off-target layer/token controls, deterministic donor derangement, zero identity,
 no-mutation, and immutable run/failure envelopes. Phase A itself is offline and
 cannot promote evidence.
+
+## [2026-08-30] Preregister L04.9 v2 as a new withheld-holdout contract
+
+**Decision:** Preserve the v1 plan and artifacts byte-for-byte and add a
+separate immutable v2 addendum. Permanently deny-list the exposed v1
+`g09`--`g12` groups, require a new computationally withheld 24-group holdout,
+and use directional recovery `(patched-corrupted)/(clean-corrupted)` with a
+finite absolute denominator greater than `1e-12`. Stage A may inspect only 36
+public train groups and selects a candidate by six outer folds; Stage B is the
+one-shot new-holdout evaluation. Seeds summarize reproducibility, not
+independent samples.
+
+**Alternatives considered:** Re-tune the old fixture, inspect the old holdout,
+select layers/tokens on the final holdout, or relax the failed v1 threshold.
+
+**Reason:** The v1 holdout was exposed by execution, so any reuse would make
+the final estimate non-independent. A train-only consensus selection preserves
+the scientific boundary while accepting the preregistered false-negative risk
+shown by the model-free power simulation. D3 is narrowed to held-out causal
+recovery plus donor specificity, not localization.
+
+**Consequences:** The holdout plaintext and 256-bit seed stay outside the
+repository until Stage A review and commitment. The addendum records only
+hashes, schema/order/counts, generator/authoring digest, and bootstrap seeds.
+v1's exact-three-member retention protocol is unchanged; v2 has separate
+single-artifact transport/retention metadata. No v2 result is promoted offline.
