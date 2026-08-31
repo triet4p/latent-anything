@@ -107,8 +107,11 @@ class LayerIndex:
     Parameters
     ----------
     layer:
-        Layer index (0-based). 0 is the embedding output; 1 is the first
-        transformer block output, etc.
+        Native output index (0-based). Index 0 is the embedding output; for
+        GPT-2, indices 1 through 11 are raw block outputs for blocks 0 through
+        10, while native index 12 is the post-``ln_f`` terminal state. The raw
+        output of block ``h.11`` must be obtained through the private raw-block
+        capture seam rather than by native index arithmetic.
     """
 
     layer: int
@@ -246,9 +249,12 @@ class TransformerGenerationRequest:
         If True, record all hidden states from all layers.
     capture_layers:
         Specific native ``output_hidden_states`` indices to capture. Native
-        index 0 is the embedding output and transformer block ``L``'s output
-        is index ``L + 1``. If empty and ``capture_hidden_states`` is True,
-        captures all native indices (0 to n_layers).
+        index 0 is the embedding output. For GPT-2, native ``layer + 1`` is a
+        raw block output only for block layers 0 through 10; native index 12
+        is the final post-``ln_f`` state. The raw output of block 11 therefore
+        requires the private raw-block capture seam rather than native index
+        arithmetic. If empty and ``capture_hidden_states`` is True, captures
+        all native indices (0 to n_layers).
     top_k_logit_lens:
         Number of top tokens to store in each LogitLensResult (0 = skip).
     """
@@ -310,8 +316,10 @@ class HiddenStateIntervention:
     ----------
     layer:
         Zero-based transformer block index to intervene on. The runtime maps
-        this value to ``transformer.h.<layer>``; the corresponding native
-        ``output_hidden_states`` block output is at index ``layer + 1``.
+        this value to ``transformer.h.<layer>``. In GPT-2, corresponding native
+        raw block output index ``layer + 1`` is valid only for layers 0 through
+        10; native index 12 is post-``ln_f``, so replacing block 11 requires
+        the private raw-block capture seam.
     direction:
         Direction vector as ``(1, 1, hidden_dim)`` or
         ``(batch_size, seq_len, hidden_dim)`` non-writable NumPy array.
@@ -505,6 +513,38 @@ class TransformerLMIntegration:
             provenance=self.provenance,
             default_num_layers=GPT2_NUM_LAYERS,
         )
+        return self._public_result(request, runtime_result)
+
+    def _generate_with_raw_block_capture(
+        self,
+        request: TransformerGenerationRequest,
+        *,
+        raw_capture_layers: tuple[int, ...],
+        intervention: HiddenStateIntervention | None = None,
+    ) -> tuple[TransformerGenerationResult, tuple[tuple[int, np.ndarray, dict[str, str]], ...]]:
+        """Run one private forward while retaining raw transformer block outputs.
+
+        Native GPT-2 hidden-state index ``n_layers`` is post-``ln_f`` and cannot
+        serve as the raw output of the final block.  This private seam lets the
+        model-bound v2 runtime request exact pre-``ln_f`` block activations
+        without adding a public result field or a ``ModelAdapter`` abstraction.
+        """
+        model, tokenizer, config = self._backend()
+        runtime_result = run_generation(
+            model,
+            tokenizer,
+            config,
+            request,
+            intervention,
+            device=self.device,
+            provenance=self.provenance,
+            default_num_layers=GPT2_NUM_LAYERS,
+            raw_capture_layers=raw_capture_layers,
+        )
+        return self._public_result(request, runtime_result), runtime_result.raw_block_states
+
+    def _public_result(self, request: TransformerGenerationRequest, runtime_result: Any) -> TransformerGenerationResult:
+        """Convert the private runtime result to the stable public result."""
         return TransformerGenerationResult(
             input_ids=runtime_result.input_ids,
             attention_mask=runtime_result.attention_mask,

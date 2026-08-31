@@ -17,7 +17,7 @@ from scripts._m14_l04_contract_common import canonical_json_bytes
 V2_ADDENDUM_PATH = Path(__file__).resolve().parents[1] / "artifacts/m14/l04-explanations.v2.addendum.json"
 V2_ADDENDUM_SCHEMA = "m14-l04.9-v2-addendum-v1"
 V2_FIXTURE_SCHEMA = "m14-l04.9-v2-causal-pair-v1"
-V2_STAGE_A_SCHEMA = "m14-l04.9-v2-stage-a-v1"
+V2_STAGE_A_SCHEMA = "m14-l04.9-v2-stage-a-v2"
 V2_STAGE_B_SCHEMA = "m14-l04.9-v2-stage-b-v1"
 RUNTIME_ATTESTATION_SCHEMA = "m14-l04.9-v2-runtime-attestation-v1"
 STAGE_A_FAILURE_KINDS = ("runtime_exception", "semantic_gate")

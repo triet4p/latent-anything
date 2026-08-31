@@ -82,6 +82,7 @@ class RuntimeGenerationResult:
     hidden_states: tuple[tuple[int, np.ndarray, dict[str, str]], ...]
     lens_results: tuple[tuple[int, np.ndarray, np.ndarray, list[list[list[tuple[int, float]]]], int], ...]
     token_rank_trajectories: tuple[tuple[int, str, list[int], list[float], list[int]], ...]
+    raw_block_states: tuple[tuple[int, np.ndarray, dict[str, str]], ...]
 
 
 def run_generation(
@@ -94,6 +95,7 @@ def run_generation(
     device: str,
     provenance: str,
     default_num_layers: int,
+    raw_capture_layers: Sequence[int] = (),
 ) -> RuntimeGenerationResult:
     import torch
 
@@ -109,6 +111,9 @@ def run_generation(
     _, seq_len = input_shape
 
     num_layers = int(getattr(config, "num_hidden_layers", default_num_layers))
+    raw_layers = tuple(sorted({int(layer) for layer in raw_capture_layers}))
+    if any(layer < 0 or layer >= num_layers for layer in raw_layers):
+        raise ValueError("raw block capture layer is outside the configured transformer depth")
     if request.capture_layers:
         capture_layers = sorted(request.capture_layers)
     elif request.capture_hidden_states:
@@ -119,8 +124,12 @@ def run_generation(
     need_intervention = intervention is not None
     need_capture = request.capture_hidden_states or len(capture_layers) > 0
     module_locations: list[str] = []
+    raw_locations = [f"transformer.h.{layer}" for layer in raw_layers]
     if need_intervention:
         location = f"transformer.h.{intervention.layer}"
+        if location not in module_locations:
+            module_locations.append(location)
+    for location in raw_locations:
         if location not in module_locations:
             module_locations.append(location)
     if need_capture:
@@ -129,35 +138,53 @@ def run_generation(
         pass
 
     intervention_fn: Any = None
+    raw_post_intervention: dict[int, np.ndarray] = {}
     if need_intervention:
         direction_t = torch.tensor(intervention.direction, dtype=torch.float32)
         strength_val = intervention.strength
         token_indices = intervention.token_indices
-        target_dtype = direction_t.dtype
+        target_location = f"transformer.h.{intervention.layer}"
 
-        def intervene_callback(tensor: torch.Tensor, _metadata: Any) -> torch.Tensor:
+        def intervene_callback(tensor: torch.Tensor, metadata: Any) -> torch.Tensor:
+            if metadata.location != target_location:
+                return tensor
             modified = tensor.clone()
             delta = strength_val * direction_t.to(device=tensor.device, dtype=tensor.dtype)
             if token_indices is not None:
                 for batch_index, sequence_index in token_indices:
-                    if batch_index < modified.shape[0] and sequence_index < modified.shape[1]:
-                        modified[batch_index, sequence_index] = (
-                            modified[batch_index, sequence_index] + delta[batch_index, sequence_index]
+                    if batch_index < 0 or sequence_index < 0:
+                        raise TransformerRuntimeShapeError(
+                            "intervention.token_indices", tuple(modified.shape), (batch_index, sequence_index)
                         )
+                    if batch_index >= modified.shape[0] or sequence_index >= modified.shape[1]:
+                        raise TransformerRuntimeShapeError(
+                            "intervention.token_indices", tuple(modified.shape), (batch_index, sequence_index)
+                        )
+                    delta_batch = batch_index if delta.shape[0] > 1 else 0
+                    delta_sequence = sequence_index if delta.shape[1] > 1 else 0
+                    modified[batch_index, sequence_index] = (
+                        modified[batch_index, sequence_index] + delta[delta_batch, delta_sequence]
+                    )
             else:
                 modified = modified + delta
-            return modified.to(dtype=target_dtype)
+            if intervention.layer in raw_layers:
+                values = modified.detach().cpu().numpy().copy()
+                values.setflags(write=False)
+                raw_post_intervention[int(intervention.layer)] = values
+            return modified
 
         intervention_fn = intervene_callback
 
     capture_session = nullcontext()
-    if module_locations and intervention_fn is not None:
+    raw_session: ActivationCaptureSession | None = None
+    if module_locations:
         capture_session = ActivationCaptureSession(
             model,
             module_locations,
             source_model_version=provenance,
             intervention=intervention_fn,
         )
+        raw_session = cast(ActivationCaptureSession, capture_session)
 
     with capture_session, torch.no_grad():
         outputs = model(
@@ -220,6 +247,44 @@ def run_generation(
     ]
     token_rank_trajectories = compute_token_rank_trajectories(rank_inputs, seq_len, tokenizer)
 
+    raw_block_states_map: dict[int, tuple[np.ndarray, dict[str, str]]] = {}
+    if raw_session is not None:
+        for capture in raw_session.captures:
+            prefix = "transformer.h."
+            if capture.metadata.location.startswith(prefix):
+                layer = int(capture.metadata.location.removeprefix(prefix))
+                if layer in raw_layers:
+                    raw_block_states_map[layer] = (
+                        capture.values,
+                        {
+                            "shape": str(tuple(capture.values.shape)),
+                            "source": "forward_hook_pre_intervention",
+                        },
+                    )
+    for layer, values in raw_post_intervention.items():
+        if layer in raw_layers:
+            raw_block_states_map[layer] = (
+                values,
+                {
+                    "shape": str(tuple(values.shape)),
+                    "source": "forward_hook_post_intervention",
+                },
+            )
+    for layer in raw_layers:
+        captured = raw_block_states_map.get(layer)
+        if captured is None:
+            raise TransformerRuntimeShapeError(f"raw_block_states[{layer}]", (*input_shape, -1), None)
+        values, _metadata = captured
+        values_shape = _shape(values)
+        if values_shape is None or len(values_shape) != 3 or values_shape[:2] != input_shape:
+            raise TransformerRuntimeShapeError(f"raw_block_states[{layer}]", (*input_shape, -1), values_shape)
+    raw_block_states = tuple(
+        (layer, values, metadata)
+        for layer in raw_layers
+        if (values_metadata := raw_block_states_map.get(layer)) is not None
+        for values, metadata in (values_metadata,)
+    )
+
     input_ids_np = input_ids.detach().cpu().numpy().copy()
     input_ids_np.setflags(write=False)
     attention_mask_np = attention_mask.detach().cpu().numpy().copy()
@@ -231,4 +296,5 @@ def run_generation(
         hidden_states=tuple(captured_states),
         lens_results=tuple(lens_results),
         token_rank_trajectories=token_rank_trajectories,
+        raw_block_states=raw_block_states,
     )

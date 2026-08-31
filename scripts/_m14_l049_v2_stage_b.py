@@ -19,6 +19,7 @@ from scripts._m14_l049_v2_schema import (
     PAIRED_SHUFFLED_THRESHOLD,
     RECOVERY_THRESHOLD,
     STAGE_B_SEEDS,
+    V2_STAGE_A_SCHEMA,
     V2_STAGE_B_SCHEMA,
     canonical_digest,
     canonical_fixture_bytes,
@@ -103,7 +104,7 @@ def _candidate_precondition(
     candidate_sha = candidate.get("artifact_sha256")
     if not isinstance(candidate_sha, str) or candidate_sha != canonical_digest(candidate, "artifact_sha256"):
         raise ValueError("Stage A candidate artifact digest is invalid")
-    if candidate.get("schema_version") != "m14-l04.9-v2-stage-a-v1":
+    if candidate.get("schema_version") != V2_STAGE_A_SCHEMA:
         raise ValueError("Stage A candidate schema is invalid")
     if candidate.get("stage") != "stage_a_train_selection":
         raise ValueError("Stage A candidate stage is invalid")

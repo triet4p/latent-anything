@@ -304,6 +304,157 @@ class PostNormFakeTokenizer:
         return f"tok_{token_ids[0]}" if token_ids else ""
 
 
+class RawBlockFake(nn.Module):
+    """GPT-2-like block with selectable structured output."""
+
+    def __init__(self, index: int, output_kind: str) -> None:
+        super().__init__()
+        self.index = index
+        self.output_kind = output_kind
+        self.auxiliary = object()
+
+    def forward(self, values: torch.Tensor) -> object:
+        result = values + float(self.index + 1)
+        if self.output_kind == "tuple":
+            return result, self.auxiliary
+        return [result, self.auxiliary]
+
+
+class RawBlockFakeGPT2Model(nn.Module):
+    """Small GPT-2-shaped model exposing terminal post-``ln_f`` state."""
+
+    def __init__(self, output_kind: str = "tuple") -> None:
+        super().__init__()
+        self.transformer = nn.Module()
+        self.transformer.wte = nn.Embedding(8, 4)  # type: ignore[attr-defined]
+        self.transformer.h = nn.ModuleList(  # type: ignore[attr-defined]
+            [RawBlockFake(index, output_kind) for index in range(12)]
+        )
+        self.transformer.ln_f = nn.LayerNorm(4)  # type: ignore[attr-defined]
+        self.lm_head = nn.Linear(4, 8, bias=False)
+        self.config = type("Config", (), {"num_hidden_layers": 12, "hidden_size": 4, "vocab_size": 8})()
+
+    def forward(
+        self,
+        input_ids: object,
+        attention_mask: object | None = None,  # noqa: ARG002
+        output_hidden_states: bool = False,
+    ) -> object:
+        hidden = self.transformer.wte(input_ids)  # type: ignore[arg-type]
+        native: list[torch.Tensor] = [hidden]
+        for index, block in enumerate(self.transformer.h):  # type: ignore[attr-defined]
+            output = block(hidden)
+            hidden = output[0]  # type: ignore[index,assignment]
+            if index < 11:
+                native.append(hidden)
+        normalized = self.transformer.ln_f(hidden)  # type: ignore[attr-defined]
+        native.append(normalized)
+        return type(
+            "FakeOutput",
+            (),
+            {
+                "logits": self.lm_head(normalized),
+                "hidden_states": tuple(native) if output_hidden_states else None,
+            },
+        )()
+
+
+class VariableLengthFakeTokenizer:
+    """Tokenizer with distinct valid lengths for clean/corrupt endpoints."""
+
+    def __call__(
+        self,
+        texts: str | list[str],
+        *,
+        padding: bool = True,  # noqa: ARG002
+        truncation: bool = True,  # noqa: ARG002
+        max_length: int = 8,
+        return_tensors: str | None = None,  # noqa: ARG002
+    ) -> dict[str, torch.Tensor]:
+        prompts = texts if isinstance(texts, list) else [texts]
+        values = []
+        masks = []
+        for prompt in prompts:
+            valid = 3 if prompt == "corrupt" else 5
+            values.append([index % 8 for index in range(valid)] + [0] * (max_length - valid))
+            masks.append([1] * valid + [0] * (max_length - valid))
+        return {"input_ids": torch.tensor(values), "attention_mask": torch.tensor(masks)}
+
+    def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:  # noqa: ARG002
+        return [1] if text else []
+
+    def decode(self, token_ids: list[int]) -> str:
+        return f"tok_{token_ids[0]}" if token_ids else ""
+
+
+@pytest.mark.parametrize("output_kind", ["tuple", "list"])
+def test_private_raw_capture_replaces_terminal_block_at_independent_positions(output_kind: str) -> None:
+    pipe = TransformerLMIntegration()
+    model = RawBlockFakeGPT2Model(output_kind)
+    tokenizer = VariableLengthFakeTokenizer()
+    pipe._backend = lambda: (model, tokenizer, model.config)  # type: ignore[method-assign]
+    request_clean = TransformerGenerationRequest(prompt="clean", max_length=8, top_k_logit_lens=0)
+    request_corrupt = TransformerGenerationRequest(prompt="corrupt", max_length=8, top_k_logit_lens=0)
+    clean, clean_raw = pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+        request_clean, raw_capture_layers=tuple(range(12))
+    )
+    corrupt, corrupt_raw = pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+        request_corrupt, raw_capture_layers=tuple(range(12))
+    )
+    assert [layer for layer, _values, _metadata in clean_raw] == list(range(12))
+    assert [layer for layer, _values, _metadata in corrupt_raw] == list(range(12))
+    clean_raw_map = {layer: values for layer, values, _metadata in clean_raw}
+    corrupt_raw_map = {layer: values for layer, values, _metadata in corrupt_raw}
+    clean_position, corrupt_position = 4, 2
+    direction = np.zeros_like(corrupt_raw_map[11])
+    direction[0, corrupt_position] = clean_raw_map[11][0, clean_position] - corrupt_raw_map[11][0, corrupt_position]
+    patched, patched_raw = pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+        request_corrupt,
+        raw_capture_layers=(11,),
+        intervention=HiddenStateIntervention(
+            layer=11,
+            direction=direction,
+            strength=1.0,
+            token_indices=[(0, corrupt_position)],
+        ),
+    )
+    np.testing.assert_allclose(patched_raw[0][1][0, corrupt_position], clean_raw_map[11][0, clean_position])
+    np.testing.assert_allclose(patched.logits[0, corrupt_position], clean.logits[0, clean_position], atol=1e-6)
+
+    zero, zero_raw = pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+        request_corrupt,
+        raw_capture_layers=(11,),
+        intervention=HiddenStateIntervention(
+            layer=11,
+            direction=direction,
+            strength=0.0,
+            token_indices=[(0, corrupt_position)],
+        ),
+    )
+    np.testing.assert_array_equal(zero_raw[0][1], corrupt_raw_map[11])
+    np.testing.assert_array_equal(zero.logits, corrupt.logits)
+    assert all(not getattr(module, "_forward_hooks", {}) for module in model.modules())
+
+
+def test_private_raw_capture_removes_hooks_when_forward_fails() -> None:
+    pipe = TransformerLMIntegration()
+    model = RawBlockFakeGPT2Model()
+    tokenizer = VariableLengthFakeTokenizer()
+    pipe._backend = lambda: (model, tokenizer, model.config)  # type: ignore[method-assign]
+    original = model.transformer.h[11]  # type: ignore[attr-defined]
+
+    def fail(_values: torch.Tensor) -> object:
+        raise RuntimeError("raw block failure")
+
+    original.forward = fail  # type: ignore[method-assign]
+    with pytest.raises(RuntimeError, match="raw block failure"):
+        pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+            TransformerGenerationRequest(prompt="corrupt", max_length=8, top_k_logit_lens=0),
+            raw_capture_layers=(11,),
+        )
+    assert all(not getattr(module, "_forward_hooks", {}) for module in model.modules())
+
+
 # ---------------------------------------------------------------------------
 # Data structure tests   (Task 2)
 # ---------------------------------------------------------------------------

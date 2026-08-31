@@ -23,10 +23,12 @@ from scripts._m14_l049_v2_schema import (
     canonical_fixture_bytes,
     canonical_json_bytes,
     digest_bytes,
+    directional_recovery,
     top_level_cli_sha256,
 )
 
-ScoreFunction = Callable[[Mapping[str, Any], int, int], float]
+ScoreValue = float | Mapping[str, Any]
+ScoreFunction = Callable[[Mapping[str, Any], int, int], ScoreValue]
 
 _CLEANUP_ERROR_TYPES = frozenset(
     {"CleanupError", "Exception", "MemoryError", "OSError", "RuntimeError", "TimeoutError", "TypeError", "ValueError"}
@@ -229,14 +231,39 @@ def _group_rows(rows: Sequence[Mapping[str, Any]]) -> dict[str, list[Mapping[str
     return dict(sorted(groups.items()))
 
 
+def _score_value(value: ScoreValue) -> tuple[float, dict[str, float]]:
+    """Normalize a scorer value and retain primitive margins for validation."""
+    if isinstance(value, Mapping):
+        clean = value.get("clean_margin")
+        corrupted = value.get("corrupted_margin")
+        patched = value.get("patched_margin")
+        recovery = directional_recovery(clean, corrupted, patched)
+        if recovery is None:
+            raise ValueError("scorer produced an invalid directional recovery")
+        return recovery, {
+            "clean_margin": float(clean),  # type: ignore[arg-type]
+            "corrupted_margin": float(corrupted),  # type: ignore[arg-type]
+            "patched_margin": float(patched),  # type: ignore[arg-type]
+        }
+    numeric = float(value)
+    if not np.isfinite(numeric):
+        raise ValueError("scorer produced a non-finite recovery")
+    # Offline/injected scorers already return a recovery scalar.  Bind it to
+    # deterministic primitive endpoints so the validator can recompute rather
+    # than trusting the declared group score.
+    return numeric, {"clean_margin": 1.0, "corrupted_margin": 0.0, "patched_margin": numeric}
+
+
 def _score_records(rows: Sequence[Mapping[str, Any]], scorer: ScoreFunction) -> list[dict[str, Any]]:
     groups = _group_rows(rows)
     records: list[dict[str, Any]] = []
     for group_id, group_rows in groups.items():
         for candidate in candidate_grid():
-            values = [float(scorer(row, candidate["layer"], candidate["offset"])) for row in group_rows]
+            normalized = [_score_value(scorer(row, candidate["layer"], candidate["offset"])) for row in group_rows]
+            values = [value for value, _primitive in normalized]
             if not np.isfinite(values).all():
                 raise ValueError("train candidate scores must be finite")
+            primitives = [item for _value, item in normalized]
             records.append(
                 {
                     "group_id": group_id,
@@ -244,6 +271,7 @@ def _score_records(rows: Sequence[Mapping[str, Any]], scorer: ScoreFunction) -> 
                     "offset": candidate["offset"],
                     "row_scores": values,
                     "group_score": float(np.mean(values)),
+                    "primitive_margins": primitives,
                 }
             )
     return records

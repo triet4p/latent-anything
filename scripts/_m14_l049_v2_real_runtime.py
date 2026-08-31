@@ -19,7 +19,7 @@ from latent_anything.integrations.transformer_lm import (
     TransformerGenerationRequest,
     TransformerLMIntegration,
 )
-from scripts._m14_l049_v2_schema import EXPECTED_RUNTIME_MODEL
+from scripts._m14_l049_v2_schema import EXPECTED_RUNTIME_MODEL, directional_recovery
 
 _COUNT_KEYS = ("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards")
 _CPU_BUDGET = 6_000_000_000
@@ -267,6 +267,16 @@ def _hidden(result: Any, layer: int, *, role: str) -> np.ndarray:
     return values
 
 
+def _raw_hidden(raw_states: Mapping[int, np.ndarray], layer: int, *, role: str) -> np.ndarray:
+    """Return the raw pre-``ln_f`` output of one transformer block."""
+    values = raw_states.get(int(layer))
+    if values is None:
+        raise ValueError(f"{role} raw block output {int(layer)} is missing")
+    if values.ndim != 3 or values.shape[0] < 1:
+        raise ValueError(f"{role} hidden state has invalid shape {values.shape}")
+    return values
+
+
 def _patch_positions(
     clean: Any,
     corrupt: Any,
@@ -308,9 +318,10 @@ def _forward(
     *,
     capture_layers: tuple[int, ...] = tuple(range(13)),
     intervention: HiddenStateIntervention | None = None,
+    raw_capture_layers: tuple[int, ...] = (),
     counters: MutableMapping[str, int] | None = None,
     operation: str | None = None,
-) -> Any:
+) -> tuple[Any, dict[int, np.ndarray]]:
     if counters is not None:
         counters["forwards"] += 1
         counters["captures"] += 1
@@ -319,7 +330,7 @@ def _forward(
             counters["hooks"] += 1
         elif operation == "control":
             counters["controls"] += 1
-    return integration.generate(
+    result, raw_states = integration._generate_with_raw_block_capture(  # type: ignore[attr-defined]
         TransformerGenerationRequest(
             prompt=prompt,
             max_length=128,
@@ -328,7 +339,9 @@ def _forward(
             top_k_logit_lens=0,
         ),
         intervention=intervention,
+        raw_capture_layers=raw_capture_layers,
     )
+    return result, {int(layer): values for layer, values, _metadata in raw_states}
 
 
 def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[str, Any]]:
@@ -348,21 +361,33 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
         raise RealRuntimeError(error, _runtime_resources(counters, tracker)) from error
     clean_cache: dict[str, Any] = {}
     corrupt_cache: dict[str, Any] = {}
+    score_cache: dict[tuple[str, int, int], dict[str, float]] = {}
 
-    def score(row: Mapping[str, Any], layer: int, offset: int) -> float:
+    def score(row: Mapping[str, Any], layer: int, offset: int) -> Mapping[str, float]:
         counters["candidate_evaluations"] += 1
         pair = pairs[str(row["causal_pair_id"])]
         pair_id = str(row["causal_pair_id"])
+        cache_key = (pair_id, int(layer), int(offset))
+        if cache_key in score_cache:
+            return score_cache[cache_key]
         if pair_id not in clean_cache:
-            clean_cache[pair_id] = _forward(integration, str(pair["clean"]["prompt"]), counters=counters)
-        clean = clean_cache[pair_id]
-        if row["condition"] == "clean":
-            return _margin(integration, clean, str(row["target_text"]))
+            clean_cache[pair_id] = _forward(
+                integration,
+                str(pair["clean"]["prompt"]),
+                raw_capture_layers=tuple(range(12)),
+                counters=counters,
+            )
+        clean, clean_raw = clean_cache[pair_id]
         if pair_id not in corrupt_cache:
-            corrupt_cache[pair_id] = _forward(integration, str(pair["corrupted"]["prompt"]), counters=counters)
-        corrupt = corrupt_cache[pair_id]
-        clean_hidden = _hidden(clean, layer, role="clean source")
-        corrupt_hidden = _hidden(corrupt, layer, role="corrupt recipient")
+            corrupt_cache[pair_id] = _forward(
+                integration,
+                str(pair["corrupted"]["prompt"]),
+                raw_capture_layers=tuple(range(12)),
+                counters=counters,
+            )
+        corrupt, corrupt_raw = corrupt_cache[pair_id]
+        clean_hidden = _raw_hidden(clean_raw, layer, role="clean source")
+        corrupt_hidden = _raw_hidden(corrupt_raw, layer, role="corrupt recipient")
         clean_position, corrupt_position = _patch_positions(clean, corrupt, clean_hidden, corrupt_hidden, int(offset))
         direction = np.zeros_like(corrupt_hidden)
         direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
@@ -376,10 +401,28 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
                 strength=1.0,
                 token_indices=[(0, corrupt_position)],
             ),
+            raw_capture_layers=(int(layer),),
             counters=counters,
             operation="patch",
         )
-        return _margin(integration, patched, str(row["target_text"]))
+        # Each row is one member of the causal pair.  Compare clean, corrupt,
+        # and patched outputs for that row's target token; averaging these
+        # directional recoveries at group level is valid, while averaging raw
+        # margins across the two different target labels is not.
+        target_text = str(row["target_text"])
+        patched_margin = _margin(integration, patched[0], target_text)
+        clean_margin = _margin(integration, clean, target_text)
+        corrupt_margin = _margin(integration, corrupt, target_text)
+        recovery = directional_recovery(clean_margin, corrupt_margin, patched_margin)
+        if recovery is None:
+            raise ValueError("real runtime produced an invalid directional recovery")
+        score_cache[cache_key] = {
+            "clean_margin": clean_margin,
+            "corrupted_margin": corrupt_margin,
+            "patched_margin": patched_margin,
+            "recovery": recovery,
+        }
+        return score_cache[cache_key]
 
     # The scorer is consumed by nested OOF selection after this factory
     # returns.  Keep the mutable counters private and expose a tiny finalizer
@@ -409,12 +452,16 @@ def build_stage_b_runtime(
         offset = int(selected.get("offset", 0))
         observations: dict[str, dict[str, dict[str, Any]]] = {}
         for pair_id, pair in pairs.items():
-            clean = _forward(integration, str(pair["clean"]["prompt"]), counters=counters)
-            corrupt = _forward(integration, str(pair["corrupted"]["prompt"]), counters=counters)
+            clean, clean_raw = _forward(
+                integration, str(pair["clean"]["prompt"]), raw_capture_layers=(layer,), counters=counters
+            )
+            corrupt, corrupt_raw = _forward(
+                integration, str(pair["corrupted"]["prompt"]), raw_capture_layers=(layer,), counters=counters
+            )
             clean_margin = _margin(integration, clean, str(pair["clean"]["target_text"]))
             corrupted_margin = _margin(integration, corrupt, str(pair["corrupted"]["target_text"]))
-            clean_hidden = _hidden(clean, layer, role="clean source")
-            corrupt_hidden = _hidden(corrupt, layer, role="corrupt recipient")
+            clean_hidden = _raw_hidden(clean_raw, layer, role="clean source")
+            corrupt_hidden = _raw_hidden(corrupt_raw, layer, role="corrupt recipient")
             clean_position, corrupt_position = _patch_positions(
                 clean, corrupt, clean_hidden, corrupt_hidden, int(offset)
             )
@@ -432,8 +479,9 @@ def build_stage_b_runtime(
                 ),
                 counters=counters,
                 operation="patch",
+                raw_capture_layers=(layer,),
             )
-            patched_margin = _margin(integration, patched, str(pair["clean"]["target_text"]))
+            patched_margin = _margin(integration, patched[0], str(pair["clean"]["target_text"]))
             observations[pair_id] = {}
             for seed in (1701, 2901, 4101, 5301, 6701):
                 counters["candidate_evaluations"] += 1

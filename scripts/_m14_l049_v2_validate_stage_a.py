@@ -15,6 +15,7 @@ from scripts._m14_l049_v2_schema import (
     candidate_grid,
     canonical_json_bytes,
     digest_bytes,
+    directional_recovery,
     fixture_digest,
     is_digest,
     top_level_cli_sha256,
@@ -71,6 +72,26 @@ def _record_map(
         expected = float(np.mean(np.asarray([safe_float(value) for value in values], dtype=np.float64)))
         if record.get("group_score") != expected:
             errors.append("Stage A group score was not independently recomputed")
+        primitive = record.get("primitive_margins")
+        if (
+            not isinstance(primitive, list)
+            or len(primitive) != 2
+            or any(
+                not isinstance(item, Mapping) or set(item) != {"clean_margin", "corrupted_margin", "patched_margin"}
+                for item in primitive
+            )
+        ):
+            errors.append("Stage A primitive margins are missing or malformed")
+        else:
+            recoveries = [
+                directional_recovery(item.get("clean_margin"), item.get("corrupted_margin"), item.get("patched_margin"))
+                for item in primitive
+            ]
+            if any(recovery is None for recovery in recoveries) or any(
+                recovery is not None and not np.isclose(recovery, value, rtol=0.0, atol=1e-12)
+                for recovery, value in zip(recoveries, values, strict=True)
+            ):
+                errors.append("Stage A directional recovery was not independently recomputed")
         result[key] = record
     if len(result) != len(group_ids) * len(candidates):
         errors.append("Stage A score record coverage is invalid")

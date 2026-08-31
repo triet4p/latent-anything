@@ -535,6 +535,45 @@ def test_real_stage_a_measured_zero_peak_is_rejected_after_rehash() -> None:
     assert "Stage B measured resource provenance is invalid" in errors
 
 
+def test_stage_a_recomputes_directional_recovery_from_primitive_margins() -> None:
+    rows, addendum, _ = _base()
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={
+            "score": lambda *_args: {
+                "clean_margin": 4.0,
+                "corrupted_margin": 1.0,
+                "patched_margin": 2.5,
+            },
+            "resources": _real_resources_for_complete_selection(),
+        },
+    )
+    record = artifact["selection"]["score_records"][0]
+    assert record["group_score"] == pytest.approx(0.5)
+    assert record["primitive_margins"][0] == {
+        "clean_margin": 4.0,
+        "corrupted_margin": 1.0,
+        "patched_margin": 2.5,
+    }
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_stage_a_rehashed_primitive_margin_tampering_is_rejected() -> None:
+    rows, addendum, _ = _base()
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.5, "resources": _real_resources_for_complete_selection()},
+    )
+    artifact["selection"]["score_records"][0]["primitive_margins"][0]["patched_margin"] = 9.0
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    errors = validate_stage_a(artifact, rows, addendum)
+    assert "Stage A directional recovery was not independently recomputed" in errors
+
+
 def test_real_stage_b_runtime_exception_emits_validator_clean_attempted_d0() -> None:
     candidate, holdout, seed, addendum, _observations = _synthetic_stage_b()
     artifact = build_stage_b_failure_artifact(
