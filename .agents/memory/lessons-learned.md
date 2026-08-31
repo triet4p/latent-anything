@@ -1077,3 +1077,25 @@ and must never be described as a successful run or standard finalization.
 **Watch out for:** Never infer a sixth bundle target from metadata without a
 path, broaden a cleanup with a glob, alter the preserved digests, or delete
 evidence before the exact manifest and untracked/no-reparse checks pass.
+
+## [2026-09-01] Finalizer acceptance and diagnosis must share one checker
+
+**Symptom:** Stage A's finalizer acceptance predicate and its sanitized
+rejection classifier could disagree: identity mismatches were reported as a
+generic top-level failure, and reserved GPU memory below allocated memory was
+not rejected by both paths.
+
+**Root cause:** The two functions independently encoded overlapping schema,
+type, and cross-field rules. A later failure after successful cleanup could
+also invoke a side-effectful finalizer again while producing the fallback.
+
+**Fix / workaround:** Use one producer-side checker that returns only an
+allowlisted category and make the boolean predicate delegate to it. Keep the
+public artifact validator independent for defense in depth. Track finalizer
+consumption in the Stage A orchestration boundary and remove the callback from
+late-failure fallback resources so a closure is invoked at most once.
+
+**Watch out for:** Keep measurement-unavailable reasons and source/value
+relationships explicit, classify cross-field violations separately from field
+shape/type violations, and test real-shaped Stage A/Stage B tracker wiring;
+never rely only on hand-mutating a public resource dictionary.

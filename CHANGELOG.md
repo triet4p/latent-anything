@@ -49,6 +49,13 @@
 
 ### Changed
 
+- Consolidated M14 L04.9 v2 Stage A finalizer acceptance and diagnostics into
+  one producer-independent checker with allowlisted shape, identity,
+  operation, cleanup, resource-peak, and cross-field categories. Added
+  production-shaped Stage A closure/live-counter, Stage B tracker-envelope,
+  rejection-matrix, and late-failure no-double-finalizer regressions; the
+  public validator remains an independent consumer-side gate.
+
 - Hardened the M14 L04.9 v2 failure boundary: live Stage A counters survive
   invalid finalizer output, rejection categories are allowlisted and
   sanitized, and real transport launches are single-flight per canonical stage

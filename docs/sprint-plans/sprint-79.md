@@ -401,6 +401,14 @@ occurred. See
   `standard_finalize=false` and `repository_promotion=false`; this is
   irreversible owner-exception cleanup, not successful finalization or a
   promoted run.
+- [x] Consolidate the L049 v2 finalizer acceptance and diagnostic paths into
+  one producer-independent checker. It now distinguishes sanitized top-level,
+  identity, counter, hook/intervention, cleanup, resource-peak, and
+  cross-field categories while enforcing finite/nonnegative/budget and
+  reserved-versus-allocated invariants. Production-shaped Stage A closure,
+  live-counter, Stage B shared-envelope/idempotence, rejection-matrix, and
+  late-failure no-double-finalizer regressions are covered; public validation
+  remains independent.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

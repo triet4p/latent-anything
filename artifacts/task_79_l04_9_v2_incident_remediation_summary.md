@@ -11,8 +11,17 @@ promotion.
 - Stage A retains bounded live operation counters and valid hook state when a
   finalizer result is rejected; invalid resource peaks become explicit
   unavailable measurements rather than stale observed zeros.
-- Finalizer rejection is represented by an allowlisted field/type category,
-  never arbitrary keys, values, traceback, or exception text.
+- Finalizer rejection is represented by one canonical producer-side checker
+  shared by acceptance and diagnosis. It emits only an allowlisted category
+  for top-level shape, identity, counters, hook/intervention, cleanup,
+  resource-peak, or cross-field failures; arbitrary keys, values, traceback,
+  and exception text never cross the boundary.
+- Stage A's real-runtime regression executes the injected production closure
+  after live selection and verifies a single finalizer call, nonzero live
+  counters, canonical serialization, and validator-clean semantic D0/D1
+  output. A late artifact failure strips the already-consumed closure before
+  constructing its fallback, preventing a second side-effectful call. Stage B
+  exercises the shared tracker envelope and idempotent finish path.
 - The transport seam canonicalizes the case-insensitive UseCase binding, then
   uses a host-wide `Global\\` named OS mutex keyed by canonical stage and exact
   lowercase source SHA. On ACL-capable runtimes it grants only Synchronize and
