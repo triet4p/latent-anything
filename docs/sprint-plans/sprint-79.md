@@ -367,6 +367,14 @@ occurred. See
   paths remain strict. The 5791-byte failed attempt was deleted under the
   explicit owner exception recorded in its sanitized assessment sidecar;
   standard finalization and promotion remain false.
+- [x] Make the reusable L04 remote transport executable under both native
+  Windows PowerShell 5.1/.NET Framework 4.8 and pwsh 7/.NET. Hashing now uses
+  the cross-version SHA-256 API; the process seam detects `ArgumentList` and
+  falls back to Windows-safe quoting, uses compatible stream/process cleanup,
+  and atomically replaces an existing raw target through a unique backup.
+  Native build-only and fake-process regressions cover non-zero exits, raw
+  capture before parsing, existing-target replacement, and paths containing
+  spaces/quotes. No network, SSH, CUDA, or holdout execution occurred.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

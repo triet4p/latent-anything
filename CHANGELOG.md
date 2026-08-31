@@ -49,6 +49,13 @@
 
 ### Changed
 
+- Made the reusable M14 L04 remote transport compatible with native Windows
+  PowerShell 5.1/.NET Framework 4.8 as well as pwsh 7/.NET. Cross-version
+  SHA-256 hashing, reflected `ProcessStartInfo.ArgumentList` fallback with
+  Windows-safe quoting, compatible stream/process cleanup, and atomic raw
+  capture replacement are now covered by native build-only and fake-process
+  regressions. No remote or CUDA execution was performed by this change.
+
 - Hardened the real L04.9 v2 Stage A and Stage B post-runtime boundary:
   validator-rejected artifacts now become independently validated,
   non-promoting D0 triads with allowlisted rejection codes and normalized

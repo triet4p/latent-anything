@@ -1003,3 +1003,27 @@ writing the triad; write failures must exit without recursive fabrication.
 **Watch out for:** Keep semantic D0 and eligible D1/D2 branches strict, never
 serialize validator prose or exception bodies, and preserve only trustworthy
 attempted-real counters.
+
+## [2026-08-31] Native Windows PowerShell lacks modern process and hash APIs
+
+**Symptom:** The L04 transport stopped before invoking `ssh.exe` under native
+Windows PowerShell 5.1: `SHA256.HashData` was missing, and the capture seam
+also attempted unavailable `DisposeAsync`, `Kill(bool)`, and
+`ProcessStartInfo.ArgumentList` members. Existing-target raw publication also
+failed when `File.Replace` received a null backup path.
+
+**Fix / workaround:** Use `SHA256.Create().ComputeHash`, reflectively detect
+`ArgumentList` and otherwise construct `.Arguments` with Windows CRT quoting,
+close/dispose streams through APIs present on both runtimes, and select
+`Kill(bool)` only when its overload exists. Write raw bytes synchronously to a
+same-directory temporary file, flush and close it, then atomically replace an
+existing destination with a unique non-null backup path and remove that backup.
+Use deadline-bounded async stdin writes for every nonempty payload so a
+never-read child cannot deadlock the owner process; close stdin synchronously
+on failure and observe pending task faults before disposal. Raw capture writes
+remain synchronous because they are small and must publish before parsing.
+
+**Watch out for:** Test both native PowerShell 5.1/.NET Framework and pwsh 7
+/.NET, including existing-target replacement, paths with spaces/quotes,
+non-zero child exits, raw-before-parse ordering, and exact cleanup. Do not
+invoke the real remote target during compatibility probes.
