@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 
 import scripts._m14_l049_v2_real_runtime as real_runtime
+import scripts._m14_l049_v2_stage_a as stage_a_module
 from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
 from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
@@ -966,7 +967,7 @@ def test_stage_a_invalid_finalizer_result_is_sanitized_and_validator_clean(final
         "stage": "cleanup",
         "finalizer_rejection_code": "finalizer_not_mapping"
         if finalizer_result is None
-        else "finalizer_top_level_fields",
+        else "finalizer_top_level_missing_fields",
     }
     assert artifact["runtime_attestation"]["cleanup_hook_count"] == 1
     assert validate_stage_a(artifact, rows, addendum) == []
@@ -997,11 +998,11 @@ def test_stage_a_finalizer_rejection_preserves_live_partial_counters() -> None:
     )
     counts = artifact["resources"]["operation_counts"]
     assert counts["candidate_evaluations"] > 0
-    assert artifact["resources"]["cleanup"]["finalizer_rejection_code"] == "finalizer_top_level_fields"
+    assert artifact["resources"]["cleanup"]["finalizer_rejection_code"] == "finalizer_top_level_missing_fields"
     assert validate_stage_a(artifact, rows, addendum) == []
 
 
-def test_stage_a_finalizer_rejection_uses_production_runtime_closure(
+def test_stage_a_production_runtime_closure_publishes_live_resources(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     rows, addendum, _ = _base()
@@ -1012,7 +1013,16 @@ def test_stage_a_finalizer_rejection_uses_production_runtime_closure(
 
     margin_calls = 0
 
-    def fake_forward(*_args: Any, **_kwargs: Any) -> tuple[Any, dict[int, np.ndarray]]:
+    def fake_forward(*_args: Any, **kwargs: Any) -> tuple[Any, dict[int, np.ndarray]]:
+        counters = kwargs.get("counters")
+        if isinstance(counters, dict):
+            counters["forwards"] += 1
+            counters["captures"] += 1
+            if kwargs.get("operation") == "patch":
+                counters["patches"] += 1
+                counters["hooks"] += 1
+            elif kwargs.get("operation") == "control":
+                counters["controls"] += 1
         return object(), {0: np.ones((1, 2, 2), dtype=np.float32)}
 
     def fake_margin(*_args: Any, **_kwargs: Any) -> float:
@@ -1027,15 +1037,122 @@ def test_stage_a_finalizer_rejection_uses_production_runtime_closure(
     monkeypatch.setattr(real_runtime, "_patch_positions", lambda *_args, **_kwargs: (0, 0))
     monkeypatch.setattr(real_runtime, "_margin", fake_margin)
     scorer, resources = real_runtime.build_stage_a_runtime(rows)
-    resources["finalize"] = lambda: {"stage": "cleanup"}
-
     artifact = run_real_stage_a(
         rows, addendum, source_sha256="a" * 64, runtime={"score": scorer, "resources": resources}
     )
     assert artifact["resources"]["operation_counts"]["candidate_evaluations"] > 0
-    assert artifact["resources"]["cleanup"]["reason"] == "finalizer_invalid_result"
-    assert artifact["resources"]["cleanup"]["finalizer_rejection_code"] == "finalizer_top_level_fields"
-    assert artifact["evidence_level"] == "D0"
+    assert artifact["resources"]["cleanup"] == {"hook_count": 0, "completed": True}
+    assert artifact["evidence_level"] in {"D0", "D1"}
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+@pytest.mark.parametrize(
+    ("label", "mutate", "expected"),
+    [
+        ("missing", lambda value: value.pop("stage"), "finalizer_top_level_missing_fields"),
+        ("extra", lambda value: value.update({"unexpected": "secret"}), "finalizer_top_level_extra_fields"),
+        ("identity", lambda value: value.update({"stage": "cleanup"}), "finalizer_identity_fields"),
+        (
+            "bool_counter",
+            lambda value: value["operation_counts"].update({"captures": True}),
+            "finalizer_operation_counts",
+        ),
+        (
+            "numpy_counter",
+            lambda value: value["operation_counts"].update({"captures": np.int64(1)}),
+            "finalizer_operation_counts",
+        ),
+        (
+            "float_peak",
+            lambda value: value["resource_peak"].update({"peak_cpu_bytes": 1.0}),
+            "finalizer_resource_peak_fields",
+        ),
+        (
+            "hook_counter_invariant",
+            lambda value: value["hook"].update({"removed": 0}),
+            "finalizer_cross_field_invariants",
+        ),
+        (
+            "intervention_counter_invariant",
+            lambda value: value["intervention"].update({"patch_calls": 0}),
+            "finalizer_cross_field_invariants",
+        ),
+        (
+            "cleanup_shape",
+            lambda value: value.update({"cleanup": {"hook_count": 1, "completed": True}}),
+            "finalizer_cleanup_fields",
+        ),
+        (
+            "reserved_below_allocated",
+            lambda value: value["resource_peak"].update({"peak_gpu_bytes": 3, "peak_gpu_reserved_bytes": 2}),
+            "finalizer_cross_field_invariants",
+        ),
+        (
+            "unknown_query_failure",
+            lambda value: value["resource_peak"].update(
+                {"measurement_status": "unavailable", "measurement_reason": "query secret"}
+            ),
+            "finalizer_resource_peak_fields",
+        ),
+    ],
+)
+def test_finalizer_checker_is_single_source_of_truth(label: str, mutate: Any, expected: str) -> None:
+    del label
+    value = _real_resources_for_complete_selection()
+    mutate(value)
+    code = stage_a_module._finalizer_rejection_code(value)
+    assert code == expected
+    assert stage_a_module._valid_finalizer_resources(value) is False
+    assert code in stage_a_module.FINALIZER_REJECTION_CODES
+    assert "secret" not in json.dumps({"finalizer_rejection_code": code})
+
+
+def test_finalizer_checker_accepts_sanitized_query_failure() -> None:
+    value = _real_resources_for_complete_selection()
+    peak = value["resource_peak"]
+    peak.update(
+        {
+            "peak_gpu_bytes": 0,
+            "peak_gpu_reserved_bytes": 0,
+            "measurement_status": "unavailable",
+            "measurement_reason": "cuda_peak_query_failed",
+            "elapsed_seconds": 1.0,
+            "gpu_source": "unavailable",
+            "gpu_reserved_source": "unavailable",
+            "gpu_device": "unavailable",
+        }
+    )
+    assert stage_a_module._finalizer_rejection_code(value) is None
+    assert stage_a_module._valid_finalizer_resources(value) is True
+
+
+def test_stage_a_late_failure_does_not_double_invoke_finalizer(monkeypatch: pytest.MonkeyPatch) -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_complete_selection()
+    calls = 0
+
+    def finalize() -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        return _real_resources_for_complete_selection()
+
+    resources["finalize"] = finalize
+
+    def late_failure(*_args: Any, resources: Mapping[str, Any], **_kwargs: Any) -> dict[str, Any]:
+        callback = resources.get("finalize")
+        assert callable(callback)
+        callback()
+        raise ValueError("late artifact failure")
+
+    monkeypatch.setattr(stage_a_module, "build_stage_a_artifact", late_failure)
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": resources},
+    )
+    assert calls == 1
+    assert artifact["failure_kind"] == "runtime_exception"
     assert validate_stage_a(artifact, rows, addendum) == []
 
 
@@ -1337,6 +1454,80 @@ def test_stage_b_success_resource_projection_drops_untrusted_values() -> None:
     serialized = json.dumps(artifact)
     assert "legacy network secret" not in serialized
     assert "must not escape" not in serialized
+
+
+def test_stage_b_runtime_uses_shared_tracker_envelope_and_idempotent_finish(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    candidate, holdout, seed, addendum, _observations = _synthetic_stage_b()
+    finish_calls: list[int] = []
+
+    class FakeTracker:
+        def __init__(self) -> None:
+            self._finished = False
+
+        def start(self) -> None:
+            pass
+
+        def finish(self) -> None:
+            if not self._finished:
+                self._finished = True
+                finish_calls.append(1)
+
+        def resource_peak(self) -> dict[str, Any]:
+            return copy.deepcopy(_real_resources_for_complete_selection()["resource_peak"])
+
+    class FakeIntegration:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+    def fake_forward(*_args: Any, **kwargs: Any) -> tuple[Any, dict[int, np.ndarray]]:
+        counters = kwargs.get("counters")
+        if isinstance(counters, dict):
+            counters["forwards"] += 1
+            counters["captures"] += 1
+            if kwargs.get("operation") == "patch":
+                counters["patches"] += 1
+                counters["hooks"] += 1
+            elif kwargs.get("operation") == "control":
+                counters["controls"] += 1
+        return object(), {0: np.ones((1, 2, 2), dtype=np.float32)}
+
+    monkeypatch.setattr(real_runtime, "ResourceTracker", FakeTracker)
+    monkeypatch.setattr(real_runtime, "TransformerLMIntegration", FakeIntegration)
+    monkeypatch.setattr(real_runtime, "_forward", fake_forward)
+    monkeypatch.setattr(real_runtime, "_raw_hidden", lambda *_args, **_kwargs: np.ones((1, 2, 2), dtype=np.float32))
+    monkeypatch.setattr(real_runtime, "_patch_positions", lambda *_args, **_kwargs: (0, 0))
+    margin_calls = 0
+
+    def fake_margin(*_args: Any, **_kwargs: Any) -> float:
+        nonlocal margin_calls
+        value = (1.0, 0.0, 0.5)[margin_calls % 3]
+        margin_calls += 1
+        return value
+
+    monkeypatch.setattr(real_runtime, "_margin", fake_margin)
+
+    observations, resources = real_runtime.build_stage_b_runtime(
+        holdout, {"selection": {"consensus_candidate": {"layer": 0, "offset": 0}}}
+    )
+    assert len(finish_calls) == 1
+    assert resources["operation_counts"]["candidate_evaluations"] == 120
+    assert resources["operation_counts"]["controls"] == 480
+    artifact = evaluate_stage_b(holdout, observations, candidate, addendum, seed, resources=resources)
+    assert (
+        validate_stage_b_impl(
+            artifact,
+            holdout,
+            seed,
+            candidate,
+            addendum,
+            read_rows(TRAIN_PATH)[1],
+            policy=CommitmentPolicy.from_addendum(addendum),
+        )
+        == []
+    )
+    assert artifact["resources"]["operation_counts"] == resources["operation_counts"]
 
 
 def test_v2_addendum_and_stage_a_bind_public_boundary() -> None:

@@ -58,6 +58,59 @@ _FINALIZER_RESOURCE_FIELDS = frozenset(
 )
 _COUNTER_FIELDS = frozenset(("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards"))
 _MAX_RESOURCE_VALUE = 6_000_000_000
+_FINALIZER_IDENTITY_VALUES: Mapping[str, object] = {
+    "stage": "real_runtime",
+    "execution_attempted": True,
+    "execution_backend": "cuda",
+    "model": EXPECTED_RUNTIME_MODEL,
+    "model_revision": EXPECTED_RUNTIME_MODEL,
+    "integration": "TransformerLMIntegration",
+    "model_adapter": "N/A",
+    "device": "cuda",
+    "backend": "cuda",
+    "dtype": "float32",
+    "no_mutation": True,
+}
+_FINALIZER_HOOK_FIELDS = frozenset(("registered", "capture_calls", "removed"))
+_FINALIZER_INTERVENTION_FIELDS = frozenset(("patch_calls", "control_calls", "forward_calls"))
+_FINALIZER_PEAK_FIELDS = frozenset(
+    (
+        "peak_cpu_bytes",
+        "peak_gpu_bytes",
+        "peak_gpu_reserved_bytes",
+        "unit",
+        "budget_cpu_bytes",
+        "budget_gpu_bytes",
+        "measurement_status",
+        "measurement_reason",
+        "elapsed_seconds",
+        "elapsed_source",
+        "cpu_source",
+        "gpu_source",
+        "gpu_reserved_source",
+        "gpu_device",
+    )
+)
+_FINALIZER_MEASUREMENT_REASONS = frozenset(
+    {
+        "cuda_unavailable",
+        "cuda_reset_failed",
+        "cuda_peak_query_failed",
+        "cuda_zero_peak",
+        "rss_unavailable",
+        "clock_invalid",
+        "tracker_unstarted",
+        "resource_measurement_invalid",
+    }
+)
+_FINALIZER_CPU_SOURCES = frozenset(
+    {
+        "resource.ru_maxrss_linux_kib",
+        "resource.ru_maxrss_macos_bytes",
+        "psutil.Process.memory_info.rss",
+        "unavailable",
+    }
+)
 
 
 def _finite_positive_float_value(value: object) -> float | None:
@@ -277,184 +330,193 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
 
 
 def _finalizer_rejection_code(value: object) -> str | None:
-    """Classify a rejected finalizer result without exposing values or keys."""
+    """Validate and classify a finalizer result without exposing values or keys.
+
+    This is the single producer-independent checker used at the finalizer
+    boundary.  The public artifact validator intentionally remains a separate
+    consumer-side check; keeping this function as the only producer-side
+    predicate prevents acceptance and diagnostic paths from drifting apart.
+    """
     if not isinstance(value, Mapping):
         return "finalizer_not_mapping"
-    if set(value) != set(_FINALIZER_RESOURCE_FIELDS):
+    missing = _FINALIZER_RESOURCE_FIELDS - set(value)
+    extra = set(value) - _FINALIZER_RESOURCE_FIELDS
+    if missing and extra:
         return "finalizer_top_level_fields"
-    identity = {
-        "stage",
-        "execution_attempted",
-        "execution_backend",
-        "model",
-        "model_revision",
-        "integration",
-        "model_adapter",
-        "device",
-        "backend",
-        "dtype",
-        "no_mutation",
-    }
-    if any(key not in value for key in identity):
-        return "finalizer_identity_fields"
+    if missing:
+        return "finalizer_top_level_missing_fields"
+    if extra:
+        return "finalizer_top_level_extra_fields"
+
+    for field, expected in _FINALIZER_IDENTITY_VALUES.items():
+        actual = value.get(field)
+        valid = actual is expected if isinstance(expected, bool) else isinstance(actual, str) and actual == expected
+        if not valid:
+            return "finalizer_identity_fields"
+
     counters = value.get("operation_counts")
     if (
         not isinstance(counters, Mapping)
-        or set(counters) != set(_COUNTER_FIELDS)
-        or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counters.values())
+        or set(counters) != _COUNTER_FIELDS
+        or any(_bounded_nonnegative_int(item) is None for item in counters.values())
     ):
         return "finalizer_operation_counts"
+
     hook = value.get("hook")
     if (
         not isinstance(hook, Mapping)
-        or set(hook) != {"registered", "capture_calls", "removed"}
-        or hook.get("registered") != counters["hooks"]
-        or hook.get("capture_calls") != counters["captures"]
-        or hook.get("removed") != hook.get("registered")
+        or set(hook) != _FINALIZER_HOOK_FIELDS
+        or any(_bounded_nonnegative_int(hook.get(field)) is None for field in _FINALIZER_HOOK_FIELDS)
     ):
         return "finalizer_hook_fields"
+    if (
+        hook["registered"] != counters["hooks"]
+        or hook["capture_calls"] != counters["captures"]
+        or hook["removed"] != hook["registered"]
+    ):
+        return "finalizer_cross_field_invariants"
+
     intervention = value.get("intervention")
     if (
         not isinstance(intervention, Mapping)
-        or set(intervention) != {"patch_calls", "control_calls", "forward_calls"}
-        or intervention.get("patch_calls") != counters["patches"]
-        or intervention.get("control_calls") != counters["controls"]
-        or intervention.get("forward_calls") != counters["forwards"]
+        or set(intervention) != _FINALIZER_INTERVENTION_FIELDS
+        or any(_bounded_nonnegative_int(intervention.get(field)) is None for field in _FINALIZER_INTERVENTION_FIELDS)
     ):
         return "finalizer_intervention_fields"
+    if (
+        intervention["patch_calls"] != counters["patches"]
+        or intervention["control_calls"] != counters["controls"]
+        or intervention["forward_calls"] != counters["forwards"]
+    ):
+        return "finalizer_cross_field_invariants"
+
     cleanup = value.get("cleanup")
-    if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
+    if (
+        not isinstance(cleanup, Mapping)
+        or set(cleanup) != {"hook_count", "completed"}
+        or cleanup.get("hook_count") != 0
+        or cleanup.get("completed") is not True
+    ):
         return "finalizer_cleanup_fields"
+
     peak = value.get("resource_peak")
-    expected_peak_fields = {
+    if not isinstance(peak, Mapping) or set(peak) != _FINALIZER_PEAK_FIELDS:
+        return "finalizer_resource_peak_fields"
+    integer_fields = (
         "peak_cpu_bytes",
         "peak_gpu_bytes",
         "peak_gpu_reserved_bytes",
-        "unit",
         "budget_cpu_bytes",
         "budget_gpu_bytes",
-        "measurement_status",
-        "measurement_reason",
-        "elapsed_seconds",
-        "elapsed_source",
-        "cpu_source",
-        "gpu_source",
-        "gpu_reserved_source",
-        "gpu_device",
-    }
-    if not isinstance(peak, Mapping) or set(peak) != expected_peak_fields:
-        return "finalizer_resource_peak_fields"
+    )
     if (
         peak.get("unit") != "bytes"
-        or any(
-            _bounded_nonnegative_int(peak.get(key)) is None
-            for key in (
-                "peak_cpu_bytes",
-                "peak_gpu_bytes",
-                "peak_gpu_reserved_bytes",
-                "budget_cpu_bytes",
-                "budget_gpu_bytes",
+        or any(_bounded_nonnegative_int(peak.get(field)) is None for field in integer_fields)
+        or peak.get("measurement_status") not in {"available", "unavailable"}
+        or (
+            peak.get("measurement_reason") is not None
+            and (
+                not isinstance(peak.get("measurement_reason"), str)
+                or peak.get("measurement_reason") not in _FINALIZER_MEASUREMENT_REASONS
             )
         )
-        or peak.get("measurement_status") not in {"available", "unavailable"}
-        or peak.get("measurement_reason") is not None
-        and not isinstance(peak.get("measurement_reason"), str)
-        or peak.get("peak_cpu_bytes", 0) > peak.get("budget_cpu_bytes", 0)
-        or peak.get("peak_gpu_bytes", 0) > peak.get("budget_gpu_bytes", 0)
-        or peak.get("peak_gpu_reserved_bytes", 0) > peak.get("budget_gpu_bytes", 0)
-        or peak.get("peak_gpu_reserved_bytes", 0) < peak.get("peak_gpu_bytes", 0)
+        or peak.get("elapsed_seconds") is not None
+        and _finite_nonnegative_float_value(peak.get("elapsed_seconds")) is None
+        or peak.get("elapsed_source") != "time.perf_counter"
+        or peak.get("cpu_source") not in _FINALIZER_CPU_SOURCES
+        or peak.get("gpu_source") not in {"torch.cuda.max_memory_allocated", "unavailable"}
+        or peak.get("gpu_reserved_source") not in {"torch.cuda.max_memory_reserved", "unavailable"}
+        or not isinstance(peak.get("gpu_device"), str)
     ):
         return "finalizer_resource_peak_fields"
+
+    status = peak["measurement_status"]
+    reason = peak["measurement_reason"]
+    if status == "available":
+        if (
+            reason is not None
+            or _finite_positive_float_value(peak.get("elapsed_seconds")) is None
+            or peak["peak_cpu_bytes"] <= 0
+            or peak["peak_gpu_bytes"] <= 0
+            or peak["peak_gpu_reserved_bytes"] <= 0
+            or peak["cpu_source"] == "unavailable"
+            or peak["gpu_source"] == "unavailable"
+            or peak["gpu_reserved_source"] == "unavailable"
+            or not peak["gpu_device"].startswith("cuda:")
+            or not peak["gpu_device"][5:].isdigit()
+        ):
+            return "finalizer_resource_peak_fields"
+    else:
+        if reason is None:
+            return "finalizer_resource_peak_fields"
+        cpu_source = peak["cpu_source"]
+        gpu_source = peak["gpu_source"]
+        reserved_source = peak["gpu_reserved_source"]
+        source_value_valid = (
+            (
+                cpu_source == "unavailable"
+                and peak["peak_cpu_bytes"] == 0
+                or cpu_source != "unavailable"
+                and peak["peak_cpu_bytes"] > 0
+            )
+            and (
+                gpu_source == "unavailable"
+                and peak["peak_gpu_bytes"] == 0
+                or gpu_source != "unavailable"
+                and peak["peak_gpu_bytes"] > 0
+            )
+            and (
+                reserved_source == "unavailable"
+                and peak["peak_gpu_reserved_bytes"] == 0
+                or reserved_source != "unavailable"
+                and peak["peak_gpu_reserved_bytes"] > 0
+            )
+        )
+        cuda_reason = reason in {
+            "cuda_unavailable",
+            "cuda_reset_failed",
+            "cuda_peak_query_failed",
+            "cuda_zero_peak",
+        }
+        if (
+            not source_value_valid
+            or (cuda_reason and (peak["gpu_source"] != "unavailable" or peak["gpu_reserved_source"] != "unavailable"))
+            or (reason == "rss_unavailable" and peak["cpu_source"] != "unavailable")
+            or (
+                reason in {"tracker_unstarted", "resource_measurement_invalid"}
+                and (
+                    peak["cpu_source"] != "unavailable"
+                    or peak["gpu_source"] != "unavailable"
+                    or peak["gpu_reserved_source"] != "unavailable"
+                )
+            )
+            or (cuda_reason and peak["gpu_device"] != "unavailable" and not peak["gpu_device"].startswith("cuda:"))
+        ):
+            return "finalizer_resource_peak_fields"
+
+    if (
+        peak["peak_cpu_bytes"] > peak["budget_cpu_bytes"]
+        or peak["peak_gpu_bytes"] > peak["budget_gpu_bytes"]
+        or peak["peak_gpu_reserved_bytes"] > peak["budget_gpu_bytes"]
+        or peak["peak_gpu_reserved_bytes"] < peak["peak_gpu_bytes"]
+    ):
+        return "finalizer_cross_field_invariants"
     return None
 
 
+def _finite_nonnegative_float_value(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        converted = float(value)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    return converted if math.isfinite(converted) and converted >= 0 else None
+
+
 def _valid_finalizer_resources(value: object) -> bool:
-    if not isinstance(value, Mapping) or set(value) != set(_FINALIZER_RESOURCE_FIELDS):
-        return False
-    if (
-        value.get("stage") != "real_runtime"
-        or value.get("execution_attempted") is not True
-        or value.get("execution_backend") != "cuda"
-        or value.get("model") != EXPECTED_RUNTIME_MODEL
-        or value.get("model_revision") != EXPECTED_RUNTIME_MODEL
-        or value.get("integration") != "TransformerLMIntegration"
-        or value.get("model_adapter") != "N/A"
-        or value.get("device") != "cuda"
-        or value.get("backend") != "cuda"
-        or value.get("dtype") != "float32"
-        or value.get("no_mutation") is not True
-    ):
-        return False
-    counters = value.get("operation_counts")
-    if (
-        not isinstance(counters, Mapping)
-        or set(counters) != set(_COUNTER_FIELDS)
-        or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counters.values())
-    ):
-        return False
-    hook = value.get("hook")
-    if (
-        not isinstance(hook, Mapping)
-        or set(hook) != {"registered", "capture_calls", "removed"}
-        or hook.get("registered") != counters["hooks"]
-        or hook.get("capture_calls") != counters["captures"]
-        or hook.get("removed") != hook.get("registered")
-    ):
-        return False
-    intervention = value.get("intervention")
-    if (
-        not isinstance(intervention, Mapping)
-        or set(intervention) != {"patch_calls", "control_calls", "forward_calls"}
-        or intervention.get("patch_calls") != counters["patches"]
-        or intervention.get("control_calls") != counters["controls"]
-        or intervention.get("forward_calls") != counters["forwards"]
-    ):
-        return False
-    cleanup = value.get("cleanup")
-    if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
-        return False
-    peak = value.get("resource_peak")
-    peak_fields = (
-        "peak_cpu_bytes",
-        "peak_gpu_bytes",
-        "peak_gpu_reserved_bytes",
-        "budget_cpu_bytes",
-        "budget_gpu_bytes",
-    )
-
-    def _valid_nonnegative(value: object) -> bool:
-        return isinstance(value, int) and not isinstance(value, bool) and value >= 0
-
-    return not (
-        not isinstance(peak, Mapping)
-        or set(peak)
-        != {
-            *peak_fields,
-            "unit",
-            "measurement_status",
-            "measurement_reason",
-            "elapsed_seconds",
-            "elapsed_source",
-            "cpu_source",
-            "gpu_source",
-            "gpu_reserved_source",
-            "gpu_device",
-        }
-        or peak.get("unit") != "bytes"
-        or any(not _valid_nonnegative(peak.get(key)) for key in peak_fields)
-        or peak["peak_cpu_bytes"] > peak["budget_cpu_bytes"]
-        or peak["peak_gpu_bytes"] > peak["budget_gpu_bytes"]
-        or (
-            isinstance(peak["peak_gpu_reserved_bytes"], int)
-            and isinstance(peak["peak_gpu_bytes"], int)
-            and peak["peak_gpu_reserved_bytes"] < peak["peak_gpu_bytes"]
-        )
-        or peak["measurement_status"] not in {"available", "unavailable"}
-        or peak["measurement_reason"] is not None
-        and not isinstance(peak["measurement_reason"], str)
-        or peak["elapsed_seconds"] is not None
-        and (not isinstance(peak["elapsed_seconds"], (int, float)) or isinstance(peak["elapsed_seconds"], bool))
-    )
+    """Return whether the canonical producer-side finalizer check succeeds."""
+    return _finalizer_rejection_code(value) is None
 
 
 class _ResourceFinalizerError(RuntimeError):
@@ -1009,13 +1071,25 @@ def run_real_stage_a(
             resources=resources,
             cli_sha256=cli_sha256,
         )
+    finalizer = resources.get("finalize")
+    finalizer_called = False
+    builder_resources: Mapping[str, Any] = resources
+    if callable(finalizer):
+        builder_resources = dict(resources)
+
+        def _tracked_finalizer() -> object:
+            nonlocal finalizer_called
+            finalizer_called = True
+            return cast(Callable[[], object], finalizer)()
+
+        builder_resources["finalize"] = _tracked_finalizer  # type: ignore[index]
     try:
         return build_stage_a_artifact(
             rows,
             addendum,
             source_sha256=source_sha256,
             scorer=cast(ScoreFunction, scorer),
-            resources=resources,
+            resources=builder_resources,
             execution_mode="real",
             cli_sha256=cli_sha256,
         )
@@ -1032,12 +1106,17 @@ def run_real_stage_a(
             cli_sha256=cli_sha256,
         )
     except Exception as error:  # noqa: BLE001 - every runtime failure is a D0 triad
+        fallback_resources: Mapping[str, Any] = resources
+        if finalizer_called:
+            # A late artifact/attestation failure must not invoke a side-effectful
+            # runtime closure for a second time while producing the D0 fallback.
+            fallback_resources = {key: item for key, item in resources.items() if key != "finalize"}
         return build_stage_a_failure_artifact(
             rows,
             addendum,
             source_sha256=source_sha256,
             error=error,
-            resources=resources,
+            resources=fallback_resources,
             cli_sha256=cli_sha256,
         )
 

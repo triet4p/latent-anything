@@ -30,6 +30,8 @@ VALIDATION_REJECTION_CODES = (
 )
 FINALIZER_REJECTION_CODES = (
     "finalizer_not_mapping",
+    "finalizer_top_level_missing_fields",
+    "finalizer_top_level_extra_fields",
     "finalizer_top_level_fields",
     "finalizer_identity_fields",
     "finalizer_operation_counts",
@@ -37,6 +39,7 @@ FINALIZER_REJECTION_CODES = (
     "finalizer_intervention_fields",
     "finalizer_cleanup_fields",
     "finalizer_resource_peak_fields",
+    "finalizer_cross_field_invariants",
 )
 
 
