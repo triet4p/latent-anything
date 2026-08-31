@@ -267,13 +267,29 @@ def _reopen_payloads(
     if plan.get("_v2") is not True:
         return reopen_payloads(artifact_dir, files, plan, source_sha, use_case, attempt)
     result: dict[str, dict[str, Any]] = {}
-    for path, expected in files.items():
-        target = artifact_dir / Path(path).name
+    name_map = _v2_local_name_map(files, source_sha, use_case)
+    for member, expected in files.items():
+        target = artifact_dir / name_map[member]
+        if not target.is_file() or target.is_symlink():
+            raise RetentionError(f"v2 retained member reopen mismatch: {target.name}")
         raw = target.read_bytes()
         if len(raw) != len(expected) or sha256(raw) != sha256(expected):
             raise RetentionError(f"v2 retained member reopen mismatch: {target.name}")
-        result[path] = {"bytes": len(raw), "sha256": sha256(raw), "reopen_validation": "PASS"}
+        result[target.name] = {
+            "bytes": len(raw),
+            "reopen_validation": "PASS",
+            "sha256": sha256(raw),
+            "path": f"artifacts/m14/{target.name}",
+        }
     return result
+
+
+def _v2_local_name_map(files: dict[str, bytes], source_sha: str, use_case: str) -> dict[str, str]:
+    """Map generic archive members to source-unique local retention names."""
+    return {
+        relative: f"l04-explanations.{use_case}.{source_sha}.{Path(relative).name.rsplit('.', 2)[-2]}.json"
+        for relative in files
+    }
 
 
 def retain_capture(
@@ -318,9 +334,14 @@ def retain_capture(
     audit["raw_status"] = "retained_pending_finalize"
     created: list[Path] = []
     try:
-        created = install_payloads(artifact_dir, files)
+        name_map = _v2_local_name_map(files, source_sha, use_case) if plan.get("_v2") is True else None
+        created = install_payloads(artifact_dir, files, name_map=name_map)
         final_hashes = _reopen_payloads(artifact_dir, files, plan, source_sha, use_case, audit["attempt"])
-        audit["final_payload"] = {"paths": final_hashes, "reopen_validation": "PASS"}
+        audit["final_payload"] = {
+            "archive_member_names": sorted(files),
+            "paths": final_hashes,
+            "reopen_validation": "PASS",
+        }
         write_atomic(audit_path, json_bytes(audit), replace=False)
         if json_load(audit_path.read_bytes(), "audit") != audit:
             raise RetentionError("audit reopen verification failed")
@@ -378,6 +399,7 @@ def finalize_delete(
     reconstructed["mode"] = "retained_pending_finalize"
     reconstructed["raw_status"] = "retained_pending_finalize"
     reconstructed["final_payload"] = {
+        "archive_member_names": sorted(files),
         "paths": _reopen_payloads(artifact_dir, files, plan, source_sha, use_case, str(reconstructed["attempt"])),
         "reopen_validation": "PASS",
     }
@@ -394,6 +416,7 @@ def finalize_delete(
     expected_pending["mode"] = "retained_pending_finalize"
     expected_pending["raw_status"] = "retained_pending_finalize"
     expected_pending["final_payload"] = {
+        "archive_member_names": sorted(files),
         "paths": _reopen_payloads(artifact_dir, files, plan, source_sha, use_case, str(expected_pending["attempt"])),
         "reopen_validation": "PASS",
     }

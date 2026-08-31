@@ -206,24 +206,11 @@ def normalize_attempted_real_resources(resources: Mapping[str, Any] | None) -> d
             "control_calls": copied["controls"],
             "forward_calls": copied["forwards"],
         }
-    hook = resources.get("hook")
-    if isinstance(hook, Mapping):
-        registered = hook.get("registered")
-        capture_calls = hook.get("capture_calls")
-        removed = hook.get("removed")
-        registered_value = _bounded_nonnegative_int(registered)
-        capture_value = _bounded_nonnegative_int(capture_calls)
-        removed_value = _bounded_nonnegative_int(removed)
-        if (
-            registered_value is not None
-            and capture_value is not None
-            and removed_value is not None
-            and removed_value <= registered_value
-        ):
-            baseline["hook"]["registered"] = registered_value
-            baseline["hook"]["capture_calls"] = capture_value
-            baseline["hook"]["removed"] = removed_value
-            baseline["operation_counts"]["hooks"] = registered_value
+    # A live operation-count mapping is the only authoritative snapshot at
+    # this boundary.  The sibling hook/intervention projections may have been
+    # copied before a failure and must never overwrite counters observed later.
+    # If no complete snapshot exists, retain the conservative baseline rather
+    # than mixing independently-timed fields into a partial result.
     projected_peak: dict[str, Any] | None = None
     peak = resources.get("resource_peak")
     if isinstance(peak, Mapping):

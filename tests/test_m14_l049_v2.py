@@ -64,6 +64,9 @@ CURRENT_STAGE_A_VALIDATION_REJECTION_ASSESSMENT = ROOT / (
 CURRENT_INCIDENT_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.incident-assessment.sidecar.json"
 )
+CURRENT_B295_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.b295a506933e18f6d9139b0439f0e80d6ed441e8.assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
@@ -293,6 +296,27 @@ def test_current_incident_assessment_binds_owner_exception_deletion_without_secr
     assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
 
 
+def test_current_b295_assessment_binds_source_unique_pending_evidence() -> None:
+    sidecar = json.loads(CURRENT_B295_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source"]["commit_sha"] == "b295a506933e18f6d9139b0439f0e80d6ed441e8"
+    assert sidecar["status"] == "pending"
+    assert sidecar["assessment"]["finalizer_rejection_code"] == "finalizer_resource_peak_fields"
+    assert sidecar["assessment"]["selection_evaluations"] == 2592
+    assert sidecar["assessment"]["selection_reuse"] == "discarded_not_reusable"
+    assert sidecar["assessment"]["resource_measurement"]["gpu_subfield"] == "unknown"
+    assert sidecar["execution"]["invocation_invariant"] == "satisfied"
+    assert sidecar["transport"]["mutex_digest"] == "821f69e4c0f206a1128ba3aa61fa6004ef9206ad430f00419d480d5aacbba1ea"
+    assert all(item["present"] for item in [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]])
+    assert all(item["present"] for item in sidecar["evidence"]["triad"].values())
+    assert all(
+        sidecar["evidence"]["triad"][kind]["path"].split(".")[-3] == "b295a506933e18f6d9139b0439f0e80d6ed441e8"
+        for kind in ("partial", "run", "failure")
+    )
+    serialized = json.dumps(sidecar, sort_keys=True)
+    assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
+
+
 class _FakeCuda:
     def __init__(self) -> None:
         self.calls: list[str] = []
@@ -364,6 +388,77 @@ def test_resource_tracker_marks_zero_peak_unavailable_without_exception_text() -
     assert peak["measurement_status"] == "unavailable"
     assert peak["measurement_reason"] == "cuda_zero_peak"
     assert "exception" not in json.dumps(peak).lower()
+
+
+@pytest.mark.parametrize(
+    ("allocated", "reserved", "reason"),
+    [
+        (200, 0, "cuda_zero_peak"),
+        (0, 400, "cuda_zero_peak"),
+        (400, 200, "cuda_peak_query_failed"),
+        (-1, 400, "cuda_peak_query_failed"),
+        (True, 400, "cuda_peak_query_failed"),
+        (float("nan"), 400, "cuda_peak_query_failed"),
+    ],
+)
+def test_resource_tracker_publishes_no_asymmetric_or_invalid_cuda_pair(
+    allocated: object, reserved: object, reason: str
+) -> None:
+    cuda = _FakeCuda()
+    cuda.max_memory_allocated = lambda _device: allocated  # type: ignore[method-assign]
+    cuda.max_memory_reserved = lambda _device: reserved  # type: ignore[method-assign]
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=cuda),
+        resource_module=SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=1)),
+        clock=iter((1.0, 2.0)).__next__,
+    )
+    tracker.start()
+    tracker.finish()
+    peak = tracker.resource_peak()
+    assert peak["measurement_status"] == "unavailable"
+    assert peak["measurement_reason"] == reason
+    assert peak["peak_gpu_bytes"] == 0
+    assert peak["peak_gpu_reserved_bytes"] == 0
+    assert peak["gpu_source"] == "unavailable"
+    assert peak["gpu_reserved_source"] == "unavailable"
+
+
+@pytest.mark.parametrize("failing_query", ["allocated", "reserved"])
+def test_resource_tracker_clears_cuda_pair_when_either_query_raises(failing_query: str) -> None:
+    cuda = _FakeCuda()
+    if failing_query == "allocated":
+        cuda.max_memory_allocated = lambda _device: (_ for _ in ()).throw(RuntimeError("secret"))  # type: ignore[method-assign]
+    else:
+        cuda.max_memory_reserved = lambda _device: (_ for _ in ()).throw(RuntimeError("secret"))  # type: ignore[method-assign]
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=cuda),
+        resource_module=SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=1)),
+        clock=iter((1.0, 2.0)).__next__,
+    )
+    tracker.start()
+    tracker.finish()
+    peak = tracker.resource_peak()
+    assert peak["measurement_status"] == "unavailable"
+    assert peak["measurement_reason"] == "cuda_peak_query_failed"
+    assert peak["peak_gpu_bytes"] == peak["peak_gpu_reserved_bytes"] == 0
+    assert "secret" not in json.dumps(peak)
+
+
+def test_failed_finalizer_normalization_uses_live_operation_snapshot_for_projections() -> None:
+    resources = _real_resources_for_complete_selection()
+    resources["hook"] = {"registered": 0, "capture_calls": 0, "removed": 0}
+    resources["intervention"] = {"patch_calls": 0, "control_calls": 0, "forward_calls": 0}
+    projected = normalize_attempted_real_resources(resources)
+    assert projected["operation_counts"] == {
+        "candidate_evaluations": 2592,
+        "hooks": 1296,
+        "captures": 1368,
+        "patches": 1296,
+        "controls": 0,
+        "forwards": 1368,
+    }
+    assert projected["hook"] == {"registered": 1296, "capture_calls": 1368, "removed": 1296}
+    assert projected["intervention"] == {"patch_calls": 1296, "control_calls": 0, "forward_calls": 1368}
 
 
 def test_resource_tracker_uses_psutil_rss_fallback_when_resource_is_zero() -> None:
@@ -900,7 +995,7 @@ def test_stage_a_cleanup_failure_alone_is_sanitized_and_validator_clean() -> Non
     assert artifact["resources"]["cleanup"] == {
         "attempted": True,
         "completed": False,
-        "hooks_remaining": 1,
+        "hooks_remaining": 0,
         "error_type": "CleanupError",
         "reason": "finalizer_exception",
         "stage": "cleanup",
@@ -961,7 +1056,7 @@ def test_stage_a_invalid_finalizer_result_is_sanitized_and_validator_clean(final
     assert artifact["resources"]["cleanup"] == {
         "attempted": True,
         "completed": False,
-        "hooks_remaining": 1,
+        "hooks_remaining": 0,
         "error_type": "TypeError",
         "reason": "finalizer_invalid_result",
         "stage": "cleanup",
@@ -969,7 +1064,7 @@ def test_stage_a_invalid_finalizer_result_is_sanitized_and_validator_clean(final
         if finalizer_result is None
         else "finalizer_top_level_missing_fields",
     }
-    assert artifact["runtime_attestation"]["cleanup_hook_count"] == 1
+    assert artifact["runtime_attestation"]["cleanup_hook_count"] == 0
     assert validate_stage_a(artifact, rows, addendum) == []
 
 
@@ -1157,7 +1252,7 @@ def test_stage_a_late_failure_does_not_double_invoke_finalizer(monkeypatch: pyte
 
 
 @pytest.mark.parametrize("forged_remaining", [0, 999_999])
-def test_stage_a_rehashed_forged_cleanup_remaining_hooks_fails_validation(forged_remaining: int) -> None:
+def test_stage_a_rehashed_cleanup_remaining_hooks_obeys_live_counter_projection(forged_remaining: int) -> None:
     rows, addendum, _ = _base()
     resources = _real_resources_for_failure()
 
@@ -1179,7 +1274,10 @@ def test_stage_a_rehashed_forged_cleanup_remaining_hooks_fails_validation(forged
     artifact["attestation_sha256"] = artifact["runtime_attestation"]["attestation_sha256"]
     artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
     errors = validate_stage_a(artifact, rows, addendum)
-    assert any("counter-derived" in error or "cleanup count" in error for error in errors)
+    if forged_remaining == 0:
+        assert errors == []
+    else:
+        assert any("counter-derived" in error or "cleanup count" in error for error in errors)
 
 
 def test_stage_a_cli_runtime_index_error_writes_complete_d0_triad(

@@ -211,6 +211,10 @@ def test_v2_stage_a_fake_capture_retains_and_finalizes_exact_triad(tmp_path: Pat
         retain=True,
     )
     assert pending["raw_status"] == "retained_pending_finalize"
+    assert set(pending["final_payload"]["archive_member_names"]) == set(files)
+    assert all(source_sha in path for path in pending["final_payload"]["paths"])
+    assert not list(artifact_dir.glob("l04-explanations.L049V2StageA.attempt1.*.json"))
+    assert len(list(artifact_dir.glob(f"l04-explanations.L049V2StageA.{source_sha}.*.json"))) == 3
     finalized = postprocess.finalize_delete(
         raw_capture_path=raw_path,
         source_sha=source_sha,

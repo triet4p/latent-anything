@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -33,15 +34,19 @@ def write_atomic(path: Path, data: bytes, *, replace: bool) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def install_payloads(final_dir: Path, files: dict[str, bytes]) -> list[Path]:
+def install_payloads(
+    final_dir: Path, files: dict[str, bytes], *, name_map: Mapping[str, str] | None = None
+) -> list[Path]:
     """Install only missing exact files; rollback files created by this call."""
     final_dir.mkdir(parents=True, exist_ok=True)
     staged_dir = Path(tempfile.mkdtemp(prefix=".l04-retain-", dir=final_dir))
     created: list[Path] = []
     try:
         staged: dict[Path, Path] = {}
+        destinations: dict[Path, bytes] = {}
         for relative, data in files.items():
-            destination = final_dir / Path(relative).name
+            destination = final_dir / (name_map.get(relative, Path(relative).name) if name_map else Path(relative).name)
+            destinations[destination] = data
             if destination.exists() or destination.is_symlink():
                 if destination.is_file() and not destination.is_symlink() and destination.read_bytes() == data:
                     continue
@@ -53,7 +58,7 @@ def install_payloads(final_dir: Path, files: dict[str, bytes]) -> list[Path]:
             try:
                 os.link(temporary, destination)
             except FileExistsError as exc:
-                expected = files[f"artifacts/m14/{destination.name}"]
+                expected = destinations[destination]
                 if destination.is_file() and not destination.is_symlink() and destination.read_bytes() == expected:
                     temporary.unlink(missing_ok=True)
                     continue
@@ -78,11 +83,13 @@ def reopen_payloads(
     source_sha: str,
     use_case: str,
     attempt: str,
+    *,
+    name_map: Mapping[str, str] | None = None,
 ) -> dict[str, dict[str, Any]]:
     reopened: dict[str, bytes] = {}
     final_hashes: dict[str, dict[str, Any]] = {}
     for relative, expected in files.items():
-        path = final_dir / Path(relative).name
+        path = final_dir / (name_map.get(relative, Path(relative).name) if name_map else Path(relative).name)
         if not path.is_file() or path.is_symlink():
             raise RetentionError(f"final payload is missing or not regular: {path.name}")
         data = path.read_bytes()

@@ -144,14 +144,35 @@ class ResourceTracker:
             try:
                 cuda = cast(Any, getattr(self._torch, "cuda", None))
                 cuda.synchronize(self._device_index)
-                self._gpu_peak = int(cuda.max_memory_allocated(self._device_index))
-                self._gpu_reserved_peak = int(cuda.max_memory_reserved(self._device_index))
-                if self._gpu_peak <= 0 or self._gpu_reserved_peak <= 0:
+                # Query both values into locals and publish them only after
+                # the pair passes all checks.  A failed second query must not
+                # leave a positive allocated peak beside a stale zero
+                # reserved peak (which would falsely look like a measured
+                # resource envelope).
+                allocated_raw = cuda.max_memory_allocated(self._device_index)
+                reserved_raw = cuda.max_memory_reserved(self._device_index)
+                if isinstance(allocated_raw, bool) or not isinstance(allocated_raw, (int, np.integer)):
+                    raise ValueError("invalid allocated peak")
+                if isinstance(reserved_raw, bool) or not isinstance(reserved_raw, (int, np.integer)):
+                    raise ValueError("invalid reserved peak")
+                allocated = int(allocated_raw)
+                reserved = int(reserved_raw)
+                if allocated < 0 or reserved < 0:
+                    self._set_unavailable("cuda_peak_query_failed")
+                elif allocated == 0 or reserved == 0:
                     self._set_unavailable("cuda_zero_peak")
+                elif reserved < allocated or allocated > _GPU_BUDGET or reserved > _GPU_BUDGET:
+                    self._set_unavailable("cuda_peak_query_failed")
                 else:
+                    self._gpu_peak = allocated
+                    self._gpu_reserved_peak = reserved
                     self._gpu_source = "torch.cuda.max_memory_allocated"
                     self._gpu_reserved_source = "torch.cuda.max_memory_reserved"
             except Exception:  # noqa: BLE001 - measurement must fail closed without raw text
+                self._gpu_peak = 0
+                self._gpu_reserved_peak = 0
+                self._gpu_source = "unavailable"
+                self._gpu_reserved_source = "unavailable"
                 self._set_unavailable("cuda_peak_query_failed")
         self._read_cpu_peak()
 
