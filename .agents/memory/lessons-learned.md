@@ -1146,3 +1146,9 @@ traversal components.
 bootstrap and argv, not just the manifest. A transport decode/cleanup PASS does
 not establish that remote input paths are valid, and a raw-only D0 capture must
 not be retried or treated as semantic evidence.
+
+The owner-authorized retention cleanup of the a205 raw capture was performed
+only after literal-path, regular-file, non-reparse, untracked, size, and SHA-256
+checks. The assessment sidecar records both the pre-delete proof and verified
+absence; this is irreversible and must never be described as finalization or
+promotion.

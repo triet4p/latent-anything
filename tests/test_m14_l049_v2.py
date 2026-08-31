@@ -344,8 +344,9 @@ def test_current_a205_raw_only_assessment_is_canonical_and_pending() -> None:
     assert raw["bytes"] == 6598
     assert raw["sha256"] == "6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674"
     assert raw["written_before_parse"] is True
-    assert raw["present"] is True
-    assert sidecar["status"] == "pending"
+    assert raw["present_before_delete"] is True
+    assert raw["present_after_delete"] is False
+    assert sidecar["status"] == "deleted_by_owner_exception"
     assert sidecar["execution"]["selection_status"] == "not_reached"
     assert sidecar["execution"]["model_adapter_integration"] == "not_reached"
     assert sidecar["execution"]["resource_finalizer_status"] == "not_reached"
@@ -359,6 +360,10 @@ def test_current_a205_raw_only_assessment_is_canonical_and_pending() -> None:
     assert sidecar["markers"]["transport_cleanup"] == "PASS"
     assert sidecar["markers"]["cli_status"] == 1
     assert sidecar["markers"]["bundle_status"] == 66
+    assert sidecar["retention"]["status"] == "deleted_by_owner_exception"
+    assert sidecar["owner_exception"]["pre_delete_verification"]["all_files_verified"] is True
+    assert sidecar["owner_exception"]["post_delete_absence"]["all_files_absent"] is True
+    assert sidecar["owner_exception"]["post_delete_absence"]["files"][raw["path"]]["absent"] is True
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("holdout plaintext", "traceback", "begin private"))
     assert "f:\\ai-ml\\latent-anything" not in serialized

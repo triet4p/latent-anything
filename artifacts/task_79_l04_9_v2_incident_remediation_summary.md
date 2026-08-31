@@ -91,8 +91,10 @@ safe quoting and argv/env separation.
 
 The sanitized raw-only assessment is
 `artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.assessment.sidecar.json`.
-It binds the retained 6598-byte raw capture (SHA-256
+It bound the pre-delete 6598-byte raw capture (SHA-256
 `6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674`) and
-records pending D0 retention, no audit/bundle/triad, false finalization and
-promotion, and the sanitized path-leakage root cause. The raw capture remains
-byte-exact and uncommitted evidence.
+records D0 status, no audit/bundle/triad, false finalization and promotion,
+and the sanitized path-leakage root cause. The raw was deleted under an
+explicit owner exception after exact pre-delete verification; the sidecar
+records its post-delete absence. This is irreversible and is not standard
+finalization or promotion.

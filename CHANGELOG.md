@@ -660,7 +660,9 @@ This is a pre-1.0 beta, not an API-stability promise and not a claim that every 
   workspace-leaking, or traversal input paths before SSH bootstrap creation.
   Native Windows PowerShell 5.1 and pwsh fake-remote regressions cover
   quoting and argv/environment separation. The first a205ca7 real attempt
-  remains a pending, raw-only D0 assessment with no retry or promotion.
+  was recorded as a raw-only D0 assessment, then its sole raw capture was
+  deleted under an explicit owner exception after exact verification; no
+  retry, finalization, or promotion occurred.
 
 - Made release-note extraction fail when a matching changelog section contains only a version heading and no release body content.
 - Prevented `AnalysisPipeline` cache entries from crossing between adapters that share hyperparameters but have different learned or randomly initialized state.

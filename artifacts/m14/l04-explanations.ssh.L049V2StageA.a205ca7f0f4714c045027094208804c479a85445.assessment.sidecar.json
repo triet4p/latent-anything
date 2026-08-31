@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l04.9-v2-raw-only-incident-assessment-v1",
-  "status": "pending",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "a205ca7f0f4714c045027094208804c479a85445",
     "tree_sha256": "a96ca4612c5b04a5bf7a370baec20b17d4b28b9f",
@@ -13,7 +13,8 @@
       "bytes": 6598,
       "sha256": "6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674",
       "written_before_parse": true,
-      "present": true
+      "present_before_delete": true,
+      "present_after_delete": false
     },
     "audit": null,
     "bundle": null,
@@ -63,9 +64,35 @@
   },
   "retention": {
     "raw_only": true,
-    "status": "pending",
-    "recommendation": "Preserve raw capture for owner review; no audit, bundle, or triad was produced and no finalization or promotion is permitted."
+    "status": "deleted_by_owner_exception",
+    "recommendation": "Evidence was deleted by explicit owner exception after exact pre-delete verification; no audit, bundle, or triad was produced and this is not standard finalization, promotion, or a successful run. Deletion is irreversible and the raw file is not recoverable from Git."
+  },
+  "owner_exception": {
+    "reason": "owner-authorized destructive retention cleanup of exactly the one sidecar-bound raw evidence file",
+    "previous_status": "pending",
+    "standard_finalize": false,
+    "repository_promotion": false,
+    "pre_delete_verification": {
+      "all_files_verified": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.raw.txt": {
+          "bytes": 6598,
+          "sha256": "6080a35c40369c225e8611891f5403b0b53c194b065473c885ea73d58464b674",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        }
+      }
+    },
+    "post_delete_absence": {
+      "all_files_absent": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.a205ca7f0f4714c045027094208804c479a85445.raw.txt": {
+          "absent": true
+        }
+      }
+    }
   },
   "redaction": "Sanitized metadata only; local absolute paths, remote ephemeral paths, holdout material, secrets, and execution bodies omitted.",
-  "sidecar_sha256": "6a0e1bc27aa8d5594232b1ea503e916ec9aaa41e6df8670254875c54d6d0bb09"
+  "sidecar_sha256": "b12a69a00f6dcb167ab7eaca6e7143eee72b06870a46aa2a168d280991aec6dd"
 }

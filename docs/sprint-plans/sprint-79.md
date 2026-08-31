@@ -426,9 +426,11 @@ occurred. See
   holdout/seed/candidate paths and no longer exports the unused train path.
   Native PowerShell/pwsh build-only and fake-remote regressions cover local
   path non-leakage, quoting, traversal, symlink/fixture checks, and argv/env
-  separation. The raw-only a205ca7 D0 assessment remains pending; its raw
-  capture is preserved byte-exact, with no audit/triad/bundle, no promotion,
-  and no retry after the proven remote input-path failure.
+  separation. The raw-only a205ca7 D0 assessment was later deleted under an
+  explicit owner exception after exact size/hash verification; its sidecar
+  records pre-delete and post-delete absence proof. There was no
+  audit/triad/bundle, promotion, or retry after the proven remote input-path
+  failure, and this cleanup is not finalization.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
