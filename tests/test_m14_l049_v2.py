@@ -296,23 +296,34 @@ def test_current_incident_assessment_binds_owner_exception_deletion_without_secr
     assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
 
 
-def test_current_b295_assessment_binds_source_unique_pending_evidence() -> None:
+def test_current_b295_assessment_binds_owner_exception_evidence_deletion() -> None:
     sidecar = json.loads(CURRENT_B295_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
     assert sidecar["source"]["commit_sha"] == "b295a506933e18f6d9139b0439f0e80d6ed441e8"
-    assert sidecar["status"] == "pending"
+    assert sidecar["status"] == "deleted_by_owner_exception"
     assert sidecar["assessment"]["finalizer_rejection_code"] == "finalizer_resource_peak_fields"
     assert sidecar["assessment"]["selection_evaluations"] == 2592
     assert sidecar["assessment"]["selection_reuse"] == "discarded_not_reusable"
     assert sidecar["assessment"]["resource_measurement"]["gpu_subfield"] == "unknown"
     assert sidecar["execution"]["invocation_invariant"] == "satisfied"
     assert sidecar["transport"]["mutex_digest"] == "821f69e4c0f206a1128ba3aa61fa6004ef9206ad430f00419d480d5aacbba1ea"
-    assert all(item["present"] for item in [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]])
-    assert all(item["present"] for item in sidecar["evidence"]["triad"].values())
+    assert all(
+        not item["present_after_delete"] for item in [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]
+    )
+    assert all(not item["present_after_delete"] for item in sidecar["evidence"]["triad"].values())
+    assert sidecar["evidence"]["audit"]["rebuild"] == {
+        "previous_bytes": 2638,
+        "previous_sha256": "c9fdfcfa5f60a010c403e143062ee6f7a9820f588308b7f13912240093456fd4",
+        "current_bytes": 3276,
+        "current_sha256": "914d374748e803513d3aeba04c556fa17584ebdabd3efdad4dcde6bf26e43a91",
+        "reason": "distinguish_generic_archive_member_names_from_source_unique_local_paths",
+    }
     assert all(
         sidecar["evidence"]["triad"][kind]["path"].split(".")[-3] == "b295a506933e18f6d9139b0439f0e80d6ed441e8"
         for kind in ("partial", "run", "failure")
     )
+    assert sidecar["owner_exception"]["pre_delete_verification"]["all_files_verified"] is True
+    assert sidecar["owner_exception"]["post_delete_absence"]["all_files_absent"] is True
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
 
