@@ -375,6 +375,22 @@ occurred. See
   Native build-only and fake-process regressions cover non-zero exits, raw
   capture before parsing, existing-target replacement, and paths containing
   spaces/quotes. No network, SSH, CUDA, or holdout execution occurred.
+- [x] Remediate the L049 v2 incident boundary without rerunning remote work.
+  Stage A now preserves sanitized live operation counters through finalizer
+  rejection, emits an allowlisted finalizer field-shape category, and keeps
+  unavailable resource provenance explicit. The transport canonicalizes the
+  case-insensitive UseCase and holds a true host-wide `Global\\` operating-
+  system mutex keyed by canonical stage and exact lowercase source SHA from
+  pre-launch through raw postprocessing; ACL-capable runtimes receive only the
+  current-user/LocalSystem Synchronize+Modify rights, while modern runtimes
+  explicitly clear session/user-only options. pwsh 7 and native Windows
+  PowerShell 5.1 canonicalization and concurrent-launch regressions prove that
+  only one child can start. Historical retention assertions bind to exact
+  recorded evidence paths. The current one-completed/one-aborted-launch
+  incident remains a pending D0 assessment with promotion and finalization
+  false; its raw, audit, bundle, and triad hashes are bound in the sanitized
+  incident assessment sidecar. No SSH, CUDA, holdout, retry, or evidence
+  deletion was performed by this remediation.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

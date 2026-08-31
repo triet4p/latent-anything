@@ -1,0 +1,43 @@
+# Sprint 79 L04.9 v2 incident remediation
+
+## Scope
+
+This local atomic task closes the identified failure-boundary gaps without
+network, SSH, CUDA, holdout, retry, evidence deletion, commit, or promotion.
+
+## Changes
+
+- Stage A retains bounded live operation counters and valid hook state when a
+  finalizer result is rejected; invalid resource peaks become explicit
+  unavailable measurements rather than stale observed zeros.
+- Finalizer rejection is represented by an allowlisted field/type category,
+  never arbitrary keys, values, traceback, or exception text.
+- The transport seam canonicalizes the case-insensitive UseCase binding, then
+  uses a host-wide `Global\\` named OS mutex keyed by canonical stage and exact
+  lowercase source SHA. On ACL-capable runtimes it grants only Synchronize and
+  Modify to the current user and LocalSystem; modern runtimes explicitly clear
+  session/user-only options. The mutex is acquired before process creation and
+  released after process wait, capture, and raw postprocessing. Its optional
+  metadata is observational only, atomically replaced, and never used to decide
+  ownership or delete a contender's guard.
+- Historical retention coverage binds to the exact recorded evidence paths,
+  preserving absence guarantees without generic `attempt1` collisions.
+
+## Current incident assessment
+
+The canonical sanitized assessment is
+`artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.incident-assessment.sidecar.json`.
+It records one completed payload, two reported SSH launches, an aborted
+second launch with uncertain remote reachability, D0 status, and false
+promotion/finalization. Raw, audit, bundle, and triad evidence remain bound by
+exact size and SHA-256 and are not modified by this task.
+
+## Verification
+
+Focused Stage A and transport validation pass, including canonical UseCase,
+Global-mutex concurrent-launch, and lock-release coverage on pwsh 7 and native
+Windows PowerShell 5.1. A production-wrapper regression with an isolated fake
+`ssh.exe` also proves mixed-case contenders share one canonical key and launch
+exactly one child. The full L04 family and repository gates pass locally; no
+Git close or remote invocation was performed. Graphify was updated after the
+source and test changes, with its pre-existing zero-node JSON warning retained.

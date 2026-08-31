@@ -49,6 +49,15 @@
 
 ### Changed
 
+- Hardened the M14 L04.9 v2 failure boundary: live Stage A counters survive
+  invalid finalizer output, rejection categories are allowlisted and
+  sanitized, and real transport launches are single-flight per canonical stage
+  and lowercase source SHA through raw postprocessing. The guard is a true
+  host-wide `Global\\` mutex with least-necessary ACLs where supported; native
+  Windows PowerShell 5.1 and pwsh 7 canonicalization/concurrency regressions
+  pass. The current incident remains a pending D0 assessment with exact
+  retained evidence hashes and no promotion/finalization.
+
 - Made the reusable M14 L04 remote transport compatible with native Windows
   PowerShell 5.1/.NET Framework 4.8 as well as pwsh 7/.NET. Cross-version
   SHA-256 hashing, reflected `ProcessStartInfo.ArgumentList` fallback with

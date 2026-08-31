@@ -1,0 +1,77 @@
+{
+  "schema_version": "m14-l04.9-v2-current-incident-assessment-v1",
+  "status": "pending",
+  "source": {
+    "commit_sha": "13bf46e7b748f6fa64bf5f44cd80c194d1ca889d",
+    "use_case": "L049V2StageA",
+    "exact_source_verified": true
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.raw.txt",
+      "bytes": 9731,
+      "sha256": "ee953f2ae96345db234b6ceb47695e2d0c41e42d699c1cfe90ce37aa2509ae69"
+    },
+    "audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.audit.json",
+      "bytes": 2638,
+      "sha256": "e28c797934107e01d1d07b7bb7f6cb6114c57cbb0c3b15757d62507c5a1fd597"
+    },
+    "bundle": {
+      "bytes": 2384,
+      "sha256": "0e889326670c35ca0bafd777e9785163df33fcc5e232c70abb71f4e9dd682a34"
+    },
+    "triad": {
+      "partial": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.partial.json",
+        "bytes": 7200,
+        "sha256": "6e527dd72e826bae5a8e9b017bc2061aa9ce050101ca49f00b35e7942f50de6b"
+      },
+      "run": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.run.json",
+        "bytes": 395,
+        "sha256": "88eb33c6f8d98f73075df4b0123e9f4648d64e12a32320d0fbc35badc75ce160"
+      },
+      "failure": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.failure.json",
+        "bytes": 397,
+        "sha256": "f887bac56bf25044f94f080a74338e766f85cc5caa7c83f3351e1b5dd2e4b2a8"
+      }
+    }
+  },
+  "execution": {
+    "completed_payloads": 1,
+    "ssh_launches_reported": 2,
+    "second_launch_aborted": true,
+    "second_remote_reach": "uncertain",
+    "invocation_invariant": "not_satisfied",
+    "evidence_limitation": "The retained evidence proves one completed payload and records a second aborted launch; it cannot establish whether the second launch reached the remote host."
+  },
+  "assessment": {
+    "artifact_status": "stage_a_failed",
+    "failure_kind": "runtime_exception",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_complete": false,
+    "operation_counts_observed": {
+      "candidate_evaluations": "unknown",
+      "hooks": "unknown",
+      "captures": "unknown",
+      "patches": "unknown",
+      "controls": "unknown",
+      "forwards": "unknown"
+    },
+    "resource_measurement": "unavailable",
+    "promotion": false,
+    "finalization": false,
+    "root_cause": {
+      "status": "unknown_sanitized",
+      "category": "finalizer_rejection_unspecified"
+    }
+  },
+  "retention": {
+    "raw_and_triad": "retain",
+    "recommendation": "Keep current evidence pending owner review; do not promote, finalize, or rerun from this incident sidecar."
+  },
+  "sidecar_sha256": "13a8be14ab405346f83bb9924d9e64ac44112f183dcbd3ad376e15b0aea8f8fc"
+}

@@ -1027,3 +1027,30 @@ remain synchronous because they are small and must publish before parsing.
 /.NET, including existing-target replacement, paths with spaces/quotes,
 non-zero child exits, raw-before-parse ordering, and exact cleanup. Do not
 invoke the real remote target during compatibility probes.
+
+## [2026-08-31] Preserve live counters and serialize transport single-flight
+
+**Symptom:** A real Stage A finalizer rejection could publish zero operation
+counters even though candidate selection had already run, and concurrent
+transport wrappers could both reach process creation.
+
+**Root cause:** The failure builder re-normalized a stale pre-finalizer
+envelope, and the process seam had no host-wide lock covering launch through
+raw postprocessing.
+
+**Fix / workaround:** Keep a private mutable counter snapshot in the runtime,
+project only bounded allowlisted fields at the failure boundary, carry a
+sanitized finalizer field-shape category across the internal exception, and
+use a named OS mutex under the Global namespace keyed by canonical stage and
+exact lowercase source SHA. On runtimes with ACL-bearing constructors, grant
+only Synchronize/Modify to the current user and LocalSystem; modern runtimes
+use the explicit host-wide options and never downgrade to Local. Metadata is
+observational only and is atomically replaced after mutex ownership; it never
+decides stale ownership or deletion. Retain exact
+historical evidence paths in retention tests and bind the current incident
+assessment to immutable size/hash records.
+
+**Watch out for:** A finalizer result is untrusted until its complete schema
+and resource provenance validate; never infer success from zero counters,
+never delete an active lock, and never include arbitrary keys, values, raw
+paths, holdout material, or exception text in an assessment.
