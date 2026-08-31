@@ -391,6 +391,16 @@ occurred. See
   false; its raw, audit, bundle, and triad hashes are bound in the sanitized
   incident assessment sidecar. No SSH, CUDA, holdout, retry, or evidence
   deletion was performed by this remediation.
+- [x] Close the current L049 v2 incident evidence under the explicit owner
+  exception. The raw capture, audit, and three triad files were each verified
+  at their exact sidecar-recorded size/SHA-256, regular-file/no-reparse and
+  untracked status, then deleted by literal absolute path. The canonical
+  sidecar preserves all five hashes/sizes, the bundle digest metadata, one
+  completed payload, two reported launches with uncertain second reachability,
+  D0/unknown counters and sanitized root cause, and pre/post absence proof.
+  `standard_finalize=false` and `repository_promotion=false`; this is
+  irreversible owner-exception cleanup, not successful finalization or a
+  promoted run.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

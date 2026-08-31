@@ -248,17 +248,22 @@ def test_current_stage_a_resource_assessment_is_canonical_and_sanitized() -> Non
     assert all(secret not in serialized for secret in ("prompt", "holdout", "traceback", "private key"))
 
 
-def test_current_incident_assessment_binds_retained_evidence_without_secrets() -> None:
+def test_current_incident_assessment_binds_owner_exception_deletion_without_secrets() -> None:
     sidecar = json.loads(CURRENT_INCIDENT_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "77aedee5a182c843dbc20aa1e989e0e54eb5dc79656ce5f0498722c121d5225b"
     assert sidecar["source"] == {
         "commit_sha": "13bf46e7b748f6fa64bf5f44cd80c194d1ca889d",
         "use_case": "L049V2StageA",
         "exact_source_verified": True,
     }
-    assert sidecar["status"] == "pending"
+    assert sidecar["status"] == "deleted_by_owner_exception"
     assert sidecar["assessment"]["promotion"] is False
     assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["assessment"]["standard_finalize"] is False
+    assert sidecar["assessment"]["repository_promotion"] is False
+    assert sidecar["standard_finalize"] is False
+    assert sidecar["repository_promotion"] is False
     assert sidecar["execution"] == {
         "completed_payloads": 1,
         "ssh_launches_reported": 2,
@@ -267,17 +272,22 @@ def test_current_incident_assessment_binds_retained_evidence_without_secrets() -
         "invocation_invariant": "not_satisfied",
         "evidence_limitation": sidecar["execution"]["evidence_limitation"],
     }
-    assert all(sidecar["evidence"][name]["path"].startswith("artifacts/") for name in ("raw_capture", "audit"))
-    for item in (sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]):
-        path = ROOT / item["path"]
-        payload = path.read_bytes()
-        assert len(payload) == item["bytes"]
-        assert hashlib.sha256(payload).hexdigest() == item["sha256"]
-    for item in sidecar["evidence"]["triad"].values():
-        path = ROOT / item["path"]
-        payload = path.read_bytes()
-        assert len(payload) == item["bytes"]
-        assert hashlib.sha256(payload).hexdigest() == item["sha256"]
+    evidence_items = [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]
+    evidence_items.extend(sidecar["evidence"]["triad"].values())
+    assert all(item["path"].startswith("artifacts/") for item in evidence_items)
+    assert all(item["present_after_delete"] is False for item in evidence_items)
+    assert sidecar["retention"]["raw_and_triad"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["standard_finalize"] is False
+    assert sidecar["owner_exception"]["previous_status"] == "pending"
+    assert sidecar["owner_exception"]["standard_finalize"] is False
+    assert sidecar["owner_exception"]["repository_promotion"] is False
+    assert sidecar["owner_exception"]["pre_delete_verification"]["all_files_verified"] is True
+    assert sidecar["owner_exception"]["post_delete_absence"]["all_files_absent"] is True
+    for item in evidence_items:
+        assert not (ROOT / item["path"]).exists()
+    assert all(
+        record["absent"] is True for record in sidecar["owner_exception"]["post_delete_absence"]["files"].values()
+    )
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "holdout_plaintext", "BEGIN PRIVATE"))
 

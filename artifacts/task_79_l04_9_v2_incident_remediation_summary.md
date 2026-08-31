@@ -2,8 +2,9 @@
 
 ## Scope
 
-This local atomic task closes the identified failure-boundary gaps without
-network, SSH, CUDA, holdout, retry, evidence deletion, commit, or promotion.
+This local atomic task records the explicit owner-exception cleanup of the
+identified incident evidence without network, SSH, CUDA, holdout, retry, or
+promotion.
 
 ## Changes
 
@@ -29,8 +30,11 @@ The canonical sanitized assessment is
 `artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.incident-assessment.sidecar.json`.
 It records one completed payload, two reported SSH launches, an aborted
 second launch with uncertain remote reachability, D0 status, and false
-promotion/finalization. Raw, audit, bundle, and triad evidence remain bound by
-exact size and SHA-256 and are not modified by this task.
+promotion/finalization. The five current raw/audit/triad files were verified
+against their exact recorded sizes and SHA-256 values, then deleted by explicit
+owner exception. Their hashes, sizes, the bundle digest metadata, and
+pre/post absence proof remain in the sidecar; this is not standard retention
+finalization and cannot be recovered from Git.
 
 ## Verification
 
@@ -38,6 +42,9 @@ Focused Stage A and transport validation pass, including canonical UseCase,
 Global-mutex concurrent-launch, and lock-release coverage on pwsh 7 and native
 Windows PowerShell 5.1. A production-wrapper regression with an isolated fake
 `ssh.exe` also proves mixed-case contenders share one canonical key and launch
-exactly one child. The full L04 family and repository gates pass locally; no
-Git close or remote invocation was performed. Graphify was updated after the
-source and test changes, with its pre-existing zero-node JSON warning retained.
+exactly one child. The current incident's five evidence paths are now absent,
+and the canonical sidecar/test assertions verify the exact owner-exception
+record. The full L04 family and repository gates pass locally; no remote
+invocation, retry, holdout access, promotion, or standard finalization was
+performed. Graphify was updated after the source and test changes, with its
+pre-existing zero-node JSON warning retained.

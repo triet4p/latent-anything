@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l04.9-v2-current-incident-assessment-v1",
-  "status": "pending",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "13bf46e7b748f6fa64bf5f44cd80c194d1ca889d",
     "use_case": "L049V2StageA",
@@ -10,12 +10,14 @@
     "raw_capture": {
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.raw.txt",
       "bytes": 9731,
-      "sha256": "ee953f2ae96345db234b6ceb47695e2d0c41e42d699c1cfe90ce37aa2509ae69"
+      "sha256": "ee953f2ae96345db234b6ceb47695e2d0c41e42d699c1cfe90ce37aa2509ae69",
+      "present_after_delete": false
     },
     "audit": {
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.audit.json",
       "bytes": 2638,
-      "sha256": "e28c797934107e01d1d07b7bb7f6cb6114c57cbb0c3b15757d62507c5a1fd597"
+      "sha256": "e28c797934107e01d1d07b7bb7f6cb6114c57cbb0c3b15757d62507c5a1fd597",
+      "present_after_delete": false
     },
     "bundle": {
       "bytes": 2384,
@@ -25,17 +27,20 @@
       "partial": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.partial.json",
         "bytes": 7200,
-        "sha256": "6e527dd72e826bae5a8e9b017bc2061aa9ce050101ca49f00b35e7942f50de6b"
+        "sha256": "6e527dd72e826bae5a8e9b017bc2061aa9ce050101ca49f00b35e7942f50de6b",
+        "present_after_delete": false
       },
       "run": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.run.json",
         "bytes": 395,
-        "sha256": "88eb33c6f8d98f73075df4b0123e9f4648d64e12a32320d0fbc35badc75ce160"
+        "sha256": "88eb33c6f8d98f73075df4b0123e9f4648d64e12a32320d0fbc35badc75ce160",
+        "present_after_delete": false
       },
       "failure": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.failure.json",
         "bytes": 397,
-        "sha256": "f887bac56bf25044f94f080a74338e766f85cc5caa7c83f3351e1b5dd2e4b2a8"
+        "sha256": "f887bac56bf25044f94f080a74338e766f85cc5caa7c83f3351e1b5dd2e4b2a8",
+        "present_after_delete": false
       }
     }
   },
@@ -67,11 +72,72 @@
     "root_cause": {
       "status": "unknown_sanitized",
       "category": "finalizer_rejection_unspecified"
+    },
+    "standard_finalize": false,
+    "repository_promotion": false
+  },
+  "owner_exception": {
+    "reason": "owner-authorized destructive retention cleanup after pending incident review",
+    "previous_status": "pending",
+    "standard_finalize": false,
+    "repository_promotion": false,
+    "pre_delete_verification": {
+      "all_files_verified": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.raw.txt": {
+          "bytes": 9731,
+          "sha256": "ee953f2ae96345db234b6ceb47695e2d0c41e42d699c1cfe90ce37aa2509ae69",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        },
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.audit.json": {
+          "bytes": 2638,
+          "sha256": "e28c797934107e01d1d07b7bb7f6cb6114c57cbb0c3b15757d62507c5a1fd597",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        },
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.partial.json": {
+          "bytes": 7200,
+          "sha256": "6e527dd72e826bae5a8e9b017bc2061aa9ce050101ca49f00b35e7942f50de6b",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        },
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.run.json": {
+          "bytes": 395,
+          "sha256": "88eb33c6f8d98f73075df4b0123e9f4648d64e12a32320d0fbc35badc75ce160",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        },
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.failure.json": {
+          "bytes": 397,
+          "sha256": "f887bac56bf25044f94f080a74338e766f85cc5caa7c83f3351e1b5dd2e4b2a8",
+          "regular_file": true,
+          "reparse_point": false,
+          "untracked": true
+        }
+      }
+    },
+    "post_delete_absence": {
+      "all_files_absent": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.raw.txt": {"absent": true},
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.audit.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.partial.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.run.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.13bf46e7b748f6fa64bf5f44cd80c194d1ca889d.failure.json": {"absent": true}
+      }
     }
   },
   "retention": {
-    "raw_and_triad": "retain",
-    "recommendation": "Keep current evidence pending owner review; do not promote, finalize, or rerun from this incident sidecar."
+    "raw_and_triad": "deleted_by_owner_exception",
+    "recommendation": "Evidence was deleted by explicit owner exception after exact pre-delete verification; do not describe this as standard finalization, promotion, or a successful run.",
+    "standard_finalize": false
   },
-  "sidecar_sha256": "13a8be14ab405346f83bb9924d9e64ac44112f183dcbd3ad376e15b0aea8f8fc"
+  "standard_finalize": false,
+  "repository_promotion": false,
+  "sidecar_sha256": "77aedee5a182c843dbc20aa1e989e0e54eb5dc79656ce5f0498722c121d5225b"
 }

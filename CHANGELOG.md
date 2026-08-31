@@ -55,8 +55,17 @@
   and lowercase source SHA through raw postprocessing. The guard is a true
   host-wide `Global\\` mutex with least-necessary ACLs where supported; native
   Windows PowerShell 5.1 and pwsh 7 canonicalization/concurrency regressions
-  pass. The current incident remains a pending D0 assessment with exact
-  retained evidence hashes and no promotion/finalization.
+  pass. The current incident is recorded as
+  `deleted_by_owner_exception`: exact raw/audit/triad hashes and sizes remain
+  in the sanitized sidecar, while the five verified evidence files are absent;
+  promotion and standard finalization remain false.
+
+- Recorded the explicit owner-exception cleanup of the current L049 v2
+  incident. Each of the five sidecar-bound evidence files was verified as an
+  untracked regular non-reparse file at its exact size/SHA-256 before literal
+  deletion; the sidecar preserves the bundle digest metadata and pre/post
+  absence proof. This irreversible cleanup is not standard retention
+  finalization, a successful run, or repository promotion.
 
 - Made the reusable M14 L04 remote transport compatible with native Windows
   PowerShell 5.1/.NET Framework 4.8 as well as pwsh 7/.NET. Cross-version

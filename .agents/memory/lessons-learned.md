@@ -1054,3 +1054,26 @@ assessment to immutable size/hash records.
 and resource provenance validate; never infer success from zero counters,
 never delete an active lock, and never include arbitrary keys, values, raw
 paths, holdout material, or exception text in an assessment.
+
+## [2026-09-01] Current incident evidence requires explicit owner-exception cleanup
+
+**Symptom:** A pending D0 incident sidecar retained raw, audit, and triad
+files after the owner had completed review, while no successful finalization or
+promotion was justified.
+
+**Root cause:** Retention state and evidence lifecycle are separate contracts;
+the failed run had one completed payload, a reported aborted contender, and
+unknown semantic/resource results, so standard finalization could not certify
+it.
+
+**Fix / workaround:** Resolve only the five exact sidecar paths, verify each
+as an untracked regular non-reparse file with the recorded size and SHA-256,
+delete each literal path under explicit owner authorization, and record
+`deleted_by_owner_exception`, `standard_finalize=false`,
+`repository_promotion=false`, preserved hashes/sizes, bundle metadata, and
+pre/post absence proof in the sanitized sidecar. This deletion is irreversible
+and must never be described as a successful run or standard finalization.
+
+**Watch out for:** Never infer a sixth bundle target from metadata without a
+path, broaden a cleanup with a glob, alter the preserved digests, or delete
+evidence before the exact manifest and untracked/no-reparse checks pass.
