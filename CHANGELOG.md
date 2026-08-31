@@ -55,9 +55,11 @@
   primary runtime exception; successful D1/D2 cleanup remains strict.
 
 - Added the canonical sanitized sidecar for the failed v2 Stage A diagnostic,
-  binding the exact source/tree/raw/transport commitments and sequence-alignment
-  reason while recording that no triad, audit, or candidate was produced. The
-  raw capture remains preserved pending owner exception review.
+  binding the exact source/tree/raw/transport commitments and no-triad reason
+  `no_triad_bundle_status_66` while recording that no audit or candidate was
+  produced. The raw capture was size/hash verified and deleted under the
+  explicit owner exception; the sidecar records verified absence with
+  `standard_finalize=false` and remains non-promoting.
 
 - Hardened the L04.9 v2 real runtime after the failed CUDA diagnostic: native
   transformer outputs now fail closed on full-prompt shape mismatches, clean

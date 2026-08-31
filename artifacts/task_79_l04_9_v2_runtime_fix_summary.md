@@ -16,8 +16,11 @@ allowlisted cleanup metadata, and attested partial counters; malformed
 finalizer returns are sanitized as non-promoting failures and finalizers run
 once. The failed diagnostic also has a canonical sanitized no-triad sidecar
 binding source/tree/raw/transport commitments and preserved-pending-owner-
-exception state. No CUDA rerun, holdout access, retry, retention finalization,
-or evidence promotion was performed.
+exception state. The owner then verified the literal raw path, size, and hash,
+deleted only that raw file under an explicit exception, and recorded verified
+absence with `standard_finalize=false`; deletion is irreversible. No CUDA
+rerun, holdout access, retry, standard retention finalization, or evidence
+promotion was performed.
 
 ## Files Modified
 
@@ -41,7 +44,8 @@ or evidence promotion was performed.
   hook-counter, and CLI triad regressions.
 * `tests/test_m14_l04_remote_postprocess.py` - D0 retain/finalize regression.
 * `artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json` - canonical sanitized
-  failed-attempt no-triad sidecar.
+  failed-attempt no-triad sidecar, now recording owner-exception deletion
+  with reason `no_triad_bundle_status_66`.
 * `CHANGELOG.md`, `docs/sprint-plans/sprint-79.md`, and
   `.agents/memory/lessons-learned.md` - truthful implementation record.
 
@@ -57,5 +61,7 @@ or evidence promotion was performed.
 
 ## Additional Notes
 
-The previously captured raw diagnostic remains untouched and untracked;
-SHA-256 is `9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f`.
+The previously captured raw diagnostic was verified at 7314 bytes with
+SHA-256 `9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f`
+and deleted under the explicit owner exception; the sidecar records its
+verified absence and deletion is irreversible.

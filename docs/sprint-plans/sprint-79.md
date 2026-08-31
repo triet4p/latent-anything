@@ -322,12 +322,13 @@ occurred. See
   incomplete real attempt emits a validator-clean D0 triad with partial
   counters. No CUDA rerun, holdout access, retention finalization, or evidence
   promotion occurred.
-- [x] Close the v2 failed-attempt evidence state locally without touching the
-  raw capture. The canonical sanitized Stage A sidecar records the exact
-  source/tree/raw/transport commitments, status markers, sequence-alignment
-  reason, absent triad/audit/selection, and preserved-pending-owner-exception
-  retention state. No raw parsing payload, sensitive body, retry, or promotion
-  was added.
+- [x] Close the v2 failed-attempt evidence state locally under the explicit
+  owner exception. The raw capture was verified at its recorded size/hash and
+  deleted only by literal path; the canonical sanitized Stage A sidecar now
+  records `no_triad_bundle_status_66`, prior sidecar digest, verified absence,
+  `standard_finalize=false`, exact transport markers/hashes, and no
+  triad/audit/selection or promotion. No raw parsing payload, sensitive body,
+  retry, or holdout access occurred.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

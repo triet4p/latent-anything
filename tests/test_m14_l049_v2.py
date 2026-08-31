@@ -37,6 +37,9 @@ TRAIN_PATH = ROOT / "artifacts/m14/l04-l049-v2-train.jsonl"
 STAGE_A_FAILURE_SIDECAR = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json"
 )
+STAGE_A_FAILURE_RAW = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
+)
 SOURCE_COMMIT = "1" * 40
 SOURCE_TREE = "2" * 64
 
@@ -50,7 +53,11 @@ def _base() -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
 
 def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
     sidecar = json.loads(STAGE_A_FAILURE_SIDECAR.read_bytes())
-    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert (
+        canonical_digest(sidecar, "sidecar_sha256")
+        == sidecar["sidecar_sha256"]
+        == "b08b979f982beac73130da38c78201048dcf37d7fd426dbf15cac5935a9e20ad"
+    )
     assert sidecar["source"] == {
         "commit_sha": "41828c2e12e1efacb80e8cb5a0c62e4e69a688b2",
         "tree_sha256": "1178bd4a339d773fb74c86b4046b087311a0b70d",
@@ -60,11 +67,23 @@ def test_failed_stage_a_sidecar_is_canonical_and_sanitized() -> None:
         "bytes": 7314,
         "sha256": "9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f",
     }
-    assert sidecar["reason_code"] == "sequence_alignment_index_error"
+    assert sidecar["reason_code"] == "no_triad_bundle_status_66"
     assert sidecar["artifact"]["failure"] == "no_triad"
     assert sidecar["artifact"]["audit"] == "not_created"
     assert sidecar["repository_promotion"] is False
-    assert sidecar["raw_retention_status"] == "preserved_pending_owner_exception"
+    assert sidecar["raw_retention_status"] == "deleted_by_owner_exception"
+    assert sidecar["standard_finalize"] is False
+    assert not STAGE_A_FAILURE_RAW.exists()
+    assert sidecar["owner_exception"] == {
+        "deletion_verification": {
+            "absent_after_delete": True,
+            "pre_delete_bytes": 7314,
+            "pre_delete_sha256": "9d3682dbe0f5faa0a65881f4f79d5d946e323b5e959b29650df96355a66e2f6f",
+        },
+        "previous_sidecar_sha256": "92ec7b7dfd194b3edb440867fabb9a6befd89d2399b66bada512a73b23b1fd04",
+        "reason": "no_triad_bundle_status_66",
+        "standard_finalize": False,
+    }
     serialized = json.dumps(sidecar, sort_keys=True)
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
 

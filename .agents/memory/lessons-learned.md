@@ -864,8 +864,12 @@ review without a machine-checkable semantic record.
 
 **Fix / workaround:** Add one canonical sanitized sidecar binding source
 commit/tree, raw and transport hashes, marker statuses, the fixed reason code,
-and explicit no-triad/no-audit/no-selection D0 state while keeping the raw
-capture byte-exact and pending owner review.
+and explicit no-triad/no-audit/no-selection D0 state. After explicit owner
+approval, verify the literal path, size, and hash, delete only that path, and
+replace pending retention with `deleted_by_owner_exception`, prior sidecar
+digest, `standard_finalize=false`, and verified absence.
 
 **Watch out for:** Do not reconstruct payloads, include remote paths or
-execution bodies, or imply semantic eligibility from transport cleanup alone.
+execution bodies, or imply semantic eligibility from transport cleanup alone;
+owner-exception deletion is irreversible and must not be reported as standard
+finalization.
