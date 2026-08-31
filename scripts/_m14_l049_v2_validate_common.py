@@ -236,7 +236,7 @@ def mapping_digest(mapping: object) -> str | None:
         return None
 
 
-def real_resources(resources: object, *, allow_failure: bool = False) -> list[str]:
+def real_resources(resources: object, *, allow_failure: bool = False, require_measured: bool = False) -> list[str]:
     if not isinstance(resources, Mapping):
         return ["Stage B real-runtime resources are missing"]
     errors: list[str] = []
@@ -311,16 +311,144 @@ def real_resources(resources: object, *, allow_failure: bool = False) -> list[st
     def _bounded_peak(value: object, budget: object) -> bool:
         peak_value = safe_int(value)
         budget_value = safe_int(budget)
-        return peak_value is not None and budget_value is not None and 0 <= peak_value <= budget_value
+        if peak_value is None or budget_value is None:
+            return False
+        return peak_value >= 0 and budget_value >= 0 and peak_value <= budget_value
 
+    expected_peak_fields = {
+        "peak_cpu_bytes",
+        "peak_gpu_bytes",
+        "peak_gpu_reserved_bytes",
+        "unit",
+        "budget_cpu_bytes",
+        "budget_gpu_bytes",
+        "measurement_status",
+        "measurement_reason",
+        "elapsed_seconds",
+        "elapsed_source",
+        "cpu_source",
+        "gpu_source",
+        "gpu_reserved_source",
+        "gpu_device",
+    }
     if (
         not isinstance(peak, Mapping)
-        or set(peak) != {"peak_cpu_bytes", "peak_gpu_bytes", "unit", "budget_cpu_bytes", "budget_gpu_bytes"}
+        or set(peak) != expected_peak_fields
         or peak.get("unit") != "bytes"
         or not _bounded_peak(peak.get("peak_cpu_bytes"), peak.get("budget_cpu_bytes"))
         or not _bounded_peak(peak.get("peak_gpu_bytes"), peak.get("budget_gpu_bytes"))
+        or not _bounded_peak(peak.get("peak_gpu_reserved_bytes"), peak.get("budget_gpu_bytes"))
     ):
         errors.append("Stage B resource peak evidence is missing or exceeds budget")
+    elif peak.get("peak_gpu_reserved_bytes", 0) < peak.get("peak_gpu_bytes", 0):
+        errors.append("Stage B reserved GPU peak is below allocated GPU peak")
+    elif peak.get("measurement_status") not in {"available", "unavailable"}:
+        errors.append("Stage B resource measurement status is invalid")
+    elif peak.get("measurement_status") == "available":
+
+        def _positive_int(value: object) -> bool:
+            parsed = safe_int(value)
+            return parsed is not None and parsed > 0
+
+        def _positive_float(value: object) -> bool:
+            parsed = safe_float(value)
+            return parsed is not None and parsed > 0
+
+        if (
+            not _positive_int(peak.get("peak_cpu_bytes"))
+            or not _positive_int(peak.get("peak_gpu_bytes"))
+            or not _positive_int(peak.get("peak_gpu_reserved_bytes"))
+            or peak.get("measurement_reason") is not None
+            or peak.get("elapsed_source") != "time.perf_counter"
+            or not _positive_float(peak.get("elapsed_seconds"))
+            or peak.get("cpu_source")
+            not in {
+                "resource.ru_maxrss_linux_kib",
+                "resource.ru_maxrss_macos_bytes",
+                "psutil.Process.memory_info.rss",
+            }
+            or peak.get("gpu_source") != "torch.cuda.max_memory_allocated"
+            or peak.get("gpu_reserved_source") != "torch.cuda.max_memory_reserved"
+            or not isinstance(peak.get("gpu_device"), str)
+            or not peak.get("gpu_device", "").startswith("cuda:")
+        ):
+            errors.append("Stage B measured resource provenance is invalid")
+    else:
+        reason = peak.get("measurement_reason")
+
+        def _positive_int(value: object) -> bool:
+            parsed = safe_int(value)
+            return parsed is not None and parsed > 0
+
+        valid_reasons = {
+            "cuda_unavailable",
+            "cuda_reset_failed",
+            "cuda_peak_query_failed",
+            "cuda_zero_peak",
+            "rss_unavailable",
+            "clock_invalid",
+            "tracker_unstarted",
+        }
+        cuda_unavailable = reason in {
+            "cuda_unavailable",
+            "cuda_reset_failed",
+            "cuda_peak_query_failed",
+            "cuda_zero_peak",
+        }
+        rss_unavailable = reason == "rss_unavailable"
+        source_shape_valid = (
+            reason in valid_reasons
+            and (
+                not cuda_unavailable
+                or (peak.get("gpu_source") == "unavailable" and peak.get("gpu_reserved_source") == "unavailable")
+            )
+            and (not rss_unavailable or peak.get("cpu_source") == "unavailable")
+            and (
+                reason != "tracker_unstarted"
+                or (
+                    peak.get("cpu_source") == "unavailable"
+                    and peak.get("gpu_source") == "unavailable"
+                    and peak.get("gpu_reserved_source") == "unavailable"
+                )
+            )
+            and (
+                not cuda_unavailable
+                or peak.get("gpu_device") == "unavailable"
+                or (isinstance(peak.get("gpu_device"), str) and peak.get("gpu_device", "").startswith("cuda:"))
+            )
+        )
+        cpu_source = peak.get("cpu_source")
+        gpu_source = peak.get("gpu_source")
+        reserved_source = peak.get("gpu_reserved_source")
+        source_value_valid = (
+            (
+                (cpu_source == "unavailable" and peak.get("peak_cpu_bytes") == 0)
+                or (
+                    cpu_source
+                    in {
+                        "resource.ru_maxrss_linux_kib",
+                        "resource.ru_maxrss_macos_bytes",
+                        "psutil.Process.memory_info.rss",
+                    }
+                    and _positive_int(peak.get("peak_cpu_bytes"))
+                )
+            )
+            and (
+                (gpu_source == "unavailable" and peak.get("peak_gpu_bytes") == 0)
+                or (gpu_source == "torch.cuda.max_memory_allocated" and _positive_int(peak.get("peak_gpu_bytes")))
+            )
+            and (
+                (reserved_source == "unavailable" and peak.get("peak_gpu_reserved_bytes") == 0)
+                or (
+                    reserved_source == "torch.cuda.max_memory_reserved"
+                    and _positive_int(peak.get("peak_gpu_reserved_bytes"))
+                )
+            )
+        )
+        if not source_shape_valid or not source_value_valid:
+            errors.append("Stage B unavailable resource provenance is invalid")
+        if require_measured:
+            errors.append("measured resource provenance is required for eligible evidence")
     if resources.get("no_mutation") is not True:
         errors.append("Stage B no-mutation gate failed")
     counters = resources.get("operation_counts")
@@ -568,10 +696,19 @@ def runtime_attestation_errors(
             expected_resources = {
                 "peak_cpu_bytes": peak.get("peak_cpu_bytes"),
                 "peak_gpu_bytes": peak.get("peak_gpu_bytes"),
+                "peak_gpu_reserved_bytes": peak.get("peak_gpu_reserved_bytes"),
                 "unit": peak.get("unit"),
-                "source": "torch.cuda.max_memory_allocated",
+                "source": peak.get("gpu_source"),
                 "budget_cpu_bytes": peak.get("budget_cpu_bytes"),
                 "budget_gpu_bytes": peak.get("budget_gpu_bytes"),
+                "measurement_status": peak.get("measurement_status"),
+                "measurement_reason": peak.get("measurement_reason"),
+                "elapsed_seconds": peak.get("elapsed_seconds"),
+                "elapsed_source": peak.get("elapsed_source"),
+                "cpu_source": peak.get("cpu_source"),
+                "gpu_source": peak.get("gpu_source"),
+                "gpu_reserved_source": peak.get("gpu_reserved_source"),
+                "gpu_device": peak.get("gpu_device"),
             }
     resources = attestation.get("resources")
     if resources != expected_resources:

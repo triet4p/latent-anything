@@ -409,10 +409,10 @@ def validate_stage_a_impl(
             errors.append("Stage A offline artifact must remain D0")
     elif isinstance(resources, Mapping) and resources.get("execution_backend") == "cuda":
         mode = "real"
-        errors.extend(real_resources(resources))
         real_pass = (
             artifact.get("status") == "stage_a_complete" and expected_metric is not None and expected_metric["pass"]
         )
+        errors.extend(real_resources(resources, require_measured=bool(real_pass)))
         if (
             artifact.get("evidence_level") != ("D1" if real_pass else "D0")
             or artifact.get("evidence_eligible") is not real_pass

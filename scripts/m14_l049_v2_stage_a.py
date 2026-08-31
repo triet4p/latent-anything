@@ -6,11 +6,12 @@ import argparse
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
 
 from scripts._m14_l049_v2_fixture import read_rows, validate_rows
 from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes
-from scripts._m14_l049_v2_stage_a import build_stage_a_artifact, run_real_stage_a
+from scripts._m14_l049_v2_stage_a import attempted_real_resources, build_stage_a_artifact
 from scripts._m14_l049_v2_validate import validate_stage_a
 
 
@@ -66,17 +67,10 @@ def main(argv: list[str] | None = None) -> None:
     source_sha = hashlib.sha256(Path(__file__).with_name("_m14_l049_v2_stage_a.py").read_bytes()).hexdigest()
     cli_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     if args.run_real:
-        runtime: dict[str, object]
+        runtime: dict[str, object] | None = None
         try:
             import torch
-
-            if not torch.cuda.is_available():
-                raise RuntimeError("CUDA is unavailable")
-            from scripts._m14_l049_v2_real_runtime import build_stage_a_runtime
-
-            scorer, resources = build_stage_a_runtime(rows)
-            runtime = {"score": scorer, "resources": resources}
-        except Exception as error:  # noqa: BLE001 - preserve every real-attempt failure as D0
+        except Exception as error:  # noqa: BLE001 - no CUDA attempt started
             runtime = {
                 "error": error,
                 "resources": {
@@ -88,7 +82,69 @@ def main(argv: list[str] | None = None) -> None:
                     "no_mutation": True,
                 },
             }
-        artifact = run_real_stage_a(rows, addendum, source_sha256=source_sha, runtime=runtime, cli_sha256=cli_sha)
+        else:
+            try:
+                cuda_available = bool(torch.cuda.is_available())
+            except Exception as error:  # noqa: BLE001 - CUDA preflight failed
+                cuda_available = False
+                runtime = {
+                    "error": error,
+                    "resources": {
+                        "stage": "preflight",
+                        "execution_attempted": False,
+                        "execution_backend": "none",
+                        "device": "not used",
+                        "network": "not attempted",
+                        "no_mutation": True,
+                    },
+                }
+            if not cuda_available and runtime is None:
+                runtime = {
+                    "error": RuntimeError("CUDA is unavailable"),
+                    "resources": {
+                        "stage": "preflight",
+                        "execution_attempted": False,
+                        "execution_backend": "none",
+                        "device": "not used",
+                        "network": "not attempted",
+                        "no_mutation": True,
+                    },
+                }
+            elif cuda_available:
+                try:
+                    from scripts._m14_l049_v2_real_runtime import (
+                        RealRuntimeError,
+                        build_stage_a_runtime,
+                    )
+
+                    try:
+                        scorer, resources = build_stage_a_runtime(rows)
+                        runtime = {"score": scorer, "resources": resources}
+                    except RealRuntimeError as error:
+                        runtime = {"error": error.original_error, "resources": error.resources}
+                    except Exception as error:  # noqa: BLE001 - post-CUDA failures are attempted-real
+                        runtime = {"error": error, "resources": attempted_real_resources()}
+                except Exception as error:  # noqa: BLE001 - helper import/resolution is attempted-real
+                    runtime = {"error": error, "resources": attempted_real_resources()}
+        assert runtime is not None
+        try:
+            from scripts._m14_l049_v2_stage_a import run_real_stage_a
+
+            artifact = run_real_stage_a(rows, addendum, source_sha256=source_sha, runtime=runtime, cli_sha256=cli_sha)
+        except Exception as error:  # noqa: BLE001 - every post-CUDA helper failure is attempted-real
+            from scripts._m14_l049_v2_stage_a import build_stage_a_failure_artifact
+
+            runtime_resources = runtime.get("resources")
+            if not isinstance(runtime_resources, Mapping):
+                runtime_resources = attempted_real_resources()
+            artifact = build_stage_a_failure_artifact(
+                rows,
+                addendum,
+                source_sha256=source_sha,
+                error=error,
+                resources=runtime_resources,
+                cli_sha256=cli_sha,
+            )
     else:
         artifact = build_stage_a_artifact(rows, addendum, source_sha256=source_sha, cli_sha256=cli_sha)
     validation = validate_stage_a(artifact, rows, addendum)

@@ -78,6 +78,8 @@ def validate_stage_b_impl(
         "evidence_eligible",
         "promotion_candidate",
         "acceptance",
+        "failure_kind",
+        "failure",
         "repository_promotion",
         "candidate_artifact_sha256",
         "parent_plan_sha256",
@@ -128,6 +130,44 @@ def validate_stage_b_impl(
             "holdout_seed_commitment_sha256"
         ) != commitment.get("holdout_seed_commitment_sha256"):
             errors.append("Stage B holdout seed commitment mismatch")
+    if artifact.get("failure_kind") == "runtime_exception":
+        failure = artifact.get("failure")
+        if (
+            artifact.get("status") != "stage_b_failed"
+            or artifact.get("evidence_level") != "D0"
+            or artifact.get("evidence_eligible") is not False
+            or artifact.get("promotion_candidate") is not False
+            or artifact.get("acceptance") is not False
+            or not isinstance(failure, Mapping)
+            or set(failure) != {"exception_type"}
+            or not isinstance(failure.get("exception_type"), str)
+            or not failure.get("exception_type")
+            or artifact.get("seed_summaries") != []
+        ):
+            errors.append("Stage B runtime-failure envelope is invalid")
+        resources = artifact.get("resources")
+        errors.extend(real_resources(resources, allow_failure=True))
+        errors.extend(
+            runtime_attestation_errors(
+                artifact.get("runtime_attestation"),
+                stage="stage_b_holdout_evaluation",
+                mode="real",
+                group_count=24,
+                pair_count=24,
+                candidate_count=len(candidate_artifact.get("selection", {}).get("candidate_grid", [])),
+                seed_count=len(STAGE_B_SEEDS),
+                fixture_sha256=artifact.get("holdout_fixture_sha256"),
+                candidate_sha256=artifact.get("candidate_artifact_sha256"),
+                source_sha256=artifact.get("source_sha256"),
+                addendum_sha256=artifact.get("addendum_sha256"),
+                cli_sha256=top_level_cli_sha256("stage_b_holdout_evaluation"),
+                execution_resources=resources,
+                partial_failure=True,
+            )
+        )
+        if artifact.get("artifact_sha256") != canonical_artifact_digest(artifact, "artifact_sha256"):
+            errors.append("Stage B artifact digest is invalid")
+        return errors
     mapping_value = artifact.get("shuffled_mapping")
     mapping: Mapping[str, str] = cast(Mapping[str, str], mapping_value) if isinstance(mapping_value, Mapping) else {}
     pair_ids = sorted({str(row.get("causal_pair_id")) for row in holdout_rows})
@@ -268,10 +308,12 @@ def validate_stage_b_impl(
         }:
             errors.append("Stage B synthetic resources are not the exact D0 contract")
     elif backend == "cuda":
-        errors.extend(real_resources(resources))
+        errors.extend(real_resources(resources, require_measured=acceptance))
     else:
         errors.append("Stage B execution backend is invalid")
-    expected_level = "D2" if acceptance and backend == "cuda" and not real_resources(resources) else "D0"
+    expected_level = (
+        "D2" if acceptance and backend == "cuda" and not real_resources(resources, require_measured=True) else "D0"
+    )
     if artifact.get("evidence_level") != expected_level or artifact.get("evidence_eligible") is not (False):
         errors.append("Stage B evidence level is invalid")
     if artifact.get("promotion_candidate") is not (expected_level == "D2"):

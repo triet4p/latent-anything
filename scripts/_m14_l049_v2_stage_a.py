@@ -54,8 +54,46 @@ _FINALIZER_RESOURCE_FIELDS = frozenset(
 _COUNTER_FIELDS = frozenset(("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards"))
 
 
+def attempted_real_resources() -> dict[str, Any]:
+    """Return a complete attempted-CUDA envelope when setup fails before tracking."""
+    zero_counts = dict.fromkeys(_COUNTER_FIELDS, 0)
+    return {
+        "stage": "real_runtime",
+        "execution_attempted": True,
+        "execution_backend": "cuda",
+        "model": EXPECTED_RUNTIME_MODEL,
+        "model_revision": EXPECTED_RUNTIME_MODEL,
+        "integration": "TransformerLMIntegration",
+        "model_adapter": "N/A",
+        "device": "cuda",
+        "backend": "cuda",
+        "dtype": "float32",
+        "hook": {"registered": 0, "capture_calls": 0, "removed": 0},
+        "intervention": {"patch_calls": 0, "control_calls": 0, "forward_calls": 0},
+        "operation_counts": zero_counts,
+        "cleanup": {"hook_count": 0, "completed": True},
+        "resource_peak": {
+            "peak_cpu_bytes": 0,
+            "peak_gpu_bytes": 0,
+            "peak_gpu_reserved_bytes": 0,
+            "unit": "bytes",
+            "budget_cpu_bytes": 6_000_000_000,
+            "budget_gpu_bytes": 6_000_000_000,
+            "measurement_status": "unavailable",
+            "measurement_reason": "tracker_unstarted",
+            "elapsed_seconds": None,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "unavailable",
+            "gpu_source": "unavailable",
+            "gpu_reserved_source": "unavailable",
+            "gpu_device": "unavailable",
+        },
+        "no_mutation": True,
+    }
+
+
 def _valid_finalizer_resources(value: object) -> bool:
-    if not isinstance(value, Mapping) or set(value) != _FINALIZER_RESOURCE_FIELDS:
+    if not isinstance(value, Mapping) or set(value) != set(_FINALIZER_RESOURCE_FIELDS):
         return False
     if (
         value.get("stage") != "real_runtime"
@@ -74,7 +112,7 @@ def _valid_finalizer_resources(value: object) -> bool:
     counters = value.get("operation_counts")
     if (
         not isinstance(counters, Mapping)
-        or set(counters) != _COUNTER_FIELDS
+        or set(counters) != set(_COUNTER_FIELDS)
         or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in counters.values())
     ):
         return False
@@ -100,17 +138,46 @@ def _valid_finalizer_resources(value: object) -> bool:
     if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
         return False
     peak = value.get("resource_peak")
-    peak_fields = ("peak_cpu_bytes", "peak_gpu_bytes", "budget_cpu_bytes", "budget_gpu_bytes")
+    peak_fields = (
+        "peak_cpu_bytes",
+        "peak_gpu_bytes",
+        "peak_gpu_reserved_bytes",
+        "budget_cpu_bytes",
+        "budget_gpu_bytes",
+    )
+
+    def _valid_nonnegative(value: object) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
     return not (
         not isinstance(peak, Mapping)
-        or set(peak) != set((*peak_fields, "unit"))
+        or set(peak)
+        != {
+            *peak_fields,
+            "unit",
+            "measurement_status",
+            "measurement_reason",
+            "elapsed_seconds",
+            "elapsed_source",
+            "cpu_source",
+            "gpu_source",
+            "gpu_reserved_source",
+            "gpu_device",
+        }
         or peak.get("unit") != "bytes"
-        or any(
-            not isinstance(peak.get(key), int) or isinstance(peak.get(key), bool) or peak.get(key) < 0
-            for key in peak_fields
-        )
+        or any(not _valid_nonnegative(peak.get(key)) for key in peak_fields)
         or peak["peak_cpu_bytes"] > peak["budget_cpu_bytes"]
         or peak["peak_gpu_bytes"] > peak["budget_gpu_bytes"]
+        or (
+            isinstance(peak["peak_gpu_reserved_bytes"], int)
+            and isinstance(peak["peak_gpu_bytes"], int)
+            and peak["peak_gpu_reserved_bytes"] < peak["peak_gpu_bytes"]
+        )
+        or peak["measurement_status"] not in {"available", "unavailable"}
+        or peak["measurement_reason"] is not None
+        and not isinstance(peak["measurement_reason"], str)
+        or peak["elapsed_seconds"] is not None
+        and (not isinstance(peak["elapsed_seconds"], (int, float)) or isinstance(peak["elapsed_seconds"], bool))
     )
 
 
@@ -311,7 +378,7 @@ def build_stage_a_artifact(
         if not _valid_finalizer_resources(finalized):
             error = TypeError("runtime resource finalizer returned an invalid mapping")
             raise _ResourceFinalizerError(error, reason="finalizer_invalid_result") from error
-        resource_payload = dict(finalized)
+        resource_payload = dict(cast(Mapping[str, Any], finalized))
     raw = canonical_fixture_bytes(rows)
     artifact: dict[str, Any] = {
         "schema_version": V2_STAGE_A_SCHEMA,
@@ -410,7 +477,7 @@ def _failure_resources(
     cleanup_error: BaseException | None = None,
     cleanup_reason: str = "finalizer_exception",
 ) -> dict[str, Any]:
-    payload = dict(resources or {})
+    payload: dict[str, Any] = dict(cast(Mapping[str, Any], resources or {}))
     finalizer = payload.pop("finalize", None)
     if cleanup_error is None and callable(finalizer):
         try:
@@ -419,7 +486,7 @@ def _failure_resources(
             cleanup_error = error
         else:
             if _valid_finalizer_resources(finalized):
-                payload = dict(finalized)
+                payload = dict(cast(Mapping[str, Any], finalized))
             else:
                 cleanup_error = TypeError("runtime resource finalizer returned an invalid mapping")
                 cleanup_reason = "finalizer_invalid_result"
@@ -594,6 +661,7 @@ def run_real_stage_a(
 
 __all__ = [
     "ScoreFunction",
+    "attempted_real_resources",
     "build_stage_a_artifact",
     "build_stage_a_failure_artifact",
     "default_train_score",

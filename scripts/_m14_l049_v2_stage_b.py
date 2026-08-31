@@ -27,6 +27,7 @@ from scripts._m14_l049_v2_schema import (
     fixture_digest,
     top_level_cli_sha256,
 )
+from scripts._m14_l049_v2_stage_a import attempted_real_resources
 
 
 def label_stratified_shuffled_mapping(
@@ -217,6 +218,8 @@ def evaluate_stage_b(
         "evidence_eligible": False,
         "promotion_candidate": bool(accepted and evidence_level == "D2"),
         "acceptance": accepted,
+        "failure_kind": None,
+        "failure": None,
         "repository_promotion": False,
         "candidate_artifact_sha256": candidate_sha,
         "parent_plan_sha256": candidate_artifact.get("parent_plan_sha256"),
@@ -278,4 +281,80 @@ def evaluate_stage_b(
     return artifact
 
 
-__all__ = ["evaluate_stage_b", "label_stratified_shuffled_mapping"]
+def build_stage_b_failure_artifact(
+    rows: Sequence[Mapping[str, Any]],
+    candidate: Mapping[str, Any],
+    addendum: Mapping[str, Any],
+    holdout_seed: bytes,
+    *,
+    source_sha256: str,
+    error: BaseException,
+    resources: Mapping[str, Any],
+    cli_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Emit a validator-clean attempted-real D0 with no holdout evidence."""
+    raw = canonical_fixture_bytes(rows)
+    candidate_sha = str(candidate.get("artifact_sha256", ""))
+    resolved_cli = cli_sha256 or top_level_cli_sha256("stage_b_holdout_evaluation")
+    if resolved_cli is None:
+        raise ValueError("Stage B top-level CLI digest is unavailable")
+    resource_payload = dict(resources)
+    counters = resource_payload.get("operation_counts")
+    if not isinstance(counters, Mapping):
+        resource_payload = attempted_real_resources()
+        counters = resource_payload["operation_counts"]
+    failure: dict[str, Any] = {"exception_type": type(error).__name__}
+    attestation = build_runtime_attestation(
+        stage="stage_b_holdout_evaluation",
+        mode="real",
+        group_count=24,
+        pair_count=24,
+        candidate_count=len(candidate.get("selection", {}).get("candidate_grid", [])),
+        seed_count=len(STAGE_B_SEEDS),
+        fixture_sha256=digest_bytes(raw),
+        candidate_sha256=candidate_sha,
+        source_sha256=source_sha256,
+        addendum_sha256=canonical_digest(addendum, "addendum_sha256"),
+        cli_sha256=resolved_cli,
+        resources=resource_payload,
+        operation_counts=counters,
+    )
+    artifact: dict[str, Any] = {
+        "schema_version": V2_STAGE_B_SCHEMA,
+        "stage": "stage_b_holdout_evaluation",
+        "status": "stage_b_failed",
+        "evidence_level": "D0",
+        "evidence_eligible": False,
+        "promotion_candidate": False,
+        "acceptance": False,
+        "failure_kind": "runtime_exception",
+        "failure": failure,
+        "repository_promotion": False,
+        "candidate_artifact_sha256": candidate_sha,
+        "parent_plan_sha256": candidate.get("parent_plan_sha256"),
+        "addendum_schema": candidate.get("addendum_schema"),
+        "train_fixture_sha256": candidate.get("train_fixture_sha256"),
+        "source_sha256": source_sha256,
+        "addendum_sha256": canonical_digest(addendum, "addendum_sha256"),
+        "holdout_fixture_sha256": digest_bytes(raw),
+        "holdout_seed_commitment_sha256": hashlib.sha256(holdout_seed).hexdigest(),
+        "shuffled_mapping": {},
+        "shuffled_mapping_sha256": hashlib.sha256(canonical_fixture_bytes([])).hexdigest(),
+        "seed_summaries": [],
+        "controls": {
+            "scope": "diagnostics_only",
+            "wrong_token": "separately_serialized",
+            "adjacent_layer": "separately_serialized",
+            "additive": "separately_serialized",
+            "matched_norm_random": "separately_serialized",
+            "zero_strength": "exact selected-logit and relevant-output digest identity",
+        },
+        "resources": resource_payload,
+        "runtime_attestation": attestation,
+        "attestation_sha256": attestation["attestation_sha256"],
+    }
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    return artifact
+
+
+__all__ = ["build_stage_b_failure_artifact", "evaluate_stage_b", "label_stratified_shuffled_mapping"]

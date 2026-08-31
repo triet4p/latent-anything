@@ -252,9 +252,18 @@ def test_v2_stage_a_d0_cleanup_failure_retains_and_finalizes(tmp_path: Path, fai
         "resource_peak": {
             "peak_cpu_bytes": 1,
             "peak_gpu_bytes": 1,
+            "peak_gpu_reserved_bytes": 1,
             "unit": "bytes",
             "budget_cpu_bytes": 6_000_000_000,
             "budget_gpu_bytes": 6_000_000_000,
+            "measurement_status": "available",
+            "measurement_reason": None,
+            "elapsed_seconds": 1.0,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "resource.ru_maxrss_linux_kib",
+            "gpu_source": "torch.cuda.max_memory_allocated",
+            "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+            "gpu_device": "cuda:0",
         },
         "no_mutation": True,
     }

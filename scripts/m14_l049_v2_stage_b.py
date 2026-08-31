@@ -10,7 +10,6 @@ from pathlib import Path
 
 from scripts._m14_l049_v2_fixture import read_rows, validate_rows
 from scripts._m14_l049_v2_schema import V2_ADDENDUM_PATH, canonical_json_bytes
-from scripts._m14_l049_v2_stage_b import evaluate_stage_b
 from scripts._m14_l049_v2_validate import validate_stage_b
 
 
@@ -74,29 +73,59 @@ def main(argv: list[str] | None = None) -> None:
     addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
     candidate = json.loads(args.candidate_manifest.read_bytes())
     cli_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    seed = args.holdout_seed.read_bytes()
     if args.run_real:
+        from scripts._m14_l049_v2_stage_b import build_stage_b_failure_artifact
+
         try:
             import torch
+        except Exception as error:  # noqa: BLE001 - no CUDA attempt started
+            raise SystemExit("real Stage B dependencies are unavailable") from error
+        try:
+            cuda_available = bool(torch.cuda.is_available())
+        except Exception as error:  # noqa: BLE001 - CUDA preflight failed
+            raise SystemExit("CUDA preflight failed") from error
+        if not cuda_available:
+            raise SystemExit("CUDA is unavailable")
+        resources: dict[str, object] | None = None
+        real_runtime_error_type: type[BaseException] | tuple[type[BaseException], ...] = ()
+        try:
+            from scripts._m14_l049_v2_real_runtime import (
+                RealRuntimeError,
+                build_stage_b_runtime,
+            )
 
-            if not torch.cuda.is_available():
-                raise RuntimeError("CUDA is unavailable")
-            from scripts._m14_l049_v2_real_runtime import build_stage_b_runtime
-
+            real_runtime_error_type = RealRuntimeError
             observations, resources = build_stage_b_runtime(rows, candidate)
-        except (ImportError, RuntimeError, TypeError, ValueError):
-            if args.observations is None:
-                raise SystemExit(
-                    "real Stage B execution unavailable and no offline observations were supplied"
-                ) from None
-            observations = json.loads(args.observations.read_bytes())
-            resources = None
+            from scripts._m14_l049_v2_stage_b import evaluate_stage_b
+
+            artifact = evaluate_stage_b(
+                rows, observations, candidate, addendum, seed, resources=resources, cli_sha256=cli_sha
+            )
+        except Exception as error:  # noqa: BLE001 - all post-CUDA failures are attempted-real
+            runtime_error = error.original_error if isinstance(error, real_runtime_error_type) else error
+            runtime_resources = error.resources if isinstance(error, real_runtime_error_type) else resources
+            if not isinstance(runtime_resources, dict):
+                from scripts._m14_l049_v2_stage_a import attempted_real_resources
+
+                runtime_resources = attempted_real_resources()
+            artifact = build_stage_b_failure_artifact(
+                rows,
+                candidate,
+                addendum,
+                seed,
+                source_sha256=str(candidate.get("source_sha256", "")),
+                error=runtime_error,
+                resources=runtime_resources,
+                cli_sha256=cli_sha,
+            )
     else:
         if args.observations is None:
             raise SystemExit("--observations is required unless --run-real is used")
+        from scripts._m14_l049_v2_stage_b import evaluate_stage_b
+
         observations = json.loads(args.observations.read_bytes())
-        resources = None
-    seed = args.holdout_seed.read_bytes()
-    artifact = evaluate_stage_b(rows, observations, candidate, addendum, seed, resources=resources, cli_sha256=cli_sha)
+        artifact = evaluate_stage_b(rows, observations, candidate, addendum, seed, resources=None, cli_sha256=cli_sha)
     validation = validate_stage_b(artifact, rows, seed, candidate, addendum)
     if validation:
         raise SystemExit("; ".join(validation))

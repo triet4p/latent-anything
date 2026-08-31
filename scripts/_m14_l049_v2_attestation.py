@@ -80,10 +80,19 @@ def build_runtime_attestation(
         peak_resources = {
             "peak_cpu_bytes": peak.get("peak_cpu_bytes"),
             "peak_gpu_bytes": peak.get("peak_gpu_bytes"),
+            "peak_gpu_reserved_bytes": peak.get("peak_gpu_reserved_bytes"),
             "unit": peak.get("unit"),
-            "source": "torch.cuda.max_memory_allocated",
+            "source": peak.get("gpu_source"),
             "budget_cpu_bytes": peak.get("budget_cpu_bytes"),
             "budget_gpu_bytes": peak.get("budget_gpu_bytes"),
+            "measurement_status": peak.get("measurement_status"),
+            "measurement_reason": peak.get("measurement_reason"),
+            "elapsed_seconds": peak.get("elapsed_seconds"),
+            "elapsed_source": peak.get("elapsed_source"),
+            "cpu_source": peak.get("cpu_source"),
+            "gpu_source": peak.get("gpu_source"),
+            "gpu_reserved_source": peak.get("gpu_reserved_source"),
+            "gpu_device": peak.get("gpu_device"),
         }
     else:
         peak_resources = {

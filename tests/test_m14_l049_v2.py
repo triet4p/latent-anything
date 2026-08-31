@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 import copy
 import hashlib
 import json
@@ -13,10 +14,11 @@ from typing import Any
 import numpy as np
 import pytest
 
+import scripts._m14_l049_v2_real_runtime as real_runtime
 from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
 from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
-from scripts._m14_l049_v2_real_runtime import _hidden, _patch_positions
+from scripts._m14_l049_v2_real_runtime import ResourceTracker, _hidden, _patch_positions, attempted_runtime_resources
 from scripts._m14_l049_v2_retention import build_retention_record, validate_retention_record
 from scripts._m14_l049_v2_schema import (
     STAGE_B_SEEDS,
@@ -24,10 +26,16 @@ from scripts._m14_l049_v2_schema import (
     CommitmentPolicy,
     canonical_digest,
     canonical_fixture_bytes,
+    canonical_json_bytes,
     fixture_digest,
+    top_level_cli_sha256,
 )
 from scripts._m14_l049_v2_stage_a import build_stage_a_artifact, run_real_stage_a
-from scripts._m14_l049_v2_stage_b import evaluate_stage_b, label_stratified_shuffled_mapping
+from scripts._m14_l049_v2_stage_b import (
+    build_stage_b_failure_artifact,
+    evaluate_stage_b,
+    label_stratified_shuffled_mapping,
+)
 from scripts._m14_l049_v2_transport import build_transport_metadata, validate_transport_metadata
 from scripts._m14_l049_v2_validate import validate_stage_a, validate_stage_b
 from scripts._m14_l049_v2_validate_stage_a import validate_stage_a_impl
@@ -40,6 +48,9 @@ STAGE_A_FAILURE_SIDECAR = ROOT / (
 )
 CURRENT_STAGE_A_FAILURE_SIDECAR = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.3b15627585a0fc07e28c0f8b5d0118630f3ded5d.sidecar.json"
+)
+CURRENT_STAGE_A_RESOURCE_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.66455a526f6974b31974f058dda341817dea2998.assessment.sidecar.json"
 )
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
@@ -151,6 +162,128 @@ def test_current_failed_stage_a_sidecar_records_validator_misclassification() ->
     assert all(secret not in serialized for secret in ("traceback", "PROMPT", "holdout_plaintext", "BEGIN PRIVATE"))
 
 
+def test_current_stage_a_resource_assessment_is_canonical_and_sanitized() -> None:
+    sidecar = json.loads(CURRENT_STAGE_A_RESOURCE_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["source"]["commit_sha"] == "66455a526f6974b31974f058dda341817dea2998"
+    assert sidecar["raw_capture"] == {
+        "bytes": 54754,
+        "sha256": "c366462b3f5dee243832e539db7c4495a018e8988305d2c54c0e83fdcd36767f",
+    }
+    assert sidecar["resource_assessment"]["reason_code"] == "measured_source_with_zero_peaks"
+    assert sidecar["resource_assessment"]["resource_provenance_valid"] is False
+    assert sidecar["artifact"]["evidence_level"] == "D0"
+    assert sidecar["retention"]["raw_retention_status"] == "retained_pending_finalize"
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(secret not in serialized for secret in ("prompt", "holdout", "traceback", "private key"))
+
+
+class _FakeCuda:
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def is_available(self) -> bool:
+        return True
+
+    def current_device(self) -> int:
+        self.calls.append("current")
+        return 0
+
+    def reset_peak_memory_stats(self, device: int) -> None:
+        assert device == 0
+        self.calls.append("reset")
+
+    def synchronize(self, device: int) -> None:
+        assert device == 0
+        self.calls.append("sync")
+
+    def max_memory_allocated(self, device: int) -> int:
+        assert device == 0
+        return 200
+
+    def max_memory_reserved(self, device: int) -> int:
+        assert device == 0
+        return 400
+
+
+def test_resource_tracker_records_nonzero_cuda_and_linux_rss_provenance(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(real_runtime.sys, "platform", "linux")
+    cuda = _FakeCuda()
+    clock_values = iter((10.0, 12.5))
+    fake_resource = SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=3))
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=cuda), resource_module=fake_resource, clock=lambda: next(clock_values)
+    )
+    tracker.start()
+    tracker.finish()
+    assert cuda.calls == ["current", "reset", "sync"]
+    assert tracker.resource_peak() == {
+        "peak_cpu_bytes": 3072,
+        "peak_gpu_bytes": 200,
+        "peak_gpu_reserved_bytes": 400,
+        "unit": "bytes",
+        "budget_cpu_bytes": 6_000_000_000,
+        "budget_gpu_bytes": 6_000_000_000,
+        "measurement_status": "available",
+        "measurement_reason": None,
+        "elapsed_seconds": 2.5,
+        "elapsed_source": "time.perf_counter",
+        "cpu_source": "resource.ru_maxrss_linux_kib",
+        "gpu_source": "torch.cuda.max_memory_allocated",
+        "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+        "gpu_device": "cuda:0",
+    }
+
+
+def test_resource_tracker_marks_zero_peak_unavailable_without_exception_text() -> None:
+    cuda = _FakeCuda()
+    cuda.max_memory_allocated = lambda _device: 0  # type: ignore[method-assign]
+    cuda.max_memory_reserved = lambda _device: 0  # type: ignore[method-assign]
+    fake_resource = SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=1))
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=cuda), resource_module=fake_resource, clock=iter((1.0, 2.0)).__next__
+    )
+    tracker.start()
+    tracker.finish()
+    peak = tracker.resource_peak()
+    assert peak["measurement_status"] == "unavailable"
+    assert peak["measurement_reason"] == "cuda_zero_peak"
+    assert "exception" not in json.dumps(peak).lower()
+
+
+def test_resource_tracker_uses_psutil_rss_fallback_when_resource_is_zero() -> None:
+    cuda = _FakeCuda()
+    fake_resource = SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=0))
+    fake_psutil = SimpleNamespace(Process=lambda: SimpleNamespace(memory_info=lambda: SimpleNamespace(rss=4096)))
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=cuda),
+        resource_module=fake_resource,
+        psutil_module=fake_psutil,
+        clock=iter((1.0, 2.0)).__next__,
+    )
+    tracker.start()
+    tracker.finish()
+    peak = tracker.resource_peak()
+    assert peak["peak_cpu_bytes"] == 4096
+    assert peak["cpu_source"] == "psutil.Process.memory_info.rss"
+    assert peak["measurement_status"] == "available"
+
+
+def test_resource_tracker_uses_macos_ru_maxrss_bytes(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(real_runtime.sys, "platform", "darwin")
+    fake_resource = SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=4096))
+    tracker = ResourceTracker(
+        torch_module=SimpleNamespace(cuda=_FakeCuda()),
+        resource_module=fake_resource,
+        clock=iter((1.0, 2.0)).__next__,
+    )
+    tracker.start()
+    tracker.finish()
+    peak = tracker.resource_peak()
+    assert peak["peak_cpu_bytes"] == 4096
+    assert peak["cpu_source"] == "resource.ru_maxrss_macos_bytes"
+
+
 def test_real_runtime_uses_independent_clean_source_and_corrupt_recipient_positions() -> None:
     clean_hidden = np.arange(1 * 22 * 4, dtype=np.float32).reshape(1, 22, 4)
     corrupt_hidden = np.arange(1 * 21 * 4, dtype=np.float32).reshape(1, 21, 4) + 100.0
@@ -198,9 +331,18 @@ def test_real_stage_a_index_error_emits_sanitized_d0_artifact() -> None:
         "resource_peak": {
             "peak_cpu_bytes": 1,
             "peak_gpu_bytes": 1,
+            "peak_gpu_reserved_bytes": 1,
             "unit": "bytes",
             "budget_cpu_bytes": 6_000_000_000,
             "budget_gpu_bytes": 6_000_000_000,
+            "measurement_status": "available",
+            "measurement_reason": None,
+            "elapsed_seconds": 1.0,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "resource.ru_maxrss_linux_kib",
+            "gpu_source": "torch.cuda.max_memory_allocated",
+            "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+            "gpu_device": "cuda:0",
         },
         "no_mutation": True,
     }
@@ -258,9 +400,18 @@ def _real_resources_for_failure() -> dict[str, Any]:
         "resource_peak": {
             "peak_cpu_bytes": 1,
             "peak_gpu_bytes": 1,
+            "peak_gpu_reserved_bytes": 1,
             "unit": "bytes",
             "budget_cpu_bytes": 6_000_000_000,
             "budget_gpu_bytes": 6_000_000_000,
+            "measurement_status": "available",
+            "measurement_reason": None,
+            "elapsed_seconds": 1.0,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "resource.ru_maxrss_linux_kib",
+            "gpu_source": "torch.cuda.max_memory_allocated",
+            "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+            "gpu_device": "cuda:0",
         },
         "no_mutation": True,
     }
@@ -305,6 +456,81 @@ def test_real_stage_a_semantic_gate_failure_is_validator_clean() -> None:
     assert artifact["selection"]["consensus_candidate"] is not None
     assert artifact["selection"]["oof_metric"]["pass"] is False
     assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_real_stage_a_unavailable_resource_measurement_remains_d0() -> None:
+    rows, addendum, _ = _base()
+    resources = _real_resources_for_complete_selection()
+    resources["resource_peak"].update(
+        {
+            "peak_cpu_bytes": 0,
+            "peak_gpu_bytes": 0,
+            "peak_gpu_reserved_bytes": 0,
+            "measurement_status": "unavailable",
+            "measurement_reason": "cuda_zero_peak",
+            "cpu_source": "unavailable",
+            "gpu_source": "unavailable",
+            "gpu_reserved_source": "unavailable",
+            "gpu_device": "unavailable",
+        }
+    )
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": resources},
+    )
+    assert artifact["evidence_level"] == "D0"
+    assert validate_stage_a(artifact, rows, addendum) == []
+
+
+def test_real_stage_a_measured_zero_peak_is_rejected_after_rehash() -> None:
+    rows, addendum, _ = _base()
+    artifact = run_real_stage_a(
+        rows,
+        addendum,
+        source_sha256="a" * 64,
+        runtime={"score": lambda *_args: 0.0, "resources": _real_resources_for_complete_selection()},
+    )
+    artifact["resources"]["resource_peak"]["peak_gpu_bytes"] = 0
+    artifact["runtime_attestation"]["resources"]["peak_gpu_bytes"] = 0
+    artifact["runtime_attestation"]["attestation_sha256"] = canonical_digest(
+        artifact["runtime_attestation"], "attestation_sha256"
+    )
+    artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    errors = validate_stage_a(artifact, rows, addendum)
+    assert "Stage B measured resource provenance is invalid" in errors
+
+
+def test_real_stage_b_runtime_exception_emits_validator_clean_attempted_d0() -> None:
+    candidate, holdout, seed, addendum, _observations = _synthetic_stage_b()
+    artifact = build_stage_b_failure_artifact(
+        holdout,
+        candidate,
+        addendum,
+        seed,
+        source_sha256=str(candidate["source_sha256"]),
+        error=IndexError("secret prompt must not escape"),
+        resources=attempted_runtime_resources(),
+        cli_sha256=top_level_cli_sha256("stage_b_holdout_evaluation"),
+    )
+    assert artifact["status"] == "stage_b_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["failure_kind"] == "runtime_exception"
+    assert artifact["seed_summaries"] == []
+    assert "secret prompt" not in json.dumps(artifact)
+    assert (
+        validate_stage_b_impl(
+            artifact,
+            holdout,
+            seed,
+            candidate,
+            addendum,
+            read_rows(TRAIN_PATH)[1],
+            policy=CommitmentPolicy.from_addendum(addendum),
+        )
+        == []
+    )
 
 
 def test_real_stage_a_semantic_no_consensus_is_validator_clean() -> None:
@@ -600,6 +826,139 @@ def _synthetic_stage_b() -> tuple[dict[str, Any], list[dict[str, Any]], bytes, d
                 "matched_norm_random": {"effect": 0.0},
             }
     return candidate, holdout, holdout_seed, synthetic_addendum, observations
+
+
+def _stage_b_cli_inputs(tmp_path: Path) -> tuple[Path, Path, Path, Path, dict[str, Any]]:
+    candidate, holdout, seed, addendum, _observations = _synthetic_stage_b()
+    holdout_path = tmp_path / "holdout.jsonl"
+    seed_path = tmp_path / "holdout.seed"
+    candidate_path = tmp_path / "candidate.json"
+    addendum_path = tmp_path / "addendum.json"
+    holdout_path.write_bytes(canonical_fixture_bytes(holdout))
+    seed_path.write_bytes(seed)
+    candidate_path.write_bytes(canonical_json_bytes(candidate))
+    addendum_path.write_bytes(canonical_json_bytes(addendum))
+    return holdout_path, seed_path, candidate_path, addendum_path, candidate
+
+
+def test_stage_a_cli_helper_import_failure_is_attempted_real_d0(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import torch
+
+    import scripts.m14_l049_v2_stage_a as cli
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    original_import = builtins.__import__
+
+    def blocked_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "scripts._m14_l049_v2_real_runtime":
+            raise ImportError("runtime helper secret must never escape")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", blocked_import)
+    output = tmp_path / "stage-a.json"
+    cli.main(
+        [
+            "--train-fixture",
+            str(TRAIN_PATH),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    artifact = json.loads(output.read_bytes())
+    assert artifact["status"] == "stage_a_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["resources"]["execution_attempted"] is True
+    assert artifact["resources"]["execution_backend"] == "cuda"
+    assert "runtime helper secret" not in json.dumps(artifact)
+
+
+def test_stage_b_cli_helper_import_failure_is_attempted_real_d0(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import torch
+
+    import scripts.m14_l049_v2_stage_b as cli
+
+    holdout_path, seed_path, candidate_path, addendum_path, _candidate = _stage_b_cli_inputs(tmp_path)
+    monkeypatch.setattr(cli, "V2_ADDENDUM_PATH", addendum_path)
+    monkeypatch.setattr(cli, "validate_stage_b", lambda *_args: [])
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    original_import = builtins.__import__
+
+    def blocked_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "scripts._m14_l049_v2_real_runtime":
+            raise ImportError("Stage B helper secret must never escape")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", blocked_import)
+    output = tmp_path / "stage-b.json"
+    cli.main(
+        [
+            "--holdout-fixture",
+            str(holdout_path),
+            "--holdout-seed",
+            str(seed_path),
+            "--candidate-manifest",
+            str(candidate_path),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    artifact = json.loads(output.read_bytes())
+    assert artifact["status"] == "stage_b_failed"
+    assert artifact["evidence_level"] == "D0"
+    assert artifact["resources"]["execution_attempted"] is True
+    assert artifact["resources"]["execution_backend"] == "cuda"
+    assert "Stage B helper secret" not in json.dumps(artifact)
+
+
+def test_stage_b_cli_evaluation_failure_is_attempted_real_d0(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    import torch
+
+    import scripts._m14_l049_v2_real_runtime as runtime_module
+    import scripts._m14_l049_v2_stage_b as stage_b_module
+    import scripts.m14_l049_v2_stage_b as cli
+
+    holdout_path, seed_path, candidate_path, addendum_path, _candidate = _stage_b_cli_inputs(tmp_path)
+    monkeypatch.setattr(cli, "V2_ADDENDUM_PATH", addendum_path)
+    monkeypatch.setattr(cli, "validate_stage_b", lambda *_args: [])
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    resources = attempted_runtime_resources()
+    monkeypatch.setattr(runtime_module, "build_stage_b_runtime", lambda *_args: ({}, resources))
+
+    def fail_evaluation(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise IndexError("Stage B evaluation prompt secret must never escape")
+
+    monkeypatch.setattr(stage_b_module, "evaluate_stage_b", fail_evaluation)
+    output = tmp_path / "stage-b-eval-failure.json"
+    cli.main(
+        [
+            "--holdout-fixture",
+            str(holdout_path),
+            "--holdout-seed",
+            str(seed_path),
+            "--candidate-manifest",
+            str(candidate_path),
+            "--output",
+            str(output),
+            "--source-commit-sha",
+            SOURCE_COMMIT,
+            "--run-real",
+        ]
+    )
+    artifact = json.loads(output.read_bytes())
+    assert artifact["status"] == "stage_b_failed"
+    assert artifact["failure"] == {"exception_type": "IndexError"}
+    assert artifact["seed_summaries"] == []
+    assert "evaluation prompt secret" not in json.dumps(artifact)
 
 
 def test_v2_addendum_and_stage_a_bind_public_boundary() -> None:
@@ -912,9 +1271,18 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
             "resource_peak": {
                 "peak_cpu_bytes": 1,
                 "peak_gpu_bytes": 1,
+                "peak_gpu_reserved_bytes": 1,
                 "unit": "bytes",
                 "budget_cpu_bytes": 2,
                 "budget_gpu_bytes": 2,
+                "measurement_status": "available",
+                "measurement_reason": None,
+                "elapsed_seconds": 1.0,
+                "elapsed_source": "time.perf_counter",
+                "cpu_source": "resource.ru_maxrss_linux_kib",
+                "gpu_source": "torch.cuda.max_memory_allocated",
+                "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+                "gpu_device": "cuda:0",
             },
             "no_mutation": True,
         },
@@ -945,9 +1313,18 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
         "resource_peak": {
             "peak_cpu_bytes": 1,
             "peak_gpu_bytes": 1,
+            "peak_gpu_reserved_bytes": 1,
             "unit": "bytes",
             "budget_cpu_bytes": 2,
             "budget_gpu_bytes": 2,
+            "measurement_status": "available",
+            "measurement_reason": None,
+            "elapsed_seconds": 1.0,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "resource.ru_maxrss_linux_kib",
+            "gpu_source": "torch.cuda.max_memory_allocated",
+            "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+            "gpu_device": "cuda:0",
         },
         "no_mutation": True,
     }
@@ -1073,9 +1450,18 @@ def test_injected_real_stage_a_records_d1_attestation_and_executes_scorer() -> N
         "resource_peak": {
             "peak_cpu_bytes": 1,
             "peak_gpu_bytes": 1,
+            "peak_gpu_reserved_bytes": 1,
             "unit": "bytes",
             "budget_cpu_bytes": 2,
             "budget_gpu_bytes": 2,
+            "measurement_status": "available",
+            "measurement_reason": None,
+            "elapsed_seconds": 1.0,
+            "elapsed_source": "time.perf_counter",
+            "cpu_source": "resource.ru_maxrss_linux_kib",
+            "gpu_source": "torch.cuda.max_memory_allocated",
+            "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+            "gpu_device": "cuda:0",
         },
         "no_mutation": True,
     }
