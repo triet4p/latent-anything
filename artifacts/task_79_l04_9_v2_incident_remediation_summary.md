@@ -130,3 +130,29 @@ result, promotion, or finalization is inferred. The new canonical attempted
 CUDA-device contract is a preventive hardening change, not a proven root cause
 for this incident: the sanitized artifact does not identify a device/source
 mismatch.
+
+## Follow-up: 67d2fb7 resource-only probe assessment
+
+The owner-authorized resource-only diagnostic ran once from native Windows
+PowerShell through one authenticated `ssh.exe` process against exact source
+SHA `67d2fb7649543ffc679e521f4f2a2ee970c55c63`. A fresh remote clone verified
+that SHA, the suppressed CUDA preflight passed, and the committed
+`scripts/m14_l049_v2_resource_probe.py` entry point invoked the production
+`ResourceTracker` with at most one minimal CUDA allocation/synchronization.
+No model, adapter, integration, fixture, dataset, selection, holdout, seed,
+or Stage B input was accessed.
+
+The raw capture is 344 bytes with SHA-256
+`e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa` and is
+retained pending in the canonical sanitized assessment sidecar
+`artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json`.
+Its eight fixed markers independently parse as PASS, with measurement
+`available`, reason `none`, finalizer code `NONE`, and coherent sanitized
+provenance booleans. The sidecar separates executor-recorded exact-SHA/CUDA
+facts from raw-marker facts.
+
+The marker `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` means only the internal
+probe/`ResourceTracker` cleanup self-attestation. It is not evidence that the
+remote disposable checkout or caches were removed. Remote checkout cleanup is
+therefore recorded as `unverified`, with no absence proof; no semantic result,
+promotion, or finalization is inferred.

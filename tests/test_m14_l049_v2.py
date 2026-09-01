@@ -75,6 +75,9 @@ CURRENT_A205_RAW_ONLY_ASSESSMENT = ROOT / (
 CURRENT_5D6_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.assessment.sidecar.json"
 )
+CURRENT_RESOURCE_PROBE_ASSESSMENT = ROOT / (
+    "artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
@@ -426,6 +429,51 @@ def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
     assert sidecar["retention"]["status"] == "pending"
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("traceback", "begin private", "f:\\ai-ml"))
+
+
+def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> None:
+    sidecar = json.loads(CURRENT_RESOURCE_PROBE_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "314823fca09eff6eabb3f67f167b4f6a22fda0362541607839f310f9c8e4efd6"
+    assert sidecar["source"] == {
+        "commit_sha": "67d2fb7649543ffc679e521f4f2a2ee970c55c63",
+        "tree_sha256": "72d18bfe8f899243ad1aad20000d86c3b69a85a8",
+        "use_case": "L049V2ResourceProbe",
+        "exact_source_verified": True,
+    }
+    assert sidecar["probe_cli"]["path"] == "scripts/m14_l049_v2_resource_probe.py"
+    assert sidecar["probe_cli"]["version"] == "m14-l049-v2-resource-probe-v1"
+    raw = sidecar["evidence"]["raw_capture"]
+    assert raw == {
+        "path": "artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.raw.txt",
+        "bytes": 344,
+        "sha256": "e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa",
+        "written_before_parse": True,
+        "present_at_assessment": True,
+    }
+    assert sidecar["markers"]["count"] == 8
+    assert sidecar["markers"]["order"] == list(resource_probe._PROBE_MARKER_NAMES)
+    assert sidecar["markers"]["parser"] == "PASS"
+    assert sidecar["markers"]["fixed_sanitized"] is True
+    assert sidecar["execution"] == {
+        "ssh_processes": 1,
+        "probe_invocations": 1,
+        "ssh_exit": 0,
+        "provenance": "executor_recorded_only",
+        "remote_exact_sha_check": "PASS",
+        "remote_cuda_preflight": "PASS",
+    }
+    assert all(value == "not_attempted" for value in sidecar["scope"].values())
+    assert sidecar["assessment"]["diagnostic_status"] == "bounded_resource_only"
+    assert sidecar["assessment"]["probe_cleanup"] == "self_attested"
+    assert sidecar["assessment"]["remote_checkout_cleanup"] == "unverified"
+    assert sidecar["assessment"]["remote_checkout_absence_proof"] is False
+    assert sidecar["status"] == "pending"
+    assert sidecar["retention"]["status"] == "pending"
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(
+        secret not in serialized for secret in ("traceback", "holdout_plaintext", "private key", "f:\\ai-ml", "cuda:0")
+    )
 
 
 class _FakeCuda:

@@ -1175,3 +1175,22 @@ an atomic pair. If either query fails or the pair is invalid, clear both
 measurements and mark the provenance unavailable; never present a positive peak
 alongside a stale zero. A resource-only probe may validate tracker/cleanup
 behavior, but it is not a model, selection, holdout, or semantic run.
+
+## [2026-09-01] Probe cleanup markers do not prove remote lifecycle cleanup
+
+**Symptom:** The resource-only CUDA probe emitted
+`L049_V2_RESOURCE_PROBE_CLEANUP=PASS`, while its fixed marker schema had no
+separate marker for removal of the disposable remote checkout and caches.
+
+**Root cause:** Internal `ResourceTracker` cleanup and remote transport
+lifecycle cleanup are different boundaries; one fixed marker cannot establish
+both without changing the raw marker contract.
+
+**Fix / workaround:** Record probe cleanup as `self_attested` and remote
+checkout cleanup as `unverified` in the sanitized sidecar. Keep the raw marker
+schema unchanged, distinguish raw-proven facts from executor-recorded facts,
+and never infer remote path absence from a successful SSH exit alone.
+
+**Watch out for:** A resource-only probe is bounded diagnostic evidence only;
+it never becomes model/selection/holdout evidence and must not be promoted or
+finalized from its internal cleanup marker.

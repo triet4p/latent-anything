@@ -429,6 +429,19 @@ occurred. See
   current raw, bundle, audit, and source-unique triad evidence remain pending
   and byte/digest-bound in its assessment sidecar; the exact peak subcondition
   is unknown, so no semantic result, promotion, or finalization is inferred.
+- [x] Execute the owner-authorized L049 v2 resource-only diagnostic on exact
+  source SHA `67d2fb7649543ffc679e521f4f2a2ee970c55c63`. The single native
+  PowerShell `ssh.exe` process cloned and verified that SHA, passed the
+  suppressed CUDA preflight, and invoked the committed production-tracker
+  probe once. Its eight fixed sanitized markers passed independent parsing:
+  resource measurement was `available`, finalizer code `NONE`, and all
+  provenance booleans were coherent. The raw capture is pending and bound by
+  [`resource-probe assessment`](../../artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json).
+  `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` is only the probe/`ResourceTracker`
+  internal cleanup self-attestation; remote checkout/cache cleanup is
+  explicitly unverified because the fixed marker schema has no remote-lifecycle
+  absence marker. This was resource-only diagnostics, not semantic evidence,
+  model validation, or promotion.
 - [x] Correct the first owner-authorized a205ca7 Stage A transport attempt:
   the remote payload now derives and validates the tracked train fixture inside
   its fresh detached clone, while Stage B accepts only sanitized absolute POSIX

@@ -32,6 +32,13 @@
   evidence bound by a sanitized assessment sidecar; no semantic promotion or
   finalization is claimed.
 
+- Recorded the single owner-authorized `67d2fb7` resource-only CUDA probe in a
+  sanitized pending assessment sidecar. Its eight fixed markers independently
+  validate as PASS with available resource provenance, but
+  `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` is explicitly only the internal
+  `ResourceTracker`/probe cleanup self-attestation; remote checkout/cache
+  cleanup remains unverified and no semantic evidence or promotion is claimed.
+
 - Added the offline-tested, explicitly network-gated WikiText-2 acquisition
   and sanitized manifest pipeline for the frozen M14 L04 tuned-lens corpus.
   The pipeline retains only pinned provenance, counts, selected indices, text

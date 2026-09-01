@@ -1,0 +1,88 @@
+{
+  "schema_version": "m14-l049-v2-resource-probe-assessment-v1",
+  "status": "pending",
+  "source": {
+    "commit_sha": "67d2fb7649543ffc679e521f4f2a2ee970c55c63",
+    "tree_sha256": "72d18bfe8f899243ad1aad20000d86c3b69a85a8",
+    "use_case": "L049V2ResourceProbe",
+    "exact_source_verified": true
+  },
+  "probe_cli": {
+    "path": "scripts/m14_l049_v2_resource_probe.py",
+    "version": "m14-l049-v2-resource-probe-v1",
+    "script_sha256": "62c6e2496be4c2f8592a40167d6c86e63de6867796f7f29d0480b27a181369cb"
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.raw.txt",
+      "bytes": 344,
+      "sha256": "e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa",
+      "written_before_parse": true,
+      "present_at_assessment": true
+    }
+  },
+  "markers": {
+    "count": 8,
+    "order": [
+      "L049_V2_RESOURCE_PROBE_STATUS",
+      "L049_V2_RESOURCE_PROBE_FINALIZER_CODE",
+      "L049_V2_RESOURCE_PROBE_MEASUREMENT_STATUS",
+      "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON",
+      "L049_V2_RESOURCE_PROBE_CPU_PROVENANCE",
+      "L049_V2_RESOURCE_PROBE_GPU_PROVENANCE",
+      "L049_V2_RESOURCE_PROBE_DEVICE_CANONICAL",
+      "L049_V2_RESOURCE_PROBE_CLEANUP"
+    ],
+    "parser": "PASS",
+    "fixed_sanitized": true,
+    "raw_values": {
+      "status": "PASS",
+      "finalizer_code": "NONE",
+      "measurement_status": "available",
+      "measurement_reason": "none",
+      "cpu_provenance": true,
+      "gpu_provenance": true,
+      "device_canonical": true,
+      "cleanup": "PASS"
+    }
+  },
+  "execution": {
+    "ssh_processes": 1,
+    "probe_invocations": 1,
+    "ssh_exit": 0,
+    "provenance": "executor_recorded_only",
+    "remote_exact_sha_check": "PASS",
+    "remote_cuda_preflight": "PASS"
+  },
+  "scope": {
+    "model": "not_attempted",
+    "adapter": "not_attempted",
+    "integration": "not_attempted",
+    "fixture": "not_attempted",
+    "selection": "not_attempted",
+    "dataset": "not_attempted",
+    "holdout": "not_attempted",
+    "stage_b": "not_attempted"
+  },
+  "assessment": {
+    "diagnostic_status": "bounded_resource_only",
+    "measurement_status": "available",
+    "measurement_reason": "none",
+    "finalizer_code": "NONE",
+    "cpu_provenance": true,
+    "gpu_provenance": true,
+    "device_canonical": true,
+    "probe_cleanup": "self_attested",
+    "probe_cleanup_scope": "ResourceTracker and probe internal cleanup only",
+    "remote_checkout_cleanup": "unverified",
+    "remote_checkout_absence_proof": false,
+    "promotion": false,
+    "finalization": false
+  },
+  "retention": {
+    "status": "pending",
+    "recommendation": "Preserve the source-SHA-keyed probe raw capture for owner review; do not treat it as semantic evidence or remote lifecycle proof."
+  },
+  "redaction": "Sanitized metadata only; no absolute paths, process identifiers, device free text, numeric resource values, secrets, model, fixture, dataset, holdout, or execution body included.",
+  "sidecar_sha256": "314823fca09eff6eabb3f67f167b4f6a22fda0362541607839f310f9c8e4efd6"
+}
