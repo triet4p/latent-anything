@@ -1340,3 +1340,18 @@ that derives pins only from those files and frozen source commitments.
 **Watch out for:** Never accept a real-promotion policy reconstructed from
 caller mappings, alternate tracked files, or a nested Git parent; a valid
 self-digest is not proof that the mapping is the reviewed evidence.
+
+## [2026-09-02] Sleep delays do not establish async lifecycle transitions
+
+**Symptom:** An async-stream cancellation regression test used a short sleep to
+assume that the transition worker had started before cancellation, making the
+test scheduler-dependent.
+**Root cause:** `asyncio.sleep()` yields for a duration but does not synchronize
+with a worker-thread lifecycle event; a busy or differently scheduled executor
+can still be before or after the intended transition at cancellation time.
+**Fix / workaround:** Wait for the transition's `threading.Event` through
+`asyncio.to_thread(...wait, timeout)` and assert the bounded wait succeeded
+before cancelling, while retaining worker-settled and source-closed assertions.
+**Watch out for:** Do not use timing sleeps as barriers for async worker
+lifecycle tests; expose and await a bounded event or another explicit
+synchronization primitive.
