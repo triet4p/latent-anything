@@ -1,0 +1,129 @@
+{
+  "schema_version": "m14-l049-v2-load-stress-assessment-v1",
+  "status": "retained_pending_diagnostic",
+  "source": {
+    "commit_sha": "32211433134facb901098c1a6313d010f22495a0",
+    "tree_sha256": "b592505dd9920f73d1d419e2302fb7a8ab6351ae",
+    "use_case": "L049V2LoadStress",
+    "exact_source_verified": true
+  },
+  "stress_cli": {
+    "path": "scripts/m14_l049_v2_load_stress.py",
+    "version": "m14-l049-v2-load-stress-v1",
+    "script_bytes": 10245,
+    "script_sha256": "d546836764e0792c7377ced8f56ca06cba58de524bec5357ebb2f61e1c5dcc47"
+  },
+  "transport_payload": {
+    "payload_sha256": "650ea649bcc1ea5562813853d0b933aacea3ab5078946dd2c0d4e112216ba8c6",
+    "decoded_payload_sha256": "650ea649bcc1ea5562813853d0b933aacea3ab5078946dd2c0d4e112216ba8c6",
+    "decode_status": 0,
+    "decode_match": "PASS"
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.raw.txt",
+      "bytes": 1175,
+      "sha256": "c320b802c905fa325fdf9e20f42e4db130ad99a26a108dc0396e81e3e68d13f9",
+      "written_before_parse": true,
+      "present_at_assessment": true
+    }
+  },
+  "markers": {
+    "outer": {
+      "source_sha": "32211433134facb901098c1a6313d010f22495a0",
+      "git_sha_match": "PASS",
+      "cuda_present": true,
+      "precheck": "PASS",
+      "exec_status": 0,
+      "markers_present": true,
+      "outer_cleanup": "PASS",
+      "transport_cleanup": "PASS"
+    },
+    "inner": {
+      "count": 12,
+      "order": [
+        "L049_V2_LOAD_STRESS_STATUS",
+        "L049_V2_LOAD_STRESS_FINALIZER_CODE",
+        "L049_V2_LOAD_STRESS_MEASUREMENT_STATUS",
+        "L049_V2_LOAD_STRESS_MEASUREMENT_REASON",
+        "L049_V2_LOAD_STRESS_CPU_PROVENANCE",
+        "L049_V2_LOAD_STRESS_GPU_PROVENANCE",
+        "L049_V2_LOAD_STRESS_DEVICE_CANONICAL",
+        "L049_V2_LOAD_STRESS_COUNTERS_COMPLETE",
+        "L049_V2_LOAD_STRESS_CPU_BUDGET_OK",
+        "L049_V2_LOAD_STRESS_GPU_ALLOCATED_BUDGET_OK",
+        "L049_V2_LOAD_STRESS_GPU_RESERVED_BUDGET_OK",
+        "L049_V2_LOAD_STRESS_CLEANUP"
+      ],
+      "parser": "PASS",
+      "tamper_validation": "PASS",
+      "fixed_sanitized": true,
+      "raw_values": {
+        "status": "PASS",
+        "finalizer_code": "NONE",
+        "measurement_status": "available",
+        "measurement_reason": "none",
+        "cpu_provenance": true,
+        "gpu_provenance": true,
+        "device_canonical": true,
+        "counters_complete": true,
+        "cpu_budget_ok": true,
+        "gpu_allocated_budget_ok": true,
+        "gpu_reserved_budget_ok": true,
+        "cleanup": "PASS"
+      }
+    }
+  },
+  "workload": {
+    "scope": "train_only",
+    "expected_records": 1296,
+    "expected_scorer_calls": 2592,
+    "counter_match": true,
+    "records_published": false,
+    "selection_published": false,
+    "folds_published": false,
+    "oof_published": false,
+    "artifact_published": false,
+    "holdout_access": false,
+    "stage_b_access": false
+  },
+  "execution": {
+    "ssh_processes": 1,
+    "stress_invocations": 1,
+    "ssh_exit": 0,
+    "provenance": "executor_recorded_only",
+    "remote_exact_sha_check": "PASS",
+    "remote_cuda_preflight": "PASS"
+  },
+  "scope": {
+    "model": "attempted",
+    "adapter": "attempted",
+    "integration": "attempted",
+    "fixture": "repository_owned_train_only",
+    "selection": "not_attempted",
+    "fold": "not_attempted",
+    "oof": "not_attempted",
+    "artifact": "not_attempted",
+    "holdout": "not_attempted",
+    "stage_b": "not_attempted"
+  },
+  "assessment": {
+    "diagnostic_status": "bounded_train_load_stress_pass",
+    "semantic_status": "not_evaluated",
+    "promotion": false,
+    "finalization": false,
+    "standard_finalize": false,
+    "repository_promotion": false,
+    "internal_stress_cleanup": "self_attested",
+    "outer_cleanup": "protocol_marker_pass",
+    "transport_cleanup": "protocol_marker_pass",
+    "remote_checkout_cleanup": "unverified",
+    "remote_checkout_absence_proof": false
+  },
+  "retention": {
+    "status": "retained_pending_diagnostic",
+    "recommendation": "Retain the source-bound raw capture pending owner review; this diagnostic is not semantic evidence and does not authorize promotion, finalization, or release."
+  },
+  "redaction": "Sanitized metadata only; no absolute paths, process identifiers, resource values, prompts, labels, model identifiers, device text, secrets, holdout data, or execution body included.",
+  "sidecar_sha256": "8fbab58896d4b7ca327dff00073ab3c3294476612cfb8409538b81e6f0e3291c"
+}

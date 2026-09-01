@@ -1218,5 +1218,9 @@ public integration defaults remain unchanged. Scorer caches are cleared before
 `ResourceTracker.finish()` and peak counters are never reset. The train-only
 load-stress diagnostic reuses the canonical 1,296-record / 2,592-call Stage A
 workload, discards records, and emits cleanup PASS only after one valid
-finalizer result; it remains available for later owner-authorized execution
-and emits no semantic or holdout data.
+finalizer result. One owner-authorized native PowerShell/SSH execution on the
+exact pushed source SHA passed its fixed marker parser and recorded all
+resource/provenance/budget/counter-match booleans true. The result remains
+diagnostic-only: it emits no semantic or holdout data, and a remote checkout
+absence is not independently proven. Keep internal stress cleanup separate
+from outer transport cleanup when assessing this evidence.

@@ -465,8 +465,16 @@ occurred. See
   finalization without resetting peak counters. A train-only load-stress
   diagnostic entry point emits fixed sanitized markers without selection,
   OOF, artifact, holdout, or Stage B access; it reuses the canonical 1,296
-  candidate-record / 2,592 scorer-call workload and is implemented but not
-  run. Cleanup PASS is emitted only after one valid finalizer result.
+  candidate-record / 2,592 scorer-call workload and was executed once on exact
+  pushed source SHA `32211433134facb901098c1a6313d010f22495a0` through the
+  native PowerShell transport. The bounded diagnostic returned PASS with all
+  fixed resource/provenance/budget and counter-match booleans true. Its
+  source-bound raw capture and assessment are recorded in
+  [`load-stress assessment`](../../artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
+  This remains diagnostic-only: semantic status is not evaluated, no
+  selection/fold/OOF/artifact/holdout/Stage B data was published, and remote
+  checkout absence is not independently proven. Cleanup PASS is separated
+  into the internal stress self-attestation and outer transport markers.
   Resource budget diagnostics now distinguish CPU, allocated-GPU,
   reserved-GPU, and budget-field failures. The 855f440 evidence remains
   source-unique, byte-exact, pending, D0, and non-promoted; cache retention is

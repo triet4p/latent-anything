@@ -106,6 +106,17 @@ execution and failed D0 at tuned-lens aggregation; the corrected validation
 below supersedes that blocked result. Local CPU commands are contract/unit
 checks only.
 
+The L04.9 v2 train-load stress diagnostic was subsequently executed once on
+exact pushed source SHA `32211433134facb901098c1a6313d010f22495a0`. Its fixed,
+sanitized marker block passed independent parsing, including the canonical
+workload counter-match and resource/provenance/budget checks. This run is
+diagnostic-only: it publishes no semantic selection, folds, OOF, artifact,
+holdout, or Stage B data. The source-bound raw capture and assessment are
+listed in the [load-stress assessment](../artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
+The internal stress cleanup marker is self-attested, while the outer cleanup
+markers are separate protocol facts; remote checkout/cache absence is not
+independently proven.
+
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
 improvement, `6.5399008976` nats conservative lower bound, passing controls,

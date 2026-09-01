@@ -9,7 +9,12 @@
   records / 2,592 scorer calls while discarding records, emits only fixed
   sanitized resource/finalizer markers, validates one finalizer result before
   cleanup PASS, and does not emit selection, OOF, artifacts, holdout, or Stage
-  B data. It has not been run remotely.
+  B data. One owner-authorized remote diagnostic run on exact source SHA
+  `32211433134facb901098c1a6313d010f22495a0` passed its fixed marker parser
+  and recorded all resource/provenance/budget/counter-match booleans true.
+  This is diagnostic-only, not semantic evidence or promotion; remote checkout
+  absence is not independently proven. See the sanitized
+  [load-stress assessment](artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
 
 - Added the offline-tested, network-gated M14 L04.9 true activation-patching
   handler and fail-closed validator. It performs real clean/corrupted hidden

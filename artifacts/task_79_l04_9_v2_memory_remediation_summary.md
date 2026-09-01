@@ -24,7 +24,7 @@ evidence, finalize, or commit.
   reuses the canonical Stage A candidate-workload runner for all 1,296
   candidate records / 2,592 scorer calls, immediately discarding records.
   It validates the single finalizer result before emitting cleanup PASS and
-  has not been run remotely.
+  was initially implemented without remote execution.
 
 ## Evidence assessment
 
@@ -44,3 +44,17 @@ authorized.
 - Full repository tests, full L04, quality/docs gates, and the final Graphify
   update pass; repository-wide Ruff still reports unrelated pre-existing
   violations outside this task's scope.
+
+## Follow-up diagnostic assessment
+
+One owner-authorized remote train-only full-load stress run was later executed
+once on pushed source SHA `32211433134facb901098c1a6313d010f22495a0` through
+the native PowerShell transport. The fixed marker block independently parsed
+cleanly: workload counter-match, resource provenance, budget, and internal
+cleanup booleans all passed. The source-bound raw capture is
+`artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.raw.txt`;
+the sanitized assessment sidecar binds its size and digest. This is bounded
+diagnostic evidence only: no semantic selection, folds, OOF, artifact,
+holdout, or Stage B data was published, and remote checkout/cache absence is
+not independently proven. Internal stress cleanup and outer transport cleanup
+are recorded as separate protocol facts.

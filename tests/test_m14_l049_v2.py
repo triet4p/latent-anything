@@ -81,6 +81,9 @@ CURRENT_5D6_ASSESSMENT = ROOT / (
 CURRENT_RESOURCE_PROBE_ASSESSMENT = ROOT / (
     "artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json"
 )
+CURRENT_LOAD_STRESS_ASSESSMENT = ROOT / (
+    "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
@@ -493,6 +496,90 @@ def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> N
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(
         secret not in serialized for secret in ("traceback", "holdout_plaintext", "private key", "f:\\ai-ml", "cuda:0")
+    )
+
+
+def test_current_load_stress_assessment_is_canonical_and_scope_bounded() -> None:
+    sidecar = json.loads(CURRENT_LOAD_STRESS_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "8fbab58896d4b7ca327dff00073ab3c3294476612cfb8409538b81e6f0e3291c"
+    assert sidecar["source"] == {
+        "commit_sha": "32211433134facb901098c1a6313d010f22495a0",
+        "tree_sha256": "b592505dd9920f73d1d419e2302fb7a8ab6351ae",
+        "use_case": "L049V2LoadStress",
+        "exact_source_verified": True,
+    }
+    assert sidecar["stress_cli"]["path"] == "scripts/m14_l049_v2_load_stress.py"
+    assert sidecar["stress_cli"]["version"] == "m14-l049-v2-load-stress-v1"
+    assert sidecar["stress_cli"]["script_bytes"] == 10245
+    assert sidecar["stress_cli"]["script_sha256"] == "d546836764e0792c7377ced8f56ca06cba58de524bec5357ebb2f61e1c5dcc47"
+    assert sidecar["transport_payload"]["decode_match"] == "PASS"
+    assert sidecar["transport_payload"]["payload_sha256"] == sidecar["transport_payload"]["decoded_payload_sha256"]
+    raw = sidecar["evidence"]["raw_capture"]
+    assert raw == {
+        "path": "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.raw.txt",
+        "bytes": 1175,
+        "sha256": "c320b802c905fa325fdf9e20f42e4db130ad99a26a108dc0396e81e3e68d13f9",
+        "written_before_parse": True,
+        "present_at_assessment": True,
+    }
+    assert (ROOT / raw["path"]).stat().st_size == raw["bytes"]
+    assert hashlib.sha256((ROOT / raw["path"]).read_bytes()).hexdigest() == raw["sha256"]
+    assert sidecar["markers"]["inner"]["count"] == 12
+    assert sidecar["markers"]["inner"]["order"] == list(load_stress._MARKERS)
+    assert sidecar["markers"]["inner"]["parser"] == "PASS"
+    assert sidecar["markers"]["inner"]["tamper_validation"] == "PASS"
+    assert sidecar["markers"]["inner"]["fixed_sanitized"] is True
+    assert sidecar["markers"]["outer"] == {
+        "source_sha": "32211433134facb901098c1a6313d010f22495a0",
+        "git_sha_match": "PASS",
+        "cuda_present": True,
+        "precheck": "PASS",
+        "exec_status": 0,
+        "markers_present": True,
+        "outer_cleanup": "PASS",
+        "transport_cleanup": "PASS",
+    }
+    assert sidecar["markers"]["inner"]["raw_values"] == {
+        "status": "PASS",
+        "finalizer_code": "NONE",
+        "measurement_status": "available",
+        "measurement_reason": "none",
+        "cpu_provenance": True,
+        "gpu_provenance": True,
+        "device_canonical": True,
+        "counters_complete": True,
+        "cpu_budget_ok": True,
+        "gpu_allocated_budget_ok": True,
+        "gpu_reserved_budget_ok": True,
+        "cleanup": "PASS",
+    }
+    assert sidecar["workload"] == {
+        "scope": "train_only",
+        "expected_records": 1296,
+        "expected_scorer_calls": 2592,
+        "counter_match": True,
+        "records_published": False,
+        "selection_published": False,
+        "folds_published": False,
+        "oof_published": False,
+        "artifact_published": False,
+        "holdout_access": False,
+        "stage_b_access": False,
+    }
+    assert sidecar["execution"]["provenance"] == "executor_recorded_only"
+    assert sidecar["execution"]["ssh_processes"] == 1
+    assert sidecar["execution"]["stress_invocations"] == 1
+    assert sidecar["assessment"]["semantic_status"] == "not_evaluated"
+    assert sidecar["assessment"]["internal_stress_cleanup"] == "self_attested"
+    assert sidecar["assessment"]["remote_checkout_cleanup"] == "unverified"
+    assert sidecar["assessment"]["remote_checkout_absence_proof"] is False
+    assert sidecar["assessment"]["promotion"] is False
+    assert sidecar["assessment"]["finalization"] is False
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(
+        secret not in serialized
+        for secret in ("traceback", "holdout plaintext", "begin private", "f:\\ai-ml", "cuda:0")
     )
 
 
