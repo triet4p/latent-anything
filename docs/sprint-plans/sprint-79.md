@@ -484,6 +484,19 @@ occurred. See
   status, counters, and local absence proof. Cache retention is recorded as a
   strong code-level inference rather than artifact proof; no promotion is
   claimed.
+- [x] Execute the owner-authorized real L04.9 v2 TRAIN-only Stage A on exact
+  pushed SHA `76a45ea74fbb2843b7d109855c2c387ab98b3e47`. The single native
+  PowerShell `ssh.exe` run reached the pinned GPT-2/TransformerLMIntegration
+  boundary and completed six-fold train selection with unanimous candidate
+  `(layer=10, offset=0)`. Independent validation, bundle/triad reopen, and
+  cleanup markers passed; the result is eligible D1 train-selection evidence.
+  A source-SHA-keyed candidate artifact and sanitized assessment were prepared
+  for owner review before any separate Stage B invocation. No
+  holdout/seed/Stage B access, D2/D3 claim, or semantic promotion occurred;
+  official retention finalization then completed with `raw_status=deleted_verified`:
+  the raw capture is locally absent, while the audit, triad, and candidate
+  survive. Remote checkout absence remains unverified. This is retention
+  finalization only; no Stage B access, D2/D3 claim, or promotion occurred.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

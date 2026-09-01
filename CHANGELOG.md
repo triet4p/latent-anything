@@ -4,6 +4,17 @@
 
 ### Added
 
+- Recorded one owner-authorized real L04.9 v2 TRAIN-only Stage A execution on
+  exact source SHA `76a45ea74fbb2843b7d109855c2c387ab98b3e47`. The six-fold
+  train selection unanimously selected `(layer=10, offset=0)` and passed the
+  independent directional OOF gate, producing eligible D1 train-selection
+  evidence. A source-bound candidate artifact is retained for a separately
+  authorized Stage B step; no holdout/seed/Stage B data, D2/D3 claim,
+  promotion, or semantic finalization is included. The official retention
+  finalization later completed with `raw_status=deleted_verified`: raw is
+  locally absent while audit, triad, and candidate survive; remote absence is
+  unverified. See the sanitized [D1 assessment](artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json).
+
 - Added a train-only L04.9 v2 load-stress diagnostic with the production
   runtime seam. It reuses the canonical Stage A runner for 1,296 candidate
   records / 2,592 scorer calls while discarding records, emits only fixed

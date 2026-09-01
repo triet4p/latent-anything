@@ -15,6 +15,26 @@ A log of past bugs, edge cases, and environment-specific quirks discovered durin
 **Watch out for:** Conditions that would trigger this again.
 ```
 
+## [2026-09-01] D1 Stage A candidate extraction must preserve the official artifact contract
+
+**Symptom:** A passing real Stage A run needs a source-bound candidate for a
+later Stage B decision, but the transport envelope and raw capture must not be
+carried into that candidate.
+
+**Fix / workaround:** Extract the nested `artifact` object from the validated
+partial envelope, serialize it with the canonical JSON helper, and validate it
+with both the independent Stage A validator and the Stage B candidate
+precondition. Keep the selected `(layer, offset)` and train commitments bound
+by the artifact digest; do not invent a smaller ad hoc candidate schema.
+
+**Watch out for:** Candidate preparation is still D1 train-selection evidence.
+It does not authorize holdout or seed access, Stage B execution, promotion, or
+raw deletion. The official `finalize_delete --dry-run` must be checked first;
+it deletes only raw evidence but advances the audit lifecycle state. After
+the owner-approved official command, record `deleted_verified` and preserve
+the audit, source-bound triad, and candidate; do not interpret retention
+finalization as semantic Stage B/D2/D3 promotion.
+
 ---
 
 ## [2026-06-20] Untracked files left behind after commit

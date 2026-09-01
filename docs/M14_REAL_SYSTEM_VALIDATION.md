@@ -119,6 +119,22 @@ The internal stress cleanup marker is self-attested, while the outer cleanup
 markers are separate protocol facts; remote checkout/cache absence is not
 independently proven.
 
+The subsequent owner-authorized L04.9 v2 Stage A TRAIN-only run on exact pushed
+SHA `76a45ea74fbb2843b7d109855c2c387ab98b3e47` completed one real
+GPT-2/`TransformerLMIntegration` execution. Six-fold train selection selected
+layer `10`, offset `0` unanimously; the directional OOF point estimate was
+`1.0281549628463458`, its lower 95% bound was `1.0240412630349276`, and all
+36 required positive groups passed. Independent Stage A validation and the
+transport/triad reopen checks passed, so this is eligible D1 train-selection
+evidence. The source-bound candidate artifact is prepared for a separately
+owner-authorized Stage B run; no holdout, seed, Stage B, D2/D3 claim,
+promotion, or semantic finalization has occurred. The official D1
+`finalize_delete` command subsequently completed with
+`raw_status=deleted_verified`: the raw capture is locally absent, while the
+audit, source-bound triad, and candidate survive. Remote checkout/cache
+absence remains unverified; this was retention finalization only, not Stage B,
+D2/D3, or promotion. See the [D1 retention assessment](../artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json).
+
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
 improvement, `6.5399008976` nats conservative lower bound, passing controls,
