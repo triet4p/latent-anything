@@ -126,17 +126,17 @@ layer `10`, offset `0` unanimously; the directional OOF point estimate was
 `1.0281549628463458`, its lower 95% bound was `1.0240412630349276`, and all
 36 required positive groups passed. Independent Stage A validation and the
 transport/triad reopen checks passed, so this is eligible D1 train-selection
-evidence. The source-bound candidate artifact is prepared for a separately
-owner-authorized Stage B run; no holdout, seed, Stage B, D2/D3 claim,
-promotion, or semantic finalization has occurred. The official D1
+evidence. The source-bound candidate artifact was prepared for a separately
+owner-authorized Stage B run; at that D1 run, no holdout, seed, Stage B, D2/D3
+claim, promotion, or semantic finalization had occurred. The official D1
 `finalize_delete` command subsequently completed with
 `raw_status=deleted_verified`: the raw capture is locally absent, while the
 audit, source-bound triad, and candidate survive. Remote checkout/cache
 absence remains unverified; this was retention finalization only, not Stage B,
 D2/D3, or promotion. See the [D1 retention assessment](../artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json).
 
-The owner-authorized Stage B input provisioning is ready for Stage B at source
-HEAD `7d1e23fdbc385909f964df05360f01027d3b6c35` (tree
+The owner-authorized Stage B input provisioning checkpoint was ready for Stage
+B at source HEAD `7d1e23fdbc385909f964df05360f01027d3b6c35` (tree
 `5f43b035a043faf97237cd87aa621bec61c805b1`). The canonical
 manifest, 48-row/24-group holdout fixture, 32-byte seed commitment, and the
 retained source-keyed D1 candidate are provisioned at repository-relative paths
@@ -146,11 +146,24 @@ candidate validation. The repository-derived transport mode resolves these
 four files only after a fresh exact-SHA checkout; its non-shell `--require-tracked`
 preflight and payload defense-in-depth reject symlinks,
 traversal, untracked files, containment escapes, digest mismatches, mixed
-external inputs, and local Windows paths. No model, CUDA, SSH, holdout
-evaluation, Stage B execution, D2/D3 claim, promotion, or finalization has
-occurred. A local fresh-clone verification confirmed the Git root binding,
-tracked status, exact hashes, and `--require-tracked` preflight; evaluation
-remains not run. See the sanitized [Stage B provisioning assessment](../artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
+external inputs, and local Windows paths. At that historical provisioning
+checkpoint, no model, CUDA, SSH, holdout evaluation, Stage B execution, D2/D3
+claim, promotion, or finalization had occurred. A local fresh-clone verification
+confirmed the Git root binding, tracked status, exact hashes, and
+`--require-tracked` preflight; the provisioning assessment is a historical
+pre-run snapshot. See the sanitized [Stage B provisioning assessment](../artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
+
+The later owner-authorized Stage B evaluation ran once on exact source SHA
+`6af20749b305f591d2c90d868cb09e71f623bdd0`. Repository-mode preflight and
+commitment checks, one native PowerShell `ssh.exe` process, one Stage B CLI,
+the real CUDA/model/integration boundary, marker and cleanup checks,
+bundle/triad reopen, and independent validation all passed. The sanitized
+[D2 assessment](../artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json)
+records the bounded result: 24 groups / 48 rows, five seed summaries, 2,000
+bootstrap replicates, and passing recovery plus paired-shuffled gates. Evidence
+is currently `retained_pending_finalize`; `promotion_candidate=true` is not
+repository promotion. Evidence eligibility, semantic/standard finalization,
+and D3 remain false.
 
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point

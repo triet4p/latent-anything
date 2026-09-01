@@ -1274,3 +1274,17 @@ code on mismatch, timeout, or non-Git roots. A fresh clone must also be
 verified with line-ending-preserving checkout settings before comparing
 byte-level commitments. This proves provisioning readiness only; it does not
 authorize Stage B evaluation.
+
+## [2026-09-01] Keep a real Stage B D2 result pending until retention review
+
+After the owner authorizes the Stage B lane, record the result in a new
+source-SHA-keyed sanitized assessment rather than rewriting the provisioning
+snapshot. Bind raw, audit, bundle, and triad bytes by exact repo-relative
+path/size/SHA-256, and independently revalidate the triad and Stage B artifact
+before reporting semantic metrics. A passing D2 evaluation may set
+`promotion_candidate=true`, but it remains `retained_pending_finalize` with
+`evidence_eligible=false` until separate retention and promotion decisions are
+authorized. Keep one-SSH/one-CLI facts explicitly executor-recorded, and
+separate them from raw-proven marker, validator, and reviewer-recomputed facts.
+Never expose holdout content, seed values, prompts, labels, external paths, or
+model free text in the assessment or task records.

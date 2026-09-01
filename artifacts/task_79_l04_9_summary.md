@@ -65,7 +65,7 @@ owner-exception deletion with `standard_finalize=false`, and keeps
 `repository_promotion=false`, evidence level D0, and no accepted IDs. The
 historical raw path is now verified absent and is not recoverable.
 
-## v2 preregistration (Phase A pending)
+## v2 preregistration — frozen historical contract
 
 The v2 addendum is immutable and references the frozen parent plan digest
 `f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a`. It
@@ -111,7 +111,7 @@ cross-fixture validation in canonical repository-relative paths. They are
 committed at source `7d1e23fdbc385909f964df05360f01027d3b6c35` (tree
 `5f43b035a043faf97237cd87aa621bec61c805b1`), and a fresh local clone
 revalidated the Git root, tracked status, exact hashes, and preflight before
-any evaluation. Stage B execution remains pending and has not run. Its repository-derived transport
+evaluation. Its repository-derived transport
 mode derives these paths only after a fresh checkout. The non-shell
 `--require-tracked` preflight checks containment, regular non-symlink status,
 tracked-file membership, and exact commitments before the Stage B CLI; payload
@@ -129,6 +129,28 @@ B path requires explicit owner-provisioned candidate, holdout fixture, and seed
 commitments. Offline protocol fixtures remain D0. The local D3 constructor
 reopens retained member envelopes and accepts raw deletion only from a verified
 pending/final audit chain; it does not recompute deleted bytes.
+
+## v2 Stage B evaluation assessment
+
+The single owner-authorized Stage B evaluation ran on exact source SHA
+`6af20749b305f591d2c90d868cb09e71f623bdd0` after the repository-mode preflight
+passed. One native PowerShell `ssh.exe` process launched one Stage B CLI with
+the real CUDA/model/integration boundary. Marker order, bundle and triad
+reopen, remote and transport cleanup markers, commitment checks, and the
+independent Stage B validator all passed.
+
+The result is a bounded D2 evaluation: 24 groups / 48 rows, five seed
+summaries, 2,000 bootstrap replicates, and passing recovery and paired-
+shuffled gates for every summary. The sanitized assessment records the
+recomputed metric ranges, resource provenance, operation counters, and
+cleanup attestation without retaining holdout content, seed values, prompts,
+labels, external paths, or model free text. The evidence remains
+`retained_pending_finalize`; `promotion_candidate=true` is an assessment
+signal only. `evidence_eligible=false`, repository promotion, semantic and
+standard finalization, and D3 remain false. The earlier provisioning sidecar
+is preserved unchanged as the historical pre-run snapshot.
+
+See the [source-bound D2 assessment](m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json).
 
 ## Verification
 

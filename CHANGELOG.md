@@ -4,6 +4,19 @@
 
 ### Added
 
+- Recorded the single owner-authorized real L04.9 v2 Stage B evaluation on
+  exact source SHA `6af20749b305f591d2c90d868cb09e71f623bdd0`. Repository-mode
+  preflight and commitment checks, one native PowerShell `ssh.exe` process,
+  one Stage B CLI invocation, CUDA/model/integration execution, marker and
+  cleanup checks, bundle/triad reopen, and independent validation passed.
+  The bounded result is D2: 24 groups / 48 rows, five seed summaries, 2,000
+  bootstrap replicates, and passing recovery plus paired-shuffled gates.
+  Evidence remains `retained_pending_finalize`; the sanitized D2 assessment
+  records `promotion_candidate=true` but `evidence_eligible=false`, with
+  repository promotion, semantic/standard finalization, and D3 false. The
+  provisioning assessment remains the historical pre-run snapshot; no
+  promotion was performed.
+
 - Added the owner-authorized local Stage B input provisioning for source HEAD
   `7d1e23fdbc385909f964df05360f01027d3b6c35`. The canonical
   authoring manifest, 48-row/24-group holdout fixture, seed commitment, and

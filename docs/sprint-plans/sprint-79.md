@@ -315,7 +315,8 @@ occurred. See
   transport/raw-retention audit. Stage B D3 construction is separate from the
   D2 artifact and reopens retained member envelopes; deleted raw bytes are
   accepted only through a verified pending/final audit chain. Synthetic Stage B
-  remains D0/non-promoting. No real holdout evaluation or D3 claim has occurred.
+  remains D0/non-promoting. At this preregistration checkpoint, no real
+  holdout evaluation or D3 claim had occurred.
 - [x] Correct the v2 real-runtime shape and failure-envelope blockers found by
   the owner-reviewed Stage A diagnostic. Full-prompt output shapes now fail
   closed, clean/corrupted patch endpoints are independently aligned, and an
@@ -496,7 +497,8 @@ occurred. See
   official retention finalization then completed with `raw_status=deleted_verified`:
   the raw capture is locally absent, while the audit, triad, and candidate
   survive. Remote checkout absence remains unverified. This is retention
-  finalization only; no Stage B access, D2/D3 claim, or promotion occurred.
+  finalization only; at that D1 lifecycle point there was no Stage B access,
+  D2/D3 claim, or promotion.
 - [x] Provision and commit the owner-authorized L04.9 v2 Stage B inputs at the
   canonical repository-relative paths. The manifest, 48-row/24-group holdout,
   seed commitment, and retained source-keyed D1 candidate pass independent
@@ -511,6 +513,19 @@ occurred. See
   no model, CUDA, SSH, holdout evaluation,
   Stage B execution, D2/D3 claim, promotion, or finalization occurred. See the
   [provisioning assessment](../../artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
+- [x] Execute the single owner-authorized L04.9 v2 Stage B evaluation on exact
+  source SHA `6af20749b305f591d2c90d868cb09e71f623bdd0`. The repository-mode
+  preflight, commitment checks, one native PowerShell `ssh.exe` process, one
+  Stage B CLI invocation, CUDA/model/integration run, marker sequence, bundle,
+  triad reopen, and independent Stage B validator all passed. The result is
+  D2 with 24 groups, 48 rows, five seed summaries, and 2,000 bootstrap
+  replicates; recovery and paired-shuffled gates passed for every summary.
+  Evidence remains `retained_pending_finalize`: the sanitized D2 assessment
+  records `promotion_candidate=true`, but `evidence_eligible=false`,
+  repository promotion, semantic finalization, standard finalization, and D3
+  are false. The provisioning assessment remains the historical pre-run
+  snapshot. No promotion or D3 operation was performed.
+  See the [D2 assessment](../../artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
