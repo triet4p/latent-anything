@@ -77,6 +77,18 @@ internal static class FakeSsh
                 if (captured != null) File.WriteAllBytes(stdinPath, captured.ToArray());
             }
         }
+        var readyPath = Environment.GetEnvironmentVariable("L04_FAKE_SSH_READY_PATH");
+        if (!String.IsNullOrEmpty(readyPath))
+        {
+            var readyTemp = readyPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            File.WriteAllText(readyTemp, "READY");
+            File.Move(readyTemp, readyPath);
+            var releasePath = Environment.GetEnvironmentVariable("L04_FAKE_SSH_RELEASE_PATH");
+            if (!String.IsNullOrEmpty(releasePath))
+            {
+                while (!File.Exists(releasePath)) Thread.Sleep(10);
+            }
+        }
         Thread.Sleep(3000);
         Console.WriteLine("FAKE_SSH=PASS");
         return 0;
@@ -99,6 +111,23 @@ internal static class FakeSsh
 def _single_flight_metadata_path(key: str) -> Path:
     digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
     return Path(tempfile.gettempdir()) / "latent-anything-l04-single-flight" / f"l04-{digest}.json"
+
+
+def _wait_for_ready(path: Path, process: subprocess.Popen[str], timeout: float = 30.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if path.is_file():
+            return
+        if process.poll() is not None:
+            stdout, stderr = process.communicate()
+            raise AssertionError(
+                f"fake child exited before READY; rc={process.returncode}; stdout={stdout!r}; stderr={stderr!r}"
+            )
+        time.sleep(0.02)
+    stdout, stderr = process.communicate(timeout=5)
+    raise AssertionError(
+        f"fake child did not publish READY; rc={process.returncode}; stdout={stdout!r}; stderr={stderr!r}"
+    )
 
 
 def _ssh_path() -> str:
@@ -1021,6 +1050,8 @@ def test_production_transport_mixed_case_contenders_share_canonical_global_key(
 ) -> None:
     fake_ssh = _compile_fake_ssh(tmp_path)
     marker = tmp_path / "fake ssh launches.log"
+    ready = tmp_path / "fake ssh.ready"
+    release = tmp_path / "fake ssh.release"
     first_raw = tmp_path / "first.raw"
     second_raw = tmp_path / "second.raw"
     code_sha = hashlib.sha1(tmp_path.name.encode("utf-8")).hexdigest()
@@ -1055,17 +1086,19 @@ def test_production_transport_mixed_case_contenders_share_canonical_global_key(
             str(raw_path),
         ]
 
-    env = dict(os.environ, L04_FAKE_SSH_MARKER=str(marker))
+    env = dict(
+        os.environ,
+        L04_FAKE_SSH_MARKER=str(marker),
+        L04_FAKE_SSH_READY_PATH=str(ready),
+        L04_FAKE_SSH_RELEASE_PATH=str(release),
+    )
     first = subprocess.Popen(
         command("l049v2stagea", first_raw), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
     )
     first_stdout = ""
     first_stderr = ""
     try:
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline and not marker.exists():
-            time.sleep(0.02)
-        assert marker.exists(), "production contender did not reach fake ssh.exe"
+        _wait_for_ready(ready, first)
         second = subprocess.run(
             command("L049V2STAGEA", second_raw), check=False, capture_output=True, text=True, env=env, timeout=30
         )
@@ -1073,6 +1106,7 @@ def test_production_transport_mixed_case_contenders_share_canonical_global_key(
         second_report = json.loads(second.stdout)
         assert second_report["transport_error"] == "SingleFlightBusy"
         assert not second_raw.exists()
+        release.write_text("RELEASE", encoding="utf-8")
         first_stdout, first_stderr = first.communicate(timeout=30)
         assert canonical_metadata.is_file()
         metadata = json.loads(canonical_metadata.read_text(encoding="utf-8"))
@@ -1172,13 +1206,20 @@ import sys
 import time
 from pathlib import Path
 
+ready = Path(os.environ["L04_READY_PATH"])
+ready_tmp = ready.with_name(ready.name + ".tmp")
+ready_tmp.write_text("READY", encoding="utf-8")
+os.replace(ready_tmp, ready)
 Path(os.environ["L04_LAUNCH_DIR"], str(os.getpid())).write_text("started", encoding="utf-8")
 if os.environ["L04_MODE"] == "failure":
     raise SystemExit(7)
-time.sleep(30)
+if os.environ["L04_MODE"] == "timeout":
+    time.sleep(30)
+print("RELEASE_CHILD=PASS")
 """,
         encoding="utf-8",
     )
+    transport_timeout_seconds = 10
     driver = tmp_path / "release.ps1"
     driver.write_text(
         f"""
@@ -1186,7 +1227,7 @@ Import-Module '{SEAM}'
 $arguments = @({_powershell_single_quoted(str(child))})
 $result = Invoke-L04TransportProcess -SshExecutable $env:L04_PYTHON -ArgumentList $arguments `
     -BootstrapBytes ([byte[]](1, 2, 3)) -RawCapturePath $env:L04_RAW_PATH `
-    -TimeoutSeconds $(if ($env:L04_MODE -eq 'timeout') {{ 1 }} else {{ 10 }}) `
+    -TimeoutSeconds $(if ($env:L04_MODE -eq 'timeout') {{ {transport_timeout_seconds} }} else {{ 10 }}) `
     -SingleFlightKey 'L049V2StageA|release-test'
 $result | ConvertTo-Json -Compress
 exit 0
@@ -1197,14 +1238,43 @@ exit 0
     env.update({"L04_LAUNCH_DIR": str(launch_dir), "L04_MODE": mode, "L04_PYTHON": sys.executable})
     command = [shell_factory(), "-NoProfile", "-File", str(driver)]
     first_env = dict(env, L04_RAW_PATH=str(tmp_path / "first.raw"))
-    second_env = dict(env, L04_RAW_PATH=str(tmp_path / "second.raw"))
-    first = subprocess.run(command, check=False, capture_output=True, text=True, env=first_env, timeout=40)
-    second = subprocess.run(command, check=False, capture_output=True, text=True, env=second_env, timeout=40)
-    assert first.returncode == 0, first.stderr
-    assert second.returncode == 0, second.stderr
-    assert len(list(launch_dir.iterdir())) == 2
-    assert (tmp_path / "first.raw").is_file()
-    assert (tmp_path / "second.raw").is_file()
+    first_env["L04_READY_PATH"] = str(tmp_path / "first.ready")
+    second_env = dict(env, L04_RAW_PATH=str(tmp_path / "second.raw"), L04_MODE="success")
+    second_env["L04_READY_PATH"] = str(tmp_path / "second.ready")
+    first: subprocess.Popen[str] | None = None
+    second: subprocess.Popen[str] | None = None
+    try:
+        first = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=first_env)
+        _wait_for_ready(Path(first_env["L04_READY_PATH"]), first)
+        first_stdout, first_stderr = first.communicate(timeout=40)
+        second = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=second_env)
+        _wait_for_ready(Path(second_env["L04_READY_PATH"]), second)
+        second_stdout, second_stderr = second.communicate(timeout=40)
+        assert first.returncode == 0, first_stderr
+        assert second.returncode == 0, second_stderr
+        assert first_stderr == ""
+        assert second_stderr == ""
+        assert len(list(launch_dir.iterdir())) == 2
+        assert (tmp_path / "first.raw").is_file()
+        assert (tmp_path / "second.raw").is_file()
+        first_report = json.loads(first_stdout)
+        second_report = json.loads(second_stdout)
+        if mode == "timeout":
+            assert first_report["deadline_exceeded"] is True
+        else:
+            assert first_report["ssh_exit"] == 7
+        assert second_report["ssh_exit"] == 0
+        assert "RELEASE_CHILD=PASS" in (tmp_path / "second.raw").read_text(encoding="utf-8")
+    finally:
+        for process in (second, first):
+            if process is not None and process.poll() is None:
+                process.kill()
+                process.communicate(timeout=10)
+        for path in (Path(first_env["L04_READY_PATH"]), Path(second_env["L04_READY_PATH"])):
+            if path.exists():
+                path.unlink()
+        for path in launch_dir.iterdir():
+            path.unlink()
 
 
 @pytest.mark.parametrize("mode", ["never-read", "hang", "child"])
