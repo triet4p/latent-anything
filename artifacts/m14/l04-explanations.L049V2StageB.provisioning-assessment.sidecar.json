@@ -1,0 +1,86 @@
+{
+  "schema_version": "m14-l04.9-v2-stage-b-provisioning-assessment-v1",
+  "status": "ready_for_stage_b",
+  "source": {
+    "commit_sha": "7d1e23fdbc385909f964df05360f01027d3b6c35",
+    "tree_sha256": "5f43b035a043faf97237cd87aa621bec61c805b1",
+    "exact_source_verified": true,
+    "predecessor_d1_commit_sha": "76a45ea74fbb2843b7d109855c2c387ab98b3e47",
+    "use_case": "L049V2StageB"
+  },
+  "inputs": {
+    "input_mode": "repository_canonical",
+    "manifest": {
+      "path": "artifacts/m14/l04-explanations.v2-authoring-manifest.json",
+      "bytes": 656,
+      "sha256": "2849b07fd719a0a761f433892fcc031c2ab17012a538daba322dd6fa50674974",
+      "canonical_digest": "c63059b05fb45c984bdff2ebd7ecaeee0ff0ca98dab3cc81b845bedb2e1c83c7",
+      "commitment_valid": true
+    },
+    "holdout": {
+      "path": "artifacts/m14/l04-explanations.v2-holdout.jsonl",
+      "bytes": 18312,
+      "sha256": "295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f",
+      "rows": 48,
+      "groups": 24,
+      "label_balance_valid": true,
+      "commitment_valid": true,
+      "train_overlap_valid": true
+    },
+    "seed": {
+      "path": "artifacts/m14/l04-explanations.v2-holdout.seed",
+      "bytes": 32,
+      "commitment_sha256": "b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1",
+      "commitment_valid": true,
+      "value_redacted": true
+    },
+    "candidate": {
+      "path": "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json",
+      "bytes": 526043,
+      "sha256": "29bcd20ab494092abbb074bff5d99d091ec288d261a0399f97f2e2fb4f092aa2",
+      "canonical_digest": "9159f93401ef9f46af81aba0ef7cb7543756ba0001ac196cb87d4c1f2f7d6572",
+      "selected_candidate": {"layer": 10, "offset": 0},
+      "stage_a_validation": "PASS",
+      "post_unseal_mutation": false
+    },
+    "train": {
+      "rows": 72,
+      "groups": 36,
+      "cross_fixture_validation": "PASS"
+    }
+  },
+  "validation": {
+    "canonical_input_preflight": "PASS",
+    "fresh_clone_root_binding": "PASS",
+    "fresh_clone_all_inputs_tracked": true,
+    "fresh_clone_exact_hashes": true,
+    "fresh_clone_evaluation": "not_run",
+    "manifest_addendum_binding": "PASS",
+    "power_binding": "PASS",
+    "holdout_plaintext_in_sidecar": false,
+    "seed_value_in_sidecar": false,
+    "model_execution": false,
+    "stage_b_execution": false,
+    "external_input_paths_exported": false
+  },
+  "transport": {
+    "mode": "repository_canonical",
+    "remote_paths_derived_after_fresh_checkout": true,
+    "local_absolute_paths_in_argv_or_env": false,
+    "path_containment_and_tracked_file_guards": true
+  },
+  "assessment": {
+    "evaluation": false,
+    "promotion": false,
+    "standard_finalize": false,
+    "d2": false,
+    "d3": false,
+    "status": "inputs_validated_stage_b_ready"
+  },
+  "retention": {
+    "status": "ready_for_stage_b",
+    "recommendation": "Retain provisioned inputs and D1 candidate for a separately owner-authorized Stage B evaluation; no execution, finalization, or promotion was performed."
+  },
+  "redaction": "Sanitized metadata only; no holdout content, seed value, prompts, labels, external paths, model output, or secrets retained.",
+  "sidecar_sha256": "85ee5c72d2328927e09f5445cf4bbd8fa4a364b394188e66e4def70f97ed60e1"
+}

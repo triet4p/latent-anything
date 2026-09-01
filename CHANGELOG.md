@@ -4,6 +4,20 @@
 
 ### Added
 
+- Added the owner-authorized local Stage B input provisioning for source HEAD
+  `7d1e23fdbc385909f964df05360f01027d3b6c35`. The canonical
+  authoring manifest, 48-row/24-group holdout fixture, seed commitment, and
+  the retained source-keyed D1 candidate pass independent commitment,
+  cross-fixture, and
+  candidate validation. A repository-derived transport mode validates
+  containment, regular non-symlink status, tracked-file membership, and exact
+  commitments inside the fresh checkout without exporting local paths; the
+  non-shell `--require-tracked` preflight runs before the Stage B CLI, with
+  payload checks retained as defense-in-depth. This
+  is `ready_for_stage_b`: no model/CUDA/SSH/Stage B execution,
+  D2/D3 claim, promotion, or finalization occurred. See the sanitized
+  [Stage B provisioning assessment](artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
+
 - Recorded one owner-authorized real L04.9 v2 TRAIN-only Stage A execution on
   exact source SHA `76a45ea74fbb2843b7d109855c2c387ab98b3e47`. The six-fold
   train selection unanimously selected `(layer=10, offset=0)` and passed the

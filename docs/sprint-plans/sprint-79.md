@@ -497,6 +497,20 @@ occurred. See
   the raw capture is locally absent, while the audit, triad, and candidate
   survive. Remote checkout absence remains unverified. This is retention
   finalization only; no Stage B access, D2/D3 claim, or promotion occurred.
+- [x] Provision and commit the owner-authorized L04.9 v2 Stage B inputs at the
+  canonical repository-relative paths. The manifest, 48-row/24-group holdout,
+  seed commitment, and retained source-keyed D1 candidate pass independent
+  commitment,
+  cross-fixture, and candidate validation. The new repository-derived payload
+  mode invokes the non-shell `--require-tracked` preflight and validates
+  containment, regular non-symlink status, tracked-file membership, and exact
+  digests after a fresh checkout without exporting local
+  Windows paths or mixed external inputs. Status is
+  `ready_for_stage_b`; a fresh local clone confirmed the Git root binding,
+  tracked status, exact hashes, and non-shell `--require-tracked` preflight;
+  no model, CUDA, SSH, holdout evaluation,
+  Stage B execution, D2/D3 claim, promotion, or finalization occurred. See the
+  [provisioning assessment](../../artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

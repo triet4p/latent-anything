@@ -252,7 +252,7 @@ def test_stage_b_preflight_is_validate_only_and_sanitized(capsys: pytest.Capture
 
 def test_stage_b_provisioning_assessment_is_canonical_and_pending() -> None:
     sidecar = json.loads(STAGE_B_PROVISIONING_ASSESSMENT.read_bytes())
-    assert sidecar["status"] == "ready_for_stage_b_pending_commit"
+    assert sidecar["status"] == "ready_for_stage_b"
     assert sidecar["sidecar_sha256"] == canonical_digest(sidecar, "sidecar_sha256")
     assert sidecar["assessment"] == {
         "evaluation": False,
@@ -260,7 +260,7 @@ def test_stage_b_provisioning_assessment_is_canonical_and_pending() -> None:
         "standard_finalize": False,
         "d2": False,
         "d3": False,
-        "status": "inputs_validated_stage_b_pending",
+        "status": "inputs_validated_stage_b_ready",
     }
     assert sidecar["inputs"]["holdout"]["commitment_valid"] is True
     assert sidecar["inputs"]["holdout"]["train_overlap_valid"] is True

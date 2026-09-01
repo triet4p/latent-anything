@@ -135,6 +135,23 @@ audit, source-bound triad, and candidate survive. Remote checkout/cache
 absence remains unverified; this was retention finalization only, not Stage B,
 D2/D3, or promotion. See the [D1 retention assessment](../artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json).
 
+The owner-authorized Stage B input provisioning is ready for Stage B at source
+HEAD `7d1e23fdbc385909f964df05360f01027d3b6c35` (tree
+`5f43b035a043faf97237cd87aa621bec61c805b1`). The canonical
+manifest, 48-row/24-group holdout fixture, 32-byte seed commitment, and the
+retained source-keyed D1 candidate are provisioned at repository-relative paths
+and pass independent
+manifest/addendum, commitment, label-balance, train/holdout disjointness, and
+candidate validation. The repository-derived transport mode resolves these
+four files only after a fresh exact-SHA checkout; its non-shell `--require-tracked`
+preflight and payload defense-in-depth reject symlinks,
+traversal, untracked files, containment escapes, digest mismatches, mixed
+external inputs, and local Windows paths. No model, CUDA, SSH, holdout
+evaluation, Stage B execution, D2/D3 claim, promotion, or finalization has
+occurred. A local fresh-clone verification confirmed the Git root binding,
+tracked status, exact hashes, and `--require-tracked` preflight; evaluation
+remains not run. See the sanitized [Stage B provisioning assessment](../artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json).
+
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
 improvement, `6.5399008976` nats conservative lower bound, passing controls,

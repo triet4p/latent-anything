@@ -1247,3 +1247,30 @@ from outer transport cleanup when assessing this evidence. The raw capture was
 later deleted under an explicit owner exception after exact verification; the
 sidecar preserves its hash and local absence proof, and this is not standard
 finalization or semantic promotion.
+
+## [2026-09-01] Derive Stage B inputs from the fresh repository checkout
+
+When the owner authorizes Stage B input provisioning, bind the manifest,
+holdout fixture, seed commitment, and D1 candidate to fixed repository-relative
+paths. The remote payload must derive those paths only after cloning the exact
+source revision; it must reject traversal, symlinks, containment escapes,
+untracked files, digest mismatches, mixed external inputs, and local Windows
+paths before model execution. Keep the external absolute-POSIX mode only as a
+separate explicit contract. The non-shell `--require-tracked` preflight runs
+before the Stage B CLI and validates commitments, row/group balance,
+train/holdout disjointness, and candidate selection without evaluating the
+holdout; payload checks remain defense-in-depth. Provisioning readiness is not
+Stage B execution, D2/D3,
+promotion, or finalization.
+
+## [2026-09-01] Bind repository-mode preflight to the actual Git root
+
+Repository-derived Stage B inputs must be checked from the exact worktree root,
+not merely from a nested directory where the parent repository makes
+`git ls-files` appear successful. Before reading or tracking any input, run a
+non-shell `git rev-parse --show-toplevel` probe once, normalize the returned
+root with platform-safe case handling, and fail closed with a fixed diagnostic
+code on mismatch, timeout, or non-Git roots. A fresh clone must also be
+verified with line-ending-preserving checkout settings before comparing
+byte-level commitments. This proves provisioning readiness only; it does not
+authorize Stage B evaluation.

@@ -77,7 +77,11 @@ greater than `1e-12`.
 The new deterministic fixture has 36 public train groups and 24 withheld
 holdout groups, two balanced clean/corrupted rows per group, disjoint prompt
 families/vocabulary, and no near duplicates. The holdout plaintext and its
-256-bit seed remain outside the repository; only the holdout plaintext hash
+256-bit seed were previously outside the repository; the current owner-
+authorized provisioning checkpoint copies them byte-exactly into canonical
+repository-relative Stage B paths. The retained source-keyed D1 candidate is
+the single candidate source of truth; no duplicate candidate copy is used.
+Only the holdout plaintext hash
 `295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f`, seed
 commitment `b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1`,
 and authoring manifest digest
@@ -100,9 +104,19 @@ bootstrap resamples per draw. Its digest is
 The offline train-only Stage A output is an ephemeral D0 protocol fixture,
 never a Stage A evidence artifact. It is generated only in temporary test
 locations; an actual Stage A artifact is created only by an authorized CUDA
-run after review and commitment. Stage B is synthetic-testable only until that
-real Stage A digest is committed; its real holdout path/seed are not present
-in the repository. v1's
+run after review and commitment. The retained source-keyed D1 candidate,
+authoring
+manifest, holdout fixture, and seed now pass independent commitment and
+cross-fixture validation in canonical repository-relative paths. They are
+committed at source `7d1e23fdbc385909f964df05360f01027d3b6c35` (tree
+`5f43b035a043faf97237cd87aa621bec61c805b1`), and a fresh local clone
+revalidated the Git root, tracked status, exact hashes, and preflight before
+any evaluation. Stage B execution remains pending and has not run. Its repository-derived transport
+mode derives these paths only after a fresh checkout. The non-shell
+`--require-tracked` preflight checks containment, regular non-symlink status,
+tracked-file membership, and exact commitments before the Stage B CLI; payload
+guards remain defense-in-depth, and local absolute paths are never exported.
+v1's
 exact-three-member retention protocol remains unchanged; v2 uses a separate
 single-artifact transport/retention boundary. v2 artifacts now carry a fixed,
 structurally self-attested runtime transcript bound to the fixture, candidate,
