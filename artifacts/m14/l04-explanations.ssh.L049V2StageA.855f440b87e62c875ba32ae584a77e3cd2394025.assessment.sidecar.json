@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l04.9-v2-current-incident-assessment-v5",
-  "status": "retained_pending_finalize",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "855f440b87e62c875ba32ae584a77e3cd2394025",
     "tree_sha256": "146a5713beded25771a7b2102b57d20782a77d7e",
@@ -13,13 +13,15 @@
       "bytes": 9779,
       "sha256": "f89e5eab0ce215982eee6ac382680703d7db2a48203593c5b282a6ac3a100952",
       "written_before_parse": true,
-      "present": true
+      "present": false,
+      "local_absence_proof": true
     },
     "audit": {
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.audit.json",
       "bytes": 3234,
       "sha256": "8a388c93761107480633fc6fc120d84bae85787de86f89a09c27cfac79d9c4e3",
-      "present": true,
+      "present": false,
+      "local_absence_proof": true,
       "archive_member_names_preserved": true,
       "source_unique_local_paths": true
     },
@@ -38,19 +40,22 @@
         "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.partial.json",
         "bytes": 7327,
         "sha256": "5d0642fedc87b52dd5ffaa93d83ecc72b1d35bcc73af985d16d924029bfedcdb",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "run": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.run.json",
         "bytes": 395,
         "sha256": "5a1bf10fd51ce795ff8c5d50977038fb88fee309500dba0446f5e1ff1d4d85f4",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "failure": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.failure.json",
         "bytes": 397,
         "sha256": "f85edb12ad0071d2d4172ac77b9c483ac409ffc01480d6fb6a6afc3ed00af8b7",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "local_paths_source_unique": true,
       "bytes_unchanged": true
@@ -125,15 +130,48 @@
   "load_stress_diagnostic": {
     "entrypoint": "scripts/m14_l049_v2_load_stress.py",
     "scope": "train_only",
-    "status": "implemented_not_run",
+    "status": "executed_once_pass",
+    "assessment_sidecar": "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json",
+    "execution_provenance": "executor_recorded_only; see source-bound assessment sidecar for fixed marker facts",
     "emits": "fixed_sanitized_markers_only",
     "selection_or_oof_emitted": false,
     "holdout_or_stage_b_access": false
   },
   "retention": {
-    "status": "retained_pending_finalize",
-    "recommendation": "Preserve all five evidence files for owner review; no finalization, deletion, promotion, or semantic reuse is authorized by this task."
+    "status": "deleted_by_owner_exception",
+    "recommendation": "The five evidence files were irreversibly removed under explicit owner exception after exact verification; no standard finalization, promotion, semantic success, or remote absence is claimed.",
+    "deletion": {
+      "authorization": "owner_explicit",
+      "predelete_verification": "All five sidecar-bound paths were regular, non-reparse, workspace-contained, untracked, and matched recorded size and SHA-256.",
+      "postdelete_local_absence": true,
+      "standard_finalize": false,
+      "repository_promotion": false,
+      "irreversible_not_recoverable_from_git": true
+    }
+  },
+  "owner_exception": {
+    "authorization": "owner_explicit",
+    "pre_delete_verification": {
+      "all_files_verified": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.raw.txt": {"bytes": 9779, "sha256": "f89e5eab0ce215982eee6ac382680703d7db2a48203593c5b282a6ac3a100952", "regular_nonreparse": true, "untracked": true},
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.audit.json": {"bytes": 3234, "sha256": "8a388c93761107480633fc6fc120d84bae85787de86f89a09c27cfac79d9c4e3", "regular_nonreparse": true, "untracked": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.partial.json": {"bytes": 7327, "sha256": "5d0642fedc87b52dd5ffaa93d83ecc72b1d35bcc73af985d16d924029bfedcdb", "regular_nonreparse": true, "untracked": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.run.json": {"bytes": 395, "sha256": "5a1bf10fd51ce795ff8c5d50977038fb88fee309500dba0446f5e1ff1d4d85f4", "regular_nonreparse": true, "untracked": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.failure.json": {"bytes": 397, "sha256": "f85edb12ad0071d2d4172ac77b9c483ac409ffc01480d6fb6a6afc3ed00af8b7", "regular_nonreparse": true, "untracked": true}
+      }
+    },
+    "post_delete_absence": {
+      "all_files_absent": true,
+      "files": {
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.raw.txt": {"absent": true},
+        "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.audit.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.partial.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.run.json": {"absent": true},
+        "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.failure.json": {"absent": true}
+      }
+    }
   },
   "redaction": "Sanitized metadata only; absolute and remote ephemeral paths, holdout material, secrets, device free text, prompts, labels, and execution bodies omitted.",
-  "sidecar_sha256": "a426087cfc02d0caf4ebf356e739090566311ec39ebb19a481fae09e2c2b5ad8"
+  "sidecar_sha256": "00e3b60269c14108d9e244b55db9f64d27e45d99386a0f3462ec5002489dbfdd"
 }

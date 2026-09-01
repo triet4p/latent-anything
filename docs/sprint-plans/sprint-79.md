@@ -471,14 +471,19 @@ occurred. See
   fixed resource/provenance/budget and counter-match booleans true. Its
   source-bound raw capture and assessment are recorded in
   [`load-stress assessment`](../../artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
-  This remains diagnostic-only: semantic status is not evaluated, no
+  The raw capture was later deleted under an explicit owner exception after
+  exact verification; the sidecar preserves its hash, size, and local absence
+  proof. This remains diagnostic-only: semantic status is not evaluated, no
   selection/fold/OOF/artifact/holdout/Stage B data was published, and remote
   checkout absence is not independently proven. Cleanup PASS is separated
   into the internal stress self-attestation and outer transport markers.
   Resource budget diagnostics now distinguish CPU, allocated-GPU,
-  reserved-GPU, and budget-field failures. The 855f440 evidence remains
-  source-unique, byte-exact, pending, D0, and non-promoted; cache retention is
-  recorded as a strong code-level inference rather than artifact proof.
+  reserved-GPU, and budget-field failures. The 855f440 evidence was
+  source-unique and byte-exact at pre-delete verification, then deleted under
+  an explicit owner exception; the sidecar preserves its hashes, sizes, D0
+  status, counters, and local absence proof. Cache retention is recorded as a
+  strong code-level inference rather than artifact proof; no promotion is
+  claimed.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

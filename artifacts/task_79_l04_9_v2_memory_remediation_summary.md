@@ -2,7 +2,9 @@
 
 ## Scope
 
-The 855f440 Stage A evidence remains pending, byte-exact, D0, and unpromoted.
+The 855f440 Stage A evidence was byte-exact at pre-delete verification and is
+now deleted under an explicit owner exception; its sidecar preserves exact
+hashes, sizes, D0 facts, and local absence proof. It was never promoted.
 This local remediation does not use SSH/CUDA/holdout, rerun semantics, delete
 evidence, finalize, or commit.
 
@@ -28,12 +30,12 @@ evidence, finalize, or commit.
 
 ## Evidence assessment
 
-The current 855f440 raw capture, audit, bundle members, and triad remain at
-their exact recorded sizes and SHA-256 values in the source-SHA-keyed paths.
-The sanitized assessment sidecar records the D0 runtime exception and marks
-cache retention as a strong code-level inference, not artifact-proven root
-cause. Selection evaluations are discarded and no holdout or Stage B work is
-authorized.
+The current 855f440 raw capture, audit, bundle members, and triad were verified
+at their exact recorded sizes and SHA-256 values before owner-exception
+deletion. The sanitized assessment sidecar preserves those facts and local
+absence proof, records the D0 runtime exception, and marks cache retention as a
+strong code-level inference, not artifact-proven root cause. Selection
+evaluations are discarded and no holdout or Stage B work is authorized.
 
 ## Verification
 
@@ -51,9 +53,11 @@ One owner-authorized remote train-only full-load stress run was later executed
 once on pushed source SHA `32211433134facb901098c1a6313d010f22495a0` through
 the native PowerShell transport. The fixed marker block independently parsed
 cleanly: workload counter-match, resource provenance, budget, and internal
-cleanup booleans all passed. The source-bound raw capture is
+cleanup booleans all passed. The source-bound raw capture was
 `artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.raw.txt`;
-the sanitized assessment sidecar binds its size and digest. This is bounded
+verified exactly, then deleted under an explicit owner exception; the
+sanitized assessment sidecar preserves its size, digest, and local absence
+proof. This is bounded
 diagnostic evidence only: no semantic selection, folds, OOF, artifact,
 holdout, or Stage B data was published, and remote checkout/cache absence is
 not independently proven. Internal stress cleanup and outer transport cleanup

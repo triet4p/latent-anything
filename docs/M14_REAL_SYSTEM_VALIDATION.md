@@ -113,6 +113,8 @@ workload counter-match and resource/provenance/budget checks. This run is
 diagnostic-only: it publishes no semantic selection, folds, OOF, artifact,
 holdout, or Stage B data. The source-bound raw capture and assessment are
 listed in the [load-stress assessment](../artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
+The raw capture was later deleted under an explicit owner exception after
+exact verification; the sidecar records its hash and local absence proof.
 The internal stress cleanup marker is self-attested, while the outer cleanup
 markers are separate protocol facts; remote checkout/cache absence is not
 independently proven.

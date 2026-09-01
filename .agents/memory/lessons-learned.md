@@ -1223,4 +1223,7 @@ exact pushed source SHA passed its fixed marker parser and recorded all
 resource/provenance/budget/counter-match booleans true. The result remains
 diagnostic-only: it emits no semantic or holdout data, and a remote checkout
 absence is not independently proven. Keep internal stress cleanup separate
-from outer transport cleanup when assessing this evidence.
+from outer transport cleanup when assessing this evidence. The raw capture was
+later deleted under an explicit owner exception after exact verification; the
+sidecar preserves its hash and local absence proof, and this is not standard
+finalization or semantic promotion.

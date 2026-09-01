@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l049-v2-load-stress-assessment-v1",
-  "status": "retained_pending_diagnostic",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "32211433134facb901098c1a6313d010f22495a0",
     "tree_sha256": "b592505dd9920f73d1d419e2302fb7a8ab6351ae",
@@ -25,7 +25,8 @@
       "bytes": 1175,
       "sha256": "c320b802c905fa325fdf9e20f42e4db130ad99a26a108dc0396e81e3e68d13f9",
       "written_before_parse": true,
-      "present_at_assessment": true
+      "present_at_assessment": false,
+      "local_absence_proof": true
     }
   },
   "markers": {
@@ -121,9 +122,17 @@
     "remote_checkout_absence_proof": false
   },
   "retention": {
-    "status": "retained_pending_diagnostic",
-    "recommendation": "Retain the source-bound raw capture pending owner review; this diagnostic is not semantic evidence and does not authorize promotion, finalization, or release."
+    "status": "deleted_by_owner_exception",
+    "recommendation": "The stress raw capture was irreversibly removed under explicit owner exception after exact verification; this diagnostic was not semantic evidence and did not authorize promotion, finalization, or release.",
+    "deletion": {
+      "authorization": "owner_explicit",
+      "predelete_verification": "The exact sidecar-bound raw path was regular, non-reparse, workspace-contained, untracked, and matched 1175 bytes and its recorded SHA-256.",
+      "postdelete_local_absence": true,
+      "standard_finalize": false,
+      "repository_promotion": false,
+      "irreversible_not_recoverable_from_git": true
+    }
   },
   "redaction": "Sanitized metadata only; no absolute paths, process identifiers, resource values, prompts, labels, model identifiers, device text, secrets, holdout data, or execution body included.",
-  "sidecar_sha256": "8fbab58896d4b7ca327dff00073ab3c3294476612cfb8409538b81e6f0e3291c"
+  "sidecar_sha256": "fbf4d3534ff0db52010829166166a1f0ce04bd4f8dd75638c1c29122ca0452d4"
 }

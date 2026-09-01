@@ -13,7 +13,9 @@
   `32211433134facb901098c1a6313d010f22495a0` passed its fixed marker parser
   and recorded all resource/provenance/budget/counter-match booleans true.
   This is diagnostic-only, not semantic evidence or promotion; remote checkout
-  absence is not independently proven. See the sanitized
+  absence is not independently proven. The raw capture was later deleted under
+  an explicit owner exception after exact verification; the sidecar records
+  pre-delete and local post-delete absence. See the sanitized
   [load-stress assessment](artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json).
 
 - Added the offline-tested, network-gated M14 L04.9 true activation-patching
@@ -83,7 +85,9 @@
   intervention states, suppress unused native hidden/lens projections, and
   clear caches before resource finalization. Resource budget diagnostics now
   use allowlisted CPU/allocated-GPU/reserved-GPU/budget-field subcodes. The
-  855f440 D0 evidence remains byte-exact and pending; cache retention is a
+  855f440 D0 evidence was byte-exact at pre-delete verification and is now
+  deleted under an explicit owner exception; its sidecar preserves exact
+  hashes, sizes, counters, and local absence proof. Cache retention is a
   code-level inference, not artifact-proven root cause.
 
 - Hardened `ResourceTracker` CUDA peak publication to validate allocated and

@@ -81,6 +81,9 @@ CURRENT_5D6_ASSESSMENT = ROOT / (
 CURRENT_RESOURCE_PROBE_ASSESSMENT = ROOT / (
     "artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json"
 )
+CURRENT_855F_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.assessment.sidecar.json"
+)
 CURRENT_LOAD_STRESS_ASSESSMENT = ROOT / (
     "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json"
 )
@@ -502,7 +505,7 @@ def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> N
 def test_current_load_stress_assessment_is_canonical_and_scope_bounded() -> None:
     sidecar = json.loads(CURRENT_LOAD_STRESS_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
-    assert sidecar["sidecar_sha256"] == "8fbab58896d4b7ca327dff00073ab3c3294476612cfb8409538b81e6f0e3291c"
+    assert sidecar["sidecar_sha256"] == "fbf4d3534ff0db52010829166166a1f0ce04bd4f8dd75638c1c29122ca0452d4"
     assert sidecar["source"] == {
         "commit_sha": "32211433134facb901098c1a6313d010f22495a0",
         "tree_sha256": "b592505dd9920f73d1d419e2302fb7a8ab6351ae",
@@ -521,10 +524,10 @@ def test_current_load_stress_assessment_is_canonical_and_scope_bounded() -> None
         "bytes": 1175,
         "sha256": "c320b802c905fa325fdf9e20f42e4db130ad99a26a108dc0396e81e3e68d13f9",
         "written_before_parse": True,
-        "present_at_assessment": True,
+        "present_at_assessment": False,
+        "local_absence_proof": True,
     }
-    assert (ROOT / raw["path"]).stat().st_size == raw["bytes"]
-    assert hashlib.sha256((ROOT / raw["path"]).read_bytes()).hexdigest() == raw["sha256"]
+    assert not (ROOT / raw["path"]).exists()
     assert sidecar["markers"]["inner"]["count"] == 12
     assert sidecar["markers"]["inner"]["order"] == list(load_stress._MARKERS)
     assert sidecar["markers"]["inner"]["parser"] == "PASS"
@@ -576,11 +579,55 @@ def test_current_load_stress_assessment_is_canonical_and_scope_bounded() -> None
     assert sidecar["assessment"]["remote_checkout_absence_proof"] is False
     assert sidecar["assessment"]["promotion"] is False
     assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["retention"]["status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["deletion"]["postdelete_local_absence"] is True
+    assert sidecar["retention"]["deletion"]["irreversible_not_recoverable_from_git"] is True
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(
         secret not in serialized
         for secret in ("traceback", "holdout plaintext", "begin private", "f:\\ai-ml", "cuda:0")
     )
+
+
+def test_current_855f_assessment_binds_owner_exception_and_stress_link() -> None:
+    sidecar = json.loads(CURRENT_855F_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "00e3b60269c14108d9e244b55db9f64d27e45d99386a0f3462ec5002489dbfdd"
+    assert sidecar["status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["deletion"] == {
+        "authorization": "owner_explicit",
+        "predelete_verification": (
+            "All five sidecar-bound paths were regular, non-reparse, workspace-contained, "
+            "untracked, and matched recorded size and SHA-256."
+        ),
+        "postdelete_local_absence": True,
+        "standard_finalize": False,
+        "repository_promotion": False,
+        "irreversible_not_recoverable_from_git": True,
+    }
+    assert sidecar["owner_exception"]["pre_delete_verification"]["all_files_verified"] is True
+    assert sidecar["owner_exception"]["post_delete_absence"]["all_files_absent"] is True
+    assert sidecar["load_stress_diagnostic"] == {
+        "entrypoint": "scripts/m14_l049_v2_load_stress.py",
+        "scope": "train_only",
+        "status": "executed_once_pass",
+        "assessment_sidecar": (
+            "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json"
+        ),
+        "execution_provenance": "executor_recorded_only; see source-bound assessment sidecar for fixed marker facts",
+        "emits": "fixed_sanitized_markers_only",
+        "selection_or_oof_emitted": False,
+        "holdout_or_stage_b_access": False,
+    }
+    for item in [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]:
+        assert item["present"] is False
+        assert item["local_absence_proof"] is True
+    for kind in ("partial", "run", "failure"):
+        assert sidecar["evidence"]["triad"][kind]["present"] is False
+        assert sidecar["evidence"]["triad"][kind]["local_absence_proof"] is True
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(secret not in serialized for secret in ("traceback", "holdout plaintext", "begin private", "f:\\ai-ml"))
 
 
 class _FakeCuda:
