@@ -1288,3 +1288,9 @@ authorized. Keep one-SSH/one-CLI facts explicitly executor-recorded, and
 separate them from raw-proven marker, validator, and reviewer-recomputed facts.
 Never expose holdout content, seed values, prompts, labels, external paths, or
 model free text in the assessment or task records.
+
+The later official raw-only `finalize_delete` may transition the same
+assessment to `deleted_verified` and `evidence_eligible=true`; this is
+retention finalization, not semantic finalization, repository promotion, or
+D3. Preserve the predecessor assessment digest and local raw-absence proof;
+remote checkout/cache absence remains a separate unverified fact.

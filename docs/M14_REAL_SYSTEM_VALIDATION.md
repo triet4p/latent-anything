@@ -161,9 +161,11 @@ bundle/triad reopen, and independent validation all passed. The sanitized
 [D2 assessment](../artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json)
 records the bounded result: 24 groups / 48 rows, five seed summaries, 2,000
 bootstrap replicates, and passing recovery plus paired-shuffled gates. Evidence
-is currently `retained_pending_finalize`; `promotion_candidate=true` is not
-repository promotion. Evidence eligibility, semantic/standard finalization,
-and D3 remain false.
+is now `deleted_verified` after the official raw-only `finalize_delete`; raw
+local absence is verified, while audit/triad/candidate survive.
+`promotion_candidate=true` is not repository promotion. D2 evidence is
+retention-eligible, but semantic finalization, repository promotion, and D3
+remain false. Remote checkout/cache absence remains unverified.
 
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point

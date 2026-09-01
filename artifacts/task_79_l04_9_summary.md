@@ -144,11 +144,14 @@ summaries, 2,000 bootstrap replicates, and passing recovery and paired-
 shuffled gates for every summary. The sanitized assessment records the
 recomputed metric ranges, resource provenance, operation counters, and
 cleanup attestation without retaining holdout content, seed values, prompts,
-labels, external paths, or model free text. The evidence remains
-`retained_pending_finalize`; `promotion_candidate=true` is an assessment
-signal only. `evidence_eligible=false`, repository promotion, semantic and
-standard finalization, and D3 remain false. The earlier provisioning sidecar
-is preserved unchanged as the historical pre-run snapshot.
+labels, external paths, or model free text. The official raw-only
+`finalize_delete` has completed: evidence is `deleted_verified`, local raw
+absence is verified, and the audit, triad, and source-keyed candidate survive.
+The assessment records `evidence_eligible=true` and standard retention
+finalization; `promotion_candidate=true` remains an assessment signal only.
+Repository promotion, semantic finalization, and D3 remain false, and remote
+checkout/cache absence remains unverified. The earlier provisioning sidecar is
+preserved unchanged as the historical pre-run snapshot.
 
 See the [source-bound D2 assessment](m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json).
 

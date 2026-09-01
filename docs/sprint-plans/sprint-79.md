@@ -520,11 +520,14 @@ occurred. See
   triad reopen, and independent Stage B validator all passed. The result is
   D2 with 24 groups, 48 rows, five seed summaries, and 2,000 bootstrap
   replicates; recovery and paired-shuffled gates passed for every summary.
-  Evidence remains `retained_pending_finalize`: the sanitized D2 assessment
-  records `promotion_candidate=true`, but `evidence_eligible=false`,
-  repository promotion, semantic finalization, standard finalization, and D3
-  are false. The provisioning assessment remains the historical pre-run
-  snapshot. No promotion or D3 operation was performed.
+  The official raw-only `finalize_delete` has completed: evidence is
+  `deleted_verified`, local raw absence is verified, and the audit, triad, and
+  source-keyed candidate survive. The sanitized D2 assessment records
+  `evidence_eligible=true` and standard retention finalization, while
+  `promotion_candidate=true` remains an assessment signal only. Semantic
+  finalization, repository promotion, and D3 are false; remote checkout/cache
+  absence remains unverified. The provisioning assessment remains the
+  historical pre-run snapshot. No promotion or D3 operation was performed.
   See the [D2 assessment](../../artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
