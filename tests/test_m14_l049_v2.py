@@ -87,11 +87,59 @@ CURRENT_855F_ASSESSMENT = ROOT / (
 CURRENT_LOAD_STRESS_ASSESSMENT = ROOT / (
     "artifacts/m14/l049-v2-load-stress.32211433134facb901098c1a6313d010f22495a0.assessment.sidecar.json"
 )
+CURRENT_D1_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json"
+)
+CURRENT_D1_CANDIDATE = ROOT / (
+    "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
 SOURCE_COMMIT = "1" * 40
 SOURCE_TREE = "2" * 64
+
+
+def test_current_d1_candidate_and_assessment_are_canonical_and_stage_b_ready() -> None:
+    candidate = json.loads(CURRENT_D1_CANDIDATE.read_bytes())
+    rows = read_rows(TRAIN_PATH)[1]
+    addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
+    assert validate_stage_a(candidate, rows, addendum) == []
+    assert candidate["selection"]["consensus_candidate"] == {"layer": 10, "offset": 0}
+    assert candidate["artifact_sha256"] == canonical_digest(candidate, "artifact_sha256")
+    assert not {"raw", "bundle", "transport", "holdout", "seed", "path"}.intersection(candidate)
+
+    sidecar = json.loads(CURRENT_D1_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["status"] == "deleted_verified"
+    assert sidecar["assessment"]["evidence_level"] == "D1"
+    assert sidecar["assessment"]["selected_candidate"] == {"layer": 10, "offset": 0}
+    assert sidecar["assessment"]["stage_b_access"] is False
+    assert sidecar["assessment"]["holdout_access"] is False
+    assert sidecar["assessment"]["promotion"] is False
+    assert sidecar["assessment"]["finalization"] is False
+    assert sidecar["assessment"]["retention_finalized"] is True
+    assert sidecar["standard_finalize"] is True
+    assert sidecar["retention"]["standard_finalize"] is True
+    assert sidecar["retention"]["raw_local_absence_verified"] is True
+    assert sidecar["retention"]["previous_pending_sidecar_sha256"] == (
+        "237ba264988af961bcba793aec05cc9d8331afddaca55ec2f52204bbbc06d83e"
+    )
+    assert sidecar["retention"]["finalize_delete"]["raw_target_only"] is True
+    assert sidecar["retention"]["finalize_delete"]["triad_survives"] == "yes"
+    assert sidecar["retention"]["finalize_delete"]["candidate_survives"] == "yes"
+    assert sidecar["evidence"]["raw_capture"]["present"] is False
+    assert sidecar["evidence"]["raw_capture"]["local_absence_proof"] is True
+    assert not (ROOT / sidecar["evidence"]["raw_capture"]["path"]).exists()
+    assert sidecar["evidence"]["audit"] == {
+        "bytes": 3397,
+        "final_reopen_validation": "PASS",
+        "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.audit.json",
+        "present": True,
+        "raw_status": "deleted_verified",
+        "sha256": "a1b60ec6804e0468716398c75c9e3508a1c982c0b312fcd8fb1c5aab737e166d",
+        "validation": {"archive": "PASS", "envelopes": "PASS"},
+    }
 
 
 def _base() -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:

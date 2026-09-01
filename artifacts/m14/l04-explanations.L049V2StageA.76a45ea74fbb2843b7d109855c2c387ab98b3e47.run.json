@@ -1,0 +1,2 @@
+{"artifact_name":"l04-explanations.L049V2StageA.attempt1.partial.json","artifact_sha256":"9159f93401ef9f46af81aba0ef7cb7543756ba0001ac196cb87d4c1f2f7d6572","attempt":"attempt1","kind":"run","schema_version":"m14-l04.9-v2-transport-envelope-v1","source_commit_sha":"76a45ea74fbb2843b7d109855c2c387ab98b3e47","stage":"stage_a_train_selection","status":"stage_a_complete","use_case":"L049V2StageA"}
+
