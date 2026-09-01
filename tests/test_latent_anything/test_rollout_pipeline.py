@@ -534,7 +534,8 @@ def test_rollout_pipeline_async_stream_cancellation_settles_worker_and_closes_so
         pipeline = RolloutPipeline(transition)
         stream = pipeline.stream_async(np.zeros(1), source())
         task = asyncio.create_task(stream.__anext__())
-        await asyncio.sleep(0.005)
+        started = await asyncio.to_thread(transition.started.wait, 1.0)
+        assert started, "stream transition worker did not start before cancellation"
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
