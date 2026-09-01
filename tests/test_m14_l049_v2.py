@@ -11,14 +11,16 @@ import shutil
 import subprocess
 import weakref
 from collections.abc import Mapping
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pytest
 
 import scripts._m14_l049_v2_inputs as stage_b_inputs
+import scripts._m14_l049_v2_promotion as promotion
 import scripts._m14_l049_v2_real_runtime as real_runtime
 import scripts._m14_l049_v2_stage_a as stage_a_module
 import scripts._m14_l049_v2_validate_common as validate_common
@@ -35,7 +37,20 @@ from scripts._m14_l049_v2_inputs import (
     validate_canonical_stage_b_inputs,
 )
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
-from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
+from scripts._m14_l049_v2_promotion import (
+    RealEvidenceCommitment,
+    RealPromotionPolicy,
+    _canonical_mapping_matches,
+    _canonical_rows_matches,
+    _repository_tree_errors,
+    _safe_bound_file,
+    _validate_official_audit,
+    _validate_real_sidecars,
+    build_legacy_promotion_record,
+    load_real_promotion_policy,
+    validate_legacy_promotion_record,
+    validate_promotion_record,
+)
 from scripts._m14_l049_v2_real_runtime import ResourceTracker, _hidden, _patch_positions, attempted_runtime_resources
 from scripts._m14_l049_v2_retention import build_retention_record, validate_retention_record
 from scripts._m14_l049_v2_schema import (
@@ -105,6 +120,12 @@ CURRENT_D1_ASSESSMENT = ROOT / (
 )
 CURRENT_D2_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json"
+)
+CURRENT_D1_AUDIT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.audit.json"
+)
+CURRENT_D2_AUDIT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.audit.json"
 )
 CURRENT_D1_CANDIDATE = ROOT / (
     "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
@@ -3037,7 +3058,7 @@ def test_d3_promotion_requires_independent_real_and_retention_prerequisites() ->
     )
     audit = {"status": "forged", "members": {}}
     with pytest.raises(ValueError, match="promotion prerequisites"):
-        build_promotion_record(
+        build_legacy_promotion_record(
             stage_b,
             candidate,
             addendum,
@@ -3050,7 +3071,7 @@ def test_d3_promotion_requires_independent_real_and_retention_prerequisites() ->
             expected_source_tree_sha256=SOURCE_TREE,
             policy=CommitmentPolicy.from_addendum(addendum),
         )
-    assert validate_promotion_record(
+    assert validate_legacy_promotion_record(
         {},
         stage_b,
         candidate,
@@ -3064,6 +3085,23 @@ def test_d3_promotion_requires_independent_real_and_retention_prerequisites() ->
         expected_source_tree_sha256=SOURCE_TREE,
         policy=CommitmentPolicy.from_addendum(addendum),
     )
+    for malformed in (None, []):
+        assert validate_legacy_promotion_record(
+            cast(Any, malformed),
+            stage_b,
+            candidate,
+            addendum,
+            read_rows(TRAIN_PATH)[1],
+            holdout,
+            seed,
+            transport,
+            audit,
+            expected_source_commit_sha=SOURCE_COMMIT,
+            expected_source_tree_sha256=SOURCE_TREE,
+            policy=CommitmentPolicy.from_addendum(addendum),
+        ) == (
+            ["v2 promotion malformed input"] if not isinstance(malformed, Mapping) else ["v2 promotion malformed input"]
+        )
 
 
 def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) -> None:
@@ -3213,7 +3251,7 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
         "cleanup_status": "PASS",
     }
     audit["audit_sha256"] = canonical_digest(audit, "audit_sha256")
-    record = build_promotion_record(
+    record = build_legacy_promotion_record(
         stage_b,
         candidate,
         addendum,
@@ -3229,7 +3267,7 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
     assert record["evidence_level"] == "D3" and record["evidence_eligible"] is True
     members["run"]["bytes"] += 1
     audit["audit_sha256"] = canonical_digest(audit, "audit_sha256")
-    assert validate_promotion_record(
+    assert validate_legacy_promotion_record(
         record,
         stage_b,
         candidate,
@@ -3243,6 +3281,617 @@ def test_d3_promotion_builds_from_valid_d2_and_reopened_triplet(tmp_path: Path) 
         expected_source_tree_sha256=SOURCE_TREE,
         policy=policy,
     )
+
+
+def _real_promotion_fixture() -> dict[str, Any]:
+    """Load retained D1/D2 evidence without creating a promotion artifact."""
+    d1 = json.loads(CURRENT_D1_ASSESSMENT.read_bytes())
+    d2 = json.loads(CURRENT_D2_ASSESSMENT.read_bytes())
+    provisioning = json.loads(STAGE_B_PROVISIONING_ASSESSMENT.read_bytes())
+    d1_audit = json.loads(CURRENT_D1_AUDIT.read_bytes())
+    d2_audit = json.loads(CURRENT_D2_AUDIT.read_bytes())
+    partial_path = ROOT / d2["evidence"]["triad"]["partial"]["path"]
+    stage_b = json.loads(partial_path.read_bytes())["artifact"]
+    candidate = json.loads(CURRENT_D1_CANDIDATE.read_bytes())
+    addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
+    paths = canonical_stage_b_paths(ROOT)
+    return {
+        "d1": d1,
+        "d2": d2,
+        "provisioning": provisioning,
+        "d1_audit": d1_audit,
+        "d2_audit": d2_audit,
+        "stage_b": stage_b,
+        "candidate": candidate,
+        "addendum": addendum,
+        "train": read_rows(TRAIN_PATH)[1],
+        "holdout": read_rows(paths["holdout"])[1],
+        "seed": paths["seed"].read_bytes(),
+        "policy": CommitmentPolicy.from_addendum(addendum),
+    }
+
+
+def _real_promotion_policy(fixture: dict[str, Any]) -> RealPromotionPolicy:
+    d1, d2, provisioning = fixture["d1"], fixture["d2"], fixture["provisioning"]
+    d1_evidence = d1["evidence"]
+    d2_evidence, d2_inputs = d2["evidence"], d2["inputs"]
+    d2_audit = fixture["d2_audit"]
+
+    def commitment(item: Mapping[str, Any]) -> RealEvidenceCommitment:
+        return RealEvidenceCommitment(str(item["path"]), int(item["bytes"]), str(item["sha256"]))
+
+    return RealPromotionPolicy(
+        source_commit_sha=d2["source"]["commit_sha"],
+        source_tree_algorithm="sha1",
+        source_tree_oid=d2["source"]["tree_sha256"],
+        d1_assessment=RealEvidenceCommitment(
+            CURRENT_D1_ASSESSMENT.relative_to(ROOT).as_posix(),
+            CURRENT_D1_ASSESSMENT.stat().st_size,
+            hashlib.sha256(CURRENT_D1_ASSESSMENT.read_bytes()).hexdigest(),
+        ),
+        d1_assessment_canonical_sha256=d1["sidecar_sha256"],
+        d1_audit=commitment(d1_evidence["audit"]),
+        d1_candidate=commitment(d1_evidence["candidate"]),
+        d1_source_commit_sha=d1["source"]["commit_sha"],
+        d1_source_tree_algorithm="sha1",
+        d1_source_tree_oid=d1["source"]["tree_sha256"],
+        d1_pending_sidecar_sha256=d1["retention"]["previous_pending_sidecar_sha256"],
+        d1_pending_audit_sha256="0c81ddedac08d2747d20982f4f2e221183ed9e380504917550b6cdfd680f9d7c",
+        d1_pending_audit_bytes=3243,
+        provisioning_source_commit_sha=provisioning["source"]["commit_sha"],
+        provisioning_source_tree_algorithm="sha1",
+        provisioning_source_tree_oid=provisioning["source"]["tree_sha256"],
+        d2_assessment=RealEvidenceCommitment(
+            CURRENT_D2_ASSESSMENT.relative_to(ROOT).as_posix(),
+            CURRENT_D2_ASSESSMENT.stat().st_size,
+            hashlib.sha256(CURRENT_D2_ASSESSMENT.read_bytes()).hexdigest(),
+        ),
+        d2_assessment_canonical_sha256=d2["sidecar_sha256"],
+        d2_audit=commitment(d2_evidence["audit"]),
+        d2_pending_sidecar_sha256=d2["retention"]["previous_pending_sidecar_sha256"],
+        d2_pending_audit_sha256=d2_evidence["audit"]["prior_pending_sha256"],
+        d2_pending_audit_bytes=d2_evidence["audit"]["prior_pending_bytes"],
+        provisioning_assessment=RealEvidenceCommitment(
+            STAGE_B_PROVISIONING_ASSESSMENT.relative_to(ROOT).as_posix(),
+            STAGE_B_PROVISIONING_ASSESSMENT.stat().st_size,
+            hashlib.sha256(STAGE_B_PROVISIONING_ASSESSMENT.read_bytes()).hexdigest(),
+        ),
+        provisioning_assessment_canonical_sha256=provisioning["sidecar_sha256"],
+        manifest=commitment(d2_inputs["manifest"]),
+        holdout=RealEvidenceCommitment(
+            d2_inputs["holdout"]["path"],
+            d2_inputs["holdout"]["bytes"],
+            hashlib.sha256(canonical_stage_b_paths(ROOT)["holdout"].read_bytes()).hexdigest(),
+        ),
+        seed=RealEvidenceCommitment(
+            d2_inputs["seed"]["path"], d2_inputs["seed"]["bytes"], d2_inputs["seed"]["commitment_sha256"]
+        ),
+        candidate=commitment(d2_inputs["candidate"]),
+        parent_plan_sha256=fixture["policy"].parent_plan_sha256,
+        addendum_schema=fixture["addendum"]["schema_version"],
+        candidate_artifact_sha256=fixture["candidate"]["artifact_sha256"],
+        stage_b_artifact_sha256=fixture["stage_b"]["artifact_sha256"],
+        stage_b_attestation_sha256=fixture["stage_b"]["attestation_sha256"],
+        cli_sha256=fixture["stage_b"]["runtime_attestation"]["cli_sha256"],
+        transport_payload_sha256=d2_audit["transport"]["payload_sha256"],
+        transport_decode_sha256=d2_audit["transport"]["decode_sha256"],
+        raw_capture=RealEvidenceCommitment(
+            d2["evidence"]["raw_capture"]["path"],
+            d2_audit["raw_capture"]["bytes"],
+            d2_audit["raw_capture"]["sha256"],
+        ),
+        bundle=RealEvidenceCommitment("<bundle>", d2_audit["bundle"]["bytes"], d2_audit["bundle"]["sha256"]),
+        bundle_members=tuple(
+            RealEvidenceCommitment(name, item["bytes"], item["sha256"])
+            for name, item in d2_audit["bundle"]["members"].items()
+        ),
+        triad=tuple(commitment(item) for item in d2_evidence["triad"].values()),
+    )
+
+
+def test_real_promotion_contract_accepts_official_finalized_evidence_chain() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    source = fixture["d2"]["source"]
+    assert (
+        _validate_real_sidecars(
+            fixture["d1"],
+            fixture["d2"],
+            fixture["provisioning"],
+            fixture["candidate"],
+            repo_root=ROOT,
+            expected_source_commit_sha=source["commit_sha"],
+            expected_source_tree_algorithm="sha1",
+            expected_source_tree_oid=source["tree_sha256"],
+            policy=fixture["policy"],
+            real_policy=real_policy,
+        )[0]
+        == []
+    )
+    assert (
+        _validate_official_audit(
+            fixture["d2_audit"],
+            fixture["d2"],
+            repo_root=ROOT,
+            expected_source_commit_sha=source["commit_sha"],
+            expected_use_case="L049V2StageB",
+            real_policy=real_policy,
+        )
+        == []
+    )
+    assert (
+        _validate_official_audit(
+            fixture["d1_audit"],
+            fixture["d1"],
+            repo_root=ROOT,
+            expected_source_commit_sha=fixture["d1"]["source"]["commit_sha"],
+            expected_use_case="L049V2StageA",
+            real_policy=real_policy,
+        )
+        == []
+    )
+    assert fixture["d2_audit"]["transport"]["payload_sha256"] != fixture["stage_b"]["artifact_sha256"]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("raw_status", "retained_pending_finalize"), ("source_sha", "0" * 40), ("mode", "legacy_guess")],
+)
+def test_real_promotion_official_audit_tamper_matrix_rejects(field: str, value: object) -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    audit = copy.deepcopy(fixture["d2_audit"])
+    audit[field] = value
+    source = fixture["d2"]["source"]
+    assert _validate_official_audit(
+        audit,
+        fixture["d2"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_use_case="L049V2StageB",
+        real_policy=real_policy,
+    )
+
+
+def test_real_promotion_bundle_member_tamper_and_no_record_side_effect() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    audit = copy.deepcopy(fixture["d2_audit"])
+    member_name = next(iter(audit["bundle"]["members"]))
+    audit["bundle"]["members"][member_name]["sha256"] = "0" * 64
+    source = fixture["d2"]["source"]
+    assert _validate_official_audit(
+        audit,
+        fixture["d2"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_use_case="L049V2StageB",
+        real_policy=real_policy,
+    )
+    assert not list(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*"))
+
+
+@pytest.mark.parametrize(
+    ("section", "field", "value"),
+    [
+        ("source", "tree_sha256", "f" * 40),
+        ("assessment", "evidence_eligible", False),
+        ("retention", "previous_pending_sidecar_sha256", "0" * 64),
+    ],
+)
+def test_real_promotion_sidecar_tamper_matrix_rejects(section: str, field: str, value: object) -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    d2 = copy.deepcopy(fixture["d2"])
+    d2[section][field] = value
+    source = fixture["d2"]["source"]
+    errors, _ = _validate_real_sidecars(
+        fixture["d1"],
+        d2,
+        fixture["provisioning"],
+        fixture["candidate"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=source["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert errors
+
+
+def test_real_promotion_public_validator_is_independent_and_fail_closed() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    source = fixture["d2"]["source"]
+    errors = validate_promotion_record(
+        {},
+        fixture["stage_b"],
+        fixture["candidate"],
+        fixture["addendum"],
+        fixture["train"],
+        fixture["holdout"],
+        fixture["seed"],
+        fixture["d2_audit"]["transport"],
+        fixture["d2_audit"],
+        d1_assessment=fixture["d1"],
+        d2_assessment=fixture["d2"],
+        provisioning_assessment=fixture["provisioning"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=source["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert "real promotion record fields are invalid" in errors
+
+
+def test_real_promotion_tree_commitment_is_checked_against_git_metadata() -> None:
+    fixture = _real_promotion_fixture()
+    source = fixture["d2"]["source"]
+    assert _repository_tree_errors(ROOT, source["commit_sha"], "sha1", source["tree_sha256"]) == []
+    assert _repository_tree_errors(ROOT, source["commit_sha"], "sha256", source["tree_sha256"])
+    assert _repository_tree_errors(ROOT, source["commit_sha"], "sha1", "f" * 40)
+
+
+@pytest.mark.parametrize("malformed", [None, [], {"schema_version": []}, {"schema_version": {}}])
+def test_real_promotion_public_validator_rejects_malformed_top_level_without_leak(
+    malformed: object,
+) -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    source = fixture["d2"]["source"]
+    errors = validate_promotion_record(
+        cast(Any, malformed),
+        fixture["stage_b"],
+        fixture["candidate"],
+        fixture["addendum"],
+        fixture["train"],
+        fixture["holdout"],
+        fixture["seed"],
+        fixture["d2_audit"]["transport"],
+        fixture["d2_audit"],
+        d1_assessment=fixture["d1"],
+        d2_assessment=fixture["d2"],
+        provisioning_assessment=fixture["provisioning"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=source["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert errors
+
+
+def test_real_promotion_public_validator_rejects_malformed_nested_inputs_without_leak() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    source = fixture["d2"]["source"]
+
+    def invoke(**overrides: Any) -> list[str]:
+        values: dict[str, Any] = {
+            "record": {},
+            "stage_b": fixture["stage_b"],
+            "candidate": fixture["candidate"],
+            "addendum": fixture["addendum"],
+            "train_rows": fixture["train"],
+            "holdout_rows": fixture["holdout"],
+            "holdout_seed": fixture["seed"],
+            "transport": fixture["d2_audit"]["transport"],
+            "retention_audit": fixture["d2_audit"],
+            "d1_assessment": fixture["d1"],
+            "d2_assessment": fixture["d2"],
+            "provisioning_assessment": fixture["provisioning"],
+            "repo_root": ROOT,
+            "expected_source_commit_sha": source["commit_sha"],
+            "expected_source_tree_algorithm": "sha1",
+            "expected_source_tree_oid": source["tree_sha256"],
+            "policy": fixture["policy"],
+            "real_policy": real_policy,
+        }
+        values.update(overrides)
+        return validate_promotion_record(**values)
+
+    for key, bad in (
+        ("stage_b", []),
+        ("retention_audit", None),
+        ("d1_assessment", {"evidence": []}),
+        ("real_policy", []),
+        ("train_rows", [[]]),
+        ("holdout_seed", bytearray(b"seed")),
+    ):
+        errors = invoke(**{key: bad})
+        assert errors == ["real promotion malformed input"]
+        assert all("secret" not in error and "traceback" not in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    ("stage", "section", "field", "value"),
+    [
+        ("d1", "retention", "standard_finalize", False),
+        ("d1", "finalize_delete", "executed", "manual"),
+        ("d1", "raw_capture", "present", True),
+        ("d2", "retention", "raw_present", True),
+        ("d2", "finalize_delete", "mode", "manual"),
+        ("d2", "raw_capture", "written_before_parse", False),
+    ],
+)
+def test_real_promotion_requires_exact_finalized_lifecycle(stage: str, section: str, field: str, value: object) -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    d1 = copy.deepcopy(fixture["d1"])
+    d2 = copy.deepcopy(fixture["d2"])
+    target = d1 if stage == "d1" else d2
+    if section == "raw_capture":
+        target["evidence"][section][field] = value
+    elif section == "finalize_delete":
+        target["retention"][section][field] = value
+    else:
+        target[section][field] = value
+    errors, _ = _validate_real_sidecars(
+        d1,
+        d2,
+        fixture["provisioning"],
+        fixture["candidate"],
+        repo_root=ROOT,
+        expected_source_commit_sha=fixture["d2"]["source"]["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=fixture["d2"]["source"]["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert errors
+    assert any("lifecycle" in error or "finalize-delete" in error or "raw-capture" in error for error in errors)
+
+
+def test_real_promotion_policy_pin_cannot_be_replaced_by_self_consistency() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    forged = replace(real_policy, d2_pending_sidecar_sha256="0" * 64)
+    errors, _ = _validate_real_sidecars(
+        fixture["d1"],
+        fixture["d2"],
+        fixture["provisioning"],
+        fixture["candidate"],
+        repo_root=ROOT,
+        expected_source_commit_sha=fixture["d2"]["source"]["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=fixture["d2"]["source"]["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=forged,
+    )
+    assert errors
+
+
+def test_real_promotion_policy_is_loaded_from_pinned_canonical_files() -> None:
+    fixture = _real_promotion_fixture()
+    assert load_real_promotion_policy(ROOT) == _real_promotion_policy(fixture)
+
+
+def test_real_promotion_bound_file_read_rejects_untracked_file(tmp_path: Path) -> None:
+    repo = tmp_path / "untracked-evidence-repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "--quiet", str(repo)], check=True, capture_output=True)
+    evidence = repo / "evidence.json"
+    evidence.write_text("{}\n", encoding="utf-8")
+    assert _safe_bound_file(repo, "evidence.json") is None
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "artifacts/m14/./file",
+        "artifacts/m14/../file",
+        "artifacts/m14//file",
+        "artifacts/m14///file",
+        "artifacts/m14/file/",
+        "artifacts\\m14\\file",
+        "artifacts/m14\\file",
+        "C:/repo/artifacts/m14/file",
+        "C:repo/artifacts/m14/file",
+        "C:\\repo\\artifacts\\m14\\file",
+        "\\\\server\\share\\artifacts\\m14\\file",
+        "//server/share/artifacts/m14/file",
+        "/artifacts/m14/file",
+    ],
+)
+def test_real_promotion_bound_path_rejects_noncanonical_raw_spellings(
+    path: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Reject path tricks before tracked lookup or file reads can normalize them."""
+
+    def fail_if_tracked_lookup_reached(*_args: object, **_kwargs: object) -> bool:
+        raise AssertionError("tracked lookup must happen after raw path validation")
+
+    monkeypatch.setattr(promotion, "_tracked_exact", fail_if_tracked_lookup_reached)
+    assert _safe_bound_file(ROOT, path) is None
+
+
+def test_real_promotion_bound_path_accepts_only_canonical_posix_syntax() -> None:
+    resolved = _safe_bound_file(ROOT, "artifacts/m14/l04-l049-v2-train.jsonl")
+    assert resolved is not None
+    assert resolved[0] == TRAIN_PATH
+
+
+def test_real_promotion_canonical_mapping_preserves_nested_json_types(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected: dict[str, Any] = {"nested": {"value": 656, "flag": True}}
+    monkeypatch.setattr(promotion, "_canonical_json", lambda *_args: expected)
+    assert _canonical_mapping_matches(ROOT, "candidate", expected)
+    assert not _canonical_mapping_matches(ROOT, "candidate", {"nested": {"value": 656.0, "flag": True}})
+    assert not _canonical_mapping_matches(ROOT, "candidate", {"nested": {"value": 656, "flag": 1}})
+
+
+def test_real_promotion_canonical_rows_preserve_nested_json_types(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected: list[dict[str, Any]] = [{"nested": {"value": 656, "flag": True}}]
+    monkeypatch.setattr(promotion, "_canonical_raw", lambda *_args: (ROOT / "rows.jsonl", b""))
+    monkeypatch.setattr(promotion, "read_rows", lambda *_args: (b"", expected))
+    assert _canonical_rows_matches(ROOT, "train", expected)
+    assert not _canonical_rows_matches(ROOT, "train", [{"nested": {"value": 656.0, "flag": True}}])
+    assert not _canonical_rows_matches(ROOT, "train", [{"nested": {"value": 656, "flag": 1}}])
+
+
+def test_real_promotion_rejects_self_rehashed_canonical_mapping_mutations() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    d2 = copy.deepcopy(fixture["d2"])
+    d2["assessment"]["attacker_extra"] = True
+    d2["sidecar_sha256"] = canonical_digest(d2, "sidecar_sha256")
+    errors, _ = _validate_real_sidecars(
+        fixture["d1"],
+        d2,
+        fixture["provisioning"],
+        fixture["candidate"],
+        repo_root=ROOT,
+        expected_source_commit_sha=fixture["d2"]["source"]["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=fixture["d2"]["source"]["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert errors
+
+    candidate = copy.deepcopy(fixture["candidate"])
+    candidate["attacker_extra"] = True
+    candidate["artifact_sha256"] = canonical_digest(candidate, "artifact_sha256")
+    errors, _ = _validate_real_sidecars(
+        fixture["d1"],
+        fixture["d2"],
+        fixture["provisioning"],
+        candidate,
+        repo_root=ROOT,
+        expected_source_commit_sha=fixture["d2"]["source"]["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=fixture["d2"]["source"]["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert errors
+
+
+def test_real_promotion_rejects_stage_b_artifact_that_differs_from_partial() -> None:
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    stage_b = copy.deepcopy(fixture["stage_b"])
+    stage_b["attacker_extra"] = True
+    source = fixture["d2"]["source"]
+    errors = validate_promotion_record(
+        {},
+        stage_b,
+        fixture["candidate"],
+        fixture["addendum"],
+        fixture["train"],
+        fixture["holdout"],
+        fixture["seed"],
+        fixture["d2_audit"]["transport"],
+        fixture["d2_audit"],
+        d1_assessment=fixture["d1"],
+        d2_assessment=fixture["d2"],
+        provisioning_assessment=fixture["provisioning"],
+        repo_root=ROOT,
+        expected_source_commit_sha=source["commit_sha"],
+        expected_source_tree_algorithm="sha1",
+        expected_source_tree_oid=source["tree_sha256"],
+        policy=fixture["policy"],
+        real_policy=real_policy,
+    )
+    assert "real promotion Stage B artifact mapping is not canonical" in errors
+
+
+def test_real_promotion_manual_valid_record_validates_without_builder_or_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    d3_outputs_before = tuple(sorted(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*")))
+    assert d3_outputs_before == ()
+
+    def fail_if_builder_called(*_args: object, **_kwargs: object) -> object:
+        pytest.fail("manual validator must not call the D3 builder")
+
+    monkeypatch.setattr(promotion, "build_promotion_record", fail_if_builder_called)
+    fixture = _real_promotion_fixture()
+    real_policy = _real_promotion_policy(fixture)
+    d1, d2, provisioning = fixture["d1"], fixture["d2"], fixture["provisioning"]
+    d1e, d2e = d1["evidence"], d2["evidence"]
+    audit = fixture["d2_audit"]
+    paths = audit["final_payload"]["paths"]
+    members = audit["bundle"]["members"]
+    record: dict[str, Any] = {
+        "schema_version": "m14-l04.9-v2-d3-promotion-real-v2",
+        "stage": fixture["stage_b"]["stage"],
+        "status": "accepted",
+        "evidence_level": "D3",
+        "evidence_eligible": True,
+        "repository_promotion": True,
+        "promotion_candidate": True,
+        "stage_b_artifact_sha256": fixture["stage_b"]["artifact_sha256"],
+        "stage_b_attestation_sha256": fixture["stage_b"]["attestation_sha256"],
+        "candidate_artifact_sha256": fixture["candidate"]["artifact_sha256"],
+        "candidate_file_sha256": d2["inputs"]["candidate"]["sha256"],
+        "parent_plan_sha256": fixture["policy"].parent_plan_sha256,
+        "addendum_schema": fixture["addendum"]["schema_version"],
+        "source_commit_sha": d2["source"]["commit_sha"],
+        "source_tree": {"algorithm": "sha1", "oid": d2["source"]["tree_sha256"]},
+        "d1_source_commit_sha": d1["source"]["commit_sha"],
+        "d1_source_tree": {"algorithm": "sha1", "oid": d1["source"]["tree_sha256"]},
+        "provisioning_source_commit_sha": provisioning["source"]["commit_sha"],
+        "provisioning_source_tree": {"algorithm": "sha1", "oid": provisioning["source"]["tree_sha256"]},
+        "d1_pending_sidecar_sha256": d1["retention"]["previous_pending_sidecar_sha256"],
+        "d1_pending_audit_sha256": real_policy.d1_pending_audit_sha256,
+        "d1_pending_audit_bytes": real_policy.d1_pending_audit_bytes,
+        "d2_pending_audit_sha256": d2e["audit"]["prior_pending_sha256"],
+        "d2_pending_audit_bytes": d2e["audit"]["prior_pending_bytes"],
+        "cli_sha256": fixture["stage_b"]["runtime_attestation"]["cli_sha256"],
+        "transport_payload_sha256": audit["transport"]["payload_sha256"],
+        "transport_decode_sha256": audit["transport"]["decode_sha256"],
+        "transport_decode_match": fixture["d2_audit"]["transport"].get("decode_match", "PASS"),
+        "bundle_bytes": audit["bundle"]["bytes"],
+        "bundle_sha256": audit["bundle"]["sha256"],
+        "bundle_member_sha256": {name: item["sha256"] for name, item in members.items()},
+        "retention_audit_sha256": d2e["audit"]["sha256"],
+        "retention_audit_schema": audit["schema_version"],
+        "d1_assessment_sha256": d1["sidecar_sha256"],
+        "d1_audit_sha256": d1e["audit"]["sha256"],
+        "d1_candidate_file_sha256": d1e["candidate"]["sha256"],
+        "d2_assessment_sha256": d2["sidecar_sha256"],
+        "d2_audit_sha256": d2e["audit"]["sha256"],
+        "provisioning_assessment_sha256": provisioning["sidecar_sha256"],
+        "provisioning_manifest_sha256": provisioning["inputs"]["manifest"]["sha256"],
+        "provisioning_holdout_sha256": provisioning["inputs"]["holdout"]["sha256"],
+        "provisioning_seed_commitment_sha256": provisioning["inputs"]["seed"]["commitment_sha256"],
+        "retained_member_sha256": {Path(item["path"]).name: item["sha256"] for item in paths.values()},
+        "pending_retention_sidecar_sha256": d2["retention"]["previous_pending_sidecar_sha256"],
+    }
+    record["promotion_sha256"] = canonical_digest(record, "promotion_sha256")
+    assert (
+        validate_promotion_record(
+            record,
+            fixture["stage_b"],
+            fixture["candidate"],
+            fixture["addendum"],
+            fixture["train"],
+            fixture["holdout"],
+            fixture["seed"],
+            audit["transport"],
+            audit,
+            d1_assessment=d1,
+            d2_assessment=d2,
+            provisioning_assessment=provisioning,
+            repo_root=ROOT,
+            expected_source_commit_sha=d2["source"]["commit_sha"],
+            expected_source_tree_algorithm="sha1",
+            expected_source_tree_oid=d2["source"]["tree_sha256"],
+            policy=fixture["policy"],
+            real_policy=real_policy,
+        )
+        == []
+    )
+    assert tuple(sorted(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*"))) == d3_outputs_before
 
 
 def test_injected_real_stage_a_records_d1_attestation_and_executes_scorer() -> None:
