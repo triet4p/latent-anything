@@ -103,6 +103,9 @@ CURRENT_LOAD_STRESS_ASSESSMENT = ROOT / (
 CURRENT_D1_ASSESSMENT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.d1-assessment.sidecar.json"
 )
+CURRENT_D2_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json"
+)
 CURRENT_D1_CANDIDATE = ROOT / (
     "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
 )
@@ -267,6 +270,73 @@ def test_stage_b_provisioning_assessment_is_canonical_and_pending() -> None:
     assert sidecar["inputs"]["seed"]["value_redacted"] is True
     serialized = json.dumps(sidecar)
     assert "C:/" not in serialized and "\\\\" not in serialized
+
+
+def test_current_stage_b_d2_assessment_binds_pending_evidence_without_leaks() -> None:
+    sidecar = json.loads(CURRENT_D2_ASSESSMENT.read_bytes())
+    assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
+    assert sidecar["sidecar_sha256"] == "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6"
+    assert sidecar["source"] == {
+        "commit_sha": "6af20749b305f591d2c90d868cb09e71f623bdd0",
+        "tree_sha256": "a0f1fb55c8d112128d81f3942132657100eac00f",
+        "exact_source_verified": True,
+        "use_case": "L049V2StageB",
+        "provisioning_commit_sha": "7d1e23fdbc385909f964df05360f01027d3b6c35",
+        "provisioning_tree_sha256": "5f43b035a043faf97237cd87aa621bec61c805b1",
+        "predecessor_d1_commit_sha": "76a45ea74fbb2843b7d109855c2c387ab98b3e47",
+        "predecessor_d1_tree_sha256": "392d241719b10fe6a946f20d203b9e0ff0f5f46c",
+    }
+    assert sidecar["status"] == "retained_pending_finalize"
+    assert sidecar["assessment"] == {
+        "evidence_level": "D2",
+        "evaluation_complete": True,
+        "evidence_eligible": False,
+        "promotion_candidate": True,
+        "repository_promotion": False,
+        "semantic_finalization": False,
+        "standard_finalize": False,
+        "d3": False,
+        "status": "d2_evaluation_complete_pending_retention_review",
+    }
+    assert sidecar["semantic"]["groups"] == 24
+    assert sidecar["semantic"]["rows"] == 48
+    assert sidecar["semantic"]["seed_summaries"] == 5
+    assert sidecar["semantic"]["bootstrap_replicates"] == 2000
+    assert sidecar["semantic"]["recovery"]["all_seed_gates_pass"] is True
+    assert sidecar["semantic"]["paired_true_minus_shuffled"]["all_seed_gates_pass"] is True
+    assert sidecar["resources"]["cleanup"] == {"completed": True, "hook_count": 0, "attestation": "PASS"}
+    assert sidecar["validation"]["stage_b_validator_errors"] == []
+    assert sidecar["execution"]["invocation_invariant"] == "satisfied"
+    assert sidecar["execution"]["ssh_processes"] == 1
+    assert sidecar["execution"]["stage_b_cli_invocations"] == 1
+
+    evidence = [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]
+    evidence.extend(sidecar["evidence"]["triad"].values())
+    for item in evidence:
+        path = ROOT / item["path"]
+        assert path.is_file()
+        assert path.stat().st_size == item["bytes"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
+        assert item["present"] is True
+    assert sidecar["retention"]["raw_retention_status"] == "retained_pending_finalize"
+    assert sidecar["retention"]["standard_finalize"] is False
+    assert sidecar["retention"]["repository_promotion"] is False
+    serialized = json.dumps(sidecar, sort_keys=True).lower()
+    assert all(secret not in serialized for secret in ("traceback", "prompt", "seed value", "begin private"))
+    assert "C:/" not in serialized and "\\\\" not in serialized
+
+
+def test_stage_b_docs_reconcile_historical_provisioning_with_current_d2() -> None:
+    m14 = (ROOT / "docs/M14_REAL_SYSTEM_VALIDATION.md").read_text(encoding="utf-8")
+    sprint = (ROOT / "docs/sprint-plans/sprint-79.md").read_text(encoding="utf-8")
+    summary = (ROOT / "artifacts/task_79_l04_9_summary.md").read_text(encoding="utf-8")
+    d2_link = "l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json"
+    assert "historical provisioning" in m14
+    assert d2_link in m14
+    assert "evaluation remains not run" not in m14
+    assert "At this preregistration checkpoint" in sprint
+    assert d2_link in summary
+    assert "v2 preregistration — frozen historical contract" in summary
 
 
 def test_canonical_stage_b_inputs_reject_candidate_tampering(tmp_path: Path) -> None:

@@ -1,0 +1,236 @@
+{
+  "schema_version": "m14-l04.9-v2-stage-b-d2-assessment-v1",
+  "status": "retained_pending_finalize",
+  "source": {
+    "commit_sha": "6af20749b305f591d2c90d868cb09e71f623bdd0",
+    "tree_sha256": "a0f1fb55c8d112128d81f3942132657100eac00f",
+    "exact_source_verified": true,
+    "use_case": "L049V2StageB",
+    "provisioning_commit_sha": "7d1e23fdbc385909f964df05360f01027d3b6c35",
+    "provisioning_tree_sha256": "5f43b035a043faf97237cd87aa621bec61c805b1",
+    "predecessor_d1_commit_sha": "76a45ea74fbb2843b7d109855c2c387ab98b3e47",
+    "predecessor_d1_tree_sha256": "392d241719b10fe6a946f20d203b9e0ff0f5f46c"
+  },
+  "inputs": {
+    "input_mode": "repository_canonical",
+    "manifest": {
+      "path": "artifacts/m14/l04-explanations.v2-authoring-manifest.json",
+      "bytes": 656,
+      "sha256": "2849b07fd719a0a761f433892fcc031c2ab17012a538daba322dd6fa50674974",
+      "canonical_digest": "c63059b05fb45c984bdff2ebd7ecaeee0ff0ca98dab3cc81b845bedb2e1c83c7",
+      "commitment_valid": true
+    },
+    "holdout": {
+      "path": "artifacts/m14/l04-explanations.v2-holdout.jsonl",
+      "bytes": 18312,
+      "rows": 48,
+      "groups": 24,
+      "label_balance_valid": true,
+      "train_overlap_valid": true,
+      "commitment_valid": true
+    },
+    "seed": {
+      "path": "artifacts/m14/l04-explanations.v2-holdout.seed",
+      "bytes": 32,
+      "commitment_sha256": "b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1",
+      "commitment_valid": true,
+      "value_redacted": true
+    },
+    "candidate": {
+      "path": "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json",
+      "bytes": 526043,
+      "sha256": "29bcd20ab494092abbb074bff5d99d091ec288d261a0399f97f2e2fb4f092aa2",
+      "canonical_digest": "9159f93401ef9f46af81aba0ef7cb7543756ba0001ac196cb87d4c1f2f7d6572",
+      "selected_candidate": {"layer": 10, "offset": 0},
+      "stage_a_validation": "PASS",
+      "post_unseal_mutation": false
+    },
+    "train": {
+      "rows": 72,
+      "groups": 36,
+      "cross_fixture_validation": "PASS"
+    }
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.raw.txt",
+      "bytes": 14231,
+      "sha256": "344fff5563075d86c1d55b54fb546300ee64fa6533f21412d28b9258e3d204eb",
+      "present": true,
+      "written_before_parse": true,
+      "raw_status": "retained_pending_finalize"
+    },
+    "audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.audit.json",
+      "bytes": 3241,
+      "sha256": "bfbf41e2e97d8818d4f42dc44d732ecd87e303129a1eae1bafe73857f2b8d2be",
+      "present": true,
+      "raw_status": "retained_pending_finalize",
+      "reopen_validation": "PASS",
+      "validation": {"archive": "PASS", "envelopes": "PASS"}
+    },
+    "triad": {
+      "partial": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.partial.json",
+        "bytes": 113808,
+        "sha256": "18f60e97ce21ff88a1fa27c1b3e23e0f3bbcc7898ee7440e1a1804b4f695f0eb",
+        "present": true,
+        "reopen_validation": "PASS"
+      },
+      "run": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.run.json",
+        "bytes": 400,
+        "sha256": "929c53129bf8285055a689c11da05675f473cd4a5984bc8efe82a8f34886a210",
+        "present": true,
+        "reopen_validation": "PASS"
+      },
+      "failure": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.failure.json",
+        "bytes": 402,
+        "sha256": "b8c2000afbec9900f706034dfe742761ef95034f94aa9606b49c9686336144e2",
+        "present": true,
+        "reopen_validation": "PASS"
+      }
+    },
+    "bundle": {
+      "present": true,
+      "bytes": 5681,
+      "sha256": "462faf05dae7954689f02e0e530cb69dfe90724cf357bd72f871a1aee639f9da",
+      "member_names": [
+        "artifacts/m14/l04-explanations.L049V2StageB.attempt1.failure.json",
+        "artifacts/m14/l04-explanations.L049V2StageB.attempt1.partial.json",
+        "artifacts/m14/l04-explanations.L049V2StageB.attempt1.run.json"
+      ],
+      "member_reopen_validation": "PASS"
+    }
+  },
+  "markers": {
+    "expected_count": 19,
+    "observed_count": 19,
+    "order_and_multiplicity": "PASS",
+    "transport_decode_status": 0,
+    "transport_decode_match": "PASS",
+    "cli_status": 0,
+    "bundle_status": 0,
+    "final_status": 0,
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS"
+  },
+  "execution": {
+    "completed_payloads": 1,
+    "ssh_processes": 1,
+    "stage_b_cli_invocations": 1,
+    "invocation_invariant": "satisfied",
+    "retry": false,
+    "provenance": "executor_recorded_only",
+    "mutex_key_sha256": "9330e856576daf104bf119c62606cd0a342e5768c5d8d1a47b35a123ca48f9fe",
+    "argv_sha256": "3776e2b0b3f2f95e270eb1700c9c5dc3e6a6edb269a4b1082cfea5388fef5523",
+    "metadata_sha256": "944b28796bb5b918aee7d31c019b3946993c6dfed9645d128f107c42a4b07403"
+  },
+  "validation": {
+    "repository_input_preflight": "PASS",
+    "commitment_policy": "PASS",
+    "stage_b_validator": "PASS",
+    "stage_b_validator_errors": [],
+    "audit_structure": "PASS",
+    "independent_recomputation": "PASS",
+    "raw_before_parse": true,
+    "sensitive_content_retained": false
+  },
+  "attestation": {
+    "sha256": "beac9386b579180cf70e246c2ffc02eb49bd21e89ae72833d29c9c440ddb48a9",
+    "hash_chain_sha256": "678c429b1a428b2f765e9da6c138258bcdc35c8efd6c74fec98c25c43b2d3674",
+    "transcript_sha256": "40056cefe0251b3e7aa50edde4ed6d55332b5ee9a84e040812023e5b4a73d68c",
+    "cli_sha256": "78d5f4554c493a820942311eda38366bb3f17f878badc3b047c05243212259f",
+    "event_sequence": "PASS",
+    "cleanup_hook_count": 0
+  },
+  "semantic": {
+    "stage": "stage_b_holdout_evaluation",
+    "status": "stage_b_complete",
+    "evidence_level": "D2",
+    "evaluation_complete": true,
+    "acceptance": true,
+    "selection": {"layer": 10, "offset": 0, "source": "retained_d1_candidate"},
+    "groups": 24,
+    "rows": 48,
+    "seed_summaries": 5,
+    "bootstrap_replicates": 2000,
+    "recovery": {
+      "point_estimate": 1.0549605984124126,
+      "lower_ci_95_range": [1.050132332708493, 1.0504241302398223],
+      "threshold": 0.1,
+      "all_seed_gates_pass": true
+    },
+    "paired_true_minus_shuffled": {
+      "point_estimate": 1.0549605984124126,
+      "lower_ci_95_range": [1.0501720495974027, 1.050460193256692],
+      "threshold": 0.05,
+      "all_seed_gates_pass": true
+    },
+    "controls": {
+      "finite": true,
+      "zero_strength_identity": true,
+      "no_mutation": true,
+      "all_predeclared_controls_pass": true
+    },
+    "candidate_or_holdout_mutation": false
+  },
+  "resources": {
+    "backend": "cuda",
+    "device": "cuda:0",
+    "dtype": "float32",
+    "integration": "TransformerLMIntegration",
+    "model_identity": "pinned_revision_verified",
+    "adapter_identity": "N/A_by_contract",
+    "operation_counts": {
+      "candidate_evaluations": 120,
+      "captures": 552,
+      "controls": 480,
+      "forwards": 552,
+      "hooks": 24,
+      "patches": 24
+    },
+    "resource_peak": {
+      "measurement_status": "available",
+      "measurement_reason": null,
+      "cpu_peak_bytes": 1593696256,
+      "gpu_peak_bytes": 537131008,
+      "gpu_reserved_peak_bytes": 576716800,
+      "budget_cpu_bytes": 6000000000,
+      "budget_gpu_bytes": 6000000000,
+      "elapsed_seconds": 26.685258678160608,
+      "cpu_source": "resource.ru_maxrss_linux_kib",
+      "gpu_source": "torch.cuda.max_memory_allocated",
+      "gpu_reserved_source": "torch.cuda.max_memory_reserved",
+      "elapsed_source": "time.perf_counter",
+      "budget_pass": true
+    },
+    "cleanup": {
+      "completed": true,
+      "hook_count": 0,
+      "attestation": "PASS"
+    }
+  },
+  "assessment": {
+    "evidence_level": "D2",
+    "evaluation_complete": true,
+    "evidence_eligible": false,
+    "promotion_candidate": true,
+    "repository_promotion": false,
+    "semantic_finalization": false,
+    "standard_finalize": false,
+    "d3": false,
+    "status": "d2_evaluation_complete_pending_retention_review"
+  },
+  "retention": {
+    "raw_retention_status": "retained_pending_finalize",
+    "raw_present": true,
+    "standard_finalize": false,
+    "repository_promotion": false,
+    "recommendation": "retain raw, audit, bundle, and triad evidence pending owner-authorized retention decision; do not promote or finalize",
+    "remote_checkout_absence": "not_independently_verified"
+  },
+  "redaction": "Sanitized metadata only; no task text, class values, external paths, model free text, diagnostic stack, or secrets retained.",
+  "sidecar_sha256": "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6"
+}
