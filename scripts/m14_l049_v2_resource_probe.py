@@ -104,9 +104,18 @@ def validate_resource_probe_output(output: str) -> list[str]:
     return []
 
 
-def run_resource_probe(torch_module: Any | None = None) -> tuple[dict[str, Any], str | None]:
+def run_resource_probe(
+    torch_module: Any | None = None,
+    *,
+    resource_module: Any | None = None,
+    psutil_module: Any | None = None,
+) -> tuple[dict[str, Any], str | None]:
     """Run the resource-only probe and return resources plus its safe code."""
-    tracker = ResourceTracker(torch_module=torch_module)
+    tracker = ResourceTracker(
+        torch_module=torch_module,
+        resource_module=resource_module,
+        psutil_module=psutil_module,
+    )
     tracker.start()
     try:
         cuda = getattr(tracker._torch, "cuda", None)

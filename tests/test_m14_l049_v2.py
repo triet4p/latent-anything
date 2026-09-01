@@ -2301,10 +2301,17 @@ def test_resource_probe_uses_production_tracker_without_model_or_fixture(capsys:
             assert device == "cuda"
             return object()
 
-    resources, rejection = resource_probe.run_resource_probe(_ProbeTorch)
+    fake_resource = SimpleNamespace(RUSAGE_SELF=0, getrusage=lambda _kind: SimpleNamespace(ru_maxrss=0))
+    fake_psutil = SimpleNamespace(Process=lambda: SimpleNamespace(memory_info=lambda: SimpleNamespace(rss=4096)))
+    resources, rejection = resource_probe.run_resource_probe(
+        _ProbeTorch,
+        resource_module=fake_resource,
+        psutil_module=fake_psutil,
+    )
     assert rejection is None
     assert resources["operation_counts"] == dict.fromkeys(real_runtime._COUNT_KEYS, 0)
     assert resources["resource_peak"]["measurement_status"] == "available"
+    assert validate_common.real_resources(resources, require_measured=True) == []
     resource_probe.emit_resource_probe(resources, rejection)
     lines = capsys.readouterr().out.strip().splitlines()
     assert {line.split("=", 1)[0] for line in lines} == {
@@ -2323,6 +2330,45 @@ def test_resource_probe_uses_production_tracker_without_model_or_fixture(capsys:
     assert "openai-community" not in output
     assert "train" not in output.lower()
     assert "F:\\" not in output
+
+
+def test_resource_probe_missing_resource_and_psutil_is_unavailable_without_promotion(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    class _UnavailableTorch:
+        cuda = _FakeCuda()
+
+    class _UnavailableResource:
+        RUSAGE_SELF = 0
+
+        @staticmethod
+        def getrusage(_kind: int) -> object:
+            raise OSError("resource unavailable")
+
+    def _missing_process() -> object:
+        raise OSError("psutil unavailable")
+
+    resources, rejection = resource_probe.run_resource_probe(
+        _UnavailableTorch,
+        resource_module=_UnavailableResource,
+        psutil_module=SimpleNamespace(Process=_missing_process),
+    )
+    assert rejection is None
+    peak = resources["resource_peak"]
+    assert peak["measurement_status"] == "unavailable"
+    assert peak["measurement_reason"] == "rss_unavailable"
+    assert peak["cpu_source"] == "unavailable"
+    assert peak["gpu_source"] == "torch.cuda.max_memory_allocated"
+    assert peak["gpu_reserved_source"] == "torch.cuda.max_memory_reserved"
+    assert stage_a_module._finalizer_rejection_code(resources) is None
+    assert validate_common.real_resources(resources, require_measured=True) == [
+        "measured resource provenance is required for eligible evidence"
+    ]
+    resource_probe.emit_resource_probe(resources, rejection)
+    output = capsys.readouterr().out
+    assert resource_probe.validate_resource_probe_output(output) == []
+    assert "L049_V2_RESOURCE_PROBE_MEASUREMENT_REASON=rss_unavailable" in output
+    assert "PROMOTION" not in output.upper()
 
 
 def test_resource_probe_unavailable_path_is_sanitized(capsys: pytest.CaptureFixture[str]) -> None:

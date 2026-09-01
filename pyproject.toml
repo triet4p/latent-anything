@@ -17,6 +17,7 @@ dependencies = [
     "torch>=2.5,<3.0",
     "pydantic>=2.0,<3.0",
     "pyarrow>=19,<26",
+    "psutil>=6.0,<8.0",
 ]
 
 [project.scripts]
