@@ -4,6 +4,10 @@
 
 ### Added
 
+- Added the direct runtime dependency `psutil` so the L04.9 v2 resource
+  probe provides a cross-platform RSS fallback when `resource.getrusage` is
+  unavailable, while preserving fail-closed measurement provenance.
+
 - Started the versioned L04.9 v2 real-evidence promotion contract remediation:
   official finalized retention audits, the complete D1/D2/provisioning
   predecessor chain, explicit Git tree algorithm/OID commitments, and separate
