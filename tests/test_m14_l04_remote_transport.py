@@ -180,6 +180,8 @@ def _build_only_v2(
     seed: str = "/secure/holdout.seed",
     candidate: str = "/secure/candidate.json",
     output: str = "",
+    repo_inputs: bool = False,
+    repo_owner_paths: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     arguments = [
         _pwsh(),
@@ -213,14 +215,26 @@ def _build_only_v2(
                 candidate,
             ]
     else:
-        arguments += [
-            "-V2HoldoutFixturePath",
-            holdout,
-            "-V2HoldoutSeedPath",
-            seed,
-            "-V2CandidateManifestPath",
-            candidate,
-        ]
+        if repo_inputs:
+            arguments += ["-V2UseRepositoryInputs"]
+            if repo_owner_paths:
+                arguments += [
+                    "-V2HoldoutFixturePath",
+                    holdout,
+                    "-V2HoldoutSeedPath",
+                    seed,
+                    "-V2CandidateManifestPath",
+                    candidate,
+                ]
+        else:
+            arguments += [
+                "-V2HoldoutFixturePath",
+                holdout,
+                "-V2HoldoutSeedPath",
+                seed,
+                "-V2CandidateManifestPath",
+                candidate,
+            ]
         if train != "C:/owner/train.jsonl":
             arguments += ["-V2TrainFixturePath", train]
     arguments += ["-V2OutputPath", output, "-BuildOnly"]
@@ -285,6 +299,36 @@ def test_v2_stage_b_build_manifest_does_not_require_unused_train_path(tmp_path: 
     result = _build_only_v2(tmp_path, train="")
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["v2_inputs"]["train_fixture"] is None
+
+
+def test_v2_stage_b_repository_input_build_manifest_is_canonical_and_redacted(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, repo_inputs=True)
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads(result.stdout)
+    source_keyed_candidate = (
+        "<fresh-clone>/artifacts/m14/"
+        "l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
+    )
+    assert manifest["v2_inputs"] == {
+        "input_mode": "repository_canonical",
+        "train_fixture": None,
+        "holdout_fixture": "<fresh-clone>/artifacts/m14/l04-explanations.v2-holdout.jsonl",
+        "holdout_seed": "<fresh-clone>/artifacts/m14/l04-explanations.v2-holdout.seed",
+        "candidate_manifest": source_keyed_candidate,
+        "authoring_manifest": "<fresh-clone>/artifacts/m14/l04-explanations.v2-authoring-manifest.json",
+        "output": "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json",
+        "contents": "redacted",
+    }
+    serialized = json.dumps(manifest)
+    for forbidden in ("C:/owner", "/secure", "F:\\ai-ml", "holdout_seed.bin"):
+        assert forbidden not in serialized
+
+
+def test_v2_stage_b_repository_input_mode_rejects_owner_paths(tmp_path: Path) -> None:
+    result = _build_only_v2(tmp_path, repo_inputs=True, repo_owner_paths=True)
+    assert result.returncode != 0
+    assert "repository input mode rejects owner-provisioned paths" in result.stderr
+    assert "/secure/" not in result.stderr
 
 
 def test_v2_stage_b_rejects_unused_train_path(tmp_path: Path) -> None:
@@ -407,6 +451,62 @@ def test_fake_remote_stage_b_bootstrap_contains_only_safe_remote_inputs(
     for remote_path in remote_paths:
         assert remote_path.replace("'", "'\"'\"'").encode() in bootstrap
     assert b"F:\\ai-ml\\latent-anything" not in bootstrap
+    assert raw_path.is_file()
+
+
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_fake_remote_stage_b_repository_mode_derives_inputs_inside_clone(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    fake_ssh = _compile_fake_ssh(tmp_path)
+    marker = tmp_path / "fake ssh launches.log"
+    stdin_path = tmp_path / "bootstrap bytes.bin"
+    raw_path = tmp_path / "stage-b-repository.raw"
+    command = [
+        shell_factory(),
+        "-NoProfile",
+        "-File",
+        str(HELPER),
+        "-SshExecutable",
+        str(fake_ssh),
+        "-RemoteTarget",
+        "user@example.com",
+        "-PayloadPath",
+        str(PAYLOAD),
+        "-UseCase",
+        "L049V2StageB",
+        "-CodeSha",
+        "c" * 40,
+        "-RepoUrl",
+        "https://github.com/example/repo.git",
+        "-RawCapturePath",
+        str(raw_path),
+        "-V2UseRepositoryInputs",
+    ]
+    env = dict(os.environ, L04_FAKE_SSH_MARKER=str(marker), L04_FAKE_SSH_STDIN_PATH=str(stdin_path))
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, timeout=30)
+    assert result.returncode == 0, result.stderr
+    bootstrap = stdin_path.read_bytes()
+    bootstrap_text = bootstrap.decode("utf-8")
+    assert "export L049_V2_REPO_INPUTS=1" in bootstrap_text
+    assert "L049_V2_HOLDOUT_FIXTURE" not in bootstrap_text
+    assert "C:/owner" not in bootstrap_text
+    assert "F:\\ai-ml\\latent-anything" not in bootstrap_text
+    assert b"holdout_seed.bin" not in bootstrap
+    payload_b64 = bootstrap_text.split("<<'L04_PAYLOAD_B64'\n", 1)[1].split("\nL04_PAYLOAD_B64", 1)[0]
+    payload_text = base64.b64decode(payload_b64, validate=True).decode("utf-8")
+    assert "artifacts/m14/l04-explanations.v2-holdout.jsonl" in payload_text
+    assert "artifacts/m14/l04-explanations.v2-holdout.seed" in payload_text
+    assert (
+        "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
+        in payload_text
+    )
+    assert "--require-tracked" in payload_text
+    assert payload_text.index("--require-tracked") < payload_text.index(
+        "V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_b"
+    )
+    assert "C:/owner" not in payload_text
+    assert "F:\\ai-ml\\latent-anything" not in payload_text
     assert raw_path.is_file()
 
 

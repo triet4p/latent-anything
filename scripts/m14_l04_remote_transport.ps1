@@ -17,6 +17,7 @@ param(
     [ValidateRange(2400, 7200)] [int]$TransportTimeoutSeconds = 3600,
     [ValidateRange(1, 300)] [int]$SshConnectTimeoutSeconds = 15,
     [switch]$BuildOnly,
+    [switch]$V2UseRepositoryInputs,
     [Alias("DryRun")] [switch]$DryRunMode,
     [switch]$Postprocess,
     [string]$ArtifactOutputDir = (Join-Path (Get-Location) "artifacts/m14"),
@@ -57,7 +58,11 @@ function Assert-TransportParameters {
     if ([string]::IsNullOrWhiteSpace($RepoUrl) -or $RepoUrl -match '[\x00-\x20\x7f]') { throw "RepoUrl must be non-empty and contain no control or whitespace characters" }
     if ($RepoUrl -notmatch '^https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+(?:\.git)?$') { throw "RepoUrl must be a credential-free GitHub HTTPS owner/repository URL" }
     $v2StageBArgs = @($V2HoldoutFixturePath, $V2HoldoutSeedPath, $V2CandidateManifestPath)
-    if ($UseCase -eq "L049V2StageB" -and @($v2StageBArgs | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+    if ($UseCase -eq "L049V2StageB" -and $V2UseRepositoryInputs) {
+        if (@($v2StageBArgs | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+            throw "L049V2StageB repository input mode rejects owner-provisioned paths"
+        }
+    } elseif ($UseCase -eq "L049V2StageB" -and @($v2StageBArgs | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
         throw "L049V2StageB requires holdout fixture, holdout seed, and candidate manifest paths"
     }
     if ($UseCase -eq "L049V2StageA" -and [string]::IsNullOrWhiteSpace($V2TrainFixturePath)) {
@@ -69,10 +74,13 @@ function Assert-TransportParameters {
     if ($UseCase -eq "L049V2StageA" -and ($V2HoldoutFixturePath -or $V2HoldoutSeedPath -or $V2CandidateManifestPath)) {
         throw "L049V2StageA rejects Stage B-only input paths"
     }
+    if ($V2UseRepositoryInputs -and $UseCase -ne "L049V2StageB") {
+        throw "repository input mode is only supported for L049V2StageB"
+    }
     if (($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") -and -not [string]::IsNullOrWhiteSpace($V2OutputPath)) {
         throw "v2 output path is derived inside the fresh clone and cannot be overridden"
     }
-    if ($UseCase -eq "L049V2StageB") {
+    if ($UseCase -eq "L049V2StageB" -and -not $V2UseRepositoryInputs) {
         if (-not [string]::IsNullOrWhiteSpace($V2TrainFixturePath)) {
             throw "L049V2StageB rejects the unused train fixture path"
         }
@@ -177,7 +185,11 @@ if ($UseCase -eq "L049V2StageA") {
     # caller's path is local-only and is used later by postprocess validation.
     $v2EnvBlock = ""
 } elseif ($UseCase -eq "L049V2StageB") {
-    $v2EnvBlock = "export L049_V2_HOLDOUT_FIXTURE=$(ConvertTo-BashLiteral $V2HoldoutFixturePath)`nexport L049_V2_HOLDOUT_SEED=$(ConvertTo-BashLiteral $V2HoldoutSeedPath)`nexport L049_V2_CANDIDATE=$(ConvertTo-BashLiteral $V2CandidateManifestPath)"
+    if ($V2UseRepositoryInputs) {
+        $v2EnvBlock = "export L049_V2_REPO_INPUTS=1"
+    } else {
+        $v2EnvBlock = "export L049_V2_HOLDOUT_FIXTURE=$(ConvertTo-BashLiteral $V2HoldoutFixturePath)`nexport L049_V2_HOLDOUT_SEED=$(ConvertTo-BashLiteral $V2HoldoutSeedPath)`nexport L049_V2_CANDIDATE=$(ConvertTo-BashLiteral $V2CandidateManifestPath)"
+    }
 }
 $bootstrapBytes = [System.Text.UTF8Encoding]::new($false).GetBytes((New-Bootstrap -PayloadBase64 $payloadBase64 -PayloadSha256 $payloadSha256 -V2EnvBlock $v2EnvBlock))
 $bootstrapSha256 = Get-Sha256Hex $bootstrapBytes
@@ -197,13 +209,26 @@ $manifest = [ordered]@{
     secrets_redacted = $true; raw_capture_path_redacted = "<raw-capture-path>"
 }
 if ($UseCase -eq "L049V2StageA" -or $UseCase -eq "L049V2StageB") {
-    $manifest.v2_inputs = [ordered]@{
-        train_fixture = if ($UseCase -eq "L049V2StageA") { "<fresh-clone>/artifacts/m14/l04-l049-v2-train.jsonl" } else { $null }
-        holdout_fixture = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
-        holdout_seed = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
-        candidate_manifest = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
-        output = if ($UseCase -eq "L049V2StageB") { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json" } else { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json" }
-        contents = "redacted"
+    if ($UseCase -eq "L049V2StageB" -and $V2UseRepositoryInputs) {
+        $manifest.v2_inputs = [ordered]@{
+            input_mode = "repository_canonical"
+            train_fixture = $null
+            holdout_fixture = "<fresh-clone>/artifacts/m14/l04-explanations.v2-holdout.jsonl"
+            holdout_seed = "<fresh-clone>/artifacts/m14/l04-explanations.v2-holdout.seed"
+            candidate_manifest = "<fresh-clone>/artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
+            authoring_manifest = "<fresh-clone>/artifacts/m14/l04-explanations.v2-authoring-manifest.json"
+            output = "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json"
+            contents = "redacted"
+        }
+    } else {
+        $manifest.v2_inputs = [ordered]@{
+            train_fixture = if ($UseCase -eq "L049V2StageA") { "<fresh-clone>/artifacts/m14/l04-l049-v2-train.jsonl" } else { $null }
+            holdout_fixture = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+            holdout_seed = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+            candidate_manifest = if ($UseCase -eq "L049V2StageB") { "<owner-provisioned-path>" } else { $null }
+            output = if ($UseCase -eq "L049V2StageB") { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-b.json" } else { "<fresh-clone>/artifacts/m14/l04-l049-v2-stage-a.json" }
+            contents = "redacted"
+        }
     }
 }
 if ($BuildOnly -or $DryRunMode) { $manifest | ConvertTo-Json -Depth 8 -Compress; exit 0 }
@@ -280,7 +305,11 @@ try {
             "--audit", $AuditOutputPath
         )
         if ($UseCase -eq "L049V2StageB") {
-            $postprocessArgs += @("--fixture", $V2HoldoutFixturePath, "--candidate-manifest", $V2CandidateManifestPath, "--holdout-seed", $V2HoldoutSeedPath)
+            if ($V2UseRepositoryInputs) {
+                $postprocessArgs += @("--fixture", (Join-Path (Get-Location) "artifacts/m14/l04-explanations.v2-holdout.jsonl"), "--candidate-manifest", (Join-Path (Get-Location) "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"), "--holdout-seed", (Join-Path (Get-Location) "artifacts/m14/l04-explanations.v2-holdout.seed"))
+            } else {
+                $postprocessArgs += @("--fixture", $V2HoldoutFixturePath, "--candidate-manifest", $V2CandidateManifestPath, "--holdout-seed", $V2HoldoutSeedPath)
+            }
         } elseif ($UseCase -eq "L049V2StageA") {
             $postprocessArgs += @("--fixture", $V2TrainFixturePath)
         }

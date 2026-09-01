@@ -6,6 +6,9 @@ import builtins
 import copy
 import hashlib
 import json
+import os
+import shutil
+import subprocess
 import weakref
 from collections.abc import Mapping
 from pathlib import Path
@@ -15,12 +18,22 @@ from typing import Any
 import numpy as np
 import pytest
 
+import scripts._m14_l049_v2_inputs as stage_b_inputs
 import scripts._m14_l049_v2_real_runtime as real_runtime
 import scripts._m14_l049_v2_stage_a as stage_a_module
 import scripts._m14_l049_v2_validate_common as validate_common
 import scripts.m14_l049_v2_load_stress as load_stress
+import scripts.m14_l049_v2_preflight as stage_b_preflight
 import scripts.m14_l049_v2_resource_probe as resource_probe
-from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
+from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows, validate_fixture
+from scripts._m14_l049_v2_inputs import (
+    CANONICAL_STAGE_B_HOLDOUT,
+    CANONICAL_STAGE_B_MANIFEST,
+    CANONICAL_STAGE_B_SEED,
+    SOURCE_KEYED_STAGE_B_CANDIDATE,
+    canonical_stage_b_paths,
+    validate_canonical_stage_b_inputs,
+)
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
 from scripts._m14_l049_v2_promotion import build_promotion_record, validate_promotion_record
 from scripts._m14_l049_v2_real_runtime import ResourceTracker, _hidden, _patch_positions, attempted_runtime_resources
@@ -93,11 +106,203 @@ CURRENT_D1_ASSESSMENT = ROOT / (
 CURRENT_D1_CANDIDATE = ROOT / (
     "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
 )
+STAGE_B_PROVISIONING_ASSESSMENT = ROOT / (
+    "artifacts/m14/l04-explanations.L049V2StageB.provisioning-assessment.sidecar.json"
+)
 STAGE_A_FAILURE_RAW = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.raw.txt"
 )
 SOURCE_COMMIT = "1" * 40
 SOURCE_TREE = "2" * 64
+
+
+def test_canonical_stage_b_inputs_are_provisioned_and_independently_validated() -> None:
+    assert validate_canonical_stage_b_inputs(ROOT) == []
+    paths = canonical_stage_b_paths(ROOT)
+    assert set(paths) == {"manifest", "holdout", "seed", "candidate"}
+    assert paths["manifest"].relative_to(ROOT) == CANONICAL_STAGE_B_MANIFEST
+    assert paths["holdout"].relative_to(ROOT) == CANONICAL_STAGE_B_HOLDOUT
+    assert paths["seed"].relative_to(ROOT) == CANONICAL_STAGE_B_SEED
+    assert paths["candidate"].relative_to(ROOT) == SOURCE_KEYED_STAGE_B_CANDIDATE
+    holdout_rows = read_rows(paths["holdout"])[1]
+    train_rows = read_rows(TRAIN_PATH)[1]
+    assert len(holdout_rows) == 48
+    assert len({row["group_id"] for row in holdout_rows}) == 24
+    assert validate_fixture(train_rows, holdout_rows) == []
+
+
+def _build_temp_stage_b_git_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "stage-b-input-repo"
+    destination = repo / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    for source in canonical_stage_b_paths(ROOT).values():
+        shutil.copyfile(source, destination / source.name)
+    subprocess.run(["git", "init", "--quiet", str(repo)], check=True, capture_output=True)
+    relative_paths = [source.relative_to(ROOT).as_posix() for source in canonical_stage_b_paths(ROOT).values()]
+    subprocess.run(["git", "-C", str(repo), "add", "--", *relative_paths], check=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "-c",
+            "user.name=Stage B Test",
+            "-c",
+            "user.email=stage-b-test@example.invalid",
+            "commit",
+            "--quiet",
+            "-m",
+            "provisioned inputs",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    return repo
+
+
+def test_stage_b_preflight_requires_all_four_inputs_tracked(tmp_path: Path) -> None:
+    repo = _build_temp_stage_b_git_repo(tmp_path)
+    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == []
+    assert stage_b_preflight.main(["--repo-root", str(repo), "--require-tracked"]) == 0
+
+
+def test_stage_b_preflight_rejects_nested_repo_root_before_input_checks(tmp_path: Path) -> None:
+    parent = _build_temp_stage_b_git_repo(tmp_path)
+    nested = parent / "nested-checkout"
+    destination = nested / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    for source in canonical_stage_b_paths(ROOT).values():
+        shutil.copyfile(source, destination / source.name)
+    relative_paths = [path.relative_to(parent).as_posix() for path in canonical_stage_b_paths(nested).values()]
+    subprocess.run(["git", "-C", str(parent), "add", "--", *relative_paths], check=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(parent),
+            "-c",
+            "user.name=Stage B Test",
+            "-c",
+            "user.email=stage-b-test@example.invalid",
+            "commit",
+            "--quiet",
+            "-m",
+            "nested inputs",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    assert validate_canonical_stage_b_inputs(nested, require_tracked=True) == ["canonical_repo_root_mismatch"]
+
+
+def test_stage_b_preflight_rejects_non_git_root_before_input_checks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo = tmp_path / "non-git-input-root"
+    destination = repo / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    for source in canonical_stage_b_paths(ROOT).values():
+        shutil.copyfile(source, destination / source.name)
+    monkeypatch.setattr(
+        stage_b_inputs,
+        "_safe_regular_under",
+        lambda *_args: pytest.fail("input shape was checked"),
+    )
+    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == ["canonical_repo_root_mismatch"]
+
+
+@pytest.mark.parametrize("failure", ["timeout", "oserror"])
+def test_stage_b_preflight_fails_closed_on_repo_root_probe_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    repo = _build_temp_stage_b_git_repo(tmp_path)
+
+    def fail_probe(*_args: object, **_kwargs: object) -> object:
+        if failure == "timeout":
+            raise subprocess.TimeoutExpired("git", 10)
+        raise OSError("probe failed")
+
+    monkeypatch.setattr(stage_b_inputs.subprocess, "run", fail_probe)
+    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == ["canonical_repo_root_mismatch"]
+
+
+@pytest.mark.skipif(os.name != "nt", reason="case normalization is platform-specific")
+def test_stage_b_preflight_normalizes_repo_root_case(tmp_path: Path) -> None:
+    repo = _build_temp_stage_b_git_repo(tmp_path)
+    altered = Path(str(repo).swapcase())
+    assert validate_canonical_stage_b_inputs(altered, require_tracked=True) == []
+
+
+@pytest.mark.parametrize("missing_key", ["manifest", "holdout", "seed", "candidate"])
+def test_stage_b_preflight_rejects_valid_unindexed_input(tmp_path: Path, missing_key: str) -> None:
+    repo = _build_temp_stage_b_git_repo(tmp_path)
+    missing = canonical_stage_b_paths(repo)[missing_key].relative_to(repo).as_posix()
+    remove_command = ["git", "-C", str(repo), "rm", "--cached", "--quiet", "--", missing]
+    subprocess.run(remove_command, check=True, capture_output=True)
+    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == ["canonical_input_untracked"]
+
+
+def test_stage_b_preflight_is_validate_only_and_sanitized(capsys: pytest.CaptureFixture[str]) -> None:
+    assert stage_b_preflight.main(["--repo-root", str(ROOT)]) == 0
+    output = capsys.readouterr().out
+    assert json.loads(output) == {"stage": "stage_b_input_preflight", "status": "PASS", "evaluation": "not_run"}
+    assert "holdout" not in output
+    assert "seed" not in output
+
+
+def test_stage_b_provisioning_assessment_is_canonical_and_pending() -> None:
+    sidecar = json.loads(STAGE_B_PROVISIONING_ASSESSMENT.read_bytes())
+    assert sidecar["status"] == "ready_for_stage_b_pending_commit"
+    assert sidecar["sidecar_sha256"] == canonical_digest(sidecar, "sidecar_sha256")
+    assert sidecar["assessment"] == {
+        "evaluation": False,
+        "promotion": False,
+        "standard_finalize": False,
+        "d2": False,
+        "d3": False,
+        "status": "inputs_validated_stage_b_pending",
+    }
+    assert sidecar["inputs"]["holdout"]["commitment_valid"] is True
+    assert sidecar["inputs"]["holdout"]["train_overlap_valid"] is True
+    assert sidecar["inputs"]["seed"]["value_redacted"] is True
+    serialized = json.dumps(sidecar)
+    assert "C:/" not in serialized and "\\\\" not in serialized
+
+
+def test_canonical_stage_b_inputs_reject_candidate_tampering(tmp_path: Path) -> None:
+    destination = tmp_path / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    for source in canonical_stage_b_paths(ROOT).values():
+        target = destination / source.name
+        target.write_bytes(source.read_bytes())
+    (destination / SOURCE_KEYED_STAGE_B_CANDIDATE.name).write_bytes(b"{}")
+    assert "candidate_file_commitment" in validate_canonical_stage_b_inputs(tmp_path)
+
+
+def test_canonical_stage_b_inputs_reject_wrong_source_keyed_candidate_path(tmp_path: Path) -> None:
+    destination = tmp_path / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    for source in canonical_stage_b_paths(ROOT).values():
+        (destination / source.name).write_bytes(source.read_bytes())
+    expected = destination / SOURCE_KEYED_STAGE_B_CANDIDATE.name
+    expected.rename(destination / "artifacts.L049V2StageA.wrong-source.candidate.json")
+    assert "canonical_input_shape" in validate_canonical_stage_b_inputs(tmp_path)
+
+
+def test_canonical_stage_b_inputs_reject_symlinked_holdout(tmp_path: Path) -> None:
+    destination = tmp_path / "artifacts" / "m14"
+    destination.mkdir(parents=True)
+    paths = canonical_stage_b_paths(ROOT)
+    for key, source in paths.items():
+        target = destination / source.name
+        if key == "holdout":
+            try:
+                target.symlink_to(source)
+            except OSError:
+                pytest.skip("symlink creation is unavailable")
+        else:
+            target.write_bytes(source.read_bytes())
+    assert "canonical_input_shape" in validate_canonical_stage_b_inputs(tmp_path)
 
 
 def test_current_d1_candidate_and_assessment_are_canonical_and_stage_b_ready() -> None:

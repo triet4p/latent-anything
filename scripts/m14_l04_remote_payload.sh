@@ -122,8 +122,8 @@ if [[ -n "${L049_V2_OUTPUT:-}" && "$L049_V2_OUTPUT" != "$v2_output" ]]; then
 fi
 
 # The v2 lane is selected by the transport, while the stage CLI remains the
-# producer.  Holdout paths/seeds are owner-provisioned and are never embedded
-# in this payload or returned in stdout.
+# producer.  Stage B can use only the explicitly selected repository-canonical
+# mode or the legacy owner-provisioned mode; the two modes never mix.
 if [[ "$UseCase" == "L049V2StageA" ]]; then
     # Stage A's public train fixture is repository-owned.  Resolve it only
     # after checkout so a Windows caller path can never leak into the remote
@@ -154,6 +154,63 @@ if [[ "$UseCase" == "L049V2StageA" ]]; then
     fi
     V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_a --run-real --train-fixture "$train_fixture" --source-commit-sha "$CodeSha" --output "$v2_output")
 elif [[ "$UseCase" == "L049V2StageB" ]]; then
+    if [[ "${L049_V2_REPO_INPUTS:-0}" == "1" ]]; then
+        if [[ -n "${L049_V2_HOLDOUT_FIXTURE:-}${L049_V2_HOLDOUT_SEED:-}${L049_V2_CANDIDATE:-}" ]]; then
+            emit_status INVALID_REPOSITORY_INPUT_MODE >&2
+            exit 65
+        fi
+        repo_real=$(readlink -f -- "$repo_dir") || { emit_status INVALID_REPOSITORY_INPUTS >&2; exit 65; }
+        holdout_rel='artifacts/m14/l04-explanations.v2-holdout.jsonl'
+        seed_rel='artifacts/m14/l04-explanations.v2-holdout.seed'
+        candidate_rel='artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json'
+        manifest_rel='artifacts/m14/l04-explanations.v2-authoring-manifest.json'
+        for input_rel in "$holdout_rel" "$seed_rel" "$candidate_rel" "$manifest_rel"; do
+            input_path="$repo_dir/$input_rel"
+            if [[ "$input_path" != "$repo_dir/"* || "$input_rel" == *..* || "$input_rel" == */../* ]]; then
+                emit_status INVALID_REPOSITORY_INPUTS >&2
+                exit 65
+            fi
+            if [[ ! -f "$input_path" || -L "$input_path" ]]; then
+                emit_status INVALID_REPOSITORY_INPUTS >&2
+                exit 65
+            fi
+            input_real=$(readlink -f -- "$input_path") || { emit_status INVALID_REPOSITORY_INPUTS >&2; exit 65; }
+            case "$input_real" in
+                "$repo_real"/*) ;;
+                *) emit_status INVALID_REPOSITORY_INPUTS >&2; exit 65 ;;
+            esac
+            tracked_input=$(git -C "$repo_dir" ls-files --error-unmatch -- "$input_rel" 2>/dev/null) || {
+                emit_status INVALID_REPOSITORY_INPUTS >&2
+                exit 65
+            }
+            if [[ "$tracked_input" != "$input_rel" ]]; then
+                emit_status INVALID_REPOSITORY_INPUTS >&2
+                exit 65
+            fi
+        done
+        if [[ "$(sha256sum "$repo_dir/$manifest_rel" | awk '{print $1}')" != "2849b07fd719a0a761f433892fcc031c2ab17012a538daba322dd6fa50674974" ||
+            "$(sha256sum "$repo_dir/$holdout_rel" | awk '{print $1}')" != "295ef5f558315c629d68e2d0216567a67163e5ef4adaaf3bbc9fe8a4da96dd5f" ||
+            "$(sha256sum "$repo_dir/$seed_rel" | awk '{print $1}')" != "b8e5e28908c2d2925a5bf5dcc69d852b4e31584f23f0ced2903a70f10d36b5e1" ||
+            "$(sha256sum "$repo_dir/$candidate_rel" | awk '{print $1}')" != "29bcd20ab494092abbb074bff5d99d091ec288d261a0399f97f2e2fb4f092aa2" ]]; then
+            emit_status INVALID_REPOSITORY_INPUT_DIGEST >&2
+            exit 65
+        fi
+        if ! uv run --locked --extra transformers python -m scripts.m14_l049_v2_preflight --repo-root "$repo_dir" --require-tracked >&2; then
+            emit_status INVALID_REPOSITORY_INPUTS >&2
+            exit 65
+        fi
+        V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_b
+            --run-real
+            --holdout-fixture "$repo_dir/$holdout_rel"
+            --holdout-seed "$repo_dir/$seed_rel"
+            --candidate-manifest "$repo_dir/$candidate_rel"
+            --source-commit-sha "$CodeSha"
+            --output "$v2_output")
+    else
+        if [[ -n "${L049_V2_REPO_INPUTS:-}" ]]; then
+            emit_status INVALID_REPOSITORY_INPUT_MODE >&2
+            exit 65
+        fi
     V2_STAGE_CLI=(python -m scripts.m14_l049_v2_stage_b
         --run-real
         --holdout-fixture "${L049_V2_HOLDOUT_FIXTURE:?L049_V2_HOLDOUT_FIXTURE is required}"
@@ -163,6 +220,7 @@ elif [[ "$UseCase" == "L049V2StageB" ]]; then
         --output "$v2_output")
     if [[ -n "${L049_V2_OBSERVATIONS:-}" ]]; then
         V2_STAGE_CLI+=(--observations "$L049_V2_OBSERVATIONS")
+    fi
     fi
 else
     V2_STAGE_CLI=(python -m scripts.m14_l04_explanations --run-real --use-case "$UseCase" --plan artifacts/m14/l04-explanations.plan.json --fixture artifacts/m14/l04-prompt-factor-fixture.jsonl)
