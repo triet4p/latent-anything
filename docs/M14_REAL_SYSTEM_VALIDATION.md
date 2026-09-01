@@ -18,6 +18,19 @@ The user-facing migration and frozen API references are
 and symbol contracts are projections of the checked-in API snapshot, not a
 second source of truth.
 
+### Current L04.9 v2 promotion state
+
+The retained D2 evidence is finalized and remains repository-promotion false.
+The D3 promotion contract is currently under remediation: official retention
+audits, the D1/D2/provisioning sidecar chain, Git tree commitments, and the
+transport/artifact digest distinction are being validated by the versioned
+real-evidence adapter. Its public API independently loads an immutable
+`RealPromotionPolicy` from fixed tracked evidence and requires supplied
+mappings to match; the former synthetic API remains available only through
+explicitly named legacy functions. No D3 promotion record has
+been emitted, and no semantic or retention evidence has been changed by this
+contract work.
+
 ## Quy ước và điều kiện dừng
 
 - `D0` = tài liệu; `D1` = code + focused tests; `D2` = benchmark dữ liệu không

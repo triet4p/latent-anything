@@ -1208,3 +1208,64 @@ repository until Stage A review and commitment. The addendum records only
 hashes, schema/order/counts, generator/authoring digest, and bootstrap seeds.
 v1's exact-three-member retention protocol is unchanged; v2 has separate
 single-artifact transport/retention metadata. No v2 result is promoted offline.
+
+## [2026-09-01] L04.9 v2 promotion must consume real retention evidence explicitly
+
+**Decision:** The L04.9 v2 D3 promotion path uses a deliberate real-evidence
+schema that accepts the official `m14-l04-remote-retention-audit-v2` only after
+its finalized raw/quarantine state, marker exits, bundle members, and reopened
+triad are independently checked. It binds the finalized D1 and D2 sidecars,
+their predecessor digests, the provisioning commitments, candidate, and
+artifact attestations as separate evidence objects. A Git tree commitment is
+represented as `{algorithm: "sha1", oid: <40-hex>}`; it is never mislabeled as a
+SHA-256 digest. The official transport payload digest and canonical Stage B
+artifact digest remain distinct fields. The legacy synthetic audit remains
+available only through its explicitly versioned adapter.
+
+**Alternatives considered:** Reuse the earlier synthetic retained-triplet
+schema, infer fields from similarly named audit records, or treat the Git tree
+OID as a SHA-256 value.
+
+**Reason:** The completed Stage B run produced an official outer retention
+audit whose transport payload, bundle, and lifecycle fields are not the same
+as the canonical artifact or sidecar commitments. Explicit versioning prevents
+silent cross-schema acceptance and preserves the evidence chain.
+
+**Consequences:** Future promotion callers must supply independent repository
+metadata and the complete predecessor chain; legacy synthetic evidence remains
+available only through its named adapter, and no D3 record can be emitted while
+any real-evidence link is missing or conflated.
+
+The policy is a frozen value object rather than a policy reconstructed from the
+record under validation. It pins both finalized sidecar file/canonical hashes,
+the D1/D2 pending predecessor hashes and sizes, source tree object IDs, tracked
+input commitments, candidate/artifact/attestation hashes, and the D2
+transport/raw/bundle/triad domains. The builder and independent validator both
+consume that same caller-supplied policy; the validator never calls the
+builder. This is an intentional internal API migration: callers of the real
+path must pass `real_policy=RealPromotionPolicy(...)`, while the old synthetic
+surface is reachable only as `build_legacy_promotion_record` and
+`validate_legacy_promotion_record`.
+
+**Status:** Contract remediation is pending review; no D3 promotion record is
+created by this change.
+
+## [2026-09-01] Derive real-promotion pins from canonical committed evidence
+
+**Decision:** Real-promotion validation must independently load its immutable
+`RealPromotionPolicy` and commitment policy from fixed, tracked canonical files
+and compare every supplied mapping to those exact file mappings.
+
+**Alternatives considered:** Trust caller-supplied policy objects, trust
+self-rehashed evidence mappings, or bind only selected digest fields.
+
+**Reason:** A self-consistent mutable mapping can preserve its own digest while
+silently changing the artifact, sidecar, audit, or input being promoted.
+Independent loading plus deep mapping equality keeps the D3 gate tied to the
+reviewed repository evidence and prevents alternate tracked paths or nested
+parent repositories from becoming policy sources.
+
+**Consequences:** Canonical evidence paths, file hashes, source commits, and
+tree OIDs are intentionally frozen in the real adapter; callers must provide
+equal mappings and parsed train/holdout/seed values. The legacy synthetic
+adapter remains separate and is not authorized by this policy loader.

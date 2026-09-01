@@ -4,6 +4,15 @@
 
 ### Added
 
+- Started the versioned L04.9 v2 real-evidence promotion contract remediation:
+  official finalized retention audits, the complete D1/D2/provisioning
+  predecessor chain, explicit Git tree algorithm/OID commitments, and separate
+  transport-payload versus canonical-artifact digests are now validated before
+  any D3 builder path can run. No D3 promotion record was emitted. The real
+  API independently loads an immutable canonical `RealPromotionPolicy` and
+  requires supplied mappings to match, while synthetic promotion remains
+  available only through explicit legacy entry points.
+
 - Recorded the single owner-authorized real L04.9 v2 Stage B evaluation on
   exact source SHA `6af20749b305f591d2c90d868cb09e71f623bdd0`. Repository-mode
   preflight and commitment checks, one native PowerShell `ssh.exe` process,

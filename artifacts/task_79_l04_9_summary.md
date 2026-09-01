@@ -16,6 +16,22 @@ byte-exact during initial retention, then deleted under the explicit owner
 exception after its size/hash were verified; the sanitized sidecar records the
 deletion and remains non-promoting. No D3 evidence was promoted.
 
+## Current promotion-contract remediation
+
+The later Stage B result is finalized D2 evidence, not a repository promotion.
+The real-evidence D3 adapter is being validated against the official finalized
+retention audit and the complete D1/D2/provisioning predecessor chain. This
+work uses a versioned real-promotion schema, an explicit Git tree `sha1` object
+ID, and separate transport-payload versus canonical-artifact digests. No D3
+record has been created; no semantic or retained evidence bytes were modified.
+The real builder and validator independently load an immutable
+`RealPromotionPolicy` from fixed, tracked canonical files, then require any
+supplied policy and evidence mappings to match those bytes exactly. It pins
+file hashes, sidecar canonical digests, predecessor lifecycle commitments,
+source trees, and transport/bundle/artifact domains. The synthetic contract is
+intentionally isolated behind explicit legacy entry points and is never used
+for real evidence.
+
 ## Contract
 
 - Clean hidden activation replaces the corrupted activation at layer 6 / native

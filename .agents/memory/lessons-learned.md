@@ -1294,3 +1294,49 @@ assessment to `deleted_verified` and `evidence_eligible=true`; this is
 retention finalization, not semantic finalization, repository promotion, or
 D3. Preserve the predecessor assessment digest and local raw-absence proof;
 remote checkout/cache absence remains a separate unverified fact.
+
+## 2026-09-01 — Do not guess a promotion audit from similarly shaped evidence
+
+**Symptom:** The first promotion implementation expected the synthetic
+retention-audit shape and a 64-hex `source_tree_sha256`, so it could not safely
+consume the official finalized audit without conflating transport and artifact
+evidence.
+
+**Root cause:** The outer retention audit, canonical Stage B artifact, and
+assessment sidecars are separate contracts with different digest domains; the
+Git tree value is a SHA-1 object ID, not a SHA-256 file digest.
+
+**Fix / workaround:** Added an explicit real-evidence adapter and independent
+validator with a versioned schema, `{algorithm: "sha1", oid: ...}` tree
+commitment, separate transport/artifact digests, and predecessor-sidecar
+binding. The synthetic path remains explicitly named as legacy.
+
+**Watch out for:** A D2 `promotion_candidate` flag, a passing semantic
+validator, or a similarly shaped audit is not permission to emit D3; reject
+missing, pending, or conflated chain links without exposing evidence content.
+
+An additional guard is required for future changes: do not derive the expected
+hashes from the evidence object being checked. The real path accepts only the
+frozen owner-supplied `RealPromotionPolicy`; malformed mappings, nested lists,
+unknown audit fields, and legacy-shaped records must fail closed with fixed
+sanitized errors. Keep the explicit legacy adapter separate so compatibility
+tests cannot accidentally authorize real-evidence promotion.
+
+## 2026-09-01 — Self-rehashed real evidence can bypass selected-field validation
+
+**Symptom:** A forged sidecar, candidate, or Stage B artifact could be changed
+and rehashed so selected digest checks still passed; a caller could also supply
+a policy whose pins were derived from the same mutable evidence.
+
+**Root cause:** The validator checked self-consistency and selected fields but
+did not compare the complete mapping and parsed inputs to independently loaded
+canonical committed files.
+
+**Fix / workaround:** Added fixed canonical path/hash/root/tracking gates,
+deep mapping equality for sidecars, audits, candidate, addendum, and partial
+artifact, exact canonical train/holdout/seed comparisons, and a policy loader
+that derives pins only from those files and frozen source commitments.
+
+**Watch out for:** Never accept a real-promotion policy reconstructed from
+caller mappings, alternate tracked files, or a nested Git parent; a valid
+self-digest is not proof that the mapping is the reviewed evidence.
