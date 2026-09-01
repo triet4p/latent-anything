@@ -45,6 +45,11 @@ FINALIZER_REJECTION_CODES = (
     "finalizer_resource_peak_status_reason",
     "finalizer_resource_peak_availability_provenance",
     "finalizer_resource_peak_budget",
+    "finalizer_resource_peak_cpu_peak",
+    "finalizer_resource_peak_gpu_allocated_peak",
+    "finalizer_resource_peak_gpu_reserved_peak",
+    "finalizer_resource_peak_budget_fields",
+    "finalizer_resource_peak_budget_cross",
     "finalizer_resource_peak_cross_invariants",
     # Retained for historical incident sidecars; new producer diagnostics use
     # the deterministic resource-peak subcodes above.

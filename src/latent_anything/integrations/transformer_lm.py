@@ -521,6 +521,7 @@ class TransformerLMIntegration:
         *,
         raw_capture_layers: tuple[int, ...],
         intervention: HiddenStateIntervention | None = None,
+        compute_lens_results: bool = True,
     ) -> tuple[TransformerGenerationResult, tuple[tuple[int, np.ndarray, dict[str, str]], ...]]:
         """Run one private forward while retaining raw transformer block outputs.
 
@@ -540,6 +541,7 @@ class TransformerLMIntegration:
             provenance=self.provenance,
             default_num_layers=GPT2_NUM_LAYERS,
             raw_capture_layers=raw_capture_layers,
+            compute_lens_results=compute_lens_results,
         )
         return self._public_result(request, runtime_result), runtime_result.raw_block_states
 

@@ -6,6 +6,7 @@ import builtins
 import copy
 import hashlib
 import json
+import weakref
 from collections.abc import Mapping
 from pathlib import Path
 from types import SimpleNamespace
@@ -17,6 +18,7 @@ import pytest
 import scripts._m14_l049_v2_real_runtime as real_runtime
 import scripts._m14_l049_v2_stage_a as stage_a_module
 import scripts._m14_l049_v2_validate_common as validate_common
+import scripts.m14_l049_v2_load_stress as load_stress
 import scripts.m14_l049_v2_resource_probe as resource_probe
 from scripts._m14_l049_v2_fixture import authoring_manifest_digest, generate_rows, read_rows
 from scripts._m14_l049_v2_power import POWER_ASSUMPTIONS, frozen_power_result, power_digest, validate_power_result
@@ -37,6 +39,7 @@ from scripts._m14_l049_v2_stage_a import (
     build_stage_a_artifact,
     normalize_attempted_real_resources,
     run_real_stage_a,
+    run_stage_a_candidate_workload,
 )
 from scripts._m14_l049_v2_stage_b import (
     build_stage_b_failure_artifact,
@@ -548,6 +551,164 @@ def test_resource_tracker_records_nonzero_cuda_and_linux_rss_provenance(monkeypa
         "gpu_reserved_source": "torch.cuda.max_memory_reserved",
         "gpu_device": "cuda:0",
     }
+
+
+def test_runtime_forward_snapshot_retains_only_scorer_owned_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    result = SimpleNamespace(attention_mask=np.ones((1, 2), dtype=np.int64), logits=np.ones((1, 2, 4)))
+    raw = {3: np.ones((1, 2, 2), dtype=np.float32)}
+    monkeypatch.setattr(real_runtime, "_forward", lambda *_args, **_kwargs: (result, raw))
+    monkeypatch.setattr(real_runtime, "_margin", lambda *_args, **_kwargs: 0.5)
+
+    snapshot = real_runtime._forward_snapshot(  # pyright: ignore[reportPrivateUsage]
+        object(),
+        "prompt",
+        margin_targets=(" true",),
+        raw_capture_layers=(3,),
+    )
+    assert set(snapshot.__dataclass_fields__) == {"attention_mask", "margins", "raw_states"}
+    assert not hasattr(snapshot, "logits")
+    assert snapshot.margins == {" true": 0.5}
+    raw[3][0, 0, 0] = 99.0
+    result.attention_mask[0, 0] = 0
+    assert snapshot.raw_states is not raw
+    assert snapshot.raw_states[3][0, 0, 0] == 1.0
+    assert snapshot.attention_mask[0, 0] == 1
+    with pytest.raises(TypeError):
+        snapshot.margins["false"] = 0.0  # type: ignore[index]
+    with pytest.raises(TypeError):
+        snapshot.raw_states[4] = np.zeros((1, 2, 2))  # type: ignore[index]
+    with pytest.raises(ValueError):
+        snapshot.raw_states[3][0, 0, 0] = 0.0
+    with pytest.raises(ValueError):
+        snapshot.raw_states[3].setflags(write=True)
+
+
+def test_runtime_forward_snapshot_releases_full_result_after_extraction(monkeypatch: pytest.MonkeyPatch) -> None:
+    holder: dict[str, weakref.ReferenceType[Any]] = {}
+
+    class _Result:
+        pass
+
+    def make_forward(*_args: Any, **_kwargs: Any) -> tuple[Any, dict[int, np.ndarray]]:
+        result = _Result()
+        result.attention_mask = np.ones((1, 2), dtype=np.int64)
+        result.logits = np.ones((1, 2, 4))
+        raw = {3: np.ones((1, 2, 2), dtype=np.float32)}
+        holder["result"] = weakref.ref(result)
+        holder["logits"] = weakref.ref(result.logits)
+        holder["raw"] = weakref.ref(raw[3])
+        return result, raw
+
+    monkeypatch.setattr(real_runtime, "_forward", make_forward)
+    monkeypatch.setattr(real_runtime, "_margin", lambda *_args, **_kwargs: 0.5)
+    snapshot = real_runtime._forward_snapshot(object(), "prompt", margin_targets=(" true",), raw_capture_layers=(3,))  # type: ignore[reportPrivateUsage]
+    assert snapshot.raw_states[3] is not holder["raw"]()
+    del snapshot
+    import gc
+
+    gc.collect()
+    assert holder["result"]() is None
+    assert holder["logits"]() is None
+    assert holder["raw"]() is None
+
+
+def test_canonical_candidate_workload_matches_stage_a_call_count() -> None:
+    rows = read_rows(TRAIN_PATH)[1]
+    calls = 0
+
+    def scorer(_row: Mapping[str, Any], _layer: int, _offset: int) -> float:
+        nonlocal calls
+        calls += 1
+        return 0.1
+
+    records: list[dict[str, Any]] = []
+    assert run_stage_a_candidate_workload(rows, scorer, on_record=records.append) == 1296
+    assert calls == 2592
+    assert len(records) == 1296
+
+
+def test_load_stress_marker_validator_is_fixed_and_fail_closed() -> None:
+    records = (
+        ("L049_V2_LOAD_STRESS_STATUS", "PASS"),
+        ("L049_V2_LOAD_STRESS_FINALIZER_CODE", "NONE"),
+        ("L049_V2_LOAD_STRESS_MEASUREMENT_STATUS", "available"),
+        ("L049_V2_LOAD_STRESS_MEASUREMENT_REASON", "none"),
+        ("L049_V2_LOAD_STRESS_CPU_PROVENANCE", "true"),
+        ("L049_V2_LOAD_STRESS_GPU_PROVENANCE", "true"),
+        ("L049_V2_LOAD_STRESS_DEVICE_CANONICAL", "true"),
+        ("L049_V2_LOAD_STRESS_COUNTERS_COMPLETE", "true"),
+        ("L049_V2_LOAD_STRESS_CPU_BUDGET_OK", "true"),
+        ("L049_V2_LOAD_STRESS_GPU_ALLOCATED_BUDGET_OK", "true"),
+        ("L049_V2_LOAD_STRESS_GPU_RESERVED_BUDGET_OK", "true"),
+        ("L049_V2_LOAD_STRESS_CLEANUP", "PASS"),
+    )
+    output = "\n".join(f"{name}={value}" for name, value in records)
+    assert load_stress.validate_load_stress_output(output) == []
+    assert load_stress.validate_load_stress_output(
+        output.replace("L049_V2_LOAD_STRESS_STATUS=PASS", "L049_V2_LOAD_STRESS_STATUS=FAIL")
+    )
+    assert load_stress.validate_load_stress_output(
+        output.replace("L049_V2_LOAD_STRESS_MEASUREMENT_REASON=none", "L049_V2_LOAD_STRESS_MEASUREMENT_REASON=secret")
+    )
+
+
+def test_load_stress_safe_markers_guard_unhashable_metadata() -> None:
+    resources = {"resource_peak": {"measurement_status": [], "measurement_reason": {"secret": True}}}
+    markers = load_stress._safe_markers(  # pyright: ignore[reportPrivateUsage]
+        resources,
+        workload_ok=False,
+        cleanup_ok=False,
+        rejection_code=["secret"],  # type: ignore[arg-type]
+    )
+    output = "\n".join(f"{name}={value}" for name, value in markers)
+    assert load_stress.validate_load_stress_output(output) == []
+    assert "secret" not in output
+
+
+def test_load_stress_requires_valid_finalizer_before_cleanup_pass(monkeypatch: pytest.MonkeyPatch) -> None:
+    resources = _real_resources_for_complete_selection()
+    calls = 0
+
+    def invalid_finalizer() -> object:
+        nonlocal calls
+        calls += 1
+        return {"secret": "invalid"}
+
+    resources["finalize"] = invalid_finalizer
+    monkeypatch.setattr(load_stress, "read_rows", lambda _path: (b"", []))
+    monkeypatch.setattr(load_stress, "build_stage_a_runtime", lambda _rows: (lambda *_args: 0.0, resources))
+    monkeypatch.setattr(load_stress, "run_stage_a_candidate_workload", lambda *_args, **_kwargs: 1296)
+    markers, code = load_stress.run_load_stress()
+    output = "\n".join(f"{name}={value}" for name, value in markers)
+    assert calls == 1
+    assert code == 1
+    assert "L049_V2_LOAD_STRESS_STATUS=FAIL" in output
+    assert "L049_V2_LOAD_STRESS_FINALIZER_CODE=finalizer_top_level_fields" in output
+    assert "L049_V2_LOAD_STRESS_CLEANUP=FAIL" in output
+    assert load_stress.validate_load_stress_output(output) == []
+
+
+@pytest.mark.parametrize("finalizer_mode", ["missing", "raising"])
+def test_load_stress_missing_or_throwing_finalizer_is_sanitized(
+    monkeypatch: pytest.MonkeyPatch, finalizer_mode: str
+) -> None:
+    resources = _real_resources_for_complete_selection()
+    if finalizer_mode == "raising":
+
+        def raising_finalizer() -> object:
+            raise RuntimeError("secret cleanup detail")
+
+        resources["finalize"] = raising_finalizer
+    monkeypatch.setattr(load_stress, "read_rows", lambda _path: (b"", []))
+    monkeypatch.setattr(load_stress, "build_stage_a_runtime", lambda _rows: (lambda *_args: 0.0, resources))
+    monkeypatch.setattr(load_stress, "run_stage_a_candidate_workload", lambda *_args, **_kwargs: 1296)
+    markers, code = load_stress.run_load_stress()
+    output = "\n".join(f"{name}={value}" for name, value in markers)
+    assert code == 1
+    assert "L049_V2_LOAD_STRESS_STATUS=FAIL" in output
+    assert "L049_V2_LOAD_STRESS_CLEANUP=FAIL" in output
+    assert "secret" not in output
+    assert load_stress.validate_load_stress_output(output) == []
 
 
 def test_resource_tracker_reset_failure_preserves_attempted_canonical_device() -> None:
@@ -1489,12 +1650,12 @@ def test_finalizer_checker_accepts_sanitized_query_failure() -> None:
         (
             "peak_budget_type",
             lambda value: value["resource_peak"].update({"budget_gpu_bytes": 6_000_000_001}),
-            "finalizer_resource_peak_budget",
+            "finalizer_resource_peak_budget_fields",
         ),
         (
             "peak_budget_exceeded",
             lambda value: value["resource_peak"].update({"peak_gpu_bytes": 5_999_999_999, "budget_gpu_bytes": 1}),
-            "finalizer_resource_peak_budget",
+            "finalizer_resource_peak_gpu_allocated_peak",
         ),
         (
             "peak_cross_invariant",

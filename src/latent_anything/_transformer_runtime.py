@@ -96,6 +96,7 @@ def run_generation(
     provenance: str,
     default_num_layers: int,
     raw_capture_layers: Sequence[int] = (),
+    compute_lens_results: bool = True,
 ) -> RuntimeGenerationResult:
     import torch
 
@@ -190,7 +191,7 @@ def run_generation(
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            output_hidden_states=True,
+            output_hidden_states=need_capture,
         )
 
     final_logits_tensor = getattr(outputs, "logits", None)
@@ -222,7 +223,7 @@ def run_generation(
                     )
                 )
 
-    if native_hidden_states is not None:
+    if native_hidden_states is not None and compute_lens_results:
         final_native_index = len(native_hidden_states) - 1
         for layer_index in capture_layers:
             if layer_index < len(native_hidden_states):
@@ -237,15 +238,18 @@ def run_generation(
                 )
                 lens_results.append((layer_index, logits, probabilities, top_tokens, request.top_k_logit_lens))
 
-    rank_inputs = [
-        type(
-            "LensResult",
-            (),
-            {"layer": layer_index, "probabilities": probabilities},
-        )()
-        for layer_index, _logits, probabilities, _top_tokens, _top_k in lens_results
-    ]
-    token_rank_trajectories = compute_token_rank_trajectories(rank_inputs, seq_len, tokenizer)
+    if compute_lens_results:
+        rank_inputs = [
+            type(
+                "LensResult",
+                (),
+                {"layer": layer_index, "probabilities": probabilities},
+            )()
+            for layer_index, _logits, probabilities, _top_tokens, _top_k in lens_results
+        ]
+        token_rank_trajectories = compute_token_rank_trajectories(rank_inputs, seq_len, tokenizer)
+    else:
+        token_rank_trajectories = ()
 
     raw_block_states_map: dict[int, tuple[np.ndarray, dict[str, str]]] = {}
     if raw_session is not None:

@@ -736,6 +736,37 @@ class TestFakeBackendPipeline:
         assert len(result.hidden_states) == 0
         assert len(result.lens_results) == 0
 
+    def test_runtime_request_suppresses_unused_native_and_lens_outputs(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        pipe = TransformerLMIntegration()
+        fake_model = FakeGPT2Model()
+        fake_tokenizer = FakeTokenizer()
+        calls: list[bool] = []
+        original_forward = fake_model.forward
+
+        def recording_forward(*args: Any, **kwargs: Any) -> Any:
+            calls.append(bool(kwargs.get("output_hidden_states")))
+            return original_forward(*args, **kwargs)
+
+        monkeypatch.setattr(fake_model, "forward", recording_forward)
+        monkeypatch.setattr(pipe, "_backend", lambda: (fake_model, fake_tokenizer, fake_model.config))
+
+        result, raw_states = pipe._generate_with_raw_block_capture(  # pyright: ignore[reportPrivateUsage]
+            TransformerGenerationRequest(
+                prompt="runtime-only",
+                max_length=8,
+                capture_hidden_states=False,
+                capture_layers=(),
+                top_k_logit_lens=0,
+            ),
+            raw_capture_layers=(),
+            compute_lens_results=False,
+        )
+        assert calls == [False]
+        assert raw_states == ()
+        assert result.hidden_states == ()
+        assert result.lens_results == ()
+        assert result.token_rank_trajectories == ()
+
     def test_generate_captures_hidden_states(self, monkeypatch: pytest.MonkeyPatch) -> None:
         pipe = TransformerLMIntegration()
         fake_model = FakeGPT2Model()

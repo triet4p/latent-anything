@@ -342,17 +342,19 @@ def _finalizer_rejection_code(value: object) -> str | None:
             return "finalizer_identity_fields"
 
     counters = value.get("operation_counts")
+    counter_keys = set(counters) if isinstance(counters, Mapping) else set()
     if (
         not isinstance(counters, Mapping)
-        or set(counters) != _COUNTER_FIELDS
+        or counter_keys != set(_COUNTER_FIELDS)
         or any(_bounded_nonnegative_int(item) is None for item in counters.values())
     ):
         return "finalizer_operation_counts"
 
     hook = value.get("hook")
+    hook_keys = set(hook) if isinstance(hook, Mapping) else set()
     if (
         not isinstance(hook, Mapping)
-        or set(hook) != _FINALIZER_HOOK_FIELDS
+        or hook_keys != set(_FINALIZER_HOOK_FIELDS)
         or any(_bounded_nonnegative_int(hook.get(field)) is None for field in _FINALIZER_HOOK_FIELDS)
     ):
         return "finalizer_hook_fields"
@@ -364,9 +366,10 @@ def _finalizer_rejection_code(value: object) -> str | None:
         return "finalizer_cross_field_invariants"
 
     intervention = value.get("intervention")
+    intervention_keys = set(intervention) if isinstance(intervention, Mapping) else set()
     if (
         not isinstance(intervention, Mapping)
-        or set(intervention) != _FINALIZER_INTERVENTION_FIELDS
+        or intervention_keys != set(_FINALIZER_INTERVENTION_FIELDS)
         or any(_bounded_nonnegative_int(intervention.get(field)) is None for field in _FINALIZER_INTERVENTION_FIELDS)
     ):
         return "finalizer_intervention_fields"
@@ -391,7 +394,8 @@ def _finalizer_rejection_code(value: object) -> str | None:
 
 def _finalizer_resource_peak_rejection_code(peak: object) -> str | None:
     """Classify one resource peak with a stable, non-sensitive first failure."""
-    if not isinstance(peak, Mapping) or set(peak) != _FINALIZER_PEAK_FIELDS:
+    peak_keys = set(peak) if isinstance(peak, Mapping) else set()
+    if not isinstance(peak, Mapping) or peak_keys != set(_FINALIZER_PEAK_FIELDS):
         return "finalizer_resource_peak_shape"
 
     integer_fields = (
@@ -401,8 +405,13 @@ def _finalizer_resource_peak_rejection_code(peak: object) -> str | None:
         "budget_cpu_bytes",
         "budget_gpu_bytes",
     )
-    if any(not isinstance(peak.get(field), int) or isinstance(peak.get(field), bool) for field in integer_fields):
-        return "finalizer_resource_peak_primitive_types"
+    for field in integer_fields:
+        if not isinstance(peak.get(field), int) or isinstance(peak.get(field), bool):
+            return (
+                "finalizer_resource_peak_budget_fields"
+                if field in {"budget_cpu_bytes", "budget_gpu_bytes"}
+                else "finalizer_resource_peak_primitive_types"
+            )
     if peak.get("unit") != "bytes" or not isinstance(peak.get("unit"), str):
         return "finalizer_resource_peak_primitive_types"
     for field in ("elapsed_source", "cpu_source", "gpu_source", "gpu_reserved_source", "gpu_device"):
@@ -449,11 +458,14 @@ def _finalizer_resource_peak_rejection_code(peak: object) -> str | None:
     peak_reserved = cast(int, peak["peak_gpu_reserved_bytes"])
     budget_cpu = cast(int, peak["budget_cpu_bytes"])
     budget_gpu = cast(int, peak["budget_gpu_bytes"])
-    if any(
-        value < 0 or value > _MAX_RESOURCE_VALUE
-        for value in (peak_cpu, peak_gpu, peak_reserved, budget_cpu, budget_gpu)
-    ):
-        return "finalizer_resource_peak_budget"
+    if peak_cpu < 0 or peak_cpu > _MAX_RESOURCE_VALUE:
+        return "finalizer_resource_peak_cpu_peak"
+    if peak_gpu < 0 or peak_gpu > _MAX_RESOURCE_VALUE:
+        return "finalizer_resource_peak_gpu_allocated_peak"
+    if peak_reserved < 0 or peak_reserved > _MAX_RESOURCE_VALUE:
+        return "finalizer_resource_peak_gpu_reserved_peak"
+    if budget_cpu < 0 or budget_cpu > _MAX_RESOURCE_VALUE or budget_gpu < 0 or budget_gpu > _MAX_RESOURCE_VALUE:
+        return "finalizer_resource_peak_budget_fields"
 
     if status == "available":
         if (
@@ -526,8 +538,12 @@ def _finalizer_resource_peak_rejection_code(peak: object) -> str | None:
         ):
             return "finalizer_resource_peak_availability_provenance"
 
-    if peak_cpu > budget_cpu or peak_gpu > budget_gpu or peak_reserved > budget_gpu:
-        return "finalizer_resource_peak_budget"
+    if peak_cpu > budget_cpu:
+        return "finalizer_resource_peak_cpu_peak"
+    if peak_gpu > budget_gpu:
+        return "finalizer_resource_peak_gpu_allocated_peak"
+    if peak_reserved > budget_gpu:
+        return "finalizer_resource_peak_gpu_reserved_peak"
     if peak_reserved < peak_gpu:
         return "finalizer_resource_peak_cross_invariants"
     return None
@@ -546,6 +562,11 @@ def _finite_nonnegative_float_value(value: object) -> float | None:
 def _valid_finalizer_resources(value: object) -> bool:
     """Return whether the canonical producer-side finalizer check succeeds."""
     return _finalizer_rejection_code(value) is None
+
+
+def validate_finalizer_resources(value: object) -> bool:
+    """Expose the narrow finalizer contract to diagnostics without private imports."""
+    return _valid_finalizer_resources(value)
 
 
 class _ResourceFinalizerError(RuntimeError):
@@ -626,9 +647,20 @@ def _score_value(value: ScoreValue) -> tuple[float, dict[str, float]]:
     return numeric, {"clean_margin": 1.0, "corrupted_margin": 0.0, "patched_margin": numeric}
 
 
-def _score_records(rows: Sequence[Mapping[str, Any]], scorer: ScoreFunction) -> list[dict[str, Any]]:
+def run_stage_a_candidate_workload(
+    rows: Sequence[Mapping[str, Any]],
+    scorer: ScoreFunction,
+    *,
+    on_record: Callable[[dict[str, Any]], None] | None = None,
+) -> int:
+    """Run the canonical train candidate workload without requiring selection.
+
+    Stage A selection and diagnostics share this exact loop. A diagnostic can
+    omit ``on_record`` so score records are immediately discarded while the
+    production scorer, cache lifetime, and operation counters remain identical.
+    """
     groups = _group_rows(rows)
-    records: list[dict[str, Any]] = []
+    count = 0
     for group_id, group_rows in groups.items():
         for candidate in candidate_grid():
             normalized = [_score_value(scorer(row, candidate["layer"], candidate["offset"])) for row in group_rows]
@@ -636,16 +668,24 @@ def _score_records(rows: Sequence[Mapping[str, Any]], scorer: ScoreFunction) -> 
             if not np.isfinite(values).all():
                 raise ValueError("train candidate scores must be finite")
             primitives = [item for _value, item in normalized]
-            records.append(
-                {
-                    "group_id": group_id,
-                    "layer": candidate["layer"],
-                    "offset": candidate["offset"],
-                    "row_scores": values,
-                    "group_score": float(np.mean(values)),
-                    "primitive_margins": primitives,
-                }
-            )
+            count += 1
+            if on_record is not None:
+                on_record(
+                    {
+                        "group_id": group_id,
+                        "layer": candidate["layer"],
+                        "offset": candidate["offset"],
+                        "row_scores": values,
+                        "group_score": float(np.mean(values)),
+                        "primitive_margins": primitives,
+                    }
+                )
+    return count
+
+
+def _score_records(rows: Sequence[Mapping[str, Any]], scorer: ScoreFunction) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    run_stage_a_candidate_workload(rows, scorer, on_record=records.append)
     return records
 
 
@@ -1159,6 +1199,8 @@ __all__ = [
     "default_train_score",
     "outer_folds",
     "normalize_attempted_real_resources",
+    "run_stage_a_candidate_workload",
     "run_real_stage_a",
     "select_stage_a",
+    "validate_finalizer_resources",
 ]

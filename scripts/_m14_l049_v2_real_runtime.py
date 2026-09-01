@@ -6,10 +6,14 @@ requested.  It never contains fixture data or a holdout path.
 
 from __future__ import annotations
 
+import gc
 import importlib
 import sys
 import time
 from collections.abc import Mapping, MutableMapping, Sequence
+from contextlib import suppress
+from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, cast
 
 import numpy as np
@@ -24,6 +28,34 @@ from scripts._m14_l049_v2_schema import EXPECTED_RUNTIME_MODEL, directional_reco
 _COUNT_KEYS = ("candidate_evaluations", "hooks", "captures", "patches", "controls", "forwards")
 _CPU_BUDGET = 6_000_000_000
 _GPU_BUDGET = 6_000_000_000
+
+
+@dataclass(frozen=True)
+class _ForwardSnapshot:
+    """Minimal runtime-owned result retained across candidate evaluations.
+
+    A public ``TransformerGenerationResult`` contains final logits, every
+    requested native hidden state, and optional lens projections.  Keeping one
+    per causal pair would retain large tensors for the entire selection.  The
+    real scorer needs only the pair mask, scalar target margins, and raw block
+    states used to construct interventions; all other output is released when
+    ``_forward_snapshot`` returns.
+    """
+
+    attention_mask: np.ndarray
+    margins: Mapping[str, float]
+    raw_states: Mapping[int, np.ndarray]
+
+
+def _owned_readonly_array(value: object) -> np.ndarray:
+    """Own one compact snapshot array and prevent mutation through the seam."""
+    owned = np.array(value, copy=True, order="C")
+    # A plain owning ndarray can be made writable again with ``setflags``.
+    # Retain an immutable bytes buffer instead, so even adversarial callers
+    # cannot mutate the snapshot or bypass its ownership boundary.
+    frozen = np.frombuffer(owned.tobytes(), dtype=owned.dtype).reshape(owned.shape)
+    frozen.setflags(write=False)
+    return frozen
 
 
 class RealRuntimeError(RuntimeError):
@@ -277,7 +309,7 @@ def _last_valid_position(result: Any, offset: int, *, role: str, sequence_length
     return position
 
 
-def _hidden(result: Any, layer: int, *, role: str) -> np.ndarray:
+def _hidden(result: Any, layer: int, *, role: str) -> np.ndarray:  # pyright: ignore[reportUnusedFunction]
     native_index = int(layer) + 1
     states = {int(state.layer): np.asarray(state.values) for state in result.hidden_states}
     values = states.get(native_index)
@@ -343,6 +375,7 @@ def _forward(
     counters: MutableMapping[str, int] | None = None,
     operation: str | None = None,
 ) -> tuple[Any, dict[int, np.ndarray]]:
+    del capture_layers  # retained as a compatibility keyword for old seams
     if counters is not None:
         counters["forwards"] += 1
         counters["captures"] += 1
@@ -355,14 +388,53 @@ def _forward(
         TransformerGenerationRequest(
             prompt=prompt,
             max_length=128,
-            capture_hidden_states=True,
-            capture_layers=capture_layers,
+            # The v2 runtime consumes only final-margin scalars and private
+            # raw block captures.  Keep public ``generate`` defaults intact,
+            # but do not materialize native hidden/lens outputs here.
+            capture_hidden_states=False,
+            capture_layers=(),
             top_k_logit_lens=0,
         ),
         intervention=intervention,
         raw_capture_layers=raw_capture_layers,
+        compute_lens_results=False,
     )
     return result, {int(layer): values for layer, values, _metadata in raw_states}
+
+
+def _forward_snapshot(
+    integration: TransformerLMIntegration,
+    prompt: str,
+    *,
+    margin_targets: Sequence[str] = (),
+    raw_capture_layers: tuple[int, ...] = (),
+    intervention: HiddenStateIntervention | None = None,
+    counters: MutableMapping[str, int] | None = None,
+    operation: str | None = None,
+) -> _ForwardSnapshot:
+    """Convert one full forward result into the scorer's bounded snapshot."""
+    result, raw_states = _forward(
+        integration,
+        prompt,
+        raw_capture_layers=raw_capture_layers,
+        intervention=intervention,
+        counters=counters,
+        operation=operation,
+    )
+    margins = {target: _margin(integration, result, target) for target in dict.fromkeys(margin_targets)}
+    # Test seams may provide a result-less fake because they replace the
+    # position helper; real integrations always expose the mask.
+    attention_mask = _owned_readonly_array(getattr(result, "attention_mask", np.zeros((1, 1), dtype=bool)))
+    owned_raw_states = MappingProxyType({layer: _owned_readonly_array(values) for layer, values in raw_states.items()})
+    snapshot = _ForwardSnapshot(
+        attention_mask=attention_mask,
+        margins=MappingProxyType(dict(margins)),
+        raw_states=owned_raw_states,
+    )
+    # Do not let the full public result escape the forward boundary.  The
+    # snapshot owns only immutable CPU arrays needed by later interventions.
+    del result
+    return snapshot
 
 
 def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[str, Any]]:
@@ -380,8 +452,8 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
     except Exception as error:  # noqa: BLE001 - preserve attempted-real provenance
         tracker.finish()
         raise RealRuntimeError(error, _runtime_resources(counters, tracker)) from error
-    clean_cache: dict[str, Any] = {}
-    corrupt_cache: dict[str, Any] = {}
+    clean_cache: dict[str, _ForwardSnapshot] = {}
+    corrupt_cache: dict[str, _ForwardSnapshot] = {}
     score_cache: dict[tuple[str, int, int], dict[str, float]] = {}
 
     def score(row: Mapping[str, Any], layer: int, offset: int) -> Mapping[str, float]:
@@ -392,37 +464,39 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
         if cache_key in score_cache:
             return score_cache[cache_key]
         if pair_id not in clean_cache:
-            clean_cache[pair_id] = _forward(
+            clean_cache[pair_id] = _forward_snapshot(
                 integration,
                 str(pair["clean"]["prompt"]),
+                margin_targets=(str(pair["clean"]["target_text"]), str(pair["corrupted"]["target_text"])),
                 raw_capture_layers=tuple(range(12)),
                 counters=counters,
             )
-        clean, clean_raw = clean_cache[pair_id]
+        clean = clean_cache[pair_id]
         if pair_id not in corrupt_cache:
-            corrupt_cache[pair_id] = _forward(
+            corrupt_cache[pair_id] = _forward_snapshot(
                 integration,
                 str(pair["corrupted"]["prompt"]),
+                margin_targets=(str(pair["clean"]["target_text"]), str(pair["corrupted"]["target_text"])),
                 raw_capture_layers=tuple(range(12)),
                 counters=counters,
             )
-        corrupt, corrupt_raw = corrupt_cache[pair_id]
-        clean_hidden = _raw_hidden(clean_raw, layer, role="clean source")
-        corrupt_hidden = _raw_hidden(corrupt_raw, layer, role="corrupt recipient")
+        corrupt = corrupt_cache[pair_id]
+        clean_hidden = _raw_hidden(clean.raw_states, layer, role="clean source")
+        corrupt_hidden = _raw_hidden(corrupt.raw_states, layer, role="corrupt recipient")
         clean_position, corrupt_position = _patch_positions(clean, corrupt, clean_hidden, corrupt_hidden, int(offset))
         direction = np.zeros_like(corrupt_hidden)
         direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
-        patched = _forward(
+        patched = _forward_snapshot(
             integration,
             str(pair["corrupted"]["prompt"]),
-            capture_layers=(layer + 1,),
+            margin_targets=(str(row["target_text"]),),
             intervention=HiddenStateIntervention(
                 layer=layer,
                 direction=direction,
                 strength=1.0,
                 token_indices=[(0, corrupt_position)],
             ),
-            raw_capture_layers=(int(layer),),
+            raw_capture_layers=(),
             counters=counters,
             operation="patch",
         )
@@ -431,9 +505,9 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
         # directional recoveries at group level is valid, while averaging raw
         # margins across the two different target labels is not.
         target_text = str(row["target_text"])
-        patched_margin = _margin(integration, patched[0], target_text)
-        clean_margin = _margin(integration, clean, target_text)
-        corrupt_margin = _margin(integration, corrupt, target_text)
+        patched_margin = patched.margins[target_text]
+        clean_margin = clean.margins[target_text]
+        corrupt_margin = corrupt.margins[target_text]
         recovery = directional_recovery(clean_margin, corrupt_margin, patched_margin)
         if recovery is None:
             raise ValueError("real runtime produced an invalid directional recovery")
@@ -453,7 +527,25 @@ def build_stage_a_runtime(rows: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[
     # Keep the pre-finalizer envelope linked to the private live counters so a
     # later cleanup/finalizer failure cannot erase completed work as zeros.
     resources["operation_counts"] = counters
-    resources["finalize"] = lambda: tracker.finish() or _runtime_resources(counters, tracker)
+    cleanup_done = False
+
+    def finalize() -> dict[str, Any]:
+        nonlocal cleanup_done
+        if not cleanup_done:
+            clean_cache.clear()
+            corrupt_cache.clear()
+            score_cache.clear()
+            cleanup_done = True
+            gc.collect()
+            cuda = getattr(getattr(tracker, "_torch", None), "cuda", None)
+            empty_cache = getattr(cuda, "empty_cache", None)
+            if callable(empty_cache):
+                with suppress(Exception):
+                    empty_cache()
+        tracker.finish()
+        return _runtime_resources(counters, tracker)
+
+    resources["finalize"] = finalize
     return score, resources
 
 
@@ -476,25 +568,33 @@ def build_stage_b_runtime(
         offset = int(selected.get("offset", 0))
         observations: dict[str, dict[str, dict[str, Any]]] = {}
         for pair_id, pair in pairs.items():
-            clean, clean_raw = _forward(
-                integration, str(pair["clean"]["prompt"]), raw_capture_layers=(layer,), counters=counters
+            clean = _forward_snapshot(
+                integration,
+                str(pair["clean"]["prompt"]),
+                margin_targets=(str(pair["clean"]["target_text"]),),
+                raw_capture_layers=(layer,),
+                counters=counters,
             )
-            corrupt, corrupt_raw = _forward(
-                integration, str(pair["corrupted"]["prompt"]), raw_capture_layers=(layer,), counters=counters
+            corrupt = _forward_snapshot(
+                integration,
+                str(pair["corrupted"]["prompt"]),
+                margin_targets=(str(pair["corrupted"]["target_text"]),),
+                raw_capture_layers=(layer,),
+                counters=counters,
             )
-            clean_margin = _margin(integration, clean, str(pair["clean"]["target_text"]))
-            corrupted_margin = _margin(integration, corrupt, str(pair["corrupted"]["target_text"]))
-            clean_hidden = _raw_hidden(clean_raw, layer, role="clean source")
-            corrupt_hidden = _raw_hidden(corrupt_raw, layer, role="corrupt recipient")
+            clean_margin = clean.margins[str(pair["clean"]["target_text"])]
+            corrupted_margin = corrupt.margins[str(pair["corrupted"]["target_text"])]
+            clean_hidden = _raw_hidden(clean.raw_states, layer, role="clean source")
+            corrupt_hidden = _raw_hidden(corrupt.raw_states, layer, role="corrupt recipient")
             clean_position, corrupt_position = _patch_positions(
                 clean, corrupt, clean_hidden, corrupt_hidden, int(offset)
             )
             direction = np.zeros_like(corrupt_hidden)
             direction[0, corrupt_position] = clean_hidden[0, clean_position] - corrupt_hidden[0, corrupt_position]
-            patched = _forward(
+            patched = _forward_snapshot(
                 integration,
                 str(pair["corrupted"]["prompt"]),
-                capture_layers=(layer + 1,),
+                margin_targets=(str(pair["clean"]["target_text"]),),
                 intervention=HiddenStateIntervention(
                     layer=layer,
                     direction=direction,
@@ -503,17 +603,15 @@ def build_stage_b_runtime(
                 ),
                 counters=counters,
                 operation="patch",
-                raw_capture_layers=(layer,),
             )
-            patched_margin = _margin(integration, patched[0], str(pair["clean"]["target_text"]))
+            patched_margin = patched.margins[str(pair["clean"]["target_text"])]
             observations[pair_id] = {}
             for seed in (1701, 2901, 4101, 5301, 6701):
                 counters["candidate_evaluations"] += 1
                 for _control_name in ("wrong_token", "adjacent_layer", "additive", "matched_norm_random"):
-                    _forward(
+                    _forward_snapshot(
                         integration,
                         str(pair["corrupted"]["prompt"]),
-                        capture_layers=(layer + 1,),
                         counters=counters,
                         operation="control",
                     )
