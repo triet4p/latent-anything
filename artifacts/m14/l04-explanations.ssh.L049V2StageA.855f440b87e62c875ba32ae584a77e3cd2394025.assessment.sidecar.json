@@ -1,0 +1,139 @@
+{
+  "schema_version": "m14-l04.9-v2-current-incident-assessment-v5",
+  "status": "retained_pending_finalize",
+  "source": {
+    "commit_sha": "855f440b87e62c875ba32ae584a77e3cd2394025",
+    "tree_sha256": "146a5713beded25771a7b2102b57d20782a77d7e",
+    "use_case": "L049V2StageA",
+    "exact_source_verified": true
+  },
+  "evidence": {
+    "raw_capture": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.raw.txt",
+      "bytes": 9779,
+      "sha256": "f89e5eab0ce215982eee6ac382680703d7db2a48203593c5b282a6ac3a100952",
+      "written_before_parse": true,
+      "present": true
+    },
+    "audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.audit.json",
+      "bytes": 3234,
+      "sha256": "8a388c93761107480633fc6fc120d84bae85787de86f89a09c27cfac79d9c4e3",
+      "present": true,
+      "archive_member_names_preserved": true,
+      "source_unique_local_paths": true
+    },
+    "bundle": {
+      "bytes": 2420,
+      "sha256": "2d72345c2ddf63ca016416ecd90db70bdb072615a82a214d91786016e09d1baf",
+      "member_names": [
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.failure.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.partial.json",
+        "artifacts/m14/l04-explanations.L049V2StageA.attempt1.run.json"
+      ],
+      "bytes_unchanged": true
+    },
+    "triad": {
+      "partial": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.partial.json",
+        "bytes": 7327,
+        "sha256": "5d0642fedc87b52dd5ffaa93d83ecc72b1d35bcc73af985d16d924029bfedcdb",
+        "present": true
+      },
+      "run": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.run.json",
+        "bytes": 395,
+        "sha256": "5a1bf10fd51ce795ff8c5d50977038fb88fee309500dba0446f5e1ff1d4d85f4",
+        "present": true
+      },
+      "failure": {
+        "path": "artifacts/m14/l04-explanations.L049V2StageA.855f440b87e62c875ba32ae584a77e3cd2394025.failure.json",
+        "bytes": 397,
+        "sha256": "f85edb12ad0071d2d4172ac77b9c483ac409ffc01480d6fb6a6afc3ed00af8b7",
+        "present": true
+      },
+      "local_paths_source_unique": true,
+      "bytes_unchanged": true
+    }
+  },
+  "execution": {
+    "completed_payloads": 1,
+    "ssh_launches_reported": 1,
+    "remote_cli_invocations": 1,
+    "retry_performed": false,
+    "remote_reach": "reached",
+    "cuda_proof": "PASS",
+    "remote_cleanup": "PASS",
+    "remote_cleanup_interpretation": "Recorded marker only; no independent remote absence proof is claimed.",
+    "transport_cleanup": "PASS",
+    "mutex_key_sha256": "9ceca7069819589eb4fc92f7270b07c3914f9941fb921c0adf19a2d443ed116f",
+    "argv_sha256": "2f78cab8e69bd2e12913d88e85f63d1a7c6298fcc5a9f6e790a1375489f0dc9f"
+  },
+  "markers": {
+    "transport_payload_sha256": "5c0f9a3132f747b9e23402c7e34a39447bb986055e37d15687f04b90221af2d6",
+    "transport_decode_status": 0,
+    "transport_decode_sha256": "5c0f9a3132f747b9e23402c7e34a39447bb986055e37d15687f04b90221af2d6",
+    "transport_decode_match": "PASS",
+    "use_case": "L049V2StageA",
+    "code_sha": "855f440b87e62c875ba32ae584a77e3cd2394025",
+    "cli_status": 0,
+    "bundle_status": 0,
+    "final_status": 0,
+    "bundle_bytes": 2420,
+    "bundle_sha256": "2d72345c2ddf63ca016416ecd90db70bdb072615a82a214d91786016e09d1baf",
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS",
+    "marker_count": 14
+  },
+  "assessment": {
+    "artifact_status": "stage_a_failed",
+    "failure_kind": "runtime_exception",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "selection_status": "not_complete",
+    "selection_evaluations": 2592,
+    "selection_reuse": "discarded_not_reusable",
+    "candidate_grid_size": 36,
+    "score_records": 0,
+    "folds": 0,
+    "oof_evidence": "not_produced",
+    "semantic_gate": "not_reached",
+    "operation_counts_observed": {
+      "candidate_evaluations": 2592,
+      "hooks": 1296,
+      "captures": 1368,
+      "patches": 1296,
+      "controls": 0,
+      "forwards": 1368
+    },
+    "resource_measurement": {
+      "status": "unavailable",
+      "reason": "resource_measurement_invalid",
+      "finalizer_rejection_code": "finalizer_resource_peak_budget",
+      "exact_budget_field": "unknown"
+    },
+    "cache_retention_assessment": {
+      "status": "strong_code_level_inference_not_artifact_proven",
+      "cause": "full TransformerGenerationResult objects retained for clean/corrupt pair caches while native hidden and lens outputs were materialized",
+      "mitigation": "bounded forward snapshots release public result, unused native hidden outputs, and lens projections before finalizer measurement"
+    },
+    "promotion": false,
+    "finalization": false,
+    "standard_finalize": false,
+    "repository_promotion": false
+  },
+  "load_stress_diagnostic": {
+    "entrypoint": "scripts/m14_l049_v2_load_stress.py",
+    "scope": "train_only",
+    "status": "implemented_not_run",
+    "emits": "fixed_sanitized_markers_only",
+    "selection_or_oof_emitted": false,
+    "holdout_or_stage_b_access": false
+  },
+  "retention": {
+    "status": "retained_pending_finalize",
+    "recommendation": "Preserve all five evidence files for owner review; no finalization, deletion, promotion, or semantic reuse is authorized by this task."
+  },
+  "redaction": "Sanitized metadata only; absolute and remote ephemeral paths, holdout material, secrets, device free text, prompts, labels, and execution bodies omitted.",
+  "sidecar_sha256": "a426087cfc02d0caf4ebf356e739090566311ec39ebb19a481fae09e2c2b5ad8"
+}

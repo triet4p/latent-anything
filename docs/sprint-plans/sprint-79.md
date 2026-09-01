@@ -457,6 +457,20 @@ occurred. See
   records pre-delete and post-delete absence proof. There was no
   audit/triad/bundle, promotion, or retry after the proven remote input-path
   failure, and this cleanup is not finalization.
+- [x] Bound the L049 v2 real-runtime forward lifetime after the 855f440 D0.
+  Stage A/Stage B now retain only scalar target margins, attention masks, and
+  private raw block states for interventions; full generation results,
+  native hidden outputs, and logit-lens projections are released at the
+  forward boundary. Runtime cleanup clears scorer caches before tracker
+  finalization without resetting peak counters. A train-only load-stress
+  diagnostic entry point emits fixed sanitized markers without selection,
+  OOF, artifact, holdout, or Stage B access; it reuses the canonical 1,296
+  candidate-record / 2,592 scorer-call workload and is implemented but not
+  run. Cleanup PASS is emitted only after one valid finalizer result.
+  Resource budget diagnostics now distinguish CPU, allocated-GPU,
+  reserved-GPU, and budget-field failures. The 855f440 evidence remains
+  source-unique, byte-exact, pending, D0, and non-promoted; cache retention is
+  recorded as a strong code-level inference rather than artifact proof.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

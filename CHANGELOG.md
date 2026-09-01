@@ -4,6 +4,13 @@
 
 ### Added
 
+- Added a train-only L04.9 v2 load-stress diagnostic with the production
+  runtime seam. It reuses the canonical Stage A runner for 1,296 candidate
+  records / 2,592 scorer calls while discarding records, emits only fixed
+  sanitized resource/finalizer markers, validates one finalizer result before
+  cleanup PASS, and does not emit selection, OOF, artifacts, holdout, or Stage
+  B data. It has not been run remotely.
+
 - Added the offline-tested, network-gated M14 L04.9 true activation-patching
   handler and fail-closed validator. It performs real clean/corrupted hidden
   activation interchange at the pinned GPT-2/`TransformerLMIntegration`
@@ -65,6 +72,14 @@
   fail-closed real-CUDA provenance validation.
 
 ### Changed
+
+- Bounded L04.9 v2 model-output lifetime with an internal forward snapshot:
+  Stage A/Stage B retain only scalar target margins, masks, and raw
+  intervention states, suppress unused native hidden/lens projections, and
+  clear caches before resource finalization. Resource budget diagnostics now
+  use allowlisted CPU/allocated-GPU/reserved-GPU/budget-field subcodes. The
+  855f440 D0 evidence remains byte-exact and pending; cache retention is a
+  code-level inference, not artifact-proven root cause.
 
 - Hardened `ResourceTracker` CUDA peak publication to validate allocated and
   reserved values atomically; invalid, negative, zero, asymmetric, or failed

@@ -1202,3 +1202,21 @@ by the tracked sidecar, verify size and SHA-256 before deletion, and record
 local absence afterward. Preserve hashes and sanitized execution facts in the
 sidecar, but do not turn local deletion into a claim about remote checkout or
 cache cleanup, semantic success, promotion, or standard finalization.
+
+## [2026-09-01] Do not retain full transformer results across candidate scoring
+
+The L049 v2 runtime cached complete `TransformerGenerationResult` objects for
+each clean/corrupted pair while the underlying forward path also materialized
+native hidden states and logit-lens projections that the scorer never used.
+That creates a large, long-lived tensor ownership graph and can obscure the
+actual resource-finalizer failure boundary.
+
+The runtime now converts each forward immediately into a small immutable,
+owning snapshot of attention mask, scalar target margins, and raw intervention
+states. The private runtime request suppresses native hidden/lens work while
+public integration defaults remain unchanged. Scorer caches are cleared before
+`ResourceTracker.finish()` and peak counters are never reset. The train-only
+load-stress diagnostic reuses the canonical 1,296-record / 2,592-call Stage A
+workload, discards records, and emits cleanup PASS only after one valid
+finalizer result; it remains available for later owner-authorized execution
+and emits no semantic or holdout data.
