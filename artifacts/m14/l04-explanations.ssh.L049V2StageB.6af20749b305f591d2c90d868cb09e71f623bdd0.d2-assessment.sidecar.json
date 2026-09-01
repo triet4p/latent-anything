@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l04.9-v2-stage-b-d2-assessment-v1",
-  "status": "retained_pending_finalize",
+  "status": "deleted_verified",
   "source": {
     "commit_sha": "6af20749b305f591d2c90d868cb09e71f623bdd0",
     "tree_sha256": "a0f1fb55c8d112128d81f3942132657100eac00f",
@@ -56,17 +56,24 @@
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.raw.txt",
       "bytes": 14231,
       "sha256": "344fff5563075d86c1d55b54fb546300ee64fa6533f21412d28b9258e3d204eb",
-      "present": true,
+      "present": false,
+      "present_before_finalize": true,
+      "absence_verified_by": "official_finalize_delete",
+      "local_absence_proof": true,
       "written_before_parse": true,
-      "raw_status": "retained_pending_finalize"
+      "raw_status": "deleted_verified",
+      "quarantine_status": "absent_verified"
     },
     "audit": {
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.audit.json",
-      "bytes": 3241,
-      "sha256": "bfbf41e2e97d8818d4f42dc44d732ecd87e303129a1eae1bafe73857f2b8d2be",
+      "bytes": 3395,
+      "sha256": "c8a308655103a75845ae45a0cc0a8029408958e4c9c01335db1a22854b0cef85",
       "present": true,
-      "raw_status": "retained_pending_finalize",
+      "raw_status": "deleted_verified",
       "reopen_validation": "PASS",
+      "prior_pending_bytes": 3241,
+      "prior_pending_sha256": "bfbf41e2e97d8818d4f42dc44d732ecd87e303129a1eae1bafe73857f2b8d2be",
+      "quarantine_status": "absent_verified",
       "validation": {"archive": "PASS", "envelopes": "PASS"}
     },
     "triad": {
@@ -215,22 +222,35 @@
   "assessment": {
     "evidence_level": "D2",
     "evaluation_complete": true,
-    "evidence_eligible": false,
+    "evidence_eligible": true,
     "promotion_candidate": true,
     "repository_promotion": false,
     "semantic_finalization": false,
-    "standard_finalize": false,
+    "standard_finalize": true,
+    "retention_finalized": true,
     "d3": false,
-    "status": "d2_evaluation_complete_pending_retention_review"
+    "status": "d2_evaluation_complete_retention_finalized"
   },
   "retention": {
-    "raw_retention_status": "retained_pending_finalize",
-    "raw_present": true,
-    "standard_finalize": false,
+    "raw_retention_status": "deleted_verified",
+    "raw_present": false,
+    "raw_local_absence_verified": true,
+    "standard_finalize": true,
+    "retention_finalized": true,
     "repository_promotion": false,
-    "recommendation": "retain raw, audit, bundle, and triad evidence pending owner-authorized retention decision; do not promote or finalize",
+    "previous_pending_sidecar_sha256": "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6",
+    "finalize_delete": {
+      "mode": "official_finalize_delete",
+      "dry_run": "PASS",
+      "raw_target_only": true,
+      "audit_lifecycle": "deleted_verified",
+      "quarantine_status": "absent_verified",
+      "triad_survives": "yes",
+      "candidate_survives": "yes"
+    },
+    "recommendation": "official raw-only retention finalization completed; retain audit, bundle metadata, triad, and candidate for owner review; do not promote or run D3",
     "remote_checkout_absence": "not_independently_verified"
   },
   "redaction": "Sanitized metadata only; no task text, class values, external paths, model free text, diagnostic stack, or secrets retained.",
-  "sidecar_sha256": "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6"
+  "sidecar_sha256": "eae9c36ce5d57f94ce41b7ab5cb0277fa089e58c67332fe4bf36dd248f8de280"
 }

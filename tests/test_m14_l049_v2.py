@@ -272,10 +272,10 @@ def test_stage_b_provisioning_assessment_is_canonical_and_pending() -> None:
     assert "C:/" not in serialized and "\\\\" not in serialized
 
 
-def test_current_stage_b_d2_assessment_binds_pending_evidence_without_leaks() -> None:
+def test_current_stage_b_d2_assessment_binds_finalized_evidence_without_leaks() -> None:
     sidecar = json.loads(CURRENT_D2_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
-    assert sidecar["sidecar_sha256"] == "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6"
+    assert sidecar["sidecar_sha256"] == "eae9c36ce5d57f94ce41b7ab5cb0277fa089e58c67332fe4bf36dd248f8de280"
     assert sidecar["source"] == {
         "commit_sha": "6af20749b305f591d2c90d868cb09e71f623bdd0",
         "tree_sha256": "a0f1fb55c8d112128d81f3942132657100eac00f",
@@ -286,17 +286,18 @@ def test_current_stage_b_d2_assessment_binds_pending_evidence_without_leaks() ->
         "predecessor_d1_commit_sha": "76a45ea74fbb2843b7d109855c2c387ab98b3e47",
         "predecessor_d1_tree_sha256": "392d241719b10fe6a946f20d203b9e0ff0f5f46c",
     }
-    assert sidecar["status"] == "retained_pending_finalize"
+    assert sidecar["status"] == "deleted_verified"
     assert sidecar["assessment"] == {
         "evidence_level": "D2",
         "evaluation_complete": True,
-        "evidence_eligible": False,
+        "evidence_eligible": True,
         "promotion_candidate": True,
         "repository_promotion": False,
         "semantic_finalization": False,
-        "standard_finalize": False,
+        "standard_finalize": True,
+        "retention_finalized": True,
         "d3": False,
-        "status": "d2_evaluation_complete_pending_retention_review",
+        "status": "d2_evaluation_complete_retention_finalized",
     }
     assert sidecar["semantic"]["groups"] == 24
     assert sidecar["semantic"]["rows"] == 48
@@ -310,7 +311,14 @@ def test_current_stage_b_d2_assessment_binds_pending_evidence_without_leaks() ->
     assert sidecar["execution"]["ssh_processes"] == 1
     assert sidecar["execution"]["stage_b_cli_invocations"] == 1
 
-    evidence = [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]
+    raw = sidecar["evidence"]["raw_capture"]
+    assert raw["present"] is False
+    assert raw["present_before_finalize"] is True
+    assert raw["local_absence_proof"] is True
+    assert raw["absence_verified_by"] == "official_finalize_delete"
+    assert not (ROOT / raw["path"]).exists()
+
+    evidence = [sidecar["evidence"]["audit"]]
     evidence.extend(sidecar["evidence"]["triad"].values())
     for item in evidence:
         path = ROOT / item["path"]
@@ -318,8 +326,18 @@ def test_current_stage_b_d2_assessment_binds_pending_evidence_without_leaks() ->
         assert path.stat().st_size == item["bytes"]
         assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
         assert item["present"] is True
-    assert sidecar["retention"]["raw_retention_status"] == "retained_pending_finalize"
-    assert sidecar["retention"]["standard_finalize"] is False
+    assert sidecar["evidence"]["audit"]["prior_pending_bytes"] == 3241
+    assert sidecar["evidence"]["audit"]["prior_pending_sha256"] == (
+        "bfbf41e2e97d8818d4f42dc44d732ecd87e303129a1eae1bafe73857f2b8d2be"
+    )
+    assert sidecar["retention"]["raw_retention_status"] == "deleted_verified"
+    assert sidecar["retention"]["raw_local_absence_verified"] is True
+    assert sidecar["retention"]["standard_finalize"] is True
+    assert sidecar["retention"]["finalize_delete"]["raw_target_only"] is True
+    assert sidecar["retention"]["finalize_delete"]["triad_survives"] == "yes"
+    assert sidecar["retention"]["previous_pending_sidecar_sha256"] == (
+        "76ba6a0079c61df0f0de4040a279b41f00ca039ab1b75d44614b41a8817410f6"
+    )
     assert sidecar["retention"]["repository_promotion"] is False
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("traceback", "prompt", "seed value", "begin private"))
