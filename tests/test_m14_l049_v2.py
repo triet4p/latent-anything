@@ -377,17 +377,17 @@ def test_current_a205_raw_only_assessment_is_canonical_and_pending() -> None:
     assert "f:\\ai-ml\\latent-anything" not in serialized
 
 
-def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
+def test_current_5d6_assessment_binds_owner_exception_deletion() -> None:
     sidecar = json.loads(CURRENT_5D6_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
-    assert sidecar["sidecar_sha256"] == "d93f45fbc059616093855b7de10b626a19914467938b8bf0dd287a0222c3f96e"
+    assert sidecar["sidecar_sha256"] == "949cc9d93e72b5fa1f01744aeef200469bc8e8d17f35b3742249922d69d2bc29"
     assert sidecar["source"] == {
         "commit_sha": "5d6d8fb5e06890cf9615936f049681a6d1e52228",
         "tree_sha256": "07bea97c9c4b55919fa707d473e2cecf7e1392a6",
         "use_case": "L049V2StageA",
         "exact_source_verified": True,
     }
-    assert sidecar["status"] == "pending"
+    assert sidecar["status"] == "deleted_by_owner_exception"
     assert sidecar["execution"] == {
         "completed_payloads": 1,
         "ssh_launches_reported": 1,
@@ -397,6 +397,7 @@ def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
         "remote_reach": "reached",
         "cuda_proof": "PASS",
         "remote_cleanup": "PASS",
+        "remote_cleanup_interpretation": "Recorded marker only; no independent remote absence proof is claimed.",
         "transport_cleanup": "PASS",
         "mutex_key_sha256": "80741d63253909a313149b756cf1668f0a339fd191ee7bf4a114bc74b7a276fb",
         "argv_sha256": "d8066963bd854746f2d1d2a3be716e64f1cca58602854bd75572bf7053a5159a",
@@ -407,7 +408,14 @@ def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
     triad = sidecar["evidence"]["triad"]
     assert sidecar["evidence"]["audit"]["sha256"] == "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827"
     assert sidecar["evidence"]["bundle"]["sha256"] == "87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe"
-    assert all(sidecar["evidence"]["triad"][kind]["present"] for kind in ("partial", "run", "failure"))
+    assert sidecar["assessment"]["remote_cleanup_claim"] == "not_claimed"
+    assert not sidecar["evidence"]["raw_capture"]["present"]
+    assert not sidecar["evidence"]["audit"]["present"]
+    assert all(not sidecar["evidence"]["triad"][kind]["present"] for kind in ("partial", "run", "failure"))
+    evidence_items = [sidecar["evidence"]["raw_capture"], sidecar["evidence"]["audit"]]
+    evidence_items.extend(sidecar["evidence"]["triad"][kind] for kind in ("partial", "run", "failure"))
+    assert all(item["local_absence_proof"] is True for item in evidence_items)
+    assert all(not (ROOT / item["path"]).exists() for item in evidence_items)
     assert all(sidecar["source"]["commit_sha"] in triad[kind]["path"] for kind in ("partial", "run", "failure"))
     assert sidecar["evidence"]["audit"]["rebuild"] == {
         "status": "canonical_retain_reopened",
@@ -426,7 +434,9 @@ def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
     )
     assert sidecar["assessment"]["promotion"] is False
     assert sidecar["assessment"]["finalization"] is False
-    assert sidecar["retention"]["status"] == "pending"
+    assert sidecar["retention"]["status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["deletion"]["postdelete_local_absence"] is True
+    assert sidecar["retention"]["deletion"]["irreversible_not_recoverable_from_git"] is True
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(secret not in serialized for secret in ("traceback", "begin private", "f:\\ai-ml"))
 
@@ -434,7 +444,7 @@ def test_current_5d6_assessment_binds_pending_source_unique_evidence() -> None:
 def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> None:
     sidecar = json.loads(CURRENT_RESOURCE_PROBE_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
-    assert sidecar["sidecar_sha256"] == "314823fca09eff6eabb3f67f167b4f6a22fda0362541607839f310f9c8e4efd6"
+    assert sidecar["sidecar_sha256"] == "d0ee03f491930877c0695e19ca7b72d8ea2d85d2d0c1e600f3e98b0048b2c12e"
     assert sidecar["source"] == {
         "commit_sha": "67d2fb7649543ffc679e521f4f2a2ee970c55c63",
         "tree_sha256": "72d18bfe8f899243ad1aad20000d86c3b69a85a8",
@@ -449,7 +459,8 @@ def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> N
         "bytes": 344,
         "sha256": "e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa",
         "written_before_parse": True,
-        "present_at_assessment": True,
+        "present_at_assessment": False,
+        "local_absence_proof": True,
     }
     assert sidecar["markers"]["count"] == 8
     assert sidecar["markers"]["order"] == list(resource_probe._PROBE_MARKER_NAMES)
@@ -468,8 +479,14 @@ def test_current_resource_probe_assessment_is_canonical_and_scope_bounded() -> N
     assert sidecar["assessment"]["probe_cleanup"] == "self_attested"
     assert sidecar["assessment"]["remote_checkout_cleanup"] == "unverified"
     assert sidecar["assessment"]["remote_checkout_absence_proof"] is False
-    assert sidecar["status"] == "pending"
-    assert sidecar["retention"]["status"] == "pending"
+    assert sidecar["evidence"]["raw_capture"]["local_absence_proof"] is True
+    assert not (ROOT / sidecar["evidence"]["raw_capture"]["path"]).exists()
+    assert sidecar["status"] == "deleted_by_owner_exception"
+    assert sidecar["assessment"]["standard_finalize"] is False
+    assert sidecar["assessment"]["repository_promotion"] is False
+    assert sidecar["retention"]["status"] == "deleted_by_owner_exception"
+    assert sidecar["retention"]["deletion"]["postdelete_local_absence"] is True
+    assert sidecar["retention"]["deletion"]["irreversible_not_recoverable_from_git"] is True
     serialized = json.dumps(sidecar, sort_keys=True).lower()
     assert all(
         secret not in serialized for secret in ("traceback", "holdout_plaintext", "private key", "f:\\ai-ml", "cuda:0")

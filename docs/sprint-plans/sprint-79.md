@@ -426,17 +426,21 @@ occurred. See
   availability provenance, budget, and cross-field invariants. The committed
   resource-only probe exercises the production tracker without model, fixture,
   selection, or holdout inputs and emits only fixed sanitized markers. The
-  current raw, bundle, audit, and source-unique triad evidence remain pending
-  and byte/digest-bound in its assessment sidecar; the exact peak subcondition
-  is unknown, so no semantic result, promotion, or finalization is inferred.
+  current raw, bundle, audit, and source-unique triad evidence were later
+  deleted under an explicit owner exception after exact size/hash verification;
+  the sidecar preserves their byte/digest facts and local absence proof. The
+  exact peak subcondition is unknown, so no semantic result, promotion, or
+  finalization is inferred.
 - [x] Execute the owner-authorized L049 v2 resource-only diagnostic on exact
   source SHA `67d2fb7649543ffc679e521f4f2a2ee970c55c63`. The single native
   PowerShell `ssh.exe` process cloned and verified that SHA, passed the
   suppressed CUDA preflight, and invoked the committed production-tracker
   probe once. Its eight fixed sanitized markers passed independent parsing:
   resource measurement was `available`, finalizer code `NONE`, and all
-  provenance booleans were coherent. The raw capture is pending and bound by
-  [`resource-probe assessment`](../../artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json).
+  provenance booleans were coherent. The raw capture was later deleted under
+  an explicit owner exception after exact size/hash verification; its
+  [`resource-probe assessment`](../../artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json)
+  preserves the hash and local absence proof.
   `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` is only the probe/`ResourceTracker`
   internal cleanup self-attestation; remote checkout/cache cleanup is
   explicitly unverified because the fixed marker schema has no remote-lifecycle

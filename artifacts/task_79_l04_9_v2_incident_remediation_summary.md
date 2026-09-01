@@ -116,13 +116,17 @@ validator. A committed resource-only probe uses the production
 `ResourceTracker`, permits at most one minimal CUDA allocation, and emits only
 fixed sanitized markers; it was not run in this local remediation.
 
-The raw capture is 9779 bytes with SHA-256
+The raw capture was 9779 bytes with SHA-256
 `6dd1741c94b5af2fc084667129197304b5de2b51d023920a22164a33d342c4d2`.
 The 2419-byte bundle is SHA-256
 `87e063d18d0f654792af9afc9de3b3b4519a82348367c672bcc191f290543efe`.
 The audit and three triad files are source-unique locally; their exact paths,
 sizes, and digests are bound by
-`artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.assessment.sidecar.json`.
+`artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.assessment.sidecar.json`;
+all five local evidence files were later deleted under an explicit owner
+exception after exact sidecar-bound verification, and the sidecar records
+their local absence. This is irreversible cleanup, not remote cleanup,
+finalization, promotion, or a reusable selection.
 The archive member names remain generic by design and are distinct from the
 source-unique local paths. The exact peak subcondition and query asymmetry are
 unknown from the sanitized artifact; no resource measurement, semantic
@@ -142,10 +146,12 @@ that SHA, the suppressed CUDA preflight passed, and the committed
 No model, adapter, integration, fixture, dataset, selection, holdout, seed,
 or Stage B input was accessed.
 
-The raw capture is 344 bytes with SHA-256
-`e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa` and is
-retained pending in the canonical sanitized assessment sidecar
-`artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json`.
+The raw capture was 344 bytes with SHA-256
+`e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa` and was
+deleted under an explicit owner exception after exact sidecar-bound
+verification. The canonical sanitized assessment sidecar
+`artifacts/m14/l049-v2-resource-probe.67d2fb7649543ffc679e521f4f2a2ee970c55c63.assessment.sidecar.json`
+records the deletion and local absence proof.
 Its eight fixed markers independently parse as PASS, with measurement
 `available`, reason `none`, finalizer code `NONE`, and coherent sanitized
 provenance booleans. The sidecar separates executor-recorded exact-SHA/CUDA
@@ -154,5 +160,6 @@ facts from raw-marker facts.
 The marker `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` means only the internal
 probe/`ResourceTracker` cleanup self-attestation. It is not evidence that the
 remote disposable checkout or caches were removed. Remote checkout cleanup is
-therefore recorded as `unverified`, with no absence proof; no semantic result,
-promotion, or finalization is inferred.
+therefore recorded as `unverified`, with no remote absence proof; only local
+raw absence is proven, and no semantic result, promotion, or finalization is
+inferred.

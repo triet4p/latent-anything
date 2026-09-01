@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l049-v2-resource-probe-assessment-v1",
-  "status": "pending",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "67d2fb7649543ffc679e521f4f2a2ee970c55c63",
     "tree_sha256": "72d18bfe8f899243ad1aad20000d86c3b69a85a8",
@@ -18,7 +18,8 @@
       "bytes": 344,
       "sha256": "e812a99ccd7388a5183879d54a40e5d5f5f4913b1ce3944772cc17e24ffb49aa",
       "written_before_parse": true,
-      "present_at_assessment": true
+      "present_at_assessment": false,
+      "local_absence_proof": true
     }
   },
   "markers": {
@@ -77,12 +78,22 @@
     "remote_checkout_cleanup": "unverified",
     "remote_checkout_absence_proof": false,
     "promotion": false,
-    "finalization": false
+    "finalization": false,
+    "standard_finalize": false,
+    "repository_promotion": false
   },
   "retention": {
-    "status": "pending",
-    "recommendation": "Preserve the source-SHA-keyed probe raw capture for owner review; do not treat it as semantic evidence or remote lifecycle proof."
+    "status": "deleted_by_owner_exception",
+    "recommendation": "The local probe raw capture was irreversibly removed by explicit owner exception after exact pre-delete verification; internal cleanup remains self-attested and remote checkout cleanup remains unverified.",
+    "deletion": {
+      "authorization": "owner_explicit",
+      "predelete_verification": "the exact sidecar-bound raw path was regular, non-reparse, untracked, workspace-contained, and matched recorded size and SHA-256",
+      "postdelete_local_absence": true,
+      "standard_finalize": false,
+      "repository_promotion": false,
+      "irreversible_not_recoverable_from_git": true
+    }
   },
   "redaction": "Sanitized metadata only; no absolute paths, process identifiers, device free text, numeric resource values, secrets, model, fixture, dataset, holdout, or execution body included.",
-  "sidecar_sha256": "314823fca09eff6eabb3f67f167b4f6a22fda0362541607839f310f9c8e4efd6"
+  "sidecar_sha256": "d0ee03f491930877c0695e19ca7b72d8ea2d85d2d0c1e600f3e98b0048b2c12e"
 }

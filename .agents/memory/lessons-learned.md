@@ -1194,3 +1194,11 @@ and never infer remote path absence from a successful SSH exit alone.
 **Watch out for:** A resource-only probe is bounded diagnostic evidence only;
 it never becomes model/selection/holdout evidence and must not be promoted or
 finalized from its internal cleanup marker.
+
+## [2026-09-01] Owner-exception evidence cleanup is local and irreversible
+
+When an owner authorizes retention cleanup, resolve only the exact paths bound
+by the tracked sidecar, verify size and SHA-256 before deletion, and record
+local absence afterward. Preserve hashes and sanitized execution facts in the
+sidecar, but do not turn local deletion into a claim about remote checkout or
+cache cleanup, semantic success, promotion, or standard finalization.

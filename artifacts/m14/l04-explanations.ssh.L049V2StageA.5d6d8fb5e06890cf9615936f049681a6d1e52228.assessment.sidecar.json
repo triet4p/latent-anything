@@ -1,6 +1,6 @@
 {
   "schema_version": "m14-l04.9-v2-current-incident-assessment-v4",
-  "status": "pending",
+  "status": "deleted_by_owner_exception",
   "source": {
     "commit_sha": "5d6d8fb5e06890cf9615936f049681a6d1e52228",
     "tree_sha256": "07bea97c9c4b55919fa707d473e2cecf7e1392a6",
@@ -13,13 +13,15 @@
       "bytes": 9779,
       "sha256": "6dd1741c94b5af2fc084667129197304b5de2b51d023920a22164a33d342c4d2",
       "written_before_parse": true,
-      "present": true
+      "present": false,
+      "local_absence_proof": true
     },
     "audit": {
       "path": "artifacts/m14/l04-explanations.ssh.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.audit.json",
       "bytes": 3234,
       "sha256": "a4599c0d4154314576b82bdd9eb1132d4fea29b44cef5b69dde019dfc20c6827",
-      "present": true,
+      "present": false,
+      "local_absence_proof": true,
       "rebuild": {
         "status": "canonical_retain_reopened",
         "previous_bytes": 3234,
@@ -45,19 +47,22 @@
         "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.partial.json",
         "bytes": 7327,
         "sha256": "da05cad97b10c79722a73731ac60e128e3597942c58703d7d372335f470e44e2",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "run": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.run.json",
         "bytes": 395,
         "sha256": "6ff1393b348d9c6d4e11cb6010fd791333acf9de04903fa01efc9e2956a9b81a",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "failure": {
         "path": "artifacts/m14/l04-explanations.L049V2StageA.5d6d8fb5e06890cf9615936f049681a6d1e52228.failure.json",
         "bytes": 397,
         "sha256": "054fd04679932656b79aa09c77f74f9271efe2072d17d4d082529e3e670de7b6",
-        "present": true
+        "present": false,
+        "local_absence_proof": true
       },
       "local_paths_source_unique": true,
       "bytes_unchanged": true
@@ -72,6 +77,7 @@
     "remote_reach": "reached",
     "cuda_proof": "PASS",
     "remote_cleanup": "PASS",
+    "remote_cleanup_interpretation": "Recorded marker only; no independent remote absence proof is claimed.",
     "transport_cleanup": "PASS",
     "mutex_key_sha256": "80741d63253909a313149b756cf1668f0a339fd191ee7bf4a114bc74b7a276fb",
     "argv_sha256": "d8066963bd854746f2d1d2a3be716e64f1cca58602854bd75572bf7053a5159a"
@@ -133,15 +139,24 @@
         "statement": "Canonical attempted CUDA device provenance is now accepted for CUDA measurement failures, but this artifact does not identify a device/source mismatch as the prior failure cause."
       }
     },
+    "remote_cleanup_claim": "not_claimed",
     "promotion": false,
     "finalization": false,
     "standard_finalize": false,
     "repository_promotion": false
   },
   "retention": {
-    "status": "pending",
-    "recommendation": "Preserve raw, audit, bundle, and source-unique triad evidence for owner review; no promotion or finalization is permitted."
+    "status": "deleted_by_owner_exception",
+    "recommendation": "The five local evidence files were irreversibly removed by explicit owner exception after exact pre-delete verification; no remote cleanup, promotion, finalization, or reusable selection is claimed.",
+    "deletion": {
+      "authorization": "owner_explicit",
+      "predelete_verification": "all five exact sidecar-bound paths were regular, non-reparse, untracked, workspace-contained, and matched recorded size and SHA-256",
+      "postdelete_local_absence": true,
+      "standard_finalize": false,
+      "repository_promotion": false,
+      "irreversible_not_recoverable_from_git": true
+    }
   },
   "redaction": "Sanitized metadata only; absolute and remote ephemeral paths, holdout material, secrets, device free text, and execution bodies omitted.",
-  "sidecar_sha256": "d93f45fbc059616093855b7de10b626a19914467938b8bf0dd287a0222c3f96e"
+  "sidecar_sha256": "949cc9d93e72b5fa1f01744aeef200469bc8e8d17f35b3742249922d69d2bc29"
 }

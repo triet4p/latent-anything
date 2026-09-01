@@ -28,16 +28,19 @@
 - Added deterministic, allowlisted resource-peak finalizer diagnostics for the
   M14 L04.9 v2 boundary, plus a resource-only production-tracker probe that
   does not load a model or access fixtures, selection, or holdout inputs. The
-  5d6d8fb CUDA result remains a pending D0 runtime exception with source-unique
-  evidence bound by a sanitized assessment sidecar; no semantic promotion or
-  finalization is claimed.
+  5d6d8fb CUDA result is a D0 runtime exception recorded as
+  `deleted_by_owner_exception`; its five exact evidence hashes remain in the
+  sanitized sidecar with local absence proof, and no remote cleanup, semantic
+  promotion, or finalization is claimed.
 
 - Recorded the single owner-authorized `67d2fb7` resource-only CUDA probe in a
-  sanitized pending assessment sidecar. Its eight fixed markers independently
-  validate as PASS with available resource provenance, but
+  sanitized assessment sidecar later marked `deleted_by_owner_exception`. Its
+  eight fixed markers independently validate as PASS with available resource
+  provenance, but
   `L049_V2_RESOURCE_PROBE_CLEANUP=PASS` is explicitly only the internal
   `ResourceTracker`/probe cleanup self-attestation; remote checkout/cache
-  cleanup remains unverified and no semantic evidence or promotion is claimed.
+  cleanup remains unverified, only local raw absence is proven, and no semantic
+  evidence, promotion, or finalization is claimed.
 
 - Added the offline-tested, explicitly network-gated WikiText-2 acquisition
   and sanitized manifest pipeline for the frozen M14 L04 tuned-lens corpus.
