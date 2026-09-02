@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Pinned tracked shell scripts to LF line endings so Windows clones with
+  `core.autocrlf=true` preserve exact remote transport payload bytes and
+  BuildOnly size/hash metadata.
+
 - Protected L04.9 v2 canonical D1/D2/D3 evidence from cross-clone line-ending
   conversion with scoped `-text` attributes and fail-closed Git attribute
   guards. Regression checks now verify would-be Git blobs and a local

@@ -57,6 +57,19 @@ def test_real_canonical_paths_have_explicit_binary_attributes() -> None:
         assert _git(ROOT, "check-attr", "text", "--", relative.as_posix()) == (f"{relative.as_posix()}: text: unset")
 
 
+def test_all_tracked_shell_scripts_have_explicit_lf_attributes() -> None:
+    shell_paths = _git(ROOT, "ls-files", "--", "*.sh").splitlines()
+
+    assert shell_paths == [
+        ".agents/skills/remote-cuda-test/scripts/remote_cuda_test.sh",
+        "scripts/m14_l04_remote_payload.sh",
+    ]
+    for relative in shell_paths:
+        assert _git(ROOT, "check-attr", "text", "eol", "--", relative) == (
+            f"{relative}: text: set\n{relative}: eol: lf"
+        )
+
+
 def test_real_canonical_would_be_index_blobs_match_current_bytes() -> None:
     for relative in promotion.REAL_CANONICAL_PATHS.values():
         value = relative.as_posix()

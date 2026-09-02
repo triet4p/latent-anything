@@ -1,5 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Bash scripts are transported/executed as byte-sensitive payloads; keep LF
+# line endings even when a Windows clone enables core.autocrlf.
+*.sh text eol=lf
 # L04.9 v2 evidence is immutable byte-addressed JSON/JSONL, including the
 # canonical real-promotion chain and the official D3 record.
 artifacts/m14/l04-* -text

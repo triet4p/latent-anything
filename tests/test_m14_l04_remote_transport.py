@@ -578,6 +578,71 @@ def test_build_only_runs_under_native_windows_powershell_51(tmp_path: Path) -> N
     assert payload["bytes"] == len(PAYLOAD.read_bytes())
 
 
+@pytest.mark.parametrize("shell_factory", [_pwsh, _native_windows_powershell], ids=["pwsh", "native-winps"])
+def test_build_only_from_core_autocrlf_clone_preserves_payload_hash_and_size(
+    tmp_path: Path, shell_factory: Callable[[], str]
+) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    source_payload = source / "scripts" / PAYLOAD.name
+    source_payload.parent.mkdir()
+    shutil.copyfile(PAYLOAD, source_payload)
+    (source / ".gitattributes").write_text("* text=auto\n*.sh text eol=lf\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(source), "init", "--quiet"], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(source), "add", "--", ".gitattributes", "scripts/m14_l04_remote_payload.sh"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(source),
+            "-c",
+            "user.name=L04 shell EOL test",
+            "-c",
+            "user.email=l04-shell-eol@example.invalid",
+            "commit",
+            "--quiet",
+            "-m",
+            "shell payload EOL contract",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    clone = tmp_path / "clone"
+    subprocess.run(
+        ["git", "-c", "core.autocrlf=true", "clone", "--quiet", "--local", str(source), str(clone)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    cloned_payload = clone / "scripts" / PAYLOAD.name
+    expected_bytes = PAYLOAD.read_bytes()
+    assert cloned_payload.read_bytes() == expected_bytes
+    relative = "scripts/m14_l04_remote_payload.sh"
+    assert (
+        subprocess.run(
+            ["git", "-C", str(clone), "check-attr", "text", "eol", "--", relative],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == f"{relative}: text: set\n{relative}: eol: lf"
+    )
+
+    manifest = _build_only(cloned_payload, tmp_path / "raw.capture", executable=shell_factory())
+    payload = manifest["payload"]
+    assert payload == {
+        "sha256": hashlib.sha256(expected_bytes).hexdigest(),
+        "bytes": len(expected_bytes),
+    }
+
+
 def test_build_only_accepts_dry_run_alias(tmp_path: Path) -> None:
     raw_capture_path = tmp_path / "raw.capture"
     command = [
