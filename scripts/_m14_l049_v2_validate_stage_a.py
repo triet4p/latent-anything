@@ -19,7 +19,6 @@ from scripts._m14_l049_v2_schema import (
     directional_recovery,
     fixture_digest,
     is_digest,
-    top_level_cli_sha256,
 )
 from scripts._m14_l049_v2_validate_common import (
     addendum_errors,
@@ -105,7 +104,13 @@ def validate_stage_a_impl(
     addendum: Mapping[str, Any],
     *,
     policy: CommitmentPolicy,
+    validation_context: object = None,
 ) -> list[str]:
+    if validation_context is not None:
+        from scripts._m14_l049_v2_validation_context import context_is_valid
+
+        if not context_is_valid(validation_context):
+            return ["Stage A validation context is invalid"]
     errors = addendum_errors(addendum, policy)
     expected_policy = policy.expected_addendum()
     public_train_seed = expected_policy.get("train_seed")
@@ -273,9 +278,9 @@ def validate_stage_a_impl(
                 candidate_sha256=expected_selection_sha,
                 source_sha256=artifact.get("source_sha256"),
                 addendum_sha256=artifact.get("addendum_sha256"),
-                cli_sha256=top_level_cli_sha256("stage_a_train_selection"),
                 execution_resources=resources,
                 partial_failure=True,
+                validation_context=validation_context,
             )
         )
         attestation = artifact.get("runtime_attestation")
@@ -467,8 +472,8 @@ def validate_stage_a_impl(
             candidate_sha256=expected_selection_sha,
             source_sha256=artifact.get("source_sha256"),
             addendum_sha256=artifact.get("addendum_sha256"),
-            cli_sha256=top_level_cli_sha256("stage_a_train_selection"),
             execution_resources=artifact.get("resources"),
+            validation_context=validation_context,
         )
     )
     attestation = artifact.get("runtime_attestation")

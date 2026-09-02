@@ -47,6 +47,7 @@ from scripts._m14_l049_v2_promotion import (
     _validate_official_audit,
     _validate_real_sidecars,
     build_legacy_promotion_record,
+    canonical_validation_context,
     load_real_promotion_policy,
     validate_legacy_promotion_record,
     validate_promotion_record,
@@ -81,6 +82,11 @@ from scripts._m14_l049_v2_validate_stage_a import validate_stage_a_impl
 from scripts._m14_l049_v2_validate_stage_b import validate_stage_b_impl
 
 ROOT = Path(__file__).resolve().parents[1]
+OFFICIAL_D3_OUTPUT = (
+    "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json",
+    4032,
+    "a9444cf7afc720e5db5961227cff275e24f7cd80bfcedfdbafc74aa1874de6b6",
+)
 TRAIN_PATH = ROOT / "artifacts/m14/l04-l049-v2-train.jsonl"
 STAGE_A_FAILURE_SIDECAR = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageA.41828c2e12e1efacb80e8cb5a0c62e4e69a688b2.sidecar.json"
@@ -127,6 +133,29 @@ CURRENT_D1_AUDIT = ROOT / (
 CURRENT_D2_AUDIT = ROOT / (
     "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.audit.json"
 )
+
+
+def _d3_output_snapshot() -> tuple[tuple[str, int, str], ...]:
+    outputs: list[tuple[str, int, str]] = []
+    for path in ROOT.glob("artifacts/m14/*d3-promotion-real-v2*"):
+        if path.is_file():
+            outputs.append(
+                (
+                    path.relative_to(ROOT).as_posix(),
+                    path.stat().st_size,
+                    hashlib.sha256(path.read_bytes()).hexdigest(),
+                )
+            )
+    return tuple(sorted(outputs))
+
+
+def _assert_canonical_json_file(path: Path) -> None:
+    raw = path.read_bytes()
+    assert raw == canonical_json_bytes(cast(dict[str, Any], json.loads(raw)))
+    assert raw.endswith(b"\n")
+    assert not raw.endswith(b"\n\n")
+
+
 CURRENT_D1_CANDIDATE = ROOT / (
     "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"
 )
@@ -159,6 +188,7 @@ def _build_temp_stage_b_git_repo(tmp_path: Path) -> Path:
     repo = tmp_path / "stage-b-input-repo"
     destination = repo / "artifacts" / "m14"
     destination.mkdir(parents=True)
+    shutil.copyfile(ROOT / ".gitattributes", repo / ".gitattributes")
     for source in canonical_stage_b_paths(ROOT).values():
         shutil.copyfile(source, destination / source.name)
     subprocess.run(["git", "init", "--quiet", str(repo)], check=True, capture_output=True)
@@ -186,8 +216,11 @@ def _build_temp_stage_b_git_repo(tmp_path: Path) -> Path:
 
 def test_stage_b_preflight_requires_all_four_inputs_tracked(tmp_path: Path) -> None:
     repo = _build_temp_stage_b_git_repo(tmp_path)
-    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == []
-    assert stage_b_preflight.main(["--repo-root", str(repo), "--require-tracked"]) == 0
+    # A staging directory containing only the four payload inputs cannot
+    # self-authorize the historical CLI binding; the complete canonical policy
+    # is required and the preflight fails closed.
+    assert validate_canonical_stage_b_inputs(repo, require_tracked=True) == ["candidate_stage_a_validation"]
+    assert stage_b_preflight.main(["--repo-root", str(repo), "--require-tracked"]) == 65
 
 
 def test_stage_b_preflight_rejects_nested_repo_root_before_input_checks(tmp_path: Path) -> None:
@@ -254,7 +287,7 @@ def test_stage_b_preflight_fails_closed_on_repo_root_probe_error(
 def test_stage_b_preflight_normalizes_repo_root_case(tmp_path: Path) -> None:
     repo = _build_temp_stage_b_git_repo(tmp_path)
     altered = Path(str(repo).swapcase())
-    assert validate_canonical_stage_b_inputs(altered, require_tracked=True) == []
+    assert validate_canonical_stage_b_inputs(altered, require_tracked=True) == ["candidate_stage_a_validation"]
 
 
 @pytest.mark.parametrize("missing_key", ["manifest", "holdout", "seed", "candidate"])
@@ -418,10 +451,31 @@ def test_current_d1_candidate_and_assessment_are_canonical_and_stage_b_ready() -
     candidate = json.loads(CURRENT_D1_CANDIDATE.read_bytes())
     rows = read_rows(TRAIN_PATH)[1]
     addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
-    assert validate_stage_a(candidate, rows, addendum) == []
+    assert (
+        validate_stage_a_impl(
+            candidate,
+            rows,
+            addendum,
+            policy=CommitmentPolicy.from_addendum(addendum),
+            validation_context=canonical_validation_context(ROOT),
+        )
+        == []
+    )
     assert candidate["selection"]["consensus_candidate"] == {"layer": 10, "offset": 0}
     assert candidate["artifact_sha256"] == canonical_digest(candidate, "artifact_sha256")
     assert not {"raw", "bundle", "transport", "holdout", "seed", "path"}.intersection(candidate)
+
+
+@pytest.mark.parametrize("forged_context", ["historical-cli", {"d1_cli_sha256": "0" * 64}])
+def test_stage_validators_reject_caller_forged_validation_context(forged_context: object) -> None:
+    addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
+    policy = CommitmentPolicy.from_addendum(addendum)
+    assert validate_stage_a_impl({}, [], addendum, policy=policy, validation_context=forged_context) == [
+        "Stage A validation context is invalid"
+    ]
+    assert validate_stage_b_impl({}, [], b"", {}, addendum, [], policy=policy, validation_context=forged_context) == [
+        "Stage B validation context is invalid"
+    ]
 
     sidecar = json.loads(CURRENT_D1_ASSESSMENT.read_bytes())
     assert canonical_digest(sidecar, "sidecar_sha256") == sidecar["sidecar_sha256"]
@@ -1738,6 +1792,9 @@ def test_real_stage_a_semantic_gate_failure_cli_writes_complete_d0_triad(
     )
     triad = sorted(tmp_path.glob("l04-explanations.L049V2StageA.attempt1.*.json"))
     assert [path.suffixes[-2] for path in triad] == [".failure", ".partial", ".run"]
+    _assert_canonical_json_file(output)
+    for path in triad:
+        _assert_canonical_json_file(path)
     partial = json.loads(next(path for path in triad if path.name.endswith(".partial.json")).read_bytes())
     artifact = partial["artifact"]
     assert artifact["failure_kind"] == "semantic_gate"
@@ -2669,6 +2726,11 @@ def test_stage_b_cli_helper_import_failure_is_attempted_real_d0(
         ]
     )
     artifact = json.loads(output.read_bytes())
+    triad = sorted(tmp_path.glob("l04-explanations.L049V2StageB.attempt1.*.json"))
+    assert [path.suffixes[-2] for path in triad] == [".failure", ".partial", ".run"]
+    _assert_canonical_json_file(output)
+    for path in triad:
+        _assert_canonical_json_file(path)
     assert artifact["status"] == "stage_b_failed"
     assert artifact["evidence_level"] == "D0"
     assert artifact["resources"]["execution_attempted"] is True
@@ -3432,12 +3494,13 @@ def _real_promotion_policy(fixture: dict[str, Any]) -> RealPromotionPolicy:
             for name, item in d2_audit["bundle"]["members"].items()
         ),
         triad=tuple(commitment(item) for item in d2_evidence["triad"].values()),
+        d1_cli_sha256=fixture["candidate"]["runtime_attestation"]["cli_sha256"],
     )
 
 
 def test_real_promotion_contract_accepts_official_finalized_evidence_chain() -> None:
     fixture = _real_promotion_fixture()
-    real_policy = _real_promotion_policy(fixture)
+    real_policy = load_real_promotion_policy(ROOT)
     source = fixture["d2"]["source"]
     assert (
         _validate_real_sidecars(
@@ -3500,6 +3563,8 @@ def test_real_promotion_official_audit_tamper_matrix_rejects(field: str, value: 
 
 
 def test_real_promotion_bundle_member_tamper_and_no_record_side_effect() -> None:
+    d3_outputs_before = _d3_output_snapshot()
+    assert d3_outputs_before == (OFFICIAL_D3_OUTPUT,)
     fixture = _real_promotion_fixture()
     real_policy = _real_promotion_policy(fixture)
     audit = copy.deepcopy(fixture["d2_audit"])
@@ -3514,7 +3579,7 @@ def test_real_promotion_bundle_member_tamper_and_no_record_side_effect() -> None
         expected_use_case="L049V2StageB",
         real_policy=real_policy,
     )
-    assert not list(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*"))
+    assert _d3_output_snapshot() == d3_outputs_before
 
 
 @pytest.mark.parametrize(
@@ -3853,15 +3918,15 @@ def test_real_promotion_rejects_stage_b_artifact_that_differs_from_partial() -> 
 def test_real_promotion_manual_valid_record_validates_without_builder_or_output(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    d3_outputs_before = tuple(sorted(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*")))
-    assert d3_outputs_before == ()
+    d3_outputs_before = _d3_output_snapshot()
+    assert d3_outputs_before == (OFFICIAL_D3_OUTPUT,)
 
     def fail_if_builder_called(*_args: object, **_kwargs: object) -> object:
         pytest.fail("manual validator must not call the D3 builder")
 
     monkeypatch.setattr(promotion, "build_promotion_record", fail_if_builder_called)
     fixture = _real_promotion_fixture()
-    real_policy = _real_promotion_policy(fixture)
+    real_policy = load_real_promotion_policy(ROOT)
     d1, d2, provisioning = fixture["d1"], fixture["d2"], fixture["provisioning"]
     d1e, d2e = d1["evidence"], d2["evidence"]
     audit = fixture["d2_audit"]
@@ -3937,7 +4002,7 @@ def test_real_promotion_manual_valid_record_validates_without_builder_or_output(
         )
         == []
     )
-    assert tuple(sorted(ROOT.glob("artifacts/m14/*d3-promotion-real-v2*"))) == d3_outputs_before
+    assert _d3_output_snapshot() == d3_outputs_before
 
 
 def test_injected_real_stage_a_records_d1_attestation_and_executes_scorer() -> None:

@@ -24,8 +24,9 @@ from scripts._m14_l049_v2_schema import (
     V2_ADDENDUM_PATH,
     canonical_digest,
     fixture_digest,
+    pinned_commitment_policy,
 )
-from scripts._m14_l049_v2_validate import validate_stage_a
+from scripts._m14_l049_v2_validate_stage_a import validate_stage_a_impl
 
 CANONICAL_STAGE_B_MANIFEST = Path("artifacts/m14/l04-explanations.v2-authoring-manifest.json")
 CANONICAL_STAGE_B_HOLDOUT = Path("artifacts/m14/l04-explanations.v2-holdout.jsonl")
@@ -75,6 +76,24 @@ def _is_tracked(root: Path, path: Path) -> bool:
     return result.returncode == 0 and result.stdout.strip() == relative
 
 
+def _git_text_attribute_is_unset(root: Path, relative: Path) -> bool:
+    """Require an explicit ``-text`` attribute before reading evidence bytes."""
+    value = relative.as_posix()
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "check-attr", "text", "--", value],
+            check=False,
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError, UnicodeError, ValueError):
+        return False
+    lines = result.stdout.splitlines()
+    return result.returncode == 0 and lines == [f"{value}: text: unset"]
+
+
 def _repo_root_matches(root: Path) -> bool:
     """Require ``root`` to be the actual Git worktree root without leaking output."""
     try:
@@ -107,6 +126,11 @@ def validate_canonical_stage_b_inputs(root: Path, *, require_tracked: bool = Fal
         return errors
     if require_tracked and any(not _is_tracked(root, path) for path in paths.values()):
         errors.append("canonical_input_untracked")
+        return errors
+    if require_tracked and any(
+        not _git_text_attribute_is_unset(root, path.relative_to(root)) for path in paths.values()
+    ):
+        errors.append("canonical_input_text_attribute")
         return errors
     expected_files = {
         "manifest": AUTHORING_MANIFEST_FILE_SHA256,
@@ -150,14 +174,38 @@ def validate_canonical_stage_b_inputs(root: Path, *, require_tracked: bool = Fal
         candidate = json.loads(paths["candidate"].read_bytes())
         addendum = json.loads(V2_ADDENDUM_PATH.read_bytes())
         _train_raw, train_rows = read_rows(TRAIN_FIXTURE_PATH)
+        candidate_stage_valid = False
         if _digest(paths["candidate"]) != EXPECTED_STAGE_B_CANDIDATE_FILE_SHA256:
             errors.append("candidate_file_commitment")
-        elif not isinstance(candidate, Mapping) or validate_stage_a(candidate, train_rows, addendum):
-            errors.append("candidate_stage_a_validation")
-        elif candidate.get("selection", {}).get("consensus_candidate") != {"layer": 10, "offset": 0}:
-            errors.append("candidate_selection_binding")
-        elif candidate.get("artifact_sha256") != canonical_digest(candidate, "artifact_sha256"):
-            errors.append("candidate_digest")
+        else:
+            try:
+                # The historical candidate's CLI digest is independently bound
+                # by the complete canonical real-evidence policy.  A partial
+                # input staging directory therefore fails closed.
+                from scripts._m14_l049_v2_promotion import canonical_validation_context
+
+                validation_context = canonical_validation_context(root)
+            except (ImportError, OSError, ValueError):
+                validation_context = None
+            candidate_errors = (
+                ["candidate_cli_binding"]
+                if validation_context is None
+                else validate_stage_a_impl(
+                    candidate,
+                    train_rows,
+                    addendum,
+                    policy=pinned_commitment_policy(),
+                    validation_context=validation_context,
+                )
+            )
+            candidate_stage_valid = isinstance(candidate, Mapping) and not candidate_errors
+            if not candidate_stage_valid:
+                errors.append("candidate_stage_a_validation")
+        if isinstance(candidate, Mapping) and candidate_stage_valid:
+            if candidate.get("selection", {}).get("consensus_candidate") != {"layer": 10, "offset": 0}:
+                errors.append("candidate_selection_binding")
+            elif candidate.get("artifact_sha256") != canonical_digest(candidate, "artifact_sha256"):
+                errors.append("candidate_digest")
     except (OSError, ValueError, TypeError, json.JSONDecodeError):
         errors.append("candidate_schema")
     return errors

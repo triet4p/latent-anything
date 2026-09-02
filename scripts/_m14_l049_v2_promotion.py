@@ -25,6 +25,7 @@ from scripts._m14_l049_v2_inputs import (
     CANONICAL_STAGE_B_MANIFEST,
     CANONICAL_STAGE_B_SEED,
     SOURCE_KEYED_STAGE_B_CANDIDATE,
+    _git_text_attribute_is_unset,  # pyright: ignore[reportPrivateUsage]
 )
 from scripts._m14_l049_v2_schema import (
     EXPECTED_ADDENDUM_SHA256,
@@ -37,6 +38,10 @@ from scripts._m14_l049_v2_schema import (
 )
 from scripts._m14_l049_v2_transport import validate_transport_metadata
 from scripts._m14_l049_v2_validate_stage_b import validate_stage_b_impl
+from scripts._m14_l049_v2_validation_context import (
+    _issue_policy_bound_validation_context,  # pyright: ignore[reportPrivateUsage]
+    _PolicyBoundValidationContext,  # pyright: ignore[reportPrivateUsage]
+)
 
 LEGACY_V2_PROMOTION_SCHEMA = "m14-l04.9-v2-d3-promotion-v1"
 REAL_V2_PROMOTION_SCHEMA = "m14-l04.9-v2-d3-promotion-real-v2"
@@ -189,6 +194,9 @@ class RealPromotionPolicy:
     bundle: RealEvidenceCommitment
     bundle_members: tuple[RealEvidenceCommitment, ...]
     triad: tuple[RealEvidenceCommitment, ...]
+    # ``cli_sha256`` is the D2 Stage B entry point.  D1 has its own
+    # independently pinned entry point because the historical source differs.
+    d1_cli_sha256: str
 
     def file_commitments(self) -> tuple[RealEvidenceCommitment, ...]:
         return (
@@ -274,6 +282,8 @@ def _canonical_raw(repo_root: Path, name: str) -> tuple[Path, bytes] | None:
             if cursor.is_symlink():
                 return None
         if not path.is_file() or not _tracked_exact(root, relative):
+            return None
+        if not _git_text_attribute_is_unset(root, relative):
             return None
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != expected_sha:
@@ -853,6 +863,8 @@ def _safe_bound_file(repo_root: Path, relative: object) -> tuple[Path, bytes] | 
             return None
         if not _tracked_exact(root, relative_path):
             return None
+        if not _git_text_attribute_is_unset(root, relative_path):
+            return None
         candidate = root / relative_path
         cursor = root
         for part in relative_path.parts:
@@ -949,6 +961,7 @@ def _policy_errors(policy: object) -> list[str]:
         policy.candidate_artifact_sha256,
         policy.stage_b_artifact_sha256,
         policy.stage_b_attestation_sha256,
+        policy.d1_cli_sha256,
         policy.cli_sha256,
         policy.transport_payload_sha256,
         policy.transport_decode_sha256,
@@ -1020,6 +1033,7 @@ def load_real_promotion_policy(repo_root: Path) -> RealPromotionPolicy:
     provisioning = loaded["provisioning_assessment"]
     d2_audit = loaded["d2_audit"]
     candidate = loaded["candidate"]
+    d1_candidate_artifact = loaded["d1_candidate"]
     addendum = loaded["addendum"]
     d1_evidence = _as_mapping(d1.get("evidence"))
     d2_evidence = _as_mapping(d2.get("evidence"))
@@ -1038,6 +1052,13 @@ def load_real_promotion_policy(repo_root: Path) -> RealPromotionPolicy:
         or not stage_b
     ):
         raise ValueError("real promotion canonical policy unavailable")
+    for source_commit, tree_oid in (
+        (REAL_D1_SOURCE_COMMIT_SHA, REAL_D1_SOURCE_TREE_OID),
+        (REAL_PROVISIONING_SOURCE_COMMIT_SHA, REAL_PROVISIONING_SOURCE_TREE_OID),
+        (REAL_SOURCE_COMMIT_SHA, REAL_SOURCE_TREE_OID),
+    ):
+        if _repository_tree_errors(repo_root, source_commit, "sha1", tree_oid):
+            raise ValueError("real promotion canonical policy unavailable")
     try:
         addendum_policy = CommitmentPolicy.from_addendum(dict(addendum))
         if (
@@ -1086,6 +1107,10 @@ def load_real_promotion_policy(repo_root: Path) -> RealPromotionPolicy:
         seed_bound = _canonical_raw(repo_root, "seed")
         if holdout_bound is None or seed_bound is None:
             raise ValueError
+        d1_cli_sha256 = _as_mapping(d1_candidate_artifact.get("runtime_attestation")).get("cli_sha256")
+        d2_cli_sha256 = _as_mapping(stage_b.get("runtime_attestation")).get("cli_sha256")
+        if not is_digest(d1_cli_sha256) or not is_digest(d2_cli_sha256):
+            raise ValueError
         return RealPromotionPolicy(
             source_commit_sha=REAL_SOURCE_COMMIT_SHA,
             source_tree_algorithm="sha1",
@@ -1128,7 +1153,7 @@ def load_real_promotion_policy(repo_root: Path) -> RealPromotionPolicy:
             candidate_artifact_sha256=str(candidate["artifact_sha256"]),
             stage_b_artifact_sha256=str(stage_b["artifact_sha256"]),
             stage_b_attestation_sha256=str(stage_b["attestation_sha256"]),
-            cli_sha256=str(_as_mapping(stage_b.get("runtime_attestation")).get("cli_sha256")),
+            cli_sha256=cast(str, d2_cli_sha256),
             transport_payload_sha256=str(d2_audit_map["transport"]["payload_sha256"]),
             transport_decode_sha256=str(d2_audit_map["transport"]["decode_sha256"]),
             raw_capture=RealEvidenceCommitment(
@@ -1142,9 +1167,60 @@ def load_real_promotion_policy(repo_root: Path) -> RealPromotionPolicy:
                 for name, item in bundle_members.items()
             ),
             triad=tuple(triad),
+            d1_cli_sha256=cast(str, d1_cli_sha256),
         )
     except (KeyError, TypeError, ValueError, IndexError, OverflowError):
         raise ValueError("real promotion canonical policy unavailable") from None
+
+
+def _real_validation_context(
+    repo_root: Path,
+    real_policy: object,
+    *,
+    source_commit_sha: object,
+    source_tree_algorithm: object,
+    source_tree_oid: object,
+) -> tuple[list[str], _PolicyBoundValidationContext | None]:
+    """Bind historical CLI digests only after an independent policy load."""
+    try:
+        canonical_policy = load_real_promotion_policy(repo_root)
+    except ValueError:
+        return ["real promotion policy is not independently canonical"], None
+    if type(real_policy) is not RealPromotionPolicy or real_policy != canonical_policy:
+        return ["real promotion policy is not independently canonical"], None
+    if (
+        type(source_commit_sha) is not str
+        or type(source_tree_algorithm) is not str
+        or type(source_tree_oid) is not str
+        or source_commit_sha != canonical_policy.source_commit_sha
+        or source_tree_algorithm != canonical_policy.source_tree_algorithm
+        or source_tree_oid != canonical_policy.source_tree_oid
+    ):
+        return ["real promotion source commitment differs from owner policy"], None
+    try:
+        return [], _issue_policy_bound_validation_context(
+            d1_cli_sha256=canonical_policy.d1_cli_sha256,
+            d2_cli_sha256=canonical_policy.cli_sha256,
+            source_commit_sha=canonical_policy.source_commit_sha,
+            source_tree_algorithm=canonical_policy.source_tree_algorithm,
+            source_tree_oid=canonical_policy.source_tree_oid,
+        )
+    except (TypeError, ValueError, AttributeError):
+        return ["real promotion source commitment differs from owner policy"], None
+
+
+def canonical_validation_context(repo_root: Path) -> _PolicyBoundValidationContext:
+    """Return context for canonical Stage B preflight in a tracked worktree."""
+    policy = load_real_promotion_policy(repo_root)
+    if type(policy) is not RealPromotionPolicy:
+        raise ValueError("real promotion canonical policy unavailable")
+    return _issue_policy_bound_validation_context(
+        d1_cli_sha256=policy.d1_cli_sha256,
+        d2_cli_sha256=policy.cli_sha256,
+        source_commit_sha=policy.source_commit_sha,
+        source_tree_algorithm=policy.source_tree_algorithm,
+        source_tree_oid=policy.source_tree_oid,
+    )
 
 
 def _validate_finalized_sidecar_lifecycle(sidecar: Mapping[str, Any], *, stage: str) -> list[str]:
@@ -1704,6 +1780,14 @@ def _validate_real_promotion_record_impl(
     errors: list[str] = []
     if not _repo_root_matches(repo_root):
         errors.append("real promotion repository root is invalid")
+    context_errors, validation_context = _real_validation_context(
+        repo_root,
+        real_policy,
+        source_commit_sha=expected_source_commit_sha,
+        source_tree_algorithm=expected_source_tree_algorithm,
+        source_tree_oid=expected_source_tree_oid,
+    )
+    errors.extend(context_errors)
     if not _canonical_mapping_matches(repo_root, "addendum", addendum):
         errors.append("real promotion addendum mapping is not canonical")
     canonical_addendum = _canonical_json(repo_root, "addendum")
@@ -1742,7 +1826,14 @@ def _validate_real_promotion_record_impl(
     errors.extend(
         f"Stage B prerequisite: {error}"
         for error in validate_stage_b_impl(
-            stage_b, holdout_rows, holdout_seed, candidate, addendum, train_rows, policy=policy
+            stage_b,
+            holdout_rows,
+            holdout_seed,
+            candidate,
+            addendum,
+            train_rows,
+            policy=policy,
+            validation_context=validation_context,
         )
     )
     runtime_attestation = _as_mapping(stage_b.get("runtime_attestation"))
@@ -2012,6 +2103,15 @@ def build_promotion_record(
         or not _is_runtime_instance(repo_root, Path)
     ):
         raise ValueError("real promotion malformed input")
+    context_errors, validation_context = _real_validation_context(
+        repo_root,
+        real_policy,
+        source_commit_sha=expected_source_commit_sha,
+        source_tree_algorithm=expected_source_tree_algorithm,
+        source_tree_oid=expected_source_tree_oid,
+    )
+    if context_errors:
+        raise ValueError("real promotion prerequisites failed: " + "; ".join(context_errors))
     sidecar_errors, sidecar_bindings = _validate_real_sidecars(
         d1_assessment,
         d2_assessment,
@@ -2035,7 +2135,16 @@ def build_promotion_record(
     prerequisite_errors = (
         sidecar_errors
         + audit_errors
-        + validate_stage_b_impl(stage_b, holdout_rows, holdout_seed, candidate, addendum, train_rows, policy=policy)
+        + validate_stage_b_impl(
+            stage_b,
+            holdout_rows,
+            holdout_seed,
+            candidate,
+            addendum,
+            train_rows,
+            policy=policy,
+            validation_context=validation_context,
+        )
     )
     if prerequisite_errors:
         raise ValueError("real promotion prerequisites failed: " + "; ".join(prerequisite_errors))

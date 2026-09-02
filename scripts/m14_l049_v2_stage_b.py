@@ -55,7 +55,7 @@ def _write_attempt_triad(output: Path, artifact: dict[str, object], source_commi
         ),
     )
     for kind, value in values:
-        (Path(f"{prefix}.{kind}.json")).write_bytes(canonical_json_bytes(value) + b"\n")
+        (Path(f"{prefix}.{kind}.json")).write_bytes(canonical_json_bytes(value))
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -144,7 +144,7 @@ def main(argv: list[str] | None = None) -> None:
     if validation:
         raise SystemExit("real Stage B artifact validation failed" if args.run_real else "; ".join(validation))
     try:
-        args.output.write_bytes(canonical_json_bytes(artifact) + b"\n")
+        args.output.write_bytes(canonical_json_bytes(artifact))
         _write_attempt_triad(args.output, artifact, args.source_commit_sha)
     except Exception as error:  # noqa: BLE001 - no recursive artifact fabrication
         raise SystemExit("Stage B triad serialization failed") from error

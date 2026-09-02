@@ -353,10 +353,19 @@
       ]
     },
     "THY-T05-ACTIVATION-PATCHING": {
-      "status": "D1",
+      "status": "D3",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/methods/activation_patch.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_activation_patch.py"}
+        {"role": "source", "path": "scripts/_m14_l049_v2_stage_b.py"},
+        {"role": "source", "path": "scripts/_m14_l049_v2_promotion.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_activation_patch.py"},
+        {"role": "test", "path": "tests/test_m14_l049_v2.py"},
+        {"role": "benchmark", "path": "scripts/m14_l049_v2_stage_b.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.v2.addendum.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.L049V2StageA.76a45ea74fbb2843b7d109855c2c387ab98b3e47.candidate.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json"}
       ]
     },
     "THY-T05-LOGIT-LENS-TUNED-LENS": {

@@ -19,7 +19,6 @@ from scripts._m14_l049_v2_schema import (
     directional_recovery,
     fixture_digest,
     is_digest,
-    top_level_cli_sha256,
 )
 from scripts._m14_l049_v2_validate_common import (
     addendum_errors,
@@ -64,7 +63,13 @@ def validate_stage_b_impl(
     train_rows: Sequence[Mapping[str, Any]],
     *,
     policy: CommitmentPolicy,
+    validation_context: object = None,
 ) -> list[str]:
+    if validation_context is not None:
+        from scripts._m14_l049_v2_validation_context import context_is_valid
+
+        if not context_is_valid(validation_context):
+            return ["Stage B validation context is invalid"]
     errors = addendum_errors(addendum, policy)
     errors.extend(validate_fixture(train_rows, holdout_rows))
     holdout_groups, group_errors = groups(holdout_rows, "holdout", 24)
@@ -103,7 +108,13 @@ def validate_stage_b_impl(
         errors.append("Stage B artifact fields are invalid")
     if artifact.get("schema_version") != V2_STAGE_B_SCHEMA or artifact.get("stage") != "stage_b_holdout_evaluation":
         errors.append("Stage B schema or stage is invalid")
-    candidate_errors = validate_stage_a_impl(candidate_artifact, train_rows, addendum, policy=policy)
+    candidate_errors = validate_stage_a_impl(
+        candidate_artifact,
+        train_rows,
+        addendum,
+        policy=policy,
+        validation_context=validation_context,
+    )
     if (
         candidate_errors
         or candidate_artifact.get("status") not in {"protocol_fixture", "stage_a_complete"}
@@ -174,9 +185,9 @@ def validate_stage_b_impl(
                 candidate_sha256=artifact.get("candidate_artifact_sha256"),
                 source_sha256=artifact.get("source_sha256"),
                 addendum_sha256=artifact.get("addendum_sha256"),
-                cli_sha256=top_level_cli_sha256("stage_b_holdout_evaluation"),
                 execution_resources=resources,
                 partial_failure=True,
+                validation_context=validation_context,
             )
         )
         if artifact.get("artifact_sha256") != canonical_artifact_digest(artifact, "artifact_sha256"):
@@ -350,8 +361,8 @@ def validate_stage_b_impl(
             candidate_sha256=artifact.get("candidate_artifact_sha256"),
             source_sha256=artifact.get("source_sha256"),
             addendum_sha256=artifact.get("addendum_sha256"),
-            cli_sha256=top_level_cli_sha256("stage_b_holdout_evaluation"),
             execution_resources=artifact.get("resources"),
+            validation_context=validation_context,
         )
     )
     attestation = artifact.get("runtime_attestation")

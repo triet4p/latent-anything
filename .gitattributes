@@ -1,3 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# L04.9 v2 evidence is immutable byte-addressed JSON/JSONL, including the
+# canonical real-promotion chain and the official D3 record.
+artifacts/m14/l04-* -text
+artifacts/m14/l049-v2-* -text
 artifacts/m14/l04-explanations.ssh.TunedLogitLens.436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f.audit.json -text

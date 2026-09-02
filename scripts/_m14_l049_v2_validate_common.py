@@ -40,6 +40,7 @@ from scripts._m14_l049_v2_schema import (
     is_digest,
     top_level_cli_sha256,
 )
+from scripts._m14_l049_v2_validation_context import context_cli_sha256
 
 EXPECTED_MODEL = "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
 REAL_RESOURCE_FIELDS = {
@@ -593,9 +594,9 @@ def runtime_attestation_errors(
     candidate_sha256: object,
     source_sha256: object,
     addendum_sha256: object,
-    cli_sha256: object,
     execution_resources: object = None,
     partial_failure: bool = False,
+    validation_context: object = None,
 ) -> list[str]:
     """Independently validate every structured attestation primitive."""
     errors: list[str] = []
@@ -779,7 +780,12 @@ def runtime_attestation_errors(
             errors.append("runtime attestation intervention counts are not execution-bound")
         if not isinstance(cleanup, Mapping) or cleanup != {"hook_count": 0, "completed": True}:
             errors.append("runtime attestation cleanup is not execution-bound")
-    expected_cli = top_level_cli_sha256(stage) or cli_sha256
+    if validation_context is not None:
+        expected_cli = context_cli_sha256(validation_context, stage)
+        if expected_cli is None:
+            errors.append("runtime attestation validation context is invalid")
+    else:
+        expected_cli = top_level_cli_sha256(stage)
     if attestation.get("cli_sha256") != expected_cli or not is_digest(expected_cli):
         errors.append("runtime attestation CLI digest is invalid")
     modules = attestation.get("runtime_module_digests")
