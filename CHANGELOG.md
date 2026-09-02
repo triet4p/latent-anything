@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Protected L04.9 v2 canonical D1/D2/D3 evidence from cross-clone line-ending
+  conversion with scoped `-text` attributes and fail-closed Git attribute
+  guards. Regression checks now verify would-be Git blobs and a local
+  `core.autocrlf=true` clone preserve the pinned bytes.
+
+- Bound the L04.9 v2 historical CLI validation context to an identity-checked,
+  weak-reference registry snapshot with process provenance; copied, mutated,
+  stale-process, and unregistered values now fail closed while canonical D3
+  output remains byte unchanged.
+
+- Finalized the official L04.9 v2 real-evidence promotion record at D3 for
+  source SHA `6af20749b305f591d2c90d868cb09e71f623bdd0`, preserving the
+  immutable D1/D2/provisioning chain and retained evidence bytes. Future Stage
+  A/B JSON outputs now use the canonical one-LF encoding; existing accepted
+  triad members retain their historical two-LF bytes.
+
 ### Added
 
 - Added the direct runtime dependency `psutil` so the L04.9 v2 resource

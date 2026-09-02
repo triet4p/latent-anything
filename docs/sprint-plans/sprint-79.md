@@ -529,13 +529,18 @@ occurred. See
   absence remains unverified. The provisioning assessment remains the
   historical pre-run snapshot. No promotion or D3 operation was performed.
   See the [D2 assessment](../../artifacts/m14/l04-explanations.ssh.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d2-assessment.sidecar.json).
-- [~] Remediate the L04.9 v2 real-evidence D3 promotion contract before any
-  builder invocation. The versioned adapter now targets the official finalized
-  retention audit, the complete D1/D2/provisioning predecessor chain, explicit
-  Git tree algorithm/OID commitments, and separate transport/artifact digests;
-  an independently loaded canonical `RealPromotionPolicy` with exact mapping
-  binding, and fail-closed malformed-input/tamper coverage. No D3 promotion record exists and no
-  evidence bytes were changed by this remediation.
+- [x] Complete the L04.9 v2 real-evidence D3 promotion contract. The versioned
+  adapter targets the official finalized retention audit, the complete
+  D1/D2/provisioning predecessor chain, explicit Git tree algorithm/OID
+  commitments, and separate transport/artifact digests. An independently
+  loaded canonical `RealPromotionPolicy` enforces exact mapping binding and
+  fail-closed malformed-input/tamper coverage. The accepted D3 record is
+  [`d3-promotion-real-v2.json`](../../artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json),
+  4032 bytes with SHA-256
+  `a9444cf7afc720e5db5961227cff275e24f7cd80bfcedfdbafc74aa1874de6b6` and
+  promotion digest
+  `6391f7afe6c661e3cd982709c154862ed75d95231645ede671c0e0dea8997773`.
+  D1/D2/provisioning history and exact retained evidence bytes are unchanged.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.

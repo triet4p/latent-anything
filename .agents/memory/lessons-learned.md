@@ -1355,3 +1355,51 @@ before cancelling, while retaining worker-settled and source-closed assertions.
 **Watch out for:** Do not use timing sleeps as barriers for async worker
 lifecycle tests; expose and await a bounded event or another explicit
 synchronization primitive.
+
+## [2026-09-02] Canonical writer fixes can invalidate historical CLI digests
+
+**Symptom:** After removing the redundant LF from the Stage A/B writers, the validator-only test for the already accepted D3 chain rejected the retained D1 candidate and Stage B artifact because their runtime CLI digests came from the earlier exact-SHA source.
+
+**Root cause:** The official evidence binds the historical top-level CLI bytes and the retained triad bytes, while the current working tree necessarily has a different CLI digest after a writer correction.
+
+**Fix / workaround:** Keep every official evidence file byte-for-byte unchanged; snapshot D3 output path/size/SHA-256 before and after validator-only tests; validate the historical chain against its source-bound CLI digests. Future writers now write canonical helper bytes directly, producing one trailing LF.
+
+**Watch out for:** Never regenerate or normalize accepted evidence to make current-source validation pass, and never replace an exact output snapshot with a global “no D3 files exist” assertion.
+
+## [2026-09-02] Historical CLI compatibility must be policy-bound, not artifact-bound
+
+**Symptom:** Passing a candidate's own `runtime_attestation.cli_sha256` into
+the validator made a forged or self-rehashed candidate able to authorize a
+historical CLI digest.
+
+**Root cause:** The validator had no distinction between the current CLI
+binding used by ordinary validation and the independently retained D1/D2
+source-bound CLI commitments needed for historical promotion.
+
+**Fix / workaround:** Remove the caller-controlled expected digest, load D1
+and D2 pins only from exact tracked canonical files, and pass them through a
+sealed private context created after policy/source/tree equality. Reject any
+string or mapping supplied as context; fail closed when canonical preflight
+cannot load the complete policy.
+
+**Watch out for:** Keep the D2 `cli_sha256` field for compatibility, add D1 as
+a separate policy pin, and make both successful and runtime-failure attestation
+branches consume the same stage-aware context.
+
+## [2026-09-02] Git text normalization can silently alter evidence bytes
+
+**Symptom:** Current LF worktree bytes matched the frozen L04.9 D1/D2 pins, but
+the effective Windows `core.autocrlf=true` configuration would rewrite most
+tracked canonical files to CRLF in an ordinary clone.
+
+**Root cause:** The repository-wide `* text=auto` rule allowed Git to normalize
+the evidence family even though its JSON/JSONL hashes and sizes are part of the
+promotion contract.
+
+**Fix / workaround:** Add scoped `-text` rules for L04.9 paths and make both
+canonical promotion reads and tracked Stage B preflight require an explicit
+`text: unset` result. Verify would-be index blobs and a disposable local
+`core.autocrlf=true` clone against the pinned SHA-256 values.
+
+**Watch out for:** Never rely only on the current worktree hash or parsed JSON;
+audit Git attributes and checkout behavior before staging immutable evidence.

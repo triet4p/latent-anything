@@ -19,11 +19,22 @@ deletion and remains non-promoting. No D3 evidence was promoted.
 ## Current promotion-contract remediation
 
 The later Stage B result is finalized D2 evidence, not a repository promotion.
-The real-evidence D3 adapter is being validated against the official finalized
-retention audit and the complete D1/D2/provisioning predecessor chain. This
-work uses a versioned real-promotion schema, an explicit Git tree `sha1` object
-ID, and separate transport-payload versus canonical-artifact digests. No D3
-record has been created; no semantic or retained evidence bytes were modified.
+The real-evidence D3 adapter has now been validated against the official
+finalized retention audit and the complete D1/D2/provisioning predecessor
+chain. The accepted D3 record is
+[`d3-promotion-real-v2.json`](m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json)
+(4032 bytes, SHA-256
+`a9444cf7afc720e5db5961227cff275e24f7cd80bfcedfdbafc74aa1874de6b6`;
+promotion digest
+`6391f7afe6c661e3cd982709c154862ed75d95231645ede671c0e0dea8997773`). It
+records source commit `6af20749b305f591d2c90d868cb09e71f623bdd0` and Git tree
+`sha1:a0f1fb55c8d112128d81f3942132657100eac00f`. No D1/D2/provisioning
+sidecar, audit, candidate, or retained triad bytes were modified.
+
+The accepted D3 record retains the historical two-LF exact bytes of the
+official triad. Future Stage A/B writers now emit `canonical_json_bytes(value)`
+directly, which produces exactly one trailing LF; this normalization is not
+applied to existing evidence.
 The real builder and validator independently load an immutable
 `RealPromotionPolicy` from fixed, tracked canonical files, then require any
 supplied policy and evidence mappings to match those bytes exactly. It pins

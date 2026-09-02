@@ -1269,3 +1269,50 @@ parent repositories from becoming policy sources.
 tree OIDs are intentionally frozen in the real adapter; callers must provide
 equal mappings and parsed train/holdout/seed values. The legacy synthetic
 adapter remains separate and is not authorized by this policy loader.
+
+## [2026-09-02] Preserve accepted evidence bytes while normalizing future writers
+
+**Decision:** Treat the accepted L04.9 v2 D3 promotion artifact and its retained D1/D2 evidence as immutable byte-exact records, including their historical two-LF JSON encoding, while all future Stage A/B JSON writers emit the canonical helper bytes directly with exactly one trailing LF.
+
+**Alternatives considered:** Rewrite retained triad members to the new one-LF encoding, keep the extra LF in production writers, or relax promotion tests to check only parsed JSON.
+
+**Reason:** The retained bytes are independently hashed and bound by the official promotion audit; rewriting them would invalidate the accepted evidence chain. The canonical serializer already owns the line ending, so removing the redundant writer suffix fixes future output without changing historical evidence.
+
+**Consequences:** Promotion and regression tests must snapshot D3 outputs as repository-relative path, byte count, and SHA-256 before and after validator-only operations. New Stage A/B output and triad files must equal `canonical_json_bytes(value)` byte-for-byte and must not acquire a second LF.
+
+## [2026-09-02] Bind historical CLI validation through an opaque real-evidence context
+
+**Decision:** Keep the public Stage A validator free of caller-supplied CLI
+digests. The real promotion path independently loads the canonical policy,
+pins separate D1 and D2 entry-point digests, verifies the source commit/tree,
+and then threads a sealed private context through Stage B, nested Stage A, and
+success/runtime-failure attestation validation. Canonical Stage B preflight
+uses the same independent policy and otherwise fails closed.
+
+**Reason:** A candidate must never be able to authorize its own historical CLI
+digest. Ordinary validators should continue to bind the currently checked-out
+entry point, while the retained historical chain needs an explicit source-
+bound exception that cannot be supplied as an arbitrary string or mapping.
+
+**Consequences:** Historical validation is available only through the real
+promotion/canonical-policy path; legacy synthetic APIs remain separate, and a
+partial staging directory cannot pass candidate validation by copying its own
+CLI digest.
+
+## [2026-09-02] Keep L04.9 v2 evidence byte-stable across Git clones
+
+**Decision:** Mark the scoped L04.9 v2 evidence family with `-text` in
+`.gitattributes`, and require `git check-attr text` to report `unset` before
+canonical evidence reads in promotion or tracked Stage B preflight. Reject
+`text=auto` and unspecified attributes.
+
+**Reason:** The effective Windows Git configuration enables `core.autocrlf`,
+which can change tracked JSON/JSONL bytes on checkout while leaving the index
+blob apparently valid. The D1/D2 chain and accepted D3 record are immutable
+byte-addressed evidence, so line-ending conversion would invalidate their
+pins.
+
+**Consequences:** The guard is deliberately scoped to L04.9 paths and D3;
+unrelated historical M14 artifacts remain governed by the existing repository
+rules. Temporary or downstream tracked evidence fixtures must carry the same
+explicit attribute contract.

@@ -20,16 +20,38 @@ second source of truth.
 
 ### Current L04.9 v2 promotion state
 
-The retained D2 evidence is finalized and remains repository-promotion false.
-The D3 promotion contract is currently under remediation: official retention
-audits, the D1/D2/provisioning sidecar chain, Git tree commitments, and the
-transport/artifact digest distinction are being validated by the versioned
-real-evidence adapter. Its public API independently loads an immutable
-`RealPromotionPolicy` from fixed tracked evidence and requires supplied
-mappings to match; the former synthetic API remains available only through
-explicitly named legacy functions. No D3 promotion record has
-been emitted, and no semantic or retention evidence has been changed by this
-contract work.
+The retained D2 evidence remains the immutable, repository-promotion-false
+predecessor record. The official real-evidence promotion record is now accepted
+at D3: [`D3 promotion record`](../artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json)
+is 4032 bytes with SHA-256
+`a9444cf7afc720e5db5961227cff275e24f7cd80bfcedfdbafc74aa1874de6b6` and
+promotion digest
+`6391f7afe6c661e3cd982709c154862ed75d95231645ede671c0e0dea8997773`.
+It records `status=accepted`, `evidence_level=D3`,
+`evidence_eligible=true`, and `repository_promotion=true` for source commit
+`6af20749b305f591d2c90d868cb09e71f623bdd0` at Git tree
+`sha1:a0f1fb55c8d112128d81f3942132657100eac00f`. The versioned adapter
+independently loads the immutable `RealPromotionPolicy` from fixed tracked
+evidence and preserves the complete D1/D2/provisioning chain; the former
+synthetic API remains available only through explicitly named legacy functions.
+The accepted record does not rewrite any predecessor sidecar, audit, candidate,
+or retained triad bytes.
+
+The repository now marks the L04.9 v2 evidence family with scoped `-text`
+attributes in `.gitattributes`. Canonical real-promotion and Stage B preflight
+reads fail closed unless `git check-attr` reports `text: unset`; this protects
+the pinned bytes from effective `core.autocrlf=true` checkout conversion.
+Regression coverage checks would-be Git blobs and a temporary local
+`core.autocrlf=true` clone for unchanged canonical SHA-256/size.
+
+The policy-bound CLI validation context is an in-process provenance capability:
+the validator accepts only the exact weak-reference-registered object issued
+after the canonical policy, pinned D1/D2 CLI digests, and source tree have been
+reloaded. Its registry detects ordinary object copying, field mutation, stale
+process IDs, and object-id reuse; it is not a defense against arbitrary code
+execution in the same Python process. The security boundary remains the
+independently reloaded, tracked, byte-hashed promotion policy and evidence
+chain.
 
 ## Quy ước và điều kiện dừng
 
@@ -177,8 +199,11 @@ bootstrap replicates, and passing recovery plus paired-shuffled gates. Evidence
 is now `deleted_verified` after the official raw-only `finalize_delete`; raw
 local absence is verified, while audit/triad/candidate survive.
 `promotion_candidate=true` is not repository promotion. D2 evidence is
-retention-eligible, but semantic finalization, repository promotion, and D3
-remain false. Remote checkout/cache absence remains unverified.
+retention-eligible as the predecessor record, while the separate official D3
+promotion record is accepted and repository-promoted. Remote checkout/cache
+absence remains unverified. The retained D1/D2 triad bytes remain historical
+exact records, including their two-LF JSON ending; future Stage A/B writers use
+the canonical one-LF encoding.
 
 The next exact-SHA run (`2a6de8dbb98f824b247da23e2bc1e3cea5efea3a`) completed
 the real GPT-2/WikiText computation and recorded `6.5803880806` nats point
