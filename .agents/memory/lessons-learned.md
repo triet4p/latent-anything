@@ -1403,3 +1403,21 @@ canonical promotion reads and tracked Stage B preflight require an explicit
 
 **Watch out for:** Never rely only on the current worktree hash or parsed JSON;
 audit Git attributes and checkout behavior before staging immutable evidence.
+
+## [2026-09-02] Windows Git checkout can change Bash transport payload size
+
+**Symptom:** The L04 BuildOnly manifest reported normalized LF payload bytes,
+while a Windows `core.autocrlf=true` clone checked out the tracked Bash payload
+with CRLF and therefore supplied different raw size and SHA-256 values.
+
+**Root cause:** The repository-wide `* text=auto` rule left tracked `.sh`
+payloads without an explicit checkout EOL, so Git converted LF scripts during
+ordinary Windows checkout.
+
+**Fix / workaround:** Apply the project-wide `*.sh text eol=lf` rule and test a
+disposable `core.autocrlf=true` clone through both `pwsh` and native Windows
+PowerShell BuildOnly paths, asserting exact payload bytes, size, and SHA-256.
+
+**Watch out for:** Any new tracked Bash script is a transport-sensitive input;
+verify `git check-attr text eol` reports `set` and `lf` before relying on raw
+payload metadata.

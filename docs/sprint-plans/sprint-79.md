@@ -541,6 +541,12 @@ occurred. See
   promotion digest
   `6391f7afe6c661e3cd982709c154862ed75d95231645ede671c0e0dea8997773`.
   D1/D2/provisioning history and exact retained evidence bytes are unchanged.
+- [x] Preserve byte-stable Bash transport payloads across Windows clones by
+  pinning tracked `.sh` files to LF with `*.sh text eol=lf`. The BuildOnly
+  manifest now has regression coverage for exact size/SHA-256 consistency
+  after a `core.autocrlf=true` clone under pwsh and native Windows PowerShell;
+  all existing L04.9 v2 evidence `-text` rules and D3 bytes remain unchanged.
+  See [`task_79_l04_9_v2_shell_eol_fix_summary.md`](../../artifacts/task_79_l04_9_v2_shell_eol_fix_summary.md).
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
