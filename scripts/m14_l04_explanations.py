@@ -8,9 +8,9 @@ non-promoting envelopes.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -19,7 +19,6 @@ from scripts._m14_l04_data import fixture_metadata
 from scripts._m14_l04_envelope import (
     build_artifact,
     build_run_record,
-    canonical_digest,
     failure_envelope,
     safe_write,
 )
@@ -67,6 +66,8 @@ ACTIVATION_FAILURE_CODES = {
     "cleanup",
     "execution",
 }
+_ADDITIVE_EXECUTION_STAGES = {"cuda_check", "model_load", "scoring", "cleanup", "execution"}
+_SAFE_ADDITIVE_DEVICE = re.compile(r"^cuda(?::(?:0|[1-9][0-9]*))?$")
 
 
 def _sanitize_activation_error(error: BaseException, resources: dict[str, Any]) -> RuntimeError:
@@ -75,6 +76,42 @@ def _sanitize_activation_error(error: BaseException, resources: dict[str, Any]) 
         stage = resources.get("stage")
         code = stage if isinstance(stage, str) and stage in ACTIVATION_FAILURE_CODES else "execution"
     return RuntimeError(f"true_activation_patching_failed:{code}")
+
+
+def _additive_schema_failure_resources(resources: dict[str, Any]) -> dict[str, Any]:
+    """Return a conservative D0 tuple when a handler result is malformed."""
+    attempted = resources.get("execution_attempted") is True
+    backend = resources.get("execution_backend")
+    stage = resources.get("stage")
+    if attempted and backend == "cuda" and resources.get("network") == "enabled":
+        # Do not echo an untrusted device string from a failed handler.  Keep
+        # the attempted CUDA tuple truthful while reducing the device to the
+        # canonical generic form accepted by the Phase-A contract.
+        device = resources.get("device")
+        safe_device = device if isinstance(device, str) and _SAFE_ADDITIVE_DEVICE.fullmatch(device) else "cuda"
+        safe_stage = stage if stage in _ADDITIVE_EXECUTION_STAGES else "execution"
+        retained = {
+            "device": safe_device,
+            "network": "enabled",
+            "resource_peak": "not measured",
+            "cleanup": "pending",
+            "execution_attempted": True,
+            "execution_backend": "cuda",
+            "stage": safe_stage,
+        }
+        failure_stage = resources.get("failure_stage")
+        if failure_stage in _ADDITIVE_EXECUTION_STAGES:
+            retained["failure_stage"] = failure_stage
+        return retained
+    return {
+        "device": "not used",
+        "network": "not attempted",
+        "resource_peak": "not measured",
+        "cleanup": "not applicable; no model was loaded",
+        "execution_attempted": False,
+        "execution_backend": "none",
+        "stage": "preflight",
+    }
 
 
 def check(plan_path: Path = PLAN_PATH, fixture_path: Path = FIXTURE_PATH) -> dict[str, str]:
@@ -143,11 +180,14 @@ def run_real(
             from scripts._m14_l04_activation_patching import run_true_activation_patching
 
             handler = run_true_activation_patching
+        elif use_case == "AdditiveSteering":
+            from scripts._m14_l04_steering import run_additive_steering
+
+            handler = run_additive_steering
     status = PENDING[use_case]
     injected = handlers is not None
     error: BaseException | None = None
     handler_result: dict[str, Any] = {}
-    handler_result_digest: str | None = None
     resources: dict[str, Any] = {
         "device": "not used",
         "network": "not attempted",
@@ -163,6 +203,10 @@ def run_real(
             status = (
                 "injected_offline_non_eligible" if handlers is not None else str(handler_result.get("status", "failed"))
             )
+            if injected:
+                # Preserve the historical injected-handler seam: non-JSON
+                # diagnostics fail as a retained TypeError before any write.
+                json.dumps(handler_result, sort_keys=True, separators=(",", ":"))
             if status == "failed":
                 error = RuntimeError(str(handler_result.get("failure_reason", "real execution failed")))
             if isinstance(handler_result.get("resources"), dict):
@@ -177,7 +221,7 @@ def run_real(
                 )
             else:
                 structure_errors = ["not an activation patching result"]
-            if not structure_errors:
+            if not structure_errors and use_case == "TrueActivationPatching":
                 # A completed scoring pass that fails its semantic gates is a
                 # non-promoting partial result. Keep the strict validator's
                 # distinction between successful completion and failed cleanup.
@@ -188,10 +232,6 @@ def run_real(
                 result_provenance = handler_result.get("provenance")
                 if isinstance(result_provenance, dict):
                     result_provenance["stage"] = "cleanup"
-            if handler_result:
-                handler_result_digest = hashlib.sha256(
-                    json.dumps(handler_result, sort_keys=True, separators=(",", ":")).encode()
-                ).hexdigest()
         except Exception as exc:  # noqa: BLE001 - retain every injected failure
             error = exc
             status = "failed"
@@ -203,21 +243,47 @@ def run_real(
                 resources["stage"] = "execution"
         if error is not None and use_case == "TrueActivationPatching":
             error = _sanitize_activation_error(error, resources)
+    if use_case == "AdditiveSteering" and not handler_result:
+        # A CUDA/dependency failure has no completed handler result; validate
+        # only its conservative resource tuple. Never route this branch
+        # through the completed-result sanitizer.
+        from scripts._m14_l04_artifact import sanitize_additive_resources
+
+        try:
+            sanitize_additive_resources(resources)
+        except (TypeError, ValueError, KeyError):
+            resources = _additive_schema_failure_resources(resources)
     fixture = fixture_metadata(plan, raw, rows)
-    artifact = build_artifact(
-        plan,
-        fixture,
-        use_case,
-        status,
-        failure_name,
-        injected=injected,
-        execution_result=handler_result if handler_result and not injected else None,
-        resources=resources,
-    )
-    provenance = artifact["provenance"]
-    if handler_result_digest is not None:
-        provenance["injected_handler_result_digest" if injected else "execution_result_digest"] = handler_result_digest
-        artifact["artifact_sha256"] = canonical_digest(artifact, "artifact_sha256")
+    try:
+        artifact = build_artifact(
+            plan,
+            fixture,
+            use_case,
+            status,
+            failure_name,
+            injected=injected,
+            execution_result=handler_result if handler_result and not injected else None,
+            resources=resources,
+        )
+    except (TypeError, ValueError):
+        if use_case != "AdditiveSteering" or injected:
+            raise
+        # A malformed handler mapping is not evidence and must still leave a
+        # complete, validator-clean failure triad.  Discard untrusted handler
+        # fields and publish only the conservative pre-CUDA D0 envelope.
+        status = "failed"
+        error = RuntimeError("additive steering handler result rejected")
+        handler_result = {}
+        resources = _additive_schema_failure_resources(resources)
+        artifact = build_artifact(
+            plan,
+            fixture,
+            use_case,
+            status,
+            failure_name,
+            injected=False,
+            resources=resources,
+        )
     safe_write(output_dir / partial_name, artifact)
     run = build_run_record(plan, artifact, use_case, status, resources, artifact_name=partial_name)
     safe_write(output_dir / run_name, run)
@@ -269,7 +335,9 @@ def main(argv: list[str] | None = None) -> None:
         + validate_run_record(result["run_record"], result["artifact"], plan)
         + validate_failure(result["failure"], plan, result["artifact"])
     )
-    if valid or result["status"] != "passed_real_cuda":
+    # A technically complete Phase-A additive run is a valid D0 diagnostic,
+    # but it is intentionally not accepted evidence or promotion.
+    if valid or result["status"] not in {"passed_real_cuda", "completed_real_cuda_d0"}:
         raise SystemExit(1)
 
 

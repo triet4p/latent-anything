@@ -30,7 +30,11 @@ def build_run_record(
         backend = "cuda" if attempted else "none"
     stage = resources.get("stage")
     if stage is None:
-        stage = "complete" if status == "passed_real_cuda" else ("cleanup" if attempted else "dispatch")
+        stage = (
+            "complete"
+            if status in {"passed_real_cuda", "completed_real_cuda_d0"}
+            else ("cleanup" if attempted else "dispatch")
+        )
     elif stage == "dispatch" and attempted:
         stage = "complete" if status == "passed_real_cuda" else "cleanup"
     result = {
@@ -51,6 +55,7 @@ def build_run_record(
         "execution_attempted": attempted,
         "execution_backend": backend,
         "stage": stage,
+        "failure_stage": resources.get("failure_stage"),
         "credentials_redacted": True,
         "cleanup": resources.get("cleanup", "not applicable; no model was loaded"),
         "status": status,
@@ -82,7 +87,11 @@ def failure_envelope(
         backend = "cuda" if attempted else "none"
     failure_stage = observed.get("stage")
     if failure_stage is None:
-        failure_stage = "complete" if status == "passed_real_cuda" else ("cleanup" if attempted else "dispatch")
+        failure_stage = (
+            "complete"
+            if status in {"passed_real_cuda", "completed_real_cuda_d0"}
+            else ("cleanup" if attempted else "dispatch")
+        )
     elif failure_stage == "dispatch" and attempted:
         failure_stage = "complete" if status == "passed_real_cuda" else "cleanup"
     result = {
@@ -108,6 +117,7 @@ def failure_envelope(
             "execution_attempted": attempted,
             "execution_backend": backend,
             "stage": failure_stage,
+            "failure_stage": observed.get("failure_stage"),
             "resource_peak": observed.get("resource_peak", "not measured"),
         },
         "network": observed.get("network", "not attempted"),
@@ -115,6 +125,7 @@ def failure_envelope(
         "cleanup": observed.get("cleanup", "not applicable; no model was loaded"),
         "execution_attempted": attempted,
         "execution_backend": backend,
+        "failure_stage": observed.get("failure_stage"),
         "blocker_owner": "explanation",
         "artifact_written": True,
         "failure_ref": failure_ref,
