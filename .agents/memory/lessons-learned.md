@@ -1421,3 +1421,65 @@ PowerShell BuildOnly paths, asserting exact payload bytes, size, and SHA-256.
 **Watch out for:** Any new tracked Bash script is a transport-sensitive input;
 verify `git check-attr text eol` reports `set` and `lf` before relying on raw
 payload metadata.
+
+## [2026-09-02] Signed off-target means can hide paired endpoint changes
+
+**Symptom:** Opposite clean/corrupted off-target effects averaged to zero and
+  made a locality diagnostic appear to pass.
+**Root cause:** The runtime averaged signed endpoint effects before taking an
+  absolute value, allowing cancellation inside a causal pair.
+**Fix / workaround:** Compute the absolute clean/corrupted change per causal
+  pair first, then aggregate those non-negative values and retain their pass
+  fields as diagnostics.
+**Watch out for:** Any causal off-target metric that takes `abs(mean(...))`
+  can hide opposing endpoint changes; use `mean(abs(pair_delta))` or the
+  explicitly frozen paired estimator.
+
+## [2026-09-02] Handler output cannot define its own D0 promotion boundary
+
+**Symptom:** A successful AdditiveSteering handler could populate dispatcher
+execution and artifact fields directly, including accepted flags or arbitrary
+nested raw output, while the generic validator treated the result as a normal
+D0 envelope.
+**Root cause:** Artifact assembly copied handler mappings without a
+use-case-specific schema, and `passed_real_cuda` conflated technical completion
+with repository acceptance.
+**Fix / workaround:** Added strict allowlisted sanitization and independent D0
+validation for metrics, controls, summaries, provenance, parameter-digest
+linkage, and bounded resource peaks; changed the diagnostic completion status
+to `completed_real_cuda_d0` and kept cleanup failures as `failed`.
+**Watch out for:** Never copy a handler mapping into an artifact before
+validating exact recursive fields, booleans, finite budgets, and cross-location
+linkage; promotion status must remain separate from runtime completion.
+
+## [2026-09-04] Self-rehashed additive envelopes can diverge across locations
+
+**Symptom:** A changed AdditiveSteering provenance or resource mapping could be
+self-rehashed and remain accepted when only one envelope location was compared.
+**Root cause:** The validator linked most top-level fields but compared only a
+single provenance digest and skipped strict resource validation for sparse
+pre-CUDA envelopes.
+**Fix / workaround:** Link every retained additive provenance field across
+artifact, execution, and record; validate resource tuples for both completed
+and pre-CUDA envelopes; reject non-string mapping keys before sanitization.
+**Watch out for:** A valid self-digest proves only internal consistency. Always
+recheck frozen constants, recursive allowlists, and cross-location equality
+before accepting a retained diagnostic envelope.
+
+## [2026-09-04] Diagnostic controls must be independent permutations
+
+**Symptom:** The AdditiveSteering shuffled-label control used random signs on
+fitted pair deltas, which did not test label assignment and could be
+indistinguishable from a direction control.
+
+**Root cause:** A sign flip over already fitted clean-minus-corrupted deltas
+changes pair orientation but never permutes labels across train examples.
+
+**Fix / workaround:** Permute balanced clean/corrupted labels across the
+train-example activations with a deterministic per-seed RNG, reject identity
+or degenerate permutations, and retain only safe cardinality/policy/digest
+provenance. Keep matched-norm as a separate control.
+
+**Watch out for:** Never let independently rehashed metrics, controls, or
+provenance become authoritative; derive and compare every retained view at
+the artifact boundary.

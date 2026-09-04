@@ -24,7 +24,22 @@
   A/B JSON outputs now use the canonical one-LF encoding; existing accepted
   triad members retain their historical two-LF bytes.
 
+### Fixed
+
+- Hardened the L04.10 Phase A diagnostic boundary: canonical holdout and
+  authored-fixture digest validation now reject self-rehashed substitutions;
+  metric/control summaries are cross-linked before artifact assembly; true
+  deterministic balanced shuffled-label permutations replace random signs;
+  and post-CUDA partial failures retain truthful stage/resource provenance.
+
 ### Added
+
+- Added the network-gated M14 L04.10 additive steering runtime for the pinned
+  GPT-2 integration boundary, with train-only direction fitting, holdout
+  strength diagnostics, deterministic seed summaries, and fail-closed control
+  and resource handling. Phase A outputs use an explicit
+  `completed_real_cuda_d0` diagnostic status and a strict allowlisted artifact
+  sanitizer/validator; they do not promote real evidence.
 
 - Added the direct runtime dependency `psutil` so the L04.9 v2 resource
   probe provides a cross-platform RSS fallback when `resource.getrusage` is
@@ -578,6 +593,15 @@
 - Added `SchedulerIntervention` data type and intervention support to `DiffusersConditionalPipeline.generate()` — additive edits on scheduler latent states during denoising via `callback_on_step_end`, with `random_direction()` and `matched_norm_direction()` helpers. (#sprint-38)
 - Added deterministic offline smoke tests for `SchedulerIntervention` validation, direction helpers, intervention passthrough in `generate()`, and a gated real-checkpoint benchmark that verifies the intervention changes intermediate latents. (#sprint-38)
 - Added a comprehensive experiment script (`diffusers_conditional_intervention_experiment.py`) that compares no-edit/prompt-only/random-direction/matched-norm controls across multiple seeds with target change, SSIM, latent norm drift, and trajectory-cosine metrics, plus a timestep-by-strength sweep. (#sprint-38)
+
+### Fixed
+
+- Corrected M14 L04.10 off-target diagnostics to use absolute paired
+  clean/corrupted changes, made incomplete CUDA cleanup fail closed, retained
+  model-parameter digests before/after execution, and kept Phase A runtime
+  diagnostics explicitly D0/non-eligible/non-accepted until later validator
+  wiring. Control pass fields remain diagnostic rather than repository
+  acceptance claims.
 
 ## [0.1.0-beta.1] - 2026-07-10
 

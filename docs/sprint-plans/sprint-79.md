@@ -547,6 +547,31 @@ occurred. See
   after a `core.autocrlf=true` clone under pwsh and native Windows PowerShell;
   all existing L04.9 v2 evidence `-text` rules and D3 bytes remain unchanged.
   See [`task_79_l04_9_v2_shell_eol_fix_summary.md`](../../artifacts/task_79_l04_9_v2_shell_eol_fix_summary.md).
+- [x] Implement L04.10 Phase A additive steering around the concrete
+  `TransformerLMIntegration` boundary. The private runtime fits a normalized
+  clean-minus-corrupted direction on the eight train groups only, applies
+  `hidden + strength * direction` at layer 6/native index 7, evaluates the
+  frozen `[0, 0.25, 0.5, 1]` strength curve over four holdout groups, and
+  retains zero-strength, randomized, shuffled-label, matched-norm, and
+  previous-token off-target controls. Off-target locality uses paired absolute
+  clean/corrupted changes (no signed cancellation); cleanup and parameter
+  digest checks fail closed. Per-seed control pass fields and
+  `semantic_candidate` diagnostics are emitted, while Phase A hard-codes D0,
+  non-eligible, non-accepted artifact output. A strict sanitizer/validator
+  rejects handler flag forgery, unknown/raw fields, malformed resource peaks,
+  and unlinked parameter digests; technically complete runs use the explicit
+  `completed_real_cuda_d0` status pending Task 2 promotion wiring.
+  Hook cleanup, CUDA/network/resource gates, deterministic five-seed summaries,
+  malformed-input rejection, and prompt/raw/weight/path-free output were
+  covered by focused offline tests; no real model, CUDA, remote execution, or
+  evidence promotion was performed.
+  See [`task_79_l04_10_summary.md`](../../artifacts/task_79_l04_10_summary.md).
+  The follow-up integrity pass now requires canonical g09-g12 holdout pairs,
+  authored fixture digests, and pre-assembly metric/control cross-links;
+  preserves truthful post-CUDA partial-failure provenance; and uses a real
+  deterministic balanced train-label permutation with safe provenance rather
+  than a random-sign control. Adversarial, artifact, envelope, and synthetic
+  scoring-failure regressions cover these boundaries.
 - [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
