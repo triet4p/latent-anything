@@ -10,10 +10,9 @@ second compatibility matrix was introduced:
 - `pyproject.toml` requires Python `>=3.12,<3.15`, yielding Python 3.12,
   3.13, and 3.14.
 - `.github/workflows/ci.yml` and `.github/workflows/optional-extras.yml`
-  declare the CI platform as `ubuntu-latest`. The local execution below is a
-  Windows supplemental run; the required Ubuntu GitHub Actions tier remains
-  externally blocked because the documented external Actions account is not
-  available to this session.
+  declare the CI platform as `ubuntu-latest`. The remote GitHub Actions run
+  below supplies the required Ubuntu evidence; the local Windows execution is
+  supplemental.
 - `pyproject.toml` declares these 12 optional profiles, in declaration order:
   `docs`, `diffusers`, `transformers`, `diffusers-full`, `3d`, `lerobot`,
   `lerobot-diffusion`, `lerobot-smolvla`, `viz`, `tracking-mlflow`,
@@ -63,11 +62,32 @@ base isolation checks:
 | 3.14.0 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 
 Total local result: **39/39 lanes passed** (3 base lanes plus 36 profile
-lanes). No implicit model/data download occurred. The required Ubuntu
-`ubuntu-latest` matrix still needs the external GitHub Actions account and is
-therefore not claimed as locally evidenced.
+lanes). No implicit model/data download occurred. The remote Ubuntu run below
+also passed all required clean-base and resolve-extra lanes.
 
-## Exact verification
+## Ubuntu GitHub Actions evidence
+
+The corrected workflow was dispatched on the dedicated review branch
+`sprint79-local-gate-remediation` at commit
+`5911d0096decb92269d2273c50d6de812c08dc5a`:
+
+- Run ID: `34681280312`
+- URL: https://github.com/triet4p/latent-anything/actions/runs/34681280312
+- Platform: `ubuntu-latest`
+- Workflow conclusion: **success**
+- Required lanes: **39/39 success** — `clean-base` for Python 3.12, 3.13,
+  and 3.14, plus `resolve-extra` for all 12 profiles on each Python version.
+- The run was waited to settlement with `gh run watch 34681280312
+  --repo triet4p/latent-anything --exit-status`; no required lane failures
+  occurred.
+
+The workflow matrix was checked against its source definitions. The local
+39-lane run used the exact locked command pattern above, and the remote
+`resolve-extra` lanes used:
+
+```text
+uv run --locked --extra ${{ matrix.extra }} python -c "import latent_anything"
+```
 
 The workflow matrix was checked against its source definitions and the local
 39-lane run used the exact locked command pattern above. The final local

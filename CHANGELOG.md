@@ -6,8 +6,8 @@
 - Repaired the optional-extras clean-environment workflow to resolve the base
   profile and all 12 declared profiles across Python 3.12, 3.13, and 3.14
   without changing the declared LeRobot/legacy-profile conflicts. Local
-  Windows evidence covers all 39 lanes; Ubuntu Actions evidence remains
-  externally blocked.
+  Windows and Ubuntu Actions evidence covers all 39 clean-base/profile lanes;
+  the workflow run is recorded in the clean-environment artifact.
 
 - Pinned tracked shell scripts to LF line endings so Windows clones with
   `core.autocrlf=true` preserve exact remote transport payload bytes and

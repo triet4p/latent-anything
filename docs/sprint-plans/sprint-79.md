@@ -580,12 +580,11 @@ occurred. See
 - [x] Synchronize the current evidence arithmetic and Milestone 14/Sprint 79
   status across the authoritative planning documents using the live ledger
   validator, without weakening any release gate.
-- [~] Build clean environments for base, each optional extra, and supported
+- [x] Build clean environments for base, each optional extra, and supported
   combined extras on every supported Python/platform tier. The locked
-  3.12/3.13/3.14 Windows supplemental matrix resolved and imported all 39
-  base/profile lanes with model/data acquisition disabled; the required
-  `ubuntu-latest` GitHub Actions tier remains blocked because the documented
-  external Actions account is unavailable. See
+  3.12/3.13/3.14 matrix passed all 39 clean-base/profile lanes on both local
+  Windows and the required `ubuntu-latest` GitHub Actions tier; model/data
+  acquisition was disabled. See
   [`task_sprint79_clean_environment_matrix_summary.md`](../../artifacts/task_sprint79_clean_environment_matrix_summary.md).
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
