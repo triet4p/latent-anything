@@ -586,7 +586,11 @@ occurred. See
   Windows and the required `ubuntu-latest` GitHub Actions tier; model/data
   acquisition was disabled. See
   [`task_sprint79_clean_environment_matrix_summary.md`](../../artifacts/task_sprint79_clean_environment_matrix_summary.md).
-- [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
+- [x] Run unit/property/integration tests plus strict docs, packaging, security,
+  license, and dependency audits. The complete local release gate passed; exact
+  commands, counts, artifact hashes, one corrected Ruff issue, and the
+  retained invalid pip-audit lockfile attempt are recorded in
+  [`task_sprint79_release_audits_summary.md`](../../artifacts/task_sprint79_release_audits_summary.md).
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
 - [ ] Execute the exhaustive [theory evidence-gap plan](../EVIDENCE_GAP_PLAN.md) and its row-level [machine-readable map](../../artifacts/task_78.38_gap_map.json); keep D0/D1 statuses unchanged until validator-backed D2/D3 artifacts exist, as demonstrated by the L03 promotion.
 - [ ] Use the [migration guide](../MIGRATION.md) and [API reference](../API_REFERENCE.md) as the human entry points to the checked-in compatibility snapshot during RC verification.

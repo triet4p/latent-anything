@@ -136,9 +136,8 @@ def failure_envelope(
         "run_record": run_record,
         "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
     }
-    if use_case == "IntegratedGradients" and isinstance(run_record, dict):
-        if "execution_result_digest" in run_record:
-            result["execution_result_digest"] = run_record["execution_result_digest"]
+    if use_case == "IntegratedGradients" and isinstance(run_record, dict) and "execution_result_digest" in run_record:
+        result["execution_result_digest"] = run_record["execution_result_digest"]
     result["failure_sha256"] = canonical_digest(result, "failure_sha256")
     return result
 

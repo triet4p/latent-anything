@@ -9,6 +9,10 @@
   Windows and Ubuntu Actions evidence covers all 39 clean-base/profile lanes;
   the workflow run is recorded in the clean-environment artifact.
 
+- Recorded the complete local Sprint 79 release gate: 2209 tests passed,
+  strict Ruff/Pyright/MkDocs gates passed, clean wheel and sdist install/import
+  checks passed, and dependency, security, license, and evidence-ledger audits
+  completed with exact artifact hashes.
 - Pinned tracked shell scripts to LF line endings so Windows clones with
   `core.autocrlf=true` preserve exact remote transport payload bytes and
   BuildOnly size/hash metadata.
