@@ -81,6 +81,17 @@ The corrected workflow was dispatched on the dedicated review branch
   --repo triet4p/latent-anything --exit-status`; no required lane failures
   occurred.
 
+The individual required job conclusions were all `success`:
+
+| Python | `clean-base` | `docs` | `diffusers` | `transformers` | `diffusers-full` | `3d` | `lerobot` | `lerobot-diffusion` | `lerobot-smolvla` | `viz` | `tracking-mlflow` | `tracking-wandb` | `tracking` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 3.12 | success | success | success | success | success | success | success | success | success | success | success | success | success |
+| 3.13 | success | success | success | success | success | success | success | success | success | success | success | success | success |
+| 3.14 | success | success | success | success | success | success | success | success | success | success | success | success | success |
+
+No failure logs exist for the required lanes because every required job
+concluded successfully.
+
 The workflow matrix was checked against its source definitions. The local
 39-lane run used the exact locked command pattern above, and the remote
 `resolve-extra` lanes used:
