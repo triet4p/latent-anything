@@ -269,6 +269,8 @@ def test_handler_emits_validator_schema_for_seeded_repeat(monkeypatch: pytest.Mo
     result = run_integrated_gradients(plan, rows, integration_factory=FakeIntegration)
 
     assert result["status"] == "passed_real_cuda"
+    digest = result["provenance"].get("execution_result_digest")
+    assert isinstance(digest, str) and len(digest) == 64
     seeded = result["controls"]["seeded_repeat"]
     assert set(seeded) == {"metrics", "repeat_count", "seeds", "pass"}
     assert set(seeded["metrics"]) == {"attribution_cosine"}
@@ -482,7 +484,11 @@ def test_production_dispatch_success_keeps_real_result_and_validates_triads(
 
     assert result["status"] == "passed_real_cuda"
     assert result["artifact"]["provenance"]["evidence_origin"] == "real-cuda"
-    assert "execution_result_digest" in result["artifact"]["provenance"]
+    digest = result["artifact"]["provenance"].get("execution_result_digest")
+    assert isinstance(digest, str) and len(digest) == 64
+    assert result["run_record"]["execution_result_digest"] == digest
+    assert result["failure"]["execution_result_digest"] == digest
+    assert result["failure"]["run_record"]["execution_result_digest"] == digest
     assert "injected_handler_result_digest" not in result["artifact"]["provenance"]
     assert validate_artifact(result["artifact"], load_plan()) == []
     assert validate_run_record(result["run_record"], result["artifact"], load_plan()) == []

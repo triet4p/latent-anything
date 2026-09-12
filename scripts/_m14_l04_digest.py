@@ -22,6 +22,18 @@ def canonical_digest(value: dict[str, Any], field: str) -> str:
     return hashlib.sha256(canonical_json_bytes(unsigned)).hexdigest()
 
 
+def execution_result_digest(value: dict[str, Any]) -> str:
+    """Hash a handler result without its self-referential digest field."""
+    unsigned = dict(value)
+    unsigned.pop("execution_result_digest", None)
+    provenance = unsigned.get("provenance")
+    if isinstance(provenance, dict):
+        provenance = dict(provenance)
+        provenance.pop("execution_result_digest", None)
+        unsigned["provenance"] = provenance
+    return hashlib.sha256(canonical_json_bytes(unsigned)).hexdigest()
+
+
 def code_sha() -> str:
     """Return the current committed SHA or fail closed."""
     try:

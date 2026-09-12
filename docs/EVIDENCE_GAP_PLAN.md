@@ -10,17 +10,16 @@ machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **34/63 core (54.0%)** and
-**34/65 overall (52.3%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **36/63 core (57.142857%)**
+and **36/65 overall (55.384615%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **31 current D0/D1
-rows** in this plan: **29 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **26 additional core qualifiers** are required to reach
-`ceil(0.95 × 63) = 60`; at least **26 additional overall qualifiers** are
-required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
-binding gate. Headline model, causal explanation, and named integration claims
-target D3; ordinary algorithm capabilities target D2 unless their row says
-otherwise.
+denominator adds two applicable X01 rows. The validator reports **24 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **24 additional core
+qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
+**23 additional overall qualifiers** are required to reach
+`ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
+model, causal explanation, and named integration claims target D3; ordinary
+algorithm capabilities target D2 unless their row says otherwise.
 
 ### Sprint 79 L02 partial result
 
@@ -88,10 +87,10 @@ represented by the sanitized capture audit.
 The validator command is:
 
 ```text
-uv run python scripts/validate_evidence_ledger.py
+uv run python scripts/validate_evidence_ledger.py --json
 ```
 
-It must continue to report the honest current 34/63 and 34/65 result while
+It must continue to report the honest current 36/63 and 36/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
@@ -265,7 +264,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed L02 record) | yes | no | D2 | L02 | Held-out ranking failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05 |
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |
-| `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D1 | yes | no | D2 | L03 | PCA tests lack quantitative held-out benchmark |
+| `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D2 | yes | no | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out PCA structure benchmark |
 | `THY-T03-DISENTANGLEMENT` | D2 | yes | yes | D2 | L04 | Exact-SHA real CUDA Disentanglement passed controls; retained triplet and deleted-verified audit are tracked |
 | `THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN` | D2 | yes | no | D2 | L02 | Accepted bounded density-geodesic record in the L02 artifact |
 | `THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION` | D2 | yes | no | D2 | L02 | Accepted held-out unit-norm interpolation record in the L02 artifact |
@@ -276,10 +275,10 @@ map; lane-level defaults are specified in the next section.
 | `THY-T04-SLERP` | D2 | yes | no | D2 | L02 | Accepted independent T04 SLERP record in the L02 artifact |
 | `THY-T04-DENSITY-ESTIMATION-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only density row |
 | `THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only transport row |
-| `THY-T05-LINEAR-PROBING` | D0 | yes | yes | D2 | L03 | Existing probe is not linked to a D2 benchmark |
-| `THY-T05-NONLINEAR-PROBING` | D0 | yes | yes | D2 | L03 | MLP implementation lacks real held-out evidence |
+| `THY-T05-LINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out LinearProbe benchmark |
+| `THY-T05-NONLINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out MLPProbe benchmark |
 | `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 | yes | yes | D3 | L04 | Theory-only TCAV row |
-| `THY-T05-ACTIVATION-PATCHING` | D1 | yes | yes | D3 | L04 | D1 hook tests lack real causal benchmark |
+| `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |

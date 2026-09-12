@@ -11,7 +11,7 @@ from typing import Any
 
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_contract_common import canonical_json_bytes
-from scripts._m14_l04_digest import canonical_digest, code_sha, source_digests
+from scripts._m14_l04_digest import canonical_digest, code_sha, execution_result_digest, source_digests
 from scripts._m14_l04_fixture_contract import FIXTURE_PATH, fixture_digests, read_fixture
 from scripts.m14_l04_contract import plan_digest
 
@@ -1267,7 +1267,15 @@ def build_artifact(
     if execution_result is not None and not injected and sanitized_additive is None:
         provenance = artifact["provenance"]
         if isinstance(provenance, dict):
-            provenance.update(execution_result.get("provenance", {}))
+            execution_provenance = execution_result.get("provenance", {})
+            if isinstance(execution_provenance, dict):
+                provenance.update(execution_provenance)
+            if use_case == "IntegratedGradients":
+                expected_digest = execution_result_digest(execution_result)
+                supplied_digest = provenance.get("execution_result_digest")
+                if supplied_digest is not None and supplied_digest != expected_digest:
+                    raise ValueError("Integrated Gradients execution result digest linkage is invalid")
+                provenance["execution_result_digest"] = expected_digest
         artifact["raw_summaries"] = execution_result.get("raw_summaries", [])
         artifact["fixture_linkage"] = execution_result.get("fixture_linkage", [])
         artifact["diagnostics"] = execution_result.get("diagnostics", {})

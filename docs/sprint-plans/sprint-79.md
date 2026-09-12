@@ -572,7 +572,21 @@ occurred. See
   deterministic balanced train-label permutation with safe provenance rather
   than a random-sign control. Adversarial, artifact, envelope, and synthetic
   scoring-failure regressions cover these boundaries.
-- [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
+- [x] Restore successful Integrated Gradients dispatch provenance: retain and
+  validate `execution_result_digest` across the artifact/run/failure triad,
+  preserve fail-closed behavior, and record focused regression evidence.
+- [x] Restore the Ruff formatting gate for
+  `scripts/_m14_l04_validate_tcav.py` without changing validator semantics.
+- [x] Synchronize the current evidence arithmetic and Milestone 14/Sprint 79
+  status across the authoritative planning documents using the live ledger
+  validator, without weakening any release gate.
+- [~] Build clean environments for base, each optional extra, and supported
+  combined extras on every supported Python/platform tier. The locked
+  3.12/3.13/3.14 Windows supplemental matrix resolved and imported all 39
+  base/profile lanes with model/data acquisition disabled; the required
+  `ubuntu-latest` GitHub Actions tier remains blocked because the documented
+  external Actions account is unavailable. See
+  [`task_sprint79_clean_environment_matrix_summary.md`](../../artifacts/task_sprint79_clean_environment_matrix_summary.md).
 - [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
 - [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
 - [ ] Execute the exhaustive [theory evidence-gap plan](../EVIDENCE_GAP_PLAN.md) and its row-level [machine-readable map](../../artifacts/task_78.38_gap_map.json); keep D0/D1 statuses unchanged until validator-backed D2/D3 artifacts exist, as demonstrated by the L03 promotion.

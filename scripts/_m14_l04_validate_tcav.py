@@ -340,11 +340,15 @@ def validate_real_tcav_execution(
             or provenance.get("null_family_counts") != {"shuffled": 33, "random": 33, "matched": 33}
         ):
             errors.append("real TCAV token/control provenance is invalid")
-    control_raw_valid = isinstance(control_raw, Mapping) and set(control_raw) == CONTROL_RAW_NAMES and all(
-        isinstance(control_raw.get(name), list)
-        and len(control_raw.get(name, [])) == len(holdout_groups)
-        and all(_finite(value) for value in control_raw.get(name, []))
-        for name in ("intervention_agreement", "off_target_target_token", "zero_strength_identity")
+    control_raw_valid = (
+        isinstance(control_raw, Mapping)
+        and set(control_raw) == CONTROL_RAW_NAMES
+        and all(
+            isinstance(control_raw.get(name), list)
+            and len(control_raw.get(name, [])) == len(holdout_groups)
+            and all(_finite(value) for value in control_raw.get(name, []))
+            for name in ("intervention_agreement", "off_target_target_token", "zero_strength_identity")
+        )
     )
     if (
         control_raw_valid

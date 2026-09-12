@@ -6,6 +6,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  clean-base:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked
+      - run: uv run --locked python -c "import sys; import latent_anything; assert not any(name.startswith(('diffusers', 'transformers', 'tokenizers', 'gsplat', 'lerobot', 'mlflow', 'wandb', 'plotly', 'kaleido', 'ipywidgets', 'anywidget')) for name in sys.modules), 'optional module leaked into base environment'"
   discrete-latent-offline:
     runs-on: ubuntu-latest
     strategy:
@@ -26,16 +40,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
-        extra: [diffusers, transformers, "3d", lerobot, lerobot-diffusion, lerobot-smolvla]
+        python-version: ["3.12", "3.13", "3.14"]
+        extra: [docs, diffusers, transformers, diffusers-full, "3d", lerobot, lerobot-diffusion, lerobot-smolvla, viz, tracking-mlflow, tracking-wandb, tracking]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --locked --extra ${{ matrix.extra }}
-      - run: uv run python -c "import latent_anything"
+      - run: uv run --locked --extra ${{ matrix.extra }} python -c "import latent_anything"
 
   lerobot-compatibility:
     runs-on: ubuntu-latest

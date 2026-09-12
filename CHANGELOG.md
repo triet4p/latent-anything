@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Changed
+- Repaired the optional-extras clean-environment workflow to resolve the base
+  profile and all 12 declared profiles across Python 3.12, 3.13, and 3.14
+  without changing the declared LeRobot/legacy-profile conflicts. Local
+  Windows evidence covers all 39 lanes; Ubuntu Actions evidence remains
+  externally blocked.
 
 - Pinned tracked shell scripts to LF line endings so Windows clones with
   `core.autocrlf=true` preserve exact remote transport payload bytes and
@@ -25,6 +30,9 @@
   triad members retain their historical two-LF bytes.
 
 ### Fixed
+- Restored successful M14 L04 Integrated Gradients execution-result digest
+  propagation and fail-closed linkage across the artifact, run, and failure
+  envelopes; focused dispatcher coverage now validates the complete triad.
 
 - Hardened the L04.10 Phase A diagnostic boundary: canonical holdout and
   authored-fixture digest validation now reject self-rehashed substitutions;
