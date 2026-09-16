@@ -66,14 +66,14 @@
     "status": "completed"
   },
   "resource_budget": {
-    "elapsed_seconds": 0.589503600000171,
+    "elapsed_seconds": 0.5294066999995266,
     "max_artifact_bytes": 1048576,
     "max_cache_bytes": 1048576,
     "max_cache_entries": 8,
-    "rss_peak_bytes": 305758208
+    "rss_peak_bytes": 305672192
   },
   "schema_version": "m14-l22-run-v1",
-  "source_sha": "17b125d640bac9f6337f5c68983a7d4ee0267488",
+  "source_sha": "d6fb1d19a60dd64c2ae0c743c6d390d6666d96eb",
   "target": {
     "device": "cpu",
     "filesystem": "isolated temporary Arrow/SQLite-compatible paths",
