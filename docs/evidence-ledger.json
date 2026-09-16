@@ -366,6 +366,25 @@
         {"role": "artifact", "path": "artifacts/m14/l03-analysis.run.json"}
       ]
     },
+    "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018": {
+      "status": "D0",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/tcav.py"},
+        {"role": "source", "path": "src/latent_anything/_tcav_model.py"},
+        {"role": "source", "path": "scripts/_m14_l04_tcav.py"},
+        {"role": "test", "path": "tests/test_tcav.py"},
+        {"role": "test", "path": "tests/test_m14_l04_tcav_handler.py"},
+        {"role": "test", "path": "tests/test_m14_l04_explanations.py"},
+        {"role": "benchmark", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-tcav.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.partial.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.failure.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.TCAV.attempt3.audit.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-tcav.run.json"}
+      ]
+    },
     "THY-T05-ACTIVATION-PATCHING": {
       "status": "D3",
       "evidence": [

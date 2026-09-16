@@ -278,7 +278,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only transport row |
 | `THY-T05-LINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out LinearProbe benchmark |
 | `THY-T05-NONLINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out MLPProbe benchmark |
-| `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 | yes | yes | D3 | L04 | Theory-only TCAV row |
+| `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 (retained semantic failure) | yes | yes | D3 | L04 | Exact-SHA real CUDA TCAV artifact is validator-clean but fails Wilson lower-bound and corrected empirical-p-value gates; no promotion |
 | `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
@@ -417,3 +417,39 @@ model-induced trajectories from held-out sklearn digits; it does not claim
 physical trajectories, Fréchet distance, or named-model performance.
 Positions 2–4, 6–9, and 12 remain blocked; line 595 and all later queue rows
 remain unchanged.
+
+### Queue position 33 — L04 TCAV failure reconciliation
+
+`THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` is the earliest
+dependency-order row after queue position 27 that had its L03 prerequisite,
+owner authorization, pinned GPT-2 fixture, and CUDA runtime. Positions 28 and
+32 (linear and nonlinear probing) were already qualifying; positions 29
+(V-JEPA), 30 (Genie), and 31 (policy-gradient) remain blocked by missing
+implementation/checkpoint/access prerequisites.
+
+The owner-reviewed exact-SHA recovery at source
+`5c38b63f01d280939790e415de699ab285a228de` ran the pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7. Its
+validator-clean artifact/run/failure triplet and sanitized remote audit are
+retained at
+[`l04-explanations.TCAV.attempt1.partial.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.partial.json),
+[`l04-explanations.TCAV.attempt1.run.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.run.json),
+[`l04-explanations.TCAV.attempt1.failure.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.failure.json),
+and
+[`l04-explanations.ssh.TCAV.attempt3.audit.json`](../artifacts/m14/l04-explanations.ssh.TCAV.attempt3.audit.json).
+The target-level threshold config and reconciliation receipt are
+[`l04-tcav.config.json`](../artifacts/m14/l04-tcav.config.json) and
+[`l04-tcav.run.json`](../artifacts/m14/l04-tcav.run.json).
+
+The run measured held-out accuracy `0.875`, Wilson lower bound
+`0.5291118177871466` against strict `> 0.55`, bootstrap lower `1.0`,
+corrected empirical p `0.24` against `<= 0.05`, and intervention agreement
+`1.0`; all five frozen controls passed. The two failed semantic gates retain
+the row at D0, with `accepted_gap_ids=[]`, `accepted_record_ids=[]`, and no
+promotion. Focused TCAV validation passed **27 tests**; the ledger validator
+returned `errors: []` at **40/63 core (63.492063%)** and **40/65 overall
+(61.538462%)**. The failure-preserving reconciliation summary is
+[`task_79_queue33_tcav_reconciliation_summary.md`](../artifacts/task_79_queue33_tcav_reconciliation_summary.md).
+No later queue row, Sprint 79 line 595, or later plan item
+was changed.

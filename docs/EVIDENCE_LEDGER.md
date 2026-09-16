@@ -457,6 +457,20 @@ Milestone 14 are not started.
 The Phase-A task summaries and Phase-B closure/audit summaries are linked in
 the typed ledger for atomic traceability.
 
+Sprint 79 queue position 33 closes the TCAV execution review without a
+promotion. `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` retains
+D0 because the owner-authorized exact-SHA CUDA run produced a validator-clean
+artifact/run/failure triplet but failed the frozen Wilson lower-bound gate
+(`0.5291118177871466` versus strict `> 0.55`) and corrected empirical-p-value
+gate (`0.24` versus `<= 0.05`). The five controls passed and the pinned GPT-2
+execution used `TransformerLMIntegration` at layer 6/native hidden-state index
+7; no D3 claim is made. Target-level config/receipt are
+`artifacts/m14/l04-tcav.config.json` and `artifacts/m14/l04-tcav.run.json`;
+the immutable semantic envelopes and sanitized remote audit remain linked in
+the JSON ledger. Focused TCAV validation passed 27 tests and the validator
+remains error-free at 40/63 core and 40/65 overall. The authored fixture is
+bounded evidence only, and no rerun is authorized.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

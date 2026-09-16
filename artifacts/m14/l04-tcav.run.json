@@ -1,0 +1,75 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+  "lane": "M14-L04",
+  "status": "failed",
+  "evidence_level": "D0",
+  "accepted": false,
+  "evidence_eligible": false,
+  "execution_mode": "owner-authorized-remote-cuda-exact-sha-recovery",
+  "command": "uv run python -m scripts.m14_l04_explanations --run-real --use-case TCAV",
+  "source_sha": "5c38b63f01d280939790e415de699ab285a228de",
+  "plan_sha256": "098c5f21d48102ace28ea5f7497af014befe097964e1ec8c0887f870c4d62269",
+  "configuration": {
+    "path": "artifacts/m14/l04-tcav.config.json",
+    "sha256": "850cf327341dc7b3da405538121279d090f5c7d74aa0018b25dc822525fcb28a"
+  },
+  "implementation": {
+    "path": "scripts/_m14_l04_tcav.py",
+    "sha256": "1c0f070b0f02554f7ed916d0f019c332d2fa1f5c8786287f3d2b474189e131db"
+  },
+  "evidence": {
+    "artifact": {
+      "path": "artifacts/m14/l04-explanations.TCAV.attempt1.partial.json",
+      "sha256": "adbb6ac51b9222767c9c15e0c18ae716b3d0a5f94eb9de73e0bd6bda3de2d523"
+    },
+    "run": {
+      "path": "artifacts/m14/l04-explanations.TCAV.attempt1.run.json",
+      "sha256": "123240b06bfbc7578c9b0264a903d2c729322e9ed31028a0519fa98d1aa12fd1"
+    },
+    "failure": {
+      "path": "artifacts/m14/l04-explanations.TCAV.attempt1.failure.json",
+      "sha256": "1f00beb47b842b77b36f386f1cf9ecefb1e2a28fbb7dcab4c87cdcf6021dec6b"
+    },
+    "remote_audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.TCAV.attempt3.audit.json",
+      "sha256": "ad4fc26c87ea89e18f6ef57342f6469b072eca24f409d453468624a3dacf0472"
+    }
+  },
+  "remote": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "integration": "TransformerLMIntegration",
+    "model": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "transport_attempt": 3,
+    "semantic_execution_ordinal": 2,
+    "ssh_exit": 1,
+    "embedded_remote_status": 1,
+    "tcav_exit": 1,
+    "bundle_exit": 0,
+    "cleanup": "remote trap pass; local raw deletion verified"
+  },
+  "metrics": {
+    "heldout_accuracy": 0.875,
+    "heldout_accuracy_wilson_lower": 0.5291118177871466,
+    "bootstrap_ci_lower": 1.0,
+    "corrected_empirical_p": 0.24,
+    "intervention_agreement": 1.0,
+    "controls_passed": ["shuffled_concept_labels", "random_concept_directions", "matched_norm_null", "off_target_target_token", "zero_strength_identity"],
+    "failed_gates": {
+      "heldout_accuracy_wilson_lower": {"value": 0.5291118177871466, "threshold": 0.55, "comparator": ">"},
+      "corrected_empirical_p": {"value": 0.24, "threshold": 0.05, "comparator": "<="}
+    }
+  },
+  "focused_tests": {
+    "command": "uv run pytest tests/test_m14_l04_tcav_handler.py tests/test_m14_l04_explanations.py -q",
+    "result": "27 passed",
+    "test_hashes": {
+      "tests/test_m14_l04_tcav_handler.py": "fadaed9a97da0995512b540488b02f4996915c43a0cc9e4c2c059f2ac6a870c5",
+      "tests/test_m14_l04_explanations.py": "896a4211543eeac04a387b9aa296a5e1d2021daf4c2ac1a84212b378b17e1a0f"
+    }
+  },
+  "cleanup": "Immutable remote envelopes and sanitized audit retained; canonical L04 artifact not overwritten; no rerun authorized."
+}
