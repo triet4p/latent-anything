@@ -1285,6 +1285,12 @@ def build_artifact(
             execution_provenance = execution_result.get("provenance", {})
             if isinstance(execution_provenance, dict):
                 provenance.update(execution_provenance)
+            if (
+                use_case == "TrueActivationPatching"
+                and status == "failed"
+                and (resources or {}).get("stage") == "cleanup"
+            ):
+                provenance["stage"] = "cleanup"
             if use_case == "IntegratedGradients":
                 expected_digest = execution_result_digest(execution_result)
                 supplied_digest = provenance.get("execution_result_digest")
