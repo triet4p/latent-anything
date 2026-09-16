@@ -488,6 +488,33 @@ The focused SAE suite passed 21 tests; the validator remains error-free at
 40/63 core and 40/65 overall. Later rows and Sprint 79 line 595 remain
 unchanged.
 
+Sprint 79 queue position 38 reconciles
+`THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` while
+retaining D1. Queue positions 36 (Disentanglement) and 37 (Activation
+Patching) already satisfy their bounded target contracts and were intentionally
+not modified in this row. The retained exact-SHA owner-authorized real CUDA
+AdditiveSteering execution at source
+`7ad6648a9bc5d22793b63b764cb9f93990a247e8` used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7, with target
+tokens `true=2081` and `false=3991` and seeds `[17, 29, 41, 53, 67]`.
+The target-level config and reconciliation receipt are
+`artifacts/m14/l04-steering.config.json` and
+`artifacts/m14/l04-steering-reconciliation.run.json`; the immutable artifact,
+execution/failure envelopes, and sanitized retention audit are linked in the
+JSON ledger. Target effect (`0.059151649475097656 > 0.05`), selectivity
+(`0.05431842803955078 > 0.05`), off-target effect
+(`0.004833221435546875 <= 0.1`), zero-strength, shuffled-label, matched-norm,
+no-mutation, and budget gates passed. The required randomized-direction gate
+failed for seeds 29 (`0.32630348205566406`) and 67
+(`0.10096931457519531`) against `<= 0.1`; the result is a completed real-CUDA
+D0 diagnostic and cannot promote the D1 row to D3. No threshold relaxation or
+unsupported claim occurred. The focused steering suites passed 63 tests. The
+failure-preserving summary is
+`artifacts/task_79_queue38_steering_reconciliation_summary.md`. The ledger
+validator returned `errors: []` at 40/63 core and 40/65 overall. Sprint 79 line
+595 and all later queue rows remain unchanged.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;

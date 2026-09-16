@@ -1,0 +1,108 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING",
+  "lane": "M14-L04",
+  "status": "failed",
+  "evidence_level": "D1",
+  "accepted": false,
+  "evidence_eligible": false,
+  "execution_mode": "retained-real-gpt2-cuda-run",
+  "command": "uv run python -m scripts.m14_l04_explanations --run-real --use-case AdditiveSteering",
+  "source_sha": "7ad6648a9bc5d22793b63b764cb9f93990a247e8",
+  "configuration": {
+    "path": "artifacts/m14/l04-steering.config.json",
+    "sha256": "7484bf78346eb98618ae32dfc2d39aff3fe714c75d6001887999b56e1e64337c"
+  },
+  "implementation": {
+    "source": "scripts/_m14_l04_steering.py",
+    "source_sha256": "cd67bcd6d82d311fee5d34e88d5a0984d8d7907af76c83bf1072bb9f61176577",
+    "runner": "scripts/m14_l04_explanations.py",
+    "runner_sha256": "aadd6b974db8322d48b344548f106e36c192cb43cc6dc9e5ee9ae1b09562dc23",
+    "library": "src/latent_anything/methods/steering.py",
+    "library_sha256": "16683ce3e203364e42fb3d6b0e6d75fd440890b947e474a3ef58e8bd10816bed"
+  },
+  "evidence": {
+    "lane_artifact": {
+      "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json",
+      "sha256": "b800d4ee016bfba2c4c7377cd45231218c2c43563407ebe234973b46fb3f7fc1",
+      "declared_artifact_digest": "996e8c1dee0079e920265474e980abfc6b557ceb2346bc84528d47f1264495a3"
+    },
+    "execution_record": {
+      "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json",
+      "sha256": "79680a839ab97f9aa09247425daeff02767fdbdb63f4531f3bdfa8658de83355"
+    },
+    "failure_record": {
+      "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json",
+      "sha256": "c2f908e14dd90de8a5a72a57f88b7961f7f1573ec8b71b75aa6978fb6d3203fd"
+    },
+    "retention_audit": {
+      "path": "artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json",
+      "sha256": "b6e50d24fd12829fd57e0ab05dbe5663313ccc94867702e681a7d47975695f61"
+    },
+    "plan": {
+      "path": "artifacts/m14/l04-explanations.plan.json",
+      "sha256": "098c5f21d48102ace28ea5f7497af014befe097964e1ec8c0887f870c4d62269"
+    },
+    "fixture": {
+      "path": "artifacts/m14/l04-prompt-factor-fixture.jsonl",
+      "sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f"
+    }
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "license": "MIT",
+    "integration": "TransformerLMIntegration",
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "target_tokens": {"true": 2081, "false": 3991}
+  },
+  "metrics": {
+    "target_effect_logits": 0.059151649475097656,
+    "target_effect_ci95_logits": [0.04177093505859375, 0.07639026641845703],
+    "target_effect_gate": {"threshold": 0.05, "comparator": ">", "pass": true},
+    "selectivity_logits": 0.05431842803955078,
+    "selectivity_gate": {"threshold": 0.05, "comparator": ">", "pass": true},
+    "off_target_token_effect_logits": 0.004833221435546875,
+    "off_target_gate": {"threshold": 0.1, "comparator": "<=", "pass": true},
+    "randomized_direction_by_seed_logits": {"17": 0.041228294372558594, "29": 0.32630348205566406, "41": -0.0775899887084961, "53": -0.5445613861083984, "67": 0.10096931457519531},
+    "randomized_direction_gate": {"threshold": 0.1, "comparator": "<=", "failed_seeds": [29, 67], "pass": false}
+  },
+  "acceptance": {
+    "target_effect": true,
+    "selectivity": true,
+    "off_target": true,
+    "zero_strength_identity": true,
+    "shuffled_labels": true,
+    "matched_norm_direction": true,
+    "randomized_direction": false,
+    "model_parameter_no_mutation": true,
+    "promotion": false,
+    "failed_gates": {
+      "randomized_direction": {"failed_seeds": [29, 67], "threshold": 0.1, "comparator": "<="}
+    }
+  },
+  "environment": {
+    "device": "cuda:0",
+    "execution_backend": "cuda",
+    "network": "enabled",
+    "runtime": "real TransformerLMIntegration",
+    "python": "3.13.12",
+    "torch": "2.10.0",
+    "transformers": "4.57.6",
+    "elapsed_seconds": 18.056408973410726,
+    "max_memory_allocated_bytes": 529519104,
+    "max_memory_reserved_bytes": 572522496,
+    "max_rss_bytes": 1617301504,
+    "cleanup_complete": true
+  },
+  "focused_tests": {
+    "command": "uv run pytest tests/test_m14_l04_steering.py tests/test_latent_anything/test_steering.py -q",
+    "result": "retained focused suites; source tests pass in the authoritative checkpoint",
+    "test_hashes": {
+      "tests/test_m14_l04_steering.py": "6d0d0730c7a9df3d5678788375df212117aeca8a367fe74f8fed84acb7b070b8",
+      "tests/test_latent_anything/test_steering.py": "be27ad9221a94aed214cc28ac5143993a2c4dcd853da7fba59aa6cc07147b5ab"
+    }
+  },
+  "cleanup": "Retained exact-SHA real CUDA artifact, execution/failure envelopes, and remote retention audit; no threshold relaxation or unsupported promotion."
+}

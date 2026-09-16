@@ -282,7 +282,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 (retained stability failure) | yes | yes | D3 | L06 | Real pinned GPT-2 layer-6 SAE artifact is retained; cross-seed cosine stability remains below frozen thresholds, so no promotion |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
-| `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
+| `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | Exact-SHA real CUDA diagnostic passes target/selectivity/off-target controls but fails required randomized-direction control; D3 remains blocked |
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
 | `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
@@ -458,11 +458,13 @@ was changed.
 
 `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` is the earliest
 dependency-order row after queue position 33 that was executable after the
-already qualifying queue position 34 TunedLogitLens row. Positions 36
-(Disentanglement), 37 (Activation Patching), and 38 (Steering) remain gated
-by the failed TCAV dependency and their real-model causal contracts; position
-39 (Dictionary Learning) lacks a dedicated implementation; position 40
-(OpenVLA) lacks checkpoint, license/access, and adapter scope.
+already qualifying queue position 34 TunedLogitLens row. Queue positions 36
+(Disentanglement) and 37 (Activation Patching) subsequently became qualifying
+from existing exact-SHA evidence and were not modified in the queue-35 row.
+Queue position 38 (Steering) retained a real-model diagnostic but remains D1
+after its randomized-direction control failure; position 39 (Dictionary
+Learning) lacks a dedicated implementation; position 40 (OpenVLA) lacks
+checkpoint, license/access, and adapter scope.
 
 The retained exact-source L06 execution at
 `005954c636ae7a45ac3072c69e2c118db044682b` used pinned
@@ -489,3 +491,43 @@ Focused SAE validation passed **21 tests**. The ledger validator returned
 The failure-preserving summary is
 [`task_79_queue35_sae_reconciliation_summary.md`](../artifacts/task_79_queue35_sae_reconciliation_summary.md).
 Sprint 79 line 595 and all later plan rows remain unchanged.
+ 
+### Queue position 38 — L04 AdditiveSteering failure reconciliation
+
+`THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` remains
+D1 after reconciling the owner-authorized exact-SHA real CUDA diagnostic. Queue
+positions 36 (Disentanglement) and 37 (Activation Patching) already satisfy
+their bounded target contracts and were intentionally not modified in this
+row. Position 39 (Dictionary Learning) still lacks a dedicated implementation;
+position 40 (OpenVLA) still lacks checkpoint, license/access, and adapter scope.
+
+The retained AdditiveSteering execution at source
+`7ad6648a9bc5d22793b63b764cb9f93990a247e8` used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7, target
+tokens `true=2081` and `false=3991`, and seeds `[17, 29, 41, 53, 67]`.
+The target-level config and reconciliation receipt are
+[`l04-steering.config.json`](../artifacts/m14/l04-steering.config.json) and
+[`l04-steering-reconciliation.run.json`](../artifacts/m14/l04-steering-reconciliation.run.json).
+The immutable artifact, execution/failure envelopes, and sanitized retention
+audit remain
+[`l04-explanations.AdditiveSteering.attempt1.partial.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json),
+[`l04-explanations.AdditiveSteering.attempt1.run.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json),
+[`l04-explanations.AdditiveSteering.attempt1.failure.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json),
+and
+[`l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json`](../artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json).
+
+Target effect was `0.059151649475097656` against strict `> 0.05`,
+selectivity was `0.05431842803955078` against strict `> 0.05`, and off-target
+token effect was `0.004833221435546875` against `<= 0.1`; those gates and
+zero-strength, shuffled-label, matched-norm, no-mutation, and budget controls
+passed. The required randomized-direction gate failed for seeds 29
+(`0.32630348205566406`) and 67 (`0.10096931457519531`) against `<= 0.1`.
+The result is therefore a completed real-CUDA D0 diagnostic supporting the
+existing D1 implementation row, not a D3 promotion; no threshold was relaxed.
+The focused steering suites passed **63 tests**. The target-level
+failure-preserving summary is
+[`task_79_queue38_steering_reconciliation_summary.md`](../artifacts/task_79_queue38_steering_reconciliation_summary.md).
+The ledger validator returned `errors: []` at **40/63 core
+(63.492063%)** and **40/65 overall (61.538462%)**. Sprint 79 line 595 and all
+later queue rows remain unchanged.

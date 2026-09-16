@@ -436,7 +436,18 @@
       "status": "D1",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/methods/steering.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_steering.py"}
+        {"role": "source", "path": "scripts/_m14_l04_steering.py"},
+        {"role": "source", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_steering.py"},
+        {"role": "test", "path": "tests/test_m14_l04_steering.py"},
+        {"role": "benchmark", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-steering.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-steering-reconciliation.run.json"}
       ]
     },
     "THY-T06-LATENT-TRAJECTORY": {

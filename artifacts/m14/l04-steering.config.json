@@ -1,0 +1,38 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING",
+  "lane": "M14-L04",
+  "target_evidence": "D3",
+  "model_revision": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+  "integration": "TransformerLMIntegration",
+  "adapter": "N/A",
+  "fixture": {
+    "path": "artifacts/m14/l04-prompt-factor-fixture.jsonl",
+    "rows": 24,
+    "groups": 12,
+    "split": "group-preserving train/holdout"
+  },
+  "execution": {
+    "device": "CUDA server only",
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "seeds": [17, 29, 41, 53, 67],
+    "strengths": [0.0, 0.25, 0.5, 1.0],
+    "target_tokens": {"true": 2081, "false": 3991}
+  },
+  "thresholds": {
+    "target_effect_ci_lower_strict_gt_logits": 0.05,
+    "selectivity_ci_lower_strict_gt_logits": 0.05,
+    "off_target_absolute_effect_max_logits": 0.1,
+    "zero_strength_identity_atol": 1e-06
+  },
+  "controls": [
+    "zero strength",
+    "randomized direction",
+    "shuffled labels",
+    "off-target token",
+    "matched-norm direction",
+    "model parameter no-mutation"
+  ],
+  "scope": "Owner-authorized real pinned GPT-2 additive hidden-state steering through TransformerLMIntegration. The randomized-direction control is a required frozen gate; a failed control remains a D0 diagnostic and cannot promote the existing D1 steering row."
+}
