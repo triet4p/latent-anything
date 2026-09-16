@@ -167,6 +167,11 @@ evidence to D2 for `THY-T06-LATENT-TRANSITION-MODEL`,
 benchmark/config/artifacts from `scripts/deterministic_transition_benchmark.py`.
 This is a flat Euclidean affine-residual baseline only; stochastic and
 recurrent transition variants are separately evidenced by Sprints 64–65.
+The existing Sprint 64 seeded stochastic Gaussian benchmark is now reconciled
+to `THY-T06-STOCHASTIC-TRANSITION` at D2 by
+`artifacts/m14/l15-stochastic-transition.json`, with its compact synthetic
+scope and historical provenance retained; this does not promote a real-world,
+pretrained, LeWM, or CUDA temporal-model claim.
 
 Sprint 66 adds the non-theory pipeline composition contract. Its evidence is
 the focused pipeline modules (`src/latent_anything/analysis_pipeline.py`,

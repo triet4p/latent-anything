@@ -10,13 +10,13 @@ machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **37/63 core (58.730159%)**
-and **37/65 overall (56.923077%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **38/63 core (60.317460%)**
+and **38/65 overall (58.461538%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **23 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **23 additional core
+denominator adds two applicable X01 rows. The validator reports **22 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **22 additional core
 qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
-**22 additional overall qualifiers** are required to reach
+**21 additional overall qualifiers** are required to reach
 `ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
 model, causal explanation, and named integration claims target D3; ordinary
 algorithm capabilities target D2 unless their row says otherwise.
@@ -90,7 +90,7 @@ The validator command is:
 uv run python scripts/validate_evidence_ledger.py --json
 ```
 
-It must continue to report the honest current 36/63 and 36/65 result while
+It must continue to report the honest current 38/63 and 38/65 result while
 this plan is executed. No row may be deleted, relabeled, or promoted merely to
 improve the percentages.
 
@@ -283,7 +283,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
-| `THY-T06-STOCHASTIC-TRANSITION` | D0 | yes | no | D2 | L15 | Later implementation evidence is not mapped to this ID |
+| `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
 | `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |
 | `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D0 | yes | no | D2 | L16 | CEM/MPPI do not automatically prove generic MPC row |

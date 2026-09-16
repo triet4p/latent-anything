@@ -457,6 +457,21 @@
         {"role": "artifact", "path": "artifacts/rssm_transition_comparison.json"}
       ]
     },
+    "THY-T06-STOCHASTIC-TRANSITION": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/transition.py"},
+        {"role": "source", "path": "src/latent_anything/_transition_stochastic.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/stochastic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/stochastic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/stochastic_transition_rollout.json"},
+        {"role": "config", "path": "artifacts/m14/l15-stochastic-transition.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-stochastic-transition.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-stochastic-transition.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-transitions.json"}
+      ]
+    },
     "THY-T06-ROLLOUT-LATENT-IMAGINATION": {
       "status": "D2",
       "evidence": [

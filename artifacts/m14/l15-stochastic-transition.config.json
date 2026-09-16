@@ -1,0 +1,28 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+  "lane": "L15",
+  "target_evidence": "D2",
+  "benchmark": "stochastic_gaussian_latent_transition_rollout",
+  "config_source": "artifacts/stochastic_transition_rollout_config.json",
+  "seed": 64,
+  "train_fraction": 0.75,
+  "heldout_episodes": 24,
+  "horizon": 24,
+  "rollout_samples": 512,
+  "interval_level": 0.95,
+  "acceptance": {
+    "one_step_negative_log_likelihood": {"comparator": "<", "threshold": 0.0},
+    "one_step_coverage_lower": {"comparator": ">", "threshold": 0.85},
+    "one_step_coverage_upper": {"comparator": "<", "threshold": 1.0},
+    "one_step_interval_width": {"comparator": ">", "threshold": 0.0},
+    "one_step_sample_diversity": {"comparator": ">", "threshold": 0.0},
+    "one_step_mean_error": {"comparator": "<", "threshold": 0.4},
+    "rollout_mean_coverage_lower": {"comparator": ">=", "threshold": 0.0},
+    "rollout_mean_coverage_upper": {"comparator": "<=", "threshold": 1.0},
+    "rollout_stable": true,
+    "all_metrics_finite": true,
+    "seeded_reproducibility": true
+  },
+  "scope": "Compact project-authored stochastic latent transition D2 benchmark; no real-world or pretrained temporal-model claim."
+}
