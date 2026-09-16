@@ -50,3 +50,8 @@ profile. Provision the pinned model/data, implement and review the real adapter,
 then run the 500-trial paired LIBERO-Spatial intervention evaluation and retain
 a signed artifact. No remote command was run here. Sprint 79 line 595 and lines
 596+ were not touched.
+
+Queue regeneration provenance is explicit: the authoritative builder ran after
+the source/doc/test commit at
+`60c9c1900bf9a7a03ae81fdd65ef0f2a90ab3f91`; the final delivery commit that
+contains the regenerated queue is `e007a48bd429ea80a7908f52aaf1d11126175ee2`.
