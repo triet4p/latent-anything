@@ -56,11 +56,12 @@
   "execution": {
     "path_points": 24,
     "trajectory_query_points": 32,
+    "trajectory_warp": {"method": "power", "exponent": 2.0},
     "geodesic": {"n_points": 24, "max_iter": 300, "step_size": 0.3, "tol": 1e-5, "density_exponent": 1.0},
     "smoothing": {"window": 5, "weighting": "triangular"},
     "dtw": {"normalization": "path_length", "max_cells": 4096}
   },
-  "plan_sha256": "e2bcbbb361f08eefa429ca48dd708ac00c094fe98959c17d7c88b261d73f869f",
+  "plan_sha256": "56731a054c96c71cd930f939b32a94076b9faf199927d9518151e3ad7a6a98aa",
   "provenance_contract": {
     "command": "uv run python -m scripts.m14_l02_geometry",
     "git_sha": "deferred",
@@ -186,8 +187,7 @@
     "chance_control": "deterministic derangement of the 128 held-out pair paths using a seed derived from 42; no pair path maps to itself",
     "frechet": "not available in the stable project API; no Frechet claim or invented implementation",
     "label": "model-induced latent sequences from held-out real sklearn digits samples",
-    "not_claimed": "recorded physical trajectories",
-    "warp": "each held-out 24-point latent pair path is monotonically resampled into its own 32-point unequal-length query"
+    "warp": "each held-out 24-point latent pair path is monotonically power-resampled (exponent=2.0) into its own 32-point unequal-length query"
   },
   "artifact_schema": {
     "schema_version": "m14-l02-geometry-artifact-v1",

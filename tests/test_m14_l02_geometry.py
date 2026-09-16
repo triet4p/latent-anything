@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from scripts.m14_l02_data import build_heldout_latent_paths
+from scripts.m14_l02_data import build_heldout_latent_paths, resample_rows
 from scripts.m14_l02_envelope import artifact_digest, validate_artifact, validate_run_record
 from scripts.m14_l02_metrics import (  # pyright: ignore[reportPrivateUsage]
     _evaluate_lerp,
@@ -148,6 +148,17 @@ def test_slerp_records_have_independent_verdicts() -> None:
 
     assert verdict(record_spec(plan, "slerp_spherical"), metrics)
     assert verdict(record_spec(plan, "slerp_latent_operation"), metrics)
+
+
+def test_power_time_resampling_preserves_endpoints_and_declared_warp() -> None:
+    values = np.arange(12, dtype=np.float64).reshape(6, 2)
+
+    linear = resample_rows(values, 9)
+    warped = resample_rows(values, 9, exponent=2.0)
+
+    assert np.array_equal(linear[[0, -1]], values[[0, -1]])
+    assert np.array_equal(warped[[0, -1]], values[[0, -1]])
+    assert not np.array_equal(warped[1:-1], linear[1:-1])
 
 
 def test_trajectory_uses_independent_pair_paths_and_derangement() -> None:

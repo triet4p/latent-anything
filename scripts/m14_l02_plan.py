@@ -8,6 +8,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 PLAN_PATH = Path(__file__).resolve().parents[1] / "artifacts/m14/l02-geometry.plan.json"
 SCHEMA_VERSION = "m14-l02-geometry-plan-v1"
 CANONICAL_COMMAND = "uv run python -m scripts.m14_l02_geometry"
@@ -146,6 +148,15 @@ def validate_plan(plan: Mapping[str, Any]) -> list[str]:
             errors.append("path_points must support bounded interpolation")
         if int(execution.get("trajectory_query_points", 0)) <= int(execution.get("path_points", 0)):
             errors.append("trajectory query must be unequal and longer than its reference")
+        warp = execution.get("trajectory_warp")
+        if (
+            not isinstance(warp, Mapping)
+            or warp.get("method") != "power"
+            or not isinstance(warp.get("exponent"), (int, float))
+            or not np.isfinite(float(warp["exponent"]))
+            or float(warp["exponent"]) <= 0.0
+        ):
+            errors.append("trajectory warp must declare a finite positive power exponent")
         if not isinstance(execution.get("geodesic"), Mapping) or not isinstance(execution.get("dtw"), Mapping):
             errors.append("execution contract must declare geodesic and DTW options")
     data = plan["data"]

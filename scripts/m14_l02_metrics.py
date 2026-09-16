@@ -188,9 +188,15 @@ def _evaluate_trajectory(paths: Mapping[str, Any], plan: Mapping[str, Any]) -> d
     refs: list[Array] = []
     befores: list[Array] = []
     dtw_args = dict(dtw_config)
+    warp_config = section(execution, "trajectory_warp")
+    if warp_config.get("method") != "power":
+        raise ValueError("L02 trajectory warp must use the declared power method")
+    warp_exponent = float(warp_config["exponent"])
     for trial in range(trials):
         ref_raw = np.array(pairs[trial]["lerp"], dtype=np.float64, copy=True)
-        query_raw = resample_rows(ref_raw, int(execution["trajectory_query_points"]))
+        query_raw = resample_rows(
+            ref_raw, int(execution["trajectory_query_points"]), exponent=warp_exponent
+        )
         unrelated_raw = np.array(pairs[int(permutation[trial])]["lerp"], dtype=np.float64, copy=True)
         refs.extend((ref_raw, query_raw, unrelated_raw))
         befores.extend((ref_raw.copy(), query_raw.copy(), unrelated_raw.copy()))

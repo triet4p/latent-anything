@@ -90,8 +90,14 @@ def _select_pair_indices(labels: Array, count: int, seed: int) -> list[tuple[int
     return selected
 
 
-def resample_rows(values: Array, count: int) -> Array:
-    coordinates, target = np.linspace(0.0, 1.0, len(values)), np.linspace(0.0, 1.0, count)
+def resample_rows(values: Array, count: int, *, exponent: float = 1.0) -> Array:
+    """Resample rows on a deterministic monotone power-time grid."""
+    if count < 1:
+        raise ValueError("resampling count must be positive")
+    if exponent <= 0.0 or not np.isfinite(exponent):
+        raise ValueError("resampling exponent must be finite and positive")
+    coordinates = np.linspace(0.0, 1.0, len(values))
+    target = np.linspace(0.0, 1.0, count) ** exponent
     return np.column_stack([np.interp(target, coordinates, values[:, column]) for column in range(values.shape[1])])
 
 
