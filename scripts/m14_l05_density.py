@@ -30,6 +30,7 @@ def main() -> None:
     process = psutil.Process()
     rss_peak = [process.memory_info().rss]
     texts = [f"A documented scientific observation number {i} concerns a stable process." for i in range(160)]
+    ood = [f"Quantum mechanical orchard protocol {i} yields a divergent artifact." for i in range(40)]
     pipe = TransformerLMIntegration(model_id=MODEL_ID, revision=MODEL_REVISION, device="cpu")
     model, tokenizer, _ = pipe._backend()  # type: ignore[reportPrivateUsage]
 
