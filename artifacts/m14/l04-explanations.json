@@ -1,0 +1,18 @@
+{
+  "schema_version": "m14-l04-matrix-receipt-v1",
+  "lane": "M14-L04",
+  "status": "partial",
+  "accepted": false,
+  "evidence_level": "D2/D3 partial",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "authority": "docs/M14_REAL_SYSTEM_VALIDATION.md",
+  "completed_use_cases": ["TunedLogitLens (D3, accepted)", "Disentanglement (D2, accepted/eligible)"],
+  "pending_use_cases": ["IntegratedGradients", "TCAV", "DirectLogitLens", "TrueActivationPatching", "AdditiveSteering"],
+  "blocker": "The frozen seven-use-case L04 contract is not complete; no promotion is claimed for the remaining use cases.",
+  "evidence": [
+    "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json",
+    "artifacts/m14/l04-explanations.Disentanglement.attempt2.run.json",
+    "artifacts/m14/l04-explanations.ssh.Disentanglement.4d3a4b6551d6091ce96c73a704e642867c2f2580.audit.json"
+  ],
+  "note": "Existing immutable per-use-case records were not rewritten."
+}

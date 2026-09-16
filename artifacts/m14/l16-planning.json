@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L16",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D2 synthetic only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "recorded trajectory substitute plus compact transition; NumPy/PyTorch CPU",
+  "command": "uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q",
+  "result": "32 passed in 5.52s",
+  "blocker": "Policy-grounded D3 gap remains; no row artifact with predeclared return/regret, budget, and trace metrics was generated.",
+  "evidence_scope": "Passing planner tests remain implementation evidence."
+}

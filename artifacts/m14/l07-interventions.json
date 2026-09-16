@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L07",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D1 focused tests only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "GPT-2 hidden states and VAE latents; PyTorch CPU",
+  "command": "uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q",
+  "result": "137 passed in 9.00s",
+  "blocker": "Cross-adapter paired-effect evidence and the declared independently verifiable artifact were not produced.",
+  "evidence_scope": "Passing focused tests remain D1 and do not establish the M14 acceptance thresholds."
+}

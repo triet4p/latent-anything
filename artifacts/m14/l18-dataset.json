@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L18",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "lerobot/aloha_sim_insertion_human@cc571a3c661df81b566dbfde3d5c1e85fcdf7884",
+  "command": "uv run python scripts/lerobot_dataset_inspection.py lerobot/aloha_sim_insertion_human --revision cc571a3c661df81b566dbfde3d5c1e85fcdf7884 --output artifacts/m14/l18-dataset.json",
+  "result": "ModuleNotFoundError: No module named 'lerobot' (exit 1)",
+  "blocker": "LeRobot is not installed in the current environment; required upstream dataset download/license/schema capture needs a Linux/LeRobot-capable run.",
+  "evidence_scope": "No synthetic dataset or mock bridge substituted."
+}

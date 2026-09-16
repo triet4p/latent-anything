@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L24",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "release gates partial",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "clean base/all 12 profiles, supported Python/platform tiers, wheel/sdist",
+  "evidence": ["artifacts/task_sprint79_clean_environment_matrix_summary.md", "artifacts/task_sprint79_release_audits_summary.md"],
+  "result": "Existing accepted Sprint 79 clean-environment and release-audit gates passed their declared scopes.",
+  "blocker": "External GitHub Actions account and unresolved M14 evidence thresholds remain; no complete row-level l24 artifact may claim release readiness.",
+  "evidence_scope": "Existing immutable task artifacts were referenced, not rewritten."
+}

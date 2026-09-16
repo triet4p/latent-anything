@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L15",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D2 synthetic only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "compact latent dynamics fixture; PyTorch CPU",
+  "command": "uv run pytest tests/test_latent_anything/test_transition.py -q",
+  "result": "26 passed in 31.64s",
+  "blocker": "The authority still records a real temporal-model gap; no standalone transition/RSSM evidence artifact with all required seeded rollout/state-carry metrics exists.",
+  "evidence_scope": "Focused tests are not promoted to complete M14 evidence."
+}

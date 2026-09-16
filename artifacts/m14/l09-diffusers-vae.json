@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L09",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "stabilityai/sd-vae-ft-mse@31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "command": "uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q",
+  "result": "1 skipped, 5 deselected in 3.20s",
+  "blocker": "Pinned model/cache is not provisioned for offline validation; network-marked lane is skipped. Safetensors hash parity remains unverified.",
+  "evidence_scope": "No model download or mock substitution was used."
+}

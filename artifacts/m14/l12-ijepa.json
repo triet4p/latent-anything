@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L12",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "facebook/ijepa_vith14_1k@be440b1cac639542ae553e71a9c7afd925ab5fac",
+  "command": "uv run pytest tests/test_latent_anything/test_jepa_checkpoint.py -m network -q",
+  "result": "1 skipped in 0.23s",
+  "blocker": "Model-card license/access is missing and the high-download checkpoint is not provisioned; no real checkpoint run may be claimed.",
+  "evidence_scope": "Skipped network test retained without promotion."
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L10",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "runwayml/stable-diffusion-v1-5@39593d56b552c3a24aeb192dd11d2a1429c3102b",
+  "command": "uv run pytest tests/test_diffusers_conditional_network.py -m network -q",
+  "result": "4 skipped in 3.45s",
+  "blocker": "Required high-VRAM model/network/license-card access is not provisioned locally; remote CUDA owner run is required.",
+  "evidence_scope": "Skipped network tests are not promoted."
+}

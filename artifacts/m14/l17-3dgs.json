@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L17",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "named gsplat checkpoint via LATENT_ANYTHING_3DGS_CHECKPOINT",
+  "command": "uv run pytest tests/test_latent_anything/test_gaussian_3d_renderer_network.py -m network -q",
+  "result": "Not run: prerequisite checkpoint is absent.",
+  "blocker": "No named checkpoint, access/license metadata, or pinned checkpoint hash was supplied. Remote CUDA execution is prohibited until provisioned.",
+  "evidence_scope": "No unnamed 3DGS or local approximation substituted."
+}

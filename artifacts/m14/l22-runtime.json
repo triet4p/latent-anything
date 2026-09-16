@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L22",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D1 focused tests only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "real Arrow/SQLite filesystem; optional MLflow/W&B backends",
+  "command": "uv run pytest tests/test_portable.py tests/test_portable_results.py tests/test_artifact_store.py tests/test_latent_anything/test_cache.py tests/test_sprint75_streaming.py tests/test_run_record.py tests/test_run_record_portable.py tests/test_experiment_recorder.py tests/test_mlflow_recorder.py tests/test_wandb_recorder.py -q",
+  "result": "116 passed in 15.86s",
+  "blocker": "No standalone M14 runtime artifact proving the complete schema-v1 migration/path-safety/resume-cancel/provider-atomicity contract; optional tracking credentials remain unverified.",
+  "evidence_scope": "Focused filesystem tests are retained as D1 evidence."
+}

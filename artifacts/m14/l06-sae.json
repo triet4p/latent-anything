@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L06",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "D1/D2 gap",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "GPT-2 pinned revision with real text corpus fixture",
+  "command": "uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q",
+  "result": "Not executed: real model/corpus provisioning is unavailable in the current local environment.",
+  "blocker": "D3 gap and required real text-corpus/model execution; no acceptance artifact can be promoted without it.",
+  "evidence": "No mock or local approximation substituted."
+}

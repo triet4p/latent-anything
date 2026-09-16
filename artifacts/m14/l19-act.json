@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L19",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "lerobot/act_aloha_sim_insertion_human@33259aa86eb45fdf85350280044a33d9d50e40c3",
+  "command": "uv run pytest tests/test_lerobot_act.py::test_pinned_public_act_checkpoint_pair_loads_through_lerobot_factories -m network -q",
+  "result": "1 skipped in 3.08s",
+  "blocker": "Model-card license/access capture and a Linux CUDA host are unavailable; skipped network lane is not evidence.",
+  "evidence_scope": "No remote CUDA run was attempted without prerequisites."
+}

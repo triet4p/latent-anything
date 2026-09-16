@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L14",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D2 contract incomplete",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "compact VQVAE plus synthetic controlled dynamics; PyTorch CPU",
+  "command": "uv run pytest tests/test_latent_anything/test_tokenized_world_model.py -q",
+  "result": "9 passed in 8.66s",
+  "blocker": "The authority requires a bounded rollout artifact and preservation of the early rollout failure or a validated fix; focused tests do not provide that row-level evidence.",
+  "evidence_scope": "No failure was hidden or promoted."
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L11",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D2 candidate only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+  "command": "uv run pytest tests/test_transformer_lm_network.py -m network -q",
+  "result": "8 skipped, 5 deselected in 3.41s",
+  "blocker": "The complete lane artifact/capture contract is absent. Separate direct logit-lens 8/8 strict-CUDA evidence does not establish the whole TransformerLogitTarget/hidden-state adapter lane.",
+  "evidence_scope": "No skipped network test was promoted."
+}

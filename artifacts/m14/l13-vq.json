@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L13",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D1 focused tests only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "compact-vq-vae-v1 with sklearn digits; CPU",
+  "command": "uv run pytest tests/test_latent_anything/test_vq_vae.py -q",
+  "result": "10 passed in 6.88s",
+  "blocker": "No standalone M14 artifact recording perplexity, dead-code, finite encode/decode metrics and generated-codebook cleanup was produced.",
+  "evidence_scope": "Offline focused tests do not by themselves satisfy the declared artifact contract."
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L05",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D1 focused tests only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "real GPT-2 states with held-out prompts; sklearn GMM backend",
+  "command": "uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q",
+  "result": "40 passed in 20.88s",
+  "blocker": "No real GPT-2 state capture or held-out AUROC/path-feasibility artifact was produced; the predeclared threshold remains unevidenced.",
+  "evidence_scope": "Focused offline/unit coverage is not promoted to the real-system D2 lane."
+}

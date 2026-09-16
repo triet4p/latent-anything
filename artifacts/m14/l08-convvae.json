@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L08",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D1 focused tests only",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "sklearn digits 80/20; compact ConvVAE; PyTorch CPU",
+  "command": "uv run pytest tests/test_latent_anything/test_conv_vae.py tests/test_latent_anything/test_conv_vae_evidence.py -q",
+  "result": "3 passed in 8.54s",
+  "blocker": "No standalone held-out D2 artifact with the declared >=10% zero-baseline improvement, latent non-degeneracy, and composition metrics was generated.",
+  "evidence_scope": "Focused test pass is retained as implementation evidence only."
+}
