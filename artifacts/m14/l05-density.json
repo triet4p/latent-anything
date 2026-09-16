@@ -1,13 +1,15 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L05",
-  "status": "pending",
+  "status": "observed",
   "accepted": false,
-  "evidence_level": "D1 focused tests only",
-  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "evidence_level": "D2 candidate",
+  "source_sha": "e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d",
   "target": "real GPT-2 states with held-out prompts; sklearn GMM backend",
-  "command": "uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q",
-  "result": "40 passed in 20.88s",
-  "blocker": "No real GPT-2 state capture or held-out AUROC/path-feasibility artifact was produced; the predeclared threshold remains unevidenced.",
-  "evidence_scope": "Focused offline/unit coverage is not promoted to the real-system D2 lane."
+  "model": {"id": "openai-community/gpt2", "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8", "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707", "license": "MIT"},
+  "command": "uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q; uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l05_density.py",
+  "result": "Focused tests: 40 passed in 20.88s. Real GPT-2 density probe: AUROC seeds (0.9750000000000001, 0.9750000000000001, 0.9750000000000001), mean AUROC 0.9750000000000001, AUROC CI95 0.0, mean AUPRC 0.975609756097561, AUPRC CI95 0.0.",
+  "environment": {"device": "cpu", "dtype": "float32", "train": 80, "calibration": 40, "in_distribution": 20, "out_of_distribution": 40, "gmm": {"n_components": 2, "covariance_type": "diag", "min_samples_per_dimension": 0.1}, "source_representation": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8/layer=12"},
+  "blocker": "Path-feasibility evidence and the authority's separately bound predeclared threshold are not present; no promotion is claimed.",
+  "evidence_scope": "Real pinned GPT-2 states and deterministic held-out prompt splits were used; no mock backend substituted."
 }

@@ -1,13 +1,14 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L23",
-  "status": "blocked",
-  "accepted": false,
-  "evidence_level": "D1 focused tests only",
-  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
-  "target": "32 built-ins, 5 entry-point groups, external plugin fixture, base plus each extra",
-  "command": "uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q",
-  "result": "115 passed in 18.66s (19 warnings)",
-  "blocker": "The authority retains an external GitHub Actions account blocker for complete clean-environment/plugin matrix evidence; local focused tests do not establish all 32/5/profile acceptance claims.",
-  "evidence_scope": "Warnings were retained; no test was weakened or promoted."
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D1",
+  "source_sha": "4a159bd9bae0d044109e35b16bbd060160c436fa",
+  "target": "32 built-ins, 5 entry-point groups, separately installed hello-world plugin, base plus each extra",
+  "command": "uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q; uv run python -c \"import latent_anything as la; from latent_anything.plugin_groups import CANONICAL_ENTRY_POINT_GROUPS; assert len(la.GLOBAL_REGISTRY.list()) == 32; assert len(CANONICAL_ENTRY_POINT_GROUPS) == 5; print('L23_BUILTINS_32_GROUPS_5_OK')\"",
+  "result": "115 passed in 15.91s (19 warnings); L23_BUILTINS_32_GROUPS_5_OK; test_plugin_installation exercises separately installed hello-world discovery/construction.",
+  "profile_evidence": "artifacts/task_sprint79_clean_environment_matrix_summary.md records 39/39 base/profile lanes passed across Python 3.12, 3.13, 3.14 on Windows and ubuntu-latest GitHub Actions.",
+  "blocker": null,
+  "evidence_scope": "Local contract requirements passed; warnings were retained, no test was weakened, and the existing profile artifact was referenced without rewriting."
 }

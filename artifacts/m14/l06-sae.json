@@ -1,13 +1,17 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L06",
-  "status": "pending",
-  "accepted": false,
-  "evidence_level": "D1/D2 gap",
-  "source_sha": "bd6cdb76d493bbe494a96856cc72e7382d31b989",
-  "target": "GPT-2 pinned revision with real text corpus fixture",
-  "command": "uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q",
-  "result": "1 skipped, 21 deselected in 3.63s; no real model/corpus was provisioned.",
-  "blocker": "D3 gap and required real text-corpus/model execution; no acceptance artifact can be promoted without it.",
-  "evidence": "No mock or local approximation substituted."
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "4a159bd9bae0d044109e35b16bbd060160c436fa",
+  "target": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8 with real text fixture",
+  "model_weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+  "license": "MIT",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q",
+  "result": "1 passed, 21 deselected, 1 warning in 23.85s",
+  "environment": {"device": "cpu", "network": "enabled", "real_checkpoint": true},
+  "metrics": {"feature_atlas_and_cross_check": true, "dead_feature_reconstruction_checks": true, "cross_seed_stability": true},
+  "blocker": null,
+  "evidence_scope": "Real pinned GPT-2 checkpoint and real text fixture were used; no mock or local approximation substituted."
 }

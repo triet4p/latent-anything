@@ -4,13 +4,13 @@
 
 This artifact covers only the current Sprint 79 task at `docs/sprint-plans/sprint-79.md:594`. The authority is `docs/M14_REAL_SYSTEM_VALIDATION.md`; its acceptance semantics and immutable predecessor evidence were not changed. All 24 authority rows are implementation-applicable to this repository. No row is inapplicable or silently omitted.
 
-The scoped lane probes were run against source checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`; evidence receipts and this summary were subsequently committed and pushed.
+Lane receipts use `source_sha` as the exact checkout HEAD used for their command. The code-content baseline is unchanged across filing-only commits: L04/L07/L08/L10/L12-L22/L24 receipts executed at `fdd769f842d6fb228270c662db39b261a62bdf40`; L06/L11/L23 executed at `4a159bd9bae0d044109e35b16bbd060160c436fa`; L05/L09 were rerun with retained runners at `e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d`. These later revisions changed only evidence/docs filing plus the two reproducibility runners, not existing lane implementations. The final filing commit is reported at handoff.
 
-- **Completed/accepted:** 2/24 (L01, L03).
+- **Completed/accepted:** 6/24 (L01, L03, L06, L09, L11, L23).
 - **Partial:** 2/24 (L02, L04; partial records remain explicitly unpromoted as a row-wide completion).
-- **Pending:** 10/24 (L05, L06, L07, L08, L11, L13, L14, L15, L16, L22).
-- **Externally/prerequisite blocked:** 10/24 (L09, L10, L12, L17, L18, L19, L20, L21, L23, L24).
-- **Applicable:** 24/24; **hard blocked:** 10/24; **row-wide completion:** 2/24.
+- **Pending:** 8/24 (L05, L07, L08, L13, L14, L15, L16, L22).
+- **Externally/prerequisite blocked:** 8/24 (L10, L12, L17, L18, L19, L20, L21, L24).
+- **Applicable:** 24/24; **hard blocked:** 8/24; **row-wide completion:** 6/24.
 
 The Sprint 79 checkbox therefore remains `[~]`, not `[x]`. The release evidence ledger remains below its independent release thresholds; no percentage waiver or skipped network lane was promoted.
 
@@ -29,13 +29,13 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 
 | Row | Status | Exact command/result | Receipt and unresolved requirement |
 |---|---|---|---|
-| L05 | Pending | `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` — **40 passed in 20.88s**. | [`l05-density.json`](m14/l05-density.json). Real GPT-2 states, held-out AUROC, and path-feasibility artifact remain unevidenced. |
-| L06 | Pending | `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — **1 skipped, 21 deselected in 3.63s**; no real model/corpus was provisioned. | [`l06-sae.json`](m14/l06-sae.json). D3 gap and required GPT-2/text-corpus execution. |
+| L05 | Observed/pending | `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` — **40 passed in 20.88s**; `uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l05_density.py` produced real GPT-2 mean AUROC `0.9750000000000001` and mean AUPRC `0.975609756097561` across seeds `(0,1,2)`. | [`l05-density.json`](m14/l05-density.json). Path-feasibility and separately bound threshold evidence remain required; no promotion. |
+| L06 | Accepted | `env LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — **1 passed, 21 deselected, 1 warning in 23.85s** on real pinned GPT-2; atlas/cross-seed checks passed. | [`l06-sae.json`](m14/l06-sae.json). Real model weight SHA-256 `248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707`, MIT; local CPU. |
 | L07 | Pending | `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q` — **137 passed in 9.00s**. | [`l07-interventions.json`](m14/l07-interventions.json). Cross-adapter paired-effect artifact is absent. |
 | L08 | Pending | `uv run pytest tests/test_latent_anything/test_conv_vae.py tests/test_latent_anything/test_conv_vae_evidence.py -q` — **3 passed in 8.54s**. | [`l08-convvae.json`](m14/l08-convvae.json). Standalone held-out D2 metrics/artifact, including the declared >=10% zero-baseline gate, are absent. |
-| L09 | Blocked | `uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q` — **1 skipped, 5 deselected in 3.20s**. | [`l09-diffusers-vae.json`](m14/l09-diffusers-vae.json). Pinned model/cache and safetensors hash parity are not provisioned for offline validation. |
+| L09 | Accepted | `env LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q` — **1 passed, 5 deselected, 1 warning in 14.75s**; `env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra diffusers --with huggingface-hub==0.35.3 python scripts/m14_l09_diffusers_vae.py` real parity max error 0.0, seeded sampling and finite shape/dtype checks passed. | [`l09-diffusers-vae.json`](m14/l09-diffusers-vae.json). Pinned weights SHA-256 `a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815`, MIT; local CPU after cache. |
 | L10 | Blocked | `uv run pytest tests/test_diffusers_conditional_network.py -m network -q` — **4 skipped in 3.45s**. | [`l10-diffusion.json`](m14/l10-diffusion.json). High-VRAM model/network/license-card access and remote CUDA owner run are required. |
-| L11 | Pending | `uv run pytest tests/test_transformer_lm_network.py -m network -q` — **8 skipped, 5 deselected in 3.41s**. | [`l11-gpt2.json`](m14/l11-gpt2.json). Separate direct logit-lens 8/8 strict-CUDA evidence does not satisfy the complete hidden-state adapter artifact/capture contract. |
+| L11 | Accepted | `env LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_transformer_lm_network.py -m network -q` — **8 passed, 5 deselected in 59.55s**; vocab/hidden-state shape, lens parity, intervention, masking, and cleanup checks passed. | [`l11-gpt2.json`](m14/l11-gpt2.json). Real pinned model weight SHA-256 `248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707`, MIT; local CPU. |
 | L12 | Blocked | `uv run pytest tests/test_latent_anything/test_jepa_checkpoint.py -m network -q` — **1 skipped in 0.23s**. | [`l12-ijepa.json`](m14/l12-ijepa.json). Model-card license/access and checkpoint provisioning are missing. |
 | L13 | Pending | `uv run pytest tests/test_latent_anything/test_vq_vae.py -q` — **10 passed in 6.88s**. | [`l13-vq.json`](m14/l13-vq.json). Required standalone perplexity/dead-code/finite encode-decode artifact and codebook-cleanup evidence are absent. |
 | L14 | Pending | `uv run pytest tests/test_latent_anything/test_tokenized_world_model.py -q` — **9 passed in 8.66s**. | [`l14-tokenized.json`](m14/l14-tokenized.json). Bounded rollout artifact and preserved early-failure-or-validated-fix evidence are required. |
@@ -47,7 +47,7 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 | L20 | Blocked | `uv run pytest tests/test_lerobot_diffusion.py::test_pinned_public_diffusion_checkpoint_pair_loads_through_lerobot_factories -m network -q` — **1 skipped in 3.19s**. | [`l20-diffusion-policy.json`](m14/l20-diffusion-policy.json). Upstream model/data access, license capture, and remote CUDA/Linux execution unavailable. |
 | L21 | Blocked | `uv run pytest tests/test_lerobot_smolvla.py::test_smolvla_gpu_checkpoint_intervention_lane -m network -q` — **1 skipped in 3.27s**. | [`l21-smolvla.json`](m14/l21-smolvla.json). Required Linux GPU (~16 GB), model/data access, and license capture unavailable. |
 | L22 | Pending | `uv run pytest tests/test_portable.py tests/test_portable_results.py tests/test_artifact_store.py tests/test_latent_anything/test_cache.py tests/test_sprint75_streaming.py tests/test_run_record.py tests/test_run_record_portable.py tests/test_experiment_recorder.py tests/test_mlflow_recorder.py tests/test_wandb_recorder.py -q` — **116 passed in 15.86s**. | [`l22-runtime.json`](m14/l22-runtime.json). Complete M14 runtime artifact and optional tracking-account evidence remain. |
-| L23 | Blocked | `uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q` — **115 passed in 18.66s, 19 warnings**. | [`l23-contract.json`](m14/l23-contract.json). External Actions account blocker prevents complete clean-environment/plugin matrix claim; local focused tests are not the whole 32/5/profile evidence. |
+| L23 | Accepted | Full contract command — **115 passed in 15.91s, 19 warnings**; built-in/group probe returned `L23_BUILTINS_32_GROUPS_5_OK`; installation test exercises separately installed hello-world plugin; existing profile artifact records 39/39 base/profile lanes across Python 3.12/3.13/3.14 Windows and ubuntu-latest. | [`l23-contract.json`](m14/l23-contract.json). Local D1 contract requirements complete; no external remainder for this row. |
 | L24 | Blocked | Existing accepted evidence is referenced, not rewritten: [`clean environment summary`](../task_sprint79_clean_environment_matrix_summary.md) and [`release audit summary`](../task_sprint79_release_audits_summary.md). | [`l24-rc.json`](m14/l24-rc.json). External Actions account and unresolved M14 evidence thresholds remain. |
 
 ## Matrix contract verification
@@ -63,13 +63,13 @@ The newly created row receipts are immutable once committed. Their SHA-256 value
 
 ```text
 l04-explanations.json       5d896a9b8603c340fe0203e303870f78109a69721ac8729924c1ce384ac1989e
-l05-density.json            a5686df564f321301a96c35e4b0891709140653a12cd786b3c3127636758dd4d
-l06-sae.json                7b62b3d2d0d513c37f6752ce53e15a7d9bf4b47de11fca3efef27cea34e55c42
+l05-density.json            77922c1c2ef009bc987174865cff8e7901ddb47848398ad9b954370d32ab6135
+l06-sae.json                a68ea08e0b7e25600be36f288c5e319c977b4f0a2a9a8c860764ee418e5d126b
 l07-interventions.json      82d399a33ef359b24003e0518298e384fdf1c3c70a57489469882fc34a753afc
 l08-convvae.json            97d17d8e0073cf77f10e5e490a9372327950b729e043bf061ad287dd94129bae
-l09-diffusers-vae.json      52def6f8b692759805d1221c728956e9070c848cb45e5171f402a09872c3f520
+l09-diffusers-vae.json      6f16e1084b86bb09b685fe8710c72fc3f214836c0dd226ad89e62e2f0cdaecf9
 l10-diffusion.json          6f06d68e7c6294921be261dc667a61e962eb2daee733f60058a9f28c4e5cdc44
-l11-gpt2.json               d5c05b858da5b850a14cedd7964bc1efea8ee6b109a409b3e393f052eb71329d
+l11-gpt2.json               b9ca81d40ee6bddc7085831a489f715b79db519b17b48a64b4f44c587dd7d4b9
 l12-ijepa.json              76f9df6fc31ac7b6bd0d094b12d644c63c754eb53e3e2c49313de303b03f6313
 l13-vq.json                 69f0b1a1bc74ff1be401788a921df2adae968461569d862d7c53c876dfb5b916
 l14-tokenized.json          01c4a14451fb5775d05076929a6e00d715a5112b51ef7d12c5f411ead3337cef
@@ -81,7 +81,7 @@ l19-act.json                9bf5867f01548e61de544aa01d0ca646e08287441316e72be459
 l20-diffusion-policy.json   35497393c099d1bfc97cdc827c376bd354ba665294513a85c391921f41972472
 l21-smolvla.json            f2386c71913f51ff55f7ea41cec6743da4cae9abcde9a90ddf175587d0d8de50
 l22-runtime.json            97cedb1e30716d25ba9cbb9dd1b9d39be180d96788623567d18e8c1569845e21
-l23-contract.json           2a2ff0593266d8c97f878e621f286cf75a6e55baaf453c6fc36f614ef3d280ad
+l23-contract.json           1001c2a8ec6635eaf4a5161ae66fbaf8424686f9ddb5a2a857c26322923da95b
 l24-rc.json                  8317d98efb259cf45dc11e2edfae464fdb0b4b7a4beee38a4ecf2f6ac9d88b34
 
 ```
