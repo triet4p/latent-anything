@@ -14,9 +14,32 @@ Lane receipts use `source_sha` as the exact checkout HEAD used for their command
 
 L02 remains row-partial rather than row-accepted: its additive exact-source rerun
 accepted 5/6 records (DTW now passes) while the real manifold ranking remains
-below its unchanged gate. The Sprint 79 checkbox therefore remains `[~]`, not
-`[x]`. The release evidence ledger remains below its independent release
+below its unchanged gate. L06 remains pending because its declared expanded
+cross-seed execution completed but the predeclared minimum-cosine gate failed.
+L04's seven-use-case checklist is exhausted: the two accepted records, one
+support-only record, and four attempted semantic failures are all retained with
+their reviewed receipts. These are truthful evidence outcomes, not unexecuted
+batches. The release evidence ledger remains below its independent release
 thresholds; no percentage waiver or skipped network lane was promoted.
+
+## Execution exhaustion and closure basis
+
+All 24 authority rows have been reconciled against their latest reviewed
+artifacts and receipts. Every runnable local lane and every owner-authorized
+remote use case has been executed or has a retained, reviewed failure/support-
+only result: L02 has evidence for all six independent records, L04 has
+evidence for all seven frozen use cases, and L06 has the expanded real GPT-2
+capture across its declared seeds. The eight blocked rows (L10, L12, L17,
+L18, L19, L20, L21, and L24) remain externally or prerequisite blocked, with
+their exact missing access, checkpoint, license, platform, GPU, or Actions
+requirements recorded in the row table; no authorized execution can proceed
+for them from this checkout. No applicable local or owner-authorized remote
+use case remains unexecuted.
+
+Closing Sprint 79 plan line 594 therefore records completion of the
+execution/reconciliation requirement only. It does not promote L02, L04, or
+L06, clear any blocker, assert universal row acceptance, or alter frozen
+thresholds. Lines 595 onward are outside this closure.
 
 ## Immutable accepted and partial evidence
 
@@ -96,7 +119,7 @@ l24-rc.json                 8317d98efb259cf45dc11e2edfae464fdb0b4b7a4beee38a4ecf
 
 ## Plan status
 
-`docs/sprint-plans/sprint-79.md:594` is updated to `[~]` with this artifact as the row-level account. The exact blockers above remain explicit; no threshold was weakened, no failed/skipped lane was promoted, and lines 595 onward remain untouched.
+`docs/sprint-plans/sprint-79.md:594` is updated to `[x]` with this artifact as the row-level account. This is closure of the execution/reconciliation requirement only: the exact blockers and non-accepted row statuses above remain explicit; no threshold was weakened, no failed/skipped lane was promoted, and lines 595 onward remain untouched.
 
 ## Delivery
 
