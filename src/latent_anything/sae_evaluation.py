@@ -467,22 +467,30 @@ class SAEFeatureEvaluation:
         seeds: Sequence[int] = (0, 1, 2),
         source_representation_identity: str = "",
     ) -> SAEStabilityResult:
-        """Fit across seeds and measure decoder-direction feature stability."""
         values = _validate_batch(data, name="data")
         seed_values = tuple(int(seed) for seed in seeds)
         if not seed_values:
             raise ValueError("at least one seed is required")
         if len(seed_values) < 2:
             raise ValueError("stability analysis needs at least two seeds")
+        # Keep the data split fixed: cross-seed stability must measure
+        # optimization-seed variation, not a confounded train/validation split.
+        split_rng = np.random.default_rng(self._config.random_state)
+        permuted = values[split_rng.permutation(values.shape[0])]
+        split = max(1, int(permuted.shape[0] * (1.0 - self._config.val_fraction)))
+        train, val = permuted[:split], permuted[split:]
+        if val.shape[0] < self._config.min_val_samples:
+            raise ValueError(f"validation split has {val.shape[0]} samples; need at least {self._config.min_val_samples}")
         reports: list[SAEEvaluationResult] = []
         for seed in seed_values:
             cfg = self._config.model_copy(update={"random_state": seed})
             evaluator = SAEFeatureEvaluation(cfg)
             reports.append(
                 evaluator.fit(
-                    values,
+                    train,
+                    val_data=val,
                     source_representation_identity=source_representation_identity,
-                    provenance={"stability_seed": seed},
+                    provenance={"stability_seed": seed, "stability_split_seed": self._config.random_state},
                 )
             )
         return assemble_stability(tuple(reports), self._config, seed_values)

@@ -1,0 +1,87 @@
+{
+  "acceptance": {
+    "artifact_checksum_tamper_rejected": true,
+    "artifact_path_traversal_rejected": true,
+    "artifact_roundtrip": true,
+    "async_rollout_complete": true,
+    "finite_outputs": true,
+    "portable_schema_v1_roundtrip": true,
+    "recorder_artifact_path_rejected": true,
+    "recorder_parent_child_resume": true,
+    "result_envelope_roundtrip": true,
+    "rollout_cache_hit": true,
+    "sqlite_cache_roundtrip": true,
+    "stream_bounded_ordered": true
+  },
+  "cache": {
+    "disk_stats": {
+      "bytes": 1730,
+      "entries": 1,
+      "hits": 1,
+      "misses": 1,
+      "sets": 1
+    },
+    "in_memory_stats": {
+      "hits": 1,
+      "misses": 4,
+      "sets": 4,
+      "size": 4
+    },
+    "key": "7f73697a2876e4027bbeb0823869e8351f806c4ee31d239ba669bf98d49813bc",
+    "sqlite_path": "<temporary>/cache/runtime.sqlite"
+  },
+  "checks": {
+    "artifact_checksum_tamper_rejected": true,
+    "artifact_path_traversal_rejected": true,
+    "artifact_roundtrip": true,
+    "async_rollout_complete": true,
+    "finite_outputs": true,
+    "portable_schema_v1_roundtrip": true,
+    "recorder_artifact_path_rejected": true,
+    "recorder_parent_child_resume": true,
+    "result_envelope_roundtrip": true,
+    "rollout_cache_hit": true,
+    "sqlite_cache_roundtrip": true,
+    "stream_bounded_ordered": true
+  },
+  "cleanup": "Temporary Arrow/SQLite/run roots and all scratch files were removed by TemporaryDirectory; only this JSON artifact is retained.",
+  "command": "uv run python scripts/m14_l22_runtime.py",
+  "optional_tracking": {
+    "mlflow": "external service/credentials not claimed; local filesystem contract covered",
+    "wandb": "external service/credentials not claimed; local filesystem contract covered"
+  },
+  "recorder": {
+    "artifact_digest": "292504bfda6858d21470df6f257096c467252118939b0868f002a892679f6558",
+    "backend": "filesystem",
+    "child_run_id": "19ff935b4ad96531",
+    "parent_run_id": "57a186ca5a0c75e4"
+  },
+  "recorder_parent_child_resume_detail": {
+    "artifact_count": 4,
+    "artifact_ok": true,
+    "child_run_ids": [
+      "19ff935b4ad96531"
+    ],
+    "expected_child": "19ff935b4ad96531",
+    "status": "completed"
+  },
+  "resource_budget": {
+    "elapsed_seconds": 0.589503600000171,
+    "max_artifact_bytes": 1048576,
+    "max_cache_bytes": 1048576,
+    "max_cache_entries": 8,
+    "rss_peak_bytes": 305758208
+  },
+  "schema_version": "m14-l22-run-v1",
+  "source_sha": "17b125d640bac9f6337f5c68983a7d4ee0267488",
+  "target": {
+    "device": "cpu",
+    "filesystem": "isolated temporary Arrow/SQLite-compatible paths",
+    "schema_versions": [
+      "portable-node-v1",
+      "artifact-envelope-v1",
+      "disk-cache-v1",
+      "result-envelope-v1"
+    ]
+  }
+}
