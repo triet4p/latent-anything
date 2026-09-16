@@ -4,7 +4,7 @@
 
 This artifact covers only the current Sprint 79 task at `docs/sprint-plans/sprint-79.md:594`. The authority is `docs/M14_REAL_SYSTEM_VALIDATION.md`; its acceptance semantics and immutable predecessor evidence were not changed. All 24 authority rows are implementation-applicable to this repository. No row is inapplicable or silently omitted.
 
-The scoped lane probes were run against source checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`; the final documentation/evidence commit is `4ed5652`.
+The scoped lane probes were run against source checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`; evidence receipts and this summary were subsequently committed and pushed.
 
 - **Completed/accepted:** 2/24 (L01, L03).
 - **Partial:** 2/24 (L02, L04; partial records remain explicitly unpromoted as a row-wide completion).
