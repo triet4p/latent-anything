@@ -80,6 +80,7 @@ def main() -> None:
     payload = {
         "schema_version": "m14-l06-run-v1",
         "model": {"id": MODEL_ID, "revision": MODEL_REVISION, "weights_sha256": MODEL_WEIGHTS_SHA256, "license": "MIT", "layer": 6},
+        "seeds": [0, 1, 2],
         "corpus": {"revision": "prompt-batch-v1", "license": "original deterministic prompts", "prompt_count": len(PROMPTS), "prompt_digest": hashlib.sha256("\n".join(PROMPTS).encode()).hexdigest()},
         "config": config.model_dump(mode="json"),
         "metrics": {
@@ -93,7 +94,15 @@ def main() -> None:
         },
         "atlas": {"path": str(atlas_path).replace("\\", "/"), "sha256": atlas_hash, "entries": len(atlas.entries)},
         "environment": {"device": "cpu", "python": platform.python_version(), "platform": platform.platform(), "numpy": np.__version__, "torch": importlib.metadata.version("torch"), "transformers": importlib.metadata.version("transformers"), "huggingface_hub": importlib.metadata.version("huggingface-hub"), "rss_peak_bytes": rss_peak[0], "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun"},
-        "acceptance": {"reconstruction_finite": bool(np.isfinite(evaluation.reconstruction_mse)), "dead_features_bounded": evaluation.n_dead_features < config.n_components, "cross_seed_stability": stability.min_matched_cosine > 0.85 and stability.alignment_quality > 0.7, "atlas_hash_recorded": bool(atlas_hash), "real_hidden_states": True},
+        "acceptance": {
+            "reconstruction_finite": bool(np.isfinite(evaluation.reconstruction_mse)),
+            "dead_features_bounded": evaluation.n_dead_features < config.n_components,
+            "cross_seed_stability": stability.min_matched_cosine > 0.85 and stability.alignment_quality > 0.7,
+            "cross_seed_min_matched_cosine_threshold": 0.85,
+            "cross_seed_alignment_quality_threshold": 0.7,
+            "atlas_hash_recorded": bool(atlas_hash),
+            "real_hidden_states": True,
+        },
         "cleanup": "No disposable corpus/checkpoint files; pinned HF cache retained and atlas is the immutable output artifact.",
     }
     output = Path("artifacts/m14/l06-sae-run.json")

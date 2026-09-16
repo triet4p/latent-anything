@@ -11,6 +11,9 @@ import numpy as np
 import psutil
 from sklearn.datasets import load_digits  # pyright: ignore[reportMissingTypeStubs]
 
+from latent_anything.latent_space import LatentSpace
+from latent_anything.latent_value import LatentValue
+from latent_anything.projection import SubspaceProjection
 from latent_anything.adapters import VAE
 from latent_anything.integrations.transformer_lm import TransformerGenerationRequest, TransformerLMIntegration
 from latent_anything.methods import ActivationPatch, Lerp, SteeringVector
@@ -31,8 +34,14 @@ def _paired_metrics(values: np.ndarray) -> dict[str, object]:
     steered = steering(original, strength=0.5)
     zero = steering(original, strength=0.0)
     basis = np.linalg.svd(values - values.mean(axis=0), full_matrices=False)[2][:4].T
-    projected = basis @ (basis.T @ original)
-    lerp = Lerp()
+    identity = "openai-community/gpt2/layer-6"
+    projection = SubspaceProjection().fit_basis(
+        basis,
+        source_representation_identity=identity,
+        provenance={"method": "svd", "n_components": 4},
+    )
+    space = LatentSpace(values.shape[1], metadata={"source_representation_identity": identity})
+    projected = projection.project(LatentValue(values, space)).to_numpy()[0]
     midpoint = lerp(original, target[0], 0.5)
     restored = lerp(original, target[0], 0.0)
     return {

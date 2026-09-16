@@ -29,7 +29,7 @@ def _digest_strings(values: list[str]) -> str:
 def main() -> None:
     process = psutil.Process()
     rss_peak = [process.memory_info().rss]
-    texts = [f"A documented scientific observation number {i} concerns a stable process." for i in range(160)]
+    texts = [f"A documented scientific observation number {i} concerns a stable process." for i in range(140)]
     ood = [f"Quantum mechanical orchard protocol {i} yields a divergent artifact." for i in range(40)]
     pipe = TransformerLMIntegration(model_id=MODEL_ID, revision=MODEL_REVISION, device="cpu")
     model, tokenizer, _ = pipe._backend()  # type: ignore[reportPrivateUsage]
@@ -48,7 +48,7 @@ def main() -> None:
         values[:80],
         values[80:120],
         values[120:140],
-        values[160:],
+        values[140:],
         source_representation_identity=f"{MODEL_ID}@{MODEL_REVISION}/layer=12",
         config=GMMConfig(n_components=2, covariance_type="diag", min_samples_per_dimension=0.1),
         seeds=(0, 1, 2),
