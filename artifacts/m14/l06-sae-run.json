@@ -52,7 +52,7 @@
     "numpy": "2.4.6",
     "platform": "Windows-11-10.0.26200-SP0",
     "python": "3.13.3",
-    "rss_peak_bytes": 2438885376,
+    "rss_peak_bytes": 2439847936,
     "torch": "2.10.0",
     "transformers": "4.57.6"
   },
@@ -95,5 +95,5 @@
     1,
     2
   ],
-  "source_sha": "d6fb1d19a60dd64c2ae0c743c6d390d6666d96eb"
+  "source_sha": "005954c636ae7a45ac3072c69e2c118db044682b"
 }
