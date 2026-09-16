@@ -280,7 +280,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-NONLINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out MLPProbe benchmark |
 | `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 (retained semantic failure) | yes | yes | D3 | L04 | Exact-SHA real CUDA TCAV artifact is validator-clean but fails Wilson lower-bound and corrected empirical-p-value gates; no promotion |
 | `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
-| `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
+| `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 (retained stability failure) | yes | yes | D3 | L06 | Real pinned GPT-2 layer-6 SAE artifact is retained; cross-seed cosine stability remains below frozen thresholds, so no promotion |
 | `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
@@ -453,3 +453,39 @@ returned `errors: []` at **40/63 core (63.492063%)** and **40/65 overall
 [`task_79_queue33_tcav_reconciliation_summary.md`](../artifacts/task_79_queue33_tcav_reconciliation_summary.md).
 No later queue row, Sprint 79 line 595, or later plan item
 was changed.
+
+### Queue position 35 — L06 SAE stability-failure reconciliation
+
+`THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` is the earliest
+dependency-order row after queue position 33 that was executable after the
+already qualifying queue position 34 TunedLogitLens row. Positions 36
+(Disentanglement), 37 (Activation Patching), and 38 (Steering) remain gated
+by the failed TCAV dependency and their real-model causal contracts; position
+39 (Dictionary Learning) lacks a dedicated implementation; position 40
+(OpenVLA) lacks checkpoint, license/access, and adapter scope.
+
+The retained exact-source L06 execution at
+`005954c636ae7a45ac3072c69e2c118db044682b` used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, the expanded
+`prompt-grid-v2-1024` fixture, layer 6 hidden states, and independent seeds
+`[0, 1, 2]`. The target-level config and reconciliation receipt are
+[`l06-sae.config.json`](../artifacts/m14/l06-sae.config.json) and
+[`l06-sae-reconciliation.run.json`](../artifacts/m14/l06-sae-reconciliation.run.json).
+The genuine lane artifact, execution record, and feature atlas remain
+[`l06-sae.json`](../artifacts/m14/l06-sae.json),
+[`l06-sae-run.json`](../artifacts/m14/l06-sae-run.json), and
+[`l06-feature-atlas.json`](../artifacts/m14/l06-feature-atlas.json).
+
+The run captured `10,752` tokens with finite reconstruction MSE
+`0.7104635182257194`, zero dead features, mean matched cosine
+`0.8467253367037664` as a diagnostic, minimum matched cosine
+`0.7387987235614891` against the frozen strict `> 0.85` gate, and alignment
+quality `0.75` against strict `> 0.7`. The minimum-cosine gate failed, so
+cross-seed stability failed despite finite reconstruction and bounded dead
+features. The real pinned model evidence remains D1; no D3 promotion or
+threshold change occurred.
+Focused SAE validation passed **21 tests**. The ledger validator returned
+`errors: []` at **40/63 core (63.492063%)** and **40/65 overall (61.538462%)**.
+The failure-preserving summary is
+[`task_79_queue35_sae_reconciliation_summary.md`](../artifacts/task_79_queue35_sae_reconciliation_summary.md).
+Sprint 79 line 595 and all later plan rows remain unchanged.

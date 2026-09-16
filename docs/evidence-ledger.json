@@ -420,8 +420,16 @@
     "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023": {
       "status": "D1",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/methods/sae.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_sae.py"}
+        {"role": "source", "path": "src/latent_anything/sae_evaluation.py"},
+        {"role": "source", "path": "scripts/m14_l06_sae.py"},
+        {"role": "test", "path": "tests/test_sae_evaluation.py"},
+        {"role": "test", "path": "tests/test_sae_evaluation_network.py"},
+        {"role": "benchmark", "path": "scripts/m14_l06_sae.py"},
+        {"role": "config", "path": "artifacts/m14/l06-sae.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae-run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-feature-atlas.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae-reconciliation.run.json"}
       ]
     },
     "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING": {

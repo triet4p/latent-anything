@@ -471,6 +471,23 @@ the JSON ledger. Focused TCAV validation passed 27 tests and the validator
 remains error-free at 40/63 core and 40/65 overall. The authored fixture is
 bounded evidence only, and no rerun is authorized.
 
+Sprint 79 queue position 35 reconciles
+`THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` while retaining D1. The
+exact-source real pinned GPT-2 L06 artifact used the expanded
+`prompt-grid-v2-1024` fixture, layer-6 hidden states, and seeds `[0, 1, 2]`.
+Reconciliation config/receipt are `artifacts/m14/l06-sae.config.json` and
+`artifacts/m14/l06-sae-reconciliation.run.json`; immutable lane evidence is
+`artifacts/m14/l06-sae.json`, `artifacts/m14/l06-sae-run.json`, and
+`artifacts/m14/l06-feature-atlas.json`. Reconstruction was finite
+(`0.7104635182257194`) with zero dead features. Mean matched cosine
+`0.8467253367037664` is diagnostic; minimum matched cosine
+`0.7387987235614891` failed the frozen strict `> 0.85` stability gate.
+Alignment quality was `0.75` against strict `> 0.7` and passed. No D3
+promotion or threshold relaxation occurred.
+The focused SAE suite passed 21 tests; the validator remains error-free at
+40/63 core and 40/65 overall. Later rows and Sprint 79 line 595 remain
+unchanged.
+
 ## Quality gates for a D2/D3 promotion
 
 - Core unit tests: all changed core behavior has deterministic focused tests;
