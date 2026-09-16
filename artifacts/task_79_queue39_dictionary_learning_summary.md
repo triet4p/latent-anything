@@ -19,7 +19,7 @@ This is bounded D2 algorithm evidence only. It does not promote the separate rea
 ## Verification
 
 - `uv run pytest tests/test_dictionary_learning.py -q` — **3 passed**.
-- `uv run python scripts/m14_l06_dictionary_learning.py` — accepted `true`; deterministic rerun reproduced the same artifact digest and metrics.
+- `uv run python scripts/m14_l06_dictionary_learning.py` — accepted `true`; corrected metrics and artifact digest are recorded above.
 - `uv run python scripts/validate_evidence_ledger.py --json` — `errors: []`; **41/63 core (65.079365%)**, **41/65 overall (63.076923%)**.
 
 The gap map, queue, evidence ledger, plan table, configuration, artifact, and receipt agree on D2. Position 40 OpenVLA remains D0 with its checkpoint/license/access and adapter-scope blocker. Sprint 79 line 595 remains unchecked.
