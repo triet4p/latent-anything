@@ -1,0 +1,73 @@
+{
+  "accepted": true,
+  "accepted_gap_ids": [
+    "THY-T05-DICTIONARY-LEARNING"
+  ],
+  "artifact_sha256": "dd768b79a1f5a83123ddda4bb743e720f0bdc9e349836d42c419dc5689df19a4",
+  "capability_id": "THY-T05-DICTIONARY-LEARNING",
+  "controls": {
+    "dictionary_shape": true,
+    "finite_metrics": true,
+    "heldout_reconstruction_beats_mean_baseline": true,
+    "no_input_mutation": true,
+    "train_heldout_disjoint": true
+  },
+  "dataset": {
+    "content_sha256": "f13c3abefe009a306ae434df0fd45578aa2fa5f4a381330db428ae2489f0a1f5",
+    "features": 12,
+    "license": "original deterministic fixture",
+    "name": "deterministic sparse dictionary fixture",
+    "revision": "sparse-dictionary-v1",
+    "samples": 600
+  },
+  "evidence_level": "D2",
+  "lane": "M14-L06",
+  "metrics": {
+    "dictionary_shape": [
+      8,
+      12
+    ],
+    "heldout_mean_baseline_mse": 0.06497977490954669,
+    "heldout_mean_l0": 2.0,
+    "heldout_reconstruction_mse": 0.013416282559909032,
+    "train_mean_baseline_mse": 0.06819990165051164,
+    "train_mean_l0": 4.204166666666667,
+    "train_reconstruction_mse": 0.010704513402240056
+  },
+  "model": {
+    "backend": "scikit-learn.DictionaryLearning",
+    "config": {
+      "alpha": 0.05,
+      "max_iter": 500,
+      "n_components": 8,
+      "tol": 1e-06,
+      "transform_algorithm": "omp",
+      "transform_n_nonzero_coefs": 2
+    },
+    "implementation": "latent_anything.dictionary_learning.DictionaryLearning"
+  },
+  "provenance": {
+    "cleanup": "no temporary files created",
+    "network_policy": "offline",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "runner": "scripts/m14_l06_dictionary_learning.py",
+    "scikit_learn": "1.9.0",
+    "source_sha": "806efa78b7d2b9f96b086f933ec5c7c6bd19968b"
+  },
+  "schema_version": "m14-l06-dictionary-learning-v1",
+  "seed": 79,
+  "split": {
+    "algorithm": "numpy.default_rng(seed).permutation; first floor(80%) train, remainder held-out",
+    "heldout_index_sha256": "db1600bd7b686a678feac75212be790dede381b7534818250bc8b99d5b39b99a",
+    "heldout_samples": 120,
+    "train_fraction": 0.8,
+    "train_index_sha256": "1c98e0130550af076ae8c5abece9b4db0cb09541d3e8e9dd9ae5496061e820f6",
+    "train_samples": 480
+  },
+  "thresholds": {
+    "heldout_mean_l0_max": 2.0,
+    "heldout_reconstruction_relative_to_mean_baseline_strict_lt": 0.5
+  }
+}

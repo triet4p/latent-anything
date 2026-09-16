@@ -1,0 +1,11 @@
+{
+  "artifact": "artifacts/m14/l06-dictionary-learning.json",
+  "artifact_sha256": "dd768b79a1f5a83123ddda4bb743e720f0bdc9e349836d42c419dc5689df19a4",
+  "cleanup": "no temporary files created",
+  "command": "uv run python scripts/m14_l06_dictionary_learning.py",
+  "lane": "M14-L06",
+  "record_id": "THY-T05-DICTIONARY-LEARNING",
+  "runner": "scripts/m14_l06_dictionary_learning.py",
+  "schema_version": "m14-l06-dictionary-learning-run-v1",
+  "status": "accepted"
+}

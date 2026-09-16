@@ -11,14 +11,14 @@ row-level machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **40/63 core (63.492063%)**
-and **40/65 overall (61.538462%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **41/63 core (65.079365%)**
+and **41/65 overall (63.076923%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **20 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **20 additional core
-qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
-**19 additional overall qualifiers** are required to reach
-`ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
+denominator adds two applicable X01 rows. The validator reports **19 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **19 additional
+core qualifiers** are required to reach **ceil(0.95 × 63) = 60**, and at least
+**18 additional overall qualifiers** are required to reach
+**ceil(0.90 × 65) = 59**. The core gate is therefore the binding gate. Headline
 model, causal explanation, and named integration claims target D3; ordinary
 algorithm capabilities target D2 unless their row says otherwise.
 
@@ -281,7 +281,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 (retained semantic failure) | yes | yes | D3 | L04 | Exact-SHA real CUDA TCAV artifact is validator-clean but fails Wilson lower-bound and corrected empirical-p-value gates; no promotion |
 | `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
 | `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 (retained stability failure) | yes | yes | D3 | L06 | Real pinned GPT-2 layer-6 SAE artifact is retained; cross-seed cosine stability remains below frozen thresholds, so no promotion |
-| `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
+| `THY-T05-DICTIONARY-LEARNING` | D2 | yes | no | D2 | L06 | Dedicated deterministic held-out dictionary-learning comparison passes reconstruction, sparsity, split, finite, shape, and no-mutation gates |
 | `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | Exact-SHA real CUDA diagnostic passes target/selectivity/off-target controls but fails required randomized-direction control; D3 remains blocked |
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
 | `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
@@ -498,7 +498,7 @@ Sprint 79 line 595 and all later plan rows remain unchanged.
 D1 after reconciling the owner-authorized exact-SHA real CUDA diagnostic. Queue
 positions 36 (Disentanglement) and 37 (Activation Patching) already satisfy
 their bounded target contracts and were intentionally not modified in this
-row. Position 39 (Dictionary Learning) still lacks a dedicated implementation;
+row. Position 39 (Dictionary Learning) is now a bounded D2 comparison;
 position 40 (OpenVLA) still lacks checkpoint, license/access, and adapter scope.
 
 The retained AdditiveSteering execution at source
@@ -528,6 +528,36 @@ existing D1 implementation row, not a D3 promotion; no threshold was relaxed.
 The focused steering suites passed **63 tests**. The target-level
 failure-preserving summary is
 [`task_79_queue38_steering_reconciliation_summary.md`](../artifacts/task_79_queue38_steering_reconciliation_summary.md).
-The ledger validator returned `errors: []` at **40/63 core
-(63.492063%)** and **40/65 overall (61.538462%)**. Sprint 79 line 595 and all
+The ledger validator returned `errors: []` at **41/63 core
+(65.079365%)** and **41/65 overall (63.076923%)**. Sprint 79 line 595 and
 later queue rows remain unchanged.
+
+### Queue position 39 — L06 Dictionary Learning bounded D2 promotion
+
+`THY-T05-DICTIONARY-LEARNING` is promoted to D2 through a dedicated,
+offline, deterministic implementation and held-out benchmark. The source
+implementation is [`dictionary_learning.py`](../src/latent_anything/dictionary_learning.py),
+with focused contract coverage in
+[`test_dictionary_learning.py`](../tests/test_dictionary_learning.py) and the
+runner [`m14_l06_dictionary_learning.py`](../scripts/m14_l06_dictionary_learning.py).
+The predeclared thresholds and provenance are in
+[`l06-dictionary-learning.config.json`](../artifacts/m14/l06-dictionary-learning.config.json).
+
+The genuine artifact
+[`l06-dictionary-learning.json`](../artifacts/m14/l06-dictionary-learning.json)
+uses seed `79`, 600 samples × 12 features, an 80/20 disjoint split, and
+scikit-learn `DictionaryLearning` with 8 components and two-sparse OMP codes.
+Held-out reconstruction MSE is `0.013416282559909032` versus the
+train-mean baseline `0.06497977490954669` (strict ratio gate `< 0.5`), and
+held-out mean L0 is `2.0` (threshold `<= 2.0`). Finite metrics, dictionary
+shape, no-mutation, and split controls all pass. The immutable run receipt is
+[`l06-dictionary-learning.run.json`](../artifacts/m14/l06-dictionary-learning.run.json).
+The selection, ordering, provenance, metrics, and unchanged blockers are
+recorded in [`task_79_queue39_dictionary_learning_summary.md`](../artifacts/task_79_queue39_dictionary_learning_summary.md).
+This is bounded D2 algorithm evidence only; it does not promote the separate
+real-GPT-2 SAE row or make a D3 named-model claim.
+
+Focused validation `uv run pytest tests/test_dictionary_learning.py -q`
+passed **3 tests**. The ledger validator returned `errors: []` at **41/63 core
+(65.079365%)** and **41/65 overall (63.076923%)**. Queue position 40
+OpenVLA and Sprint 79 line 595 remain unchanged.

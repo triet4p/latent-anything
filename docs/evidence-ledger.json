@@ -432,6 +432,17 @@
         {"role": "artifact", "path": "artifacts/m14/l06-sae-reconciliation.run.json"}
       ]
     },
+    "THY-T05-DICTIONARY-LEARNING": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/dictionary_learning.py"},
+        {"role": "test", "path": "tests/test_dictionary_learning.py"},
+        {"role": "benchmark", "path": "scripts/m14_l06_dictionary_learning.py"},
+        {"role": "config", "path": "artifacts/m14/l06-dictionary-learning.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-dictionary-learning.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-dictionary-learning.run.json"}
+      ]
+    },
     "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING": {
       "status": "D1",
       "evidence": [

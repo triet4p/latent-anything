@@ -1,0 +1,41 @@
+{
+  "schema_version": "m14-l06-dictionary-learning-config-v1",
+  "record_id": "THY-T05-DICTIONARY-LEARNING",
+  "lane": "M14-L06",
+  "target_evidence": "D2",
+  "seed": 79,
+  "dataset": {
+    "name": "deterministic sparse dictionary fixture",
+    "revision": "sparse-dictionary-v1",
+    "license": "original deterministic fixture",
+    "samples": 600,
+    "features": 12,
+    "train_fraction": 0.8,
+    "split": "numpy.default_rng(seed).permutation; first floor(80%) train, remainder held-out"
+  },
+  "model": {
+    "implementation": "latent_anything.dictionary_learning.DictionaryLearning",
+    "backend": "scikit-learn.DictionaryLearning",
+    "n_components": 8,
+    "alpha": 0.05,
+    "max_iter": 500,
+    "tol": 1e-6,
+    "transform_algorithm": "omp",
+    "transform_n_nonzero_coefs": 2
+  },
+  "thresholds": {
+    "heldout_reconstruction_relative_to_mean_baseline_strict_lt": 0.5,
+    "heldout_mean_l0_max": 2.0
+  },
+  "controls": [
+    "finite metrics",
+    "held-out reconstruction beats train-mean baseline",
+    "held-out sparse-code bound",
+    "disjoint train/held-out indices",
+    "no input mutation",
+    "dictionary shape"
+  ],
+  "command": "uv run python scripts/m14_l06_dictionary_learning.py",
+  "network_policy": "offline",
+  "scope": "Bounded implementation-applicable dictionary-learning comparison; no SAE stability or named-model D3 claim."
+}

@@ -52,9 +52,9 @@
     ],
     "execution_records": 40,
     "queue_status_counts": {
-      "satisfied_qualifying": 8,
+      "satisfied_qualifying": 9,
       "co_scheduled_scc_blocked_by_missing_implementation": 2,
-      "ready_for_dependency_ordered_execution": 30
+      "ready_for_dependency_ordered_execution": 29
     },
     "external_prerequisite_edges": 9,
     "external_prerequisites": [
@@ -1324,7 +1324,7 @@
       "position": 39,
       "record_id": "THY-T05-DICTIONARY-LEARNING",
       "lane_id": "L06",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 5,
       "internal_dependencies": [
@@ -1333,11 +1333,11 @@
       "external_prerequisites": [],
       "external_prerequisite_details": [],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "add a bounded dictionary-learning comparison to L06",
-      "acceptance": "predeclared held-out reconstruction/sparsity threshold",
-      "artifact": "artifacts/m14/l06-sae.json",
-      "blocker": "no dedicated implementation currently in stable surface"
+      "queue_status": "satisfied_qualifying",
+      "command": "uv run python scripts/m14_l06_dictionary_learning.py",
+      "acceptance": "held-out reconstruction < 0.5x train-mean baseline and mean held-out L0 <= 2.0",
+      "artifact": "artifacts/m14/l06-dictionary-learning.json",
+      "blocker": "none for bounded D2; named model and D3 SAE claims remain separate"
     },
     {
       "position": 40,
