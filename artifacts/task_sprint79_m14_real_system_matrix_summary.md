@@ -4,7 +4,7 @@
 
 This artifact covers only the current Sprint 79 task at `docs/sprint-plans/sprint-79.md:594`. The authority is `docs/M14_REAL_SYSTEM_VALIDATION.md`; its acceptance semantics and immutable predecessor evidence were not changed. All 24 authority rows are implementation-applicable to this repository. No row is inapplicable or silently omitted.
 
-At the current pushed checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`:
+The scoped lane probes were run against source checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`; the final documentation/evidence commit is `4ed5652`.
 
 - **Completed/accepted:** 2/24 (L01, L03).
 - **Partial:** 2/24 (L02, L04; partial records remain explicitly unpromoted as a row-wide completion).
@@ -82,9 +82,16 @@ l20-diffusion-policy.json   35497393c099d1bfc97cdc827c376bd354ba665294513a85c391
 l21-smolvla.json            f2386c71913f51ff55f7ea41cec6743da4cae9abcde9a90ddf175587d0d8de50
 l22-runtime.json            97cedb1e30716d25ba9cbb9dd1b9d39be180d96788623567d18e8c1569845e21
 l23-contract.json           2a2ff0593266d8c97f878e621f286cf75a6e55baaf453c6fc36f614ef3d280ad
-l24-rc.json                 8317d98efb259cf45dc11e2edfae464fdb0b4b7a4beee38a4ecf2f6ac9d88b34
+l24-rc.json                  8317d98efb259cf45dc11e2edfae464fdb0b4b7a4beee38a4ecf2f6ac9d88b34
+
 ```
 
 ## Plan status
 
 `docs/sprint-plans/sprint-79.md:594` is updated to `[~]` with this artifact as the row-level account. The exact blockers above remain explicit; no threshold was weakened, no failed/skipped lane was promoted, and lines 595 onward remain untouched.
+
+## Delivery
+
+- Final commit: `4ed5652` (`docs: record M14 SAE lane probe`).
+- `origin/sprint79-local-gate-remediation` was pushed and matched the final local commit.
+- The working tree was clean after push.
