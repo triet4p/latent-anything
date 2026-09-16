@@ -1,0 +1,86 @@
+{
+  "acceptance": {
+    "atlas_hash_recorded": true,
+    "cross_seed_alignment_quality_threshold": 0.7,
+    "cross_seed_min_matched_cosine_threshold": 0.85,
+    "cross_seed_stability": false,
+    "dead_features_bounded": true,
+    "real_hidden_states": true,
+    "reconstruction_finite": true
+  },
+  "atlas": {
+    "entries": 64,
+    "path": "artifacts/m14/l06-feature-atlas.json",
+    "sha256": "bed0ca1c913006fb124cc2a87c8fab1a18d5b0d44cb8af383ff16fbe69bb224d"
+  },
+  "cleanup": "No disposable corpus/checkpoint files; pinned HF cache retained and atlas is the immutable output artifact.",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l06_sae.py",
+  "config": {
+    "dead_frequency_threshold": 0.0001,
+    "l1_coef": 0.005,
+    "learning_rate": 0.01,
+    "matching_cosine_threshold": 0.5,
+    "min_val_samples": 16,
+    "n_components": 64,
+    "n_epochs": 1500,
+    "random_state": 0,
+    "val_fraction": 0.2
+  },
+  "corpus": {
+    "license": "original deterministic prompts",
+    "prompt_count": 32,
+    "prompt_digest": "d12d3d3756a478be61d8339f8a0ed17a146414b76493b3186990d862f811cd6b",
+    "revision": "prompt-batch-v1"
+  },
+  "environment": {
+    "device": "cpu",
+    "huggingface_hub": "0.35.3",
+    "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 1314230272,
+    "torch": "2.10.0",
+    "transformers": "4.57.6"
+  },
+  "metrics": {
+    "bottom_labels": [
+      " the",
+      "The",
+      "The",
+      "The",
+      " across"
+    ],
+    "dead_fraction": 0.0,
+    "mean_l0": 38.95744680851064,
+    "mean_l1": 62.19365692138672,
+    "most_active_feature": 56,
+    "n_dead_features": 0,
+    "n_tokens": 234,
+    "reconstruction_mse": 0.9514871142121589,
+    "stability_alignment_quality": 0.0,
+    "stability_mean_matched_cosine": 0.0,
+    "stability_min_matched_cosine": 0.0,
+    "top_labels": [
+      " pilot",
+      " engineer",
+      " painter",
+      " chef",
+      " bright"
+    ]
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "layer": 6,
+    "license": "MIT",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
+  },
+  "schema_version": "m14-l06-run-v1",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "source_sha": "04efc7cc4a75b775de74e42396b7c70c77086aa8"
+}
