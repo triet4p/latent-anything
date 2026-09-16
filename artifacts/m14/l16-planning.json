@@ -6,8 +6,8 @@
   "evidence_level": "D2 synthetic only",
   "source_sha": "e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d",
   "target": "recorded trajectory substitute plus compact transition; NumPy/PyTorch CPU",
-  "command": "uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py tests/test_cem_benchmark.py tests/test_mppi_benchmark.py tests/test_reward_value_benchmark.py -q",
-  "result": "Combined verification command across L08/L13/L16 tests: 51 passed in 7.30s.",
+  "command": "uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q",
+  "result": "32 passed in 6.27s",
   "blocker": "Policy-grounded D3 gap remains; no row artifact with predeclared return/regret, budget, and trace metrics was generated.",
   "evidence_scope": "Passing planner tests remain implementation evidence."
 }
