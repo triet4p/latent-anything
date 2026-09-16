@@ -1,0 +1,196 @@
+{
+  "acceptance": {
+    "deterministic_one_step_finite": true,
+    "deterministic_rmse_threshold": true,
+    "deterministic_rollout_finite": true,
+    "finite_scales": true,
+    "rollout_horizon_complete": true,
+    "rssm_one_step_finite": true,
+    "rssm_rollout_finite": true,
+    "rssm_seeded_rollout_reproducible": true,
+    "rssm_state_carry": true,
+    "shape_safe": true,
+    "stochastic_distribution_finite": true,
+    "stochastic_rollout_shape": true,
+    "stochastic_seeded_reproducible": true
+  },
+  "cleanup": "No temporary state/checkpoint files; all outputs retained under artifacts/m14.",
+  "command": "uv run python scripts/m14_l15_transitions.py",
+  "environment": {
+    "device": "cpu",
+    "network_policy": "offline; project-authored fixture only",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 367116288,
+    "torch": "2.10.0"
+  },
+  "metrics": {
+    "deterministic_one_step": {
+      "max_error": 0.05023403610545487,
+      "mse": 0.00035459350908576383,
+      "n_samples": 48,
+      "rmse": 0.018830653442877755,
+      "runtime_seconds": 0.0013136999987182207
+    },
+    "deterministic_rollout": {
+      "errors_by_horizon": [
+        0.022814986822716713,
+        0.030705070688688867,
+        0.025255831454899395,
+        0.03719041306426418,
+        0.03221580122459239,
+        0.04430058152064995
+      ],
+      "final_error": 0.04430058152064995,
+      "max_error": 0.07809152089209619,
+      "max_state_norm": 1.2827094075249277,
+      "mean_error": 0.032080447462635255,
+      "runtime_seconds": 0.0012815999980375636,
+      "stable": true
+    },
+    "rssm_hidden_shape": [
+      6
+    ],
+    "rssm_one_step": {
+      "coverage": 0.8854166666666666,
+      "kl_divergence": 2.24101662753617,
+      "mean_error": 0.04395874133126204,
+      "mse": 0.0012314878893115047,
+      "n_samples": 48,
+      "negative_log_likelihood": -3.692577415112878,
+      "rmse": 0.03509256173766037,
+      "runtime_seconds": 0.006979400001000613
+    },
+    "rssm_rollout": {
+      "coverage_by_horizon": [
+        0.75,
+        0.625,
+        0.8125,
+        0.6875,
+        0.75,
+        0.6875
+      ],
+      "errors_by_horizon": [
+        0.059416425663599004,
+        0.0884393603112632,
+        0.08700643787774912,
+        0.09551677363724984,
+        0.10186242520193808,
+        0.11262323827386952
+      ],
+      "final_error": 0.11262323827386952,
+      "kl_by_horizon": [
+        2.6429596677458322,
+        3.8842698814796464,
+        2.5325892279498534,
+        3.004591185895082,
+        3.1171017996502526,
+        3.2000591058018855
+      ],
+      "mean_coverage": 0.71875,
+      "mean_error": 0.09081077682761146,
+      "mean_kl": 3.0635951447537586,
+      "runtime_seconds": 0.005813700001453981,
+      "stable": true
+    },
+    "rssm_scale": [
+      0.026036267083010024,
+      0.030595206799462187
+    ],
+    "stochastic_one_step": {
+      "coverage": 0.8645833333333334,
+      "interval_width": 0.05964630244753758,
+      "mean_error": 0.02349482725894399,
+      "n_samples": 48,
+      "negative_log_likelihood": -4.9901946751757675,
+      "runtime_seconds": 0.008363200002349913,
+      "sample_diversity": 0.014773468607232484
+    },
+    "stochastic_rollout": {
+      "coverage_by_horizon": [
+        0.875,
+        0.8125,
+        1.0,
+        0.8125,
+        0.9375,
+        0.8125
+      ],
+      "final_error": 0.045897134522464016,
+      "mean_coverage": 0.875,
+      "mean_error_by_horizon": [
+        0.02391294293495992,
+        0.03195303434266651,
+        0.02701889068575559,
+        0.039934376934319206,
+        0.033164664390261445,
+        0.045897134522464016
+      ],
+      "mean_negative_log_likelihood": -4.298399039897,
+      "mean_sample_diversity": 0.02124148831316312,
+      "negative_log_likelihood_by_horizon": [
+        -4.865207606612712,
+        -4.274078650447859,
+        -4.9124007211233955,
+        -3.9466269454004683,
+        -4.50632225435135,
+        -3.285758061446213
+      ],
+      "runtime_seconds": 0.2175320999995165,
+      "sample_diversity_by_horizon": [
+        0.014774491469375662,
+        0.019051562941013223,
+        0.022063283911555612,
+        0.022722195988205025,
+        0.024090037213971127,
+        0.024747358354858053
+      ],
+      "stable": true
+    }
+  },
+  "models": {
+    "deterministic": {
+      "ridge": 1e-08,
+      "source_space_identity": "m14-transition-fixture-v1"
+    },
+    "rssm": {
+      "device": "cpu",
+      "epochs": 35,
+      "hidden_dim": 6,
+      "learning_rate": 0.03,
+      "posterior_scale_factor": 0.5,
+      "seed": 65,
+      "stability_norm_limit": 1000000.0,
+      "variance_floor": 1e-06
+    },
+    "stochastic": {
+      "source_space_identity": "m14-transition-fixture-v1",
+      "variance_floor": 1e-08
+    }
+  },
+  "schema_version": "m14-l15-run-v1",
+  "source_sha": "ad139a01674ba5f486b0a20f0c950bddb1d92688",
+  "split": {
+    "holdout_digest": "f63117e378e2a68c75dd80e25b6601594c67b3edfb08e5289aacded4918e8018",
+    "holdout_episodes": 8,
+    "holdout_seed": 651,
+    "holdout_transition_count": 48,
+    "horizon": 6,
+    "train_digest": "198c061bfdca4971c13e2fa473d74bedae72e2a74b528772f6e4f78f7e8372e7",
+    "train_episodes": 24,
+    "train_seed": 650,
+    "train_transition_count": 144
+  },
+  "target": {
+    "dataset_revision": "m14-transition-fixture-v1",
+    "description": "seeded compact 2D latent transition fixture with deterministic process noise",
+    "device": "cpu",
+    "license": "project-authored MIT-repository content"
+  },
+  "thresholds": {
+    "deterministic_one_step_rmse_max_exclusive": 0.15,
+    "finite_distribution_metrics": true,
+    "rollout_horizon": 6,
+    "seeded_stochastic_and_rssm_reproducibility": true
+  }
+}
