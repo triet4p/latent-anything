@@ -27,7 +27,7 @@
     "numpy": "2.4.6",
     "platform": "Windows-11-10.0.26200-SP0",
     "python": "3.13.3",
-    "rss_peak_bytes": 398594048,
+    "rss_peak_bytes": 400216064,
     "scikit_learn": "1.9.0",
     "torch": "2.10.0"
   },
@@ -108,7 +108,7 @@
     }
   },
   "schema_version": "m14-l14-run-v1",
-  "source_sha": "ad139a01674ba5f486b0a20f0c950bddb1d92688",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
   "split": {
     "heldout_episodes": 32,
     "heldout_horizon": 8,

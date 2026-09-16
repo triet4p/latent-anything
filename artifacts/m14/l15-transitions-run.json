@@ -22,7 +22,7 @@
     "numpy": "2.4.6",
     "platform": "Windows-11-10.0.26200-SP0",
     "python": "3.13.3",
-    "rss_peak_bytes": 367116288,
+    "rss_peak_bytes": 366272512,
     "torch": "2.10.0"
   },
   "metrics": {
@@ -31,7 +31,7 @@
       "mse": 0.00035459350908576383,
       "n_samples": 48,
       "rmse": 0.018830653442877755,
-      "runtime_seconds": 0.0013136999987182207
+      "runtime_seconds": 0.002989500000694534
     },
     "deterministic_rollout": {
       "errors_by_horizon": [
@@ -46,7 +46,7 @@
       "max_error": 0.07809152089209619,
       "max_state_norm": 1.2827094075249277,
       "mean_error": 0.032080447462635255,
-      "runtime_seconds": 0.0012815999980375636,
+      "runtime_seconds": 0.0026470999982848298,
       "stable": true
     },
     "rssm_hidden_shape": [
@@ -60,7 +60,7 @@
       "n_samples": 48,
       "negative_log_likelihood": -3.692577415112878,
       "rmse": 0.03509256173766037,
-      "runtime_seconds": 0.006979400001000613
+      "runtime_seconds": 0.01242400000046473
     },
     "rssm_rollout": {
       "coverage_by_horizon": [
@@ -91,7 +91,7 @@
       "mean_coverage": 0.71875,
       "mean_error": 0.09081077682761146,
       "mean_kl": 3.0635951447537586,
-      "runtime_seconds": 0.005813700001453981,
+      "runtime_seconds": 0.013629100001708139,
       "stable": true
     },
     "rssm_scale": [
@@ -104,7 +104,7 @@
       "mean_error": 0.02349482725894399,
       "n_samples": 48,
       "negative_log_likelihood": -4.9901946751757675,
-      "runtime_seconds": 0.008363200002349913,
+      "runtime_seconds": 0.017016500001773238,
       "sample_diversity": 0.014773468607232484
     },
     "stochastic_rollout": {
@@ -136,7 +136,7 @@
         -4.50632225435135,
         -3.285758061446213
       ],
-      "runtime_seconds": 0.2175320999995165,
+      "runtime_seconds": 0.3392222000002221,
       "sample_diversity_by_horizon": [
         0.014774491469375662,
         0.019051562941013223,
@@ -169,7 +169,7 @@
     }
   },
   "schema_version": "m14-l15-run-v1",
-  "source_sha": "ad139a01674ba5f486b0a20f0c950bddb1d92688",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
   "split": {
     "holdout_digest": "f63117e378e2a68c75dd80e25b6601594c67b3edfb08e5289aacded4918e8018",
     "holdout_episodes": 8,

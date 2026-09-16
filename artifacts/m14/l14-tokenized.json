@@ -1,13 +1,27 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L14",
-  "status": "pending",
-  "accepted": false,
-  "evidence_level": "D2 contract incomplete",
-  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2 bounded synthetic controlled dynamics",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
   "target": "compact VQVAE plus synthetic controlled dynamics; PyTorch CPU",
-  "command": "uv run pytest tests/test_latent_anything/test_tokenized_world_model.py -q",
-  "result": "9 passed in 8.66s",
-  "blocker": "The authority requires a bounded rollout artifact and preservation of the early rollout failure or a validated fix; focused tests do not provide that row-level evidence.",
-  "evidence_scope": "No failure was hidden or promoted."
+  "dataset": "sklearn.datasets.load_digits@scikit-learn==1.9.0",
+  "dataset_license": "BSD-3-Clause",
+  "model_revision": "compact-tokenized-world-model-v1",
+  "codebook_version": "compact-vq-vae-v1@54c1e38e958977434e80a4c8ed717e6967e0b81dc894543a085149fe265c2c3a",
+  "command": "uv run python scripts/m14_l14_tokenized.py",
+  "focused_test_command": "uv run pytest tests/test_latent_anything/test_tokenized_world_model.py -q",
+  "result": "runner acceptance 8/8 true; focused test: 9 passed in 12.83s",
+  "artifacts": [
+    {"path": "artifacts/m14/l14-tokenized-run.json", "sha256": "ec839f8b1855cf10609d6ae9ac7d4f778ad19f81c57ac05083bc607ce923de5e"},
+    {"path": "artifacts/tokenized_world_model_evidence.json", "sha256": "10a8f9941a7fa8be6b38eaaae0ad6e278956bd2445e69fc268d97158c1f0162e"},
+    {"path": "artifacts/tokenized_world_model_evidence_config.json", "sha256": "5cd4f3df2e62f94ce99f27182345360125195cf3622fa68e505929cd4d824545"}
+  ],
+  "environment": {"device": "cpu", "python": "3.13.3", "numpy": "2.4.6", "torch": "2.10.0", "scikit_learn": "1.9.0", "rss_peak_bytes": 400216064, "network_policy": "offline; no model or dataset download"},
+  "split": {"train_episodes": 128, "train_horizon": 6, "train_seed": 72, "heldout_episodes": 32, "heldout_horizon": 8, "heldout_seed": 1702},
+  "metrics": {"teacher_forced_perplexity": 2.684111787469027, "teacher_forced_token_accuracy": 0.651611328125, "codebook_perplexity": 5.509772800357932, "dead_code_rate": 0.0, "free_running_failure_horizon": 1, "free_running_horizon": 8, "seeded_rollout_bit_exact": true},
+  "thresholds": {"teacher_forced_perplexity": "finite", "free_running_horizon": 8, "codebook_perplexity_min": 1.0, "dead_code_rate_max_exclusive": 1.0, "active_codes_min": 2, "preserved_failure_or_validated_fix": "failure_horizon=1 retained in evidence"},
+  "cleanup": "No temporary files; generated evidence/config are retained as immutable artifacts and no scratch state remains.",
+  "evidence_scope": "Held-out observations were encoded before evaluation; the early free-running token failure is retained rather than hidden."
 }
