@@ -84,6 +84,17 @@
         {"role": "artifact", "path": "artifacts/jepa_world_model_evidence.json"}
       ]
     },
+    "THY-T08-REPRESENTATION-COLLAPSE": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/jepa.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_jepa.py"},
+        {"role": "benchmark", "path": "scripts/jepa_world_model_benchmark.py"},
+        {"role": "config", "path": "artifacts/m14/l12-representation-collapse.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l12-representation-collapse.json"},
+        {"role": "artifact", "path": "artifacts/m14/l12-representation-collapse.run.json"}
+      ]
+    },
     "THY-X01-LEWM-LEWORLDMODEL-2026": {
       "status": "D1",
       "evidence": [

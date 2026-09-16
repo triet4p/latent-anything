@@ -227,7 +227,10 @@ under `artifacts/jepa_world_model_evidence*`. The artifact reports strong
 held-out one-step improvement over a collapsed predictor, but also records
 anisotropic covariance and open-loop drift; this is not real LeWM or CUDA
 evidence. The public I-JEPA checkpoint smoke is separately marked
-`network`/`large_download`.
+`network`/`large_download`. The same bounded artifact is now linked separately
+to `THY-T08-REPRESENTATION-COLLAPSE` at D2 through
+`artifacts/m14/l12-representation-collapse.json`; this scoped promotion is
+only collapse detection/control and does not promote I-JEPA or LeWM.
 
 Sprint 72 adds the compact tokenized-world-model lane at D2 for
 `THY-T09-TOKENIZED-WORLD-MODEL`. The source is

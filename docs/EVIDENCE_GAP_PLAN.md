@@ -10,13 +10,13 @@ machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **36/63 core (57.142857%)**
-and **36/65 overall (55.384615%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **37/63 core (58.730159%)**
+and **37/65 overall (56.923077%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **24 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **24 additional core
+denominator adds two applicable X01 rows. The validator reports **23 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **23 additional core
 qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
-**23 additional overall qualifiers** are required to reach
+**22 additional overall qualifiers** are required to reach
 `ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
 model, causal explanation, and named integration claims target D3; ordinary
 algorithm capabilities target D2 unless their row says otherwise.
@@ -290,7 +290,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER` | D0 | yes | yes | D3 | L16 | No actor-critic/policy-gradient lane |
 | `THY-T07-VALUE-EQUIVALENCE-MUZERO` | D0 | yes | yes | D3 | L16 | No value-equivalence representation/training lane |
 | `THY-T07-MCTS-TRONG-LATENT` | D0 | yes | no | D2 | L16 | No MCTS implementation/benchmark |
-| `THY-T08-REPRESENTATION-COLLAPSE` | D0 | yes | no | D2 | L12 | No standalone collapse-control artifact |
+| `THY-T08-REPRESENTATION-COLLAPSE` | D2 | yes | no | D2 | L12 | Compact JEPA health and held-out prediction artifact demonstrates non-collapse and gain over a collapsed baseline; named I-JEPA/LeWM D3 remains separate |
 | `THY-T08-I-JEPA-ASSRAN-ET-AL-2023` | D0 | yes | yes | D3 | L12 | Compact JEPA is not the named I-JEPA checkpoint |
 | `THY-T08-V-JEPA-BARDES-ET-AL-2024` | D0 | yes | yes | D3 | L12 | No video JEPA implementation/model lane |
 | `THY-T09-EMA-CODEBOOK-UPDATE` | D0 | yes | no | D2 | L13 | No dedicated EMA update evidence |
