@@ -1,8 +1,8 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L11",
-  "status": "accepted",
-  "accepted": true,
+  "status": "observed",
+  "accepted": false,
   "evidence_level": "D2 candidate",
   "source_sha": "4a159bd9bae0d044109e35b16bbd060160c436fa",
   "target": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
@@ -12,6 +12,6 @@
   "result": "8 passed, 5 deselected in 59.55s",
   "environment": {"device": "cpu", "model_config": {"vocab_size": 50257, "n_layer": 12, "hidden_size": 768, "captured_hidden_states": 13}},
   "metrics": {"logit_lens_probability_sums_finite": true, "final_layer_logits_parity": true, "layer_evolution": true, "intervention_changes_hidden_states": true, "hook_cleanup": true, "padded_masking_parity": true, "token_rank_stability": true},
-  "blocker": null,
+  "blocker": "Authority keeps L11 planned until the complete lane artifact/capture contract is independently finalized; no row-wide promotion is claimed.",
   "evidence_scope": "Real pinned GPT-2 checkpoint was loaded from the HF cache; no mock backend was used."
 }

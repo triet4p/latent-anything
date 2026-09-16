@@ -4,10 +4,10 @@
   "status": "pending",
   "accepted": false,
   "evidence_level": "D1 focused tests only",
-  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "source_sha": "e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d",
   "target": "compact-vq-vae-v1 with sklearn digits; CPU",
-  "command": "uv run pytest tests/test_latent_anything/test_vq_vae.py -q",
-  "result": "10 passed in 6.88s",
+  "command": "uv run pytest tests/test_latent_anything/test_vq_vae.py tests/test_vq_vae_benchmark.py -q",
+  "result": "Combined verification command across L08/L13/L16 tests: 51 passed in 7.30s.",
   "blocker": "No standalone M14 artifact recording perplexity, dead-code, finite encode/decode metrics and generated-codebook cleanup was produced.",
   "evidence_scope": "Offline focused tests do not by themselves satisfy the declared artifact contract."
 }

@@ -1,9 +1,9 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L06",
-  "status": "accepted",
-  "accepted": true,
-  "evidence_level": "D2",
+  "status": "observed",
+  "accepted": false,
+  "evidence_level": "D2 candidate",
   "source_sha": "4a159bd9bae0d044109e35b16bbd060160c436fa",
   "target": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8 with real text fixture",
   "model_weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
@@ -12,6 +12,6 @@
   "result": "1 passed, 21 deselected, 1 warning in 23.85s",
   "environment": {"device": "cpu", "network": "enabled", "real_checkpoint": true},
   "metrics": {"feature_atlas_and_cross_check": true, "dead_feature_reconstruction_checks": true, "cross_seed_stability": true},
-  "blocker": null,
+  "blocker": "D3 gap remains; no promotion is claimed for the D2 candidate without the authority's complete cross-seed/atlas artifact chain.",
   "evidence_scope": "Real pinned GPT-2 checkpoint and real text fixture were used; no mock or local approximation substituted."
 }
