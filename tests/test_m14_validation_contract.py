@@ -101,8 +101,8 @@ def test_sprint79_queue_reconciles_gap_map_and_completed_statuses() -> None:
     status_counts = Counter(row["queue_status"] for row in queue_rows)
     assert status_counts == Counter(
         {
-            "satisfied_qualifying": 8,
-            "ready_for_dependency_ordered_execution": 30,
+            "satisfied_qualifying": 13,
+            "ready_for_dependency_ordered_execution": 25,
             "co_scheduled_scc_blocked_by_missing_implementation": 2,
         }
     )
