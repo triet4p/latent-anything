@@ -1,0 +1,12 @@
+{
+  "schema_version":"m14-l04-remote-retention-failure-audit-v1",
+  "source_sha":"0b5be9132c19ac6bf0161552d7b13369e6e926be",
+  "use_case":"TrueActivationPatching",
+  "attempt":"attempt3_remote_stage-reproduction",
+  "classification":"semantic_failure_with_runner_retention_defect",
+  "transport":{"launcher":"direct authenticated ssh.exe from Windows PowerShell","invocation_count":1,"ssh_exit":1,"cli_exit":1,"bundle_exit":0,"final_exit":1,"decode_status":0,"decode_match":"PASS","remote_cleanup":"PASS","transport_cleanup":"PASS","payload_sha256":"9d87d0f8e1d308d3793d2c3f9bfbe0325d329ba2c5c9a9a0304bcddfbe7e63e4","bootstrap_sha256":"b7646093b11941eb5eea3f10ffe8f19a84a4714b81aec46f720dd65744cd9fc1"},
+  "semantic_result":{"status":"failed","evidence_level":"D0","acceptance":false,"recovery_point_estimate":0.03699461128888358,"recovery_ci95":[-0.09254197944193487,0.20231268826835444],"recovery_threshold":0.1,"recovery_gate":"FAIL","off_target_combined_point_estimate":0.082366943359375,"off_target_threshold":0.1,"off_target_gate":"PASS","zero_strength_gate":"PASS","budget_pass":true,"no_mutation":true},
+  "bundle":{"bytes":19798,"sha256":"07585380e1e9c93d6640edf3d3116ce96ffa64976f315f8a4473bc9725c8a4af","members":{"failure":{"bytes":13308,"sha256":"eab6a739f1b9f365945cc49ae13c992f8e6dc53c7711351c5193c32ef8ed031f"},"partial":{"bytes":102240,"sha256":"1599c0a1c7c9424e8a8b263633630f4f24000198e410420b732039c8aee2a651"},"run":{"bytes":6586,"sha256":"4b809e026f139bfed73b22d44fc6354e0f12f0c75c729b007503c5a4d78a512d"}}},
+  "retention":{"standard_retain":"FAIL","validator_error":"failure: failed execution stage is not a truthful partial stage","raw_capture_bytes":155213,"raw_capture_sha256":"e4c306f29dceeb9167840ade29469aa8c447d07d7392665ca942d6093af9c66b","raw_capture_deleted":false},
+  "promotion":{"repository_promotion":false,"accepted_record_ids":[],"accepted_gap_ids":[]}
+}
