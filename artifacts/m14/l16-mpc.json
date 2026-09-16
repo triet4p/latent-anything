@@ -16,7 +16,7 @@
     "numpy": "2.4.6",
     "platform": "Windows-11-10.0.26200-SP0",
     "python": "3.13.3",
-    "rss_peak_bytes": 308703232,
+    "rss_peak_bytes": 308531200,
     "scikit_learn": "1.9.0",
     "torch": "2.10.0"
   },
@@ -57,7 +57,7 @@
   "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
   "schema_version": "m14-gap-row-evidence-v1",
   "scope": "Bounded continuous latent MPC instantiated as receding-horizon MPPI over a fitted compact transition and recorded sklearn-digits trajectories; this does not claim CEM/MPPI equivalence, a real pretrained controller, or CUDA execution.",
-  "source_sha": "890f897f7ef2be6ad11c75bb09408a8fa8506324",
+  "source_sha": "d9cbc60db5f7f7ef4b63c599873fadcf5776177d",
   "split": {
     "holdout_digest": "8c620ad86161a95be12fe57a63a59b783c1f76f0252b0d9ad5b808f121e2bb3b",
     "holdout_episodes": 16,
