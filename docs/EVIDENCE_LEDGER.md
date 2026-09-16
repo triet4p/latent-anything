@@ -302,6 +302,24 @@ Current validator coverage is **33/63 core (52.4%)** and **33/65 overall
 (50.8%)**, leaving 32 D0/D1 rows (30 core and 2 non-core); 27 additional core
 and 26 additional overall qualifiers are needed for the release gates.
 
+Sprint 79 L16 reconciles the generic model-predictive-control row
+`THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` at D2. The target-level lane uses
+`MPPIPlanner.plan_receding_horizon` from `src/latent_anything/mppi.py` over a
+fitted compact deterministic transition and held-out recorded sklearn-digits
+trajectories. The focused source/test/benchmark are
+`scripts/m14_l16_mpc.py`, `tests/test_m14_l16_mpc.py`, and
+`tests/test_mppi_rollout.py`; the frozen configuration, artifact, and run
+receipt are `artifacts/m14/l16-mpc.config.json`,
+`artifacts/m14/l16-mpc.json`, and `artifacts/m14/l16-mpc.run.json`.
+With seed `1601`, three one-step replans, and 96×6 candidates per replan,
+MPC return was `1.2989200818808908` versus fixed-zero `0.8318605499808998`
+(`+0.46705953189999105`), with all actions bounded to `[-1, 1]`, finite
+states, and `1728` total samples. The exact focused suite passed **33 tests**,
+and the ledger validator reports **39/63 core** and **39/65 overall** with no
+errors. This is bounded compact D2 evidence only: it does not claim CEM/MPPI
+equivalence, a real pretrained controller, policy gradient, MuZero, MCTS, or
+CUDA execution.
+
 Sprint 73 adds the external plugin discovery contract as a non-theory API
 capability. Its source evidence is `src/latent_anything/plugin_groups.py`,
 `src/latent_anything/plugin_metadata.py`, and

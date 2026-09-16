@@ -10,13 +10,13 @@ machine-readable map is
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **38/63 core (60.317460%)**
-and **38/65 overall (58.461538%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **39/63 core (61.904762%)**
+and **39/65 overall (60.000000%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **22 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **22 additional core
+denominator adds two applicable X01 rows. The validator reports **21 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **21 additional core
 qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
-**21 additional overall qualifiers** are required to reach
+**20 additional overall qualifiers** are required to reach
 `ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
 model, causal explanation, and named integration claims target D3; ordinary
 algorithm capabilities target D2 unless their row says otherwise.
@@ -286,7 +286,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
 | `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |
-| `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D0 | yes | no | D2 | L16 | CEM/MPPI do not automatically prove generic MPC row |
+| `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D2 | yes | no | D2 | L16 | Bounded receding-horizon MPPI evidence passes held-out recorded-trajectory baseline, replanning, bound, finite-state, and budget gates; no CEM/MPPI equivalence or real pretrained-controller claim |
 | `THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER` | D0 | yes | yes | D3 | L16 | No actor-critic/policy-gradient lane |
 | `THY-T07-VALUE-EQUIVALENCE-MUZERO` | D0 | yes | yes | D3 | L16 | No value-equivalence representation/training lane |
 | `THY-T07-MCTS-TRONG-LATENT` | D0 | yes | no | D2 | L16 | No MCTS implementation/benchmark |
@@ -380,3 +380,20 @@ coherent source/unit provenance, and separates `L04_CLI_STATUS` from
 bundle command and exact three-member gate remain frozen. This is a local
 correction only; it remains D0 and is not changed by the independently
 validated current SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` closure above.
+
+### Queue position 11 — L16 MPC reconciliation
+
+`THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` is promoted from D0 to D2 using the
+target-level offline compact lane in
+[`artifacts/m14/l16-mpc.json`](../artifacts/m14/l16-mpc.json). The lane uses
+seed `1601`, 56 train and 16 held-out recorded sklearn-digits episodes, three
+one-step receding-horizon replans, and 1,728 bounded samples. MPC return
+`1.2989200818808908` exceeds the fixed-zero baseline
+`0.8318605499808998` by `0.46705953189999105`; random-shooting return
+`1.510070544270507` remains a reported control and is not overinterpreted.
+The source/test/config/artifact/run receipt are linked in the machine-readable
+ledger. The exact focused suite passed 33 tests and the ledger validator
+returned `errors: []` at 39/63 core and 39/65 overall. This evidence is only
+bounded compact D2; it does not establish a real pretrained controller,
+CEM/MPPI equivalence, or CUDA claim. Positions 2–4 and 6–9 remain blocked and
+all later queue rows and line 595 remain unchanged.

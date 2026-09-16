@@ -1,0 +1,55 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+  "lane": "M14-L16",
+  "status": "accepted",
+  "execution_mode": "local-offline-real-recorded-trajectory-substitute",
+  "command": "uv run python scripts/m14_l16_mpc.py",
+  "source_sha": "890f897f7ef2be6ad11c75bb09408a8fa8506324",
+  "source": {
+    "path": "scripts/m14_l16_mpc.py",
+    "sha256": "525727750fd7e3ab885dbe403ae3eb850c88c992835b143bd7cb55c0a80d969f"
+  },
+  "configuration": {
+    "path": "artifacts/m14/l16-mpc.config.json",
+    "sha256": "0ca2ad0b172db291aa14dbc53b6d53805f04c0349e376ae51a3dd1875150d239"
+  },
+  "artifact": {
+    "path": "artifacts/m14/l16-mpc.json",
+    "sha256": "3090289b46462180870d9bf8b72a2b836a68476a74bdae13646cafc557d356a8"
+  },
+  "focused_test_command": "uv run pytest tests/test_m14_l16_mpc.py tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q",
+  "focused_test_result": "33 passed",
+  "focused_test_source": {
+    "path": "tests/test_m14_l16_mpc.py",
+    "sha256": "f164d9093e4cda4c181c77409915569cbc4f6a113468003da038e2bae28f8706"
+  },
+  "metrics": {
+    "fixed_zero_return": 0.8318605499808998,
+    "random_shooting_return": 1.510070544270507,
+    "mpc_return": 1.2989200818808908,
+    "mpc_improvement_over_fixed_zero": 0.46705953189999105,
+    "mpc_delta_over_random_shooting": -0.2111504623896161,
+    "replans": 3,
+    "executed_steps": 3,
+    "sample_count": 1728,
+    "action_bounds": [-1.0, 1.0]
+  },
+  "acceptance": {
+    "finite_returns": true,
+    "mpc_improves_fixed_zero": true,
+    "receding_horizon_replans": true,
+    "executed_prefix_only": true,
+    "actions_within_bounds": true,
+    "sample_budget_respected": true,
+    "state_trace_finite": true
+  },
+  "provenance": {
+    "dataset": "scikit-learn digits@1.9.0",
+    "dataset_license": "BSD-3-Clause",
+    "split": "56 train episodes / 16 held-out episodes; seed 1601; horizon 5; three one-step receding replans",
+    "network_policy": "offline after installed scikit-learn digits dataset",
+    "scope": "Compact held-out recorded-trajectory substitute; no real pretrained controller, CEM/MPPI equivalence, policy-gradient, MuZero, MCTS, or CUDA claim"
+  },
+  "cleanup": "No temporary files or checkpoints; retained artifacts are under artifacts/m14."
+}

@@ -1,0 +1,39 @@
+{
+  "acceptance": {
+    "actions_within_bounds": true,
+    "executed_prefix_only": {
+      "comparator": "==",
+      "threshold": 3
+    },
+    "finite_returns": true,
+    "mpc_improves_fixed_zero": {
+      "comparator": ">",
+      "threshold": 0.0
+    },
+    "receding_horizon_replans": {
+      "comparator": "==",
+      "threshold": 3
+    },
+    "sample_budget_max": 1728,
+    "state_trace_finite": true
+  },
+  "action_bounds": [
+    -1.0,
+    1.0
+  ],
+  "dataset_revision": "scikit-learn-digits-0.1.0",
+  "device": "cpu",
+  "holdout_episodes": 16,
+  "horizon": 5,
+  "iterations": 6,
+  "lane": "M14-L16",
+  "model_revision": "compact-deterministic-transition-v1",
+  "population_size": 96,
+  "receding_steps": 3,
+  "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+  "schema_version": "m14-gap-threshold-config-v1",
+  "scope": "Compact held-out recorded-trajectory substitute only; no real pretrained model, policy-gradient, MuZero, MCTS, or CUDA claim.",
+  "seed": 1601,
+  "target_evidence": "D2",
+  "train_episodes": 56
+}

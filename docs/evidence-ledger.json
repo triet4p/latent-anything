@@ -513,6 +513,19 @@
         {"role": "artifact", "path": "artifacts/reward_value_evaluation.json"}
       ]
     },
+    "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/mppi.py"},
+        {"role": "source", "path": "scripts/m14_l16_mpc.py"},
+        {"role": "test", "path": "tests/test_m14_l16_mpc.py"},
+        {"role": "test", "path": "tests/test_mppi_rollout.py"},
+        {"role": "benchmark", "path": "scripts/m14_l16_mpc.py"},
+        {"role": "config", "path": "artifacts/m14/l16-mpc.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l16-mpc.json"},
+        {"role": "artifact", "path": "artifacts/m14/l16-mpc.run.json"}
+      ]
+    },
     "THY-T07-CROSS-ENTROPY-METHOD-CEM": {
       "status": "D2",
       "evidence": [
