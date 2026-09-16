@@ -33,6 +33,7 @@ def _paired_metrics(values: np.ndarray) -> dict[str, object]:
     original = source[0].copy()
     steered = steering(original, strength=0.5)
     zero = steering(original, strength=0.0)
+    lerp = Lerp()
     basis = np.linalg.svd(values - values.mean(axis=0), full_matrices=False)[2][:4].T
     identity = "openai-community/gpt2/layer-6"
     projection = SubspaceProjection().fit_basis(
