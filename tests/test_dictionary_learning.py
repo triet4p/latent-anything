@@ -19,16 +19,29 @@ def _fixture(seed: int = 79) -> np.ndarray:
     return codes @ dictionary + rng.normal(scale=0.01, size=(600, 12))
 
 
-def test_heldout_fit_is_sparse_and_beats_mean_baseline() -> None:
-    evaluation = DictionaryLearning(
-        DictionaryLearningConfig(alpha=0.05, transform_n_nonzero_coefs=2)
-    ).fit(_fixture())
+def test_heldout_fit_is_sparse_and_matches_public_reconstruction() -> None:
+    data = _fixture()
+    learner = DictionaryLearning(DictionaryLearningConfig(alpha=0.05, transform_n_nonzero_coefs=2))
+    evaluation = learner.fit(data)
+
+    assert learner.train_indices_ is not None
+    assert learner.validation_indices_ is not None
+    train_reconstruction = learner.reconstruct(data[learner.train_indices_])
+    val_reconstruction = learner.reconstruct(data[learner.validation_indices_])
 
     assert evaluation.n_train == 480
     assert evaluation.n_val == 120
     assert evaluation.val_reconstruction_mse < evaluation.val_baseline_mse * 0.5
     assert evaluation.val_mean_l0 <= 2.0
     assert np.isfinite(evaluation.val_reconstruction_mse)
+    np.testing.assert_allclose(
+        evaluation.train_reconstruction_mse,
+        np.mean((data[learner.train_indices_] - train_reconstruction) ** 2),
+    )
+    np.testing.assert_allclose(
+        evaluation.val_reconstruction_mse,
+        np.mean((data[learner.validation_indices_] - val_reconstruction) ** 2),
+    )
 
 
 def test_fit_is_deterministic_and_does_not_mutate_input() -> None:

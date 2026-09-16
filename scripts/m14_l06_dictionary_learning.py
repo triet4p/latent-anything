@@ -58,7 +58,6 @@ def build_fixture() -> tuple[np.ndarray, str]:
 
 def run_benchmark() -> dict[str, Any]:
     data, data_digest = build_fixture()
-    before = data.copy()
     config = DictionaryLearningConfig(
         n_components=N_COMPONENTS,
         alpha=0.05,

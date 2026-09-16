@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-from sklearn.decomposition import DictionaryLearning as _SklearnDictionaryLearning  # type: ignore[reportMissingTypeStubs]
+from sklearn.decomposition import (  # pyright: ignore[reportMissingTypeStubs]
+    DictionaryLearning as _SklearnDictionaryLearning,
+)
 
 TransformAlgorithm = Literal["lasso_lars", "lasso_cd", "lars", "omp", "threshold"]
 
@@ -86,12 +88,13 @@ class DictionaryLearning:
         self.validation_indices_ = permutation[split:]
         train = values[self.train_indices_]
         validation = values[self.validation_indices_]
-        self._mean = train.mean(axis=0)
-        centered_train = train - self._mean
-        centered_validation = validation - self._mean
+        mean = train.mean(axis=0)
+        self._mean = mean
+        centered_train = train - mean
+        centered_validation = validation - mean
         self._model = _SklearnDictionaryLearning(
             n_components=self.config.n_components,
-            alpha=self.config.alpha,
+            alpha=self.config.alpha,  # pyright: ignore[reportArgumentType]
             max_iter=self.config.max_iter,
             tol=self.config.tol,
             fit_algorithm="lars",
@@ -101,8 +104,8 @@ class DictionaryLearning:
         )
         train_codes = np.asarray(self._model.fit_transform(centered_train), dtype=np.float64)
         val_codes = np.asarray(self._model.transform(centered_validation), dtype=np.float64)
-        train_reconstruction = self._reconstruct_centered(train_codes)
-        val_reconstruction = self._reconstruct_centered(val_codes)
+        train_reconstruction = self._reconstruct_centered(train_codes) + mean
+        val_reconstruction = self._reconstruct_centered(val_codes) + mean
         self.evaluation_ = DictionaryLearningEvaluation(
             config=self.config,
             n_train=len(train),
