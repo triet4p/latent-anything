@@ -1,0 +1,48 @@
+{
+  "schema_version": "m14-gap-row-evidence-v1",
+  "record_id": "THY-T01-MANIFOLD-HYPOTHESIS",
+  "lane": "M14-L02",
+  "status": "failed",
+  "accepted": false,
+  "evidence_level": "D1",
+  "command": "uv run python -c \"from scripts.m14_l02_geometry import run_l02_benchmark; ...\"",
+  "source_sha": "55aec384f109913340693929f55233c30572c952",
+  "scope": "Held-out pair-path ranking with train-only compact ConvVAE/GMM density fit on sklearn digits; retained failure, no promotion.",
+  "configuration": {
+    "path": "artifacts/m14/l02-manifold-hypothesis.config.json",
+    "sha256": "162ff8cc4abddd8053f755f81d34f0cc62fa7b30ca2ad39682a2d8e6276db8a7"
+  },
+  "metrics": {
+    "pair_count": 128,
+    "real_pair_auc": 0.4560546875,
+    "raw_pixel_auc": 0.8685302734375,
+    "latent_vs_raw_auc_delta": -0.4124755859375,
+    "shuffled_label_auc": 0.46142578125,
+    "finite": true,
+    "train_only_density_fit": true
+  },
+  "thresholds": {
+    "real_pair_auc_min": 0.55,
+    "shuffled_label_auc_abs_delta_max": 0.1,
+    "strong_raw_pixel_auc_delta_min": -0.05,
+    "pair_count_min": 128
+  },
+  "acceptance": {
+    "finite": true,
+    "pair_count": true,
+    "real_pair_auc": false,
+    "shuffled_label_auc": true,
+    "strong_raw_pixel_auc_delta": false,
+    "train_only_density_fit": true,
+    "promotion": false
+  },
+  "provenance": {
+    "runner": {"path": "scripts/m14_l02_geometry.py", "sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226"},
+    "implementation": {"path": "src/latent_anything/latent_space.py", "sha256": "7bf85b9fa1d0473ae9ab8efe83b1b1f66fd32ea9b9cde3b08ef950d2882f0aa9"},
+    "geometry": {"path": "src/latent_anything/geodesic.py", "sha256": "7a9927536fbb96f7af52449964e0ca8b1e6341361c9afd63c17ab7ca36bacaf7"},
+    "focused_test": {"path": "tests/test_m14_l02_geometry.py", "sha256": "0490a9864c68058ae19a6dbb42056276fc6a7275d76968f252df8440bc6c4d6b"},
+    "plan": {"path": "artifacts/m14/l02-geometry.plan.json", "sha256": "47244c8446ef58e87bb945cf6a338c536e86b960575987de0fe908024080ec52"},
+    "prior_canonical_failure": {"path": "artifacts/m14/l02-geometry.json", "sha256": "1bb72d7ae1ab313f942ea0703a86d2fb0437b6646c8eb8f5e951c1a10d1d4595"}
+  },
+  "cleanup": "No canonical artifact was overwritten; rerun output was retained as this failure artifact."
+}

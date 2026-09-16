@@ -269,6 +269,17 @@ physical trajectories, and makes no Fréchet claim. Coverage is now 30/63 core
 non-core); 30 additional core and 29 additional overall qualifiers are needed
 for the release gates.
 
+Sprint 79 queue position 13 reran the
+`THY-T01-MANIFOLD-HYPOTHESIS` record at exact source SHA
+`55aec384f109913340693929f55233c30572c952`. The 128 held-out pair-path
+trials were finite and retained train-only density fitting, but real-pair AUC
+remained `0.4560546875` against the `0.55` minimum and latent-vs-raw AUC delta
+remained `-0.4124755859375` against the `-0.05` minimum. The shuffled-label
+control passed; the failed target gates are preserved in
+`artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.json` with its run
+receipt, and the canonical L02 artifact was not overwritten. The row remains
+D1 and is not promoted.
+
 Sprint 79 L03 promotes exactly three independent core rows to D2 through the
 real forward-only pinned GPT-2 lane:
 `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT`, `THY-T05-LINEAR-PROBING`, and

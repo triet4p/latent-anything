@@ -123,8 +123,11 @@
         {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
         {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
         {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l02-manifold-hypothesis.config.json"},
         {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.run.json"}
       ]
     },
     "THY-T01-GEODESIC": {

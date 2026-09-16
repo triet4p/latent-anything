@@ -261,7 +261,7 @@ map; lane-level defaults are specified in the next section.
 | ID | Current | Core | Headline | Target | M14 lane | Capability / insufficiency |
 |---|---:|:---:|:---:|:---:|:---:|---|
 | `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` | D2 | yes | no | D2 | L01 | Existing ConvVAE/AnalysisPipeline held-out benchmark and immutable artifact verified |
-| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed L02 record) | yes | no | D2 | L02 | Held-out ranking failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05 |
+| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed canonical + exact-SHA rerun) | yes | no | D2 | L02 | Held-out ranking remains failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05; retained rerun artifact, no promotion |
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |
 | `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D2 | yes | no | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out PCA structure benchmark |

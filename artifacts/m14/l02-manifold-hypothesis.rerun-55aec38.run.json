@@ -1,0 +1,26 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T01-MANIFOLD-HYPOTHESIS",
+  "lane": "M14-L02",
+  "status": "failed",
+  "execution_mode": "local-offline-rerun-isolated-retained-failure",
+  "command": "uv run python -c \"from scripts.m14_l02_geometry import run_l02_benchmark; ...\"",
+  "source_sha": "55aec384f109913340693929f55233c30572c952",
+  "configuration": {"path": "artifacts/m14/l02-manifold-hypothesis.config.json", "sha256": "162ff8cc4abddd8053f755f81d34f0cc62fa7b30ca2ad39682a2d8e6276db8a7"},
+  "artifact": {"path": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.json", "sha256": "edb690fa90f587107ebc97f94f8e073659dc172a5d4759eab25afe7055c43de3"},
+  "focused_test_command": "uv run pytest tests/test_m14_l02_geometry.py tests/test_latent_anything/test_latent_space.py tests/test_latent_anything/test_geodesic.py -q",
+  "focused_test_result": "143 passed",
+  "provenance": {
+    "dataset": "scikit-learn digits@1.9.0",
+    "dataset_license": "BSD-3-Clause",
+    "runner": {"path": "scripts/m14_l02_geometry.py", "sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226"},
+    "prior_failure": {"path": "artifacts/m14/l02-geometry.json", "sha256": "1bb72d7ae1ab313f942ea0703a86d2fb0437b6646c8eb8f5e951c1a10d1d4595"},
+    "network_policy": "offline after installed scikit-learn digits dataset"
+  },
+  "failure": {
+    "real_pair_auc": "0.4560546875 < 0.55",
+    "latent_vs_raw_auc_delta": "-0.4124755859375 < -0.05",
+    "promotion": "not eligible; old canonical failure remains immutable"
+  },
+  "cleanup": "No canonical artifact was overwritten; isolated rerun output retained."
+}

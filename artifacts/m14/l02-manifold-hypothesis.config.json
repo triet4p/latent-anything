@@ -1,0 +1,19 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T01-MANIFOLD-HYPOTHESIS",
+  "lane": "M14-L02",
+  "target_evidence": "D2",
+  "dataset_revision": "scikit-learn-digits-0.1.0",
+  "model_revision": "compact-convvae-v1",
+  "device": "cpu",
+  "seed": 42,
+  "pair_count": 128,
+  "train_only_density_fit": true,
+  "acceptance": {
+    "finite": true,
+    "real_pair_auc_min": 0.55,
+    "shuffled_label_auc_abs_delta_max": 0.1,
+    "strong_raw_pixel_auc_delta_min": -0.05
+  },
+  "scope": "Held-out pair-path ranking with train-only density fit; compact sklearn-digits evidence only, not a general manifold-quality claim."
+}
