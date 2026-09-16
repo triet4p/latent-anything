@@ -3,7 +3,7 @@
   "accepted_gap_ids": [
     "THY-T05-DICTIONARY-LEARNING"
   ],
-  "artifact_sha256": "dd768b79a1f5a83123ddda4bb743e720f0bdc9e349836d42c419dc5689df19a4",
+  "artifact_sha256": "88045d1f57e82f47a10af962bfa2c4bf7e740bd161be1dc9d0ceaa3c600da259",
   "capability_id": "THY-T05-DICTIONARY-LEARNING",
   "controls": {
     "dictionary_shape": true,
@@ -29,10 +29,10 @@
     ],
     "heldout_mean_baseline_mse": 0.06497977490954669,
     "heldout_mean_l0": 2.0,
-    "heldout_reconstruction_mse": 0.013416282559909032,
+    "heldout_reconstruction_mse": 0.00448003417620913,
     "train_mean_baseline_mse": 0.06819990165051164,
     "train_mean_l0": 4.204166666666667,
-    "train_reconstruction_mse": 0.010704513402240056
+    "train_reconstruction_mse": 0.001108479744707295
   },
   "model": {
     "backend": "scikit-learn.DictionaryLearning",
@@ -54,7 +54,7 @@
     "python": "3.13.3",
     "runner": "scripts/m14_l06_dictionary_learning.py",
     "scikit_learn": "1.9.0",
-    "source_sha": "806efa78b7d2b9f96b086f933ec5c7c6bd19968b"
+    "source_sha": "a2bb84047621247e0a40d442877e91e6fc209bb1"
   },
   "schema_version": "m14-l06-dictionary-learning-v1",
   "seed": 79,

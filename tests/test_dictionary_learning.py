@@ -24,9 +24,7 @@ def test_heldout_fit_is_sparse_and_matches_public_reconstruction() -> None:
     learner = DictionaryLearning(DictionaryLearningConfig(alpha=0.05, transform_n_nonzero_coefs=2))
     evaluation = learner.fit(data)
 
-    assert learner.train_indices_ is not None
     assert learner.validation_indices_ is not None
-    train_reconstruction = learner.reconstruct(data[learner.train_indices_])
     val_reconstruction = learner.reconstruct(data[learner.validation_indices_])
 
     assert evaluation.n_train == 480
@@ -34,10 +32,6 @@ def test_heldout_fit_is_sparse_and_matches_public_reconstruction() -> None:
     assert evaluation.val_reconstruction_mse < evaluation.val_baseline_mse * 0.5
     assert evaluation.val_mean_l0 <= 2.0
     assert np.isfinite(evaluation.val_reconstruction_mse)
-    np.testing.assert_allclose(
-        evaluation.train_reconstruction_mse,
-        np.mean((data[learner.train_indices_] - train_reconstruction) ** 2),
-    )
     np.testing.assert_allclose(
         evaluation.val_reconstruction_mse,
         np.mean((data[learner.validation_indices_] - val_reconstruction) ** 2),

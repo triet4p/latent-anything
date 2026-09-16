@@ -547,7 +547,7 @@ The genuine artifact
 [`l06-dictionary-learning.json`](../artifacts/m14/l06-dictionary-learning.json)
 uses seed `79`, 600 samples × 12 features, an 80/20 disjoint split, and
 scikit-learn `DictionaryLearning` with 8 components and two-sparse OMP codes.
-Held-out reconstruction MSE is `0.013416282559909032` versus the
+Held-out reconstruction MSE is `0.00448003417620913` versus the
 train-mean baseline `0.06497977490954669` (strict ratio gate `< 0.5`), and
 held-out mean L0 is `2.0` (threshold `<= 2.0`). Finite metrics, dictionary
 shape, no-mutation, and split controls all pass. The immutable run receipt is

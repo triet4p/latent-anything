@@ -8,11 +8,11 @@ Queue position 39, `THY-T05-DICTIONARY-LEARNING`, was selected after position 38
 
 The dedicated implementation is `src/latent_anything/dictionary_learning.py`, tested by `tests/test_dictionary_learning.py`, and executed by `scripts/m14_l06_dictionary_learning.py`. The predeclared contract is `artifacts/m14/l06-dictionary-learning.config.json`; genuine evidence and immutable receipt are `artifacts/m14/l06-dictionary-learning.json` and `artifacts/m14/l06-dictionary-learning.run.json`.
 
-The offline deterministic fixture uses seed `79`, 600 samples × 12 features, an 80/20 train/held-out split, and scikit-learn `DictionaryLearning` with 8 components and two-sparse OMP codes. Dataset digest: `f13c3abefe009a306ae434df0fd45578aa2fa5f4a381330db428ae2489f0a1f5`. The source checkout used by the measured run was `806efa78b7d2b9f96b086f933ec5c7c6bd19968b`.
+The offline deterministic fixture uses seed `79`, 600 samples × 12 features, an 80/20 train/held-out split, and scikit-learn `DictionaryLearning` with 8 components and two-sparse OMP codes. Dataset digest: `f13c3abefe009a306ae434df0fd45578aa2fa5f4a381330db428ae2489f0a1f5`. The source checkout used by the measured run was `a2bb84047621247e0a40d442877e91e6fc209bb1`.
 
 ## Outcome and metrics
 
-The row is promoted from D0 to D2. Held-out reconstruction MSE is `0.013416282559909032` versus the train-mean baseline `0.06497977490954669`; the strict ratio gate `< 0.5` passes (`0.2064685908589988`). Held-out mean L0 is `2.0` against `<= 2.0`. Train reconstruction MSE is `0.010704513402240056`; dictionary shape is `[8, 12]`. Finite metrics, disjoint train/held-out indices, no-input-mutation, and dictionary-shape controls all pass. Artifact payload digest is `dd768b79a1f5a83123ddda4bb743e720f0bdc9e349836d42c419dc5689df19a4`.
+The row is promoted from D0 to D2. Held-out reconstruction MSE is `0.00448003417620913` versus the train-mean baseline `0.06497977490954669`; the strict ratio gate `< 0.5` passes (`0.06894505532599086`). Held-out mean L0 is `2.0` against `<= 2.0`. Train reconstruction MSE is `0.001108479744707295`; dictionary shape is `[8, 12]`. Finite metrics, disjoint train/held-out indices, no-input-mutation, and dictionary-shape controls all pass. Artifact payload digest is `88045d1f57e82f47a10af962bfa2c4bf7e740bd161be1dc9d0ceaa3c600da259`.
 
 This is bounded D2 algorithm evidence only. It does not promote the separate real-GPT-2 SAE row or make a D3 named-model claim.
 
