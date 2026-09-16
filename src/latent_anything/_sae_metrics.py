@@ -108,25 +108,29 @@ def feature_direction(evaluation: SAEEvaluationResult, feature_index: int) -> np
 
 
 def match_by_decoder_cosine(reference: np.ndarray, other: np.ndarray, threshold: float) -> list[tuple[int, float]]:
-    """Greedily match feature slots by decoder direction cosine."""
+    """Match decoder directions by globally ranked cosine candidates."""
     reference_unit = reference / np.maximum(np.linalg.norm(reference, axis=0), 1e-12)[None, :]
     other_unit = other / np.maximum(np.linalg.norm(other, axis=0), 1e-12)[None, :]
     cosine_matrix = np.asarray(reference_unit.T @ other_unit, dtype=np.float64)
-    used: set[int] = set()
+    candidates = sorted(
+        (
+            (float(cosine_matrix[i, j]), i, j)
+            for i in range(cosine_matrix.shape[0])
+            for j in range(cosine_matrix.shape[1])
+        ),
+        key=lambda item: (-item[0], item[1], item[2]),
+    )
+    used_reference: set[int] = set()
+    used_other: set[int] = set()
     matched: list[tuple[int, float]] = []
-    for i in range(cosine_matrix.shape[0]):
-        best_j = -1
-        best_cosine = -1.0
-        for j in range(cosine_matrix.shape[1]):
-            if j in used:
-                continue
-            cosine = float(cosine_matrix[i, j])
-            if cosine > best_cosine:
-                best_cosine = cosine
-                best_j = j
-        if best_j >= 0 and best_cosine >= threshold:
-            used.add(best_j)
-            matched.append((i, best_cosine))
+    for cosine, reference_index, other_index in candidates:
+        if cosine < threshold:
+            break
+        if reference_index in used_reference or other_index in used_other:
+            continue
+        used_reference.add(reference_index)
+        used_other.add(other_index)
+        matched.append((reference_index, cosine))
     return matched
 
 
