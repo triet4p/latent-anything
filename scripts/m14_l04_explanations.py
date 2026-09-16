@@ -228,10 +228,10 @@ def run_real(
                 resources["stage"] = "cleanup"
                 result_resources = handler_result.get("resources")
                 if isinstance(result_resources, dict):
-                    result_resources["stage"] = "cleanup"
+                    handler_result["resources"] = {**result_resources, "stage": "cleanup"}
                 result_provenance = handler_result.get("provenance")
                 if isinstance(result_provenance, dict):
-                    result_provenance["stage"] = "cleanup"
+                    handler_result["provenance"] = {**result_provenance, "stage": "cleanup"}
         except Exception as exc:  # noqa: BLE001 - retain every injected failure
             error = exc
             status = "failed"
