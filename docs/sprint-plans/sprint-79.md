@@ -607,7 +607,8 @@ occurred. See
 No percentage waiver may hide an implementation-applicable core theory gap. Any exclusion must have been classified and justified in the Sprint 27 ledger. SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and unnamed 3DGS are not stable API claims; they remain explicit backlog/blocker rows.
 
 Sprint 78.38 records the starting denominator and all 40 gap records; the
-updated map now records 39 qualifying rows after the L16 MPC reconciliation.
+updated map now records 40 qualifying rows after the L02 trajectory-similarity
+reconciliation.
 Sprint 79 owns execution in dependency order. The historical L03 tuple-return failures are retained,
 but the structured hook/output cleanup blocker is resolved by `16db80f` and
 `9ebecfa` and the exact-SHA strict-CUDA 8/8 evidence. The native index-12

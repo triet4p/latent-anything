@@ -3,20 +3,21 @@
 This is the Sprint 78.38 execution plan for the non-qualifying theory rows,
 updated with the Sprint 79 L02 and L03 results. The levels in
 [`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative; the
-immutable L02 artifact supports exactly four D2 promotions and the immutable
-L03 artifact supports exactly three D2 promotions. The row-level
-machine-readable map is
+immutable L02 artifact supports exactly five D2 promotions and the immutable
+L03 artifact supports exactly three D2 promotions. Later row-level promotions
+are recorded below without changing the unchecked Sprint 79 line 595. The
+row-level machine-readable map is
 [`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **39/63 core (61.904762%)**
-and **39/65 overall (60.000000%)**. The core denominator contains 63
+The read-only validator reports 107 capabilities, **40/63 core (63.492063%)**
+and **40/65 overall (61.538462%)**. The core denominator contains 63
 implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **21 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **21 additional core
+denominator adds two applicable X01 rows. The validator reports **20 D0 rows**
+and **5 D1 rows**; a qualifying row is D2 or D3. At least **20 additional core
 qualifiers** are required to reach `ceil(0.95 × 63) = 60`, and at least
-**20 additional overall qualifiers** are required to reach
+**19 additional overall qualifiers** are required to reach
 `ceil(0.90 × 65) = 59`. The core gate is therefore the binding gate. Headline
 model, causal explanation, and named integration claims target D3; ordinary
 algorithm capabilities target D2 unless their row says otherwise.
@@ -36,13 +37,13 @@ timestamps.
 
 The `THY-T01-MANIFOLD-HYPOTHESIS` record remains D1 because its held-out
 ranking AUC was `0.4560546875` (threshold `0.55`) and its latent-vs-raw delta
-was `-0.4124755859375` (threshold `-0.05`). The
-`THY-T06-TRAJECTORY-SIMILARITY-METRICS` record remains D0 because its
-self-to-indexwise ratio was `17.015624999997637` (threshold `0.95`), despite
-128 finite trials and ranking AUC `1.0`; its self-to-unrelated ratio was
-`0.010693904158763163`. These failures remain linked to the retained artifact
-and are not promoted. The lane concerns model-induced latent sequences from
-held-out sklearn digits, not recorded physical trajectories, and makes no
+was `-0.4124755859375` (threshold `-0.05`). Its exact-SHA rerun and failure
+receipt are retained without overwriting the canonical artifact. The
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` record is now D2 through the immutable
+accepted rerun artifact: 128 finite trials, ranking AUC `1.0`, self-to-indexwise
+ratio `0.07354340933887214` (threshold `0.95`), and self-to-unrelated ratio
+`0.011170843549800243` (threshold `0.9`). These are model-induced latent
+sequences from held-out sklearn digits, not physical trajectories, and make no
 Fréchet claim.
 
 ### Sprint 79 L03 result
@@ -285,7 +286,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
 | `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
-| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |
+| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D2 | yes | no | D2 | L02 | Accepted immutable rerun: 128 finite trials; self-to-indexwise ratio 0.07354340933887214; self-to-unrelated ratio 0.011170843549800243; ranking AUC 1.0 |
 | `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D2 | yes | no | D2 | L16 | Bounded receding-horizon MPPI evidence passes held-out recorded-trajectory baseline, replanning, bound, finite-state, and budget gates; no CEM/MPPI equivalence or real pretrained-controller claim |
 | `THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER` | D0 | yes | yes | D3 | L16 | No actor-critic/policy-gradient lane |
 | `THY-T07-VALUE-EQUIVALENCE-MUZERO` | D0 | yes | yes | D3 | L16 | No value-equivalence representation/training lane |
@@ -397,3 +398,22 @@ returned `errors: []` at 39/63 core and 39/65 overall. This evidence is only
 bounded compact D2; it does not establish a real pretrained controller,
 CEM/MPPI equivalence, or CUDA claim. Positions 2–4 and 6–9 remain blocked and
 all later queue rows and line 595 remain unchanged.
+
+### Queue position 27 — L02 trajectory similarity reconciliation
+
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` is promoted from D0 to D2 using the
+immutable accepted rerun artifact
+[`l02-geometry.rerun-90a8c64.json`](../artifacts/m14/l02-geometry.rerun-90a8c64.json)
+and the target-level config/receipt
+[`l02-trajectory-similarity.config.json`](../artifacts/m14/l02-trajectory-similarity.config.json).
+The exact in-memory rerun at source SHA `62664b53778ba808a2fc6da96f0a250978b6eb0b`
+returned 128 independent finite pair trials, ranking AUC `1.0`, median
+self-to-indexwise ratio `0.07354340933887214` (maximum `0.95`), and median
+self-to-unrelated ratio `0.011170843549800243` (maximum `0.9`), with unequal
+length, no-self-mapping, and no-input-mutation controls passing. The focused
+suite passed 143 tests and the ledger validator returned `errors: []` at
+40/63 core and 40/65 overall. This bounded compact lane measures
+model-induced trajectories from held-out sklearn digits; it does not claim
+physical trajectories, Fréchet distance, or named-model performance.
+Positions 2–4, 6–9, and 12 remain blocked; line 595 and all later queue rows
+remain unchanged.

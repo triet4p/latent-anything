@@ -425,7 +425,7 @@
       ]
     },
     "THY-T06-TRAJECTORY-SIMILARITY-METRICS": {
-      "status": "D0",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/dtw.py"},
         {"role": "source", "path": "src/latent_anything/temporal.py"},
@@ -435,8 +435,9 @@
         {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
         {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
         {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
+        {"role": "config", "path": "artifacts/m14/l02-trajectory-similarity.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.rerun-90a8c64.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-trajectory-similarity.run.json"}
       ]
     },
     "THY-T06-LATENT-TRANSITION-MODEL": {

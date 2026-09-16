@@ -1,0 +1,69 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
+  "lane": "M14-L02",
+  "status": "completed",
+  "evidence_level": "D2",
+  "accepted": true,
+  "execution_mode": "local-offline-rerun-in-memory-retained-immutable-artifact",
+  "command": "uv run python -c \"from scripts.m14_l02_geometry import run_l02_benchmark; ... trajectory_similarity_dtw ...\"",
+  "source_sha": "62664b53778ba808a2fc6da96f0a250978b6eb0b",
+  "runner_source_sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226",
+  "contract_source_sha256": "598a34ac4437976ec74b005e6dd7c6cdefbf3b1b102b69cd76493e29f54b2f6a",
+  "implementation_source_sha256": "a6564b42b68059b95af705cb4b44bc719674e1207db90512ccdb448bb4cd989c",
+  "configuration": {
+    "path": "artifacts/m14/l02-trajectory-similarity.config.json",
+    "sha256": "5e93b264b97b697dfac633c5773644a9411609cfad8fb6fa1701f5646139ffe0"
+  },
+  "benchmark": {
+    "path": "scripts/m14_l02_geometry.py",
+    "record_id": "trajectory_similarity_dtw",
+    "artifact_provenance_sha": "90a8c6405e65adf96f1090b396635fcd6a3714ba",
+    "artifact_runner_source_sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226"
+  },
+  "artifact": {
+    "path": "artifacts/m14/l02-geometry.rerun-90a8c64.json",
+    "sha256": "fc4a74e3f1290c7986483714fb2d3d30a8126995cacf59b3edad95fed8be0002",
+    "immutable": true,
+    "canonical_failure_preserved": "artifacts/m14/l02-geometry.json"
+  },
+  "metrics": {
+    "independent_pair_trials": 128,
+    "median_self_to_indexwise_ratio": 0.07354340933887214,
+    "median_self_to_unrelated_ratio": 0.011170843549800243,
+    "ranking_auc": 1.0,
+    "finite": true,
+    "no_input_mutation": true,
+    "unequal_lengths": true,
+    "no_self_mapping": true,
+    "positive_scores_digest": "1d54e9af96aaf46eac4617eb60ad60d89f26b335634069d09abdacee0e36e06a",
+    "negative_scores_digest": "0a5caf9bb72cd16e5329d96279ef62af0b21d58f64dc974cfb9b06466bf92284",
+    "pair_path_digest": "027a5a891b0b1a8efee88ecdc814e5d37570fdd5401313a4d1b196313ae26652",
+    "unrelated_pair_permutation_digest": "b96e25cbb68ab8dd9afc4a3f310c7a596785cfd4aae40b71e101b55139414600"
+  },
+  "focused_tests": {
+    "command": "uv run pytest tests/test_m14_l02_geometry.py tests/test_latent_anything/test_latent_space.py tests/test_latent_anything/test_geodesic.py -q",
+    "result": "143 passed",
+    "test_hashes": {
+      "tests/test_m14_l02_geometry.py": "0490a9864c68058ae19a6dbb42056276fc6a7275d76968f252df8440bc6c4d6b",
+      "tests/test_dtw.py": "1c1eb1ec6af6ff4531c1de30c9ad45a6e3945fe2081f2a2bd51510adf1688ad6",
+      "tests/test_temporal.py": "e91d8619117776419f50fbb2e6d969410ae9868f07ac0e08241f18dfa241b069"
+    }
+  },
+  "dataset": {
+    "name": "sklearn.datasets.load_digits",
+    "license": "BSD-3-Clause",
+    "train_samples": 1437,
+    "heldout_samples": 360,
+    "fit_scope": "train images only; held-out trajectories score-only"
+  },
+  "network": "offline",
+  "credentials": "none",
+  "cleanup": "No canonical artifact overwrite; immutable accepted rerun and receipt retained; no temporary outputs created.",
+  "thresholds": {
+    "independent_pair_trials_min": 128,
+    "median_self_to_indexwise_ratio_max": 0.95,
+    "median_self_to_unrelated_ratio_max": 0.9,
+    "ranking_auc_min": 0.6
+  }
+}

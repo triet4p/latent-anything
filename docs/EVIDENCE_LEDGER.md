@@ -280,6 +280,22 @@ control passed; the failed target gates are preserved in
 receipt, and the canonical L02 artifact was not overwritten. The row remains
 D1 and is not promoted.
 
+Sprint 79 queue position 27 reconciles
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` to D2 through the immutable accepted
+rerun artifact (`artifacts/m14/l02-geometry.rerun-90a8c64.json`) and the
+target-level config/receipt
+(`artifacts/m14/l02-trajectory-similarity.config.json` and
+`artifacts/m14/l02-trajectory-similarity.run.json`). At exact current source
+SHA `62664b53778ba808a2fc6da96f0a250978b6eb0b`, the in-memory benchmark
+reproduced 128 independent finite trials with ranking AUC `1.0`, median
+self-to-indexwise ratio `0.07354340933887214` (maximum `0.95`), and median
+self-to-unrelated ratio `0.011170843549800243` (maximum `0.9`); unequal-length,
+no-self-mapping, and no-input-mutation controls passed. The lane measures
+model-induced trajectories from held-out sklearn digits, not physical
+trajectories, and makes no Fréchet claim. The canonical L02 failure artifact
+was not overwritten. The focused suite passed 143 tests and the validator
+returned `errors: []` at 40/63 core and 40/65 overall.
+
 Sprint 79 L03 promotes exactly three independent core rows to D2 through the
 real forward-only pinned GPT-2 lane:
 `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT`, `THY-T05-LINEAR-PROBING`, and
