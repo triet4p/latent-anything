@@ -108,3 +108,25 @@ The handler returns a sanitized execution result for the dispatcher. Task 2
 D3 promotion wiring remains intentionally deferred; Phase A only accepts a
 technically complete `completed_real_cuda_d0` diagnostic status. L04.9 D3
 evidence bytes and related historical artifacts were not modified.
+
+## Current-checkpoint remote evidence
+
+One owner-authorized AdditiveSteering run was executed after the dependency-
+order TrueActivationPatching checkpoint at exact pushed source
+`7ad6648a9bc5d22793b63b764cb9f93990a247e8`, using native PowerShell
+`C:\WINDOWS\System32\OpenSSH\ssh.exe`, a disposable remote clone, and
+isolated caches. The run used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7, target
+tokens `true=2081` and `false=3991`, and seeds
+`[17,29,41,53,67]` with strength grid `[0,0.25,0.5,1]`.
+
+Target effect `0.059151649475097656 > 0.05`, selectivity
+`0.05431842803955078 > 0.05`, off-target token effect
+`0.004833221435546875 <= 0.1`, zero-strength identity, shuffled-label,
+no-mutation, and resource-budget gates passed. The randomized-direction
+control failed, so the result remains a truthful D0 diagnostic and is not
+promoted. CUDA peak elapsed time was `18.056408973410726` seconds, allocated
+`529519104` bytes, reserved `572522496` bytes, and RSS
+`1617301504` bytes. Transport, bundle, cleanup, finalize-delete, and reopen
+validation all passed; CLI/SSH/bundle/final exits were `0/0/0/0`.

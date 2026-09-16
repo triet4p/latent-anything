@@ -8,8 +8,8 @@
   "authority": "docs/M14_REAL_SYSTEM_VALIDATION.md",
   "completed_use_cases": ["TunedLogitLens (D3, accepted)", "Disentanglement (D2, accepted/eligible)"],
   "support_only_completed_use_cases": ["DirectLogitLens (passed_real_cuda, D0, non-promoting)"],
-  "pending_use_cases": ["IntegratedGradients (attempted; support-only failed frozen completeness gates)", "TCAV (attempted; support-only failed frozen accuracy/p-value gates)", "TrueActivationPatching (attempted; frozen recovery gate failed, retained D0 cleanup evidence)", "AdditiveSteering"],
-  "blocker": "The frozen seven-use-case L04 contract is not complete; no promotion is claimed for the remaining use cases. IntegratedGradients and TCAV support-only runs reached real CUDA but failed their predeclared semantic gates, and TrueActivationPatching reached real CUDA but failed the frozen recovery gate.",
+  "pending_use_cases": ["IntegratedGradients (attempted; support-only failed frozen completeness gates)", "TCAV (attempted; support-only failed frozen accuracy/p-value gates)", "TrueActivationPatching (attempted; frozen recovery gate failed, retained D0 cleanup evidence)", "AdditiveSteering (attempted; frozen randomized-direction control gate failed, retained D0 cleanup evidence)"],
+  "blocker": "The frozen seven-use-case L04 contract is not complete; no promotion is claimed for the remaining use cases. IntegratedGradients and TCAV support-only runs reached real CUDA but failed their predeclared semantic gates, TrueActivationPatching reached real CUDA but failed the frozen recovery gate, and AdditiveSteering reached real CUDA but failed the frozen randomized-direction control gate.",
   "evidence": [
     "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json",
     "artifacts/m14/l04-explanations.Disentanglement.attempt2.run.json",
@@ -45,7 +45,12 @@
     "artifacts/m14/l04-explanations.TrueActivationPatching.attempt3.run.json",
     "artifacts/m14/l04-explanations.TrueActivationPatching.attempt3.failure.json",
     "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.c41ff8ff2c67ca400a1342ab2b59b81f3b69e854.audit.json",
-    "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.c41ff8ff2c67ca400a1342ab2b59b81f3b69e854.exit.txt"
+    "artifacts/m14/l04-explanations.ssh.TrueActivationPatching.c41ff8ff2c67ca400a1342ab2b59b81f3b69e854.exit.txt",
+    "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json",
+    "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json",
+    "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json",
+    "artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json",
+    "artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.exit.txt"
   ],
-  "note": "Existing immutable per-use-case records were not rewritten; additive IG, TCAV, DirectLogitLens, and TrueActivationPatching attempts are retained with real-CUDA transport and cleanup evidence. IG, TCAV, and TrueActivationPatching remain non-promoting semantic failures; DirectLogitLens remains support-only and non-promoting."
+  "note": "Existing immutable per-use-case records were not rewritten; additive IG, TCAV, DirectLogitLens, TrueActivationPatching, and AdditiveSteering attempts are retained with real-CUDA transport and cleanup evidence. IG, TCAV, TrueActivationPatching, and AdditiveSteering remain non-promoting semantic failures; DirectLogitLens remains support-only and non-promoting."
 }
