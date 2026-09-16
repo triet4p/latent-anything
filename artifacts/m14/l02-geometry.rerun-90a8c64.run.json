@@ -1,0 +1,31 @@
+{
+  "accepted_gap_ids": [
+    "THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION",
+    "THY-T04-LERP-LINEAR-INTERPOLATION",
+    "THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN",
+    "THY-T04-SLERP",
+    "THY-T06-TRAJECTORY-SIMILARITY-METRICS"
+  ],
+  "accepted_record_ids": [
+    "slerp_spherical",
+    "lerp_euclidean",
+    "riemannian_density_geodesic",
+    "slerp_latent_operation",
+    "trajectory_similarity_dtw"
+  ],
+  "artifact_name": "artifacts/m14/l02-geometry.json",
+  "artifact_sha256": "deac4377026d9636a0894d618a9cb648762b0a2fe7b3dcd882eef99f2c58aa3a",
+  "cleanup": "retain immutable artifact/run record; remove only temporary plots/cache if any",
+  "command": "uv run python -m scripts.m14_l02_geometry",
+  "contract_source_sha256": "598a34ac4437976ec74b005e6dd7c6cdefbf3b1b102b69cd76493e29f54b2f6a",
+  "credentials": "none used; no credentials required",
+  "git_sha": "90a8c6405e65adf96f1090b396635fcd6a3714ba",
+  "lane": "M14-L02",
+  "network": "offline",
+  "plan_sha256": "56731a054c96c71cd930f939b32a94076b9faf199927d9518151e3ad7a6a98aa",
+  "resource_measurement": "not measured; M14 estimate only",
+  "runner_source_sha256": "30cfd70c3cf474d0de9740fe5e20efc00c7d11b6cc7c541335dc149bbb6d0226",
+  "schema_version": "m14-l02-geometry-run-v1",
+  "status": "completed",
+  "timestamp_utc": "2026-09-16T06:38:03.054741Z"
+}

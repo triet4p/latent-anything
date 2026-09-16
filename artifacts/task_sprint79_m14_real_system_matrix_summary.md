@@ -12,14 +12,18 @@ Lane receipts use `source_sha` as the exact checkout HEAD used for their command
 - **Externally/prerequisite blocked:** 8/24 (L10, L12, L17, L18, L19, L20, L21, L24).
 - **Applicable:** 24/24; **hard blocked:** 8/24; **row-wide completion:** 13/24.
 
-The Sprint 79 checkbox therefore remains `[~]`, not `[x]`. The release evidence ledger remains below its independent release thresholds; no percentage waiver or skipped network lane was promoted.
+L02 remains row-partial rather than row-accepted: its additive exact-source rerun
+accepted 5/6 records (DTW now passes) while the real manifold ranking remains
+below its unchanged gate. The Sprint 79 checkbox therefore remains `[~]`, not
+`[x]`. The release evidence ledger remains below its independent release
+thresholds; no percentage waiver or skipped network lane was promoted.
 
 ## Immutable accepted and partial evidence
 
 | Row | Result and exact evidence |
 |---|---|
 | L01 | **Accepted D2.** Existing `artifacts/m14/l01-core.json` and `l01-core.run.json` are immutable accepted evidence. The recorded runner command is `uv run python scripts/m14_l01_core.py`; status `accepted`; sklearn digits held-out contract, finite schema/digest, no mutation, and zero-baseline improvement passed. Artifact SHA-256: `edf9ebe10ef8e2c8132e2074cee213fb8115bfd2826ddf68aad39f3b65bd4fac`. |
-| L02 | **Partial D2 (4/6 records).** Existing immutable `artifacts/m14/l02-geometry.json` and `l02-geometry.run.json` record accepted SLERP/LERP/Riemannian/latent-operation records and honest failures for the manifold and DTW records. Recorded command: `uv run python -m scripts.m14_l02_geometry`; artifact SHA-256 `97d26f5fb1d12dc00658ff9cfec12a91b080bb4a1bb3cd96e7bc2ed70f9e5a58`. No stable Frechet or physical-trajectory claim is made. |
+| L02 | **Partial D2 (5/6 records).** Historical immutable `artifacts/m14/l02-geometry.json` and `l02-geometry.run.json` remain unchanged, retaining manifold and DTW failures (artifact self-digest `97d26f5fb1d12dc00658ff9cfec12a91b080bb4a1bb3cd96e7bc2ed70f9e5a58`). The additive exact-source rerun [`l02-geometry.rerun-90a8c64.json`](m14/l02-geometry.rerun-90a8c64.json) accepted DTW with unchanged gates (median self/indexwise `0.07354340933887214`, self/unrelated `0.011170843549800243`, ranking AUC `1.0`) while manifold remained failed (`real_pair_auc=0.4560546875`, latent-vs-raw delta `-0.4124755859375`). Rerun artifact SHA-256 `fc4a74e3f1290c7986483714fb2d3d30a8126995cacf59b3edad95fed8be0002`; receipt [`l02-geometry.receipt.json`](m14/l02-geometry.receipt.json). No stable Frechet or physical-trajectory claim is made. |
 | L03 | **Accepted D2 forward-only.** Existing immutable `artifacts/m14/l03-analysis.json`, `l03-analysis.run.json`, and `l03-analysis.attempt4.capture-audit.json` record three accepted GPT-2 hidden-state records at `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, exact execution command `uv run python -m scripts.m14_l03_analysis --run-real`, source SHA `bb0da6fdc4fb00950ce4cb574ec83e8a9344db8`, and artifact SHA-256 `60bda13a4bbf68bbb6c9308cc813913fa653c37fba368fe1e4ea7a1f898ce06b`. Remote evidence recorded NVIDIA GeForce RTX 4060 Ti/CUDA 12.8, wrapper exit 0, captured output, removed disposable checkout `/tmp/remote-cuda-test.F0de65/repo`, and removed isolated caches (`uv-cache`, `torch-extensions`, `cuda-cache`, `hf-cache`). |
 | L04 | **Partial.** Capability receipt `artifacts/m14/l04-explanations.json` points to immutable accepted TunedLogitLens D3 promotion and Disentanglement D2 records. The remaining IntegratedGradients, TCAV, DirectLogitLens, TrueActivationPatching, and AdditiveSteering use cases are not complete; no row-wide promotion is claimed. Existing L04 evidence uses the authority's direct authenticated PowerShell `ssh.exe` transport exception, not the generic remote-cuda wrapper. |
 
@@ -53,6 +57,8 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 ## Matrix contract verification
 
 - `uv run pytest tests/test_m14_validation_contract.py -q` — **3 passed in 0.24s**. This verifies the authority table has 24 unique lanes and all referenced repository paths remain valid.
+- L02 focused support checks — `uv run pytest tests/test_latent_anything/test_covariance_geometry.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_pose.py tests/test_dtw.py tests/test_temporal.py tests/test_m14_l02_geometry.py -q` — **154 passed in 22.35s**.
+- Exact-source L02 rerun command was executed twice at pushed SHA `90a8c6405e65adf96f1090b396635fcd6a3714ba`; payload self-digest matched on both runs (`deac4377026d9636a0894d618a9cb648762b0a2fe7b3dcd882eef99f2c58aa3a`). The additive artifact/run record validators returned no errors, and historical canonical artifact/run bytes were preserved.
 - Existing accepted Sprint 79 artifacts were not rewritten: `task_sprint79_local_gate_remediation_summary.md`, `task_sprint79_clean_environment_matrix_summary.md`, and `task_sprint79_release_audits_summary.md`.
 - No remote CUDA run was started for a blocked lane: the authority requires exact model/checkpoint/access prerequisites before remote execution, and the generic `remote-cuda-test` invariant forbids substituting a skipped local lane. L03's retained remote cleanup evidence is recorded above; L04 follows its explicit direct-PowerShell transport exception.
 - No later Sprint 79 task was started or marked complete.
@@ -62,6 +68,7 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 The newly created row receipts are immutable once committed. Their SHA-256 values at creation are:
 
 ```text
+l02-geometry.receipt.json  b849c9a400eb662f2f37c5a1d4709726b06368f1397ec3555a38f068613813ab
 l04-explanations.json       5d896a9b8603c340fe0203e303870f78109a69721ac8729924c1ce384ac1989e
 l05-density.json            47a2de5dece3473a7f07a098601d75a8249bea0fcf28c2c6cbf0246a137fb450
 l06-sae.json                c2c4538b42e968663efaba5092f3b4385c95bdf4ee0900f87a428cbae32e3918
