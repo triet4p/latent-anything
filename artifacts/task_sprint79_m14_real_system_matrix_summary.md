@@ -8,9 +8,9 @@ The scoped lane probes were run against source checkpoint `bd6cdb76d493bbe494a96
 
 - **Completed/accepted:** 2/24 (L01, L03).
 - **Partial:** 2/24 (L02, L04; partial records remain explicitly unpromoted as a row-wide completion).
-- **Pending:** 9/24 (L05, L07, L08, L11, L13, L14, L15, L16, L22).
-- **Externally/prerequisite blocked:** 11/24 (L06, L09, L10, L12, L17, L18, L19, L20, L21, L23, L24).
-- **Applicable:** 24/24; **hard blocked:** 11/24; **row-wide completion:** 2/24.
+- **Pending:** 10/24 (L05, L06, L07, L08, L11, L13, L14, L15, L16, L22).
+- **Externally/prerequisite blocked:** 10/24 (L09, L10, L12, L17, L18, L19, L20, L21, L23, L24).
+- **Applicable:** 24/24; **hard blocked:** 10/24; **row-wide completion:** 2/24.
 
 The Sprint 79 checkbox therefore remains `[~]`, not `[x]`. The release evidence ledger remains below its independent release thresholds; no percentage waiver or skipped network lane was promoted.
 
@@ -30,7 +30,7 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 | Row | Status | Exact command/result | Receipt and unresolved requirement |
 |---|---|---|---|
 | L05 | Pending | `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` — **40 passed in 20.88s**. | [`l05-density.json`](m14/l05-density.json). Real GPT-2 states, held-out AUROC, and path-feasibility artifact remain unevidenced. |
-| L06 | Blocked | `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — **1 skipped, 21 deselected in 3.63s**; no real model/corpus was provisioned. | [`l06-sae.json`](m14/l06-sae.json). D3 gap and required GPT-2/text-corpus execution. |
+| L06 | Pending | `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — **1 skipped, 21 deselected in 3.63s**; no real model/corpus was provisioned. | [`l06-sae.json`](m14/l06-sae.json). D3 gap and required GPT-2/text-corpus execution. |
 | L07 | Pending | `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q` — **137 passed in 9.00s**. | [`l07-interventions.json`](m14/l07-interventions.json). Cross-adapter paired-effect artifact is absent. |
 | L08 | Pending | `uv run pytest tests/test_latent_anything/test_conv_vae.py tests/test_latent_anything/test_conv_vae_evidence.py -q` — **3 passed in 8.54s**. | [`l08-convvae.json`](m14/l08-convvae.json). Standalone held-out D2 metrics/artifact, including the declared >=10% zero-baseline gate, are absent. |
 | L09 | Blocked | `uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q` — **1 skipped, 5 deselected in 3.20s**. | [`l09-diffusers-vae.json`](m14/l09-diffusers-vae.json). Pinned model/cache and safetensors hash parity are not provisioned for offline validation. |
@@ -64,7 +64,7 @@ The newly created row receipts are immutable once committed. Their SHA-256 value
 ```text
 l04-explanations.json       5d896a9b8603c340fe0203e303870f78109a69721ac8729924c1ce384ac1989e
 l05-density.json            a5686df564f321301a96c35e4b0891709140653a12cd786b3c3127636758dd4d
-l06-sae.json                b707bfd9669f0b2924faeb958a387cbd5a6ad4351f87b6a3e472220d2f595aeb
+l06-sae.json                7b62b3d2d0d513c37f6752ce53e15a7d9bf4b47de11fca3efef27cea34e55c42
 l07-interventions.json      82d399a33ef359b24003e0518298e384fdf1c3c70a57489469882fc34a753afc
 l08-convvae.json            97d17d8e0073cf77f10e5e490a9372327950b729e043bf061ad287dd94129bae
 l09-diffusers-vae.json      52def6f8b692759805d1221c728956e9070c848cb45e5171f402a09872c3f520

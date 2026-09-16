@@ -1,7 +1,7 @@
 {
   "schema_version": "m14-lane-matrix-receipt-v1",
   "lane": "M14-L06",
-  "status": "blocked",
+  "status": "pending",
   "accepted": false,
   "evidence_level": "D1/D2 gap",
   "source_sha": "bd6cdb76d493bbe494a96856cc72e7382d31b989",
