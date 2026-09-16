@@ -4,10 +4,10 @@
   "status": "blocked",
   "accepted": false,
   "evidence_level": "D1/D2 gap",
-  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "source_sha": "bd6cdb76d493bbe494a96856cc72e7382d31b989",
   "target": "GPT-2 pinned revision with real text corpus fixture",
   "command": "uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q",
-  "result": "Not executed: real model/corpus provisioning is unavailable in the current local environment.",
+  "result": "1 skipped, 21 deselected in 3.63s; no real model/corpus was provisioned.",
   "blocker": "D3 gap and required real text-corpus/model execution; no acceptance artifact can be promoted without it.",
   "evidence": "No mock or local approximation substituted."
 }

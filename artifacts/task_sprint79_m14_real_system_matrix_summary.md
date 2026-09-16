@@ -4,7 +4,7 @@
 
 This artifact covers only the current Sprint 79 task at `docs/sprint-plans/sprint-79.md:594`. The authority is `docs/M14_REAL_SYSTEM_VALIDATION.md`; its acceptance semantics and immutable predecessor evidence were not changed. All 24 authority rows are implementation-applicable to this repository. No row is inapplicable or silently omitted.
 
-At the current pushed checkpoint `fdd769f842d6fb228270c662db39b261a62bdf40`:
+At the current pushed checkpoint `bd6cdb76d493bbe494a96856cc72e7382d31b989`:
 
 - **Completed/accepted:** 2/24 (L01, L03).
 - **Partial:** 2/24 (L02, L04; partial records remain explicitly unpromoted as a row-wide completion).
@@ -30,7 +30,7 @@ Each row below has an independently verifiable receipt under `artifacts/m14/`. A
 | Row | Status | Exact command/result | Receipt and unresolved requirement |
 |---|---|---|---|
 | L05 | Pending | `uv run pytest tests/test_density.py tests/test_latent_anything/test_geodesic.py -q` — **40 passed in 20.88s**. | [`l05-density.json`](m14/l05-density.json). Real GPT-2 states, held-out AUROC, and path-feasibility artifact remain unevidenced. |
-| L06 | Blocked | `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — not run; real model/corpus provisioning unavailable. | [`l06-sae.json`](m14/l06-sae.json). D3 gap and required GPT-2/text-corpus execution. |
+| L06 | Blocked | `uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q` — **1 skipped, 21 deselected in 3.63s**; no real model/corpus was provisioned. | [`l06-sae.json`](m14/l06-sae.json). D3 gap and required GPT-2/text-corpus execution. |
 | L07 | Pending | `uv run pytest tests/test_latent_anything/test_activation_patch.py tests/test_latent_anything/test_steering.py tests/test_latent_anything/test_projection.py tests/test_latent_anything/test_lerp.py -q` — **137 passed in 9.00s**. | [`l07-interventions.json`](m14/l07-interventions.json). Cross-adapter paired-effect artifact is absent. |
 | L08 | Pending | `uv run pytest tests/test_latent_anything/test_conv_vae.py tests/test_latent_anything/test_conv_vae_evidence.py -q` — **3 passed in 8.54s**. | [`l08-convvae.json`](m14/l08-convvae.json). Standalone held-out D2 metrics/artifact, including the declared >=10% zero-baseline gate, are absent. |
 | L09 | Blocked | `uv run pytest tests/test_diffusers_vae.py tests/test_diffusers_vae_network.py -m network -q` — **1 skipped, 5 deselected in 3.20s**. | [`l09-diffusers-vae.json`](m14/l09-diffusers-vae.json). Pinned model/cache and safetensors hash parity are not provisioned for offline validation. |
@@ -64,7 +64,7 @@ The newly created row receipts are immutable once committed. Their SHA-256 value
 ```text
 l04-explanations.json       5d896a9b8603c340fe0203e303870f78109a69721ac8729924c1ce384ac1989e
 l05-density.json            a5686df564f321301a96c35e4b0891709140653a12cd786b3c3127636758dd4d
-l06-sae.json                3554c1fd68cd123817902b7a24996b414f693a688acb0fb510e9928c41b4ca48
+l06-sae.json                b707bfd9669f0b2924faeb958a387cbd5a6ad4351f87b6a3e472220d2f595aeb
 l07-interventions.json      82d399a33ef359b24003e0518298e384fdf1c3c70a57489469882fc34a753afc
 l08-convvae.json            97d17d8e0073cf77f10e5e490a9372327950b729e043bf061ad287dd94129bae
 l09-diffusers-vae.json      52def6f8b692759805d1221c728956e9070c848cb45e5171f402a09872c3f520
