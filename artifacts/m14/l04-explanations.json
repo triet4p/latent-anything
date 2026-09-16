@@ -4,11 +4,11 @@
   "status": "partial",
   "accepted": false,
   "evidence_level": "D2/D3 partial",
-  "source_sha": "4486c0ed524db0f405ee7548f28a836b7c14e4f1",
+  "source_sha": "9ab36fd85dcb4347642e818b489c10fd8d674321",
   "authority": "docs/M14_REAL_SYSTEM_VALIDATION.md",
   "completed_use_cases": ["TunedLogitLens (D3, accepted)", "Disentanglement (D2, accepted/eligible)"],
-  "pending_use_cases": ["IntegratedGradients (attempted; support-only failed frozen completeness gates)", "TCAV", "DirectLogitLens", "TrueActivationPatching", "AdditiveSteering"],
-  "blocker": "The frozen seven-use-case L04 contract is not complete; no promotion is claimed for the remaining use cases. IntegratedGradients attempt2 reached real CUDA but failed its predeclared zero-baseline and batch-mean completeness gates.",
+  "pending_use_cases": ["IntegratedGradients (attempted; support-only failed frozen completeness gates)", "TCAV (attempted; support-only failed frozen accuracy/p-value gates)", "DirectLogitLens", "TrueActivationPatching", "AdditiveSteering"],
+  "blocker": "The frozen seven-use-case L04 contract is not complete; no promotion is claimed for the remaining use cases. IntegratedGradients and TCAV support-only runs reached real CUDA but failed their predeclared semantic gates.",
   "evidence": [
     "artifacts/m14/l04-explanations.L049V2StageB.6af20749b305f591d2c90d868cb09e71f623bdd0.d3-promotion-real-v2.json",
     "artifacts/m14/l04-explanations.Disentanglement.attempt2.run.json",
@@ -16,7 +16,11 @@
     "artifacts/m14/l04-explanations.IntegratedGradients.attempt2.partial.json",
     "artifacts/m14/l04-explanations.IntegratedGradients.attempt2.run.json",
     "artifacts/m14/l04-explanations.IntegratedGradients.attempt2.failure.json",
-    "artifacts/m14/l04-explanations.ssh.IntegratedGradients.4486c0ed524db0f405ee7548f28a836b7c14e4f1.audit.json"
+    "artifacts/m14/l04-explanations.ssh.IntegratedGradients.4486c0ed524db0f405ee7548f28a836b7c14e4f1.audit.json",
+    "artifacts/m14/l04-explanations.TCAV.attempt2.partial.json",
+    "artifacts/m14/l04-explanations.TCAV.attempt2.run.json",
+    "artifacts/m14/l04-explanations.TCAV.attempt2.failure.json",
+    "artifacts/m14/l04-explanations.ssh.TCAV.9ab36fd85dcb4347642e818b489c10fd8d674321.audit.json"
   ],
-  "note": "Existing immutable per-use-case records were not rewritten; the additive IG attempt is retained with real-CUDA transport, bundle, and cleanup evidence. IG support-only status remains non-promoting."
+  "note": "Existing immutable per-use-case records were not rewritten; additive IG and TCAV attempts are retained with real-CUDA transport, bundle, and cleanup evidence. Both support-only statuses remain non-promoting."
 }
