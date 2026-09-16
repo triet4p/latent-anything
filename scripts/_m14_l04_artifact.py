@@ -1113,6 +1113,21 @@ def build_artifact(
                 phase_a_non_promoting and key in {"evidence_eligible", "acceptance", "evidence_level"}
             ):
                 current[key] = execution_result[key]
+    if (
+        use_case == "TrueActivationPatching"
+        and status == "failed"
+        and execution_result is not None
+        and not injected
+        and (resources or {}).get("stage") == "cleanup"
+    ):
+        # Bind the truthful partial stage to the retained execution envelope;
+        # handler fields may carry the pre-normalization "complete" marker.
+        current_resources = current.get("resources")
+        if isinstance(current_resources, dict):
+            current["resources"] = {**current_resources, "stage": "cleanup"}
+        current_provenance = current.get("provenance")
+        if isinstance(current_provenance, dict):
+            current["provenance"] = {**current_provenance, "stage": "cleanup"}
     if phase_a_non_promoting:
         # Phase A runtime diagnostics are deliberately not promotion-capable.
         # Keep the runtime status/metrics for auditability, but never let a
