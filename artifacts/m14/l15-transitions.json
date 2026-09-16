@@ -12,7 +12,7 @@
   "focused_test_command": "uv run pytest tests/test_latent_anything/test_transition.py -q",
   "result": "runner acceptance 13/13 true; focused test: 26 passed in 39.49s",
   "artifact": {"path": "artifacts/m14/l15-transitions-run.json", "sha256": "5800456dd583a5305da74e72b5ab997a9fb20f6e1b98fb5d9b8704029ab21c39"},
-  "environment": {"device": "cpu", "python": "3.13.3", "numpy": "2.4.6", "torch": "2.10.0", "rss_peak_bytes": 367116288, "network_policy": "offline; project-authored fixture only"},
+  "environment": {"device": "cpu", "python": "3.13.3", "numpy": "2.4.6", "torch": "2.10.0", "rss_peak_bytes": 366272512, "network_policy": "offline; project-authored fixture only"},
   "split": {"train_episodes": 24, "train_horizon": 6, "train_seed": 650, "holdout_episodes": 8, "holdout_seed": 651, "holdout_transition_count": 48},
   "metrics": {"deterministic_one_step_rmse": 0.018830653442877755, "deterministic_rollout_mean_error": 0.032080447462635255, "stochastic_one_step_coverage": 0.8645833333333334, "stochastic_rollout_mean_error": 0.03364684063507111, "rssm_one_step_rmse": 0.03509256173766037, "rssm_rollout_mean_error": 0.09081077682761146, "rssm_rollout_stable": true, "rssm_state_carry": true, "seeded_rollouts_reproducible": true},
   "thresholds": {"deterministic_one_step_rmse_max_exclusive": 0.15, "rollout_horizon": 6, "finite_distribution_metrics": true, "seeded_stochastic_and_rssm_reproducibility": true, "state_carry": true},
