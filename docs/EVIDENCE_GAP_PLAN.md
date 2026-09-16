@@ -299,7 +299,7 @@ map; lane-level defaults are specified in the next section.
 | `THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ` | D0 | yes | no | D2 | L13 | No FSQ implementation/evidence |
 | `THY-T09-GAIA-1-WAYVE-2023` | D0 | yes | yes | D3 | L14 | Named model survey only |
 | `THY-T09-GENIE-GOOGLE-2024` | D0 | yes | yes | D3 | L14 | Named model survey only |
-| `THY-X01-OPENVLA` | D0 | no | yes | D3 | L19 | Named policy survey only; non-core X01 |
+| `THY-X01-OPENVLA` | D0 | no | yes | D3 | L19 | Pinned `openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` with base `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`, modified LIBERO RLDS `@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`, LIBERO `@8f1084e3132a39270c3a13ebe37270a43ece2a01`, and action/preprocessing/runtime contract are recorded; no local OpenVLA adapter, checkpoint cache, CUDA device, or real-policy artifact |
 | `THY-X01-LEWM-LEWORLDMODEL-2026` | D1 | no | yes | D3 | L12 | Compact JEPA is not real LeWM evidence |
 
 ## Execution contract and ordering
@@ -463,8 +463,7 @@ already qualifying queue position 34 TunedLogitLens row. Queue positions 36
 from existing exact-SHA evidence and were not modified in the queue-35 row.
 Queue position 38 (Steering) retained a real-model diagnostic but remains D1
 after its randomized-direction control failure; position 39 (Dictionary
-Learning) lacks a dedicated implementation; position 40 (OpenVLA) lacks
-checkpoint, license/access, and adapter scope.
+Learning) lacks a dedicated implementation; position 40 (OpenVLA) now has an authoritative pinned checkpoint/data/environment contract and a truthful blocked receipt, but remains D0 because this checkout has no OpenVLA adapter/capture implementation, no checkpoint cache, no CUDA device, and network opt-in is disabled.
 
 The retained exact-source L06 execution at
 `005954c636ae7a45ac3072c69e2c118db044682b` used pinned
@@ -499,7 +498,7 @@ D1 after reconciling the owner-authorized exact-SHA real CUDA diagnostic. Queue
 positions 36 (Disentanglement) and 37 (Activation Patching) already satisfy
 their bounded target contracts and were intentionally not modified in this
 row. Position 39 (Dictionary Learning) is now a bounded D2 comparison;
-position 40 (OpenVLA) still lacks checkpoint, license/access, and adapter scope.
+position 40 (OpenVLA) now has pinned upstream metadata and a truthful D0 blocker receipt; no local or synthetic evidence is promoted.
 
 The retained AdditiveSteering execution at source
 `7ad6648a9bc5d22793b63b764cb9f93990a247e8` used pinned
@@ -557,7 +556,48 @@ recorded in [`task_79_queue39_dictionary_learning_summary.md`](../artifacts/task
 This is bounded D2 algorithm evidence only; it does not promote the separate
 real-GPT-2 SAE row or make a D3 named-model claim.
 
-Focused validation `uv run pytest tests/test_dictionary_learning.py -q`
-passed **3 tests**. The ledger validator returned `errors: []` at **41/63 core
-(65.079365%)** and **41/65 overall (63.076923%)**. Queue position 40
-OpenVLA and Sprint 79 line 595 remain unchanged.
+Focused validation `uv run pytest tests/test_dictionary_learning.py -q` passed
+**3 tests**. The ledger validator returned `errors: []` at **41/63 core
+(65.079365%)** and **41/65 overall (63.076923%)** before this D0-only contract
+update. OpenVLA remains D0 and Sprint 79 line 595 remains unchanged.
+
+### Queue position 40 — L19 OpenVLA prerequisite closure
+
+`THY-X01-OPENVLA` remains D0 and is not counted in the core denominator. The
+authoritative fine-tuned checkpoint is
+`openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873`,
+whose base is `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`.
+The checkpoint Hub metadata reports public, non-gated access, MIT model-card
+licensing, the `OpenVLAForActionPrediction` architecture, BF16 weights, and
+15,082,474,368 bytes in the safetensors index. The official OpenVLA repository
+also warns that pretrained Llama-2-derived weights inherit the Llama Community
+License; both notices remain in the lane contract.
+
+The task/data/environment contract is pinned to
+`openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`,
+subset `libero_spatial_no_noops` (52,970 transitions and 432 trajectories),
+and `Lifelong-Robot-Learning/LIBERO@8f1084e3132a39270c3a13ebe37270a43ece2a01`
+with the `libero_spatial` suite. The official evaluation uses 10 tasks × 50
+trials, 10 initial stabilization steps, 256-pixel environment observations, and
+up to 220 control steps per episode. OpenVLA receives an RGB image and the
+prompt `In: What action should the robot take to {task_description_lower}?`
+followed by `Out:`; the processor performs the 224×224 `resize-naive` path,
+the model predicts seven 256-bin action tokens, and `predict_action` applies
+the `libero_spatial` unnormalization stats. The environment path then
+normalizes/binarizes and sign-inverts the gripper before `env.step`.
+
+The production adapter/capture implementation is intentionally not added:
+the existing generic `ModelAdapter` and LeRobot ACT/Diffusion/SmolVLA
+adapters do not prove OpenVLA, and no mock or fallback is allowed. Local
+non-secret checks found no checkpoint cache, no network opt-in, no HF token,
+and no CUDA device on this Windows host. The blocked receipt and complete
+contract are [`l19-openvla.json`](../artifacts/m14/l19-openvla.json) and
+[`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json).
+
+The exact next action is an authorized remote Linux NVIDIA CUDA run in a
+disposable checkout/cache using the upstream Python 3.10.13, PyTorch 2.2.0,
+Transformers 4.40.1, tokenizers 0.19.1, flash-attn 2.5.5, and A100 80GB
+reference profile. Provision the pinned model/data, implement and review the
+real Transformers adapter, then execute 500 LIBERO-Spatial trials plus paired
+intervention/control and retain a signed artifact. No remote command was run
+in this task, and no D3 promotion is justified.

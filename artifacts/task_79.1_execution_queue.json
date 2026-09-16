@@ -1,7 +1,7 @@
 {
   "schema_version": "sprint79-execution-queue-v1",
   "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
-  "source_commit": "9ebecfaee3e6e24f4ed56fae728b43828ab614d3",
+  "source_commit": "44335cf709a6ad4dc60491e0f6ed675019313446",
   "source_documents": [
     "docs/M14_REAL_SYSTEM_VALIDATION.md",
     "docs/EVIDENCE_GAP_PLAN.md",
@@ -52,9 +52,9 @@
     ],
     "execution_records": 40,
     "queue_status_counts": {
-      "satisfied_qualifying": 9,
+      "satisfied_qualifying": 13,
       "co_scheduled_scc_blocked_by_missing_implementation": 2,
-      "ready_for_dependency_ordered_execution": 29
+      "ready_for_dependency_ordered_execution": 25
     },
     "external_prerequisite_edges": 9,
     "external_prerequisites": [
@@ -209,13 +209,13 @@
     {
       "lane_id": "L04",
       "surface": "IntegratedGradients, TCAV, sensitivity/intervention controls",
-      "source_tests_evidence": "`integrated_gradients.py`, `tcav.py` → focused tests, D1",
-      "real_target_backend": "GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; real prompt/label fixture",
-      "environment_command": "local CPU; `uv run pytest tests/test_integrated_gradients.py tests/test_tcav.py -q`",
-      "acceptance_artifact": "completeness/sensitivity, selectivity, seeded CI and causal intervention; `artifacts/m14/l04-explanations.json`",
+      "source_tests_evidence": "`integrated_gradients.py`, `tcav.py` → focused tests, D1; design freeze [`l04-explanations.plan.json`](../artifacts/m14/l04-explanations.plan.json)",
+      "real_target_backend": "GPT-2 `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`; authored task/factor fixture with explicit clean/corrupted pairs and content/split/pair digests; real boundary `TransformerLMIntegration`; `ModelAdapter=N/A` by ADR",
+      "environment_command": "local offline contract: `uv run python -m scripts.m14_l04_explanations --check`; seven sequential real use cases (IG, TCAV, direct lens, tuned lens, disentanglement, true interchange patching, additive steering) on CUDA server through authenticated direct PowerShell `ssh.exe`; local CPU only offline checks; exact commands and cleanup are frozen in the L04 plan",
+      "acceptance_artifact": "completeness/sensitivity, selectivity, seeded 95% CI, shuffled/random/null/off-target/zero-strength controls, true interchange patching distinct from additive intervention, and separately fit holdout-calibrated affine tuned lens; `artifacts/m14/l04-explanations.json` plus per-use-case run/failure records",
       "artifact_path": "artifacts/m14/l04-explanations.json",
-      "resources_network_cleanup": "~2–4 GB, network on first run; retain manifest, delete weights if disposable",
-      "status_blocker_owner": "planned; D3 absent until run; explanation owner",
+      "resources_network_cleanup": "RTX 4060 Ti 8GB reference, CUDA 12.8; ~4 GB RSS/≤6 GB VRAM budget; acquire exact revision once, retain hashes/audit, remove disposable clone/cache; pinned WikiText-2 subset is provisioned and the corrected TunedLogitLens run at SHA `278a9f76f626f8b0c6a9d9c5517c9b349f08c2d5` produced validator-clean accepted D3 evidence; the historical attempt3 D0 remains preserved and unpromoted; final audit records the observed transport warning and cleanup PASS",
+      "status_blocker_owner": "L04.7 corrected TunedLogitLens D3 accepted; L04.8 Disentanglement verified D2/eligible and repository-promoted only for SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580`; remaining L04 use cases planned; explanation owner",
       "gap_record_ids": [
         "THY-T03-DISENTANGLEMENT",
         "THY-T05-ACTIVATION-PATCHING",
@@ -321,7 +321,7 @@
       "acceptance_artifact": "vocab 50257, 13 layers, hidden 768, logits/hidden parity; `artifacts/m14/l11-gpt2.json`",
       "artifact_path": "artifacts/m14/l11-gpt2.json",
       "resources_network_cleanup": "~2–4 GB; public download; remove disposable cache",
-      "status_blocker_owner": "planned; capture versions/license; transformer owner",
+      "status_blocker_owner": "direct logit-lens parity separately verified 8/8 on exact SHA strict CUDA; L11 remains planned until its complete lane artifact/capture contract; transformer owner",
       "gap_record_ids": [],
       "gap_record_count": 0
     },
@@ -442,14 +442,14 @@
     },
     {
       "lane_id": "L19",
-      "surface": "ACT policy capture/intervention",
-      "source_tests_evidence": "`integrations/lerobot_act.py` → ACT tests, D2/D3",
-      "real_target_backend": "`lerobot/act_aloha_sim_insertion_human@33259aa86eb45fdf85350280044a33d9d50e40c3`; same ALOHA dataset",
-      "environment_command": "remote CUDA/Linux; `remote-cuda-test` runs `uv run pytest tests/test_lerobot_act.py::test_pinned_public_act_checkpoint_pair_loads_through_lerobot_factories -m network -q` in disposable clone",
-      "acceptance_artifact": "action shape, paired intervention/control, simulator metric and revision manifest; `artifacts/m14/l19-act.json`",
-      "artifact_path": "artifacts/m14/l19-act.json",
-      "resources_network_cleanup": "GPU/large download; model-card license not recorded; clean HF/cache",
-      "status_blocker_owner": "planned; license/access blocker; LeRobot owner",
+      "surface": "OpenVLA policy/latent capture and intervention",
+      "source_tests_evidence": "No OpenVLA adapter exists yet; contract is recorded in [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json) → no executable local test",
+      "real_target_backend": "`openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` (base `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`); modified RLDS `openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`; LIBERO `@8f1084e3132a39270c3a13ebe37270a43ece2a01` / `libero_spatial`",
+      "environment_command": "authorized Linux NVIDIA CUDA host only; implement/review official Transformers `AutoProcessor`/`AutoModelForVision2Seq` path, then run pinned OpenVLA network lane in disposable clone",
+      "acceptance_artifact": "7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; blocked receipt [l19-openvla.json](../artifacts/m14/l19-openvla.json); config [l19-openvla.config.json](../artifacts/m14/l19-openvla.config.json)",
+      "artifact_path": "artifacts/m14/l19-openvla.json",
+      "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint; upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required; model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License",
+      "status_blocker_owner": "blocked; this Windows host has no CUDA, checkpoint is not cached, network opt-in is disabled, and no OpenVLA capture adapter is implemented",
       "gap_record_ids": [
         "THY-X01-OPENVLA"
       ],
@@ -614,7 +614,7 @@
       "position": 5,
       "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
       "lane_id": "L12",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 1,
       "internal_dependencies": [],
@@ -631,11 +631,11 @@
         }
       ],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
+      "queue_status": "satisfied_qualifying",
       "command": "run L12 world-model health benchmark with collapsed baseline",
       "acceptance": "non-collapse threshold and held-out gain over collapsed baseline",
-      "artifact": "artifacts/m14/l12-ijepa.json",
-      "blocker": "real checkpoint not needed for D2, but D3 requires I-JEPA access"
+      "artifact": "artifacts/m14/l12-representation-collapse.json",
+      "blocker": "none for compact D2; named I-JEPA checkpoint remains required only for D3"
     },
     {
       "position": 6,
@@ -749,7 +749,7 @@
       "position": 10,
       "record_id": "THY-T06-STOCHASTIC-TRANSITION",
       "lane_id": "L15",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 1,
       "internal_dependencies": [],
@@ -766,17 +766,17 @@
         }
       ],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run transition/RSSM focused suite and D2 comparison",
-      "acceptance": "finite metrics; coverage/NLL thresholds predeclared; preserve failure evidence",
-      "artifact": "artifacts/m14/l15-transitions.json",
-      "blocker": "ledger evidence reconciliation required before promotion"
+      "queue_status": "satisfied_qualifying",
+      "command": "uv run python scripts/stochastic_transition_benchmark.py; uv run pytest tests/test_latent_anything/test_transition.py -q",
+      "acceptance": "finite metrics; one-step NLL < 0, coverage in (0.85,1), positive interval width/diversity, mean error < 0.4; rollout coverage bounded in [0,1] and stable; preserve failure evidence",
+      "artifact": "artifacts/m14/l15-stochastic-transition.json",
+      "blocker": "none; existing D2 benchmark evidence reconciled without rerun"
     },
     {
       "position": 11,
       "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
       "lane_id": "L16",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 1,
       "internal_dependencies": [],
@@ -793,11 +793,11 @@
         }
       ],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run L16 planner benchmark including fixed-zero/random-shooting controls",
-      "acceptance": "predeclared return/regret and budget; no invalid action",
-      "artifact": "artifacts/m14/l16-planning.json",
-      "blocker": "generic MPC scope must not overclaim CEM/MPPI equivalence"
+      "queue_status": "satisfied_qualifying",
+      "command": "uv run python scripts/m14_l16_mpc.py; uv run pytest tests/test_m14_l16_mpc.py tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q",
+      "acceptance": "MPC return > fixed-zero baseline; exact replan/step counts; finite metrics; bounded actions; sample budget <=1728",
+      "artifact": "artifacts/m14/l16-mpc.json",
+      "blocker": "none for compact D2; policy-gradient, MuZero, MCTS, pretrained-controller, and CUDA claims remain separate"
     },
     {
       "position": 12,
@@ -842,8 +842,8 @@
       "queue_status": "ready_for_dependency_ordered_execution",
       "command": "uv run python -m scripts.m14_l02_geometry",
       "acceptance": "finite metrics; declared manifold/geodesic threshold; no input mutation",
-      "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "held-out ranking threshold failed; rerun requires owner direction"
+      "artifact": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.json",
+      "blocker": "held-out ranking threshold failed; rerun remains non-qualifying and no owner direction is available"
     },
     {
       "position": 14,
@@ -1096,7 +1096,7 @@
       "position": 27,
       "record_id": "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
       "lane_id": "L02",
-      "current_evidence": "D0",
+      "current_evidence": "D2",
       "target_evidence": "D2",
       "dependency_depth": 3,
       "internal_dependencies": [
@@ -1105,11 +1105,11 @@
       "external_prerequisites": [],
       "external_prerequisite_details": [],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
+      "queue_status": "satisfied_qualifying",
       "command": "uv run python -m scripts.m14_l02_geometry",
-      "acceptance": "finite metric and predeclared ranking/held-out threshold",
-      "artifact": "artifacts/m14/l02-geometry.json",
-      "blocker": "self-to-indexwise threshold failed; Fréchet remains unavailable"
+      "acceptance": "128 independent finite trials; median self-to-indexwise <= 0.95; median self-to-unrelated <= 0.9; ranking AUC >= 0.6",
+      "artifact": "artifacts/m14/l02-geometry.rerun-90a8c64.json",
+      "blocker": "none for compact D2; physical-trajectory/Frechet and named-model claims remain out of scope"
     },
     {
       "position": 28,
@@ -1222,8 +1222,8 @@
       "queue_status": "ready_for_dependency_ordered_execution",
       "command": "run L04 TCAV/explanation validity lane",
       "acceptance": "predeclared TCAV effect/selectivity/stability thresholds and artifact hash",
-      "artifact": "artifacts/m14/l04-explanations.json",
-      "blocker": "real GPT-2 and prompt/label fixture not yet provisioned"
+      "artifact": "artifacts/m14/l04-explanations.TCAV.attempt1.partial.json",
+      "blocker": "retained semantic failure: Wilson lower bound 0.5291118177871466 <= 0.55 and corrected empirical p 0.24 > 0.05; no rerun authorized"
     },
     {
       "position": 34,
@@ -1258,10 +1258,10 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "uv run pytest tests/test_latent_anything/test_sae* -q; run L06 benchmark",
+      "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l06_sae.py",
       "acceptance": "predeclared reconstruction/dead-feature/stability thresholds and atlas hash",
       "artifact": "artifacts/m14/l06-sae.json",
-      "blocker": "GPT-2/cache/license and D3 corpus lane pending"
+      "blocker": "retained D1 failure: minimum matched cosine 0.7387987235614891 < 0.85; alignment quality 0.75 > 0.7 and finite/dead-feature gates pass but do not rescue stability"
     },
     {
       "position": 36,
@@ -1315,10 +1315,10 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "run L04 steering causal benchmark",
-      "acceptance": "predeclared target gain, off-target/degradation and confidence thresholds",
-      "artifact": "artifacts/m14/l04-explanations.json",
-      "blocker": "real model and prompt fixture pending"
+      "command": "rerun L04 steering causal benchmark after resolving randomized-direction control",
+      "acceptance": "predeclared target gain, off-target/degradation and confidence thresholds; all frozen controls must pass",
+      "artifact": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json",
+      "blocker": "randomized-direction control failed for seeds 29 and 67; D3 promotion blocked pending corrected owner-authorized rerun"
     },
     {
       "position": 39,
@@ -1353,10 +1353,10 @@
       "external_prerequisite_details": [],
       "cycle_conflict": null,
       "queue_status": "ready_for_dependency_ordered_execution",
-      "command": "create approved OpenVLA policy lane; do not count it in core denominator",
-      "acceptance": "predeclared action validity and task-success/causal thresholds",
-      "artifact": "artifacts/m14/l19-act.json",
-      "blocker": "checkpoint/license/access and adapter scope absent"
+      "command": "provision pinned public checkpoint/data in an isolated remote lane, implement/review the official Transformers OpenVLA adapter, then run the declared LIBERO-Spatial paired evaluation",
+      "acceptance": "task success >= 0.80 against the published LIBERO-Spatial reference plus owner-frozen causal intervention threshold and exact revision manifest",
+      "artifact": "artifacts/m14/l19-openvla.json",
+      "blocker": "local Windows host has no CUDA; checkpoint is not cached; network opt-in and HF token are not configured; no OpenVLA adapter/capture implementation; D0 retained"
     }
   ],
   "headline_blockers": [

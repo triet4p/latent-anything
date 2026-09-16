@@ -1,0 +1,19 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L19",
+  "record_id": "THY-X01-OPENVLA",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "D0",
+  "source_sha": "1b2716b39d04e924bb27a41ec31942d96d578e5e",
+  "target": "openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873",
+  "base_target": "openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f",
+  "dataset": "openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551 (libero_spatial_no_noops)",
+  "environment": "Lifelong-Robot-Learning/LIBERO@8f1084e3132a39270c3a13ebe37270a43ece2a01 (libero_spatial)",
+  "command": "LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest <future OpenVLA lane test> -m network -q",
+  "result": "Not run: no remote CUDA/Linux execution authorized in this task and no local CUDA device or checkpoint cache is available.",
+  "blocker": "Authoritative model and dataset revisions are now pinned and public/non-gated. Local non-secret checks found no OpenVLA cache, network opt-in, or HF token, and torch.cuda.is_available() is false on this Windows host. No production OpenVLA adapter/capture implementation exists in this checkout; existing LeRobot ACT/Diffusion/SmolVLA adapters are not OpenVLA evidence.",
+  "license_access": "HF model cards declare MIT and Hub access is public/non-gated; the official OpenVLA repository warns that Llama-2-derived pretrained weights inherit the Llama Community License. LIBERO and modified LIBERO RLDS metadata declare MIT. Preserve notices and obtain owner/legal review before redistribution/commercial use.",
+  "scope": "D0 planning/provenance only. No synthetic, mock, fallback, or relabeled evidence; no promotion.",
+  "next_remote_action": "Use an authorized disposable Linux NVIDIA CUDA checkout with the pinned model/data revisions, upstream Python 3.10.13 / PyTorch 2.2.0 / Transformers 4.40.1 / tokenizers 0.19.1 / flash-attn 2.5.5 stack and the A100 80GB reference profile. Implement and review the real Transformers OpenVLA adapter, then run 500 LIBERO-Spatial trials plus paired intervention/control and retain a signed artifact."
+}
