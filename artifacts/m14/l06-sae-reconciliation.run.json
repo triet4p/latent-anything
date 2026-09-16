@@ -15,7 +15,7 @@
   },
   "implementation": {
     "source": "scripts/m14_l06_sae.py",
-    "source_sha256": "17f9229eace6483369d65ef261d868242e3f4f53dd6b9aaeb806f79d99a9ff1",
+    "source_sha256": "17f9229eace6483369d65ef261d868242e3f4f53dd6b9aaeb806f79d99a9ff1f",
     "library": "src/latent_anything/sae_evaluation.py",
     "library_sha256": "1d68fea3f313aec9d0ac6c7df953f9d36922a8211c8e54c750a2600a95ea0883"
   },

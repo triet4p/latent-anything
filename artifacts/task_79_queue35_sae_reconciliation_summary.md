@@ -12,7 +12,7 @@ The row remains D1. The retained real-model evidence is non-qualifying because c
 
 The exact-source run used source `005954c636ae7a45ac3072c69e2c118db044682b`, pinned `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, layer 6 hidden states, expanded `prompt-grid-v2-1024` deterministic fixture, and seeds `[0, 1, 2]`. The run used the real `TransformerLMIntegration` boundary and retained no model weights, prompt text, or temporary corpus/checkpoint files.
 
-Target-level config: `artifacts/m14/l06-sae.config.json` (SHA-256 `72ba92dfad42df720ec812e2918ffea3b6a3d76d5df6d2f15a0642c1caa44ba4`). Reconciliation receipt: `artifacts/m14/l06-sae-reconciliation.run.json`. Genuine evidence:
+Target-level config: `artifacts/m14/l06-sae.config.json` (SHA-256 `72ba92dfad42df720ec812e2918ffea3b6a3d76d5df6d2f15a0642c1caa44ba4`). Reconciliation receipt: `artifacts/m14/l06-sae-reconciliation.run.json` (SHA-256 `7cc5f37d849c0683b5ab5115939010abaacce8d3c16d2689f586247733354586`). Genuine evidence:
 
 - `artifacts/m14/l06-sae.json` — SHA-256 `c2c4538b42e968663efaba5092f3b4385c95bdf4ee0900f87a428cbae32e3918`.
 - `artifacts/m14/l06-sae-run.json` — SHA-256 `68f2d57b77b27fd928af906e7e7a60d7fd1e1a3de1aee899caa1d60812140c22`.
