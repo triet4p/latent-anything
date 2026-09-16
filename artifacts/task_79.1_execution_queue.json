@@ -1,7 +1,7 @@
 {
   "schema_version": "sprint79-execution-queue-v1",
   "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
-  "source_commit": "44335cf709a6ad4dc60491e0f6ed675019313446",
+  "source_commit": "60c9c1900bf9a7a03ae81fdd65ef0f2a90ab3f91",
   "source_documents": [
     "docs/M14_REAL_SYSTEM_VALIDATION.md",
     "docs/EVIDENCE_GAP_PLAN.md",
@@ -445,8 +445,8 @@
       "surface": "OpenVLA policy/latent capture and intervention",
       "source_tests_evidence": "No OpenVLA adapter exists yet; contract is recorded in [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json) → no executable local test",
       "real_target_backend": "`openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` (base `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`); modified RLDS `openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`; LIBERO `@8f1084e3132a39270c3a13ebe37270a43ece2a01` / `libero_spatial`",
-      "environment_command": "authorized Linux NVIDIA CUDA host only; implement/review official Transformers `AutoProcessor`/`AutoModelForVision2Seq` path, then run pinned OpenVLA network lane in disposable clone",
-      "acceptance_artifact": "7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; blocked receipt [l19-openvla.json](../artifacts/m14/l19-openvla.json); config [l19-openvla.config.json](../artifacts/m14/l19-openvla.config.json)",
+      "environment_command": "authorized Linux NVIDIA CUDA host only; after the real adapter is present, run `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest -m network -q` in a disposable clone/cache",
+      "acceptance_artifact": "7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; config [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json)",
       "artifact_path": "artifacts/m14/l19-openvla.json",
       "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint; upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required; model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License",
       "status_blocker_owner": "blocked; this Windows host has no CUDA, checkpoint is not cached, network opt-in is disabled, and no OpenVLA capture adapter is implemented",
