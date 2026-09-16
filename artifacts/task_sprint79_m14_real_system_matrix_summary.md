@@ -92,6 +92,6 @@ l24-rc.json                  8317d98efb259cf45dc11e2edfae464fdb0b4b7a4beee38a4ec
 
 ## Delivery
 
-- Final commit: `4ed5652` (`docs: record M14 SAE lane probe`).
+- Evidence delivery was pushed on `origin/sprint79-local-gate-remediation`; the exact final revision is reported at handoff.
 - `origin/sprint79-local-gate-remediation` was pushed and matched the final local commit.
 - The working tree was clean after push.
