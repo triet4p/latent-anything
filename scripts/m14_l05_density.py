@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import subprocess
 import platform
 from pathlib import Path
 
@@ -20,6 +21,7 @@ MODEL_REVISION = "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
 MODEL_WEIGHTS_SHA256 = "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
 MIN_MEAN_AUROC = 0.90
 REQUIRE_PATH_FEASIBLE = True
+RUN_COMMAND = "uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l05_density.py"
 
 
 def _digest_strings(values: list[str]) -> str:
@@ -27,6 +29,7 @@ def _digest_strings(values: list[str]) -> str:
 
 
 def main() -> None:
+    source_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     process = psutil.Process()
     rss_peak = [process.memory_info().rss]
     texts = [f"A documented scientific observation number {i} concerns a stable process." for i in range(140)]
@@ -72,6 +75,8 @@ def main() -> None:
         and np.allclose(path.path[-1], values[121])
     )
     payload = {
+        "source_sha": source_sha,
+        "command": RUN_COMMAND,
         "schema_version": "m14-l05-run-v1",
         "model": {
             "id": MODEL_ID,

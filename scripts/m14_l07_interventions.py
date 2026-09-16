@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import subprocess
 import platform
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from latent_anything.methods import ActivationPatch, Lerp, SteeringVector
 MODEL_ID = "openai-community/gpt2"
 MODEL_REVISION = "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
 MODEL_WEIGHTS_SHA256 = "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
+RUN_COMMAND = "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l07_interventions.py"
 
 
 def _paired_metrics(values: np.ndarray) -> dict[str, object]:
@@ -59,6 +61,7 @@ def _paired_metrics(values: np.ndarray) -> dict[str, object]:
 
 
 def main() -> None:
+    source_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     process = psutil.Process()
     rss_peak = [process.memory_info().rss]
     pipe = TransformerLMIntegration(model_id=MODEL_ID, revision=MODEL_REVISION, device="cpu")
@@ -89,6 +92,8 @@ def main() -> None:
     target_latents = vae.encode(target)
     rss_peak[0] = max(rss_peak[0], process.memory_info().rss)
     payload = {
+        "source_sha": source_sha,
+        "command": RUN_COMMAND,
         "schema_version": "m14-l07-run-v1",
         "targets": {"gpt2": {"id": MODEL_ID, "revision": MODEL_REVISION, "weights_sha256": MODEL_WEIGHTS_SHA256, "license": "MIT", "layer": 6}, "vae": {"dataset": "sklearn digits", "revision": "scikit-learn==1.9.0", "license": "BSD-3-Clause", "seed": 42}},
         "seeds": {"gpt2_prompt_order": 0, "vae": 42},
