@@ -124,7 +124,7 @@ row's reviewed evidence contract, not merely a green unit test.
 | L21 | **Blocked; exact-HEAD smoke SKIP** | `lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de` plus `lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4`; remote CUDA preflight passed but pinned intervention skipped; model/data/license capture and corrected causal D3 evidence remain outstanding. |
 | L22 | **Accepted D2** | Real isolated filesystem/runtime contract: portable envelopes, ArtifactStore, SQLite cache, rollout/stream/async, recorder and resource bounds. |
 | L23 | **Accepted D1/contract** | 32 built-ins, 5 groups, plugin installation/discovery, CLI/config/serialization and 39/39 clean profile lanes. |
-| L24 | **Blocked** | External GitHub Actions account/release workflow and unresolved evidence thresholds remain unavailable; no publication/tag operation. |
+| L24 | **Blocked** | External Actions execution is demonstrably available via successful public run `34681280312` by `triet4p`; the release workflow/tag gate remains unrun and the independent evidence thresholds are unresolved; no publication/tag operation. |
 
 Totals: **13 accepted, 2 partial, 1 pending, 8 blocked**. All 24 rows are
 implementation-applicable; none was silently omitted. Skips remain skips and
@@ -172,8 +172,12 @@ manipulations:
    Policy integration owner.
 7. **L21:** obtain model/data/license authorization and run the corrected pinned
    simulator/intervention protocol; owner: SmolVLA/LeRobot owner.
-8. **L24 and release threshold:** obtain the external GitHub Actions account and
-   close the independent 95% core / 90% overall gate; owner: release owner.
+8. **L24 and release threshold:** the external Actions account is now
+   demonstrably available: public GitHub run `34681280312` for
+   `sprint79-local-gate-remediation` completed `success` with actor `triet4p`
+   (`https://github.com/triet4p/latent-anything/actions/runs/34681280312`).
+   The release workflow/tag gate has not been run because the independent
+   95% core / 90% overall evidence threshold is not met; owner: release owner.
 9. **Theory gaps:** implement or provision the exact named rows in
    `docs/EVIDENCE_GAP_PLAN.md`; owner assignment is recorded in that plan.
 
@@ -303,5 +307,5 @@ exhausted, line 598's explanation/coverage gate is not met, line 600 has an
 advisory marginal lane and an unmeasured blocked real-policy lane, and M14
 contains eight blocked rows plus partial/pending evidence. Line 603 must remain
 untouched until owners review these blockers, obtain required access/hardware,
-produce passing affected-matrix evidence, and confirm the external GitHub
-Actions account.
+produce passing affected-matrix evidence, and run the release workflow through
+the authorized `triet4p` Actions account only after the hard gates clear.
