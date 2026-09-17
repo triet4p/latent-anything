@@ -101,8 +101,9 @@ Reviewed quantitative results include:
 
 ## M14 row inventory
 
-The 24 applicable authority rows reconcile as follows. “Accepted” means the
-row's reviewed evidence contract, not merely a green unit test.
+The 24-row historical authority inventory has 23 applicable release rows; L19 is
+the one hardware-excluded historical row. “Accepted” means the row's reviewed
+evidence contract, not merely a green unit test.
 
 | Row | Outcome | Reviewed scope / blocker / owner action |
 |---|---|---|
@@ -121,12 +122,15 @@ row's reviewed evidence contract, not merely a green unit test.
 | L13 | **Accepted D2** | Compact VQ-VAE/sklearn digits, seed `42`, BSD-3-Clause; perplexity `13.090496630645841`, dead-code rate `0.0`. |
 | L14 | **Accepted bounded D2** | Compact VQVAE plus synthetic dynamics; horizon `8`, teacher-forced perplexity `2.684111787469027`; no named GAIA/Genie claim. |
 | L15 | **Accepted D2** | Deterministic/Gaussian/RSSM compact transitions; seeded reproducibility and state carry pass; real temporal checkpoint remains a gap. |
-| L19 | **Hardware-excluded historical D0** | Canonical BF16 OpenVLA remains in retained `l19-openvla*.json` history only; its measured contract requires unavailable >=24 GiB VRAM. No support, performance, or quality claim is authorized. |
+| L16 | **Accepted D2** | CEM/MPPI bounded planning over the recorded-trajectory substitute; return, replanning, bounds, finite-state, and budget gates pass; policy/search extensions remain gaps. |
 | L17 | **Blocked** | No trustworthy named 3DGS checkpoint, revision/hash, license, or access metadata. No unnamed substitution. |
 | L18 | **Blocked** | `lerobot/aloha_sim_insertion_human@cc571a3c661df81b566dbfde3d5c1e85fcdf7884`; Linux LeRobot-capable dataset/license/schema capture is unavailable. |
+| L19 | **Hardware-excluded historical D0** | Canonical BF16 OpenVLA remains in retained `l19-openvla*.json` history only; its measured contract requires unavailable >=24 GiB VRAM. No support, performance, or quality claim is authorized. |
 | L20 | **Blocked; exact-HEAD smoke SKIP** | `LeTau/diffusion_aloha_insertion@6126e33` plus dataset `lerobot/aloha_sim_insertion_human_image@d93d36a`; remote CUDA preflight passed but the pinned checkpoint test skipped, with upstream access/license capture unresolved. |
 | L21 | **Blocked; exact-HEAD smoke SKIP** | `lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de` plus `lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4`; remote CUDA preflight passed but pinned intervention skipped; model/data/license capture and corrected causal D3 evidence remain outstanding. |
 | L22 | **Accepted D2** | Real isolated filesystem/runtime contract: portable envelopes, ArtifactStore, SQLite cache, rollout/stream/async, recorder and resource bounds. |
+| L23 | **Accepted D1/contract** | 32 built-ins, 5 groups, plugin installation/discovery, CLI/config/serialization and 39/39 clean profile lanes. |
+| L24 | **Blocked** | External Actions execution is demonstrably available via successful public run `34681280312`; the release workflow/tag gate remains unrun and independent evidence thresholds are unresolved; no publication/tag operation. |
 Totals: **13 accepted, 2 partial, 1 pending, 7 blocked, 1 hardware-excluded**. The
 24-row historical inventory therefore has 23 applicable release lanes. The
 OpenVLA exclusion is not a pass, waiver, or denominator manipulation; all other
