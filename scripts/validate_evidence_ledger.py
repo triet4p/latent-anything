@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal, cast
 
-Classification = Literal["implementation-applicable", "benchmark-only", "contextual-background"]
+Classification = Literal["implementation-applicable", "benchmark-only", "contextual-background", "hardware-excluded"]
 Status = Literal["D0", "D1", "D2", "D3"]
 EvidenceRole = Literal["source", "test", "benchmark", "config", "artifact"]
 
@@ -54,6 +54,9 @@ def _read_ledger() -> dict[str, object]:
 
 
 def _classification(capability_id: str, ledger: dict[str, object]) -> Classification:
+    excluded = cast(dict[str, str], ledger.get("scope_exclusions", {}))
+    if capability_id in excluded:
+        return "hardware-excluded"
     contextual = set(cast(dict[str, str], ledger["contextual_background"]))
     benchmark = set(cast(list[str], ledger["benchmark_only"]))
     if capability_id in contextual:
@@ -146,19 +149,26 @@ def validate_capabilities(capabilities: tuple[Capability, ...]) -> list[str]:
     if len(known_ids) != len(capabilities):
         errors.append("Duplicate capability IDs were derived from docs/THEORY.md.")
     contextual = cast(dict[str, str], ledger["contextual_background"])
+    scope_exclusions = cast(dict[str, str], ledger.get("scope_exclusions", {}))
     all_configured_ids = set(contextual)
     all_configured_ids.update(cast(list[str], ledger["benchmark_only"]))
+    all_configured_ids.update(scope_exclusions)
     all_configured_ids.update(cast(dict[str, object], ledger["overrides"]).keys())
     for stale_id in sorted(all_configured_ids - known_ids):
         errors.append(f"Ledger references a stale capability ID: {stale_id}")
     for capability_id, rationale in contextual.items():
         if not rationale.strip():
             errors.append(f"{capability_id} has no contextual-background rationale.")
+    for capability_id, rationale in scope_exclusions.items():
+        if not rationale.strip():
+            errors.append(f"{capability_id} has no scope-exclusion rationale.")
     for capability in capabilities:
         if capability.status not in {"D0", "D1", "D2", "D3"}:
             errors.append(f"{capability.capability_id} has invalid status {capability.status!r}.")
         if capability.classification == "contextual-background" and capability.status != "D0":
             errors.append(f"{capability.capability_id} is contextual background and must remain D0.")
+        if capability.classification == "hardware-excluded" and capability.status != "D0":
+            errors.append(f"{capability.capability_id} is hardware-excluded and must remain D0.")
         if capability.status != "D0" and not capability.evidence:
             errors.append(f"{capability.capability_id} is {capability.status} but has no evidence links.")
         for record in capability.evidence:
@@ -204,7 +214,11 @@ def coverage_summary(capabilities: tuple[Capability, ...]) -> dict[str, tuple[in
         percentage = numerator / denominator if denominator else 0.0
         return numerator, denominator, percentage
 
-    applicable = [item for item in capabilities if item.classification != "contextual-background"]
+    applicable = [
+        item
+        for item in capabilities
+        if item.classification not in {"contextual-background", "hardware-excluded"}
+    ]
     core = [item for item in applicable if item.tier in core_tiers]
     return {"core": summarize(core), "overall": summarize(applicable)}
 

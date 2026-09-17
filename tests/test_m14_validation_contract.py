@@ -87,13 +87,27 @@ def test_sprint79_queue_reconciles_gap_map_and_completed_statuses() -> None:
     gap_map = json.loads(GAP_MAP.read_text(encoding="utf-8"))
     queue = json.loads(EXECUTION_QUEUE.read_text(encoding="utf-8"))
     gap_items = {item["id"]: item for item in gap_map["items"]}
+    excluded_items = {item["id"]: item for item in gap_map["excluded_items"]}
     queue_rows = queue["execution_queue"]
     queue_ids = [row["record_id"] for row in queue_rows]
 
-    assert len(gap_items) == len(queue_rows) == 40
+    assert len(gap_items) == len(queue_rows) == 39
+    assert len(excluded_items) == 1
+    assert set(excluded_items) == {"THY-X01-OPENVLA"}
     assert len(queue_ids) == len(set(queue_ids))
     assert set(queue_ids) == set(gap_items)
+    assert "THY-X01-OPENVLA" not in queue_ids
     assert all(row["current_evidence"] == gap_items[row["record_id"]]["status"] for row in queue_rows)
+    assert queue["reconciliation"]["historical_gap_records"] == 40
+    assert queue["reconciliation"]["excluded_records"] == [
+        {
+            "record_id": "THY-X01-OPENVLA",
+            "lane_id": "L19",
+            "status": "D0",
+            "scope_status": "hardware-excluded",
+            "reason": "Canonical BF16 OpenVLA execution requires >=24 GiB VRAM; the supported release ceiling is 16 GiB.",
+        }
+    ]
 
     qualifying = {row["record_id"] for row in queue_rows if row["current_evidence"] in {"D2", "D3"}}
     assert qualifying
@@ -102,7 +116,7 @@ def test_sprint79_queue_reconciles_gap_map_and_completed_statuses() -> None:
     assert status_counts == Counter(
         {
             "satisfied_qualifying": 13,
-            "ready_for_dependency_ordered_execution": 25,
+            "ready_for_dependency_ordered_execution": 24,
             "co_scheduled_scc_blocked_by_missing_implementation": 2,
         }
     )

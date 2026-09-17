@@ -1316,3 +1316,25 @@ pins.
 unrelated historical M14 artifacts remain governed by the existing repository
 rules. Temporary or downstream tracked evidence fixtures must carry the same
 explicit attribute contract.
+
+## [2026-09-17] Exclude canonical OpenVLA from the 16 GiB release scope
+
+**Decision:** Cap supported release-evidence execution at 16 GiB VRAM and remove
+the canonical BF16 L19/OpenVLA lane from active Sprint 79, M14, theory-coverage,
+performance, and release gates while retaining its D0 feasibility records.
+
+**Alternatives considered:** Keep OpenVLA as an indefinite release blocker,
+obtain a >=24 GiB CUDA host, or use quantization/offload in place of the
+canonical BF16 contract.
+
+**Reason:** The user confirmed that >=24 GiB hardware cannot be provisioned.
+The pinned checkpoint alone occupies about 14.05 GiB, leaving no defensible
+runtime margin on the authorized RTX 4060 Ti 16 GB host. Quantization or
+offload would change the declared evidence contract rather than validate it.
+
+**Consequences:** The 24-row M14 inventory retains L19 historically but has 23
+applicable release lanes; the non-core overall theory denominator decreases
+from 65 to 64 while the 63-row core denominator and all empirical gates remain
+unchanged. OpenVLA artifacts stay D0 and authorize no capability, performance,
+or quality claim. Reintroducing OpenVLA requires an explicit plan revision and
+adequate hardware.

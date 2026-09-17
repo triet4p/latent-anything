@@ -58,6 +58,9 @@
     "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
     "THY-T07-LATENT-IMAGINATION-HORIZON"
   ],
+  "scope_exclusions": {
+    "THY-X01-OPENVLA": "Hardware-excluded from the active release-evidence scope: canonical BF16 execution requires a defensible >=24 GiB CUDA host, unavailable under the permanent 16 GiB ceiling. Retain D0 history and make no OpenVLA support claim."
+  },
   "overrides": {
     "THY-T03-DISENTANGLEMENT": {
       "status": "D2",

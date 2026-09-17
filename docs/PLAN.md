@@ -183,7 +183,7 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 ### Milestone 14 - API freeze and stable release
 
 - [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup; retain aliases and keep release authorization pending in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md).
-- [Sprint 79](sprint-plans/sprint-79.md) - Run the 24-lane real-system release-candidate matrix and the exhaustive [theory evidence-gap plan](EVIDENCE_GAP_PLAN.md), including every export/registry/plugin/profile group and the explicit non-API/backlog lanes.
+- [Sprint 79](sprint-plans/sprint-79.md) - Run the 24-row real-system inventory with 23 applicable lanes under the supported 16 GiB GPU ceiling and the exhaustive [theory evidence-gap plan](EVIDENCE_GAP_PLAN.md) for that supported scope. L19/OpenVLA remains a historical D0 feasibility record but is excluded from active release gates because its canonical BF16 contract requires unavailable >=24 GiB hardware.
 - [Sprint 80](sprint-plans/sprint-80.md) - Publish `1.0.0` only after signed evidence, clean packaging, workflow/account clearance, and the stop-before-release gate.
 
 ## Completed Sprints

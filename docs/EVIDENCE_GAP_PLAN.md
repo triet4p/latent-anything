@@ -1,26 +1,31 @@
 # Theory evidence-gap closure plan
 
 This is the Sprint 78.38 execution plan for the non-qualifying theory rows,
-updated with the Sprint 79 L02 and L03 results. The levels in
-[`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative; the
-immutable L02 artifact supports exactly five D2 promotions and the immutable
-L03 artifact supports exactly three D2 promotions. Later row-level promotions
-are recorded below without changing the unchecked Sprint 79 line 595. The
-row-level machine-readable map is
-[`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
+updated with the Sprint 79 L02 and L03 results and the approved 16 GiB scope
+revision. The levels in [`docs/evidence-ledger.json`](evidence-ledger.json)
+remain authoritative; the immutable L02 artifact supports exactly five D2
+promotions and the immutable L03 artifact supports exactly three D2 promotions.
+Later row-level promotions are recorded below without changing the unchecked
+Sprint 79 line 595. The active row-level machine-readable map is
+[`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json);
+its historical `THY-X01-OPENVLA` record is retained under `excluded_items` and
+is not an active execution row.
 
 ## Current gate and arithmetic
 
 The read-only validator reports 107 capabilities, **41/63 core (65.079365%)**
-and **41/65 overall (63.076923%)**. The core denominator contains 63
-implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. The validator reports **19 D0 rows**
-and **5 D1 rows**; a qualifying row is D2 or D3. At least **19 additional
-core qualifiers** are required to reach **ceil(0.95 × 63) = 60**, and at least
-**18 additional overall qualifiers** are required to reach
-**ceil(0.90 × 65) = 59**. The core gate is therefore the binding gate. Headline
-model, causal explanation, and named integration claims target D3; ordinary
-algorithm capabilities target D2 unless their row says otherwise.
+and **41/64 scoped overall (64.0625%)**. The core denominator contains 63
+implementation-applicable or benchmark-only rows in T01–T09/T03B; the scoped
+overall denominator adds the applicable X01 row. The historical OpenVLA X01 row
+is hardware-excluded from active coverage, remains D0, and authorizes no
+support claim. The validator reports **19 D0 rows** and **5 D1 rows** among
+the active applicable inventory; a qualifying row is D2 or D3. At least
+**19 additional core qualifiers** are required to reach
+**ceil(0.95 × 63) = 60**, and at least **17 additional scoped-overall
+qualifiers** are required to reach **ceil(0.90 × 64) = 58**. The core gate is
+therefore the binding gate. Headline model, causal explanation, and named
+integration claims target D3; ordinary algorithm capabilities target D2 unless
+their row says otherwise.
 
 ### Sprint 79 L02 partial result
 
@@ -294,14 +299,21 @@ map; lane-level defaults are specified in the next section.
 | `THY-T08-REPRESENTATION-COLLAPSE` | D2 | yes | no | D2 | L12 | Compact JEPA health and held-out prediction artifact demonstrates non-collapse and gain over a collapsed baseline; named I-JEPA/LeWM D3 remains separate |
 | `THY-T08-I-JEPA-ASSRAN-ET-AL-2023` | D0 | yes | yes | D3 | L12 | Compact JEPA is not the named I-JEPA checkpoint |
 | `THY-T08-V-JEPA-BARDES-ET-AL-2024` | D0 | yes | yes | D3 | L12 | No video JEPA implementation/model lane |
-| `THY-T09-EMA-CODEBOOK-UPDATE` | D0 | yes | no | D2 | L13 | No dedicated EMA update evidence |
 | `THY-T09-RESIDUAL-VQ-SOUNDSTREAM-ENCODEC` | D0 | yes | no | D2 | L13 | No residual-VQ implementation/evidence |
 | `THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ` | D0 | yes | no | D2 | L13 | No FSQ implementation/evidence |
 | `THY-T09-GAIA-1-WAYVE-2023` | D0 | yes | yes | D3 | L14 | Named model survey only |
 | `THY-T09-GENIE-GOOGLE-2024` | D0 | yes | yes | D3 | L14 | Named model survey only |
-| `THY-X01-OPENVLA` | D0 | no | yes | D3 | L19 | Pinned `openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` with base `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`, modified LIBERO RLDS `@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`, LIBERO `@8f1084e3132a39270c3a13ebe37270a43ece2a01`, and action/preprocessing/runtime contract are recorded; no local OpenVLA adapter, checkpoint cache, CUDA device, or real-policy artifact |
 | `THY-X01-LEWM-LEWORLDMODEL-2026` | D1 | no | yes | D3 | L12 | Compact JEPA is not real LeWM evidence |
 
+### Historical hardware-excluded record
+
+`THY-X01-OPENVLA` remains a retained D0 feasibility record in the map's
+`excluded_items` section, not an active gap or release-gate row. Its canonical
+BF16 checkpoint requires a defensible **>=24 GiB** CUDA host, unavailable under
+the supported 16 GiB ceiling. The D0 config, lane receipt, and 16 GiB
+feasibility receipt remain immutable history; this exclusion is not a pass,
+waiver, or OpenVLA support claim. Reintroducing L19 requires an explicit scope
+revision, adequate hardware, and the full adapter/trial contract.
 ## Execution contract and ordering
 
 Execute in dependency order. First close bounded local D2 rows in L01/L02,
@@ -347,8 +359,9 @@ by 78.38 itself.
 - **L17 3DGS:** remains blocked until a named checkpoint, revision,
   license/access, CUDA host, and disposable remote lane exist. The existing
   deterministic/reference renderer must not be promoted to D3.
-- **L19/OpenVLA:** remains a separate named-policy D3 lane; do not count it as
-  core. ACT/Diffusion/SmolVLA lanes do not prove OpenVLA.
+- **L19/OpenVLA:** is a historical hardware-excluded record, not an active
+  named-policy execution row or release blocker. Its D0 feasibility evidence
+  authorizes no OpenVLA claim; ACT/Diffusion/SmolVLA lanes do not prove it.
 
 ## Explicit blockers and waivers
 
@@ -560,10 +573,10 @@ Focused validation `uv run pytest tests/test_dictionary_learning.py -q` passed
 **3 tests**. The ledger validator returned `errors: []` at **41/63 core
 (65.079365%)** and **41/65 overall (63.076923%)** before this D0-only contract
 update. OpenVLA remains D0 and Sprint 79 line 595 remains unchanged.
+### Historical excluded record — L19 OpenVLA feasibility (former queue position 40)
 
-### Queue position 40 — L19 OpenVLA prerequisite closure
-
-`THY-X01-OPENVLA` remains D0 and is not counted in the core denominator. The
+`THY-X01-OPENVLA` remains D0 and is hardware-excluded from active coverage
+and execution under the permanent 16 GiB ceiling. Its historical rationale,
 authoritative fine-tuned checkpoint is
 `openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873`,
 whose base is `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`.

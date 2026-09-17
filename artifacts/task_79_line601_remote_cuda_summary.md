@@ -98,7 +98,7 @@ throwaway environment. No persistent server checkout was read or modified.
 | L12 I-JEPA | **Blocked** | Missing checkpoint provisioning and model-card license/access; no download started. |
 | L17 3DGS | **Blocked** | No trustworthy named checkpoint, revision/hash, or license/access metadata; no unnamed substitute started. |
 | L18 LeRobot dataset | **Outside CUDA scope / blocked** | Dataset inspection is a Linux/LeRobot data lane, not a CUDA lane; authoritative receipt still requires the missing owner-authorized dataset/license capture. |
-| L19 OpenVLA | **Explicit non-goal/blocker** | Canonical OpenVLA BF16 workload is not rerun on 16 GB, per accepted feasibility blocker and line-601 scope. |
+| L19 OpenVLA | **Hardware-excluded historical row** | Canonical OpenVLA BF16 is not rerun on 16 GB and is removed from active CUDA/release execution; retained feasibility receipts authorize no support claim. |
 | L20 Diffusion Policy | **SKIP/blocker retained** | Exact-HEAD CUDA preflight succeeded, but pinned checkpoint test skipped; no semantic pass claimed. |
 | L21 SmolVLA | **SKIP/blocker retained** | Exact-HEAD CUDA preflight succeeded, but pinned intervention test skipped; no semantic pass claimed. |
 

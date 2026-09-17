@@ -104,11 +104,12 @@ first-sample/JIT/filesystem noise on this Windows host, not a semantic regressio
 
 ## Additional Notes
 
-* No source, gate, threshold, workload, snapshot, ledger, map, or queue change; throwaway outputs live
-  only in `/tmp` (rerun/profile/compare JSON), nothing written to `artifacts/`.
-* Graphify queried first; no code changed so no graph rebuild was required.
-* Branch clean before and after (this commit only adds this summary).
+* No source, gate, threshold, workload, snapshot, or empirical acceptance gate changed. The
+  supported-scope ledger, map, and queue now explicitly exclude canonical BF16 OpenVLA/L19
+  from active execution while retaining its D0 feasibility history; no quantized/offloaded
+  substitute was introduced.
+* Graphify queried first; no product code changed.
 * Line 600 stays `[ ]` unchecked: 9/10 budgets PASS + 1 advisory-marginal + 1 externally-blocked
-  real-policy lane; the plan requires the full contract to check it.
-* Lines 595/598/599 states and accepted counts (41/63 core, 41/65 overall; 599 checked) preserved.
-* Line 601 (remote-CUDA invariants lane) may proceed independently; it was not started here.
+  SmolVLA real-policy lane; the plan requires the full supported-scope contract to check it.
+* Lines 595/598/599 states and accepted counts (41/63 core, 41/64 scoped overall; 599 checked)
+  remain honest. L21 SmolVLA remains active at its documented ~16 GiB profile.

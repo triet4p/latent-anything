@@ -1,15 +1,26 @@
 {
   "schema_version": "sprint79-execution-queue-v1",
-  "purpose": "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes.",
-  "source_commit": "60c9c1900bf9a7a03ae81fdd65ef0f2a90ab3f91",
+  "purpose": "Deterministic dependency-ordered queue reconciling the 39 active Sprint 79 gap records with all 24 M14 lanes; one historical hardware-excluded L19/OpenVLA record is retained.",
+  "source_commit": "4c50c0568b3e3ad8a62a91cb25f7879aaad1e8d5",
   "source_documents": [
     "docs/M14_REAL_SYSTEM_VALIDATION.md",
     "docs/EVIDENCE_GAP_PLAN.md",
     "artifacts/task_78.38_gap_map.json"
   ],
   "reconciliation": {
-    "gap_records": 40,
-    "unique_gap_records": 40,
+    "gap_records": 39,
+    "active_gap_records": 39,
+    "historical_gap_records": 40,
+    "excluded_records": [
+      {
+        "record_id": "THY-X01-OPENVLA",
+        "lane_id": "L19",
+        "status": "D0",
+        "scope_status": "hardware-excluded",
+        "reason": "Canonical BF16 OpenVLA execution requires >=24 GiB VRAM; the supported release ceiling is 16 GiB."
+      }
+    ],
+    "unique_gap_records": 39,
     "m14_lanes": 24,
     "lane_ids": [
       "L01",
@@ -37,24 +48,25 @@
       "L23",
       "L24"
     ],
-    "mapped_lanes": 14,
+    "mapped_lanes": 13,
     "unmapped_m14_lanes": [
       "L07",
       "L09",
       "L10",
       "L11",
       "L18",
+      "L19",
       "L20",
       "L21",
       "L22",
       "L23",
       "L24"
     ],
-    "execution_records": 40,
+    "execution_records": 39,
     "queue_status_counts": {
       "satisfied_qualifying": 13,
       "co_scheduled_scc_blocked_by_missing_implementation": 2,
-      "ready_for_dependency_ordered_execution": 25
+      "ready_for_dependency_ordered_execution": 24
     },
     "external_prerequisite_edges": 9,
     "external_prerequisites": [
@@ -448,12 +460,10 @@
       "environment_command": "authorized Linux NVIDIA CUDA host only; after the real adapter is present, run `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest -m network -q` in a disposable clone/cache",
       "acceptance_artifact": "7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; config [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json)",
       "artifact_path": "artifacts/m14/l19-openvla.json",
-      "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint (~14.05 GiB weights floor); authorized remote measurement found RTX 4060 Ti 16,380 MiB total / 12,195 MiB free / 3,754 MiB used, with ollama llama-server using 3,576 MiB. Current free VRAM cannot hold weights alone; idle-card margin is only ~1.95 GiB before runtime overhead. Upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required. Model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License.",
-      "status_blocker_owner": "blocked; canonical BF16 OpenVLA is infeasible with a defensible margin on the measured 16 GB host, no checkpoint download/model construction was attempted, and no OpenVLA capture adapter is implemented; retain D0 and use the recorded feasibility artifact",
-      "gap_record_ids": [
-        "THY-X01-OPENVLA"
-      ],
-      "gap_record_count": 1
+      "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint; upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required; model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License",
+      "status_blocker_owner": "Hardware-excluded from active release scope; canonical BF16 requires >=24 GiB VRAM, unavailable under the supported 16 GiB ceiling; retained D0 history and no OpenVLA claim",
+      "gap_record_ids": [],
+      "gap_record_count": 0
     },
     {
       "lane_id": "L20",
@@ -1338,25 +1348,30 @@
       "acceptance": "held-out reconstruction < 0.5x train-mean baseline and mean held-out L0 <= 2.0",
       "artifact": "artifacts/m14/l06-dictionary-learning.json",
       "blocker": "none for bounded D2; named model and D3 SAE claims remain separate"
-    },
+    }
+  ],
+  "excluded_items": [
     {
-      "position": 40,
-      "record_id": "THY-X01-OPENVLA",
-      "lane_id": "L19",
-      "current_evidence": "D0",
-      "target_evidence": "D3",
-      "dependency_depth": 6,
-      "internal_dependencies": [
-        "THY-T05-ACTIVATION-PATCHING"
-      ],
-      "external_prerequisites": [],
-      "external_prerequisite_details": [],
-      "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
+      "id": "THY-X01-OPENVLA",
+      "tier": "X01",
+      "status": "D0",
+      "classification": "implementation-applicable",
+      "core": false,
+      "headline": true,
+      "capability": "OpenVLA policy/latent representation",
+      "evidence": [],
+      "gap": "Authoritative checkpoint, dataset, environment, action/preprocessing contract, and runtime requirements are pinned, but no OpenVLA adapter/capture implementation or real-policy artifact exists. Canonical BF16 feasibility is now measured and blocked on the authorized 16 GB host: the 15,082,474,368-byte (~14.05 GiB) weights floor exceeds currently free VRAM and leaves only ~1.95 GiB on an otherwise idle card.",
+      "target": "D3",
+      "lane": "L19",
+      "prerequisites": "openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873; base openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f; openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551 (libero_spatial_no_noops); LIBERO@8f1084e3132a39270c3a13ebe37270a43ece2a01; Linux NVIDIA CUDA with >=24 GiB recommended; license owner/legal review",
       "command": "provision pinned public checkpoint/data in an isolated remote lane, implement/review the official Transformers OpenVLA adapter, then run the declared LIBERO-Spatial paired evaluation",
+      "tests": "7-vector finite action shape, exact image/prompt preprocessing and token decode/unnormalization, gripper postprocessing, 500-trial task success, paired intervention/control",
       "acceptance": "task success >= 0.80 against the published LIBERO-Spatial reference plus owner-frozen causal intervention threshold and exact revision manifest",
       "artifact": "artifacts/m14/l19-openvla.json",
-      "blocker": "Canonical BF16 checkpoint is 15,082,474,368 bytes (~14.05 GiB weights floor); measured RTX 4060 Ti has 16,380 MiB total, 12,195 MiB free, and 3,754 MiB used (ollama llama-server 3,576 MiB), so current free VRAM is below the weights floor and an idle-card margin is only ~1.95 GiB. Do not download or trigger OOM. Feasibility receipt: artifacts/m14/l19-openvla-16gb-feasibility.json. No production OpenVLA adapter/capture exists; D0 retained until a >=24 GiB host and full contract are available."
+      "blocker": "Measured authorized RTX 4060 Ti state: 16,380 MiB total, 12,195 MiB free, 3,754 MiB used, with ollama llama-server at 3,576 MiB. Current free VRAM is below the canonical BF16 weights floor; do not download or trigger OOM. Detailed receipt: artifacts/m14/l19-openvla-16gb-feasibility.json. No OpenVLA adapter/capture implementation; D0 retained.",
+      "depends_on": [
+        "THY-T05-ACTIVATION-PATCHING"
+      ]
     }
   ],
   "headline_blockers": [

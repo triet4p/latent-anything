@@ -26,13 +26,15 @@ The authoritative sources are:
 - [Sprint 79 plan](../docs/sprint-plans/sprint-79.md), especially lines
   594–603.
 - [M14 real-system validation contract](../docs/M14_REAL_SYSTEM_VALIDATION.md)
-  and its 24-row matrix.
+  and its 24-row historical matrix (23 applicable release lanes).
 - [Evidence ledger](../docs/evidence-ledger.json), validated by
   `scripts/validate_evidence_ledger.py`.
 - [Evidence gap plan](../docs/EVIDENCE_GAP_PLAN.md) and machine-readable
   [`task_78.38_gap_map.json`](task_78.38_gap_map.json).
 - Reviewed task reports for lines 596–601 and the immutable row receipts under
   [`artifacts/m14/`](m14/).
+OpenVLA/L19 remains discoverable only through its historical D0 config and
+feasibility receipts; it is hardware-excluded from active release scope.
 
 Evidence is additive and source-bound. A historical artifact is accepted only
 at the exact source SHA recorded by its receipt; a later report does not
@@ -45,11 +47,11 @@ promotion.
 
 | Sprint 79 line | Status | Evidence and remaining condition |
 |---|---|---|
-| 594 M14 matrix execution/reconciliation | **CHECKED** | 13/24 accepted, 2/24 partial (L02/L04), 1/24 pending (L06), 8/24 externally/prerequisite blocked; see [`task_sprint79_m14_real_system_matrix_summary.md`](task_sprint79_m14_real_system_matrix_summary.md). |
+| 594 M14 matrix execution/reconciliation | **CHECKED** | 13/23 applicable release lanes accepted, 2/23 partial (L02/L04), 1/23 pending (L06), 7/23 externally/prerequisite blocked; L19 is one retained hardware-excluded historical row. |
 | 595 exhaustive theory evidence-gap plan | **UNCHECKED** | All reachable rows were reconciled, but the plan is not exhausted and D0/D1 statuses remain. |
 | 596 compatibility snapshot entry paths | **CHECKED** | 205 current / 202 canonical exports, 18 aliases, 32 built-ins, 5 plugin groups, 12 profiles; snapshot SHA `48d64721b73a9d0c9e73da4a41940008c70dfa7841e500bc11bc8dcd22ddf7f6`. |
 | 597 pinned real-model matrix | **CHECKED** | Accepted immutable rows and explicit checkpoint/license/platform/CUDA blockers reconciled; no blocked row was promoted. |
-| 598 explanation-validity controls and coverage | **UNCHECKED** | Controls and failures are recorded, but coverage is 41/63 core and 41/65 overall, below 95%/90%. |
+| 598 explanation-validity controls and coverage | **UNCHECKED** | Controls and failures are recorded, but coverage is 41/63 core and 41/64 scoped overall, below 95%/90%. |
 | 599 contract/export/registry/profile verification | **CHECKED** | 202 canonical exports and all named contract categories verified; 39/39 clean profile lanes passed. |
 | 600 performance and LeRobot overhead | **UNCHECKED** | 9/10 advisory budgets passed; bounded streaming is marginal and real-policy CUDA timing remains blocked. |
 | 601 remote CUDA process/evidence | **CHECKED** | Exact-SHA disposable-clone runs, isolated caches, CUDA probes, focused results, and independent cleanup audits are recorded in [`task_79_line601_remote_cuda_summary.md`](task_79_line601_remote_cuda_summary.md). |
@@ -59,12 +61,13 @@ promotion.
 ## Coverage gate and confidence/statistical evidence
 
 The live validator returned `errors: []`, core `[41, 63,
-0.6507936507936508]`, and overall `[41, 65, 0.6307692307692307]`.
+0.6507936507936508]`, and scoped overall `[41, 64, 0.640625]`.
 The exact gates are `ceil(0.95 × 63) = 60` core qualifiers and
-`ceil(0.90 × 65) = 59` overall qualifiers. The shortfalls are therefore **19
-core** and **18 overall**. These percentages are descriptive evidence, not a
-waiver. The denominator is unchanged; contextual-background rows remain
-excluded only under the ledger's classification rules.
+`ceil(0.90 × 64) = 58` scoped-overall qualifiers. The shortfalls are therefore
+**19 core** and **17 scoped overall**. These percentages are descriptive
+evidence, not a waiver. The OpenVLA row is hardware-excluded by the ledger's
+explicit scope classification; its D0 history remains discoverable and makes
+no support claim.
 
 Reviewed quantitative results include:
 
@@ -118,19 +121,16 @@ row's reviewed evidence contract, not merely a green unit test.
 | L13 | **Accepted D2** | Compact VQ-VAE/sklearn digits, seed `42`, BSD-3-Clause; perplexity `13.090496630645841`, dead-code rate `0.0`. |
 | L14 | **Accepted bounded D2** | Compact VQVAE plus synthetic dynamics; horizon `8`, teacher-forced perplexity `2.684111787469027`; no named GAIA/Genie claim. |
 | L15 | **Accepted D2** | Deterministic/Gaussian/RSSM compact transitions; seeded reproducibility and state carry pass; real temporal checkpoint remains a gap. |
-| L16 | **Accepted D2** | CEM return `2.835069606822939`, MPPI return `2.2274987449276558`, baseline `1.4485021636139839`, 576-evaluation budget; policy/search extensions remain gaps. |
+| L19 | **Hardware-excluded historical D0** | Canonical BF16 OpenVLA remains in retained `l19-openvla*.json` history only; its measured contract requires unavailable >=24 GiB VRAM. No support, performance, or quality claim is authorized. |
 | L17 | **Blocked** | No trustworthy named 3DGS checkpoint, revision/hash, license, or access metadata. No unnamed substitution. |
 | L18 | **Blocked** | `lerobot/aloha_sim_insertion_human@cc571a3c661df81b566dbfde3d5c1e85fcdf7884`; Linux LeRobot-capable dataset/license/schema capture is unavailable. |
-| L19 | **Blocked / explicit non-goal** | Canonical OpenVLA BF16 checkpoint `openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` has `7,541,237,184` parameters and `15,082,474,368` BF16 bytes (~14.05 GiB), infeasible on the authorized RTX 4060 Ti 16 GB with runtime headroom; do not retry. |
 | L20 | **Blocked; exact-HEAD smoke SKIP** | `LeTau/diffusion_aloha_insertion@6126e33` plus dataset `lerobot/aloha_sim_insertion_human_image@d93d36a`; remote CUDA preflight passed but the pinned checkpoint test skipped, with upstream access/license capture unresolved. |
 | L21 | **Blocked; exact-HEAD smoke SKIP** | `lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de` plus `lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4`; remote CUDA preflight passed but pinned intervention skipped; model/data/license capture and corrected causal D3 evidence remain outstanding. |
 | L22 | **Accepted D2** | Real isolated filesystem/runtime contract: portable envelopes, ArtifactStore, SQLite cache, rollout/stream/async, recorder and resource bounds. |
-| L23 | **Accepted D1/contract** | 32 built-ins, 5 groups, plugin installation/discovery, CLI/config/serialization and 39/39 clean profile lanes. |
-| L24 | **Blocked** | External Actions execution is demonstrably available via successful public run `34681280312` by `triet4p`; the release workflow/tag gate remains unrun and the independent evidence thresholds are unresolved; no publication/tag operation. |
-
-Totals: **13 accepted, 2 partial, 1 pending, 8 blocked**. All 24 rows are
-implementation-applicable; none was silently omitted. Skips remain skips and
-failures remain failures.
+Totals: **13 accepted, 2 partial, 1 pending, 7 blocked, 1 hardware-excluded**. The
+24-row historical inventory therefore has 23 applicable release lanes. The
+OpenVLA exclusion is not a pass, waiver, or denominator manipulation; all other
+lanes remain governed by their empirical gates and blockers.
 
 ## Pass, failure, waiver, and exclusion accounting
 
@@ -166,21 +166,18 @@ manipulations:
    lane; owner: renderer owner.
 4. **L18:** obtain Linux LeRobot dataset access, schema/license capture, and a
    LeRobot-capable environment; owner: dataset owner.
-5. **L19/OpenVLA:** move canonical BF16 execution to an authorized >=24 GiB
-   CUDA host, then implement the adapter and 500-trial LIBERO-Spatial contract;
-   owner: VLA owner. The 16 GB host is not a valid waiver target.
-6. **L20:** obtain upstream model/data access and license capture, then rerun
+5. **L20:** obtain upstream model/data access and license capture, then rerun
    the pinned pair through the remote Linux/CUDA workflow; owner: Diffusion
    Policy integration owner.
-7. **L21:** obtain model/data/license authorization and run the corrected pinned
+6. **L21:** obtain model/data/license authorization and run the corrected pinned
    simulator/intervention protocol; owner: SmolVLA/LeRobot owner.
-8. **L24 and release threshold:** the external Actions account is now
+7. **L24 and release threshold:** the external Actions account is now
    demonstrably available: public GitHub run `34681280312` for
    `sprint79-local-gate-remediation` completed `success` with actor `triet4p`
    (`https://github.com/triet4p/latent-anything/actions/runs/34681280312`).
    The release workflow/tag gate has not been run because the independent
    95% core / 90% overall evidence threshold is not met; owner: release owner.
-9. **Theory gaps:** implement or provision the exact named rows in
+8. **Theory gaps:** implement or provision the exact named rows in
    `docs/EVIDENCE_GAP_PLAN.md`; owner assignment is recorded in that plan.
 
 No owner waiver has scope, rationale, or expiry that authorizes a stable-release
@@ -304,10 +301,11 @@ to their own artifacts and are not conflated with either value.
 ## Final release disposition
 
 This report is complete and line 602 may be checked. It does **not** approve a
-stable release: coverage is 41/63 core and 41/65 overall, line 595 is not
+stable release: coverage is 41/63 core and 41/64 scoped overall, line 595 is not
 exhausted, line 598's explanation/coverage gate is not met, line 600 has an
-advisory marginal lane and an unmeasured blocked real-policy lane, and M14
-contains eight blocked rows plus partial/pending evidence. Line 603 must remain
-untouched until owners review these blockers, obtain required access/hardware,
-produce passing affected-matrix evidence, and run the release workflow through
-the authorized `triet4p` Actions account only after the hard gates clear.
+advisory marginal lane and an unmeasured blocked SmolVLA real-policy lane, and
+M14 contains seven blocked applicable rows plus one hardware-excluded historical
+row and partial/pending evidence. Line 603 must remain untouched until owners
+review these blockers, produce passing affected-matrix evidence, and run the
+release workflow through the authorized `triet4p` Actions account only after the
+hard gates clear.
