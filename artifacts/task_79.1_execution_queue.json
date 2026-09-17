@@ -1352,7 +1352,7 @@
       "external_prerequisites": [],
       "external_prerequisite_details": [],
       "cycle_conflict": null,
-      "queue_status": "blocked_external_resource",
+      "queue_status": "ready_for_dependency_ordered_execution",
       "command": "provision pinned public checkpoint/data in an isolated remote lane, implement/review the official Transformers OpenVLA adapter, then run the declared LIBERO-Spatial paired evaluation",
       "acceptance": "task success >= 0.80 against the published LIBERO-Spatial reference plus owner-frozen causal intervention threshold and exact revision manifest",
       "artifact": "artifacts/m14/l19-openvla.json",
