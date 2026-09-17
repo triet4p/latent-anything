@@ -17,7 +17,7 @@ Now, our projects include:
 11. [PORTABLE_ARTIFACTS](PORTABLE_ARTIFACTS.md): Versioned Arrow nodes, typed envelopes, atomic storage, and the SQLite cache.
 12. [OPTIONAL_INTEGRATIONS](OPTIONAL_INTEGRATIONS.md): Optional LeRobot, MLflow, W&B, and import-isolation boundaries.
 13. [PERFORMANCE](PERFORMANCE.md): Sprint 77 Phase-A workloads, profiles, budgets, and Rust-decision evidence boundary.
-14. [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md): Hợp đồng kiểm chứng hệ thống thực, coverage 24 lane, API/registry/plugin/profile matrix, và điều kiện dừng phát hành cho Sprints 78–80.
+14. [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md): Hợp đồng kiểm chứng hệ thống thực, coverage 24 lane, API/registry/plugin/profile matrix, và điều kiện dừng phát hành cho Sprints 78–81.
 15. [PLAN](PLAN.md): Global stable-release gates, milestones, and sprint sequencing.
 16. [EVIDENCE_LEDGER](EVIDENCE_LEDGER.md): Human-readable D0–D3 evidence contract and promotion rules.
 17. [DIFFUSERS_INTEGRATION](DIFFUSERS_INTEGRATION.md): Revision-pinned Diffusers VAE boundary and D1/D2 evidence scope.

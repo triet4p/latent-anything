@@ -103,13 +103,14 @@ infer a new contract from an implementation detail.
 
 SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and an
 unnamed 3DGS checkpoint are not stable public APIs. They remain backlog or
-M14 blocker rows. Likewise, a compact fixture or a historical artifact does
-not establish a real checkpoint, hosted provider, CUDA, or model-quality
-claim. Diffusers, Transformers, gsplat, LeRobot, MLflow, W&B, Plotly/Kaleido,
-and related provider objects are optional boundaries, not base-package API
-requirements.
+M14 blocker rows and do not block the `0.9` pre-stable baseline. Likewise, a
+compact fixture or a historical artifact does not establish a real checkpoint,
+hosted provider, CUDA, or model-quality claim. Diffusers, Transformers,
+gsplat, LeRobot, MLflow, W&B, Plotly/Kaleido, and related provider objects are
+optional boundaries, not base-package API requirements.
 
-For evidence and release qualification, see
+For evidence and qualification, see
 [`M14_REAL_SYSTEM_VALIDATION.md`](M14_REAL_SYSTEM_VALIDATION.md),
 [`EVIDENCE_LEDGER.md`](EVIDENCE_LEDGER.md), and the
-[Sprint 79 theory evidence-gap plan](EVIDENCE_GAP_PLAN.md).
+[Sprint 79 theory evidence-gap plan](EVIDENCE_GAP_PLAN.md). Sprint 80 is the
+depth gate; Sprint 81 owns stable publication.

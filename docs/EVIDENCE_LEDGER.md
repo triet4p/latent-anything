@@ -36,16 +36,22 @@ Every THEORY topic is exactly one of:
   knowledge that informs decisions without becoming a product capability. It
   is explicitly excluded only as an `{id: rationale}` ledger record.
 
-The two release percentages are exact:
+The two portfolio-health percentages are exact:
 
 - **Core coverage**: qualifying (`D2` or `D3`) implementation-applicable and
   benchmark-only topics in T01–T09 (including T03B), divided by all topics in
-  those tiers with either classification. Required: **at least 95%**.
+  those tiers with either classification. Historical threshold (not a `0.9`
+  or depth gate): **at least 95%**.
 - **Overall coverage**: qualifying implementation-applicable and benchmark-only
-  topics in every tier, divided by all such topics. Required: **at least 90%**.
+  topics in every tier, divided by all such topics. Historical threshold (not
+  a `0.9` or depth gate): **at least 90%**.
 
-The current beta inventory is intentionally below these gates. D1 is useful
-evidence but is not a stable-release claim.
+The `0.9.0` baseline inventory is **41/63 core and 41/64 scoped overall**,
+intentionally below those historical thresholds. The percentages are retained
+as evidence-health measurements, not waived, relabeled, passed, or treated as
+`0.9` blockers. D1 is useful evidence but is not a `0.9`/`1.0` claim. Sprint 80
+is the depth gate for the supported diagnostic loop; Sprint 81 owns stable
+publication.
 
 ## Contract-change evidence
 
@@ -264,10 +270,11 @@ independent core rows are promoted to D2:
 `THY-T06-TRAJECTORY-SIMILARITY-METRICS` remains D0 because its
 self-to-indexwise ratio was `17.015624999997637` against the `0.95` threshold.
 The lane records model-induced latent sequences from held-out digits, not
-physical trajectories, and makes no Fréchet claim. Coverage is now 30/63 core
-(`47.6%`) and 30/65 overall (`46.2%`), leaving 35 D0/D1 rows (33 core and 2
-non-core); 30 additional core and 29 additional overall qualifiers are needed
-for the release gates.
+physical trajectories, and makes no Fréchet claim. Coverage at that point was
+30/63 core (`47.6%`) and 30/65 overall (`46.2%`), leaving 35 D0/D1 rows (33
+core and 2 non-core); 30 additional core and 29 additional overall qualifiers
+would have been needed for the former breadth thresholds, which are now
+portfolio-health facts rather than `0.9` or depth gates.
 
 Sprint 79 queue position 13 reran the
 `THY-T01-MANIFOLD-HYPOTHESIS` record at exact source SHA
@@ -325,9 +332,11 @@ direct-PowerShell-SSH 8/8 CUDA verification preserved in sanitized metadata
 and transcript digests; it is not an L11 promotion. Attempts 1–3 of the
 canonical L03 capture workflow remain capture-only failures, while attempt 4's
 raw transcript is superseded by its sanitized capture-audit artifact.
-Current validator coverage is **33/63 core (52.4%)** and **33/65 overall
+Validator coverage at that point was **33/63 core (52.4%)** and **33/65 overall
 (50.8%)**, leaving 32 D0/D1 rows (30 core and 2 non-core); 27 additional core
-and 26 additional overall qualifiers are needed for the release gates.
+and 26 additional overall qualifiers would have been needed for the former
+breadth thresholds, which are now portfolio-health facts rather than `0.9` or
+depth gates.
 
 Sprint 79 L16 reconciles the generic model-predictive-control row
 `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` at D2. The target-level lane uses
@@ -450,10 +459,12 @@ than permanently prohibiting it; its rationale and reconsideration conditions
 are in `.agents/memory/decisions.md` and
 `artifacts/task_sprint77_phase_b_task01_rust_deferral_summary.md`. The Phase-A
 LeRobot case remains only an offline captured-latent NumPy boundary, native RSS
-is unavailable on the recorded Windows run, and no multi-environment or real
-policy throughput claim is promoted. Sprint 77 Phase A/B closure validation
-and cumulative audit are complete for the supported scope; carryover gates and
-Milestone 14 are not started.
+is unavailable on the recorded Windows run, and no multi-environment, real-policy,
+LeRobot-overhead, heavyweight-model-timing, or CUDA throughput claim is made or
+promoted. Unavailable real-policy and LeRobot overhead measurements are
+secondary integration work, not `0.9` blockers, under the preserved 16 GiB
+ceiling. Sprint 77 Phase A/B closure validation and cumulative audit are
+complete for the supported scope.
 The Phase-A task summaries and Phase-B closure/audit summaries are linked in
 the typed ledger for atomic traceability.
 
@@ -469,7 +480,9 @@ execution used `TransformerLMIntegration` at layer 6/native hidden-state index
 the immutable semantic envelopes and sanitized remote audit remain linked in
 the JSON ledger. Focused TCAV validation passed 27 tests and the validator
 remains error-free at 40/63 core and 40/65 overall. The authored fixture is
-bounded evidence only, and no rerun is authorized.
+bounded evidence only, and no rerun is authorized. The TCAV significance
+failure remains a blocker for the corresponding Sprint 80 diagnostic claim and
+is not a `0.9` baseline blocker; it is neither passed nor waived.
 
 Sprint 79 queue position 35 reconciles
 `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` while retaining D1. The
@@ -485,8 +498,10 @@ Reconciliation config/receipt are `artifacts/m14/l06-sae.config.json` and
 Alignment quality was `0.75` against strict `> 0.7` and passed. No D3
 promotion or threshold relaxation occurred.
 The focused SAE suite passed 21 tests; the validator remains error-free at
-40/63 core and 40/65 overall. Later rows and Sprint 79 line 595 remain
-unchanged.
+40/63 core and 40/65 overall. The SAE cross-seed stability failure remains a
+blocker for the corresponding Sprint 80 diagnostic claim and is not a `0.9`
+baseline blocker; it is neither passed nor waived. Later rows and Sprint 79
+line 595 remain unchanged.
 
 Sprint 79 queue position 38 reconciles
 `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` while
@@ -512,8 +527,10 @@ D0 diagnostic and cannot promote the D1 row to D3. No threshold relaxation or
 unsupported claim occurred. The focused steering suites passed 63 tests. The
 failure-preserving summary is
 `artifacts/task_79_queue38_steering_reconciliation_summary.md`. The ledger
-validator returned `errors: []` at 40/63 core and 40/65 overall. Sprint 79 line
-595 and all later queue rows remain unchanged.
+validator returned `errors: []` at 40/63 core and 40/65 overall. The steering
+randomized-direction failure remains a blocker for the corresponding Sprint 80
+diagnostic claim and is not a `0.9` baseline blocker; it is neither passed nor
+waived. Sprint 79 line 595 and all later queue rows remain unchanged.
 
 ## Quality gates for a D2/D3 promotion
 

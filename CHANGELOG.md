@@ -2,7 +2,17 @@
 
 ## [Unreleased]
 
-### Changed
+### Added
+- Froze the Sprint 79 theory/performance baselines for `0.9.0` without
+  promotion, deletion, waiver, or unsupported claims: the ledger remains at
+  41/63 core and 41/64 scoped overall as portfolio-health facts; TCAV, SAE,
+  steering, and selected manifold/geometry failures remain blockers only for
+  their corresponding Sprint 80 diagnostic claims; unavailable real-policy and
+  LeRobot overhead measurements move to secondary integration work under the
+  preserved 16 GiB ceiling; and the breadth-led release language is
+  reconciled to the Sprint 80 depth gate with Sprint 81 owning stable
+  publication. Evidence: `artifacts/task_79_baseline_closure_595_598_600_summary.md`.
+
 - Repaired the optional-extras clean-environment workflow to resolve the base
   profile and all 12 declared profiles across Python 3.12, 3.13, and 3.14
   without changing the declared LeRobot/legacy-profile conflicts. Local
@@ -359,8 +369,9 @@
   and API-reference entry points: the current runtime surface is 205 exports
   with a 202-entry canonical-stable projection, while metadata remains
   `0.1.0b1`. This does not remove aliases, bump the version, create a tag,
-  publish a package, or claim release readiness; the planned `0.9.0` epoch and
-  Sprint 80 `1.0.0` release remain gated by evidence and workflow blockers.
+  publish a package, or claim release readiness; the planned `0.9.0` epoch,
+  Sprint 80 depth gate, and Sprint 81 `1.0.0` publication remain ordered by
+  the supported-claim evidence and workflow blockers.
 - Added the Sprint 77 Phase-A offline performance harness, cProfile attribution,
   explicit product-budget proposal, and a semantics-preserving Euclidean DTW
   vectorization. Sprint 77 Phase B records an owner-approved Rust/PyO3

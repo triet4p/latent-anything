@@ -97,9 +97,16 @@ The planned sequence is:
 2. Review the canonical/legacy surface at the planned `0.9.0` compatibility
    epoch. A separate owner-approved migration decision is required before any
    removal; this guide does not authorize removal.
-3. Stop before `1.0.0` publication if the evidence validator is below 95% core
-   or 90% overall, headline D3 evidence is missing, an external Actions account
-   is unavailable, or any required packaging/docs/security gate fails.
+3. Stop before `1.0.0` publication (Sprint 81) if any supported diagnostic,
+   packaging, documentation, or workflow gate fails: an unresolved capture,
+   detection, localization, statistical-control, explanation,
+   causal-validation, reporting, or compatibility blocker; missing headline D3
+   evidence for a supported claim; an unavailable external Actions account; or
+   any required packaging/docs/security gate failure. The former 95% core /
+   90% overall breadth percentages are portfolio-health facts, not `0.9` or
+   depth gates, and unavailable OpenVLA, unnamed 3DGS checkpoint, broad
+   world-model, real-policy overhead, or LeRobot overhead lanes do not block
+   `0.9`.
 
 The current evidence validator and M14 matrix remain the authority for release
 readiness; this guide only makes the migration contract discoverable.

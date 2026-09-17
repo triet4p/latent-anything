@@ -14,18 +14,24 @@ is not an active execution row.
 ## Current gate and arithmetic
 
 The read-only validator reports 107 capabilities, **41/63 core (65.079365%)**
-and **41/64 scoped overall (64.0625%)**. The core denominator contains 63
-implementation-applicable or benchmark-only rows in T01–T09/T03B; the scoped
-overall denominator adds the applicable X01 row. The historical OpenVLA X01 row
-is hardware-excluded from active coverage, remains D0, and authorizes no
-support claim. The validator reports **19 D0 rows** and **5 D1 rows** among
-the active applicable inventory; a qualifying row is D2 or D3. At least
-**19 additional core qualifiers** are required to reach
-**ceil(0.95 × 63) = 60**, and at least **17 additional scoped-overall
-qualifiers** are required to reach **ceil(0.90 × 64) = 58**. The core gate is
-therefore the binding gate. Headline model, causal explanation, and named
-integration claims target D3; ordinary algorithm capabilities target D2 unless
-their row says otherwise.
+and **41/64 scoped overall (64.0625%)** at the `0.9.0` evidence baseline. The
+core denominator contains 63 implementation-applicable or benchmark-only rows
+in T01–T09/T03B; the scoped overall denominator adds the applicable X01 row.
+The historical OpenVLA X01 row is hardware-excluded from active coverage,
+remains D0, and authorizes no support claim. The validator reports **19 D0
+rows** and **5 D1 rows** among the active applicable inventory; a qualifying
+row is D2 or D3. The former breadth thresholds, **ceil(0.95 × 63) = 60** core
+and **ceil(0.90 × 64) = 58** overall, are retained as portfolio-health facts:
+they would have required 19 additional core and 17 additional scoped-overall
+qualifiers, but they are not `0.9` blockers and are not depth gates. Headline
+model, causal explanation, and named integration claims target D3; ordinary
+algorithm capabilities target D2 unless their row says otherwise.
+
+The `0.9.0` baseline preserves every D0/D1 row, failure, threshold miss, and
+excluded record without promotion, deletion, waiver, or relabeling. Only
+diagnosis-depth gaps carry into Sprint 80; the remaining breadth rows move to
+the post-1.0 research backlog. Sprint 80 is the depth gate; Sprint 81 owns
+stable publication.
 
 ### Sprint 79 L02 partial result
 
@@ -96,9 +102,9 @@ The validator command is:
 uv run python scripts/validate_evidence_ledger.py --json
 ```
 
-It must continue to report the honest current 38/63 and 38/65 result while
-this plan is executed. No row may be deleted, relabeled, or promoted merely to
-improve the percentages.
+At the `0.9.0` baseline it reports the honest frozen **41/63 core and 41/64
+scoped-overall** result. No row may be deleted, relabeled, promoted, waived,
+or passed merely to improve the percentages.
 
 ### L04 design freeze (Sprint 79 L04.1)
 
@@ -373,13 +379,19 @@ artifact is unverified and must not be counted. Execute the corrected L21 lane
 with the pinned model/dataset revisions, simulator controls, seed, thresholds,
 and signed artifact before promotion.
 
+TCAV significance, SAE cross-seed stability, steering randomized-direction, and
+selected manifold/geometry failures remain blockers only for their
+corresponding Sprint 80 diagnostic claims. They are not `0.9` baseline
+blockers, and none is passed or waived here.
+
 External GitHub Actions access, missing model/data licenses, unavailable
 checkpoints, CUDA/VRAM, or missing dataset access are blockers—not reasons to
 lower thresholds. An owner waiver must state scope, rationale, expiry, and
 whether it affects core or headline coverage; no waiver can hide an applicable
 core gap or authorize a stable-release claim. Sprint 79 owns execution and
-artifact signing; Sprint 80 remains stop-before-release until the validator is
-at least 95% core and 90% overall and all headline D3 claims are satisfied.
+artifact signing; Sprint 80 is the depth gate for the supported diagnostic
+loop, and Sprint 81 owns `1.0.0` publication only after its depth-evidence
+report has no unresolved blocker for the supported core claims.
 
 ### L04.8 recovery correction record
 

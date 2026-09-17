@@ -6,8 +6,9 @@ Prepare the planned `0.9.0` pre-stable API-freeze compatibility epoch after the
 Sprint 78 gates pass, and remove only beta aliases whose deprecation window has
 completed. Keep package metadata at `0.1.0b1` until the gates and release
 workflow are verified; do not tag or publish `v0.9.0` while the external GitHub
-Actions account blocker remains. Sprint 80 targets `1.0.0` and stops before
-stable publication if any required gate is unresolved.
+Actions account blocker remains. Sprint 81 targets `1.0.0` and stops before
+stable publication if any required gate is unresolved; Sprint 80 is the
+depth-first diagnostic gate.
 
 ## Atomic Tasks
 

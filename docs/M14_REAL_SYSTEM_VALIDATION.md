@@ -1,6 +1,6 @@
 # M14 — Ma trận kiểm chứng hệ thống thực và hợp đồng phát hành
 
-Tài liệu này là hợp đồng lập kế hoạch cho Sprints 78–80. M14 chưa hoàn tất và
+Tài liệu này là hợp đồng lập kế hoạch cho Sprints 78–81. M14 chưa hoàn tất và
 không được hiểu là cam kết rằng các lane dưới đây đã có bằng chứng D2/D3. Mỗi
 dòng là một đơn vị kiểm chứng độc lập; trạng thái chỉ được nâng từ `planned`
 sang `verified` khi có artifact bất biến, revision, lệnh tái lập và người chịu
@@ -70,9 +70,10 @@ chain.
   remote trong giai đoạn planning và không dùng local CPU để thay real-model
   evidence.
 - GitHub Actions cần tài khoản external có quyền; nếu thiếu thì là blocker,
-  không đổi workflow để giả PASS. Sprint 80 dừng trước tag/publish nếu còn
-  blocker, waiver chưa được owner ký, hoặc bằng chứng dưới ngưỡng 95% core /
-  90% overall.
+  không đổi workflow để giả PASS. Sprint 81 dừng trước tag/publish nếu còn
+  blocker cho yêu cầu được hỗ trợ, waiver chưa được owner ký, hoặc Sprint 80
+  còn blocker depth chưa được giải quyết. Ngưỡng breadth cũ 95% core /
+  90% overall là chỉ số sức khỏe portfolio, không phải gate `0.9` hay depth.
 
 ## 24 lane bắt buộc
 
@@ -105,7 +106,7 @@ chain.
 
 ### Active-scope reconciliation
 
-The 24-row historical inventory has **23 applicable release lanes**: 13 accepted, 2 partial, 1 pending, and 7 externally/prerequisite blocked. L19/OpenVLA is the one hardware-excluded historical row. Its canonical BF16 contract requires unavailable >=24 GiB VRAM; the retained D0 configs and feasibility receipts authorize no OpenVLA support, performance, or quality claim. L21 SmolVLA remains active at its documented ~16 GiB profile.
+The 24-row historical inventory has **23 applicable `0.9` lanes**: 13 accepted, 2 partial, 1 pending, and 7 externally/prerequisite blocked. L19/OpenVLA is the one hardware-excluded historical row. Its canonical BF16 contract requires unavailable >=24 GiB VRAM; the retained D0 configs and feasibility receipts authorize no OpenVLA support, performance, or quality claim. L21 SmolVLA remains active at its documented ~16 GiB profile. Unavailable OpenVLA, unnamed 3DGS checkpoint, broad world-model, real-policy overhead, and LeRobot overhead lanes are explicit non-claims and do not block the `0.9` pre-stable baseline. Sprint 80 is the depth gate; Sprint 81 owns stable publication.
 
 ## L04.1 preregistration / design freeze
 
@@ -724,13 +725,16 @@ chạy lại và ký artifact.
 2. Sprint 79: clean-environment matrix → local real lanes → remote CUDA lanes →
    performance/security/license/evidence ledger; mọi failure giữ artifact.
    Waiver chỉ do owner ký, ghi lý do, phạm vi, hạn hết hạn và không được che
-   core gap.
-3. Sprint 80: RC review, wheel/sdist/install, release docs và publish. Nếu còn
-   bất kỳ blocker, Actions account blocker, missing credential/model license,
-   threshold fail hoặc stale claim thì **stop before release**.
+   core gap. `0.9.0` là baseline pre-stable: các ngưỡng breadth cũ và các lane
+   breadth không khả dụng không block `0.9`.
+3. Sprint 80: chứng minh depth-first diagnostic loop (capture → detect →
+   localize → explain → intervene → compare → report). Sprint 81: RC review,
+   wheel/sdist/install, release docs và publish. Nếu còn bất kỳ blocker cho
+   yêu cầu diagnostic được hỗ trợ, Actions account blocker, missing
+   credential/model license, depth-gate fail hoặc stale claim thì **stop before
+   release**.
 
 Artifact/command names trong bảng là normative; kết quả thực tế phải ghi SHA
-code và manifest. Checklist này không tự nâng trạng thái Milestone 14.
 
 ## Trạng thái checkpoint API-freeze Sprint 78
 
