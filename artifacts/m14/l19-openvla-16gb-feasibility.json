@@ -1,0 +1,84 @@
+{
+  "schema_version": "m14-l19-openvla-feasibility-v1",
+  "record_id": "THY-X01-OPENVLA",
+  "lane": "M14-L19",
+  "status": "blocked",
+  "evidence_level": "D0",
+  "decision": "Do not download the checkpoint or start a canonical BF16 run on this host.",
+  "source_revision": "1b7bb08129d97fd32bfb52e10689f79c893f99a9",
+  "measurement": {
+    "transport": "native Windows OpenSSH ssh.exe invoked from F:/Git/bin/bash.exe",
+    "remote_target": "trietlm@192.168.30.244",
+    "hostname": "di-server",
+    "command": "ssh -o BatchMode=yes -o ConnectTimeout=15 trietlm@192.168.30.244 'hostname; nvidia-smi --query-gpu=name,memory.total,memory.used,memory.free,driver_version --format=csv,noheader; nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader || true'",
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "driver": "580.126.20",
+    "memory_total_mib": 16380,
+    "memory_used_mib": 3754,
+    "memory_free_mib": 12195,
+    "resident_processes": [
+      {
+        "pid": 2095304,
+        "process": "/usr/local/lib/ollama/llama-server",
+        "memory_mib": 3576
+      }
+    ],
+    "torch_runtime_probe": {
+      "system_command": "ssh trietlm@192.168.30.244 python3 - <<'PY' ... import torch ... PY",
+      "system_result": "system python3 has no torch (ModuleNotFoundError)",
+      "disposable_clone_command": "git clone --depth 1 https://github.com/triet4p/latent-anything.git /tmp/openvla-feasibility.49O8JB/repo; verify HEAD == 1b7bb08129d97fd32bfb52e10689f79c893f99a9; uv sync --extra transformers --no-install-project; uv run python CUDA probe",
+      "clone_sha_verified": true,
+      "torch": "2.10.0+cu128",
+      "cuda_available": true,
+      "device": "NVIDIA GeForce RTX 4060 Ti",
+      "torch_mem_free_bytes": 12655591424,
+      "torch_mem_total_bytes": 16722296832,
+      "result": "project runtime probe passed in disposable exact-SHA clone; no OpenVLA model or checkpoint was downloaded"
+    }
+  },
+  "checkpoint": {
+    "repo_id": "openvla/openvla-7b-finetuned-libero-spatial",
+    "revision": "962318cec55ac10993ff0f5f43eda9a270b4c873",
+    "architecture": "OpenVLAForActionPrediction",
+    "dtype": "bfloat16",
+    "parameter_count": 7541237184,
+    "safetensors_size_bytes": 15082474368,
+    "weights_floor_gib": 14.046648859977722,
+    "hub_api_source": "https://huggingface.co/api/models/openvla/openvla-7b-finetuned-libero-spatial",
+    "official_loading_source": "https://raw.githubusercontent.com/openvla/openvla/main/README.md",
+    "official_loader_source": "https://raw.githubusercontent.com/openvla/openvla/main/experiments/robot/openvla_utils.py"
+  },
+  "feasibility": {
+    "current_free_minus_weights_bytes": -2295090048,
+    "current_free_minus_weights_gib": -2.137469172477722,
+    "bare_card_total_minus_weights_bytes": 2093200512,
+    "bare_card_total_minus_weights_gib": 1.9494448900222778,
+    "canonical_mode": "Full checkpoint in BF16 on CUDA, following upstream AutoModelForVision2Seq.from_pretrained(... torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).to(cuda)",
+    "conclusion": "infeasible_with_defensible_margin",
+    "reason": "The checkpoint weights alone exceed currently free VRAM. Even after hypothetically releasing the resident process, only about 1.95 GiB would remain for CUDA context, vision/language activations, processor inputs, action-token generation, and allocator/workspace overhead. That is not a defensible margin for the canonical upstream path; no avoidable OOM was attempted.",
+    "observed_process_must_not_be_killed": true
+  },
+  "unblock_requirements": {
+    "preferred": "A CUDA host with at least 24 GiB VRAM for a margin-bearing single-GPU inference attempt; A100 40/80GB matches the upstream reference profile.",
+    "alternative": "A separately approved 4-bit/8-bit quantized contract may reduce memory, but it is not canonical BF16 evidence and would require an owner-frozen adapter/evaluation contract before any promotion.",
+    "remaining_contract_blockers": [
+      "No production OpenVLA adapter/capture implementation in this repository",
+      "500 LIBERO-Spatial paired intervention/control trials are required for D3",
+      "Exact Linux dependency profile and isolated checkpoint/data caches are required",
+      "No model or dataset download was performed"
+    ]
+  },
+  "sources": [
+    "https://huggingface.co/api/models/openvla/openvla-7b-finetuned-libero-spatial",
+    "https://huggingface.co/openvla/openvla-7b-finetuned-libero-spatial/raw/main/README.md",
+    "https://raw.githubusercontent.com/openvla/openvla/main/README.md",
+    "https://raw.githubusercontent.com/openvla/openvla/main/experiments/robot/openvla_utils.py"
+  ],
+  "cleanup": {
+    "model_download": "not_started",
+    "persistent_checkout_mutation": false,
+    "resident_process_terminated": false,
+    "disposable_clone": "/tmp/openvla-feasibility.49O8JB/repo",
+    "remote_temp_cleanup": "PASS; trap removed /tmp/openvla-feasibility.49O8JB after exact-SHA runtime probe"
+  }
+}

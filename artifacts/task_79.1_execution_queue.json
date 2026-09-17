@@ -448,8 +448,8 @@
       "environment_command": "authorized Linux NVIDIA CUDA host only; after the real adapter is present, run `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest -m network -q` in a disposable clone/cache",
       "acceptance_artifact": "7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; config [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json)",
       "artifact_path": "artifacts/m14/l19-openvla.json",
-      "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint; upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required; model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License",
-      "status_blocker_owner": "blocked; this Windows host has no CUDA, checkpoint is not cached, network opt-in is disabled, and no OpenVLA capture adapter is implemented",
+      "resources_network_cleanup": "15,082,474,368-byte BF16 checkpoint (~14.05 GiB weights floor); authorized remote measurement found RTX 4060 Ti 16,380 MiB total / 12,195 MiB free / 3,754 MiB used, with ollama llama-server using 3,576 MiB. Current free VRAM cannot hold weights alone; idle-card margin is only ~1.95 GiB before runtime overhead. Upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required. Model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License.",
+      "status_blocker_owner": "blocked; canonical BF16 OpenVLA is infeasible with a defensible margin on the measured 16 GB host, no checkpoint download/model construction was attempted, and no OpenVLA capture adapter is implemented; retain D0 and use the recorded feasibility artifact",
       "gap_record_ids": [
         "THY-X01-OPENVLA"
       ],
@@ -1352,11 +1352,11 @@
       "external_prerequisites": [],
       "external_prerequisite_details": [],
       "cycle_conflict": null,
-      "queue_status": "ready_for_dependency_ordered_execution",
+      "queue_status": "blocked_external_resource",
       "command": "provision pinned public checkpoint/data in an isolated remote lane, implement/review the official Transformers OpenVLA adapter, then run the declared LIBERO-Spatial paired evaluation",
       "acceptance": "task success >= 0.80 against the published LIBERO-Spatial reference plus owner-frozen causal intervention threshold and exact revision manifest",
       "artifact": "artifacts/m14/l19-openvla.json",
-      "blocker": "local Windows host has no CUDA; checkpoint is not cached; network opt-in and HF token are not configured; no OpenVLA adapter/capture implementation; D0 retained"
+      "blocker": "Canonical BF16 checkpoint is 15,082,474,368 bytes (~14.05 GiB weights floor); measured RTX 4060 Ti has 16,380 MiB total, 12,195 MiB free, and 3,754 MiB used (ollama llama-server 3,576 MiB), so current free VRAM is below the weights floor and an idle-card margin is only ~1.95 GiB. Do not download or trigger OOM. Feasibility receipt: artifacts/m14/l19-openvla-16gb-feasibility.json. No production OpenVLA adapter/capture exists; D0 retained until a >=24 GiB host and full contract are available."
     }
   ],
   "headline_blockers": [

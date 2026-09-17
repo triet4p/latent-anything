@@ -91,8 +91,9 @@
   },
   "blocker": {
     "kind": "external_runtime_and_adapter",
-    "exact": "No OpenVLA checkpoint is cached locally, LATENT_ANYTHING_RUN_NETWORK is not enabled, no HF token is configured (public Hub access is non-gated), and this Windows host has no CUDA device. The repository has no OpenVLA adapter/capture implementation. Do not run remote or claim D1/D2/D3 from this config.",
-    "next_action": "On an authorized Linux NVIDIA CUDA host, provision the pinned checkpoint and modified LIBERO-Spatial dataset revisions, implement/review the production OpenVLA capture adapter against the official Transformers API, then run the declared 500-trial paired intervention evaluation in a disposable checkout/cache."
+    "exact": "Canonical BF16 execution is infeasible with a defensible margin on the authorized RTX 4060 Ti 16 GB host: nvidia-smi measured 16,380 MiB total, 12,195 MiB free, and 3,754 MiB used (ollama llama-server resident at 3,576 MiB). The pinned BF16 checkpoint has 7,541,237,184 parameters and 15,082,474,368 weight bytes (~14.05 GiB) before CUDA context, activations, image inputs, action-token generation, and allocator overhead. Current free VRAM is below the weights floor; even a hypothetically idle card would leave only ~1.95 GiB. No checkpoint download, model construction, or avoidable OOM was attempted. The repository also has no OpenVLA adapter/capture implementation.",
+    "measurement_artifact": "artifacts/m14/l19-openvla-16gb-feasibility.json",
+    "next_action": "Use a CUDA host with at least 24 GiB VRAM (A100 40/80GB matches the upstream reference profile), then provision the pinned checkpoint/data in a disposable exact-SHA clone, implement/review the production Transformers capture adapter, and run the declared 500-trial LIBERO-Spatial paired intervention evaluation. A quantized 4-bit/8-bit run would require a separately approved non-canonical contract and cannot promote this BF16 row."
   },
   "sources": [
     "https://huggingface.co/openvla/openvla-7b-finetuned-libero-spatial",

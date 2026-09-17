@@ -590,14 +590,36 @@ The production adapter/capture implementation is intentionally not added:
 the existing generic `ModelAdapter` and LeRobot ACT/Diffusion/SmolVLA
 adapters do not prove OpenVLA, and no mock or fallback is allowed. Local
 non-secret checks found no checkpoint cache, no network opt-in, no HF token,
-and no CUDA device on this Windows host. The blocked receipt and complete
-contract are [`l19-openvla.json`](../artifacts/m14/l19-openvla.json) and
-[`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json).
+and no CUDA device on this Windows host. The authorized remote feasibility
+probe then measured `trietlm@192.168.30.244` (`di-server`) with native
+Windows OpenSSH invoked from Git Bash: NVIDIA GeForce RTX 4060 Ti,
+driver `580.126.20`, `16,380 MiB` total, `12,195 MiB` free, and
+`3,754 MiB` used. `ollama/llama-server` (PID `2095304`) occupied
+`3,576 MiB`. The pinned BF16 checkpoint contains `7,541,237,184`
+parameters and `15,082,474,368` weight bytes (~`14.05 GiB`), so its
+weights alone exceed currently free VRAM; even an idle card would leave
+only ~`1.95 GiB` for CUDA context, activations, inputs, token generation,
+and allocator/workspace overhead. Canonical BF16 execution is therefore
+blocked without a defensible margin. No checkpoint download, model
+construction, or avoidable OOM was attempted.
+The project CUDA runtime was separately probed in disposable clone
+`/tmp/openvla-feasibility.49O8JB/repo` after verifying exact source SHA
+`1b7bb08129d97fd32bfb52e10689f79c893f99a9`: `torch 2.10.0+cu128`,
+`torch.cuda.is_available() == True`, device `NVIDIA GeForce RTX 4060 Ti`,
+and `torch.cuda.mem_get_info()` free/total
+`12,655,591,424 / 16,722,296,832` bytes. The clone and isolated caches were
+removed by the remote exit trap (`cleanup: PASS`); no persistent checkout was
+mutated. The detailed D0 feasibility receipt is
+[`l19-openvla-16gb-feasibility.json`](../artifacts/m14/l19-openvla-16gb-feasibility.json);
+the complete contract remains [`l19-openvla.json`](../artifacts/m14/l19-openvla.json)
+and [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json).
 
-The exact next action is an authorized remote Linux NVIDIA CUDA run in a
-disposable checkout/cache using the upstream Python 3.10.13, PyTorch 2.2.0,
-Transformers 4.40.1, tokenizers 0.19.1, flash-attn 2.5.5, and A100 80GB
-reference profile. Provision the pinned model/data, implement and review the
-real Transformers adapter, then execute 500 LIBERO-Spatial trials plus paired
-intervention/control and retain a signed artifact. No remote command was run
-in this task, and no D3 promotion is justified.
+The exact next action is an authorized Linux NVIDIA CUDA run on a host with
+at least 24 GiB VRAM (the upstream A100 40/80GB profile is preferred) in a
+disposable exact-SHA checkout/cache using Python 3.10.13, PyTorch 2.2.0,
+Transformers 4.40.1, tokenizers 0.19.1, and flash-attn 2.5.5. Provision the
+pinned model/data, implement and review the real Transformers adapter, then
+execute 500 LIBERO-Spatial trials plus paired intervention/control and
+retain a signed artifact. A 4-bit/8-bit run would need a separately approved
+non-canonical contract and cannot promote this BF16 row. The L19 row remains
+D0; no later line-596+ plan item was started.
