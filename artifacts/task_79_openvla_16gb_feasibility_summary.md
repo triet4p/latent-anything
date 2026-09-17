@@ -22,7 +22,7 @@ Probe transport was native Windows OpenSSH `ssh.exe` invoked from `F:/Git/bin/ba
 - `16,380 MiB` total, `12,195 MiB` free, `3,754 MiB` used.
 - PID `2095304`, `/usr/local/lib/ollama/llama-server`, used `3,576 MiB`.
 
-The project runtime was checked in a disposable clone of GitHub origin at exact SHA `1b7bb08129d97fd32bfb52e10689f79c893f99a9`, with isolated `UV_CACHE_DIR` and `TORCH_EXTENSIONS_DIR`. `uv sync --extra transformers --no-install-project` completed; `uv run` reported `torch 2.10.0+cu128`, CUDA available, the same RTX 4060 Ti, and `torch.cuda.mem_get_info()` free/total `12,655,591,424 / 16,722,296,832` bytes. The shell exit trap removed `/tmp/openvla-feasibility.49O8JB` and its caches; no persistent checkout was changed.
+The project runtime was checked in a disposable clone of GitHub origin at exact SHA `74540ad4e894c68bae46673eede7bc62293016de` on branch `sprint79-local-gate-remediation`, with isolated `UV_CACHE_DIR` and `TORCH_EXTENSIONS_DIR`. `uv sync --extra transformers --no-install-project` completed; `uv run` reported `torch 2.10.0+cu128`, CUDA available, the same RTX 4060 Ti, and `torch.cuda.mem_get_info()` free/total `16,410,673,152 / 16,722,296,832` bytes. The shell exit trap removed `/tmp/openvla-feasibility.Gz4r2n` and its caches; no persistent checkout was mutated. A post-probe `nvidia-smi` showed `170 MiB` used and `15,779 MiB` free after the earlier Ollama process exited; even this idle state leaves only ~`1.53 GiB` above the BF16 weights floor by the torch runtime total.
 
 ## Arithmetic and blocker
 

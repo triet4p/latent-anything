@@ -5,7 +5,7 @@
   "status": "blocked",
   "evidence_level": "D0",
   "decision": "Do not download the checkpoint or start a canonical BF16 run on this host.",
-  "source_revision": "1b7bb08129d97fd32bfb52e10689f79c893f99a9",
+  "source_revision": "74540ad4e894c68bae46673eede7bc62293016de",
   "measurement": {
     "transport": "native Windows OpenSSH ssh.exe invoked from F:/Git/bin/bash.exe",
     "remote_target": "trietlm@192.168.30.244",
@@ -26,14 +26,15 @@
     "torch_runtime_probe": {
       "system_command": "ssh trietlm@192.168.30.244 python3 - <<'PY' ... import torch ... PY",
       "system_result": "system python3 has no torch (ModuleNotFoundError)",
-      "disposable_clone_command": "git clone --depth 1 https://github.com/triet4p/latent-anything.git /tmp/openvla-feasibility.49O8JB/repo; verify HEAD == 1b7bb08129d97fd32bfb52e10689f79c893f99a9; uv sync --extra transformers --no-install-project; uv run python CUDA probe",
+      "disposable_clone_command": "git clone --depth 1 --branch sprint79-local-gate-remediation https://github.com/triet4p/latent-anything.git /tmp/openvla-feasibility.Gz4r2n/repo; verify remote HEAD == 74540ad4e894c68bae46673eede7bc62293016de; uv sync --extra transformers --no-install-project; uv run python CUDA probe",
       "clone_sha_verified": true,
       "torch": "2.10.0+cu128",
       "cuda_available": true,
       "device": "NVIDIA GeForce RTX 4060 Ti",
-      "torch_mem_free_bytes": 12655591424,
+      "torch_mem_free_bytes": 16410673152,
       "torch_mem_total_bytes": 16722296832,
-      "result": "project runtime probe passed in disposable exact-SHA clone; no OpenVLA model or checkpoint was downloaded"
+      "result": "project runtime probe passed in disposable exact-SHA clone; no OpenVLA model or checkpoint was downloaded",
+      "post_probe_nvidia_state": "nvidia-smi reported 16,380 MiB total, 170 MiB used, 15,779 MiB free; the earlier 3,576 MiB ollama process was no longer resident. Even this idle state leaves only 1.95 GiB by physical total (about 1.53 GiB by torch runtime total) above the BF16 weights floor."
     }
   },
   "checkpoint": {
@@ -78,7 +79,7 @@
     "model_download": "not_started",
     "persistent_checkout_mutation": false,
     "resident_process_terminated": false,
-    "disposable_clone": "/tmp/openvla-feasibility.49O8JB/repo",
-    "remote_temp_cleanup": "PASS; trap removed /tmp/openvla-feasibility.49O8JB after exact-SHA runtime probe"
+    "disposable_clone": "/tmp/openvla-feasibility.Gz4r2n/repo",
+    "remote_temp_cleanup": "PASS; trap removed /tmp/openvla-feasibility.Gz4r2n after exact-SHA runtime probe"
   }
 }

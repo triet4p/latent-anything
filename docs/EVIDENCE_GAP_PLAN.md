@@ -603,13 +603,16 @@ and allocator/workspace overhead. Canonical BF16 execution is therefore
 blocked without a defensible margin. No checkpoint download, model
 construction, or avoidable OOM was attempted.
 The project CUDA runtime was separately probed in disposable clone
-`/tmp/openvla-feasibility.49O8JB/repo` after verifying exact source SHA
-`1b7bb08129d97fd32bfb52e10689f79c893f99a9`: `torch 2.10.0+cu128`,
+`/tmp/openvla-feasibility.Gz4r2n/repo` after verifying exact source SHA
+`74540ad4e894c68bae46673eede7bc62293016de` on branch
+`sprint79-local-gate-remediation`: `torch 2.10.0+cu128`,
 `torch.cuda.is_available() == True`, device `NVIDIA GeForce RTX 4060 Ti`,
 and `torch.cuda.mem_get_info()` free/total
-`12,655,591,424 / 16,722,296,832` bytes. The clone and isolated caches were
-removed by the remote exit trap (`cleanup: PASS`); no persistent checkout was
-mutated. The detailed D0 feasibility receipt is
+`16,410,673,152 / 16,722,296,832` bytes. A post-probe `nvidia-smi`
+reported `170 MiB` used and `15,779 MiB` free after the earlier Ollama
+process exited. The clone and isolated caches were removed by the remote
+exit trap (`cleanup: PASS`); no persistent checkout was mutated. The
+detailed D0 feasibility receipt is
 [`l19-openvla-16gb-feasibility.json`](../artifacts/m14/l19-openvla-16gb-feasibility.json);
 the complete contract remains [`l19-openvla.json`](../artifacts/m14/l19-openvla.json)
 and [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json).
