@@ -7,15 +7,17 @@ an evidence review for package version `0.1.0b1`, not a tag, package
 publication, or stable-release approval. The review branch is
 `sprint79-local-gate-remediation`. The latest fully tested source scope is
 commit `88b836f799680e0cf5dfa8eb336c751c234d4452` (the line-601 evidence
-commit); this report is published in a subsequent evidence-only commit. The
-report commit SHA is the exact GitHub `HEAD` reported with delivery, and must
-not be confused with any historical execution SHA below.
+commit). This report was initially published in a subsequent evidence-only
+commit and its external-Actions wording was reconciled during line 603 without
+changing any evidence outcome or threshold. Historical execution SHAs below
+must not be confused with the documentation commit that contains this report.
 
 **Decision: RC evidence publication is complete, but the release is not
 approved.** The release gates are candidly below threshold, several M14 rows
 are partial or blocked, and lines 595, 598, and 600 remain unchecked. No waiver
-changes a threshold or hides a core gap. Line 603 must not begin until this
-report has been reviewed and its owners authorize release-blocker remediation.
+changes a threshold or hides a core gap. The line-603 review and release hold
+are documented separately in
+[`task_79_line603_release_blocker_hold.md`](task_79_line603_release_blocker_hold.md).
 
 ## Evidence authority and provenance
 
