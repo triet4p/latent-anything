@@ -742,9 +742,9 @@ Snapshot API và tài liệu migration hiện ghi nhận **205 export runtime** 
 projection canonical ổn định **202 entry**; [MIGRATION](MIGRATION.md),
 [API_REFERENCE](API_REFERENCE.md), và artifact của task 78.40 là các điểm vào
 cho người dùng, còn snapshot/ledger vẫn là nguồn máy móc chuẩn. Checkpoint này
-không cho phép xóa alias, bump version, tag, publish, hay tuyên bố release
-readiness. Metadata vẫn là `0.1.0b1`; `0.9.0` chỉ là epoch pre-stable dự kiến và
-các blocker evidence/workflow phải được giải quyết trước khi release.
+không cho phép xóa alias hay tuyên bố release readiness. Package metadata hiện
+là `0.9.0` dưới dạng candidate đã commit source nhưng chưa tag/publish; `v0.9.0`
+chỉ được tạo sau khi candidate evidence review pass, và mọi alias vẫn được giữ.
 
 ### L04.8 recovery correction after `ce4e66e`
 

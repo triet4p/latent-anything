@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
-SNAPSHOT = ROOT / "artifacts" / "api_freeze_snapshot_0.1.0b1.json"
+SNAPSHOT = ROOT / "artifacts" / "api_freeze_snapshot_0.9.0.json"
 
 
 def test_api_freeze_snapshot_has_no_unreviewed_drift() -> None:

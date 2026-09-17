@@ -128,7 +128,7 @@ def test_transition_aliases_preserve_prediction_and_metric_semantics() -> None:
 
 
 def test_ledger_covers_every_snapshot_beta_alias_family() -> None:
-    snapshot = json.loads((ROOT / "artifacts" / "api_freeze_snapshot_0.1.0b1.json").read_text(encoding="utf-8"))
+    snapshot = json.loads((ROOT / "artifacts" / "api_freeze_snapshot_0.9.0.json").read_text(encoding="utf-8"))
     ledger_text = LEDGER.read_text(encoding="utf-8")
     aliases = snapshot["sections"]["B_beta_compatibility"]
     for group in (

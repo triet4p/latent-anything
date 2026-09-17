@@ -283,7 +283,7 @@ def serialization() -> dict[str, object]:
     )
     result_payload = encode_result_envelope(
         result,
-        provenance={"plugin": "builtin-cem", "version": "0.1.0b1"},
+        provenance={"plugin": "builtin-cem", "version": "0.9.0"},
         behavior_state={"config": {"horizon": 1, "action_dim": 2}, "checkpoint": "none"},
     )
     record_payload = {

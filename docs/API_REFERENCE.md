@@ -5,8 +5,11 @@ not duplicate every generated signature or default. The checked-in snapshot is
 the source of truth:
 
 ```text
-artifacts/api_freeze_snapshot_0.1.0b1.json
+artifacts/api_freeze_snapshot_0.9.0.json
 ```
+
+The historical beta surface is preserved unchanged in
+`artifacts/api_freeze_snapshot_0.1.0b1.json` and must not be rewritten.
 
 Regenerate only after a reviewed public-surface change, then run:
 
@@ -17,7 +20,7 @@ uv run pytest tests/test_api_freeze_snapshot.py tests/test_api_compatibility.py 
 
 The snapshot normalizes sorted JSON keys and contractually public declaration
 order; it excludes object addresses and unstable representations. Its current
-digest is `48d64721b73a9d0c9e73da4a41940008c70dfa7841e500bc11bc8dcd22ddf7f6`.
+digest is `d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`.
 
 ## Public surface
 

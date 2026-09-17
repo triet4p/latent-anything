@@ -4,9 +4,9 @@
 
 A Python framework that treats latent space as a first-class object: load latent representations from models, inspect them, manipulate them, and execute small runtime pipelines.
 
-## Beta Scope
+## Pre-stable Scope
 
-`0.1.0-beta.1` is a pre-1.0 core-framework beta. It includes:
+`0.9.0` is a pre-stable API/evidence baseline (pre-1.0). It includes:
 
 - Core primitives: `LatentSpace`, `LatentValue`, and `Trajectory`
 - Layer A introspection methods: PCA, UMAP, and SAE
@@ -25,34 +25,36 @@ A Python framework that treats latent space as a first-class object: load latent
   behind a validated contract with offline parity evidence
 - Script-level demos and tracked release artifacts
 
-This beta does not claim the full Latent Anything thesis is implemented. The
+This pre-stable baseline does not claim the full Latent Anything thesis is implemented. The
 world-model and tokenized lanes are compact synthetic CPU references, not
 real-checkpoint or CUDA claims. Sprint 35 also records bounded local-CPU D2
 fidelity and ordered interpolation evidence for one cached Diffusers VAE; this
-does not claim perceptual quality or a complete diffusion pipeline. API freeze and stable release work remain
+does not claim perceptual quality or a complete diffusion pipeline. Stable release work remains
 future milestones. Sprint 75 streaming evidence is a synthetic offline CPU
 rollout story, not a LeRobot or real-model throughput claim. Sprint 76
 tracking evidence is local/offline only; it does not claim hosted tracking,
 remote servers, or team workflows.
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
-Sprint 78 plans `0.9.0` as the pre-stable API-freeze compatibility epoch after
-its gates pass. Package metadata remains `0.1.0b1` until all Sprint 78 gates and
-the release workflow are verified; no `v0.9.0` tag or publication is authorized
-while the external GitHub Actions account blocker remains. Sprint 81 targets
-`1.0.0`, with publication stopping if any required supported-claim, packaging,
-documentation, or workflow gate is missing; Sprint 80 is the depth-first
-diagnostic gate.
+Sprint 79 closes the broad inventory as the `0.9.0` pre-stable API/evidence
+baseline. Package metadata is now `0.9.0` as a source-committed candidate; no
+`v0.9.0` tag, GitHub Release, or PyPI publication is authorized until the
+candidate evidence review passes. Sprint 81 targets `1.0.0`, with publication
+stopping if any required supported-claim, packaging, documentation, or workflow
+gate is missing; Sprint 80 is the depth-first diagnostic gate.
 
 Registry configs now use `adapter`, `analysis`, and `intervention` kinds.
 The beta `method_a` and `method_b` spellings remain supported with a migration
-warning until `0.9.0`; run `uv run python scripts/report_config_migration.py <config.json>`
+warning in `0.9.0`; removal is deferred past `0.9.0` pending a separate reviewed
+migration decision. Run `uv run python scripts/report_config_migration.py <config.json>`
 to inspect repository-owned JSON configs without rewriting them.
 
 See the [migration and compatibility guide](docs/MIGRATION.md) and the
 [API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger and
 the two separate schema/path migrations, frozen signatures, and current 205-runtime/202-canonical
-surface. The planned `0.9.0` epoch is not released; metadata remains `0.1.0b1`.
+surface. The current `0.9.0` snapshot is
+`artifacts/api_freeze_snapshot_0.9.0.json`; the historical beta snapshot
+`artifacts/api_freeze_snapshot_0.1.0b1.json` is preserved unchanged.
 
 ## Installation
 
@@ -74,7 +76,7 @@ from latent_anything import LatentSpace, Trajectory
 from latent_anything.methods import PCA
 
 print(latent_anything.__version__)
-# 0.1.0b1
+# 0.9.0
 
 rng = np.random.default_rng(42)
 space = LatentSpace(dim=4)
@@ -116,14 +118,14 @@ uv run pyright
 uv run pytest
 ```
 
-Recommended release tag:
+Proposed release tag after the candidate evidence review passes:
 
 ```bash
-git tag v0.1.0-beta.1
-git push origin v0.1.0-beta.1
+git tag v0.9.0
+git push origin v0.9.0
 ```
 
-The GitHub Release workflow also accepts plain tags such as `0.1.0-beta.1`, but the `v` prefix is recommended to keep package releases visually distinct from theory deployment tags such as `theory-v*`.
+Do not create or push this tag before the review passes. The GitHub Release workflow also accepts plain tags such as `0.9.0`, but the `v` prefix is recommended to keep package releases visually distinct from theory deployment tags such as `theory-v*`. The historical `v0.1.0-beta.1` tag and release remain unchanged history.
 
 ## Project Structure
 

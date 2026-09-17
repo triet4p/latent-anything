@@ -2,46 +2,41 @@
 
 ## Overview
 
-Latent Anything will reach `1.0.0` by proving the framework on real models and tasks, not by accumulating attractive visualizations. The roadmap keeps the incremental Rule of Three from [INCREMENTAL.md](INCREMENTAL.md), but adds an explicit evidence contract for theory coverage, explanation validity, integration quality, and API stability.
+Latent Anything will reach `1.0.0` by proving diagnostic depth on real model representations, not by accumulating model-family integrations, theory-row percentages, or attractive visualizations. The stable product claim is an end-to-end loop that lets an AI engineer capture, detect, localize, explain, causally validate, compare, and report internal representation problems with reproducible evidence.
 
-Sprints 1-26 established the beta foundation. Sprints 27-80 are the planned path
-from `0.1.0-beta.1` through the planned `0.9.0` pre-stable API-freeze
-compatibility epoch to `1.0.0`. The package metadata remains `0.1.0b1` until
-all Sprint 78 gates and the release workflow are verified; no `v0.9.0` tag or
-publication is authorized while the external GitHub Actions account blocker is
-open. Future sprint details are provisional: a sprint may revise later plans
-when running code disproves an assumption, but it must record that revision in
-the ADR log and keep this file synchronized.
+Sprints 1-26 established the beta foundation. Sprints 27-79 establish the `0.9.0` pre-stable API and evidence baseline. Sprint 80 proves the depth-first representation-diagnostic contract on ordinary deep-learning models, with a small VLA as a secondary bounded proof lane. Sprint 81 owns `1.0.0` publication after those depth gates pass. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
 
 Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 [`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the documented
 205-runtime/202-canonical surface now requires reviewed compatibility handling,
-but this is not a release-readiness claim. Metadata remains `0.1.0b1`, aliases
-remain retained, and version/tag/publication stay blocked by the evidence and
-workflow gates.
+but this is not a release-readiness claim. Package metadata is now `0.9.0` as
+the source-committed pre-stable candidate; aliases remain retained, and the
+`v0.9.0` tag/publication stays blocked until the candidate evidence review
+passes.
 
 ## Definition of Stable
 
-`1.0.0` is allowed only when all gates below pass.
+`1.0.0` is allowed only when all gates below pass for the explicitly supported diagnostic claims.
 
-1. **Theory evidence:** at least 95% of implementation-applicable topics in core tiers 1-9, and at least 90% across the complete theory index, have code or benchmark evidence. Research notes and notebooks alone do not count toward this gate.
-2. **Meaningful explanations:** every headline explanation method has fidelity, stability, selectivity/control, and causal-intervention evidence where applicable. A visually clean projection is not accepted as an explanation by itself.
-3. **Real-model matrix:** the supported matrix includes a real VAE, a pretrained generative-image model, a transformer hidden-state model, a structured 3D representation, at least two LeRobot policies including one VLA, and a temporal/world-model path.
-4. **LeRobot bridge:** `latent_anything[lerobot]` can consume LeRobotDataset data, capture policy representations, apply supported interventions, and return metrics through LeRobot evaluation without reimplementing LeRobot policies, datasets, or environments.
-5. **API quality:** public names describe domain behavior rather than roadmap layers; entry classes delegate feature logic to focused modules; deprecated beta aliases have a documented migration path; the public signature and serialization compatibility suites pass.
-6. **Extension quality:** optional integrations are isolated, external plugins work through Python entry points, a hello-world plugin is documented, and plugin/config artifacts are versioned and reproducible.
-7. **Release quality:** strict lint/type/test gates pass, core coverage meets the threshold set in Sprint 27, integration tests are version-pinned, documentation builds strictly, and the package is publishable from a clean environment.
+1. **End-to-end diagnostic workflow:** one documented high-level workflow captures internal representations, detects and localizes a problem, evaluates an explanation, performs a causal intervention, compares relevant runs/checkpoints, and emits a reproducible report.
+2. **Problem-detection depth:** the supported taxonomy covers collapse/rank loss, anisotropy or inactive dimensions, redundancy/superposition, separability and probe leakage, density/OOD or distribution drift, sparse-feature instability, and temporal drift where applicable. Each claimed detector has non-trivial positive/counterexample evidence plus negative controls.
+3. **Localization:** findings identify affected layers and relevant sample, slice, checkpoint, token, or time axes under predeclared correctness criteria; a single global score is insufficient.
+4. **Meaningful explanations:** every headline explanation method used by the workflow has fidelity, stability, selectivity/control, and causal-intervention evidence where applicable. A clean projection, successful probe, or plausible feature label is not accepted as an explanation by itself.
+5. **Causal validation:** activation patching, ablation/removal, or steering confirms or falsifies headline diagnoses with identity/zero-strength, dose-response, random/null, and off-target controls where applicable.
+6. **Core real-model proof:** the complete workflow passes on at least one real encoder/autoencoder model and one pinned transformer hidden-state model. A bounded SmolVLA lane may establish a secondary VLA claim under the 16 GiB ceiling, but unavailable VLA/3D/world-model breadth does not block the ordinary-DL core.
+7. **API and extension quality:** public names describe domain behavior, entry classes delegate focused logic, optional integrations remain isolated, external plugins remain reproducible, and compatibility/migration contracts pass.
+8. **Release quality:** strict lint/type/test, packaging, security, documentation, clean-environment, and audited publication-workflow gates pass.
 
-## Coverage Vocabulary
+## Evidence Vocabulary
 
-Each theory-led capability has one of four evidence levels:
+Each theory-led capability retains one of four historical evidence levels:
 
-- **D0 - documented:** research note or notebook only; does not count as implemented coverage.
+- **D0 - documented:** research note or notebook only.
 - **D1 - implemented:** production code and focused tests exist.
 - **D2 - validated:** D1 plus an end-to-end benchmark on non-trivial data with quantitative acceptance criteria.
 - **D3 - model-proven:** D2 plus evidence on at least one real pretrained/trained model and a reproducible artifact.
 
-The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration claims require D3.
+D-levels remain useful claim evidence, but the former 95% core / 90% overall theory-row percentages are portfolio-health metrics rather than stable-release gates. A capability counts toward the 1.0 claim only when it participates in the Sprint 80 diagnostic contract at the required depth. Headline diagnostic and integration claims still require real-model evidence appropriate to their claim.
 
 ## Milestones
 
@@ -53,7 +48,7 @@ The `1.0.0` percentage gate counts D2 or D3 only. Headline model and integration
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - API freeze and stable release (Sprints 78-80):** planning contract is recorded in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md); Sprint 79 L04 implementation and local contract/remediation gates are in place, while real-system evidence, release-candidate gates, and `1.0.0` publication remain pending.
+- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 79 closes the broad inventory as an honest `0.9.0` evidence baseline; Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
 
 ## Carryover Evidence Gates
 
@@ -180,11 +175,12 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 - [x] [Sprint 76](sprint-plans/sprint-76.md) - Add MLflow and Weights & Biases tracking backends behind a small recorder contract; close final post-audit remediation.
 - [x] [Sprint 77](sprint-plans/sprint-77.md) - Run Phase-A performance gates, record the evidence-based Rust/PyO3 deferral, and complete the bounded closure audit.
 
-### Milestone 14 - API freeze and stable release
+### Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release
 
-- [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup; retain aliases and keep release authorization pending in [M14_REAL_SYSTEM_VALIDATION](M14_REAL_SYSTEM_VALIDATION.md).
-- [Sprint 79](sprint-plans/sprint-79.md) - Run the 24-row real-system inventory with 23 applicable lanes under the supported 16 GiB GPU ceiling and the exhaustive [theory evidence-gap plan](EVIDENCE_GAP_PLAN.md) for that supported scope. L19/OpenVLA remains a historical D0 feasibility record but is excluded from active release gates because its canonical BF16 contract requires unavailable >=24 GiB hardware.
-- [Sprint 80](sprint-plans/sprint-80.md) - Publish `1.0.0` only after signed evidence, clean packaging, workflow/account clearance, and the stop-before-release gate.
+- [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
+- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish the `0.9.0` pre-stable evidence baseline.
+- [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
+- [Sprint 81](sprint-plans/sprint-81.md) - Publish `1.0.0` only after Sprint 80 diagnostic-depth evidence and the audited release gates pass.
 
 ## Completed Sprints
 
