@@ -105,7 +105,10 @@ def test_sprint79_queue_reconciles_gap_map_and_completed_statuses() -> None:
             "lane_id": "L19",
             "status": "D0",
             "scope_status": "hardware-excluded",
-            "reason": "Canonical BF16 OpenVLA execution requires >=24 GiB VRAM; the supported release ceiling is 16 GiB.",
+            "reason": (
+                "Canonical BF16 OpenVLA execution requires >=24 GiB VRAM; "
+                "the supported release ceiling is 16 GiB."
+            ),
         }
     ]
 

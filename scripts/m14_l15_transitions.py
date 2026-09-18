@@ -1,11 +1,12 @@
 """Persist M14 L15 deterministic, stochastic, and RSSM transition evidence."""
+
 from __future__ import annotations
 
 import hashlib
-from dataclasses import asdict
 import json
 import platform
 import subprocess
+from dataclasses import asdict
 from importlib import metadata
 from pathlib import Path
 
@@ -77,7 +78,7 @@ def main() -> None:
     rssm_a = rssm.step(holdout_states[0, 0], holdout_actions[0, 0])
     carry_hidden = rssm.hidden_state
     rssm.reset()
-    rssm_b = rssm.step(holdout_states[0, 0], holdout_actions[0, 0])
+    rssm.step(holdout_states[0, 0], holdout_actions[0, 0])
     rssm_rollout_a = rssm.rollout(holdout_states[0, 0], holdout_actions[0], n_samples=8, seed=888)
     rssm.reset()
     rssm_rollout_b = rssm.rollout(holdout_states[0, 0], holdout_actions[0], n_samples=8, seed=888)
@@ -129,7 +130,9 @@ def main() -> None:
             "rssm_rollout_finite": bool(np.isfinite(rssm_rollout.mean_error)),
             "rssm_state_carry": bool(np.isfinite(rssm_a).all() and np.linalg.norm(carry_hidden) > 0.0),
             "rssm_seeded_rollout_reproducible": bool(np.array_equal(rssm_rollout_a.samples, rssm_rollout_b.samples)),
-            "rollout_horizon_complete": deterministic_rollout.horizon == 6 and stochastic_rollout.horizon == 6 and rssm_rollout.horizon == 6,
+            "rollout_horizon_complete": deterministic_rollout.horizon == 6
+            and stochastic_rollout.horizon == 6
+            and rssm_rollout.horizon == 6,
             "shape_safe": deterministic.rollout(holdout_states[0, 0], holdout_actions[0]).shape == (7, 2),
             "finite_scales": bool(np.isfinite(stochastic.scale).all() and np.isfinite(rssm.scale).all()),
         },
@@ -152,7 +155,9 @@ def main() -> None:
     }
     output = Path("artifacts/m14/l15-transitions-run.json")
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(payload, indent=2, sort_keys=True, default=lambda value: value.tolist()) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=lambda value: value.tolist()) + "\n", encoding="utf-8"
+    )
     print(json.dumps(payload, sort_keys=True, default=lambda value: value.tolist()))
 
 

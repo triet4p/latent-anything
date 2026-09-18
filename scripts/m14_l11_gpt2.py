@@ -1,4 +1,5 @@
 """Persist M14 L11 real GPT-2 hidden-state and logit-lens evidence."""
+
 from __future__ import annotations
 
 import hashlib
@@ -20,7 +21,10 @@ from latent_anything.integrations.transformer_lm import (
 MODEL_ID = "openai-community/gpt2"
 MODEL_REVISION = "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
 MODEL_WEIGHTS_SHA256 = "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
-RUN_COMMAND = "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l11_gpt2.py"
+RUN_COMMAND = (
+    "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers "
+    "--with huggingface-hub==0.35.3 python scripts/m14_l11_gpt2.py"
+)
 PROMPTS = (
     "The capital of France is",
     "Once upon a time",
@@ -54,7 +58,9 @@ def main() -> None:
     real_mask = baseline.attention_mask.astype(bool)
     hidden_finite = all(bool(np.isfinite(state.values).all()) for state in hidden)
     hidden_shapes = [list(state.values.shape) for state in hidden]
-    lens_finite = all(bool(np.isfinite(lens.logits).all() and np.isfinite(lens.probabilities).all()) for lens in baseline.lens_results)
+    lens_finite = all(
+        bool(np.isfinite(lens.logits).all() and np.isfinite(lens.probabilities).all()) for lens in baseline.lens_results
+    )
     probability_sums = [float(np.max(np.abs(lens.probabilities.sum(axis=-1) - 1.0))) for lens in baseline.lens_results]
     final_parity = bool(np.allclose(baseline.lens_results[-1].logits, baseline.logits, rtol=1e-6, atol=1e-6))
     layer_evolution = bool(
@@ -119,7 +125,10 @@ def main() -> None:
             "transformers": importlib.metadata.version("transformers"),
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "rss_peak_bytes": process.memory_info().rss,
-            "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+            "network_policy": (
+                "HF cache-only after initial pinned acquisition; no model download "
+                "during final measured rerun"
+            ),
         },
         "cleanup": "No temporary model files; pinned HF cache retained and JSON is the immutable output artifact.",
     }

@@ -49,6 +49,7 @@ def test_evidence_ledger_uses_only_d2_or_d3_for_stable_coverage() -> None:
     assert core_numerator < core_denominator * 0.95
     assert overall_numerator < overall_denominator * 0.9
 
+
 def test_openvla_is_hardware_excluded_without_becoming_evidence() -> None:
     capabilities = evidence_ledger.load_capabilities()
     openvla = next(item for item in capabilities if item.capability_id == "THY-X01-OPENVLA")

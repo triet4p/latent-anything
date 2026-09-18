@@ -82,6 +82,25 @@ uv run pytest tests/test_api_freeze_snapshot.py tests/test_api_compatibility.py 
 uv build --wheel --sdist --out-dir .release-gate-dist
 ```
 
+## Initial Ruff gate failure and correction scope
+
+- The initial Ruff report recorded **68 errors** (`I001`, `F401`, `F841`, and
+  `E501`) across the M14 evidence scripts, runtime SAE evaluation, and M14
+  contract test. No behavior or release scope change was required.
+- The correction is formatting-only plus removal of the reported unused imports
+  and local assignments, covering exactly:
+  `scripts/m14_l02_metrics.py`, `scripts/m14_l05_density.py`,
+  `scripts/m14_l06_sae.py`, `scripts/m14_l07_interventions.py`,
+  `scripts/m14_l09_diffusers_vae.py`, `scripts/m14_l11_gpt2.py`,
+  `scripts/m14_l14_tokenized.py`, `scripts/m14_l15_transitions.py`,
+  `scripts/m14_l16_mpc.py`, `scripts/m14_l16_planning.py`,
+  `scripts/m14_l22_runtime.py`, `scripts/validate_evidence_ledger.py`,
+  `src/latent_anything/sae_evaluation.py`,
+  `tests/test_scripts/test_validate_evidence_ledger.py`, and
+  `tests/test_m14_validation_contract.py`.
+- Task 604 remains **pending**; no version, tag, publication, or release-scope
+  change is included.
+
 Audited precedents and packaging/audit evidence:
 `artifacts/task_sprint79_release_audits_summary.md`,
 `artifacts/task_79_line602_rc_evidence_report.md`.

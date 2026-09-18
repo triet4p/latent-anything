@@ -480,7 +480,9 @@ class SAEFeatureEvaluation:
         split = max(1, int(permuted.shape[0] * (1.0 - self._config.val_fraction)))
         train, val = permuted[:split], permuted[split:]
         if val.shape[0] < self._config.min_val_samples:
-            raise ValueError(f"validation split has {val.shape[0]} samples; need at least {self._config.min_val_samples}")
+            raise ValueError(
+                f"validation split has {val.shape[0]} samples; need at least {self._config.min_val_samples}"
+            )
         reports: list[SAEEvaluationResult] = []
         for seed in seed_values:
             cfg = self._config.model_copy(update={"random_state": seed})

@@ -215,9 +215,7 @@ def coverage_summary(capabilities: tuple[Capability, ...]) -> dict[str, tuple[in
         return numerator, denominator, percentage
 
     applicable = [
-        item
-        for item in capabilities
-        if item.classification not in {"contextual-background", "hardware-excluded"}
+        item for item in capabilities if item.classification not in {"contextual-background", "hardware-excluded"}
     ]
     core = [item for item in applicable if item.tier in core_tiers]
     return {"core": summarize(core), "overall": summarize(applicable)}

@@ -1,11 +1,12 @@
 """Run the M14 L05 real GPT-2 density benchmark on deterministic prompts."""
+
 from __future__ import annotations
 
 import hashlib
 import importlib.metadata
 import json
-import subprocess
 import platform
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -125,7 +126,10 @@ def main() -> None:
             "path_feasible": path_feasible,
             "path_threshold": "finite path with exact endpoints preserved",
             "path_threshold_meets": path_feasible if REQUIRE_PATH_FEASIBLE else True,
-            "predeclared_threshold_binding": "MIN_MEAN_AUROC=0.90 and REQUIRE_PATH_FEASIBLE=True declared in runner before final run",
+            "predeclared_threshold_binding": (
+                "MIN_MEAN_AUROC=0.90 and REQUIRE_PATH_FEASIBLE=True "
+                "declared in runner before final run"
+            ),
         },
         "environment": {
             "device": "cpu",
@@ -137,9 +141,15 @@ def main() -> None:
             "transformers": importlib.metadata.version("transformers"),
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "rss_peak_bytes": rss_peak[0],
-            "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+            "network_policy": (
+                "HF cache-only after initial pinned acquisition; no model download "
+                "during final measured rerun"
+            ),
         },
-        "cleanup": "No temporary model files created; HF cache retained as pinned local cache and no disposable output outside artifact path.",
+        "cleanup": (
+            "No temporary model files created; HF cache retained as pinned local cache "
+            "and no disposable output outside artifact path."
+        ),
     }
     output = Path("artifacts/m14/l05-density-run.json")
     output.parent.mkdir(parents=True, exist_ok=True)

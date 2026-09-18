@@ -1,4 +1,5 @@
 """Persist M14 L16 reward/value, CEM, and MPPI planning evidence."""
+
 from __future__ import annotations
 
 import hashlib
@@ -13,10 +14,9 @@ import psutil
 from sklearn.datasets import load_digits
 
 from latent_anything.cem import CEMConfig, CEMPlanner
+from latent_anything.latent_space import LatentSpace
 from latent_anything.mppi import MPPIConfig, MPPIPlanner
 from latent_anything.reward_value import LinearRewardScorer, MonteCarloValueEstimator, RewardValueEvaluator
-from latent_anything.trajectory import Trajectory
-from latent_anything.latent_space import LatentSpace
 from latent_anything.transition import DeterministicLatentTransition
 
 RUN_COMMAND = "uv run python scripts/m14_l16_planning.py"
@@ -59,10 +59,18 @@ def main() -> None:
         LatentSpace(2, source_model=SOURCE_IDENTITY), 1, source_space_identity=SOURCE_IDENTITY
     ).fit(flat_states, flat_actions, flat_next)
     scorer = LinearRewardScorer(2, 1, source_space_identity=SOURCE_IDENTITY).fit(
-        flat_states, flat_actions, train_rewards.reshape(-1), policy_id="recorded-digits-policy", data_distribution="ordered digits trajectories"
+        flat_states,
+        flat_actions,
+        train_rewards.reshape(-1),
+        policy_id="recorded-digits-policy",
+        data_distribution="ordered digits trajectories",
     )
     value = MonteCarloValueEstimator(
-        2, discount=0.95, horizon=HORIZON, policy_id="recorded-digits-policy", data_distribution="ordered digits trajectories"
+        2,
+        discount=0.95,
+        horizon=HORIZON,
+        policy_id="recorded-digits-policy",
+        data_distribution="ordered digits trajectories",
     ).fit_trajectories(train_states, train_rewards)
     evaluator = RewardValueEvaluator(scorer, value)
     holdout_evaluation = evaluator.evaluate_holdout(
@@ -75,18 +83,34 @@ def main() -> None:
         current = np.repeat(initial[None, :], len(candidate_values), axis=0)
         total = np.zeros(len(candidate_values), dtype=np.float64)
         for step in range(candidate_values.shape[1]):
-            next_states = np.vstack([transition.predict(state, action) for state, action in zip(current, candidate_values[:, step])])
+            next_states = np.vstack(
+                [transition.predict(state, action) for state, action in zip(current, candidate_values[:, step])]
+            )
             total += scorer.predict(current, candidate_values[:, step])
             current = next_states
         return total
 
     cem_config = CEMConfig(
-        horizon=HORIZON, action_dim=1, lower_bounds=(-1.0,), upper_bounds=(1.0,), population_size=96,
-        elite_count=12, iterations=6, seed=SEED, initial_std=(0.6,)
+        horizon=HORIZON,
+        action_dim=1,
+        lower_bounds=(-1.0,),
+        upper_bounds=(1.0,),
+        population_size=96,
+        elite_count=12,
+        iterations=6,
+        seed=SEED,
+        initial_std=(0.6,),
     )
     mppi_config = MPPIConfig(
-        horizon=HORIZON, action_dim=1, lower_bounds=(-1.0,), upper_bounds=(1.0,), population_size=96,
-        iterations=6, temperature=0.5, noise_std=(0.55,), seed=SEED
+        horizon=HORIZON,
+        action_dim=1,
+        lower_bounds=(-1.0,),
+        upper_bounds=(1.0,),
+        population_size=96,
+        iterations=6,
+        temperature=0.5,
+        noise_std=(0.55,),
+        seed=SEED,
     )
     baseline_actions = np.zeros((HORIZON, 1), dtype=np.float64)
     baseline_return = float(objective(baseline_actions[None, :])[0])
@@ -115,7 +139,11 @@ def main() -> None:
             "holdout_digest": hashlib.sha256(holdout_states.tobytes()).hexdigest(),
         },
         "models": {
-            "transition": {"class": "DeterministicLatentTransition", "source_space_identity": SOURCE_IDENTITY, "fit_samples": len(flat_states)},
+            "transition": {
+                "class": "DeterministicLatentTransition",
+                "source_space_identity": SOURCE_IDENTITY,
+                "fit_samples": len(flat_states),
+            },
             "reward_scorer": dict(scorer.fit_metadata),
             "value_estimator": dict(value.fit_metadata),
         },
@@ -132,11 +160,18 @@ def main() -> None:
             "reward_value_finite": bool(np.isfinite(list(holdout_evaluation.to_metrics().values())).all()),
             "cem_return_improves_baseline": bool(cem.predicted_return >= baseline_return),
             "mppi_return_improves_baseline": bool(mppi.predicted_return >= baseline_return),
-            "cem_budget_respected": len(cem.candidate_statistics) == cem_config.iterations and all(item.population_size == cem_config.population_size for item in cem.candidate_statistics),
-            "mppi_budget_respected": len(mppi.candidate_statistics) == mppi_config.iterations and all(item.population_size == mppi_config.population_size for item in mppi.candidate_statistics),
+            "cem_budget_respected": len(cem.candidate_statistics) == cem_config.iterations
+            and all(item.population_size == cem_config.population_size for item in cem.candidate_statistics),
+            "mppi_budget_respected": len(mppi.candidate_statistics) == mppi_config.iterations
+            and all(item.population_size == mppi_config.population_size for item in mppi.candidate_statistics),
             "actions_within_bounds": bool(np.all((all_actions >= -1.0) & (all_actions <= 1.0))),
-            "planner_outputs_finite": bool(np.isfinite(all_actions).all() and np.isfinite(cem.predicted_return) and np.isfinite(mppi.predicted_return)),
-            "convergence_complete": len(cem.convergence_history) == cem_config.iterations and len(mppi.convergence_history) == mppi_config.iterations,
+            "planner_outputs_finite": bool(
+                np.isfinite(all_actions).all()
+                and np.isfinite(cem.predicted_return)
+                and np.isfinite(mppi.predicted_return)
+            ),
+            "convergence_complete": len(cem.convergence_history) == cem_config.iterations
+            and len(mppi.convergence_history) == mppi_config.iterations,
         },
         "thresholds": {
             "cem_predicted_return_min": baseline_return,

@@ -1,4 +1,5 @@
 """Persist the M14 L14 bounded tokenized-world-model evidence."""
+
 from __future__ import annotations
 
 import hashlib
@@ -59,7 +60,9 @@ def main() -> None:
             "task_proxy_available": evidence["acceptance"]["task_proxy_available"],
             "seeded_rollout_reproducible": evidence["acceptance"]["seeded_rollout_reproducible"],
             "tokenizer_used_for_fit": evidence["acceptance"]["tokenizer_used_for_fit"],
-            "heldout_observations_encoded_before_evaluation": evidence["acceptance"]["heldout_observations_encoded_before_evaluation"],
+            "heldout_observations_encoded_before_evaluation": evidence["acceptance"][
+                "heldout_observations_encoded_before_evaluation"
+            ],
             "nontrivial_token_usage": evidence["acceptance"]["nontrivial_token_usage"],
         },
         "thresholds": {
@@ -83,7 +86,10 @@ def main() -> None:
             "rss_peak_bytes": process.memory_info().rss,
             "network_policy": "offline; no model or dataset download",
         },
-        "cleanup": "No temporary files; generated evidence/config are retained as immutable artifacts and no scratch state remains.",
+        "cleanup": (
+            "No temporary files; generated evidence/config are retained as immutable "
+            "artifacts and no scratch state remains."
+        ),
     }
     output = Path("artifacts/m14/l14-tokenized-run.json")
     output.parent.mkdir(parents=True, exist_ok=True)

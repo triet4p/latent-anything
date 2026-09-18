@@ -1,4 +1,5 @@
 """Run the M14 L09 real Diffusers AutoencoderKL parity checks."""
+
 from __future__ import annotations
 
 import importlib.metadata
@@ -18,8 +19,10 @@ MODEL_REVISION = "31f26fdeee1355a5c34592e401dd41e45d25a493"
 def main() -> None:
     process = psutil.Process()
     rss_peak = [process.memory_info().rss]
+
     def sample_rss() -> None:
         rss_peak[0] = max(rss_peak[0], process.memory_info().rss)
+
     rng = np.random.default_rng(7)
     images = rng.uniform(-1, 1, size=(2, 3, 32, 32)).astype(np.float32)
     mean_adapter = DiffusersAutoencoderKLAdapter(MODEL_ID, MODEL_REVISION, latent_mode="mean")
@@ -68,7 +71,10 @@ def main() -> None:
             "torch": importlib.metadata.version("torch"),
             "diffusers": importlib.metadata.version("diffusers"),
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
-            "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+            "network_policy": (
+                "HF cache-only after initial pinned acquisition; no model download "
+                "during final measured rerun"
+            ),
         },
     }
     artifact_path = Path("artifacts/m14/l09-diffusers-vae-run.json")

@@ -1,4 +1,5 @@
 """Run the bounded latent model-predictive-control evidence lane."""
+
 from __future__ import annotations
 
 import hashlib
@@ -100,14 +101,11 @@ def run_benchmark(
     fixed_actions = np.zeros((RECEDING_STEPS, 1), dtype=np.float64)
     fixed_return = _score(pipeline, initial_state, fixed_actions)
     rng = np.random.default_rng(seed)
-    random_candidates = rng.uniform(
-        LOWER_BOUND, UPPER_BOUND, size=(population_size, RECEDING_STEPS, 1)
-    )
+    random_candidates = rng.uniform(LOWER_BOUND, UPPER_BOUND, size=(population_size, RECEDING_STEPS, 1))
     random_scores = np.asarray(
         [_score(pipeline, initial_state, candidate) for candidate in random_candidates], dtype=np.float64
     )
     random_index = int(np.argmax(random_scores))
-    random_actions = random_candidates[random_index]
     random_return = float(random_scores[random_index])
     planner = MPPIPlanner(
         MPPIConfig(
@@ -137,7 +135,11 @@ def run_benchmark(
         "status": "accepted",
         "accepted": True,
         "evidence_level": "D2",
-        "scope": "Bounded continuous latent MPC instantiated as receding-horizon MPPI over a fitted compact transition and recorded sklearn-digits trajectories; this does not claim CEM/MPPI equivalence, a real pretrained controller, or CUDA execution.",
+        "scope": (
+            "Bounded continuous latent MPC instantiated as receding-horizon MPPI over a fitted "
+            "compact transition and recorded sklearn-digits trajectories; this does not claim "
+            "CEM/MPPI equivalence, a real pretrained controller, or CUDA execution."
+        ),
         "command": RUN_COMMAND,
         "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "target": {
@@ -192,7 +194,12 @@ def run_benchmark(
             "seed": seed,
         },
         "provenance": {
-            "source": [{"path": str(source_path).replace("\\", "/"), "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest()}],
+            "source": [
+                {
+                    "path": str(source_path).replace("\\", "/"),
+                    "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                }
+            ],
             "benchmark": str(source_path).replace("\\", "/"),
             "focused_tests": [
                 "tests/test_m14_l16_mpc.py",
@@ -248,7 +255,10 @@ def main() -> None:
             "sample_budget_max": POPULATION_SIZE * ITERATIONS * RECEDING_STEPS,
             "state_trace_finite": True,
         },
-        "scope": "Compact held-out recorded-trajectory substitute only; no real pretrained model, policy-gradient, MuZero, MCTS, or CUDA claim.",
+        "scope": (
+            "Compact held-out recorded-trajectory substitute only; no real pretrained model, "
+            "policy-gradient, MuZero, MCTS, or CUDA claim."
+        ),
     }
     config_output.write_text(json.dumps(config, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(payload, indent=2, sort_keys=True))
