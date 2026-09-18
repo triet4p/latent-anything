@@ -13,7 +13,7 @@ import numpy as np
 import psutil
 import torch
 
-from latent_anything.density import GMMConfig, GaussianMixtureDensity, cross_seed_evaluation
+from latent_anything.density import GaussianMixtureDensity, GMMConfig, cross_seed_evaluation
 from latent_anything.geodesic import DensityGeodesic, GeodesicConfig
 from latent_anything.integrations.transformer_lm import TransformerLMIntegration
 
@@ -127,8 +127,7 @@ def main() -> None:
             "path_threshold": "finite path with exact endpoints preserved",
             "path_threshold_meets": path_feasible if REQUIRE_PATH_FEASIBLE else True,
             "predeclared_threshold_binding": (
-                "MIN_MEAN_AUROC=0.90 and REQUIRE_PATH_FEASIBLE=True "
-                "declared in runner before final run"
+                "MIN_MEAN_AUROC=0.90 and REQUIRE_PATH_FEASIBLE=True declared in runner before final run"
             ),
         },
         "environment": {
@@ -142,8 +141,7 @@ def main() -> None:
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "rss_peak_bytes": rss_peak[0],
             "network_policy": (
-                "HF cache-only after initial pinned acquisition; no model download "
-                "during final measured rerun"
+                "HF cache-only after initial pinned acquisition; no model download during final measured rerun"
             ),
         },
         "cleanup": (

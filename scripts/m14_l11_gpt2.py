@@ -126,8 +126,7 @@ def main() -> None:
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "rss_peak_bytes": process.memory_info().rss,
             "network_policy": (
-                "HF cache-only after initial pinned acquisition; no model download "
-                "during final measured rerun"
+                "HF cache-only after initial pinned acquisition; no model download during final measured rerun"
             ),
         },
         "cleanup": "No temporary model files; pinned HF cache retained and JSON is the immutable output artifact.",

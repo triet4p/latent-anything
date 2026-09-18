@@ -173,8 +173,7 @@ def main() -> None:
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "rss_peak_bytes": rss_peak[0],
             "network_policy": (
-                "HF cache-only after initial pinned acquisition; no model download "
-                "during final measured rerun"
+                "HF cache-only after initial pinned acquisition; no model download during final measured rerun"
             ),
         },
         "acceptance": {

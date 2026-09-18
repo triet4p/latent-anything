@@ -10,7 +10,6 @@ import subprocess
 from pathlib import Path
 
 import psutil
-
 from tokenized_world_model_benchmark import main as benchmark_main
 
 RUN_COMMAND = "uv run python scripts/m14_l14_tokenized.py"

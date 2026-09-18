@@ -72,8 +72,7 @@ def main() -> None:
             "diffusers": importlib.metadata.version("diffusers"),
             "huggingface_hub": importlib.metadata.version("huggingface-hub"),
             "network_policy": (
-                "HF cache-only after initial pinned acquisition; no model download "
-                "during final measured rerun"
+                "HF cache-only after initial pinned acquisition; no model download during final measured rerun"
             ),
         },
     }

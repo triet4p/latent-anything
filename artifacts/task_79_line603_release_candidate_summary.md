@@ -98,6 +98,14 @@ uv build --wheel --sdist --out-dir .release-gate-dist
   `src/latent_anything/sae_evaluation.py`,
   `tests/test_scripts/test_validate_evidence_ledger.py`, and
   `tests/test_m14_validation_contract.py`.
+
+- The post-commit gate identified residual import ordering in
+  `scripts/m14_l05_density.py` and `scripts/m14_l14_tokenized.py`, plus formatter
+  drift in those files, `scripts/m14_l06_sae.py`,
+  `scripts/m14_l07_interventions.py`, `scripts/m14_l09_diffusers_vae.py`,
+  `scripts/m14_l11_gpt2.py`, and `tests/test_m14_validation_contract.py`.
+  The follow-up correction reapplies Ruff's formatter to exactly those six paths
+  and Ruff's import fixes to the two ordering paths, without behavior changes.
 - Task 604 remains **pending**; no version, tag, publication, or release-scope
   change is included.
 

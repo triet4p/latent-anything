@@ -145,8 +145,7 @@ def main() -> None:
             "transformers": importlib.metadata.version("transformers"),
             "rss_peak_bytes": rss_peak[0],
             "network_policy": (
-                "HF cache-only after initial pinned acquisition; no model download "
-                "during final measured rerun"
+                "HF cache-only after initial pinned acquisition; no model download during final measured rerun"
             ),
         },
         "acceptance": {
@@ -158,8 +157,7 @@ def main() -> None:
             "finite": True,
         },
         "cleanup": (
-            "No disposable corpus/checkpoint files; pinned HF cache retained and JSON "
-            "is the immutable output artifact."
+            "No disposable corpus/checkpoint files; pinned HF cache retained and JSON is the immutable output artifact."
         ),
     }
     output = Path("artifacts/m14/l07-interventions-run.json")
