@@ -29,6 +29,7 @@ def canonical_kind(kind: str, *, warn: bool = False) -> str:
         )
     return canonical
 
+
 def migration_record(kind: str) -> dict[str, str | bool]:
     """Return a machine-readable migration record for one config kind."""
 
