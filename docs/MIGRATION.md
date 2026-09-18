@@ -1,10 +1,11 @@
 # Migration and compatibility guide
 
 This guide describes the current `0.9.0` pre-stable surface. The exact
-candidate is now tagged as `v0.9.0` and has a non-prerelease GitHub Release,
-but PyPI `0.9.0` remains unpublished (HTTP 404); the audited release workflow
-has no package build/upload step, so the Sprint 79 publication task remains
-open. The authoritative machine-readable surface is
+candidate is tagged as `v0.9.0` and has a non-prerelease GitHub Release.
+Authorized retry run `35384704917` passed the gate/build and uploaded immutable
+archives, but PyPI Trusted Publishing rejected the branch-ref OIDC claim with
+`invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so the Sprint 79
+publication task remains open. The authoritative machine-readable surface is
 [`api_freeze_snapshot_0.9.0.json`](../artifacts/api_freeze_snapshot_0.9.0.json);
 the historical beta surface is preserved unchanged in
 [`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json).

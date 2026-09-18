@@ -2,13 +2,14 @@
 
 ## Outcome
 
-Task 604 remains **open**. The authorized candidate was retagged exactly and
-the audited `Release` workflow completed successfully, creating a public
-GitHub Release. The required PyPI publication did not occur: the version JSON
-still returns HTTP 404, the audited workflow has no build/upload step, and no
-publication credentials or alternate publication route is available in this
-environment. Because the external PyPI step failed, Sprint 79 and Milestone 14
-remain open. No product code or Sprint 80/81 scope was changed.
+Task 604 remains **open**. The authorized retry run proved the tagged candidate,
+completed the full gate/build and uploaded immutable build evidence, but the
+configured PyPI Trusted Publisher still does not match the workflow OIDC claims.
+PyPI rejected the publication before any package or GitHub Release mutation with
+`invalid-publisher`; PyPI `0.9.0` remains HTTP 404 and the existing GitHub
+Release remains asset-free. Sprint 79 and Milestone 14 therefore remain open.
+No product code, workflow, tag, version, or Sprint 80/81 scope was changed.
+
 
 ## Candidate, branch, and tag
 
@@ -190,16 +191,16 @@ they do not satisfy published-distribution evidence.
 
 - `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]`; Sprint 79 remains
   open because PyPI publication and published-package smoke failed with the
-  exact HTTP 404/absent-publication blocker above.
+  exact `invalid-publisher`/HTTP 404 blocker above.
 - `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to the
   completed-sprints section. Sprint 80/81 scope is unchanged.
-- `CHANGELOG.md` and `docs/MIGRATION.md` record the partial state: the exact
-  GitHub Release exists, while PyPI publication remains pending.
-- Evidence/planning commit: `811def8` (`docs(release): record 0.9.0
-  publication blocker`). The final metadata commit SHA and branch push result
-  are returned with delivery; the worktree is verified clean.
+- `CHANGELOG.md` and `docs/MIGRATION.md` record the current partial state:
+  the exact GitHub Release exists and immutable retry archives were built, but
+  PyPI publication remains pending.
+- The final evidence/planning commit SHA and branch push result are returned
+  with delivery; the worktree is verified clean.
 
-## Release-path remediation (blocked by external publisher)
+## Previous release-path remediation (historical failed publisher exchange)
 
 The existing GitHub Release remains unchanged and no tag was moved or deleted
 during this remediation. The repaired path was dispatched once from the
@@ -262,8 +263,9 @@ gh workflow run release.yml --repo triet4p/latent-anything \
   --ref sprint79-local-gate-remediation -f tag=v0.9.0
 ```
 
-This command was run exactly once. The publisher exchange failed before
-publication; task 604/Sprint 79/Milestone 14 remain open pending configuration.
+That previous dispatch was run exactly once. The publisher exchange failed
+before publication; task 604/Sprint 79/Milestone 14 remained open pending
+configuration. The final authorized retry is recorded above.
 
 ## Remediation run evidence
 
@@ -316,3 +318,94 @@ non-draft/non-prerelease with **zero assets**, so no published-file hash or
 clean-install smoke can be claimed. Task 604, Sprint 79, and Milestone 14
 remain open pending PyPI Trusted Publisher configuration; no token secret or
 local upload was attempted.
+## Final authorized retry (publisher configuration mismatch)
+
+- Dispatch command (run exactly once):
+  `gh workflow run release.yml --repo triet4p/latent-anything --ref
+  sprint79-local-gate-remediation -f tag=v0.9.0`
+- Run: https://github.com/triet4p/latent-anything/actions/runs/35384704917
+- Run ID: `35384704917`; event `workflow_dispatch`; workflow head
+  `f856fa2a1567935b780568115a08f73aa4d80b3f`; status **completed /
+  failure**.
+- Gate job: `Release gate and reproducible package build`, ID
+  `105728781246`, URL
+  https://github.com/triet4p/latent-anything/actions/runs/35384704917/job/105728781246,
+  conclusion **success**. Every gate/build step passed, including Pytest,
+  archive normalization, provenance validation, and artifact upload.
+- Publish job: `Publish verified distributions`, ID `105731355079`, URL
+  https://github.com/triet4p/latent-anything/actions/runs/35384704917/job/105731355079,
+  conclusion **failure**. `Publish to PyPI with trusted publishing` failed;
+  PyPI verification and GitHub Release update were skipped.
+
+Exact publisher error:
+
+```text
+Trusted publishing exchange failure:
+Token request failed: the server refused the request for the following reasons:
+* invalid-publisher: valid token, but no corresponding publisher
+  (Publisher with matching claims was not found)
+```
+
+OIDC claims observed by the failed publish step:
+
+```text
+sub: repo:triet4p/latent-anything:ref:refs/heads/sprint79-local-gate-remediation
+repository: triet4p/latent-anything
+repository_owner: triet4p
+repository_owner_id: 119602471
+workflow_ref: triet4p/latent-anything/.github/workflows/release.yml@refs/heads/sprint79-local-gate-remediation
+job_workflow_ref: triet4p/latent-anything/.github/workflows/release.yml@refs/heads/sprint79-local-gate-remediation
+ref: refs/heads/sprint79-local-gate-remediation
+environment: MISSING
+```
+
+The immutable build-evidence artifact is
+`release-v0.9.0-35384704917`, artifact ID `10563387928`,
+digest
+`sha256:57b3edc2ba06d7af5c5838eecfb738c2daff509ce2d3d97a8d1095d1338e010c`,
+and API URL
+https://api.github.com/repos/triet4p/latent-anything/actions/artifacts/10563387928/zip.
+Its `PROVENANCE.json` records tag `v0.9.0`, candidate commit
+`2356c92d02022c02be25cd0c79944d07a74b6ca9`, repository
+`triet4p/latent-anything`, and workflow run `35384704917`.
+
+| File | Bytes | SHA-256 |
+|---|---:|---|
+| `latent_anything-0.9.0-py3-none-any.whl` | 406993 | `2d709eef8570df2ce3e6c1426823b8cbd7e24e557b27825c231cea2c05d143c8` |
+| `latent_anything-0.9.0.tar.gz` | 547990 | `bda07b2911df49a0427bc5886c625384ae7858efa50c597667a027f4780eee83` |
+
+Artifact `SHA256SUMS` exactly contains the two rows above. The retry
+`PROVENANCE.json` has `source_date_epoch=1789728831` and the exact tagged
+candidate commit. Tag API verification is
+https://api.github.com/repos/triet4p/latent-anything/git/ref/tags/v0.9.0:
+the lightweight ref resolves directly to
+`2356c92d02022c02be25cd0c79944d07a74b6ca9`.
+
+External publication evidence after the failed job:
+
+- GitHub Release:
+  https://github.com/triet4p/latent-anything/releases/tag/v0.9.0
+  (`Latent Anything 0.9.0 - Core latent-space framework`, non-draft,
+  non-prerelease, published `2026-09-18T18:31:58Z`, `targetCommitish=main`,
+  `assets=[]`).
+- PyPI JSON: https://pypi.org/pypi/latent-anything/0.9.0/json returned HTTP
+  `404`; no public file hashes exist.
+- Cross-source integrity: **PARTIAL / BLOCKED**. Candidate/tag/workflow/
+  artifact provenance is internally consistent, but no PyPI package or
+  GitHub Release package assets exist to compare.
+
+Brand-new public-PyPI smoke (environment removed after the attempt):
+
+```text
+uv venv F:/tmp/task604-pypi-smoke-35384704917 --python 3.13
+uv pip install --python F:/tmp/task604-pypi-smoke-35384704917/Scripts/python.exe \
+  --index-url https://pypi.org/simple latent-anything==0.9.0
+No solution found when resolving dependencies:
+Because latent-anything was not found in the package registry and you require
+latent-anything==0.9.0, we can conclude that your requirements are
+unsatisfiable.
+```
+
+No import/version output exists because public installation failed before
+installation. Task 604, Sprint 79, and Milestone 14 remain open pending a
+Trusted Publisher whose claims exactly match the OIDC block above.

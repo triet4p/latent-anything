@@ -49,7 +49,7 @@ D-levels remain useful claim evidence, but the former 95% core / 90% overall the
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 is complete and Sprint 79's exact-candidate GitHub Release exists, but PyPI publication remains externally blocked; Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
+- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 is complete; Sprint 79's exact-candidate GitHub Release and immutable retry build evidence exist, but PyPI Trusted Publishing rejected the configured branch-ref OIDC claim (`invalid-publisher`), so publication remains blocked; Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
 
 ## Carryover Evidence Gates
 
@@ -179,7 +179,7 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 ### Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release
 
 - [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
-- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish the `0.9.0` pre-stable evidence baseline. The exact candidate tag and GitHub Release are published; PyPI publication remains blocked, so the sprint stays open.
+- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish the `0.9.0` pre-stable evidence baseline. The exact candidate tag, GitHub Release, and retry build artifact exist; PyPI Trusted Publishing rejected the branch-ref claim, so the sprint remains open.
 - [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
 - [Sprint 81](sprint-plans/sprint-81.md) - Publish `1.0.0` only after Sprint 80 diagnostic-depth evidence and the audited release gates pass.
 
