@@ -195,5 +195,6 @@ they do not satisfy published-distribution evidence.
   completed-sprints section. Sprint 80/81 scope is unchanged.
 - `CHANGELOG.md` and `docs/MIGRATION.md` record the partial state: the exact
   GitHub Release exists, while PyPI publication remains pending.
-- The final evidence/planning commit and branch push are recorded after the
-  commit in the delivery message; the worktree is verified clean.
+- Evidence/planning commit: `811def8` (`docs(release): record 0.9.0
+  publication blocker`). The final metadata commit SHA and branch push result
+  are returned with delivery; the worktree is verified clean.
