@@ -610,3 +610,10 @@ Sprint 79 closes breadth exploration rather than declaring every explored capabi
 The scoped map remains **41/63 core and 41/64 overall qualifying rows** at the point of the `0.9.0` baseline. Those percentages are retained as evidence-health measurements, not waived or relabeled. Existing TCAV, SAE, steering, manifold/geometry, checkpoint, license, dataset, and policy blockers remain attached to their exact claims. Sprint 80 decides which are hard blockers for the supported diagnostic loop; the remainder stay explicit secondary/backlog limitations.
 
 `0.9.0` is an intentionally pre-stable release. It freezes a reproducible API/evidence baseline for the depth work and does not authorize `1.0.0`, broad VLA support, or a claim that all M14 lanes passed.
+Task 604 publication is currently blocked by audited GitHub Actions run
+[`35331167216`](https://github.com/triet4p/latent-anything/actions/runs/35331167216):
+the `Release` workflow failed its Ubuntu pytest gate (`37 failed, 2157 passed,
+67 skipped, 39 warnings`) before GitHub Release creation. The exact tag/branch
+provenance, missing GitHub Release/PyPI state, expected package hashes, and
+non-matching disposable rebuild hashes are recorded in
+[`task_604_publication_evidence.md`](../../artifacts/task_604_publication_evidence.md).
