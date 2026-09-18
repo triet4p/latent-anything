@@ -256,10 +256,15 @@ jobs:
           grep -Fq "\"tag\": \"${RELEASE_TAG}\"" dist/PROVENANCE.json
           (cd dist && sha256sum --check SHA256SUMS)
 
+      - name: Prepare PyPI package directory
+        run: |
+          mkdir -p dist/pypi
+          cp dist/*.whl dist/*.tar.gz dist/pypi/
+
       - name: Publish to PyPI with trusted publishing
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: dist/pypi/
           skip-existing: true
           print-hash: true
           attestations: true
