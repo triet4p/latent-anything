@@ -18,8 +18,10 @@ def _seed_everything(seed: int) -> None:
 
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    torch.manual_seed(seed)
+    torch.set_num_threads(1)
+    torch.use_deterministic_algorithms(True)
     torch.backends.cudnn.deterministic = True  # type: ignore[reportAttributeAccessIssue]
     torch.backends.cudnn.benchmark = False  # type: ignore[reportAttributeAccessIssue]
 

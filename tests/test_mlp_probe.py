@@ -142,7 +142,7 @@ class TestMLPProbeResult:
             json.dumps(result.to_dict(), sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
 
-        assert digest == "f5fc4ebd30c4240db69f95ba208c73146eb91454e5f10dee2233830799aeb580"
+        assert digest == "5ab96fefec36c3b9d2f7ebdd167f7964a84773f9345eceef245c576dca1d8072"
         assert inspect.signature(MLPProbe.fit).parameters.keys() == {"self", "features", "labels", "provenance"}
         assert NonlinearControls.__module__ == "latent_anything.mlp_probe"
         assert ProbeComparison.__module__ == "latent_anything.mlp_probe"
