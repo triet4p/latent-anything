@@ -18,7 +18,7 @@
 - Current compatibility snapshot: `artifacts/api_freeze_snapshot_0.9.0.json`; file
   SHA-256 `2d32c2955826d2fb83133575e91daef0749aabad015c6f2a553a44b6c02344df`.
   `uv run python scripts/api_freeze_snapshot.py --check` reports the frozen API
-  digest `d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`
+  digest `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`
   and exits 0.
 - Historical evidence preserved unchanged: `v0.1.0-beta.1` tag,
   `CHANGELOG.md` `0.1.0-beta.1` section,
@@ -60,7 +60,7 @@
 - Ceiling: **16 GiB**; **OpenVLA excluded** (historical D0, >=24 GiB BF16
   unavailable); no named 3DGS checkpoint; no real-policy/LeRobot overhead claim.
 
-## Release-gate evidence (executed 2026-09-18)
+## Release-gate evidence (executed 2026-09-18; pre-normalization candidate)
 
 - Locked environments: `uv sync --locked` exited 0; `uv sync --locked --extra
   docs` exited 0. The docs extra is the project optional extra, not a dependency
@@ -70,8 +70,10 @@
   already formatted`); `uv run pyright` exited 0 (`0 errors, 0 warnings,
   0 informations`).
 - Contract gates: `uv run python scripts/api_freeze_snapshot.py --check` exited
-  0 with frozen digest
-  `d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`; focused
+  0 for the pre-normalization candidate with frozen digest
+  `d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`; this
+  historical result is superseded by the corrected current normalized digest
+  `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`.
   `uv run pytest tests/test_api_freeze_snapshot.py
   tests/test_api_compatibility.py -q` passed **14 tests**; the evidence-ledger
   validator exited 0 with `errors: []`, coverage **41/63 core** and **41/64

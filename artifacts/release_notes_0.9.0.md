@@ -10,7 +10,7 @@ broad VLA support, or that all M14 lanes passed.
 Package metadata and runtime `latent_anything.__version__` are `0.9.0`. The
 current compatibility snapshot is
 `artifacts/api_freeze_snapshot_0.9.0.json` (SHA-256
-`d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`); the only
+`048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`); the only
 content change from the preserved historical beta snapshot is the
 version-stamped fixture envelope (observed digest
 `0007706863773ddf25bbdf97313e998c0e83250fbe936945628505b3f7da2d71`, golden digest

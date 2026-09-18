@@ -20,7 +20,7 @@ uv run pytest tests/test_api_freeze_snapshot.py tests/test_api_compatibility.py 
 
 The snapshot normalizes sorted JSON keys and contractually public declaration
 order; it excludes object addresses and unstable representations. Its current
-digest is `d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8`.
+digest is `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`.
 
 ## Public surface
 
