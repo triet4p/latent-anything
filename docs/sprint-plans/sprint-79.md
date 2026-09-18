@@ -601,7 +601,7 @@ occurred. See
 - [x] Run remote CUDA only through the `remote-cuda-test` skill invariants and preserve disposable-clone/cache cleanup evidence; do not use remote CUDA as a substitute for missing local tests. The exact-HEAD report is [`task_79_line601_remote_cuda_summary.md`](../../artifacts/task_79_line601_remote_cuda_summary.md): L03/L11 current TransformerLM CUDA integration passed; pinned L20/L21 attempts retained truthful skips; all remaining remote candidates retain concrete hardware/checkpoint/license/access or explicit non-goal blockers. Every runner used a fresh exact-SHA clone, isolated caches, native OpenSSH, and trap-plus-independent cleanup proof.
 - [x] Publish an RC evidence report with failures, waivers, confidence intervals, hardware, upstream revisions, and exact reproduction commands. The self-contained English report is [`task_79_line602_rc_evidence_report.md`](../../artifacts/task_79_line602_rc_evidence_report.md). It records the exact tested source scope, 41/63 core and 41/64 scoped-overall threshold shortfalls, accepted/partial/pending/blocked/excluded M14 rows, explicit non-waiver blockers and owners, local Windows and remote Linux environments, pinned upstream revisions/license state, exact commands, and line-603 hold.
 - [x] Prepare the `0.9.0` pre-stable release candidate (candidate source committed and complete gate/build executed): reconcile the new depth-first scope across authoritative docs and ADRs, retain compatibility aliases, update metadata/changelog/migration/release notes, build and verify wheel/sdist from a clean checkout, run the complete release gate, and commit an exact candidate SHA. Preserve all negative evidence and do not claim `1.0.0` diagnostic readiness. Do not tag or publish before the candidate evidence review passes. Candidate evidence: [`task_79_line603_release_candidate_summary.md`](../../artifacts/task_79_line603_release_candidate_summary.md).
-- [ ] After the reviewed candidate passes with no actionable finding, push the exact candidate SHA, create and push the `v0.9.0` tag through the audited release workflow, verify the GitHub/PyPI artifacts and clean-environment install, record immutable publication evidence, and close Sprint 79. The authorized retry workflow run `35384704917` completed the gate/build successfully and uploaded immutable artifacts, but PyPI Trusted Publishing rejected the OIDC claim with `invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so retain this task and Sprint 79 open without claiming publication.
+- [ ] After the reviewed candidate passes with no actionable finding, push the exact candidate SHA, create and push the `v0.9.0` tag through the audited release workflow, verify the GitHub/PyPI artifacts and clean-environment install, record immutable publication evidence, and close Sprint 79. The latest authorized retry workflow run `35398189493` completed the gate/build successfully and uploaded immutable artifacts, but PyPI Trusted Publishing still rejected the matching OIDC claim with `invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so retain this task and Sprint 79 open without claiming publication.
 
 ## Notes / Blockers
 
@@ -611,14 +611,14 @@ The scoped map remains **41/63 core and 41/64 overall qualifying rows** at the p
 
 `0.9.0` is an intentionally pre-stable release. It freezes a reproducible API/evidence baseline for the depth work and does not authorize `1.0.0`, broad VLA support, or a claim that all M14 lanes passed.
 Task 604 publication is partially complete but remains blocked by the PyPI Trusted
-Publisher configuration: authorized retry
-[`35384704917`](https://github.com/triet4p/latent-anything/actions/runs/35384704917)
+Publisher exchange: latest authorized retry
+[`35398189493`](https://github.com/triet4p/latent-anything/actions/runs/35398189493)
 passed the exact candidate gate/build for
 `2356c92d02022c02be25cd0c79944d07a74b6ca9` and uploaded immutable archives,
-but `Publish verified distributions` failed with `invalid-publisher` for the
-branch-ref OIDC claim. The existing GitHub Release remains asset-free and PyPI
-JSON
+but `Publish verified distributions` failed again with `invalid-publisher` for
+the matching branch-ref OIDC claim. The existing GitHub Release remains
+asset-free and PyPI JSON
 [`0.9.0`](https://pypi.org/pypi/latent-anything/0.9.0/json) returns HTTP
-`404`; the task remains open. Exact retry job, publisher claims, artifact
-hashes, external state, and failed public-install smoke are in
+`404`; the task remains open. Exact retry jobs, publisher claims, artifact
+hashes, external state, and prior failed public-install smoke are in
 [`task_604_publication_evidence.md`](../../artifacts/task_604_publication_evidence.md).

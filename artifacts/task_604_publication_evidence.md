@@ -2,13 +2,13 @@
 
 ## Outcome
 
-Task 604 remains **open**. The authorized retry run proved the tagged candidate,
-completed the full gate/build and uploaded immutable build evidence, but the
-configured PyPI Trusted Publisher still does not match the workflow OIDC claims.
-PyPI rejected the publication before any package or GitHub Release mutation with
-`invalid-publisher`; PyPI `0.9.0` remains HTTP 404 and the existing GitHub
-Release remains asset-free. Sprint 79 and Milestone 14 therefore remain open.
-No product code, workflow, tag, version, or Sprint 80/81 scope was changed.
+Task 604 remains **open**. The latest authorized retry run proved the tagged
+candidate, completed the full gate/build, and uploaded immutable build evidence,
+but PyPI Trusted Publishing still rejects the matching branch-ref OIDC claims
+with `invalid-publisher`. PyPI `0.9.0` remains HTTP 404 and the existing
+GitHub Release remains asset-free. Sprint 79 and Milestone 14 therefore remain
+open. No product code, workflow, tag, version, or Sprint 80/81 scope was
+changed.
 
 
 ## Candidate, branch, and tag
@@ -409,3 +409,63 @@ unsatisfiable.
 No import/version output exists because public installation failed before
 installation. Task 604, Sprint 79, and Milestone 14 remain open pending a
 Trusted Publisher whose claims exactly match the OIDC block above.
+## Latest authorized retry (publisher still rejected)
+
+- Dispatch command (run exactly once for this retry):
+  `gh workflow run release.yml --repo triet4p/latent-anything --ref
+  sprint79-local-gate-remediation -f tag=v0.9.0`
+- Run: https://github.com/triet4p/latent-anything/actions/runs/35398189493
+- Run ID: `35398189493`; event `workflow_dispatch`; workflow head
+  `c5fb429a17cb11c0998e9ae359590f027c6c6605`; status **completed /
+  failure**.
+- Gate job: `Release gate and reproducible package build`, ID
+  `105771753652`, URL
+  https://github.com/triet4p/latent-anything/actions/runs/35398189493/job/105771753652,
+  conclusion **success**. All gate/build/provenance steps passed, including
+  Pytest and immutable artifact upload.
+- Publish job: `Publish verified distributions`, ID `105773500066`, URL
+  https://github.com/triet4p/latent-anything/actions/runs/35398189493/job/105773500066,
+  conclusion **failure** at `Publish to PyPI with trusted publishing`;
+  PyPI hash verification and GitHub Release update were skipped.
+
+Exact new external error:
+
+```text
+Trusted publishing exchange failure:
+Token request failed: the server refused the request for the following reasons:
+* invalid-publisher: valid token, but no corresponding publisher
+  (Publisher with matching claims was not found)
+```
+
+The failed step rendered the same claims despite the publisher being recreated:
+
+```text
+sub: repo:triet4p/latent-anything:ref:refs/heads/sprint79-local-gate-remediation
+repository: triet4p/latent-anything
+repository_owner: triet4p
+repository_owner_id: 119602471
+workflow_ref: triet4p/latent-anything/.github/workflows/release.yml@refs/heads/sprint79-local-gate-remediation
+job_workflow_ref: triet4p/latent-anything/.github/workflows/release.yml@refs/heads/sprint79-local-gate-remediation
+ref: refs/heads/sprint79-local-gate-remediation
+environment: MISSING
+```
+
+The immutable build-evidence artifact is
+`release-v0.9.0-35398189493`, artifact ID `10569961784`, digest
+`sha256:3d5e0693d05045e53f58bd46ec7c555b6d30f3d5b4814d30f1ff8e7aa488d75b`,
+and API URL
+https://api.github.com/repos/triet4p/latent-anything/actions/artifacts/10569961784/zip.
+Its `PROVENANCE.json` records tag `v0.9.0`, candidate commit
+`2356c92d02022c02be25cd0c79944d07a74b6ca9`, workflow run `35398189493`, and
+`source_date_epoch=1789728831`.
+
+| File | Bytes | SHA-256 |
+|---|---:|---|
+| `latent_anything-0.9.0-py3-none-any.whl` | 406993 | `2d709eef8570df2ce3e6c1426823b8cbd7e24e557b27825c231cea2c05d143c8` |
+| `latent_anything-0.9.0.tar.gz` | 547990 | `bda07b2911df49a0427bc5886c625384ae7858efa50c597667a027f4780eee83` |
+
+The GitHub Release remained non-draft/non-prerelease with `assets=[]` at
+https://github.com/triet4p/latent-anything/releases/tag/v0.9.0, and PyPI JSON
+https://pypi.org/pypi/latent-anything/0.9.0/json still returned HTTP `404`.
+No package mutation occurred; cross-source package integrity remains
+**PARTIAL / BLOCKED**. Task 604, Sprint 79, and Milestone 14 remain open.

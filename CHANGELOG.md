@@ -56,7 +56,7 @@ are preserved unchanged.
 - No named trustworthy 3DGS checkpoint exists (L17 blocked); unavailable
   real-policy and LeRobot overhead measurements are secondary integration work;
   no unsupported performance claim is made.
-- Publication status: the exact candidate tag and non-prerelease GitHub Release remain in place. Authorized retry workflow run `35384704917` passed the gate/build and uploaded immutable archives, but PyPI Trusted Publishing rejected the branch-ref OIDC claim with `invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so Sprint 79 task 604 remains open.
+- Publication status: the exact candidate tag and non-prerelease GitHub Release remain in place. Authorized retry workflow run `35398189493` passed the gate/build and uploaded immutable archives, but PyPI Trusted Publishing rejected the matching branch-ref OIDC claim again with `invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so Sprint 79 task 604 remains open.
 
 ## [Unreleased]
 
