@@ -251,6 +251,15 @@ External prerequisite before dispatching this repaired path: configure PyPI
 Trusted Publishing for project `latent-anything` with owner `triet4p`,
 repository `latent-anything`, workflow filename
 `.github/workflows/release.yml`, and no environment (or an explicitly
-configured matching GitHub environment). Until that publisher is configured,
-the workflow must not be dispatched; task 604/Sprint 79/Milestone 14 remain
-open.
+configured matching GitHub environment). Because the immutable tag points to
+the pre-remediation workflow, the first authorized retry must dispatch the
+repaired workflow from the branch carrying this fix while selecting the
+existing tag:
+
+```text
+gh workflow run release.yml --repo triet4p/latent-anything \
+  --ref sprint79-local-gate-remediation -f tag=v0.9.0
+```
+
+This command was **not** run. Until that publisher is configured, the workflow
+must not be dispatched; task 604/Sprint 79/Milestone 14 remain open.
