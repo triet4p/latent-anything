@@ -13,7 +13,7 @@
     "F_optional_profiles": "3fd27b66b977bd286621a89821d59034fa69629b0a4c64bdd23bc1f5b917d1ae",
     "G_config_schemas": "8ce2a8a8a170e6cfe0bc8cf788f719bd0401c1e0e254964bed4b7ed23fa89fc7",
     "H_dataclass_schemas": "19339f6a76379d16decde5c4d9c563de2271a7f367d168033613cc947df0adfb",
-    "I_cli": "d87cb6aa71989f19488e17b4a2e504f6350f6946d6f291314a8bd6fe5da96baf",
+    "I_cli": "aa55734bba15a7224f66cfb7741893cf49af4c0397896c8d74c93f5fbeb11752",
     "J_serialization": "027077285c04063cd01ca68dc2c6c3192defc8a69ffd020fb0fdf7d8d5c404f2",
     "K_sync_async": "66889c6764310bb22e5db60d2e79916aa872de79ee1494d7c8d4d52177398458",
     "L_exceptions": "5f17dc95ec1ea977bf5e04c01c5409fd41805cc766ae498233803f5b620e2887"
@@ -8620,7 +8620,7 @@
             },
             {
               "choices": null,
-              "default": "artifacts\\runs",
+              "default": "artifacts/runs",
               "dest": "record_root",
               "nargs": null,
               "option_strings": [
@@ -8631,7 +8631,7 @@
             },
             {
               "choices": null,
-              "default": "artifacts\\run_comparison.json",
+              "default": "artifacts/run_comparison.json",
               "dest": "output",
               "nargs": null,
               "option_strings": [
@@ -8737,7 +8737,7 @@
             },
             {
               "choices": null,
-              "default": "artifacts\\runs",
+              "default": "artifacts/runs",
               "dest": "record_root",
               "nargs": null,
               "option_strings": [
@@ -8935,6 +8935,6 @@
       ]
     }
   },
-  "snapshot_sha256": "d0495cd85fb78b9d2eb9e53bb00052b91f2c5a9cf951ddbc0798c9710d38cee8",
+  "snapshot_sha256": "048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26",
   "verify": "uv run python scripts/api_freeze_snapshot.py --check"
 }

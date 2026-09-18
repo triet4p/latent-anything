@@ -63,9 +63,9 @@ The candidate-gate artifact records clean isolated local wheel and sdist install
 - `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to completed.
 - This artifact records the concrete external/remote blocker without fabricating publication or closure.
 - No local project-wide lint, type, test, documentation, or build suite was run. The only release-gate suite observed was the audited GitHub Actions run above; the disposable packaging rebuild was used only to prevent uploading a hash-mismatched artifact.
-- Evidence commit: `8e2e595ed6d035977995713cb9699a7189487111`
-- Final branch push: `sprint79-local-gate-remediation` remote head
-  `8e2e595ed6d035977995713cb9699a7189487111`
+- Initial blocker-evidence commit: `8e2e595ed6d035977995713cb9699a7189487111`.
+- A subsequent metadata-only evidence push advanced the branch; the final
+  remote head is reported in the task delivery verification.
 - Final worktree verification: `git status --short --branch` reported only
   `## sprint79-local-gate-remediation...origin/sprint79-local-gate-remediation`
   (no file changes).

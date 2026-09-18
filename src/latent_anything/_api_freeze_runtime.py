@@ -222,7 +222,9 @@ def cli_contract() -> dict[str, object]:
         aliases_by_id.setdefault(id(command_parser), []).append(alias)
 
     def action_row(action: argparse.Action) -> dict[str, object]:
-        default = str(action.default) if isinstance(action.default, Path) else action.default
+        # Snapshot paths in POSIX form so the reviewed API contract is stable
+        # across Windows and Linux CI runners.
+        default = action.default.as_posix() if isinstance(action.default, Path) else action.default
         choices = None if action.choices is None else [json_value(choice) for choice in action.choices]
         return {
             "option_strings": list(action.option_strings),

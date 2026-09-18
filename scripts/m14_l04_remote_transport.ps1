@@ -50,7 +50,10 @@ function Get-Sha256Hex {
 
 function Assert-TransportParameters {
     if ([string]::IsNullOrWhiteSpace($SshExecutable)) { throw "SshExecutable must be an explicit executable path" }
-    if ([System.IO.Path]::GetFileName($SshExecutable) -cne "ssh.exe") { throw "SshExecutable basename must be exactly ssh.exe" }
+    $expectedSshName = if ($env:OS -eq "Windows_NT") { "ssh.exe" } else { "ssh" }
+    if ([System.IO.Path]::GetFileName($SshExecutable) -cne $expectedSshName) {
+        throw "SshExecutable basename must be exactly $expectedSshName"
+    }
     if (-not (Test-Path -LiteralPath $SshExecutable -PathType Leaf)) { throw "SshExecutable must identify an existing file" }
     if (-not (Test-Path -LiteralPath $PayloadPath -PathType Leaf)) { throw "PayloadPath must identify an existing file" }
     if ($RemoteTarget -notmatch '^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$') { throw "RemoteTarget must be user@host-or-IP" }
