@@ -2,75 +2,198 @@
 
 ## Outcome
 
-Task 604 remains **open**. The reviewed candidate was pushed and tagged exactly, but the audited GitHub release workflow failed in its remote pytest gate. No GitHub Release or PyPI publication is claimed, and Sprint 79 remains open. No product code or Sprint 80/81 scope was changed.
+Task 604 remains **open**. The authorized candidate was retagged exactly and
+the audited `Release` workflow completed successfully, creating a public
+GitHub Release. The required PyPI publication did not occur: the version JSON
+still returns HTTP 404, the audited workflow has no build/upload step, and no
+publication credentials or alternate publication route is available in this
+environment. Because the external PyPI step failed, Sprint 79 and Milestone 14
+remain open. No product code or Sprint 80/81 scope was changed.
 
 ## Candidate, branch, and tag
 
-- Reviewed candidate: `47f4486bc0e8cd429c452f36a0847d60b70a099f`
-- Candidate subject: `docs(plan): mark release gate complete`
+- Authorized candidate: `2356c92d02022c02be25cd0c79944d07a74b6ca9`
+- Candidate parent: `c3fb0852d82dbda1cb424ed618d00e5dbd963477`
+- Candidate tree: `e833252570612ab8cf65f80c80e10a15e1092974`
+- Candidate subject: `docs: correct 0.9 snapshot digest references`
 - Remote branch: `sprint79-local-gate-remediation`
-- Remote branch URL: https://github.com/triet4p/latent-anything/tree/sprint79-local-gate-remediation
-- Candidate branch push result: `07ac285..47f4486 sprint79-local-gate-remediation -> sprint79-local-gate-remediation`
-- Tag: `v0.9.0`
-- Tag kind: lightweight commit ref
-- Remote tag verification (`git ls-remote origin refs/tags/v0.9.0`):
-  `47f4486bc0e8cd429c452f36a0847d60b70a099f refs/tags/v0.9.0`
-- Tag target therefore equals the reviewed candidate exactly.
+- Candidate branch URL:
+  https://github.com/triet4p/latent-anything/tree/sprint79-local-gate-remediation
+- Candidate branch was already at the authorized SHA before publication.
 
-- Workflow name: `Release`
-- Workflow file: https://github.com/triet4p/latent-anything/blob/47f4486bc0e8cd429c452f36a0847d60b70a099f/.github/workflows/release.yml
-- Run ID: `35331167216`
-- Run URL: https://github.com/triet4p/latent-anything/actions/runs/35331167216
-- Event/ref: tag push `v0.9.0`
-- Job: `Release gate and GitHub Release` (job ID `105555596600`)
-- Conclusion: **failure**
-- Failed step: `Pytest`, exit code `1`
-- Remote result: `37 failed, 2157 passed, 67 skipped, 39 warnings in 450.17s`
-- Exact failure evidence: `gh run view 35331167216 --repo triet4p/latent-anything --log-failed`
-- Representative failures include API-freeze CLI defaults drift, canonical Stage-B policy unavailable in the shallow checkout, and Linux execution of Windows-only `ssh.exe` transport tests. The full immutable failed-run log is at the run URL above. Because the workflow failed before `Extract release notes` and `Create GitHub Release`, no GitHub Release was created.
+The failed old tag was removed once, then recreated as the repository's
+lightweight-tag convention:
 
-## Corrected branch evidence
+```text
+git tag -d v0.9.0
+git push origin :refs/tags/v0.9.0
+git tag v0.9.0 2356c92d02022c02be25cd0c79944d07a74b6ca9
+git push origin refs/tags/v0.9.0
+```
 
-- Root fixes were applied only on the non-release branch `sprint79-local-gate-remediation`: POSIX API-freeze path serialization, full-history checkout for historical evidence commits, platform-correct SSH executable validation, and deterministic cross-platform MLP result seeding/serialization.
-- Corrected branch head: `11760047254de21b0f9f86f2f7584d86a5d34f78`.
-- Non-publication CI run `35334686560` passed on Python 3.12, 3.13, and 3.14: https://github.com/triet4p/latent-anything/actions/runs/35334686560. This does not move or retag `v0.9.0`, and the failed release workflow was not rerun.
+The push output was:
 
-## GitHub Release and assets
+```text
+Deleted tag 'v0.9.0' (was 47f4486)
+ - [deleted]         v0.9.0
+ * [new tag]         v0.9.0 -> v0.9.0
+```
 
-- Expected release URL: https://github.com/triet4p/latent-anything/releases/tag/v0.9.0
-- Verification command: `gh release view v0.9.0 --repo triet4p/latent-anything`
-- Result: `release not found` (exit code `1`)
-- GitHub Release metadata/assets: **not published**. No asset URLs or GitHub-hosted digests exist to verify.
+Tag provenance verification:
+
+```text
+git ls-remote origin refs/tags/v0.9.0
+2356c92d02022c02be25cd0c79944d07a74b6ca9 refs/tags/v0.9.0
+
+git cat-file -t v0.9.0
+commit
+
+git rev-parse v0.9.0^{commit}
+2356c92d02022c02be25cd0c79944d07a74b6ca9
+
+git rev-parse v0.9.0
+2356c92d02022c02be25cd0c79944d07a74b6ca9
+```
+
+Therefore the exact tag type is **lightweight**, its ref/object is the commit
+`2356c92d02022c02be25cd0c79944d07a74b6ca9`, and its commit target is exactly
+the authorized candidate.
+
+## Audited release workflow
+
+- Workflow: `Release`
+- Workflow file at the tagged candidate:
+  https://github.com/triet4p/latent-anything/blob/2356c92d02022c02be25cd0c79944d07a74b6ca9/.github/workflows/release.yml
+- Trigger: one push of `refs/tags/v0.9.0`
+- Run ID: `35380189555`
+- Run URL: https://github.com/triet4p/latent-anything/actions/runs/35380189555
+- Event/ref/SHA: `push`, `v0.9.0`,
+  `2356c92d02022c02be25cd0c79944d07a74b6ca9`
+- Run conclusion: **success**
+- Job ID: `105714256827`
+- Job: `Release gate and GitHub Release`
+- Job conclusion: **success**
+- Job interval: `2026-09-18T18:26:31Z` to `2026-09-18T18:32:03Z`
+
+The terminal job/step observation command was:
+
+```text
+gh run watch 35380189555 --repo triet4p/latent-anything --interval 30 --exit-status
+```
+
+Every job step concluded successfully: Set up job; Checkout; Set up Python;
+Install uv; Sync environment; Ruff check; Ruff format check; Pyright; Pytest;
+Extract release notes; Create GitHub Release; all post steps; Complete job.
+The remote test log recorded:
+
+```text
+collected 2259 items / 2 skipped
+2194 passed, 67 skipped, 39 warnings in 258.19s (0:04:18)
+```
+
+The only annotations were informational Node.js 20 deprecation and a future
+`ubuntu-latest` image migration notice; neither changed the successful
+conclusion.
+
+## GitHub Release and archive hashes
+
+- Release URL: https://github.com/triet4p/latent-anything/releases/tag/v0.9.0
+- API verification:
+  `gh api repos/triet4p/latent-anything/releases/tags/v0.9.0`
+- Name: `Latent Anything 0.9.0 - Core latent-space framework`
+- Tag name: `v0.9.0`
+- Draft: `false`
+- Prerelease: `false`
+- Published: `2026-09-18T18:31:58Z`
+- GitHub API `target_commitish`: `main` (the tag's immutable commit
+  provenance was independently verified above)
+- GitHub Release assets: **none** (`assets: []`).
+
+The workflow at the candidate commit only runs validation, extracts release
+notes, and calls `softprops/action-gh-release`; it does not build, checksum,
+attach, or upload a wheel/sdist. Consequently there is no workflow-produced
+package artifact path or workflow artifact hash to claim. GitHub's generated
+source archives were downloaded only as release-page verification (they are
+not release assets and are not Python distribution artifacts):
+
+| URL | Bytes | SHA-256 |
+|---|---:|---|
+| https://github.com/triet4p/latent-anything/archive/refs/tags/v0.9.0.tar.gz | 12737606 | `9033b9ae30d48a7855266c22e2c5f266ebfa75aec5e7a36ae5cced681c6c4f6f` |
+| https://github.com/triet4p/latent-anything/archive/refs/tags/v0.9.0.zip | 13942160 | `e6e87f333fb18307a14cbdef8c7f75c6fbecc8c8f0f52bfe102a1e96e6dcb70d` |
+
+The published release body is the extracted `0.9.0` changelog body. Its
+historical candidate-status sentence still says that no tag/release exists;
+the current immutable release/tag state above and this evidence supersede
+that stale pre-publication sentence.
 
 ## Package hashes and PyPI state
 
-Candidate-gate expected files and SHA-256 values:
+Historical candidate-local build hashes (not published-file hashes and not
+recomputed or uploaded here) were:
 
-| File | Expected SHA-256 |
+| File | Candidate-local SHA-256 |
 |---|---|
 | `latent_anything-0.9.0-py3-none-any.whl` | `18b82bed4520c094c2de41c1f1ab78c1c9a993635d6082371ed2020deac9c117` |
 | `latent_anything-0.9.0.tar.gz` | `6e43f91cff8e2d4f8f73f82044e31e0282ac26dc5813bb42168e31019a0d36ad` |
 
-- PyPI project/version URL: https://pypi.org/project/latent-anything/0.9.0/
-- JSON verification URL: https://pypi.org/pypi/latent-anything/0.9.0/json
-- Verification result: HTTP `404`; version is not published.
-- Disposable local rebuilds were intentionally **not uploaded**. Their raw bytes differed from the historical candidate hashes because wheel and sdist archives contain build-time metadata (including timestamps and generated archive metadata); repeated wheel rebuilds had identical normalized payloads after timestamp stripping while different raw archive digests. The candidate binaries were removed during the line-603 cleanup, so publishing a later rebuild would violate provenance.
-- Archive-integrity contract for any future publication: verify SHA-256 values from the workflow-generated GitHub Release assets and PyPI files, and verify their provenance to the immutable candidate SHA and successful release workflow. Exact byte equality with a later local rebuild is not required by this repository's current release policy; no reproducible-build requirement was found.
-- No `UV_PUBLISH_*`, `TWINE_*`, or `PYPI_*` credentials were present in the publication environment. No PyPI upload command was run.
+Verification commands and results:
 
-## Install smoke evidence
+```text
+curl -sS -o pypi-0.9.0.json -w '%{http_code}' \
+  https://pypi.org/pypi/latent-anything/0.9.0/json
+404
+```
 
-The candidate-gate artifact records clean isolated local wheel and sdist installs from the candidate build, each importing `latent_anything` and asserting `latent_anything.__version__ == "0.9.0"`. These are **candidate-local** smoke results, not published-distribution evidence. A published clean-install smoke cannot be performed while PyPI returns HTTP 404 and no GitHub Release assets exist.
+- PyPI project/version URL:
+  https://pypi.org/project/latent-anything/0.9.0/
+- PyPI JSON URL: https://pypi.org/pypi/latent-anything/0.9.0/json
+- PyPI files and hashes: **none; version endpoint is HTTP 404**.
+- No `UV_PUBLISH_*`, `TWINE_*`, or `PYPI_*` environment credentials were
+  present; `gh secret list --repo triet4p/latent-anything` returned no secrets.
+- No PyPI upload command was run. The audited workflow contains no PyPI
+  publication step.
 
-## Plan state and worktree
+## Cross-source integrity and install smoke
 
-- `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]` and Sprint 79 remains open.
-- `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to completed.
-- This artifact records the concrete external/remote blocker without fabricating publication or closure.
-- Full local gate passed after the corrective branch push: focused corrective suite `347 passed, 2 skipped`; complete pytest `2215 passed, 46 skipped, 39 warnings`; Ruff, Pyright, API/evidence validators, strict MkDocs, packaging, and clean-install smokes all passed. The original release-gate suite observed was the audited GitHub Actions run above; no release workflow was rerun.
-- Initial blocker-evidence commit: `8e2e595ed6d035977995713cb9699a7189487111`.
-- A subsequent metadata-only evidence push advanced the branch; the final
-  remote head is reported in the task delivery verification.
-- Final worktree verification: `git status --short --branch` reported only
-  `## sprint79-local-gate-remediation...origin/sprint79-local-gate-remediation`
-  (no file changes).
+Integrity result: **PARTIAL / BLOCKED**. The exact candidate commit is proven
+through the remote lightweight tag, workflow checkout log, successful workflow
+run, and GitHub Release tag. There is no workflow-produced wheel/sdist,
+no GitHub Release package asset, and no PyPI file to hash or compare. Thus a
+cross-source package-hash/provenance match cannot be established and no
+published-package claim is made.
+
+The required brand-new isolated PyPI smoke was attempted:
+
+```text
+rm -rf .publication-pypi-smoke
+uv venv .publication-pypi-smoke --python 3.13
+uv pip install --python .publication-pypi-smoke/Scripts/python.exe \
+  latent-anything==0.9.0
+rm -rf .publication-pypi-smoke
+```
+
+It failed as expected from the missing publication:
+
+```text
+No solution found when resolving dependencies:
+Because latent-anything was not found in the package registry and you require
+latent-anything==0.9.0, we can conclude that your requirements are
+unsatisfiable.
+```
+
+No published clean-install import/version output exists. The earlier
+candidate-local wheel/sdist smokes remain historical only: each imported
+`latent_anything` and asserted `latent_anything.__version__ == "0.9.0"`, but
+they do not satisfy published-distribution evidence.
+
+## Plan state and final branch
+
+- `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]`; Sprint 79 remains
+  open because PyPI publication and published-package smoke failed with the
+  exact HTTP 404/absent-publication blocker above.
+- `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to the
+  completed-sprints section. Sprint 80/81 scope is unchanged.
+- `CHANGELOG.md` and `docs/MIGRATION.md` record the partial state: the exact
+  GitHub Release exists, while PyPI publication remains pending.
+- The final evidence/planning commit and branch push are recorded after the
+  commit in the delivery message; the worktree is verified clean.
