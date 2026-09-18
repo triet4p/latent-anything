@@ -31,9 +31,9 @@ Task 604 remains **open**. The reviewed candidate was pushed and tagged exactly,
 
 ## Corrected branch evidence
 
-- Root fixes were applied only on the non-release branch `sprint79-local-gate-remediation`: POSIX API-freeze path serialization, full-history checkout for historical evidence commits, and platform-correct SSH executable validation.
-- Corrected branch head: `db13e655f575e15a4333a3d954f17405ef20686f`.
-- Non-publication CI was dispatched for that branch as run `35333133056`: https://github.com/triet4p/latent-anything/actions/runs/35333133056. This does not move or retag `v0.9.0`, and the failed release workflow was not rerun.
+- Root fixes were applied only on the non-release branch `sprint79-local-gate-remediation`: POSIX API-freeze path serialization, full-history checkout for historical evidence commits, platform-correct SSH executable validation, and deterministic cross-platform MLP result seeding/serialization.
+- Corrected branch head: `11760047254de21b0f9f86f2f7584d86a5d34f78`.
+- Non-publication CI run `35334686560` passed on Python 3.12, 3.13, and 3.14: https://github.com/triet4p/latent-anything/actions/runs/35334686560. This does not move or retag `v0.9.0`, and the failed release workflow was not rerun.
 
 ## GitHub Release and assets
 
@@ -67,7 +67,7 @@ The candidate-gate artifact records clean isolated local wheel and sdist install
 - `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]` and Sprint 79 remains open.
 - `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to completed.
 - This artifact records the concrete external/remote blocker without fabricating publication or closure.
-- Full local gate execution was started after the corrective branch push; individual results are recorded in task delivery evidence. The original release-gate suite observed was the audited GitHub Actions run above; no release workflow was rerun.
+- Full local gate passed after the corrective branch push: focused corrective suite `347 passed, 2 skipped`; complete pytest `2215 passed, 46 skipped, 39 warnings`; Ruff, Pyright, API/evidence validators, strict MkDocs, packaging, and clean-install smokes all passed. The original release-gate suite observed was the audited GitHub Actions run above; no release workflow was rerun.
 - Initial blocker-evidence commit: `8e2e595ed6d035977995713cb9699a7189487111`.
 - A subsequent metadata-only evidence push advanced the branch; the final
   remote head is reported in the task delivery verification.
