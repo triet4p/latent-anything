@@ -5,22 +5,34 @@ on:
     tags:
       - "v[0-9]*.[0-9]*.[0-9]*"
       - "[0-9]*.[0-9]*.[0-9]*"
-
-permissions:
-  contents: write
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to validate, build, and publish
+        required: true
+        type: string
 
 jobs:
-  release:
-    name: Release gate and GitHub Release
+  gate-and-build:
+    name: Release gate and reproducible package build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.verify_ref.outputs.release_tag }}
+      commit: ${{ steps.verify_ref.outputs.commit }}
+      release_name: ${{ steps.release_notes.outputs.title }}
+      prerelease: ${{ steps.release_notes.outputs.prerelease }}
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
     steps:
-      - name: Checkout
+      - name: Checkout release ref
         uses: actions/checkout@v4
         with:
-          # Evidence validators cross-check historical source commits; shallow
-          # clones make those immutable Git objects unavailable on Ubuntu.
+          ref: ${{ env.RELEASE_TAG }}
           fetch-depth: 0
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -28,6 +40,27 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
+      - name: Verify release ref provenance
+        id: verify_ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_TAG" != "v0.9.0" && "$RELEASE_TAG" != "0.9.0" ]]; then
+            echo "This workflow publishes only 0.9.0; got $RELEASE_TAG" >&2
+            exit 1
+          fi
+          tag_ref="refs/tags/$RELEASE_TAG"
+          git show-ref --verify --quiet "$tag_ref"
+          tag_commit="$(git rev-list -n 1 "$tag_ref")"
+          checkout_commit="$(git rev-parse HEAD)"
+          test "$tag_commit" = "$checkout_commit"
+          {
+            echo "release_tag=$RELEASE_TAG"
+            echo "commit=$checkout_commit"
+            echo "commit_epoch=$(git show -s --format=%ct "$checkout_commit")"
+          } >> "$GITHUB_OUTPUT"
+          echo "Verified $RELEASE_TAG -> $checkout_commit"
 
       - name: Sync environment
         run: uv sync --locked
@@ -48,14 +81,238 @@ jobs:
         id: release_notes
         run: |
           uv run python scripts/extract_release_notes.py \
-            "${GITHUB_REF_NAME}" \
+            "$RELEASE_TAG" \
             --body-file "${RUNNER_TEMP}/release-body.md" \
             --github-output "${GITHUB_OUTPUT}"
 
-      - name: Create GitHub Release
+      - name: Build wheel and sdist
+        env:
+          SOURCE_DATE_EPOCH: ${{ steps.verify_ref.outputs.commit_epoch }}
+        run: |
+          rm -rf dist
+          uv build --wheel --sdist --out-dir dist
+
+      - name: Normalize sdist archive metadata
+        env:
+          SOURCE_DATE_EPOCH: ${{ steps.verify_ref.outputs.commit_epoch }}
+        run: |
+          python - <<'PY'
+          import gzip
+          import io
+          import os
+          import tarfile
+          from pathlib import Path
+
+          source = Path("dist/latent_anything-0.9.0.tar.gz")
+          temporary = source.with_suffix(source.suffix + ".tmp")
+          epoch = int(os.environ["SOURCE_DATE_EPOCH"])
+          with (
+              tarfile.open(source, "r:gz") as original,
+              temporary.open("wb") as raw,
+              gzip.GzipFile(fileobj=raw, mode="wb", mtime=epoch) as compressed,
+              tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as normalized,
+          ):
+              for member in original.getmembers():
+                  data = original.extractfile(member).read() if member.isfile() else None
+                  member.mtime = epoch
+                  member.uid = 0
+                  member.gid = 0
+                  member.uname = ""
+                  member.gname = ""
+                  member.pax_headers = {}
+                  normalized.addfile(member, io.BytesIO(data) if data is not None else None)
+          os.replace(temporary, source)
+          PY
+
+      - name: Validate package contents and record provenance
+        env:
+          RELEASE_COMMIT: ${{ steps.verify_ref.outputs.commit }}
+          RELEASE_TAG: ${{ steps.verify_ref.outputs.release_tag }}
+          SOURCE_DATE_EPOCH: ${{ steps.verify_ref.outputs.commit_epoch }}
+        run: |
+          cp "${{ steps.release_notes.outputs.body_path }}" dist/release-body.md
+          uv run python - <<'PY'
+          import email
+          import hashlib
+          import json
+          import os
+          import tarfile
+          import zipfile
+          from pathlib import Path
+
+          dist = Path("dist")
+          expected = {
+              "latent_anything-0.9.0-py3-none-any.whl",
+              "latent_anything-0.9.0.tar.gz",
+          }
+          actual = {path.name for path in dist.iterdir() if path.is_file() and path.suffix in {".whl", ".gz"}}
+          if actual != expected:
+              raise SystemExit(f"unexpected distribution set: {sorted(actual)}")
+
+          def check_name(name: str) -> None:
+              if name.startswith("/") or ".." in Path(name).parts:
+                  raise SystemExit(f"unsafe archive path: {name}")
+
+          def check_metadata(raw: bytes, source: str) -> None:
+              metadata = email.message_from_bytes(raw)
+              if metadata.get("Name") != "latent-anything" or metadata.get("Version") != "0.9.0":
+                  raise SystemExit(f"invalid metadata in {source}")
+
+          wheel = dist / "latent_anything-0.9.0-py3-none-any.whl"
+          with zipfile.ZipFile(wheel) as archive:
+              if archive.testzip() is not None:
+                  raise SystemExit("wheel CRC validation failed")
+              names = archive.namelist()
+              for name in names:
+                  check_name(name)
+              metadata_names = [name for name in names if name.endswith(".dist-info/METADATA")]
+              if len(metadata_names) != 1 or "latent_anything/__init__.py" not in names:
+                  raise SystemExit("wheel content contract failed")
+              check_metadata(archive.read(metadata_names[0]), wheel.name)
+
+          sdist = dist / "latent_anything-0.9.0.tar.gz"
+          with tarfile.open(sdist, "r:gz") as archive:
+              members = archive.getmembers()
+              for member in members:
+                  check_name(member.name)
+              root = members[0].name.split("/", 1)[0]
+              metadata_names = [member.name for member in members if member.name == f"{root}/PKG-INFO"]
+              package_names = [member.name for member in members if member.name.endswith("/src/latent_anything/__init__.py")]
+              if len(metadata_names) != 1 or not package_names:
+                  raise SystemExit("sdist content contract failed")
+              check_metadata(archive.extractfile(metadata_names[0]).read(), sdist.name)
+
+          files = []
+          for name in sorted(expected):
+              path = dist / name
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              files.append({"name": name, "bytes": path.stat().st_size, "sha256": digest})
+          (dist / "SHA256SUMS").write_text(
+              "".join(f"{item['sha256']}  {item['name']}\n" for item in files),
+              encoding="utf-8",
+          )
+          provenance = {
+              "schema": "latent-anything-release-provenance-v1",
+              "tag": os.environ["RELEASE_TAG"],
+              "commit": os.environ["RELEASE_COMMIT"],
+              "workflow_run": os.environ["GITHUB_RUN_ID"],
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "source_date_epoch": os.environ["SOURCE_DATE_EPOCH"],
+              "files": files,
+          }
+          (dist / "PROVENANCE.json").write_text(
+              json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(provenance, sort_keys=True))
+          PY
+
+      - name: Upload immutable build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.verify_ref.outputs.release_tag }}-${{ github.run_id }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS
+            dist/PROVENANCE.json
+            dist/release-body.md
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: true
+
+  publish:
+    name: Publish verified distributions
+    needs: gate-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
+      RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
+      RELEASE_NAME: ${{ needs.gate-and-build.outputs.release_name }}
+      RELEASE_PRERELEASE: ${{ needs.gate-and-build.outputs.prerelease }}
+
+    steps:
+      - name: Download verified build evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: release-${{ needs.gate-and-build.outputs.release_tag }}-${{ github.run_id }}
+          path: dist
+
+      - name: Set up Python for publication verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Verify downloaded provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/SHA256SUMS
+          test -s dist/PROVENANCE.json
+          grep -Fq "\"commit\": \"${RELEASE_COMMIT}\"" dist/PROVENANCE.json
+          grep -Fq "\"tag\": \"${RELEASE_TAG}\"" dist/PROVENANCE.json
+          (cd dist && sha256sum --check SHA256SUMS)
+
+      - name: Publish to PyPI with trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
+          print-hash: true
+          attestations: true
+
+      - name: Verify PyPI hashes match the built archives
+        env:
+          RELEASE_VERSION: "0.9.0"
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+          from pathlib import Path
+
+          expected = {}
+          for line in Path("dist/SHA256SUMS").read_text(encoding="utf-8").splitlines():
+              digest, name = line.split("  ", 1)
+              expected[name] = digest
+          url = f"https://pypi.org/pypi/latent-anything/{__import__('os').environ['RELEASE_VERSION']}/json"
+          last = None
+          for _ in range(12):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      payload = json.load(response)
+                  published = {item["filename"]: item["digests"]["sha256"] for item in payload["urls"]}
+                  if all(published.get(name) == digest for name, digest in expected.items()):
+                      Path("dist/PYPI-VERIFICATION.json").write_text(
+                          json.dumps({"url": url, "files": expected}, indent=2, sort_keys=True) + "\n",
+                          encoding="utf-8",
+                      )
+                      print(json.dumps({"url": url, "files": expected}, sort_keys=True))
+                      break
+                  last = f"hash mismatch: {published}"
+              except Exception as exc:
+                  last = repr(exc)
+              time.sleep(10)
+          else:
+              raise SystemExit(last or "PyPI verification did not complete")
+          PY
+
+      - name: Create or update GitHub Release with the same archives
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ steps.release_notes.outputs.title }}
-          body_path: ${{ steps.release_notes.outputs.body_path }}
-          prerelease: ${{ steps.release_notes.outputs.prerelease }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_NAME }}
+          body_path: dist/release-body.md
+          prerelease: ${{ env.RELEASE_PRERELEASE }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS
+            dist/PROVENANCE.json
+            dist/PYPI-VERIFICATION.json
+          overwrite_files: true
+          fail_on_unmatched_files: true

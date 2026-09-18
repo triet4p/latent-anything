@@ -198,3 +198,59 @@ they do not satisfy published-distribution evidence.
 - Evidence/planning commit: `811def8` (`docs(release): record 0.9.0
   publication blocker`). The final metadata commit SHA and branch push result
   are returned with delivery; the worktree is verified clean.
+
+## Release-path remediation (not executed)
+
+The existing GitHub Release remains unchanged and no tag was moved or deleted
+during this remediation. The audited path was repaired in
+`.github/workflows/release.yml` but was **not triggered**:
+
+- `gate-and-build` now performs the existing lint/type/test gate first, checks
+  that the selected ref is exactly `v0.9.0`/`0.9.0` and that the checked-out
+  commit is the tag target, builds the wheel and sdist, normalizes sdist
+  metadata using the tagged commit epoch, validates archive paths and
+  `Name`/`Version` metadata, and writes `SHA256SUMS` plus
+  `PROVENANCE.json` containing tag, commit, workflow run, repository, and file
+  sizes/hashes.
+- The build job uploads the exact archives and provenance as a retained
+  `actions/upload-artifact@v4` artifact. A dependent `publish` job downloads
+  that artifact, verifies provenance and hashes, then publishes to PyPI before
+  updating the GitHub Release. This ordering means a failed test/build cannot
+  create or mutate the release, while `skip-existing`, `overwrite_files`, and
+  `fail_on_unmatched_files` make authorized reruns safe and explicit.
+- PyPI publication uses `pypa/gh-action-pypi-publish@release/v1` with
+  `id-token: write` and no long-lived token. After upload, the workflow polls
+  PyPI JSON and fails unless both published file digests equal the built
+  `SHA256SUMS`; those verification records are also attached to the GitHub
+  Release.
+- A `workflow_dispatch` input accepts an existing tag so the already-created
+  `v0.9.0` Release can be repaired without moving/deleting the tag or creating
+  a second release.
+
+Focused dry-run/static proof on the repaired workflow:
+
+```text
+python -c "import yaml; yaml.safe_load(open('.github/workflows/release.yml', encoding='utf-8')); print('RELEASE_WORKFLOW_YAML_OK')"
+RELEASE_WORKFLOW_YAML_OK
+
+RELEASE_WORKFLOW_STATIC_CONTRACT_OK
+
+SOURCE_DATE_EPOCH=<tagged commit epoch> uv build --wheel --sdist --out-dir <dry-run-dir>
+RELEASE_PACKAGE_CONTENT_METADATA_OK
+```
+
+Two local builds with the same source epoch produced identical wheel bytes;
+normalizing the sdist archive's gzip/tar metadata also produced identical
+sdist bytes (`NORMALIZED_SDIST_DETERMINISTIC_OK`). A fresh wheel install in a
+new Python 3.13 uv environment printed
+`RELEASE_PACKAGE_IMPORT_SMOKE_OK 0.9.0` and asserted
+`latent_anything.__version__ == "0.9.0"`. The dry-run directories were
+removed. No project-wide lint/test/type/build suite was rerun.
+
+External prerequisite before dispatching this repaired path: configure PyPI
+Trusted Publishing for project `latent-anything` with owner `triet4p`,
+repository `latent-anything`, workflow filename
+`.github/workflows/release.yml`, and no environment (or an explicitly
+configured matching GitHub environment). Until that publisher is configured,
+the workflow must not be dispatched; task 604/Sprint 79/Milestone 14 remain
+open.
