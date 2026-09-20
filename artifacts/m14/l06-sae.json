@@ -1,0 +1,20 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L06",
+  "status": "pending",
+  "accepted": false,
+  "evidence_level": "D2 candidate",
+  "source_sha": "005954c636ae7a45ac3072c69e2c118db044682b",
+  "target": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8 with expanded real text fixture",
+  "model_weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+  "license": "MIT",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l06_sae.py",
+  "focused_test_command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_sae_evaluation.py tests/test_sae_evaluation_network.py -m network -q",
+  "result": "expanded real GPT-2 layer-6 activations n_tokens=10752; reconstruction_mse=0.7104635182257194; n_dead_features=0; cross-seed mean/min matched cosine=0.8467253367037664/0.7387987235614891; alignment=0.75; atlas entries=4; focused test: 1 passed, 21 deselected, 1 warning in 23.41s",
+  "artifacts": [{"path": "artifacts/m14/l06-sae-run.json", "sha256": "68f2d57b77b27fd928af906e7e7a60d7fd1e1a3de1aee899caa1d60812140c22"}, {"path": "artifacts/m14/l06-feature-atlas.json", "sha256": "868307f44f5bd9312546bc0df28c6f3fd00a11a9f57b8554ad7bf18d20f68e7d"}],
+  "corpus": {"revision": "prompt-grid-v2-1024", "license": "original deterministic prompts", "prompt_count": 1024, "prompt_digest": "0ac11dc2d06165e897ac30e7b5302e4a3a690d7aec1bd46cb65df4f671ae0a7d"},
+  "environment": {"device": "cpu", "python": "3.13.3", "platform": "Windows-11-10.0.26200-SP0", "numpy": "2.4.6", "torch": "2.10.0", "transformers": "4.57.6", "huggingface_hub": "0.35.3", "rss_peak_bytes": 2438885376, "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun"},
+  "diagnosis": {"prior_failed_attempt": {"corpus_revision": "prompt-batch-v1", "n_tokens": 234, "n_components": 64, "stability_mean_matched_cosine": 0.0, "stability_min_matched_cosine": 0.0, "stability_alignment_quality": 0.0}, "source_fix": "cross_seed_sae_stability fixes the train/validation split and match_by_decoder_cosine globally ranks one-to-one cosine candidates", "finding": "The expanded 1024-prompt corpus and source fixes remove corpus-size, split, and row-order confounding, but independent SAE seeds remain below both predeclared thresholds; no promotion is claimed."},
+  "cleanup": "No disposable corpus/checkpoint files; pinned HF cache retained and atlas is the immutable output artifact.",
+  "evidence_scope": "Real pinned GPT-2 checkpoint and expanded real text fixture were used; no mock or local approximation substituted."
+}

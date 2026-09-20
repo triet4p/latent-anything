@@ -2,12 +2,12 @@
 
 ## Sprint Goal
 
-Prepare the planned `0.9.0` pre-stable API-freeze compatibility epoch after the
-Sprint 78 gates pass, and remove only beta aliases whose deprecation window has
-completed. Keep package metadata at `0.1.0b1` until the gates and release
-workflow are verified; do not tag or publish `v0.9.0` while the external GitHub
-Actions account blocker remains. Sprint 80 targets `1.0.0` and stops before
-stable publication if any required gate is unresolved.
+Record the `0.9.0` pre-stable API-freeze compatibility epoch: freeze the
+205-runtime/202-canonical surface, retain every beta alias, and keep
+version/tag/publication decisions with the Sprint 79 candidate review (this
+plan's historical `0.1.0b1` metadata notes are preserved below as history).
+Sprint 81 targets `1.0.0` and stops before stable publication if any required
+gate is unresolved; Sprint 80 is the depth-first diagnostic gate.
 
 ## Atomic Tasks
 
@@ -65,11 +65,12 @@ Status legend: [ ] pending / [~] in progress / [x] done
 ## Notes / Blockers
 
 After this sprint, only release-blocking corrections may change public API before
-`1.0.0`, and each change requires an ADR plus migration update. The planned
-`0.9.0` epoch is a compatibility/API-freeze milestone, not a tag or publication
-yet: metadata remains `0.1.0b1`, and no `v0.9.0` release is allowed while the
-release workflow or external GitHub Actions account access is unresolved. The
-owner-level API-freeze checkpoint is recorded for the documented current
-surface, but it authorizes neither alias removal nor version/tag/publication.
-The evidence and workflow gates remain unresolved, so no stable-release claim
-follows from this checkpoint.
+`1.0.0`, and each change requires an ADR plus migration update. The `0.9.0`
+pre-stable baseline is a committed candidate, not a tag or publication: the
+historical beta metadata was `0.1.0b1`, the current candidate metadata is
+`0.9.0`, and no `v0.9.0` release is authorized until the candidate evidence
+review passes. The owner-level API-freeze checkpoint is recorded for the
+documented surface, but it authorizes neither alias removal nor
+tag/publication. (Historical note: the external GitHub Actions account blocker
+wording above described the pre-candidate state and is superseded by the
+Sprint 79 candidate review.)

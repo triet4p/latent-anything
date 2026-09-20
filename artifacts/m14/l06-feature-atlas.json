@@ -1,0 +1,300 @@
+{
+  "entries": [
+    {
+      "activation_frequency": 0.5820548582054859,
+      "bottom_examples": [
+        {
+          "activation": 0.0,
+          "example_index": 2148,
+          "label": " morning",
+          "rank": 1
+        },
+        {
+          "activation": 0.0,
+          "example_index": 32,
+          "label": "The",
+          "rank": 2
+        },
+        {
+          "activation": 0.0,
+          "example_index": 31,
+          "label": "The",
+          "rank": 3
+        }
+      ],
+      "decoder_norm": 6.7959985998625605,
+      "encoder_norm": 0.496623214493895,
+      "feature_index": 0,
+      "is_dead": false,
+      "mean_activation": 0.8544891476631165,
+      "top_decoder_dims": [
+        {
+          "dim_index": 728,
+          "weight": -0.6766762137413025
+        },
+        {
+          "dim_index": 118,
+          "weight": -0.6368970274925232
+        },
+        {
+          "dim_index": 191,
+          "weight": -0.6362253427505493
+        },
+        {
+          "dim_index": 644,
+          "weight": 0.6277073621749878
+        },
+        {
+          "dim_index": 482,
+          "weight": 0.6109060049057007
+        }
+      ],
+      "top_examples": [
+        {
+          "activation": 3.9222605228424072,
+          "example_index": 2106,
+          "label": " farmer",
+          "rank": 1
+        },
+        {
+          "activation": 3.9222605228424072,
+          "example_index": 2122,
+          "label": " farmer",
+          "rank": 2
+        },
+        {
+          "activation": 3.9222605228424072,
+          "example_index": 1434,
+          "label": " farmer",
+          "rank": 3
+        }
+      ]
+    },
+    {
+      "activation_frequency": 0.41515574151557416,
+      "bottom_examples": [
+        {
+          "activation": 0.0,
+          "example_index": 2,
+          "label": " the",
+          "rank": 1
+        },
+        {
+          "activation": 0.0,
+          "example_index": 1343,
+          "label": " scientist",
+          "rank": 2
+        },
+        {
+          "activation": 0.0,
+          "example_index": 57,
+          "label": " engineer",
+          "rank": 3
+        }
+      ],
+      "decoder_norm": 7.52944465908944,
+      "encoder_norm": 0.41458876616092327,
+      "feature_index": 1,
+      "is_dead": false,
+      "mean_activation": 0.43477970361709595,
+      "top_decoder_dims": [
+        {
+          "dim_index": 137,
+          "weight": -0.7582485675811768
+        },
+        {
+          "dim_index": 209,
+          "weight": -0.7197825312614441
+        },
+        {
+          "dim_index": 76,
+          "weight": 0.6822417974472046
+        },
+        {
+          "dim_index": 120,
+          "weight": -0.6677672863006592
+        },
+        {
+          "dim_index": 767,
+          "weight": -0.6538037061691284
+        }
+      ],
+      "top_examples": [
+        {
+          "activation": 5.34779167175293,
+          "example_index": 866,
+          "label": " morning",
+          "rank": 1
+        },
+        {
+          "activation": 5.324278831481934,
+          "example_index": 815,
+          "label": " morning",
+          "rank": 2
+        },
+        {
+          "activation": 5.321310043334961,
+          "example_index": 1364,
+          "label": " morning",
+          "rank": 3
+        }
+      ]
+    },
+    {
+      "activation_frequency": 0.5416085541608554,
+      "bottom_examples": [
+        {
+          "activation": 0.0,
+          "example_index": 2143,
+          "label": " climate",
+          "rank": 1
+        },
+        {
+          "activation": 0.0,
+          "example_index": 2122,
+          "label": " farmer",
+          "rank": 2
+        },
+        {
+          "activation": 0.0,
+          "example_index": 2120,
+          "label": " distant",
+          "rank": 3
+        }
+      ],
+      "decoder_norm": 6.652000132235726,
+      "encoder_norm": 0.48847113169437306,
+      "feature_index": 2,
+      "is_dead": false,
+      "mean_activation": 0.9233708381652832,
+      "top_decoder_dims": [
+        {
+          "dim_index": 766,
+          "weight": 0.6304402947425842
+        },
+        {
+          "dim_index": 520,
+          "weight": 0.6002523899078369
+        },
+        {
+          "dim_index": 405,
+          "weight": 0.5908342599868774
+        },
+        {
+          "dim_index": 33,
+          "weight": 0.5845973491668701
+        },
+        {
+          "dim_index": 206,
+          "weight": 0.5804249048233032
+        }
+      ],
+      "top_examples": [
+        {
+          "activation": 3.5962719917297363,
+          "example_index": 1592,
+          "label": " measured",
+          "rank": 1
+        },
+        {
+          "activation": 3.5962719917297363,
+          "example_index": 2000,
+          "label": " measured",
+          "rank": 2
+        },
+        {
+          "activation": 3.5962719917297363,
+          "example_index": 164,
+          "label": " measured",
+          "rank": 3
+        }
+      ]
+    },
+    {
+      "activation_frequency": 0.4816364481636448,
+      "bottom_examples": [
+        {
+          "activation": 0.0,
+          "example_index": 2144,
+          "label": " musician",
+          "rank": 1
+        },
+        {
+          "activation": 0.0,
+          "example_index": 47,
+          "label": " pilot",
+          "rank": 2
+        },
+        {
+          "activation": 0.0,
+          "example_index": 9,
+          "label": " morning",
+          "rank": 3
+        }
+      ],
+      "decoder_norm": 7.476333780636936,
+      "encoder_norm": 0.4032498712256813,
+      "feature_index": 3,
+      "is_dead": false,
+      "mean_activation": 0.5154149532318115,
+      "top_decoder_dims": [
+        {
+          "dim_index": 434,
+          "weight": -0.7269235849380493
+        },
+        {
+          "dim_index": 410,
+          "weight": -0.687558650970459
+        },
+        {
+          "dim_index": 522,
+          "weight": -0.6815611720085144
+        },
+        {
+          "dim_index": 551,
+          "weight": -0.6810538172721863
+        },
+        {
+          "dim_index": 544,
+          "weight": -0.6732404828071594
+        }
+      ],
+      "top_examples": [
+        {
+          "activation": 4.009858131408691,
+          "example_index": 1100,
+          "label": " report",
+          "rank": 1
+        },
+        {
+          "activation": 3.9824271202087402,
+          "example_index": 1401,
+          "label": " report",
+          "rank": 2
+        },
+        {
+          "activation": 3.981045722961426,
+          "example_index": 819,
+          "label": " report",
+          "rank": 3
+        }
+      ]
+    }
+  ],
+  "n_components": 4,
+  "n_examples": 2151,
+  "provenance": {
+    "dataset": "prompt-grid-v2-1024",
+    "input_features": 768,
+    "l1_coef": 0.001,
+    "n_epochs": 1000,
+    "n_tokens": 10752,
+    "random_state": 0,
+    "split": "train_validation",
+    "train_samples": 8601,
+    "val_fraction": 0.2,
+    "val_samples": 2151
+  },
+  "schema": "latent-anything/feature-atlas-v1",
+  "source_representation_identity": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8_layer_6"
+}

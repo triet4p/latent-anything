@@ -41,14 +41,19 @@ def _package_versions() -> dict[str, str]:
     return versions
 
 
+def _source_bytes(path: Path) -> bytes:
+    """Hash tracked source consistently across Git's text checkout modes."""
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
+
 def source_digests() -> dict[str, str]:
     """Hash the orchestrator, plan, and supporting lane implementation."""
     root = Path(__file__).resolve().parent
     runner_names = ("m14_l02_geometry.py", "m14_l02_data.py", "m14_l02_metrics.py", "m14_l02_envelope.py")
-    runner_bytes = b"".join((root / name).read_bytes() for name in runner_names)
+    runner_bytes = b"".join(_source_bytes(root / name) for name in runner_names)
     return {
-        "runner_source_sha256": hashlib.sha256((root / "m14_l02_geometry.py").read_bytes()).hexdigest(),
-        "contract_source_sha256": hashlib.sha256((root / "m14_l02_plan.py").read_bytes()).hexdigest(),
+        "runner_source_sha256": hashlib.sha256(_source_bytes(root / "m14_l02_geometry.py")).hexdigest(),
+        "contract_source_sha256": hashlib.sha256(_source_bytes(root / "m14_l02_plan.py")).hexdigest(),
         "implementation_source_sha256": hashlib.sha256(runner_bytes).hexdigest(),
     }
 

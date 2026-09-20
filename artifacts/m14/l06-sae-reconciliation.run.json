@@ -1,0 +1,84 @@
+{
+  "schema_version": "m14-gap-row-run-receipt-v1",
+  "record_id": "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023",
+  "lane": "M14-L06",
+  "status": "failed",
+  "evidence_level": "D1",
+  "accepted": false,
+  "evidence_eligible": false,
+  "execution_mode": "retained-real-gpt2-cpu-run",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l06_sae.py",
+  "source_sha": "005954c636ae7a45ac3072c69e2c118db044682b",
+  "configuration": {
+    "path": "artifacts/m14/l06-sae.config.json",
+    "sha256": "72ba92dfad42df720ec812e2918ffea3b6a3d76d5df6d2f15a0642c1caa44ba4"
+  },
+  "implementation": {
+    "source": "scripts/m14_l06_sae.py",
+    "source_sha256": "17f9229eace6483369d65ef261d868242e3f4f53dd6b9aaeb806f79d99a9ff1f",
+    "library": "src/latent_anything/sae_evaluation.py",
+    "library_sha256": "1d68fea3f313aec9d0ac6c7df953f9d36922a8211c8e54c750a2600a95ea0883"
+  },
+  "evidence": {
+    "lane_artifact": {
+      "path": "artifacts/m14/l06-sae.json",
+      "sha256": "c2c4538b42e968663efaba5092f3b4385c95bdf4ee0900f87a428cbae32e3918"
+    },
+    "execution_record": {
+      "path": "artifacts/m14/l06-sae-run.json",
+      "sha256": "68f2d57b77b27fd928af906e7e7a60d7fd1e1a3de1aee899caa1d60812140c22"
+    },
+    "feature_atlas": {
+      "path": "artifacts/m14/l06-feature-atlas.json",
+      "sha256": "868307f44f5bd9312546bc0df28c6f3fd00a11a9f57b8554ad7bf18d20f68e7d"
+    }
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+    "license": "MIT",
+    "layer": 6
+  },
+  "corpus": {
+    "revision": "prompt-grid-v2-1024",
+    "prompt_count": 1024,
+    "prompt_digest": "0ac11dc2d06165e897ac30e7b5302e4a3a690d7aec1bd46cb65df4f671ae0a7d",
+    "n_tokens": 10752
+  },
+  "metrics": {
+    "reconstruction_mse": 0.7104635182257194,
+    "n_dead_features": 0,
+    "dead_fraction": 0.0,
+    "stability_mean_matched_cosine": 0.8467253367037664,
+    "stability_min_matched_cosine": 0.7387987235614891,
+    "stability_alignment_quality": 0.75
+  },
+  "acceptance": {
+    "reconstruction_finite": true,
+    "dead_features_bounded": true,
+    "cross_seed_stability": false,
+    "failed_gates": {
+      "stability_min_matched_cosine": {"value": 0.7387987235614891, "threshold": 0.85, "comparator": ">"}
+    }
+  },
+  "environment": {
+    "device": "cpu",
+    "python": "3.13.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "torch": "2.10.0",
+    "transformers": "4.57.6",
+    "huggingface_hub": "0.35.3",
+    "rss_peak_bytes": 2439847936,
+    "network_policy": "HF cache-only after initial pinned acquisition"
+  },
+  "focused_tests": {
+    "command": "uv run pytest tests/test_sae_evaluation.py -q",
+    "result": "21 passed",
+    "test_hashes": {
+      "tests/test_sae_evaluation.py": "077d183bd5d85ac28adf10b3e5f307369875fba4727d085548ff6031868846f0"
+    }
+  },
+  "cleanup": "Immutable L06 artifact, execution record, and feature atlas retained; no threshold relaxation or rerun; no temporary corpus/checkpoint files retained."
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L09",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "89d2cd4b7ef25c730f2aee768817263f9036c35b",
+  "target": "stabilityai/sd-vae-ft-mse@31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "weights_sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+  "license": "MIT",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra diffusers --with huggingface-hub==0.35.3 python scripts/m14_l09_diffusers_vae.py",
+  "result": "direct_adapter_max_abs_error=0.0; sample_seed_123_reproducible=true; different_seed_changes_sample=true; latent_shape=(2,4,4,4); decoded_shape=(2,3,32,32); finite=true",
+  "artifact": "artifacts/m14/l09-diffusers-vae-run.json",
+  "artifact_sha256": "a867896227e67659f4ab50ea7d68dcdd268b28ee9d8c29efe32225e6d40d016a",
+  "environment": {"device": "cpu", "dtype": "float32", "input_shape": [2, 3, 32, 32], "platform": "Windows-11-10.0.26200-SP0", "python": "3.13.3", "numpy": "2.4.6", "torch": "2.10.0", "diffusers": "0.39.0", "huggingface_hub": "0.35.3", "rss_peak_bytes": 921952256},
+  "seeds": {"input_rng": 7, "sample_seed_a": 123, "sample_seed_b": 123, "sample_seed_c": 124},
+  "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+  "metrics": {"direct_adapter_max_abs_error": 0.0, "sample_seed_123_reproducible": true, "different_seed_changes_sample": true, "latent_shape": [2, 4, 4, 4], "decoded_shape": [2, 3, 32, 32], "finite": true},
+  "blocker": null,
+  "evidence_scope": "Real pinned checkpoint was loaded from the HF cache; no mock backend was used."
+}

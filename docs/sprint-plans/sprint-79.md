@@ -572,28 +572,53 @@ occurred. See
   deterministic balanced train-label permutation with safe provenance rather
   than a random-sign control. Adversarial, artifact, envelope, and synthetic
   scoring-failure regressions cover these boundaries.
-- [ ] Build clean environments for base, each optional extra, and supported combined extras on every supported Python/platform tier.
-- [ ] Run unit/property/integration tests plus strict docs, packaging, security, license, and dependency audits.
-- [ ] Execute every applicable row of the 24-lane [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability.
-- [ ] Execute the exhaustive [theory evidence-gap plan](../EVIDENCE_GAP_PLAN.md) and its row-level [machine-readable map](../../artifacts/task_78.38_gap_map.json); keep D0/D1 statuses unchanged until validator-backed D2/D3 artifacts exist, as demonstrated by the L03 promotion.
-- [ ] Use the [migration guide](../MIGRATION.md) and [API reference](../API_REFERENCE.md) as the human entry points to the checked-in compatibility snapshot during RC verification.
-- [ ] Execute the pinned real-model matrix: Diffusers VAE/conditional diffusion, GPT-2, I-JEPA, VQ/tokenized/world-model paths, ACT, Diffusion Policy, and SmolVLA; record the named 3DGS checkpoint or keep L17 blocked.
-- [ ] Execute explanation-validity controls and confirm the theory ledger meets 95% core / 90% overall D2-or-D3 thresholds.
-- [ ] Verify all 202 exports, 32 built-in registry entries, 5 entry-point groups, 12 optional profiles, CLI commands, schema migrations, negative/security cases, sync/async paths, cross-adapter composition, external plugin install/discovery, cache, streaming, and tracking backends.
-- [ ] Measure performance budgets and LeRobot policy overhead against Sprint 77 gates.
-- [ ] Run remote CUDA only through the remote-cuda-test skill invariants and preserve disposable-clone/cache cleanup evidence; do not use remote CUDA as a substitute for missing local tests.
-- [ ] Publish an RC evidence report with failures, waivers, confidence intervals, hardware, upstream revisions, and exact reproduction commands.
-- [ ] Fix only release blockers, rerun the complete affected matrix, reconcile docs/ledger conflicts, and cut the release candidate only after the external GitHub Actions account is available.
+- [x] Restore successful Integrated Gradients dispatch provenance: retain and
+  validate `execution_result_digest` across the artifact/run/failure triad,
+  preserve fail-closed behavior, and record focused regression evidence.
+- [x] Restore the Ruff formatting gate for
+  `scripts/_m14_l04_validate_tcav.py` without changing validator semantics.
+- [x] Synchronize the current evidence arithmetic and Milestone 14/Sprint 79
+  status across the authoritative planning documents using the live ledger
+  validator, without weakening any release gate.
+- [x] Build clean environments for base, each optional extra, and supported
+  combined extras on every supported Python/platform tier. The locked
+  3.12/3.13/3.14 matrix passed all 39 clean-base/profile lanes on both local
+  Windows and the required `ubuntu-latest` GitHub Actions tier; model/data
+  acquisition was disabled. See
+  [`task_sprint79_clean_environment_matrix_summary.md`](../../artifacts/task_sprint79_clean_environment_matrix_summary.md).
+- [x] Run unit/property/integration tests plus strict docs, packaging, security,
+  license, and dependency audits. The complete local release gate passed; exact
+  commands, counts, artifact hashes, one corrected Ruff issue, and the
+  retained invalid pip-audit lockfile attempt are recorded in
+  [`task_sprint79_release_audits_summary.md`](../../artifacts/task_sprint79_release_audits_summary.md).
+- [x] Execute every applicable row of the 24-row [M14 real-system matrix](../M14_REAL_SYSTEM_VALIDATION.md), with one artifact per independently verifiable capability. The active matrix has 23 applicable rows: 13 accepted, 2 partial (L02 now has 5/6 accepted records; L04 remains partial), 1 pending, and 7 externally/prerequisite blocked. L19/OpenVLA is retained as a historical D0 feasibility row but is hardware-excluded from the active release scope because the canonical BF16 contract requires unavailable >=24 GiB VRAM. All runnable local lanes and owner-authorized remote use cases are exhausted; this closure covers execution/reconciliation only and does not promote partial, pending, blocked, or excluded rows.
+- [x] Freeze the exhaustive theory-gap inventory as an honest `0.9.0` evidence baseline: preserve every D0/D1, failure, threshold miss, and excluded record; carry only diagnosis-depth gaps into Sprint 80 and move the remaining breadth rows to the post-1.0 research backlog without promotion or deletion. See [`task_79_baseline_closure_595_598_600_summary.md`](../../artifacts/task_79_baseline_closure_595_598_600_summary.md).
+- [x] Use the [migration guide](../MIGRATION.md) and [API reference](../API_REFERENCE.md) as the human entry points to the checked-in compatibility snapshot during RC verification. The entry paths, snapshot digest/counts, local links, and focused comparator/compatibility tests are recorded in [`task_79_line596_compatibility_snapshot_summary.md`](../../artifacts/task_79_line596_compatibility_snapshot_summary.md).
+- [x] Execute the pinned real-model matrix: Diffusers VAE/conditional diffusion, GPT-2, I-JEPA, VQ/tokenized/world-model paths, ACT, Diffusion Policy, and SmolVLA; record the named 3DGS checkpoint or keep L17 blocked. Accepted rows were reconciled from immutable real execution receipts; blocked rows retain pinned targets and concrete access/license/platform/CUDA prerequisites, with L17 explicitly blocked because no trustworthy named 3DGS checkpoint exists. See [`task_79_line597_real_model_matrix_summary.md`](../../artifacts/task_79_line597_real_model_matrix_summary.md).
+- [x] Reclassify current explanation failures as blockers for the corresponding Sprint 80 diagnostic claims, not blockers for the `0.9.0` pre-stable baseline; retain 41/63 core and 41/64 overall as portfolio-health facts rather than converting the old 95% / 90% percentages into passes. See [`task_79_baseline_closure_595_598_600_summary.md`](../../artifacts/task_79_baseline_closure_595_598_600_summary.md).
+- [x] Verify all 202 exports, 32 built-in registry entries, 5 entry-point groups, 12 optional profiles, CLI commands, schema migrations, negative/security cases, sync/async paths, cross-adapter composition, external plugin install/discovery, cache, streaming, and tracking backends. Evidence in [`task_79_line599_verification_summary.md`](../../artifacts/task_79_line599_verification_summary.md); snapshot `48d64721b73a9d0c9e73da4a41940008c70dfa7841e500bc11bc8dcd22ddf7f6` clean, all focused suites pass, live behavioral proofs recorded.
+- [x] Freeze the measured Sprint 77/79 performance evidence and limitations for `0.9.0`; move unavailable real-policy and LeRobot overhead measurements to secondary integration work, preserve the 16 GiB ceiling, and make no unsupported performance claim. See [`task_79_baseline_closure_595_598_600_summary.md`](../../artifacts/task_79_baseline_closure_595_598_600_summary.md).
+- [x] Run remote CUDA only through the `remote-cuda-test` skill invariants and preserve disposable-clone/cache cleanup evidence; do not use remote CUDA as a substitute for missing local tests. The exact-HEAD report is [`task_79_line601_remote_cuda_summary.md`](../../artifacts/task_79_line601_remote_cuda_summary.md): L03/L11 current TransformerLM CUDA integration passed; pinned L20/L21 attempts retained truthful skips; all remaining remote candidates retain concrete hardware/checkpoint/license/access or explicit non-goal blockers. Every runner used a fresh exact-SHA clone, isolated caches, native OpenSSH, and trap-plus-independent cleanup proof.
+- [x] Publish an RC evidence report with failures, waivers, confidence intervals, hardware, upstream revisions, and exact reproduction commands. The self-contained English report is [`task_79_line602_rc_evidence_report.md`](../../artifacts/task_79_line602_rc_evidence_report.md). It records the exact tested source scope, 41/63 core and 41/64 scoped-overall threshold shortfalls, accepted/partial/pending/blocked/excluded M14 rows, explicit non-waiver blockers and owners, local Windows and remote Linux environments, pinned upstream revisions/license state, exact commands, and line-603 hold.
+- [x] Prepare the `0.9.0` pre-stable release candidate (candidate source committed and complete gate/build executed): reconcile the new depth-first scope across authoritative docs and ADRs, retain compatibility aliases, update metadata/changelog/migration/release notes, build and verify wheel/sdist from a clean checkout, run the complete release gate, and commit an exact candidate SHA. Preserve all negative evidence and do not claim `1.0.0` diagnostic readiness. Do not tag or publish before the candidate evidence review passes. Candidate evidence: [`task_79_line603_release_candidate_summary.md`](../../artifacts/task_79_line603_release_candidate_summary.md).
+- [ ] After the reviewed candidate passes with no actionable finding, push the exact candidate SHA, create and push the `v0.9.0` tag through the audited release workflow, verify the GitHub/PyPI artifacts and clean-environment install, record immutable publication evidence, and close Sprint 79. The latest authorized retry workflow run `35398189493` completed the gate/build successfully and uploaded immutable artifacts, but PyPI Trusted Publishing still rejected the matching OIDC claim with `invalid-publisher`; PyPI `0.9.0` remains HTTP 404, so retain this task and Sprint 79 open without claiming publication.
 
 ## Notes / Blockers
 
-No percentage waiver may hide an implementation-applicable core theory gap. Any exclusion must have been classified and justified in the Sprint 27 ledger. SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and unnamed 3DGS are not stable API claims; they remain explicit backlog/blocker rows.
+Sprint 79 closes breadth exploration rather than declaring every explored capability valid. The supported release-evidence hardware ceiling remains 16 GiB. L19/OpenVLA stays a historical D0 feasibility record and authorizes no capability, performance, or quality claim.
 
-Sprint 78.38 records the starting denominator and all 40 gap records; the
-updated map now records 33 qualifying rows after L03. Sprint 79 owns execution
-in dependency order. The historical L03 tuple-return failures are retained,
-but the structured hook/output cleanup blocker is resolved by `16db80f` and
-`9ebecfa` and the exact-SHA strict-CUDA 8/8 evidence. The native index-12
-direct-logit-lens question is resolved as an internal semantic correction with
-no public protocol/schema expansion; named 3DGS, checkpoint, and corrected
-SmolVLA gaps remain explicit blockers, not evidence promotions.
+The scoped map remains **41/63 core and 41/64 overall qualifying rows** at the point of the `0.9.0` baseline. Those percentages are retained as evidence-health measurements, not waived or relabeled. Existing TCAV, SAE, steering, manifold/geometry, checkpoint, license, dataset, and policy blockers remain attached to their exact claims. Sprint 80 decides which are hard blockers for the supported diagnostic loop; the remainder stay explicit secondary/backlog limitations.
+
+`0.9.0` is an intentionally pre-stable release. It freezes a reproducible API/evidence baseline for the depth work and does not authorize `1.0.0`, broad VLA support, or a claim that all M14 lanes passed.
+Task 604 publication is partially complete but remains blocked by the PyPI Trusted
+Publisher exchange: latest authorized retry
+[`35398189493`](https://github.com/triet4p/latent-anything/actions/runs/35398189493)
+passed the exact candidate gate/build for
+`2356c92d02022c02be25cd0c79944d07a74b6ca9` and uploaded immutable archives,
+but `Publish verified distributions` failed again with `invalid-publisher` for
+the matching branch-ref OIDC claim. The existing GitHub Release remains
+asset-free and PyPI JSON
+[`0.9.0`](https://pypi.org/pypi/latent-anything/0.9.0/json) returns HTTP
+`404`; the task remains open. Exact retry jobs, publisher claims, artifact
+hashes, external state, and prior failed public-install smoke are in
+[`task_604_publication_evidence.md`](../../artifacts/task_604_publication_evidence.md).

@@ -11,7 +11,7 @@ from typing import Any
 
 from scripts._m14_l04_boundary import INTEGRATION_FACTORY
 from scripts._m14_l04_contract_common import canonical_json_bytes
-from scripts._m14_l04_digest import canonical_digest, code_sha, source_digests
+from scripts._m14_l04_digest import canonical_digest, code_sha, execution_result_digest, source_digests
 from scripts._m14_l04_fixture_contract import FIXTURE_PATH, fixture_digests, read_fixture
 from scripts.m14_l04_contract import plan_digest
 
@@ -1113,6 +1113,21 @@ def build_artifact(
                 phase_a_non_promoting and key in {"evidence_eligible", "acceptance", "evidence_level"}
             ):
                 current[key] = execution_result[key]
+    if (
+        use_case == "TrueActivationPatching"
+        and status == "failed"
+        and execution_result is not None
+        and not injected
+        and (resources or {}).get("stage") == "cleanup"
+    ):
+        # Bind the truthful partial stage to the retained execution envelope;
+        # handler fields may carry the pre-normalization "complete" marker.
+        current_resources = current.get("resources")
+        if isinstance(current_resources, dict):
+            current["resources"] = {**current_resources, "stage": "cleanup"}
+        current_provenance = current.get("provenance")
+        if isinstance(current_provenance, dict):
+            current["provenance"] = {**current_provenance, "stage": "cleanup"}
     if phase_a_non_promoting:
         # Phase A runtime diagnostics are deliberately not promotion-capable.
         # Keep the runtime status/metrics for auditability, but never let a
@@ -1267,7 +1282,21 @@ def build_artifact(
     if execution_result is not None and not injected and sanitized_additive is None:
         provenance = artifact["provenance"]
         if isinstance(provenance, dict):
-            provenance.update(execution_result.get("provenance", {}))
+            execution_provenance = execution_result.get("provenance", {})
+            if isinstance(execution_provenance, dict):
+                provenance.update(execution_provenance)
+            if (
+                use_case == "TrueActivationPatching"
+                and status == "failed"
+                and (resources or {}).get("stage") == "cleanup"
+            ):
+                provenance["stage"] = "cleanup"
+            if use_case == "IntegratedGradients":
+                expected_digest = execution_result_digest(execution_result)
+                supplied_digest = provenance.get("execution_result_digest")
+                if supplied_digest is not None and supplied_digest != expected_digest:
+                    raise ValueError("Integrated Gradients execution result digest linkage is invalid")
+                provenance["execution_result_digest"] = expected_digest
         artifact["raw_summaries"] = execution_result.get("raw_summaries", [])
         artifact["fixture_linkage"] = execution_result.get("fixture_linkage", [])
         artifact["diagnostics"] = execution_result.get("diagnostics", {})

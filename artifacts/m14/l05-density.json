@@ -1,0 +1,19 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L05",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "04efc7cc4a75b775de74e42396b7c70c77086aa8",
+  "target": "real GPT-2 states with held-out prompts; sklearn GMM backend",
+  "model": {"id": "openai-community/gpt2", "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8", "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707", "license": "MIT"},
+  "command": "uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l05_density.py",
+  "result": "mean AUROC=0.9750000000000001 (seeds 0,1,2); mean AUPRC=0.975609756097561; AUROC CI95=0.0; path feasible=true; endpoints preserved=true; converged=true",
+  "artifact": "artifacts/m14/l05-density-run.json",
+  "artifact_sha256": "f15150db1bce41290c639d75832e7e903d8dc4192da0fca2c3401e436e71ec96",
+  "thresholds": {"mean_auroc_min": 0.9, "path": "finite path with exact endpoints preserved"},
+  "prompt_split": {"train": 80, "calibration": 40, "in_distribution": 20, "out_of_distribution": 40, "in_distribution_digest": "218a06b414a6ef279c1af62bab5574587416d0f2c6d1e1b4a720036d2d8f5d35", "out_of_distribution_digest": "95dbbfca206230e28ab8a01f158946e7afcc7d3646541518f04083876427242c", "all_prompt_digest": "3e8e0da8d6db1c9c5d182bdb1dc76c5c4cc5571c373718bcaebff4a8e9e0f2c9"},
+  "environment": {"device": "cpu", "dtype": "float32", "python": "3.13.3", "platform": "Windows-11-10.0.26200-SP0", "numpy": "2.4.6", "torch": "2.10.0", "transformers": "4.57.6", "huggingface_hub": "0.35.3", "rss_peak_bytes": 1388298240, "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun"},
+  "cleanup": "No temporary model files created; pinned HF cache retained; no disposable output outside artifact path.",
+  "evidence_scope": "Real pinned GPT-2 states and deterministic held-out prompt splits; no mock backend substituted."
+}

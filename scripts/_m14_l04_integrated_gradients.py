@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 
 from scripts._m14_l04_boundary import transformer_integration_type
-from scripts._m14_l04_digest import runtime_versions
+from scripts._m14_l04_digest import execution_result_digest, runtime_versions
 from scripts._m14_l04_ig_metrics import cosine as _cosine
 from scripts._m14_l04_ig_metrics import group_means as _group_metric
 from scripts._m14_l04_ig_metrics import metric as _metric
@@ -355,7 +355,7 @@ def run_integrated_gradients(
         torch.cuda.empty_cache()
         resources["cleanup"] = "CUDA synchronized; model gradients cleared; CUDA cache emptied"
         status = REAL_STATUS if accepted else "failed"
-        return {
+        result = {
             "status": status,
             "evidence_eligible": accepted,
             "acceptance": accepted,
@@ -381,6 +381,8 @@ def run_integrated_gradients(
             },
             "resources": resources,
         }
+        result["provenance"]["execution_result_digest"] = execution_result_digest(result)
+        return result
     except RealExecutionError:
         raise
     except Exception as exc:  # noqa: BLE001 - dispatcher retains the failure envelope

@@ -1,26 +1,37 @@
 # Theory evidence-gap closure plan
 
 This is the Sprint 78.38 execution plan for the non-qualifying theory rows,
-updated with the Sprint 79 L02 and L03 results. The levels in
-[`docs/evidence-ledger.json`](evidence-ledger.json) remain authoritative; the
-immutable L02 artifact supports exactly four D2 promotions and the immutable
-L03 artifact supports exactly three D2 promotions. The row-level
-machine-readable map is
-[`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json).
+updated with the Sprint 79 L02 and L03 results and the approved 16 GiB scope
+revision. The levels in [`docs/evidence-ledger.json`](evidence-ledger.json)
+remain authoritative; the immutable L02 artifact supports exactly five D2
+promotions and the immutable L03 artifact supports exactly three D2 promotions.
+Later row-level promotions are recorded below without changing the unchecked
+Sprint 79 line 595. The active row-level machine-readable map is
+[`artifacts/task_78.38_gap_map.json`](../artifacts/task_78.38_gap_map.json);
+its historical `THY-X01-OPENVLA` record is retained under `excluded_items` and
+is not an active execution row.
 
 ## Current gate and arithmetic
 
-The read-only validator reports 107 capabilities, **34/63 core (54.0%)** and
-**34/65 overall (52.3%)**. The core denominator contains 63
-implementation-applicable or benchmark-only rows in T01–T09/T03B; the overall
-denominator adds two applicable X01 rows. There are exactly **31 current D0/D1
-rows** in this plan: **29 core** and **2 non-core**. A qualifying row is D2 or
-D3, so at least **26 additional core qualifiers** are required to reach
-`ceil(0.95 × 63) = 60`; at least **26 additional overall qualifiers** are
-required to reach `ceil(0.90 × 65) = 59`. The core gate is therefore the
-binding gate. Headline model, causal explanation, and named integration claims
-target D3; ordinary algorithm capabilities target D2 unless their row says
-otherwise.
+The read-only validator reports 107 capabilities, **41/63 core (65.079365%)**
+and **41/64 scoped overall (64.0625%)** at the `0.9.0` evidence baseline. The
+core denominator contains 63 implementation-applicable or benchmark-only rows
+in T01–T09/T03B; the scoped overall denominator adds the applicable X01 row.
+The historical OpenVLA X01 row is hardware-excluded from active coverage,
+remains D0, and authorizes no support claim. The validator reports **19 D0
+rows** and **5 D1 rows** among the active applicable inventory; a qualifying
+row is D2 or D3. The former breadth thresholds, **ceil(0.95 × 63) = 60** core
+and **ceil(0.90 × 64) = 58** overall, are retained as portfolio-health facts:
+they would have required 19 additional core and 17 additional scoped-overall
+qualifiers, but they are not `0.9` blockers and are not depth gates. Headline
+model, causal explanation, and named integration claims target D3; ordinary
+algorithm capabilities target D2 unless their row says otherwise.
+
+The `0.9.0` baseline preserves every D0/D1 row, failure, threshold miss, and
+excluded record without promotion, deletion, waiver, or relabeling. Only
+diagnosis-depth gaps carry into Sprint 80; the remaining breadth rows move to
+the post-1.0 research backlog. Sprint 80 is the depth gate; Sprint 81 owns
+stable publication.
 
 ### Sprint 79 L02 partial result
 
@@ -37,13 +48,13 @@ timestamps.
 
 The `THY-T01-MANIFOLD-HYPOTHESIS` record remains D1 because its held-out
 ranking AUC was `0.4560546875` (threshold `0.55`) and its latent-vs-raw delta
-was `-0.4124755859375` (threshold `-0.05`). The
-`THY-T06-TRAJECTORY-SIMILARITY-METRICS` record remains D0 because its
-self-to-indexwise ratio was `17.015624999997637` (threshold `0.95`), despite
-128 finite trials and ranking AUC `1.0`; its self-to-unrelated ratio was
-`0.010693904158763163`. These failures remain linked to the retained artifact
-and are not promoted. The lane concerns model-induced latent sequences from
-held-out sklearn digits, not recorded physical trajectories, and makes no
+was `-0.4124755859375` (threshold `-0.05`). Its exact-SHA rerun and failure
+receipt are retained without overwriting the canonical artifact. The
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` record is now D2 through the immutable
+accepted rerun artifact: 128 finite trials, ranking AUC `1.0`, self-to-indexwise
+ratio `0.07354340933887214` (threshold `0.95`), and self-to-unrelated ratio
+`0.011170843549800243` (threshold `0.9`). These are model-induced latent
+sequences from held-out sklearn digits, not physical trajectories, and make no
 Fréchet claim.
 
 ### Sprint 79 L03 result
@@ -88,12 +99,12 @@ represented by the sanitized capture audit.
 The validator command is:
 
 ```text
-uv run python scripts/validate_evidence_ledger.py
+uv run python scripts/validate_evidence_ledger.py --json
 ```
 
-It must continue to report the honest current 34/63 and 34/65 result while
-this plan is executed. No row may be deleted, relabeled, or promoted merely to
-improve the percentages.
+At the `0.9.0` baseline it reports the honest frozen **41/63 core and 41/64
+scoped-overall** result. No row may be deleted, relabeled, promoted, waived,
+or passed merely to improve the percentages.
 
 ### L04 design freeze (Sprint 79 L04.1)
 
@@ -262,10 +273,10 @@ map; lane-level defaults are specified in the next section.
 | ID | Current | Core | Headline | Target | M14 lane | Capability / insufficiency |
 |---|---:|:---:|:---:|:---:|:---:|---|
 | `THY-T01-METRIC-SPACE-VA-VECTOR-SPACE` | D2 | yes | no | D2 | L01 | Existing ConvVAE/AnalysisPipeline held-out benchmark and immutable artifact verified |
-| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed L02 record) | yes | no | D2 | L02 | Held-out ranking failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05 |
+| `THY-T01-MANIFOLD-HYPOTHESIS` | D1 (failed canonical + exact-SHA rerun) | yes | no | D2 | L02 | Held-out ranking remains failed: latent AUC 0.4561 vs 0.55 and raw-pixel delta -0.4125 vs -0.05; retained rerun artifact, no promotion |
 | `THY-T02-VAE-HIGGINS-ET-AL-2017` | D0 | yes | no | D2 | L08 | Theory-only beta-VAE row |
 | `THY-T02-VQGAN-ESSER-ET-AL-2021` | D0 | yes | no | D2 | L13 | Theory-only VQGAN row; no approved implementation |
-| `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D1 | yes | no | D2 | L03 | PCA tests lack quantitative held-out benchmark |
+| `THY-T03-LINEAR-STRUCTURE-TRONG-LATENT` | D2 | yes | no | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out PCA structure benchmark |
 | `THY-T03-DISENTANGLEMENT` | D2 | yes | yes | D2 | L04 | Exact-SHA real CUDA Disentanglement passed controls; retained triplet and deleted-verified audit are tracked |
 | `THY-T03-RIEMANNIAN-GEOMETRY-CO-BAN` | D2 | yes | no | D2 | L02 | Accepted bounded density-geodesic record in the L02 artifact |
 | `THY-T03-SLERP-SPHERICAL-LINEAR-INTERPOLATION` | D2 | yes | no | D2 | L02 | Accepted held-out unit-norm interpolation record in the L02 artifact |
@@ -276,22 +287,22 @@ map; lane-level defaults are specified in the next section.
 | `THY-T04-SLERP` | D2 | yes | no | D2 | L02 | Accepted independent T04 SLERP record in the L02 artifact |
 | `THY-T04-DENSITY-ESTIMATION-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only density row |
 | `THY-T04-OPTIMAL-TRANSPORT-TRONG-LATENT` | D0 | yes | no | D2 | L05 | Theory-only transport row |
-| `THY-T05-LINEAR-PROBING` | D0 | yes | yes | D2 | L03 | Existing probe is not linked to a D2 benchmark |
-| `THY-T05-NONLINEAR-PROBING` | D0 | yes | yes | D2 | L03 | MLP implementation lacks real held-out evidence |
-| `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 | yes | yes | D3 | L04 | Theory-only TCAV row |
-| `THY-T05-ACTIVATION-PATCHING` | D1 | yes | yes | D3 | L04 | D1 hook tests lack real causal benchmark |
-| `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 | yes | yes | D3 | L06 | Synthetic SAE lacks real-model quality/stability evidence |
-| `THY-T05-DICTIONARY-LEARNING` | D0 | yes | no | D2 | L06 | Theory-only dictionary-learning row |
-| `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | D1 steering tests lack real causal/selective evidence |
+| `THY-T05-LINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out LinearProbe benchmark |
+| `THY-T05-NONLINEAR-PROBING` | D2 | yes | yes | D2 | L03 | Validated L03 artifact includes a real pinned GPT-2 held-out MLPProbe benchmark |
+| `THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` | D0 (retained semantic failure) | yes | yes | D3 | L04 | Exact-SHA real CUDA TCAV artifact is validator-clean but fails Wilson lower-bound and corrected empirical-p-value gates; no promotion |
+| `THY-T05-ACTIVATION-PATCHING` | D3 | yes | yes | D3 | L04 | Exact-SHA real CUDA true clean/corrupted interchange patching passed controls; retained artifact/run/failure triad is tracked |
+| `THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` | D1 (retained stability failure) | yes | yes | D3 | L06 | Real pinned GPT-2 layer-6 SAE artifact is retained; cross-seed cosine stability remains below frozen thresholds, so no promotion |
+| `THY-T05-DICTIONARY-LEARNING` | D2 | yes | no | D2 | L06 | Dedicated deterministic held-out dictionary-learning comparison passes reconstruction, sparsity, split, finite, shape, and no-mutation gates |
+| `THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` | D1 | yes | yes | D3 | L04 | Exact-SHA real CUDA diagnostic passes target/selectivity/off-target controls but fails required randomized-direction control; D3 remains blocked |
 | `THY-T05-LOGIT-LENS-TUNED-LENS` | D3 | yes | yes | D3 | L04 | Corrected exact-SHA real CUDA artifact passes validation with fit seed 79 and common source/target shuffled mask; attempt3 remains immutable historical D0 |
-| `THY-T06-STOCHASTIC-TRANSITION` | D0 | yes | no | D2 | L15 | Later implementation evidence is not mapped to this ID |
+| `THY-T06-STOCHASTIC-TRANSITION` | D2 | yes | no | D2 | L15 | Existing seeded held-out stochastic Gaussian transition artifact is reconciled to this theory ID with explicit compact synthetic scope; no real-world or pretrained temporal-model claim |
 | `THY-T06-RSSM-RECURRENT-STATE-SPACE-MODEL-DREAMER` | D0 | yes | yes | D3 | L15 | Compact RSSM is synthetic, not named Dreamer evidence |
-| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D0 (failed L02 record) | yes | no | D2 | L02 | DTW record retained but failed self-to-indexwise ratio gate; no promotion |
-| `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D0 | yes | no | D2 | L16 | CEM/MPPI do not automatically prove generic MPC row |
+| `THY-T06-TRAJECTORY-SIMILARITY-METRICS` | D2 | yes | no | D2 | L02 | Accepted immutable rerun: 128 finite trials; self-to-indexwise ratio 0.07354340933887214; self-to-unrelated ratio 0.011170843549800243; ranking AUC 1.0 |
+| `THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` | D2 | yes | no | D2 | L16 | Bounded receding-horizon MPPI evidence passes held-out recorded-trajectory baseline, replanning, bound, finite-state, and budget gates; no CEM/MPPI equivalence or real pretrained-controller claim |
 | `THY-T07-POLICY-GRADIENT-TREN-IMAGINED-TRAJECTORY-DREAMER` | D0 | yes | yes | D3 | L16 | No actor-critic/policy-gradient lane |
 | `THY-T07-VALUE-EQUIVALENCE-MUZERO` | D0 | yes | yes | D3 | L16 | No value-equivalence representation/training lane |
 | `THY-T07-MCTS-TRONG-LATENT` | D0 | yes | no | D2 | L16 | No MCTS implementation/benchmark |
-| `THY-T08-REPRESENTATION-COLLAPSE` | D0 | yes | no | D2 | L12 | No standalone collapse-control artifact |
+| `THY-T08-REPRESENTATION-COLLAPSE` | D2 | yes | no | D2 | L12 | Compact JEPA health and held-out prediction artifact demonstrates non-collapse and gain over a collapsed baseline; named I-JEPA/LeWM D3 remains separate |
 | `THY-T08-I-JEPA-ASSRAN-ET-AL-2023` | D0 | yes | yes | D3 | L12 | Compact JEPA is not the named I-JEPA checkpoint |
 | `THY-T08-V-JEPA-BARDES-ET-AL-2024` | D0 | yes | yes | D3 | L12 | No video JEPA implementation/model lane |
 | `THY-T09-EMA-CODEBOOK-UPDATE` | D0 | yes | no | D2 | L13 | No dedicated EMA update evidence |
@@ -299,9 +310,17 @@ map; lane-level defaults are specified in the next section.
 | `THY-T09-FINITE-SCALAR-QUANTIZATION-FSQ` | D0 | yes | no | D2 | L13 | No FSQ implementation/evidence |
 | `THY-T09-GAIA-1-WAYVE-2023` | D0 | yes | yes | D3 | L14 | Named model survey only |
 | `THY-T09-GENIE-GOOGLE-2024` | D0 | yes | yes | D3 | L14 | Named model survey only |
-| `THY-X01-OPENVLA` | D0 | no | yes | D3 | L19 | Named policy survey only; non-core X01 |
 | `THY-X01-LEWM-LEWORLDMODEL-2026` | D1 | no | yes | D3 | L12 | Compact JEPA is not real LeWM evidence |
 
+### Historical hardware-excluded record
+
+`THY-X01-OPENVLA` remains a retained D0 feasibility record in the map's
+`excluded_items` section, not an active gap or release-gate row. Its canonical
+BF16 checkpoint requires a defensible **>=24 GiB** CUDA host, unavailable under
+the supported 16 GiB ceiling. The D0 config, lane receipt, and 16 GiB
+feasibility receipt remain immutable history; this exclusion is not a pass,
+waiver, or OpenVLA support claim. Reintroducing L19 requires an explicit scope
+revision, adequate hardware, and the full adapter/trial contract.
 ## Execution contract and ordering
 
 Execute in dependency order. First close bounded local D2 rows in L01/L02,
@@ -347,8 +366,9 @@ by 78.38 itself.
 - **L17 3DGS:** remains blocked until a named checkpoint, revision,
   license/access, CUDA host, and disposable remote lane exist. The existing
   deterministic/reference renderer must not be promoted to D3.
-- **L19/OpenVLA:** remains a separate named-policy D3 lane; do not count it as
-  core. ACT/Diffusion/SmolVLA lanes do not prove OpenVLA.
+- **L19/OpenVLA:** is a historical hardware-excluded record, not an active
+  named-policy execution row or release blocker. Its D0 feasibility evidence
+  authorizes no OpenVLA claim; ACT/Diffusion/SmolVLA lanes do not prove it.
 
 ## Explicit blockers and waivers
 
@@ -359,13 +379,19 @@ artifact is unverified and must not be counted. Execute the corrected L21 lane
 with the pinned model/dataset revisions, simulator controls, seed, thresholds,
 and signed artifact before promotion.
 
+TCAV significance, SAE cross-seed stability, steering randomized-direction, and
+selected manifold/geometry failures remain blockers only for their
+corresponding Sprint 80 diagnostic claims. They are not `0.9` baseline
+blockers, and none is passed or waived here.
+
 External GitHub Actions access, missing model/data licenses, unavailable
 checkpoints, CUDA/VRAM, or missing dataset access are blockers—not reasons to
 lower thresholds. An owner waiver must state scope, rationale, expiry, and
 whether it affects core or headline coverage; no waiver can hide an applicable
 core gap or authorize a stable-release claim. Sprint 79 owns execution and
-artifact signing; Sprint 80 remains stop-before-release until the validator is
-at least 95% core and 90% overall and all headline D3 claims are satisfied.
+artifact signing; Sprint 80 is the depth gate for the supported diagnostic
+loop, and Sprint 81 owns `1.0.0` publication only after its depth-evidence
+report has no unresolved blocker for the supported core claims.
 
 ### L04.8 recovery correction record
 
@@ -381,3 +407,248 @@ coherent source/unit provenance, and separates `L04_CLI_STATUS` from
 bundle command and exact three-member gate remain frozen. This is a local
 correction only; it remains D0 and is not changed by the independently
 validated current SHA `4d3a4b6551d6091ce96c73a704e642867c2f2580` closure above.
+
+### Queue position 11 — L16 MPC reconciliation
+
+`THY-T07-MODEL-PREDICTIVE-CONTROL-MPC` is promoted from D0 to D2 using the
+target-level offline compact lane in
+[`artifacts/m14/l16-mpc.json`](../artifacts/m14/l16-mpc.json). The lane uses
+seed `1601`, 56 train and 16 held-out recorded sklearn-digits episodes, three
+one-step receding-horizon replans, and 1,728 bounded samples. MPC return
+`1.2989200818808908` exceeds the fixed-zero baseline
+`0.8318605499808998` by `0.46705953189999105`; random-shooting return
+`1.510070544270507` remains a reported control and is not overinterpreted.
+The source/test/config/artifact/run receipt are linked in the machine-readable
+ledger. The exact focused suite passed 33 tests and the ledger validator
+returned `errors: []` at 39/63 core and 39/65 overall. This evidence is only
+bounded compact D2; it does not establish a real pretrained controller,
+CEM/MPPI equivalence, or CUDA claim. Positions 2–4 and 6–9 remain blocked and
+all later queue rows and line 595 remain unchanged.
+
+### Queue position 27 — L02 trajectory similarity reconciliation
+
+`THY-T06-TRAJECTORY-SIMILARITY-METRICS` is promoted from D0 to D2 using the
+immutable accepted rerun artifact
+[`l02-geometry.rerun-90a8c64.json`](../artifacts/m14/l02-geometry.rerun-90a8c64.json)
+and the target-level config/receipt
+[`l02-trajectory-similarity.config.json`](../artifacts/m14/l02-trajectory-similarity.config.json).
+The exact in-memory rerun at source SHA `62664b53778ba808a2fc6da96f0a250978b6eb0b`
+returned 128 independent finite pair trials, ranking AUC `1.0`, median
+self-to-indexwise ratio `0.07354340933887214` (maximum `0.95`), and median
+self-to-unrelated ratio `0.011170843549800243` (maximum `0.9`), with unequal
+length, no-self-mapping, and no-input-mutation controls passing. The focused
+suite passed 143 tests and the ledger validator returned `errors: []` at
+40/63 core and 40/65 overall. This bounded compact lane measures
+model-induced trajectories from held-out sklearn digits; it does not claim
+physical trajectories, Fréchet distance, or named-model performance.
+Positions 2–4, 6–9, and 12 remain blocked; line 595 and all later queue rows
+remain unchanged.
+
+### Queue position 33 — L04 TCAV failure reconciliation
+
+`THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018` is the earliest
+dependency-order row after queue position 27 that had its L03 prerequisite,
+owner authorization, pinned GPT-2 fixture, and CUDA runtime. Positions 28 and
+32 (linear and nonlinear probing) were already qualifying; positions 29
+(V-JEPA), 30 (Genie), and 31 (policy-gradient) remain blocked by missing
+implementation/checkpoint/access prerequisites.
+
+The owner-reviewed exact-SHA recovery at source
+`5c38b63f01d280939790e415de699ab285a228de` ran the pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7. Its
+validator-clean artifact/run/failure triplet and sanitized remote audit are
+retained at
+[`l04-explanations.TCAV.attempt1.partial.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.partial.json),
+[`l04-explanations.TCAV.attempt1.run.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.run.json),
+[`l04-explanations.TCAV.attempt1.failure.json`](../artifacts/m14/l04-explanations.TCAV.attempt1.failure.json),
+and
+[`l04-explanations.ssh.TCAV.attempt3.audit.json`](../artifacts/m14/l04-explanations.ssh.TCAV.attempt3.audit.json).
+The target-level threshold config and reconciliation receipt are
+[`l04-tcav.config.json`](../artifacts/m14/l04-tcav.config.json) and
+[`l04-tcav.run.json`](../artifacts/m14/l04-tcav.run.json).
+
+The run measured held-out accuracy `0.875`, Wilson lower bound
+`0.5291118177871466` against strict `> 0.55`, bootstrap lower `1.0`,
+corrected empirical p `0.24` against `<= 0.05`, and intervention agreement
+`1.0`; all five frozen controls passed. The two failed semantic gates retain
+the row at D0, with `accepted_gap_ids=[]`, `accepted_record_ids=[]`, and no
+promotion. Focused TCAV validation passed **27 tests**; the ledger validator
+returned `errors: []` at **40/63 core (63.492063%)** and **40/65 overall
+(61.538462%)**. The failure-preserving reconciliation summary is
+[`task_79_queue33_tcav_reconciliation_summary.md`](../artifacts/task_79_queue33_tcav_reconciliation_summary.md).
+No later queue row, Sprint 79 line 595, or later plan item
+was changed.
+
+### Queue position 35 — L06 SAE stability-failure reconciliation
+
+`THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023` is the earliest
+dependency-order row after queue position 33 that was executable after the
+already qualifying queue position 34 TunedLogitLens row. Queue positions 36
+(Disentanglement) and 37 (Activation Patching) subsequently became qualifying
+from existing exact-SHA evidence and were not modified in the queue-35 row.
+Queue position 38 (Steering) retained a real-model diagnostic but remains D1
+after its randomized-direction control failure; position 39 (Dictionary
+Learning) lacks a dedicated implementation; position 40 (OpenVLA) now has an authoritative pinned checkpoint/data/environment contract and a truthful blocked receipt, but remains D0 because this checkout has no OpenVLA adapter/capture implementation, no checkpoint cache, no CUDA device, and network opt-in is disabled.
+
+The retained exact-source L06 execution at
+`005954c636ae7a45ac3072c69e2c118db044682b` used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8`, the expanded
+`prompt-grid-v2-1024` fixture, layer 6 hidden states, and independent seeds
+`[0, 1, 2]`. The target-level config and reconciliation receipt are
+[`l06-sae.config.json`](../artifacts/m14/l06-sae.config.json) and
+[`l06-sae-reconciliation.run.json`](../artifacts/m14/l06-sae-reconciliation.run.json).
+The genuine lane artifact, execution record, and feature atlas remain
+[`l06-sae.json`](../artifacts/m14/l06-sae.json),
+[`l06-sae-run.json`](../artifacts/m14/l06-sae-run.json), and
+[`l06-feature-atlas.json`](../artifacts/m14/l06-feature-atlas.json).
+
+The run captured `10,752` tokens with finite reconstruction MSE
+`0.7104635182257194`, zero dead features, mean matched cosine
+`0.8467253367037664` as a diagnostic, minimum matched cosine
+`0.7387987235614891` against the frozen strict `> 0.85` gate, and alignment
+quality `0.75` against strict `> 0.7`. The minimum-cosine gate failed, so
+cross-seed stability failed despite finite reconstruction and bounded dead
+features. The real pinned model evidence remains D1; no D3 promotion or
+threshold change occurred.
+Focused SAE validation passed **21 tests**. The ledger validator returned
+`errors: []` at **40/63 core (63.492063%)** and **40/65 overall (61.538462%)**.
+The failure-preserving summary is
+[`task_79_queue35_sae_reconciliation_summary.md`](../artifacts/task_79_queue35_sae_reconciliation_summary.md).
+Sprint 79 line 595 and all later plan rows remain unchanged.
+ 
+### Queue position 38 — L04 AdditiveSteering failure reconciliation
+
+`THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING` remains
+D1 after reconciling the owner-authorized exact-SHA real CUDA diagnostic. Queue
+positions 36 (Disentanglement) and 37 (Activation Patching) already satisfy
+their bounded target contracts and were intentionally not modified in this
+row. Position 39 (Dictionary Learning) is now a bounded D2 comparison;
+position 40 (OpenVLA) now has pinned upstream metadata and a truthful D0 blocker receipt; no local or synthetic evidence is promoted.
+
+The retained AdditiveSteering execution at source
+`7ad6648a9bc5d22793b63b764cb9f93990a247e8` used pinned
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` at layer 6/native hidden-state index 7, target
+tokens `true=2081` and `false=3991`, and seeds `[17, 29, 41, 53, 67]`.
+The target-level config and reconciliation receipt are
+[`l04-steering.config.json`](../artifacts/m14/l04-steering.config.json) and
+[`l04-steering-reconciliation.run.json`](../artifacts/m14/l04-steering-reconciliation.run.json).
+The immutable artifact, execution/failure envelopes, and sanitized retention
+audit remain
+[`l04-explanations.AdditiveSteering.attempt1.partial.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json),
+[`l04-explanations.AdditiveSteering.attempt1.run.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json),
+[`l04-explanations.AdditiveSteering.attempt1.failure.json`](../artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json),
+and
+[`l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json`](../artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json).
+
+Target effect was `0.059151649475097656` against strict `> 0.05`,
+selectivity was `0.05431842803955078` against strict `> 0.05`, and off-target
+token effect was `0.004833221435546875` against `<= 0.1`; those gates and
+zero-strength, shuffled-label, matched-norm, no-mutation, and budget controls
+passed. The required randomized-direction gate failed for seeds 29
+(`0.32630348205566406`) and 67 (`0.10096931457519531`) against `<= 0.1`.
+The result is therefore a completed real-CUDA D0 diagnostic supporting the
+existing D1 implementation row, not a D3 promotion; no threshold was relaxed.
+The focused steering suites passed **63 tests**. The target-level
+failure-preserving summary is
+[`task_79_queue38_steering_reconciliation_summary.md`](../artifacts/task_79_queue38_steering_reconciliation_summary.md).
+The ledger validator returned `errors: []` at **41/63 core
+(65.079365%)** and **41/65 overall (63.076923%)**. Sprint 79 line 595 and
+later queue rows remain unchanged.
+
+### Queue position 39 — L06 Dictionary Learning bounded D2 promotion
+
+`THY-T05-DICTIONARY-LEARNING` is promoted to D2 through a dedicated,
+offline, deterministic implementation and held-out benchmark. The source
+implementation is [`dictionary_learning.py`](../src/latent_anything/dictionary_learning.py),
+with focused contract coverage in
+[`test_dictionary_learning.py`](../tests/test_dictionary_learning.py) and the
+runner [`m14_l06_dictionary_learning.py`](../scripts/m14_l06_dictionary_learning.py).
+The predeclared thresholds and provenance are in
+[`l06-dictionary-learning.config.json`](../artifacts/m14/l06-dictionary-learning.config.json).
+
+The genuine artifact
+[`l06-dictionary-learning.json`](../artifacts/m14/l06-dictionary-learning.json)
+uses seed `79`, 600 samples × 12 features, an 80/20 disjoint split, and
+scikit-learn `DictionaryLearning` with 8 components and two-sparse OMP codes.
+Held-out reconstruction MSE is `0.00448003417620913` versus the
+train-mean baseline `0.06497977490954669` (strict ratio gate `< 0.5`), and
+held-out mean L0 is `2.0` (threshold `<= 2.0`). Finite metrics, dictionary
+shape, no-mutation, and split controls all pass. The immutable run receipt is
+[`l06-dictionary-learning.run.json`](../artifacts/m14/l06-dictionary-learning.run.json).
+The selection, ordering, provenance, metrics, and unchanged blockers are
+recorded in [`task_79_queue39_dictionary_learning_summary.md`](../artifacts/task_79_queue39_dictionary_learning_summary.md).
+This is bounded D2 algorithm evidence only; it does not promote the separate
+real-GPT-2 SAE row or make a D3 named-model claim.
+
+Focused validation `uv run pytest tests/test_dictionary_learning.py -q` passed
+**3 tests**. The ledger validator returned `errors: []` at **41/63 core
+(65.079365%)** and **41/65 overall (63.076923%)** before this D0-only contract
+update. OpenVLA remains D0 and Sprint 79 line 595 remains unchanged.
+### Historical excluded record — L19 OpenVLA feasibility (former queue position 40)
+
+`THY-X01-OPENVLA` remains D0 and is hardware-excluded from active coverage
+and execution under the permanent 16 GiB ceiling. Its historical rationale,
+authoritative fine-tuned checkpoint is
+`openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873`,
+whose base is `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`.
+The checkpoint Hub metadata reports public, non-gated access, MIT model-card
+licensing, the `OpenVLAForActionPrediction` architecture, BF16 weights, and
+15,082,474,368 bytes in the safetensors index. The official OpenVLA repository
+also warns that pretrained Llama-2-derived weights inherit the Llama Community
+License; both notices remain in the lane contract.
+
+The task/data/environment contract is pinned to
+`openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`,
+subset `libero_spatial_no_noops` (52,970 transitions and 432 trajectories),
+and `Lifelong-Robot-Learning/LIBERO@8f1084e3132a39270c3a13ebe37270a43ece2a01`
+with the `libero_spatial` suite. The official evaluation uses 10 tasks × 50
+trials, 10 initial stabilization steps, 256-pixel environment observations, and
+up to 220 control steps per episode. OpenVLA receives an RGB image and the
+prompt `In: What action should the robot take to {task_description_lower}?`
+followed by `Out:`; the processor performs the 224×224 `resize-naive` path,
+the model predicts seven 256-bin action tokens, and `predict_action` applies
+the `libero_spatial` unnormalization stats. The environment path then
+normalizes/binarizes and sign-inverts the gripper before `env.step`.
+
+The production adapter/capture implementation is intentionally not added:
+the existing generic `ModelAdapter` and LeRobot ACT/Diffusion/SmolVLA
+adapters do not prove OpenVLA, and no mock or fallback is allowed. Local
+non-secret checks found no checkpoint cache, no network opt-in, no HF token,
+and no CUDA device on this Windows host. The authorized remote feasibility
+probe then measured `trietlm@192.168.30.244` (`di-server`) with native
+Windows OpenSSH invoked from Git Bash: NVIDIA GeForce RTX 4060 Ti,
+driver `580.126.20`, `16,380 MiB` total, `12,195 MiB` free, and
+`3,754 MiB` used. `ollama/llama-server` (PID `2095304`) occupied
+`3,576 MiB`. The pinned BF16 checkpoint contains `7,541,237,184`
+parameters and `15,082,474,368` weight bytes (~`14.05 GiB`), so its
+weights alone exceed currently free VRAM; even an idle card would leave
+only ~`1.95 GiB` for CUDA context, activations, inputs, token generation,
+and allocator/workspace overhead. Canonical BF16 execution is therefore
+blocked without a defensible margin. No checkpoint download, model
+construction, or avoidable OOM was attempted.
+The project CUDA runtime was separately probed in disposable clone
+`/tmp/openvla-feasibility.Gz4r2n/repo` after verifying exact source SHA
+`74540ad4e894c68bae46673eede7bc62293016de` on branch
+`sprint79-local-gate-remediation`: `torch 2.10.0+cu128`,
+`torch.cuda.is_available() == True`, device `NVIDIA GeForce RTX 4060 Ti`,
+and `torch.cuda.mem_get_info()` free/total
+`16,410,673,152 / 16,722,296,832` bytes. A post-probe `nvidia-smi`
+reported `170 MiB` used and `15,779 MiB` free after the earlier Ollama
+process exited. The clone and isolated caches were removed by the remote
+exit trap (`cleanup: PASS`); no persistent checkout was mutated. The
+detailed D0 feasibility receipt is
+[`l19-openvla-16gb-feasibility.json`](../artifacts/m14/l19-openvla-16gb-feasibility.json);
+the complete contract remains [`l19-openvla.json`](../artifacts/m14/l19-openvla.json)
+and [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json).
+
+The exact next action is an authorized Linux NVIDIA CUDA run on a host with
+at least 24 GiB VRAM (the upstream A100 40/80GB profile is preferred) in a
+disposable exact-SHA checkout/cache using Python 3.10.13, PyTorch 2.2.0,
+Transformers 4.40.1, tokenizers 0.19.1, and flash-attn 2.5.5. Provision the
+pinned model/data, implement and review the real Transformers adapter, then
+execute 500 LIBERO-Spatial trials plus paired intervention/control and
+retain a signed artifact. A 4-bit/8-bit run would need a separately approved
+non-canonical contract and cannot promote this BF16 row. The L19 row remains
+D0; no later line-596+ plan item was started.

@@ -1,0 +1,37 @@
+{
+  "schema_version": "m14-lane-run-receipt-v1",
+  "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+  "lane": "M14-L15",
+  "status": "reconciled",
+  "execution_mode": "historical-evidence-reuse",
+  "historical_execution": {
+    "command": "uv run python scripts/stochastic_transition_benchmark.py",
+    "source": "scripts/stochastic_transition_benchmark.py",
+    "source_sha256": "82cbc11e3e2c1bf4b67aa52e65c2877f5e33664e90c14c088a60733170acf13d",
+    "config": "artifacts/stochastic_transition_rollout_config.json",
+    "config_sha256": "6bf0c5fdaa6ebc47ae2a151c1d7df6bbf5267d417204cf41fdf0e0434a9bd6d6",
+    "artifact": "artifacts/stochastic_transition_rollout.json",
+    "artifact_sha256": "26aeb4f32230f9105f5ab8386f5f668684f4d60d2d8fe1354fe1ed6ab11aea5c",
+    "seed": 64,
+    "device": "cpu",
+    "network_policy": "offline; project-authored synthetic fixture",
+    "rerun_performed": false
+  },
+  "reconciliation": {
+    "target_artifact": "artifacts/m14/l15-stochastic-transition.json",
+    "target_config": "artifacts/m14/l15-stochastic-transition.config.json",
+    "target_contract": "D2 compact stochastic transition only; no real-world or pretrained temporal-model claim",
+    "focused_test_command": "uv run pytest tests/test_latent_anything/test_transition.py -q",
+    "focused_test_result": "26 passed",
+    "focused_test_source_sha256": "0e4c7a7df1c0db1afd1ce333ace71c5338acb345f776d2d607743f7aafe9a368"
+  },
+  "acceptance": {
+    "all_metrics_finite": true,
+    "one_step_nll_coverage_width_diversity_error": true,
+    "rollout_coverage_bounds": true,
+    "rollout_stable": true,
+    "seeded_reproducibility": true,
+    "failure_evidence_preserved": true
+  },
+  "related_l15_receipt": "artifacts/m14/l15-transitions-run.json"
+}

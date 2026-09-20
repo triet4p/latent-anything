@@ -2,20 +2,22 @@
 
 ## Scope
 
-This task mechanically reconciles the 40 row-level records from Sprint 78.38
-with all 24 normative M14 lanes, then performs the first bounded remote CUDA
-preflight and representative real-model smoke. No evidence tier was promoted,
-no model license was accepted, and no persistent server checkout was touched.
+This task mechanically reconciled the historical 40 row-level records from
+Sprint 78.38 with all 24 normative M14 lanes, then performed the first bounded
+remote CUDA preflight and representative real-model smoke. The current active
+scope retains 39 executable gap rows; canonical BF16 L19/OpenVLA is preserved as
+one hardware-excluded historical record under the permanent 16 GiB ceiling. No
+evidence tier was promoted, no model license was accepted, and no persistent
+server checkout was touched.
 
 ## Queue result
 
 - Source commit: `df7d5504fd51642507dfbce1593f8758be5954a8`
 - Machine-readable queue: [`task_79.1_execution_queue.json`](task_79.1_execution_queue.json)
 - Generator: [`build_sprint79_execution_queue.py`](../scripts/build_sprint79_execution_queue.py)
-- Gap records: 40 unique records, all retained exactly once.
-- M14 lanes: all 24 (`L01`–`L24`), with 14 lanes mapped to the current gap
-  records and 10 lanes having no row-level gap record in this map because they
-  are covered by the separate M14 real-system matrix.
+- Gap records: 39 active unique records; one historical hardware-excluded L19/OpenVLA
+  record remains in the gap map and queue reconciliation, for a 40-row historical
+  inventory without positional corruption.
 - Dependency reconciliation found 9 prerequisite edges to IDs outside the
   gap map. Task 79.2 resolved all 9 against the authoritative ledger as D2
   (`satisfied_qualifying`); they are not silently treated as gap-map rows.

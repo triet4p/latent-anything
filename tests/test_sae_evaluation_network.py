@@ -74,6 +74,30 @@ def test_pinned_transformer_sae_feature_atlas_and_cross_check(tmp_path: pathlib.
         "The chef prepared a delicious meal",
         "Scientists studied the distant galaxy",
         "The musician composed a new symphony",
+        "The engineer reviewed the careful experiment notes",
+        "The painter mixed a bright blue color",
+        "The researcher measured the changing temperature",
+        "The gardener watered the flowers before sunset",
+        "The airplane crossed the clouds above the ocean",
+        "The programmer fixed a subtle parser bug",
+        "The doctor explained the treatment to the patient",
+        "The artist displayed a sculpture in the gallery",
+        "The student solved a difficult equation during class",
+        "The photographer captured a landscape during sunrise",
+        "The librarian organized the books by subject",
+        "The scientist recorded observations in a notebook",
+        "The musician practiced scales before the concert",
+        "The team discussed the schedule for the project",
+        "The farmer harvested vegetables from the field",
+        "The architect designed a bridge across the river",
+        "The child opened a colorful present on her birthday",
+        "The teacher demonstrated the lesson with an example",
+        "The pilot checked the instruments before takeoff",
+        "The baker placed fresh bread into the oven",
+        "The journalist interviewed the author about the novel",
+        "The mechanic repaired the engine in the workshop",
+        "The family visited a museum during the holiday",
+        "The swimmer trained every morning at the pool",
     )
     activations, input_ids, token_labels = _layer_6_activation_batch(pipe, prompts, layer=6, max_length=24)
     assert activations.shape[0] > 0, "no real-token activations captured"
@@ -84,7 +108,7 @@ def test_pinned_transformer_sae_feature_atlas_and_cross_check(tmp_path: pathlib.
     std = activations.std(axis=0) + 1e-8
     standardised = (activations - mean) / std
 
-    config = SAEConfig(n_components=32, l1_coef=0.3, learning_rate=1e-2, n_epochs=400)
+    config = SAEConfig(n_components=64, l1_coef=0.005, learning_rate=1e-2, n_epochs=1500)
     evaluation = SAEFeatureEvaluation(config).fit(
         standardised,
         source_representation_identity=f"{pipe.provenance}_layer_6",
@@ -100,9 +124,10 @@ def test_pinned_transformer_sae_feature_atlas_and_cross_check(tmp_path: pathlib.
     assert float(evaluation.activation_frequencies.max()) > 0.1
     assert evaluation.provenance["dataset"] == "prompt-batch-v1"
 
-    # Rank real-token examples and counterexamples for the most-active feature.
+    permutation = np.random.default_rng(evaluation.config.random_state).permutation(len(token_labels))
+    validation_labels = [token_labels[index] for index in permutation[evaluation.n_train :]]
     most_active = int(np.argmax(evaluation.activation_frequencies))
-    ranking = rank_feature_examples(evaluation, most_active, k=5, example_labels=token_labels)
+    ranking = rank_feature_examples(evaluation, most_active, k=5, example_labels=validation_labels)
     assert len(ranking.top_labels) == 5 and len(ranking.bottom_labels) == 5
     assert max(ranking.top_activations) > min(ranking.bottom_activations)
     top_text = " ".join(label for label in ranking.top_labels if label is not None)
@@ -127,7 +152,7 @@ def test_pinned_transformer_sae_feature_atlas_and_cross_check(tmp_path: pathlib.
     assert check.intervention_agreement is not None
 
     # Build and persist a portable feature-atlas artifact.
-    atlas = build_feature_atlas(evaluation, k_examples=3, k_decoder_dims=5, example_labels=token_labels)
+    atlas = build_feature_atlas(evaluation, k_examples=3, k_decoder_dims=5, example_labels=validation_labels)
     path = tmp_path / "sprint46_gpt2_layer6_feature_atlas.json"
     save_feature_atlas(atlas, path)
     loaded = load_feature_atlas(path)

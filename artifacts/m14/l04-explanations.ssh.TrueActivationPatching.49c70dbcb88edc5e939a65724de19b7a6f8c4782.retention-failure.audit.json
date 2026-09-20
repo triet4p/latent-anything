@@ -1,0 +1,86 @@
+{
+  "schema_version": "m14-l04-remote-retention-failure-audit-v1",
+  "source_sha": "49c70dbcb88edc5e939a65724de19b7a6f8c4782",
+  "use_case": "TrueActivationPatching",
+  "attempt": "attempt2",
+  "classification": "semantic_failure_with_runner_retention_defect",
+  "transport": {
+    "launcher": "direct authenticated ssh.exe from Windows PowerShell",
+    "invocation_count": 1,
+    "ssh_exit": 1,
+    "cli_exit": 1,
+    "bundle_exit": 0,
+    "final_exit": 1,
+    "payload_sha256": "9d87d0f8e1d308d3793d2c3f9bfbe0325d329ba2c5c9a9a0304bcddfbe7e63e4",
+    "bootstrap_sha256": "b7646093b11941eb5eea3f10ffe8f19a84a4714b81aec46f720dd65744cd9fc1",
+    "decode_status": 0,
+    "decode_match": "PASS",
+    "remote_cleanup": "PASS",
+    "transport_cleanup": "PASS"
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "integration": "TransformerLMIntegration",
+    "adapter": "N/A",
+    "device": "NVIDIA GeForce RTX 4060 Ti",
+    "torch": "2.10.0",
+    "transformers": "4.57.6"
+  },
+  "fixture_digests": {
+    "plan_sha256": "f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a",
+    "content_sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+    "split_sha256": "7d788c18212bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b",
+    "pair_sha256": "7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c"
+  },
+  "semantic_result": {
+    "status": "failed",
+    "evidence_level": "D0",
+    "evidence_eligible": false,
+    "acceptance": false,
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "seeds": [17, 29, 41, 53, 67],
+    "recovery_point_estimate": 0.03699461128888358,
+    "recovery_ci95": [-0.09254197944193487, 0.20231268826835444],
+    "recovery_threshold": 0.1,
+    "recovery_gate": "FAIL",
+    "off_target_combined_point_estimate": 0.082366943359375,
+    "off_target_threshold": 0.1,
+    "off_target_gate": "PASS",
+    "zero_strength_gate": "PASS",
+    "budget_pass": true,
+    "no_mutation": true,
+    "elapsed_seconds": 23.904742781072855,
+    "max_memory_allocated_bytes": 529608192,
+    "max_memory_reserved_bytes": 572522496,
+    "max_rss_bytes": 1617874944
+  },
+  "bundle": {
+    "bytes": 19793,
+    "sha256": "478d247043488d3b361f2cb4c271c3ab2a51337b6372218975c22376766ca67a",
+    "members": [
+      {"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.failure.json","bytes":13310,"sha256":"9f7ecf6d5327edf0ad4268c42653098ac3118b52b2935982af240075f412c31f"},
+      {"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.partial.json","bytes":102243,"sha256":"fbfc06466a6ebd3bda61dc9c63a0d3d47ddea9499d6d7d98cb5c0bc715b99294"},
+      {"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.run.json","bytes":6587,"sha256":"bb6331cb9b09bfe2cf8a8010d569367d60fe96890d5d646592e480c8632524d0"}
+    ]
+  },
+  "retained_files": [
+    "artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.failure.json",
+    "artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.partial.json",
+    "artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.run.json"
+  ],
+  "retention": {
+    "standard_retain": "FAIL",
+    "validator_error": "failure: failed execution stage is not a truthful partial stage",
+    "raw_capture_bytes": 155123,
+    "raw_capture_sha256": "bf128870849174ef25e89d06a37ac67cface6a103ab4c9e169457aac39810748",
+    "raw_capture_deleted": false,
+    "next_action": "artifact-stage binding fix was pushed; this capture predates that fix"
+  },
+  "promotion": {
+    "repository_promotion": false,
+    "accepted_record_ids": [],
+    "accepted_gap_ids": []
+  }
+}

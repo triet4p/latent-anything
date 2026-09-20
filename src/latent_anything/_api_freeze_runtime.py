@@ -222,7 +222,9 @@ def cli_contract() -> dict[str, object]:
         aliases_by_id.setdefault(id(command_parser), []).append(alias)
 
     def action_row(action: argparse.Action) -> dict[str, object]:
-        default = str(action.default) if isinstance(action.default, Path) else action.default
+        # Snapshot paths in POSIX form so the reviewed API contract is stable
+        # across Windows and Linux CI runners.
+        default = action.default.as_posix() if isinstance(action.default, Path) else action.default
         choices = None if action.choices is None else [json_value(choice) for choice in action.choices]
         return {
             "option_strings": list(action.option_strings),
@@ -283,7 +285,7 @@ def serialization() -> dict[str, object]:
     )
     result_payload = encode_result_envelope(
         result,
-        provenance={"plugin": "builtin-cem", "version": "0.1.0b1"},
+        provenance={"plugin": "builtin-cem", "version": "0.9.0"},
         behavior_state={"config": {"horizon": 1, "action_dim": 2}, "checkpoint": "none"},
     )
     record_payload = {

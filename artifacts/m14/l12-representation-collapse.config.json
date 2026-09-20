@@ -1,0 +1,21 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+  "lane": "L12",
+  "target_evidence": "D2",
+  "dataset_revision": "synthetic-controlled-latent-dynamics-v1",
+  "model_revision": "compact-jepa-lewm-v1",
+  "device": "cpu",
+  "train_seed": 71,
+  "heldout_seed": 1701,
+  "fit_config_path": "artifacts/jepa_world_model_evidence_config.json",
+  "acceptance": {
+    "heldout_prediction_improvement_over_collapsed": {"comparator": ">", "threshold": 0.0},
+    "heldout_target_collapsed_fraction": {"comparator": "<", "threshold": 1.0},
+    "heldout_target_health_finite": true,
+    "heldout_prediction_finite": true,
+    "target_encoder_stop_gradient": true,
+    "no_decoder": true
+  },
+  "scope": "Compact CPU JEPA health and prediction benchmark; does not claim named I-JEPA, LeWM, pretrained, or CUDA evidence."
+}

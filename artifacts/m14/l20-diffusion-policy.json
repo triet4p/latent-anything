@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L20",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "LeTau/diffusion_aloha_insertion@6126e33 with lerobot/aloha_sim_insertion_human_image@d93d36a",
+  "command": "uv run pytest tests/test_lerobot_diffusion.py::test_pinned_public_diffusion_checkpoint_pair_loads_through_lerobot_factories -m network -q",
+  "result": "1 skipped in 3.19s",
+  "blocker": "Upstream model/data access and license capture plus remote CUDA/Linux execution are unavailable; skipped network lane is not evidence.",
+  "evidence_scope": "No remote CUDA run was attempted without prerequisites."
+}

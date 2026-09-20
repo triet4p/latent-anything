@@ -1,0 +1,14 @@
+{
+  "schema_version": "m14-l04-remote-retention-failure-audit-v1",
+  "source_sha": "4bd22f8e6057ab4043445fead00e626075a6e54d",
+  "use_case": "TrueActivationPatching",
+  "attempt": "attempt2_remote_duplicate",
+  "classification": "semantic_failure_with_retention_reproduction",
+  "transport": {"launcher":"direct authenticated ssh.exe from Windows PowerShell","invocation_count":1,"ssh_exit":1,"cli_exit":1,"bundle_exit":0,"final_exit":1,"payload_sha256":"9d87d0f8e1d308d3793d2c3f9bfbe0325d329ba2c5c9a9a0304bcddfbe7e63e4","bootstrap_sha256":"b7646093b11941eb5eea3f10ffe8f19a84a4714b81aec46f720dd65744cd9fc1","decode_status":0,"decode_match":"PASS","remote_cleanup":"PASS","transport_cleanup":"PASS"},
+  "model": {"id":"openai-community/gpt2","revision":"e7da7f221d5bf496a48136c0cd264e630fe9fcc8","integration":"TransformerLMIntegration","device":"NVIDIA GeForce RTX 4060 Ti","torch":"2.10.0","transformers":"4.57.6"},
+  "fixture_digests": {"plan_sha256":"f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a","content_sha256":"f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f","split_sha256":"7d788c18212bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b","pair_sha256":"7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c"},
+  "semantic_result": {"status":"failed","evidence_level":"D0","evidence_eligible":false,"acceptance":false,"recovery_point_estimate":0.03699461128888358,"recovery_ci95":[-0.09254197944193487,0.20231268826835444],"recovery_threshold":0.1,"recovery_gate":"FAIL","off_target_combined_point_estimate":0.082366943359375,"off_target_threshold":0.1,"off_target_gate":"PASS","zero_strength_gate":"PASS","budget_pass":true,"no_mutation":true},
+  "bundle": {"bytes":19789,"sha256":"0283b2bb9abdaa74348477a8668994580da286548729db55366c9860ca89cb91","members":[{"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.failure.json","bytes":13308,"sha256":"998145ce41f017ea56b2a2a1cce7ec8e8fd5f5f1d5693b906fd2f26b92dab427187bff476b5af58"},{"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.partial.json","bytes":102240,"sha256":"36f961a829d335c222cd924273891b3bcbd08bf962d78522c511a679ee954602"},{"path":"artifacts/m14/l04-explanations.TrueActivationPatching.attempt2.run.json","bytes":6586,"sha256":"ba553a34a69fe83d39f09c4597534f9a7caead97d2100d304ed80adbdc42a2bb"}]},
+  "retention": {"standard_retain":"FAIL","validator_error":"failure: failed execution stage is not a truthful partial stage","raw_capture_bytes":155201,"raw_capture_sha256":"5c3615ad1a5014a03c7491435ba1e37c0498b5916b092f18f2abe69f9ff363d9","raw_capture_deleted":false},
+  "promotion": {"repository_promotion":false,"accepted_record_ids":[],"accepted_gap_ids":[]}
+}

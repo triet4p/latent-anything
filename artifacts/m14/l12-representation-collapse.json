@@ -1,0 +1,62 @@
+{
+  "schema_version": "m14-gap-evidence-v1",
+  "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+  "lane": "M14-L12",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "scope": "Compact CPU JEPA health and held-out prediction benchmark; no named I-JEPA, LeWM, pretrained, or CUDA claim.",
+  "source": {
+    "implementation": "src/latent_anything/adapters/jepa.py",
+    "implementation_sha256": "8a2983088bf14eca467c51b830110d35ca6b1729de999f86c9d8c683e2a80f7d",
+    "benchmark": "scripts/jepa_world_model_benchmark.py",
+    "benchmark_sha256": "c6466d5c0b7dffa7edabcf95cc0861a6c7fb46ff76d5e9f9c5eeb9efd736bf4e",
+    "focused_test": "tests/test_latent_anything/test_jepa.py",
+    "focused_test_sha256": "afbb6ba9f75f6193d56d58b524384d80776368abef3a22c4a698e3b4157b53ba",
+    "source_checkout": "historical Sprint 71 evidence; source digest was not recorded by the original generator"
+  },
+  "config": {
+    "path": "artifacts/m14/l12-representation-collapse.config.json",
+    "sha256": "931cb1e0646dc6d65210fc3c7f8eed91dd400ec279d89560dca92a94551ec894"
+  },
+  "inputs": {
+    "benchmark_artifact": "artifacts/jepa_world_model_evidence.json",
+    "benchmark_artifact_sha256": "f69fc4e514c4ae57624601447a7a7b18cbefd8d79a412e5e6ece1575a2c7d9fb",
+    "benchmark_fit_config": "artifacts/jepa_world_model_evidence_config.json",
+    "benchmark_fit_config_sha256": "80454cdee439a46fc835d0914b5892c3ba808a327b34cc834fcd4727ff2695ff"
+  },
+  "dataset": {
+    "revision": "synthetic-controlled-latent-dynamics-v1",
+    "train_seed": 71,
+    "heldout_seed": 1701,
+    "train_episodes": 24,
+    "heldout_episodes": 12,
+    "horizon": 6,
+    "license": "project-authored deterministic fixture"
+  },
+  "metrics": {
+    "heldout_prediction_mse": 0.0013885584043799458,
+    "heldout_collapsed_baseline_mse": 0.09189417932420162,
+    "heldout_improvement_over_collapsed": 0.9848895935020963,
+    "heldout_target_collapsed_fraction": 0.0,
+    "heldout_target_min_variance": 0.03119287724573716,
+    "heldout_target_effective_rank": 1.0190336331597525,
+    "heldout_target_collapse_score": 0.49048318342012376,
+    "heldout_prediction_finite": true,
+    "heldout_target_health_finite": true,
+    "target_encoder_stop_gradient": true,
+    "decoder": "absent"
+  },
+  "acceptance": {
+    "heldout_prediction_improvement_over_collapsed": true,
+    "heldout_target_collapsed_fraction": true,
+    "heldout_target_health_finite": true,
+    "heldout_prediction_finite": true,
+    "target_encoder_stop_gradient": true,
+    "no_decoder": true
+  },
+  "historical_evidence": {
+    "benchmark_execution": "uv run python scripts/jepa_world_model_benchmark.py",
+    "focused_validation": "uv run pytest tests/test_latent_anything/test_jepa.py -q"
+  }
+}

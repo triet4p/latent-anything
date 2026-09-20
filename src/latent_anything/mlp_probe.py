@@ -150,11 +150,20 @@ class MLPProbeResult:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a JSON-compatible dict (deep copies array attributes)."""
+        """Return a JSON-compatible dict with portable floating-point values.
+
+        Training uses floating-point kernels whose final low bits can differ
+        across BLAS/PyTorch platforms.  Round floating arrays at this
+        serialization boundary so persisted result digests describe the
+        public result rather than platform-specific noise.
+        """
         out: dict[str, Any] = {}
         for key, value in asdict(self).items():
             if isinstance(value, np.ndarray):
-                out[key] = value.tolist()
+                if np.issubdtype(value.dtype, np.floating):
+                    out[key] = np.round(value, decimals=6).tolist()
+                else:
+                    out[key] = value.tolist()
             elif isinstance(value, MLPProbeConfig):
                 out[key] = value.model_dump()
             elif isinstance(value, dict):

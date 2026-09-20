@@ -1,0 +1,72 @@
+{
+  "acceptance": {
+    "finite": true,
+    "gpt2_paired_effect": true,
+    "no_mutation": true,
+    "reversibility": true,
+    "shape_safe": true,
+    "vae_paired_effect": true
+  },
+  "cleanup": "No disposable corpus/checkpoint files; pinned HF cache retained and JSON is the immutable output artifact.",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l07_interventions.py",
+  "environment": {
+    "device": "cpu",
+    "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 1093476352,
+    "torch": "2.10.0",
+    "transformers": "4.57.6"
+  },
+  "gpt2_hidden_state_controls": {
+    "direction_norm": 1.0,
+    "input_unchanged": true,
+    "lerp_endpoint_reversible": true,
+    "lerp_midpoint_finite": true,
+    "projection_residual_norm": 54.03565342973288,
+    "projection_shape_safe": true,
+    "shape": [
+      83,
+      768
+    ],
+    "steering_effect_norm": 0.5000000000002008,
+    "steering_zero_strength_reversible": true
+  },
+  "schema_version": "m14-l07-run-v1",
+  "seeds": {
+    "gpt2_prompt_order": 0,
+    "vae": 42
+  },
+  "source_sha": "04efc7cc4a75b775de74e42396b7c70c77086aa8",
+  "targets": {
+    "gpt2": {
+      "id": "openai-community/gpt2",
+      "layer": 6,
+      "license": "MIT",
+      "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+      "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
+    },
+    "vae": {
+      "dataset": "sklearn digits",
+      "license": "BSD-3-Clause",
+      "revision": "scikit-learn==1.9.0",
+      "seed": 42
+    }
+  },
+  "vae_latent_controls": {
+    "activation_patch_delta_norm": 0.019136635451244943,
+    "activation_patch_effect_norm": 20.72073172096069,
+    "activation_patch_output_shape": [
+      40,
+      64
+    ],
+    "finite": true,
+    "input_unchanged": true,
+    "latent_shape": [
+      40,
+      8
+    ],
+    "steering_effect_norm": 0.019136635451244943
+  }
+}

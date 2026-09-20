@@ -1,0 +1,21 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L16",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2 held-out recorded trajectory substitute",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
+  "target": "recorded scikit-learn digits trajectories plus compact deterministic transition; NumPy/PyTorch CPU",
+  "dataset": "scikit-learn digits@1.9.0",
+  "dataset_license": "BSD-3-Clause",
+  "command": "uv run python scripts/m14_l16_planning.py",
+  "focused_test_command": "uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q",
+  "result": "runner acceptance 8/8 true; focused test: 32 passed in 9.06s",
+  "artifact": {"path": "artifacts/m14/l16-planning-run.json", "sha256": "c46864469b148b787fa20a849310b2e531d73e10d7c062516ba7beccd5ab2fd4"},
+  "environment": {"device": "cpu", "python": "3.13.3", "numpy": "2.4.6", "torch": "2.10.0", "scikit_learn": "1.9.0", "rss_peak_bytes": 307589120, "network_policy": "offline after installed scikit-learn digits dataset"},
+  "split": {"train_episodes": 56, "holdout_episodes": 16, "horizon": 5, "seed": 1601},
+  "metrics": {"baseline_return": 1.4485021636139839, "cem_predicted_return": 2.835069606822939, "mppi_predicted_return": 2.2274987449276558, "cem_improvement": 1.386567443208955, "mppi_improvement": 0.7789965813136719, "cem_sample_count": 576, "mppi_sample_count": 576, "action_bounds": [-1.0, 1.0], "reward_rmse": 6.484499123758825e-10, "value_rmse": 0.7087492652395131, "bellman_residual_rmse": 0.6382596040958199},
+  "thresholds": {"cem_predicted_return_min": 1.4485021636139839, "mppi_predicted_return_min": 1.4485021636139839, "action_bounds": [-1.0, 1.0], "cem_evaluations_max": 576, "mppi_evaluations_max": 576, "seed": 1601},
+  "cleanup": "No temporary files or checkpoints; evidence is retained under artifacts/m14.",
+  "evidence_scope": "Reward/value heads and both planners ran on held-out recorded digit trajectories with a fitted compact transition; all actions remained within declared bounds and budgets."
+}

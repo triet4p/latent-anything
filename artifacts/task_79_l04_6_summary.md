@@ -68,3 +68,18 @@ attempt 2 `3a47e53a6de4fcdd72bbd4023dd92136e9c626ecb8b0455136fd48bd2f6ac70e`.
   zero-node warning for non-code JSON inputs did not affect the graph update.
 - No source/test/frozen-plan edits, model download, CUDA/SSH rerun, release,
   tag, or version change was made during closure.
+## Current-checkpoint additive execution
+
+After the historical closure above, the next unexecuted use case was run exactly once from checkpoint `5ea5b9566dcf7631232c2f9a4ed667d6586975de`. The run used native authenticated `ssh.exe`, a fresh detached remote clone, isolated uv/Hugging Face/Transformers caches, and the pinned `openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through `TransformerLMIntegration`. The remote and transport cleanup markers both passed.
+
+The additive attempt-2 triad and sanitized audit are retained at:
+
+- `artifacts/m14/l04-explanations.DirectLogitLens.attempt2.partial.json`
+- `artifacts/m14/l04-explanations.DirectLogitLens.attempt2.run.json`
+- `artifacts/m14/l04-explanations.DirectLogitLens.attempt2.failure.json`
+- `artifacts/m14/l04-explanations.ssh.DirectLogitLens.5ea5b9566dcf7631232c2f9a4ed667d6586975de.audit.json`
+- `artifacts/m14/l04-explanations.ssh.DirectLogitLens.5ea5b9566dcf7631232c2f9a4ed667d6586975de.exit.txt`
+
+Envelope validators and the DirectLogitLens validator returned zero errors. The execution produced `passed_real_cuda` with evidence eligibility true, but the frozen contract keeps DirectLogitLens support-only at D0 with empty accepted IDs. Terminal absolute and relative parity were both `0.0`; held-out target/non-target selectivity was `0.0009173363650916144` with 95% CI `[0.0005931574705755338, 0.0012898929126095027]`. It used seeds `[17, 29, 41, 53, 67]`, block layer `6`, native hidden-state index `7`, and all native indices `0..12`.
+
+The exact raw capture was `301477` bytes with SHA-256 `265a99c8bbd28d0d08aee506cde5501dabc4e524ffa7aab34cc34925fd0dff3f`; it was deleted only after sanitized-audit verification and is absent. Artifact, run, and failure self-digests are respectively `b9a08176eb0ff283528638ff9c0eb0eaeee18a399d5ed29d2a183faa38f40fc7`, `f76ab071c3906b9931e934703873ddbd664cbf0b33417500e68504490dd85754`, and `29134bc9aad9c810280d79ca943ec756f737923e52ba1a13532bb2762e4e21f7`.

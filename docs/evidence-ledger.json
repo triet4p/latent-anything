@@ -58,6 +58,9 @@
     "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
     "THY-T07-LATENT-IMAGINATION-HORIZON"
   ],
+  "scope_exclusions": {
+    "THY-X01-OPENVLA": "Hardware-excluded from the active release-evidence scope: canonical BF16 execution requires a defensible >=24 GiB CUDA host, unavailable under the permanent 16 GiB ceiling. Retain D0 history and make no OpenVLA support claim."
+  },
   "overrides": {
     "THY-T03-DISENTANGLEMENT": {
       "status": "D2",
@@ -82,6 +85,17 @@
         {"role": "benchmark", "path": "scripts/jepa_world_model_benchmark.py"},
         {"role": "config", "path": "artifacts/jepa_world_model_evidence_config.json"},
         {"role": "artifact", "path": "artifacts/jepa_world_model_evidence.json"}
+      ]
+    },
+    "THY-T08-REPRESENTATION-COLLAPSE": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/adapters/jepa.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_jepa.py"},
+        {"role": "benchmark", "path": "scripts/jepa_world_model_benchmark.py"},
+        {"role": "config", "path": "artifacts/m14/l12-representation-collapse.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l12-representation-collapse.json"},
+        {"role": "artifact", "path": "artifacts/m14/l12-representation-collapse.run.json"}
       ]
     },
     "THY-X01-LEWM-LEWORLDMODEL-2026": {
@@ -112,8 +126,11 @@
         {"role": "test", "path": "tests/test_latent_anything/test_latent_space.py"},
         {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
         {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l02-manifold-hypothesis.config.json"},
         {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-manifold-hypothesis.rerun-55aec38.run.json"}
       ]
     },
     "THY-T01-GEODESIC": {
@@ -352,6 +369,25 @@
         {"role": "artifact", "path": "artifacts/m14/l03-analysis.run.json"}
       ]
     },
+    "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018": {
+      "status": "D0",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/tcav.py"},
+        {"role": "source", "path": "src/latent_anything/_tcav_model.py"},
+        {"role": "source", "path": "scripts/_m14_l04_tcav.py"},
+        {"role": "test", "path": "tests/test_tcav.py"},
+        {"role": "test", "path": "tests/test_m14_l04_tcav_handler.py"},
+        {"role": "test", "path": "tests/test_m14_l04_explanations.py"},
+        {"role": "benchmark", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-tcav.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.partial.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.TCAV.attempt1.failure.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.TCAV.attempt3.audit.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-tcav.run.json"}
+      ]
+    },
     "THY-T05-ACTIVATION-PATCHING": {
       "status": "D3",
       "evidence": [
@@ -387,15 +423,45 @@
     "THY-T05-SPARSE-AUTOENCODER-SAE-ANTHROPIC-2023": {
       "status": "D1",
       "evidence": [
-        {"role": "source", "path": "src/latent_anything/methods/sae.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_sae.py"}
+        {"role": "source", "path": "src/latent_anything/sae_evaluation.py"},
+        {"role": "source", "path": "scripts/m14_l06_sae.py"},
+        {"role": "test", "path": "tests/test_sae_evaluation.py"},
+        {"role": "test", "path": "tests/test_sae_evaluation_network.py"},
+        {"role": "benchmark", "path": "scripts/m14_l06_sae.py"},
+        {"role": "config", "path": "artifacts/m14/l06-sae.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae-run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-feature-atlas.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-sae-reconciliation.run.json"}
+      ]
+    },
+    "THY-T05-DICTIONARY-LEARNING": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/dictionary_learning.py"},
+        {"role": "test", "path": "tests/test_dictionary_learning.py"},
+        {"role": "benchmark", "path": "scripts/m14_l06_dictionary_learning.py"},
+        {"role": "config", "path": "artifacts/m14/l06-dictionary-learning.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-dictionary-learning.json"},
+        {"role": "artifact", "path": "artifacts/m14/l06-dictionary-learning.run.json"}
       ]
     },
     "THY-T05-STEERING-VECTORS-ZOU-ET-AL-2023-REPRESENTATION-ENGINEERING": {
       "status": "D1",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/methods/steering.py"},
-        {"role": "test", "path": "tests/test_latent_anything/test_steering.py"}
+        {"role": "source", "path": "scripts/_m14_l04_steering.py"},
+        {"role": "source", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_steering.py"},
+        {"role": "test", "path": "tests/test_m14_l04_steering.py"},
+        {"role": "benchmark", "path": "scripts/m14_l04_explanations.py"},
+        {"role": "config", "path": "artifacts/m14/l04-explanations.plan.json"},
+        {"role": "config", "path": "artifacts/m14/l04-steering.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.partial.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.AdditiveSteering.attempt1.failure.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-explanations.ssh.AdditiveSteering.7ad6648a9bc5d22793b63b764cb9f93990a247e8.audit.json"},
+        {"role": "artifact", "path": "artifacts/m14/l04-steering-reconciliation.run.json"}
       ]
     },
     "THY-T06-LATENT-TRAJECTORY": {
@@ -411,7 +477,7 @@
       ]
     },
     "THY-T06-TRAJECTORY-SIMILARITY-METRICS": {
-      "status": "D0",
+      "status": "D2",
       "evidence": [
         {"role": "source", "path": "src/latent_anything/dtw.py"},
         {"role": "source", "path": "src/latent_anything/temporal.py"},
@@ -421,8 +487,9 @@
         {"role": "test", "path": "tests/test_m14_l02_geometry.py"},
         {"role": "benchmark", "path": "scripts/m14_l02_geometry.py"},
         {"role": "config", "path": "artifacts/m14/l02-geometry.plan.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.json"},
-        {"role": "artifact", "path": "artifacts/m14/l02-geometry.run.json"}
+        {"role": "config", "path": "artifacts/m14/l02-trajectory-similarity.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-geometry.rerun-90a8c64.json"},
+        {"role": "artifact", "path": "artifacts/m14/l02-trajectory-similarity.run.json"}
       ]
     },
     "THY-T06-LATENT-TRANSITION-MODEL": {
@@ -444,6 +511,21 @@
         {"role": "benchmark", "path": "scripts/rssm_transition_benchmark.py"},
         {"role": "config", "path": "artifacts/rssm_transition_comparison_config.json"},
         {"role": "artifact", "path": "artifacts/rssm_transition_comparison.json"}
+      ]
+    },
+    "THY-T06-STOCHASTIC-TRANSITION": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/transition.py"},
+        {"role": "source", "path": "src/latent_anything/_transition_stochastic.py"},
+        {"role": "test", "path": "tests/test_latent_anything/test_transition.py"},
+        {"role": "benchmark", "path": "scripts/stochastic_transition_benchmark.py"},
+        {"role": "config", "path": "artifacts/stochastic_transition_rollout_config.json"},
+        {"role": "artifact", "path": "artifacts/stochastic_transition_rollout.json"},
+        {"role": "config", "path": "artifacts/m14/l15-stochastic-transition.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-stochastic-transition.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-stochastic-transition.run.json"},
+        {"role": "artifact", "path": "artifacts/m14/l15-transitions.json"}
       ]
     },
     "THY-T06-ROLLOUT-LATENT-IMAGINATION": {
@@ -485,6 +567,19 @@
         {"role": "benchmark", "path": "scripts/reward_value_benchmark.py"},
         {"role": "config", "path": "artifacts/reward_value_evaluation_config.json"},
         {"role": "artifact", "path": "artifacts/reward_value_evaluation.json"}
+      ]
+    },
+    "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC": {
+      "status": "D2",
+      "evidence": [
+        {"role": "source", "path": "src/latent_anything/mppi.py"},
+        {"role": "source", "path": "scripts/m14_l16_mpc.py"},
+        {"role": "test", "path": "tests/test_m14_l16_mpc.py"},
+        {"role": "test", "path": "tests/test_mppi_rollout.py"},
+        {"role": "benchmark", "path": "scripts/m14_l16_mpc.py"},
+        {"role": "config", "path": "artifacts/m14/l16-mpc.config.json"},
+        {"role": "artifact", "path": "artifacts/m14/l16-mpc.json"},
+        {"role": "artifact", "path": "artifacts/m14/l16-mpc.run.json"}
       ]
     },
     "THY-T07-CROSS-ENTROPY-METHOD-CEM": {

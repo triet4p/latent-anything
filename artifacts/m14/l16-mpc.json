@@ -1,0 +1,89 @@
+{
+  "acceptance": {
+    "actions_within_bounds": true,
+    "executed_prefix_only": true,
+    "finite_returns": true,
+    "mpc_improves_fixed_zero": true,
+    "receding_horizon_replans": true,
+    "sample_budget_respected": true,
+    "state_trace_finite": true
+  },
+  "accepted": true,
+  "cleanup": "No temporary files or checkpoints; evidence is retained under artifacts/m14.",
+  "command": "uv run python scripts/m14_l16_mpc.py",
+  "environment": {
+    "network_policy": "offline after installed scikit-learn digits dataset",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 308531200,
+    "scikit_learn": "1.9.0",
+    "torch": "2.10.0"
+  },
+  "evidence_level": "D2",
+  "lane": "M14-L16",
+  "metrics": {
+    "action_bounds": [
+      -1.0,
+      1.0
+    ],
+    "executed_steps": 3,
+    "fixed_zero_return": 0.8318605499808998,
+    "mpc_delta_over_random_shooting": -0.2111504623896161,
+    "mpc_improvement_over_fixed_zero": 0.46705953189999105,
+    "mpc_return": 1.2989200818808908,
+    "mpc_sample_count": 1728,
+    "random_shooting_return": 1.510070544270507,
+    "replans": 3,
+    "state_trace_rows": 4
+  },
+  "provenance": {
+    "benchmark": "scripts/m14_l16_mpc.py",
+    "focused_tests": [
+      "tests/test_m14_l16_mpc.py",
+      "tests/test_reward_value.py",
+      "tests/test_cem.py",
+      "tests/test_cem_rollout.py",
+      "tests/test_mppi.py",
+      "tests/test_mppi_rollout.py"
+    ],
+    "source": [
+      {
+        "path": "scripts/m14_l16_mpc.py",
+        "sha256": "525727750fd7e3ab885dbe403ae3eb850c88c992835b143bd7cb55c0a80d969f"
+      }
+    ]
+  },
+  "record_id": "THY-T07-MODEL-PREDICTIVE-CONTROL-MPC",
+  "schema_version": "m14-gap-row-evidence-v1",
+  "scope": "Bounded continuous latent MPC instantiated as receding-horizon MPPI over a fitted compact transition and recorded sklearn-digits trajectories; this does not claim CEM/MPPI equivalence, a real pretrained controller, or CUDA execution.",
+  "source_sha": "d9cbc60db5f7f7ef4b63c599873fadcf5776177d",
+  "split": {
+    "holdout_digest": "8c620ad86161a95be12fe57a63a59b783c1f76f0252b0d9ad5b808f121e2bb3b",
+    "holdout_episodes": 16,
+    "horizon": 5,
+    "receding_steps": 3,
+    "seed": 1601,
+    "train_episodes": 56
+  },
+  "status": "accepted",
+  "target": {
+    "dataset": "scikit-learn digits",
+    "dataset_revision": "scikit-learn-digits-0.1.0",
+    "device": "cpu",
+    "license": "BSD-3-Clause",
+    "source_space_identity": "m14-l16-digits-trajectory-v1"
+  },
+  "thresholds": {
+    "action_bounds": [
+      -1.0,
+      1.0
+    ],
+    "iterations": 6,
+    "max_samples": 1728,
+    "mpc_return_min": 0.8318605499808998,
+    "population_size": 96,
+    "receding_steps": 3,
+    "seed": 1601
+  }
+}

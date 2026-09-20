@@ -1,0 +1,22 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L13",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d",
+  "target": "compact-vq-vae-v1 with sklearn digits; CPU",
+  "command": "uv run python scripts/vq_vae_digits_evidence.py",
+  "result": "codebook_perplexity=13.090496630645841; dead_code_rate=0.0; discrete_reconstruction_mse=0.17885987018827126; finite=true; encode/decode and acceptance checks passed",
+  "artifact": "artifacts/vq_vae_digits_evidence.json",
+  "artifact_sha256": "81711000f743648b649555953e078b2f7b4d83c0993caa20af5c9c979fe69975",
+  "config_artifact": "artifacts/vq_vae_digits_evidence_config.json",
+  "config_sha256": "2725fa64fa4bf0ba29eb56f661dedd3f1090448efd39764aaab0fa727ca2665d",
+  "seed": 42,
+  "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+  "dataset_license": "BSD-3-Clause (scikit-learn bundled digits dataset)",
+  "network_policy": "offline; bundled sklearn digits; no model download",
+  "resource_peak": "CPU-only; runner does not sample RSS",
+  "cleanup": "Generated codebook is serialized only in the evidence artifact; no temporary codebook/cache remains.",
+  "acceptance": "perplexity >1, dead-code rate <1, finite encode/decode; all passed"
+}

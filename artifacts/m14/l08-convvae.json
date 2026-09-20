@@ -1,0 +1,21 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L08",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "e8e65b96d7b2d67e7468b2c33bf04fd13e160e7d",
+  "target": "sklearn digits 80/20; compact ConvVAE; PyTorch CPU",
+  "command": "uv run python -c \"from pathlib import Path; from scripts.conv_vae_heldout_benchmark import main; print(main(Path('artifacts/m14')))\"",
+  "result": "heldout_reconstruction_mse=0.17170413275226673; zero_baseline_mse=0.23585069444444445; improvement_over_zero_baseline=0.27197953282807774; latent_utilization_train=0.0045607807114720345; steering_decode_mean_absolute_delta=0.01362483808124024; split_disjoint=true; finite=true",
+  "artifact": "artifacts/m14/conv_vae_heldout_benchmark.json",
+  "artifact_sha256": "02172fb2ce79e76b60b4e9be8a6891916bf6505c5a121857fad861b7b1041a20",
+  "config_artifact": "artifacts/m14/conv_vae_heldout_benchmark_config.json",
+  "config_sha256": "07f04aa4cfbc57708a05a5a573e69e9cdc7417554037dacefeaab8c4d80d7de5",
+  "seed": 42,
+  "dataset_revision": "scikit-learn==1.9.0",
+  "dataset_license": "BSD-3-Clause (scikit-learn bundled digits dataset)",
+  "network_policy": "offline; sklearn bundled digits dataset; no model download",
+  "resource_peak": "runtime_seconds=1.7055584999998246; CPU-only; artifact reports no resource sample",
+  "acceptance": ">=10% improvement over zero baseline; latent utilization >=1e-3; held-out PCA/SAE composition; steering effect; all passed"
+}

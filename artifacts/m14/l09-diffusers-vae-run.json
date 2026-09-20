@@ -1,0 +1,52 @@
+{
+  "environment": {
+    "diffusers": "0.39.0",
+    "huggingface_hub": "0.35.3",
+    "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 922312704,
+    "torch": "2.10.0"
+  },
+  "inputs": {
+    "dtype": "float32",
+    "input_rng_seed": 7,
+    "shape": [
+      2,
+      3,
+      32,
+      32
+    ]
+  },
+  "metrics": {
+    "decoded_shape": [
+      2,
+      3,
+      32,
+      32
+    ],
+    "different_seed_changes_sample": true,
+    "direct_adapter_max_abs_error": 0.0,
+    "finite": true,
+    "latent_shape": [
+      2,
+      4,
+      4,
+      4
+    ],
+    "sample_seed_123_reproducible": true
+  },
+  "model": {
+    "id": "stabilityai/sd-vae-ft-mse",
+    "license": "MIT",
+    "revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+    "weights_sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815"
+  },
+  "sampling_seeds": {
+    "seed_a": 123,
+    "seed_b": 123,
+    "seed_c": 124
+  },
+  "schema_version": "m14-l09-run-v1"
+}

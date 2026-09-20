@@ -1,0 +1,135 @@
+{
+  "acceptance": {
+    "decoded_consistency_available": true,
+    "free_running_horizon_complete": true,
+    "heldout_observations_encoded_before_evaluation": true,
+    "nontrivial_token_usage": true,
+    "seeded_rollout_reproducible": true,
+    "task_proxy_available": true,
+    "teacher_forced_perplexity_finite": true,
+    "tokenizer_used_for_fit": true
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/tokenized_world_model_evidence.json",
+      "sha256": "10a8f9941a7fa8be6b38eaaae0ad6e278956bd2445e69fc268d97158c1f0162e"
+    },
+    {
+      "path": "artifacts/tokenized_world_model_evidence_config.json",
+      "sha256": "5cd4f3df2e62f94ce99f27182345360125195cf3622fa68e505929cd4d824545"
+    }
+  ],
+  "cleanup": "No temporary files; generated evidence/config are retained as immutable artifacts and no scratch state remains.",
+  "command": "uv run python scripts/m14_l14_tokenized.py",
+  "environment": {
+    "device": "cpu",
+    "network_policy": "offline; no model or dataset download",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 400216064,
+    "scikit_learn": "1.9.0",
+    "torch": "2.10.0"
+  },
+  "metrics": {
+    "codebook": {
+      "codebook_perplexity": 5.509772800357932,
+      "codebook_size": 8,
+      "codebook_version": "compact-vq-vae-v1@54c1e38e958977434e80a4c8ed717e6967e0b81dc894543a085149fe265c2c3a",
+      "counts": [
+        429,
+        474,
+        287,
+        1815,
+        214,
+        389,
+        432,
+        56
+      ],
+      "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+      "dead_code_rate": 0.0,
+      "embedding_dim": 6,
+      "grid_shape": [
+        4,
+        4
+      ],
+      "model_revision": "compact-vq-vae-v1",
+      "sequence_length": 16
+    },
+    "free_running": {
+      "decoded_mse_by_horizon": [
+        0.18112968192285778,
+        0.181193848582343,
+        0.18107669521653896,
+        0.1810508713606882,
+        0.18096333092998934,
+        0.18089984708166618,
+        0.18092728608661224,
+        0.18086956336228585
+      ],
+      "exact_frame_accuracy_by_horizon": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "failure_horizon": 1,
+      "task_proxy_accuracy_by_horizon": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "token_error_by_horizon": [
+        0.7265625,
+        0.611328125,
+        0.564453125,
+        0.537109375,
+        0.53515625,
+        0.5390625,
+        0.4453125,
+        0.46484375
+      ]
+    },
+    "seeded_rollout_bit_exact": true,
+    "teacher_forced": {
+      "cross_entropy": 0.9873498678207397,
+      "n_tokens": 4096,
+      "perplexity": 2.684111787469027,
+      "token_accuracy": 0.651611328125
+    }
+  },
+  "schema_version": "m14-l14-run-v1",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
+  "split": {
+    "heldout_episodes": 32,
+    "heldout_horizon": 8,
+    "heldout_seed": 1702,
+    "train_episodes": 128,
+    "train_horizon": 6,
+    "train_seed": 72
+  },
+  "target": {
+    "codebook_version": "compact-vq-vae-v1@54c1e38e958977434e80a4c8ed717e6967e0b81dc894543a085149fe265c2c3a",
+    "dataset": "sklearn.datasets.load_digits",
+    "dataset_revision": "sklearn-digits-8x8@scikit-learn==1.9.0",
+    "device": "cpu",
+    "license": "BSD-3-Clause (scikit-learn digits)",
+    "model_revision": "compact-tokenized-world-model-v1"
+  },
+  "thresholds": {
+    "active_codes_min": 2,
+    "codebook_perplexity_min": 1.0,
+    "dead_code_rate_max_exclusive": 1.0,
+    "free_running_horizon": 8,
+    "teacher_forced_perplexity": "finite"
+  }
+}

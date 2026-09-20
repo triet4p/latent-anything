@@ -1,9 +1,13 @@
-# Sprint 77 Phase-A performance evidence
+# Sprint 77/79 performance evidence frozen for the `0.9.0` baseline
 
-Sprint 77 Phase A defines reproducible offline CPU workloads and budgets. The
-owner-approved Phase B decision defers Rust/PyO3 for pre-stable work; the
-bounded closure validation passed without claiming native, real-
-policy, multi-environment, or Windows RSS coverage.
+Sprint 77 Phase A defines reproducible offline CPU workloads and budgets, frozen
+here as the `0.9.0` evidence baseline. The owner-approved Phase B decision
+defers Rust/PyO3 for pre-stable work; the bounded closure validation passed
+without claiming native, real-policy, multi-environment, LeRobot-overhead,
+heavyweight-model, or Windows RSS coverage. Unavailable real-policy and
+LeRobot overhead measurements are secondary integration work, not `0.9`
+blockers; the supported release-evidence hardware ceiling remains 16 GiB, and
+no unsupported performance claim is made.
 
 ## Reproduce
 
@@ -39,6 +43,8 @@ real policy or model-performance claim is made.
 These values are one Windows 11 / Python 3.13.3 / 8-CPU / one-Torch-thread
 run and are advisory, not portable CI limits. Native RSS was unavailable on
 this Windows run; the report records `tracemalloc` and `null` RSS explicitly.
+No real-policy, LeRobot-overhead, heavyweight-model, multi-environment, or
+CUDA timing is claimed.
 
 ## Budgets and gates
 

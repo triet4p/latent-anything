@@ -726,6 +726,9 @@ def validate_artifact(artifact: dict[str, Any], plan: dict[str, Any]) -> list[st
                 peak = provenance.get("resource_peak")
                 if not isinstance(peak, dict) or not isinstance(peak.get("max_memory_allocated_bytes"), int):
                     errors.append("real Integrated Gradients CUDA peak resource is missing")
+                digest = provenance.get("execution_result_digest")
+                if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+                    errors.append("real Integrated Gradients execution result digest is missing or invalid")
         elif is_real_tcav:
             if provenance.get("network") != "enabled":
                 errors.append("real TCAV runtime provenance is invalid")
@@ -823,6 +826,16 @@ def validate_run_record(run: dict[str, Any], artifact: dict[str, Any], plan: dic
         errors.append("run record code SHA is invalid")
     errors.extend(_execution_tuple_errors(run, "run record"))
     errors.extend(_source_errors(run, "run record"))
+    if run.get("use_case") == "IntegratedGradients":
+        provenance = artifact.get("provenance")
+        expected_digest = provenance.get("execution_result_digest") if isinstance(provenance, dict) else None
+        if _active_status(artifact) == REAL_IG_STATUS:
+            if not isinstance(expected_digest, str) or re.fullmatch(r"[0-9a-f]{64}", expected_digest) is None:
+                errors.append("run record Integrated Gradients execution result digest is missing or invalid")
+            elif run.get("execution_result_digest") != expected_digest:
+                errors.append("run record execution result digest linkage is invalid")
+        elif "execution_result_digest" in run and run.get("execution_result_digest") != expected_digest:
+            errors.append("run record execution result digest linkage is invalid")
     if run.get("use_case") == ADDITIVE_USE_CASE:
         executions = artifact.get("executions")
         active = (
@@ -936,6 +949,16 @@ def validate_failure(
                 errors.extend(_additive_tuple_link_errors(additive_resources, run_record, "failure/run"))
             if active.get("status") == ADDITIVE_COMPLETED_STATUS:
                 errors.extend(_validate_additive_d0(artifact, active, plan))
+    if artifact is not None and failure.get("use_case") == "IntegratedGradients":
+        provenance = artifact.get("provenance")
+        expected_digest = provenance.get("execution_result_digest") if isinstance(provenance, dict) else None
+        if _active_status(artifact) == REAL_IG_STATUS:
+            if not isinstance(expected_digest, str) or re.fullmatch(r"[0-9a-f]{64}", expected_digest) is None:
+                errors.append("failure Integrated Gradients execution result digest is missing or invalid")
+            elif failure.get("execution_result_digest") != expected_digest:
+                errors.append("failure execution result digest linkage is invalid")
+        elif "execution_result_digest" in failure and failure.get("execution_result_digest") != expected_digest:
+            errors.append("failure execution result digest linkage is invalid")
     if failure.get("status") in PENDING_STATUSES | {
         "blocked_missing_corpus",
         "injected_offline_non_eligible",

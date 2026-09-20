@@ -1,0 +1,609 @@
+{
+  "acceptance": {
+    "actions_within_bounds": true,
+    "cem_budget_respected": true,
+    "cem_return_improves_baseline": true,
+    "convergence_complete": true,
+    "mppi_budget_respected": true,
+    "mppi_return_improves_baseline": true,
+    "planner_outputs_finite": true,
+    "reward_value_finite": true
+  },
+  "cleanup": "No temporary files or checkpoints; evidence is retained under artifacts/m14.",
+  "command": "uv run python scripts/m14_l16_planning.py",
+  "environment": {
+    "device": "cpu",
+    "network_policy": "offline after installed scikit-learn digits dataset",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 307589120,
+    "scikit_learn": "1.9.0",
+    "torch": "2.10.0"
+  },
+  "metrics": {
+    "baseline_return": 1.4485021636139839,
+    "cem": {
+      "actions": [
+        [
+          -0.9741081997187693
+        ],
+        [
+          -1.0
+        ],
+        [
+          -0.9930760213967831
+        ],
+        [
+          -0.9360869458871429
+        ],
+        [
+          -0.9640185444429211
+        ]
+      ],
+      "candidate_statistics": [
+        {
+          "best_return": 2.3316172431523263,
+          "elite_count": 12,
+          "elite_threshold": 1.9068747173098948,
+          "iteration": 0,
+          "mean_action": [
+            [
+              -0.4121963368579135
+            ],
+            [
+              -0.34271079703037033
+            ],
+            [
+              -0.42439237512462585
+            ],
+            [
+              -0.44389080491195937
+            ],
+            [
+              -0.321230012416468
+            ]
+          ],
+          "mean_return": 1.4656203342674645,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.419864029580113
+            ],
+            [
+              0.573632767064576
+            ],
+            [
+              0.5178324658658395
+            ],
+            [
+              0.45231632060303334
+            ],
+            [
+              0.4047984220574509
+            ]
+          ],
+          "std_return": 0.34398275500543796
+        },
+        {
+          "best_return": 2.6736487578428596,
+          "elite_count": 12,
+          "elite_threshold": 2.333600741954405,
+          "iteration": 1,
+          "mean_action": [
+            [
+              -0.5397047548536766
+            ],
+            [
+              -0.844874798803064
+            ],
+            [
+              -0.7203243185117572
+            ],
+            [
+              -0.6304093134122009
+            ],
+            [
+              -0.5178083774985365
+            ]
+          ],
+          "mean_return": 1.9601381985237747,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.27043636461230397
+            ],
+            [
+              0.20381253002590632
+            ],
+            [
+              0.23061671723048183
+            ],
+            [
+              0.2960417956334858
+            ],
+            [
+              0.3382020681096525
+            ]
+          ],
+          "std_return": 0.28931997045679775
+        },
+        {
+          "best_return": 2.644115670635115,
+          "elite_count": 12,
+          "elite_threshold": 2.5258614635485537,
+          "iteration": 2,
+          "mean_action": [
+            [
+              -0.6583287544574037
+            ],
+            [
+              -0.8597114205550964
+            ],
+            [
+              -0.8527814193426163
+            ],
+            [
+              -0.7721430082892282
+            ],
+            [
+              -0.711993060758641
+            ]
+          ],
+          "mean_return": 2.342636383378419,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.21735888303921722
+            ],
+            [
+              0.1482521538040069
+            ],
+            [
+              0.15339901605697262
+            ],
+            [
+              0.17483174240105886
+            ],
+            [
+              0.2769359658463563
+            ]
+          ],
+          "std_return": 0.14621781990615326
+        },
+        {
+          "best_return": 2.7777582700633934,
+          "elite_count": 12,
+          "elite_threshold": 2.66067866063729,
+          "iteration": 3,
+          "mean_action": [
+            [
+              -0.8611874445217161
+            ],
+            [
+              -0.9396810430708551
+            ],
+            [
+              -0.9032211577960493
+            ],
+            [
+              -0.8129624851846668
+            ],
+            [
+              -0.8776411148460632
+            ]
+          ],
+          "mean_return": 2.5303807342491105,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.13347200460783712
+            ],
+            [
+              0.08082864899085668
+            ],
+            [
+              0.12263288771795414
+            ],
+            [
+              0.09449553899018526
+            ],
+            [
+              0.12952204594723307
+            ]
+          ],
+          "std_return": 0.11416476497932843
+        },
+        {
+          "best_return": 2.8281666420299603,
+          "elite_count": 12,
+          "elite_threshold": 2.7563595113824517,
+          "iteration": 4,
+          "mean_action": [
+            [
+              -0.9408668683569472
+            ],
+            [
+              -0.9575950926020156
+            ],
+            [
+              -0.9390473423904163
+            ],
+            [
+              -0.87309657183913
+            ],
+            [
+              -0.9329093004653726
+            ]
+          ],
+          "mean_return": 2.682752962140061,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.06119648545362496
+            ],
+            [
+              0.05605372439063387
+            ],
+            [
+              0.06382421098097099
+            ],
+            [
+              0.07303719902580985
+            ],
+            [
+              0.06765777290126762
+            ]
+          ],
+          "std_return": 0.06366351765553287
+        },
+        {
+          "best_return": 2.835069606822939,
+          "elite_count": 12,
+          "elite_threshold": 2.802518887021324,
+          "iteration": 5,
+          "mean_action": [
+            [
+              -0.95554923465937
+            ],
+            [
+              -0.9834891059729199
+            ],
+            [
+              -0.9611242803812233
+            ],
+            [
+              -0.9250094283707295
+            ],
+            [
+              -0.9621374042265507
+            ]
+          ],
+          "mean_return": 2.761747383029641,
+          "population_size": 96,
+          "std_action": [
+            [
+              0.04534319437136394
+            ],
+            [
+              0.028106306677346496
+            ],
+            [
+              0.04786834923996895
+            ],
+            [
+              0.04196588519346159
+            ],
+            [
+              0.041542845532839635
+            ]
+          ],
+          "std_return": 0.032779149066071225
+        }
+      ],
+      "convergence_history": [
+        2.3316172431523263,
+        2.6736487578428596,
+        2.6736487578428596,
+        2.7777582700633934,
+        2.8281666420299603,
+        2.835069606822939
+      ],
+      "predicted_return": 2.835069606822939,
+      "runtime_profile": {
+        "stage_totals": {
+          "evaluation": 0.16386639999836916,
+          "planning": 0.16777730000103475
+        },
+        "total_seconds": 0.3316436999994039
+      },
+      "seed": 1601
+    },
+    "cem_improvement": 1.386567443208955,
+    "holdout_diagnostics": {
+      "bellman_residual_bias": -0.1813549071678852,
+      "bellman_residual_mae": 0.5841495714531275,
+      "bellman_residual_rmse": 0.6382596040958199,
+      "n_steps": 80,
+      "reward_bias": 1.0799956207119265e-10,
+      "reward_mae": 5.092937432893407e-10,
+      "reward_rmse": 6.484499123758825e-10,
+      "source": "held-out recorded digits trajectories",
+      "value_calibration": {
+        "bias": -0.003634239849021251,
+        "coverage": null,
+        "mae": 0.6153478923108109,
+        "mean_prediction": 1.6072236563911175,
+        "mean_target": 1.6108578962401392,
+        "rmse": 0.7087492652395131
+      }
+    },
+    "holdout_reward_value": {
+      "bellman_residual_mae": 0.5841495714531275,
+      "bellman_residual_rmse": 0.6382596040958199,
+      "reward_mae": 5.092937432893407e-10,
+      "reward_rmse": 6.484499123758825e-10,
+      "valid_steps": 80.0,
+      "value_bias": -0.003634239849021251,
+      "value_mae": 0.6153478923108109,
+      "value_rmse": 0.7087492652395131
+    },
+    "mppi": {
+      "actions": [
+        [
+          -0.43305177979103143
+        ],
+        [
+          -0.5932970643787734
+        ],
+        [
+          -0.6524714519923132
+        ],
+        [
+          -0.6104579057603026
+        ],
+        [
+          -0.44078951943353595
+        ]
+      ],
+      "candidate_statistics": [
+        {
+          "best_return": 2.282003678824289,
+          "effective_sample_size": 61.88751611728239,
+          "iteration": 0,
+          "mean_action": [
+            [
+              -0.18327952879118573
+            ],
+            [
+              -0.22278718338683764
+            ],
+            [
+              -0.21969052904224168
+            ],
+            [
+              -0.10706783729209228
+            ],
+            [
+              -0.09228930279172559
+            ]
+          ],
+          "mean_return": 1.463027582690005,
+          "population_size": 96,
+          "std_return": 0.32423513190326053,
+          "weight_entropy": 4.3405912384391465,
+          "weighted_return": 1.684392993826894
+        },
+        {
+          "best_return": 2.550016526692581,
+          "effective_sample_size": 63.54440706572421,
+          "iteration": 1,
+          "mean_action": [
+            [
+              -0.28380817652075585
+            ],
+            [
+              -0.3728842752817887
+            ],
+            [
+              -0.3609581205726651
+            ],
+            [
+              -0.2986535384700549
+            ],
+            [
+              -0.17179689504731327
+            ]
+          ],
+          "mean_return": 1.6577182652494173,
+          "population_size": 96,
+          "std_return": 0.3335631599112754,
+          "weight_entropy": 4.350895601462791,
+          "weighted_return": 1.8739291929239819
+        },
+        {
+          "best_return": 2.5099776276091563,
+          "effective_sample_size": 72.71379491594591,
+          "iteration": 2,
+          "mean_action": [
+            [
+              -0.3279127527290299
+            ],
+            [
+              -0.40919046489032024
+            ],
+            [
+              -0.4773225554266292
+            ],
+            [
+              -0.39282070548649045
+            ],
+            [
+              -0.1908693395338615
+            ]
+          ],
+          "mean_return": 1.8158872415288432,
+          "population_size": 96,
+          "std_return": 0.2813329712212809,
+          "weight_entropy": 4.420661101575305,
+          "weighted_return": 1.9627817909782093
+        },
+        {
+          "best_return": 2.6257056781270043,
+          "effective_sample_size": 66.74768353146672,
+          "iteration": 3,
+          "mean_action": [
+            [
+              -0.4406019356783798
+            ],
+            [
+              -0.46074338919028424
+            ],
+            [
+              -0.5744961366475708
+            ],
+            [
+              -0.47507158581876385
+            ],
+            [
+              -0.33042509038880274
+            ]
+          ],
+          "mean_return": 1.9060250054102592,
+          "population_size": 96,
+          "std_return": 0.3176015461059374,
+          "weight_entropy": 4.373355404245468,
+          "weighted_return": 2.0998998965950415
+        },
+        {
+          "best_return": 2.732279318967091,
+          "effective_sample_size": 71.50862225317269,
+          "iteration": 4,
+          "mean_action": [
+            [
+              -0.4765454800399268
+            ],
+            [
+              -0.5152375604930106
+            ],
+            [
+              -0.6012128472561138
+            ],
+            [
+              -0.566053856843496
+            ],
+            [
+              -0.40615217042364304
+            ]
+          ],
+          "mean_return": 2.0184576468197934,
+          "population_size": 96,
+          "std_return": 0.2996930960858854,
+          "weight_entropy": 4.407826585121778,
+          "weighted_return": 2.180548554612127
+        },
+        {
+          "best_return": 2.698327617738209,
+          "effective_sample_size": 72.37922535982953,
+          "iteration": 5,
+          "mean_action": [
+            [
+              -0.43305177979103143
+            ],
+            [
+              -0.5932970643787734
+            ],
+            [
+              -0.6524714519923132
+            ],
+            [
+              -0.6104579057603026
+            ],
+            [
+              -0.44078951943353595
+            ]
+          ],
+          "mean_return": 2.077866938231169,
+          "population_size": 96,
+          "std_return": 0.27526068222562317,
+          "weight_entropy": 4.416177543208808,
+          "weighted_return": 2.2274987449276553
+        }
+      ],
+      "convergence_history": [
+        2.282003678824289,
+        2.550016526692581,
+        2.550016526692581,
+        2.6257056781270043,
+        2.732279318967091,
+        2.732279318967091
+      ],
+      "predicted_return": 2.2274987449276558,
+      "runtime_profile": {
+        "stage_totals": {
+          "evaluation": 0.13749390000884887,
+          "planning": 0.14104780000343453
+        },
+        "total_seconds": 0.2785417000122834
+      },
+      "sample_count": 576,
+      "seed": 1601
+    },
+    "mppi_improvement": 0.7789965813136719
+  },
+  "models": {
+    "reward_scorer": {
+      "action_dim": 1,
+      "data_distribution": "ordered digits trajectories",
+      "fit_kind": "linear_state_action_reward",
+      "n_samples": 280,
+      "policy_id": "recorded-digits-policy",
+      "ridge": 1e-08,
+      "source_space_identity": "m14-l16-digits-trajectory-v1",
+      "state_dim": 2
+    },
+    "transition": {
+      "class": "DeterministicLatentTransition",
+      "fit_samples": 280,
+      "source_space_identity": "m14-l16-digits-trajectory-v1"
+    },
+    "value_estimator": {
+      "data_distribution": "ordered digits trajectories",
+      "discount": 0.95,
+      "fit_kind": "linear_monte_carlo_value",
+      "horizon": 5,
+      "n_samples": 280,
+      "policy_id": "recorded-digits-policy",
+      "ridge": 1e-08,
+      "state_dim": 2
+    }
+  },
+  "schema_version": "m14-l16-run-v1",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9",
+  "split": {
+    "holdout_digest": "8c620ad86161a95be12fe57a63a59b783c1f76f0252b0d9ad5b808f121e2bb3b",
+    "holdout_episodes": 16,
+    "horizon": 5,
+    "seed": 1601,
+    "train_digest": "14b69cc5760916a0fafe419babd2374ce40560e49c9f63b32061c9130795a329",
+    "train_episodes": 56
+  },
+  "target": {
+    "dataset": "scikit-learn digits",
+    "dataset_revision": "scikit-learn-digits-0.1.0",
+    "description": "real recorded image trajectories reduced to mean/std latent state and first-pixel action",
+    "device": "cpu",
+    "license": "BSD-3-Clause (scikit-learn digits)"
+  },
+  "thresholds": {
+    "action_bounds": [
+      -1.0,
+      1.0
+    ],
+    "cem_evaluations_max": 576,
+    "cem_predicted_return_min": 1.4485021636139839,
+    "mppi_evaluations_max": 576,
+    "mppi_predicted_return_min": 1.4485021636139839,
+    "seed": 1601
+  }
+}

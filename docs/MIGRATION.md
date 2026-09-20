@@ -1,12 +1,16 @@
 # Migration and compatibility guide
 
-This guide describes the current `0.1.0b1` beta surface and the planned
-pre-stable `0.9.0` compatibility epoch. It does **not** announce a `0.9.0`
-release: no `v0.9.0` tag or publication is authorized yet, and package metadata
-remains `0.1.0b1` until the Sprint 78 gates and release workflow are verified.
-The authoritative machine-readable surface is
-[`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json);
-the human alias policy is [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md).
+This guide describes the current `0.9.0` pre-stable surface. The exact
+candidate is tagged as `v0.9.0` and has a non-prerelease GitHub Release.
+Latest authorized retry run `35398189493` passed the gate/build and uploaded
+immutable archives, but PyPI Trusted Publishing rejected the matching
+branch-ref OIDC claim again with `invalid-publisher`; PyPI `0.9.0` remains HTTP
+404, so the Sprint 79 publication task remains open. The authoritative
+machine-readable surface is
+[`api_freeze_snapshot_0.9.0.json`](../artifacts/api_freeze_snapshot_0.9.0.json);
+the historical beta surface is preserved unchanged in
+[`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json).
+The human alias policy is [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md).
 
 ## From the published beta
 
@@ -27,9 +31,9 @@ public methods submodule and has an additive top-level canonical counterpart.
 
 | Canonical spelling | Legacy spelling/path | Current state | Planned policy |
 |---|---|---|---|
-| `AnalysisMethod` | `Method` (`latent_anything`, `latent_anything.methods.protocols`) | Added Unreleased/Sprint 78.29 under metadata `0.1.0b1`; exact identity alias | Deprecation notice is current Unreleased/Sprint 78.31; removal is planned for `0.9.0`, subject to a separate reviewed decision |
-| `Intervention` | `BMethod` (`latent_anything.methods.b_protocols`) | Added Unreleased/Sprint 78.29; exact runtime-checkable Protocol identity | Same planned `0.9.0` removal policy; no import-time warning |
-| `InterventionPipeline` | `ManipulationPipeline` (`latent_anything`, `latent_anything.manipulation_pipeline`) | Added Unreleased/Sprint 78.29; exact class identity/behavior | Same planned `0.9.0` removal policy; no import-time warning |
+| `AnalysisMethod` | `Method` (`latent_anything`, `latent_anything.methods.protocols`) | Added Unreleased/Sprint 78.29 under metadata `0.1.0b1`; exact identity alias, retained in `0.9.0` | Deprecation notice is current Unreleased/Sprint 78.31; removal is deferred past `0.9.0` pending a separate reviewed migration decision |
+| `Intervention` | `BMethod` (`latent_anything.methods.b_protocols`) | Added Unreleased/Sprint 78.29; exact runtime-checkable Protocol identity, retained in `0.9.0` | Same deferred-past-`0.9.0` removal policy; no import-time warning |
+| `InterventionPipeline` | `ManipulationPipeline` (`latent_anything`, `latent_anything.manipulation_pipeline`) | Added Unreleased/Sprint 78.29; exact class identity/behavior, retained in `0.9.0` | Same deferred-past-`0.9.0` removal policy; no import-time warning |
 
 The RFC0001 `0.2.0` window was planned but that release was never published.
 It must not be used as a historical `since` or deprecation release. Registry
@@ -92,14 +96,22 @@ digests are in snapshot section J.
 
 The planned sequence is:
 
-1. Keep beta metadata at `0.1.0b1` while Sprint 78 inventory, evidence,
-   documentation, and release-workflow gates are incomplete.
-2. Review the canonical/legacy surface at the planned `0.9.0` compatibility
-   epoch. A separate owner-approved migration decision is required before any
-   removal; this guide does not authorize removal.
-3. Stop before `1.0.0` publication if the evidence validator is below 95% core
-   or 90% overall, headline D3 evidence is missing, an external Actions account
-   is unavailable, or any required packaging/docs/security gate fails.
+1. `0.9.0` is the pre-stable API/evidence baseline: package metadata is
+   `0.9.0` and every deprecated beta alias remains available. No alias was
+   removed for `0.9.0`.
+2. Review the canonical/legacy surface only under a separate owner-approved
+   migration decision. Removal is deferred past `0.9.0`; this guide does not
+   authorize removal.
+3. Stop before `1.0.0` publication (Sprint 81) if any supported diagnostic,
+   packaging, documentation, or workflow gate fails: an unresolved capture,
+   detection, localization, statistical-control, explanation,
+   causal-validation, reporting, or compatibility blocker; missing headline D3
+   evidence for a supported claim; an unavailable external Actions account; or
+   any required packaging/docs/security gate failure. The former 95% core /
+   90% overall breadth percentages are portfolio-health facts, not `0.9` or
+   depth gates, and unavailable OpenVLA, unnamed 3DGS checkpoint, broad
+   world-model, real-policy overhead, or LeRobot overhead lanes do not block
+   `0.9`.
 
 The current evidence validator and M14 matrix remain the authority for release
 readiness; this guide only makes the migration contract discoverable.

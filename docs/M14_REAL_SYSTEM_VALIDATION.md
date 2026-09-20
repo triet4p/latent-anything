@@ -1,6 +1,6 @@
 # M14 — Ma trận kiểm chứng hệ thống thực và hợp đồng phát hành
 
-Tài liệu này là hợp đồng lập kế hoạch cho Sprints 78–80. M14 chưa hoàn tất và
+Tài liệu này là hợp đồng lập kế hoạch cho Sprints 78–81. M14 chưa hoàn tất và
 không được hiểu là cam kết rằng các lane dưới đây đã có bằng chứng D2/D3. Mỗi
 dòng là một đơn vị kiểm chứng độc lập; trạng thái chỉ được nâng từ `planned`
 sang `verified` khi có artifact bất biến, revision, lệnh tái lập và người chịu
@@ -70,9 +70,10 @@ chain.
   remote trong giai đoạn planning và không dùng local CPU để thay real-model
   evidence.
 - GitHub Actions cần tài khoản external có quyền; nếu thiếu thì là blocker,
-  không đổi workflow để giả PASS. Sprint 80 dừng trước tag/publish nếu còn
-  blocker, waiver chưa được owner ký, hoặc bằng chứng dưới ngưỡng 95% core /
-  90% overall.
+  không đổi workflow để giả PASS. Sprint 81 dừng trước tag/publish nếu còn
+  blocker cho yêu cầu được hỗ trợ, waiver chưa được owner ký, hoặc Sprint 80
+  còn blocker depth chưa được giải quyết. Ngưỡng breadth cũ 95% core /
+  90% overall là chỉ số sức khỏe portfolio, không phải gate `0.9` hay depth.
 
 ## 24 lane bắt buộc
 
@@ -96,12 +97,16 @@ chain.
 | L16 | reward/value, CEM, MPPI planning | `reward_value.py`, `cem.py`, `mppi.py` → planner tests, D2 synthetic | real recorded trajectory substitute + compact transition; NumPy/PyTorch CPU | local; `uv run pytest tests/test_reward_value.py tests/test_cem.py tests/test_cem_rollout.py tests/test_mppi.py tests/test_mppi_rollout.py -q` | predeclared return/regret and budget, deterministic seed, no invalid action; `artifacts/m14/l16-planning.json` | <2 GB, offline; preserve trace, clean scratch | planned; policy-grounded D3 gap; planning owner |
 | L17 | Gaussian renderer/3D manipulation | `adapters/gaussian_renderer.py`, `integrations/gsplat_renderer.py` → renderer tests, D2/D3 candidate | named gsplat checkpoint required; `LATENT_ANYTHING_3DGS_CHECKPOINT`; gsplat 1.4–<2.0 | remote CUDA; `remote-cuda-test` runs `uv run pytest tests/test_latent_anything/test_gaussian_3d_renderer_network.py -m network -q` in disposable clone | render finite, multi-view PSNR/SSIM thresholds, intervention artifact; `artifacts/m14/l17-3dgs.json` | high VRAM/model download; access/license/hash required; disposable clone/cache | blocked; no named checkpoint; 3D owner |
 | L18 | LeRobotDataset bridge/streaming | `integrations/lerobot_dataset.py` → dataset tests, D1/D2 | `lerobot/aloha_sim_insertion_human@cc571a3c661df81b566dbfde3d5c1e85fcdf7884`; LeRobot 0.6.1 | remote/Linux recommended; `uv run python scripts/lerobot_dataset_inspection.py lerobot/aloha_sim_insertion_human --revision cc571a3c661df81b566dbfde3d5c1e85fcdf7884 --output artifacts/m14/l18-dataset.json` | episode order, schema, bounded stream/resume, dataset license; `artifacts/m14/l18-dataset.json` | dataset download/storage; no credentials expected; delete local dataset | planned; upstream/license capture; LeRobot owner |
-| L19 | ACT policy capture/intervention | `integrations/lerobot_act.py` → ACT tests, D2/D3 | `lerobot/act_aloha_sim_insertion_human@33259aa86eb45fdf85350280044a33d9d50e40c3`; same ALOHA dataset | remote CUDA/Linux; `remote-cuda-test` runs `uv run pytest tests/test_lerobot_act.py::test_pinned_public_act_checkpoint_pair_loads_through_lerobot_factories -m network -q` in disposable clone | action shape, paired intervention/control, simulator metric and revision manifest; `artifacts/m14/l19-act.json` | GPU/large download; model-card license not recorded; clean HF/cache | planned; license/access blocker; LeRobot owner |
+| L19 | OpenVLA policy/latent capture and intervention | No OpenVLA adapter exists yet; contract is recorded in [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json) → no executable local test | `openvla/openvla-7b-finetuned-libero-spatial@962318cec55ac10993ff0f5f43eda9a270b4c873` (base `openvla/openvla-7b@47a0ec7fc4ec123775a391911046cf33cf9ed83f`); modified RLDS `openvla/modified_libero_rlds@6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551`; LIBERO `@8f1084e3132a39270c3a13ebe37270a43ece2a01` / `libero_spatial` | authorized Linux NVIDIA CUDA host only; after the real adapter is present, run `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest -m network -q` in a disposable clone/cache | 7 finite action values, exact preprocessing/token/action postprocessing, 500 LIBERO-Spatial trials, paired intervention/control and revision manifest; `artifacts/m14/l19-openvla.json`; config [`l19-openvla.config.json`](../artifacts/m14/l19-openvla.config.json) | 15,082,474,368-byte BF16 checkpoint; upstream reference is NVIDIA A100 (80GB used for fine-tuning); network/download and isolated-cache cleanup required; model card says MIT while upstream repository warns Llama-2-derived weights inherit Llama Community License | Hardware-excluded from active release scope; canonical BF16 requires >=24 GiB VRAM, unavailable under the supported 16 GiB ceiling; retained D0 history and no OpenVLA claim |
 | L20 | Diffusion Policy capture | `integrations/lerobot_diffusion.py` → Diffusion tests, D2/D3 | `LeTau/diffusion_aloha_insertion@6126e33`; dataset `lerobot/aloha_sim_insertion_human_image@d93d36a`; `aloha/AlohaInsertion-v0` | remote CUDA/Linux; `remote-cuda-test` runs `uv run pytest tests/test_lerobot_diffusion.py::test_pinned_public_diffusion_checkpoint_pair_loads_through_lerobot_factories -m network -q` in disposable clone | action distribution/causal simulation threshold, exact env/model/data IDs; `artifacts/m14/l20-diffusion-policy.json` | GPU/large download; access/license capture; disposable env/cache | planned; upstream access; LeRobot owner |
 | L21 | SmolVLA capture/intervention | `integrations/lerobot_smolvla.py` → SmolVLA tests, D2 candidate | `lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de`; `lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4`; `libero/libero_spatial` | remote CUDA/Linux, ~16 GB GPU; `LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_lerobot_smolvla.py::test_smolvla_gpu_checkpoint_intervention_lane -m network -q` | action validity, causal intervention, simulator success threshold; `artifacts/m14/l21-smolvla.json` | ~450M bf16, large download; model/data license/access required; clean clone/cache | planned; Linux/GPU/account/access blockers; LeRobot owner |
 | L22 | ArtifactStore, portable envelopes, cache, stream, recorder/tracking | `portable.py`, `artifact_store.py`, `runtime/cache.py`, `rollout_pipeline.py`, `run_record.py`, `experiment_recorder.py` → focused tests, D1/D2 | real Arrow/SQLite filesystem; MLflow/W&B optional backends | local isolated temp; `uv run pytest tests/test_portable.py tests/test_portable_results.py tests/test_artifact_store.py tests/test_latent_anything/test_cache.py tests/test_sprint75_streaming.py tests/test_run_record.py tests/test_run_record_portable.py tests/test_experiment_recorder.py tests/test_mlflow_recorder.py tests/test_wandb_recorder.py -q` | schema-v1 round trip/migration, path safety, resume/cancel, provider atomicity; `artifacts/m14/l22-runtime.json` | <1 GB, offline; tracking credentials only in opt-in lane; delete temp DB/artifacts | planned; external tracking account may block; runtime owner |
 | L23 | registry/plugins/config/CLI/serialization/security | `registry.py`, `_plugin_builtins.py`, `plugin_discovery.py`, `plugin_groups.py`, `plugin_metadata.py`, `cli.py`, `config.py`, `pipeline_config.py` → registry/plugin/CLI tests, D1 | all 32 built-ins, 5 entry-point groups, hello-world separately installed plugin; base + each extra | local clean env; `uv run pytest tests/test_plugin_discovery.py tests/test_plugin_groups.py tests/test_plugin_installation.py tests/test_plugin_metadata.py tests/test_cli.py tests/test_registry_migration.py tests/test_latent_anything/test_registry.py tests/test_latent_anything/test_config.py tests/test_api_compatibility.py -q` | import isolation, discovery, install/uninstall, schema migrations, negative paths, secret/path/zip safety; `artifacts/m14/l23-contract.json` | <2 GB, no network except plugin install fixture; uninstall temp plugin/cache | planned; external GitHub Actions account blocker; API owner |
 | L24 | packaging/docs/performance/release gates | `pyproject.toml`, `docs/M14_REAL_SYSTEM_VALIDATION.md`, `scripts/validate_evidence_ledger.py`, `.github/workflows/ci.yml`, `.github/workflows/optional-extras.yml`, `.github/workflows/release.yml` → full tests, MkDocs, Ruff/Pyright | clean base/all 12 profiles, supported Python/platform tiers, wheel/sdist | local then remote CI; `uv sync --locked --all-extras`; `uv run pytest -q`; `uv run mkdocs build --strict` | no diff/check errors, strict docs, type/lint/test pass, wheel import, performance budgets; `artifacts/m14/l24-rc.json` | build isolated; no secrets in artifacts; delete dist/site/temp | planned; external Actions account and unresolved evidence thresholds; release owner |
+
+### Active-scope reconciliation
+
+The 24-row historical inventory has **23 applicable `0.9` lanes**: 13 accepted, 2 partial, 1 pending, and 7 externally/prerequisite blocked. L19/OpenVLA is the one hardware-excluded historical row. Its canonical BF16 contract requires unavailable >=24 GiB VRAM; the retained D0 configs and feasibility receipts authorize no OpenVLA support, performance, or quality claim. L21 SmolVLA remains active at its documented ~16 GiB profile. Unavailable OpenVLA, unnamed 3DGS checkpoint, broad world-model, real-policy overhead, and LeRobot overhead lanes are explicit non-claims and do not block the `0.9` pre-stable baseline. Sprint 80 is the depth gate; Sprint 81 owns stable publication.
 
 ## L04.1 preregistration / design freeze
 
@@ -720,13 +725,16 @@ chạy lại và ký artifact.
 2. Sprint 79: clean-environment matrix → local real lanes → remote CUDA lanes →
    performance/security/license/evidence ledger; mọi failure giữ artifact.
    Waiver chỉ do owner ký, ghi lý do, phạm vi, hạn hết hạn và không được che
-   core gap.
-3. Sprint 80: RC review, wheel/sdist/install, release docs và publish. Nếu còn
-   bất kỳ blocker, Actions account blocker, missing credential/model license,
-   threshold fail hoặc stale claim thì **stop before release**.
+   core gap. `0.9.0` là baseline pre-stable: các ngưỡng breadth cũ và các lane
+   breadth không khả dụng không block `0.9`.
+3. Sprint 80: chứng minh depth-first diagnostic loop (capture → detect →
+   localize → explain → intervene → compare → report). Sprint 81: RC review,
+   wheel/sdist/install, release docs và publish. Nếu còn bất kỳ blocker cho
+   yêu cầu diagnostic được hỗ trợ, Actions account blocker, missing
+   credential/model license, depth-gate fail hoặc stale claim thì **stop before
+   release**.
 
 Artifact/command names trong bảng là normative; kết quả thực tế phải ghi SHA
-code và manifest. Checklist này không tự nâng trạng thái Milestone 14.
 
 ## Trạng thái checkpoint API-freeze Sprint 78
 
@@ -734,9 +742,9 @@ Snapshot API và tài liệu migration hiện ghi nhận **205 export runtime** 
 projection canonical ổn định **202 entry**; [MIGRATION](MIGRATION.md),
 [API_REFERENCE](API_REFERENCE.md), và artifact của task 78.40 là các điểm vào
 cho người dùng, còn snapshot/ledger vẫn là nguồn máy móc chuẩn. Checkpoint này
-không cho phép xóa alias, bump version, tag, publish, hay tuyên bố release
-readiness. Metadata vẫn là `0.1.0b1`; `0.9.0` chỉ là epoch pre-stable dự kiến và
-các blocker evidence/workflow phải được giải quyết trước khi release.
+không cho phép xóa alias hay tuyên bố release readiness. Package metadata hiện
+là `0.9.0` dưới dạng candidate đã commit source nhưng chưa tag/publish; `v0.9.0`
+chỉ được tạo sau khi candidate evidence review pass, và mọi alias vẫn được giữ.
 
 ### L04.8 recovery correction after `ce4e66e`
 

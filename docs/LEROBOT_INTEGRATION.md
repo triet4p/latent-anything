@@ -293,7 +293,10 @@ disagreement) and harms success from 1.0 to 0.0 at strengths 5 and 10
 while the random control never changes success.
 The authoritative ledger keeps `THY-T05-CAUSAL-INTERVENTION-VS-
 OBSERVATIONAL-STUDY` at D2 pending a corrected, pinned real CUDA rerun; this
-document does not promote the retained artifact to D3.
+document does not promote the retained artifact to D3. Per-query latency is a
+recorded diagnostic only: no real-policy overhead or LeRobot overhead claim is
+made, and unavailable overhead measurements are secondary integration work that
+does not block `0.9`.
 
 ## Sprint 62 run records and inspection commands
 

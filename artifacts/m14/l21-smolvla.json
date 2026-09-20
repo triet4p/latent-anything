@@ -1,0 +1,13 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L21",
+  "status": "blocked",
+  "accepted": false,
+  "evidence_level": "not run",
+  "source_sha": "fdd769f842d6fb228270c662db39b261a62bdf40",
+  "target": "lerobot/smolvla_libero@31d453f7edd78c839a8bbc39744a292686daf0de4 plus lerobot/libero@a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+  "command": "LATENT_ANYTHING_RUN_NETWORK=1 uv run pytest tests/test_lerobot_smolvla.py::test_smolvla_gpu_checkpoint_intervention_lane -m network -q",
+  "result": "1 skipped in 3.27s",
+  "blocker": "Required Linux GPU (~16 GB), model/data access, and license capture are unavailable; skipped lane is not evidence.",
+  "evidence_scope": "No remote CUDA run was attempted without prerequisites."
+}

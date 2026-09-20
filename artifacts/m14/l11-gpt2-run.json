@@ -1,0 +1,150 @@
+{
+  "acceptance": {
+    "deterministic_repeat": true,
+    "final_layer_logits_parity": true,
+    "hidden_finite": true,
+    "hidden_layers_13": true,
+    "hidden_shape_768": true,
+    "hook_cleanup_deterministic": true,
+    "intervention_changes_block_output": true,
+    "intervention_input_layer_unchanged": true,
+    "layer_evolution": true,
+    "lens_finite": true,
+    "logits_finite": true,
+    "padded_mask_shape_parity": true,
+    "probability_sums_one": true,
+    "vocab_size_50257": true
+  },
+  "capture": {
+    "attention_mask_shape": [
+      4,
+      5
+    ],
+    "capture_boundaries": "embedding index 0 through post-ln_f terminal index 12",
+    "captured_native_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "max_length": 16,
+    "prompt_digest": "54f56905022c9473fb25113ef98dcaded46abb8a16980154d89a712786ba32e7",
+    "prompts": [
+      "The capital of France is",
+      "Once upon a time",
+      "The meaning of life is",
+      "The future of AI is"
+    ],
+    "real_token_count": 19,
+    "seed": 42
+  },
+  "cleanup": "No temporary model files; pinned HF cache retained and JSON is the immutable output artifact.",
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l11_gpt2.py",
+  "environment": {
+    "device": "cpu",
+    "huggingface_hub": "0.35.3",
+    "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.3",
+    "rss_peak_bytes": 1418600448,
+    "torch": "2.10.0",
+    "transformers": "4.57.6"
+  },
+  "metrics": {
+    "hidden_dtype": "float32",
+    "hidden_shapes": [
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ],
+      [
+        4,
+        5,
+        768
+      ]
+    ],
+    "intervention_delta_native_layer_7_norm": 61.967735290527344,
+    "logits_dtype": "float32",
+    "logits_shape": [
+      4,
+      5,
+      50257
+    ],
+    "max_probability_sum_error": 3.5762786865234375e-07,
+    "vocab_size": 50257
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "license": "MIT",
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
+  },
+  "schema_version": "m14-l11-run-v1",
+  "source_sha": "520ba3b6ec2143c9ffb766eab14335e1e35444b9"
+}

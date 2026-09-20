@@ -1,0 +1,21 @@
+{
+  "schema_version": "m14-gap-run-v1",
+  "record_id": "THY-T08-REPRESENTATION-COLLAPSE",
+  "lane": "M14-L12",
+  "status": "completed",
+  "evidence_level": "D2",
+  "accepted": true,
+  "command": "uv run python scripts/jepa_world_model_benchmark.py",
+  "focused_test_command": "uv run pytest tests/test_latent_anything/test_jepa.py -q",
+  "source_sha": "historical Sprint 71 execution; original benchmark did not record git SHA",
+  "implementation_sha256": "8a2983088bf14eca467c51b830110d35ca6b1729de999f86c9d8c683e2a80f7d",
+  "benchmark_sha256": "c6466d5c0b7dffa7edabcf95cc0861a6c7fb46ff76d5e9f9c5eeb9efd736bf4e",
+  "artifact": "artifacts/m14/l12-representation-collapse.json",
+  "artifact_sha256": "02a4f28013436ed215e85e7bd1e5268bf5935c8ef9b8cb88905650396442c945",
+  "config": "artifacts/m14/l12-representation-collapse.config.json",
+  "config_sha256": "931cb1e0646dc6d65210fc3c7f8eed91dd400ec279d89560dca92a94551ec894",
+  "network": false,
+  "device": "cpu",
+  "cleanup": "No disposable files; deterministic project fixture and retained JSON artifacts",
+  "promotion_scope": "D2 compact JEPA representation-collapse detection/control only; no I-JEPA, LeWM, pretrained, or CUDA promotion"
+}

@@ -182,9 +182,15 @@ def _dependency_order(
 def main() -> None:
     gap_map = json.loads(GAP_MAP.read_text(encoding="utf-8"))
     items = gap_map["items"]
+    excluded_items = gap_map.get("excluded_items", [])
     items_by_id = {item["id"]: item for item in items}
-    if len(items) != 40 or len({item["id"] for item in items}) != 40:
-        raise ValueError("gap map must contain exactly 40 unique records")
+    excluded_by_id = {item["id"]: item for item in excluded_items}
+    if len(items) != 39 or len({item["id"] for item in items}) != 39:
+        raise ValueError("gap map must contain exactly 39 active unique records")
+    if len(excluded_items) != 1 or set(excluded_by_id) != {"THY-X01-OPENVLA"}:
+        raise ValueError("gap map must contain the one historical OpenVLA exclusion")
+    if set(items_by_id) & set(excluded_by_id):
+        raise ValueError("active and excluded gap records must be disjoint")
     for item in items:
         missing = [field for field in REQUIRED_ITEM_FIELDS if field not in item]
         if missing:
@@ -211,7 +217,8 @@ def main() -> None:
     output = {
         "schema_version": "sprint79-execution-queue-v1",
         "purpose": (
-            "Deterministic dependency-ordered queue reconciling the 40 Sprint 78.38 gap records with all 24 M14 lanes."
+            "Deterministic dependency-ordered queue reconciling the 39 active Sprint 79 gap records "
+            "with all 24 M14 lanes; one historical hardware-excluded L19/OpenVLA record is retained."
         ),
         "source_commit": source_sha,
         "source_documents": [
@@ -221,6 +228,21 @@ def main() -> None:
         ],
         "reconciliation": {
             "gap_records": len(items),
+            "active_gap_records": len(items),
+            "historical_gap_records": len(items) + len(excluded_items),
+            "excluded_records": [
+                {
+                    "record_id": item["id"],
+                    "lane_id": item["lane"],
+                    "status": item["status"],
+                    "scope_status": "hardware-excluded",
+                    "reason": (
+                        "Canonical BF16 OpenVLA execution requires >=24 GiB VRAM; "
+                        "the supported release ceiling is 16 GiB."
+                    ),
+                }
+                for item in excluded_items
+            ],
             "unique_gap_records": len({item["id"] for item in items}),
             "m14_lanes": len(lanes),
             "lane_ids": actual_lanes,
@@ -256,6 +278,7 @@ def main() -> None:
         "execution_policy": gap_map["default_execution_policy"],
         "lane_contract": lanes,
         "execution_queue": execution_queue,
+        "excluded_items": excluded_items,
         "headline_blockers": gap_map["separate_headline_blockers"],
     }
     OUTPUT.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

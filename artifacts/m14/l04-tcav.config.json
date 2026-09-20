@@ -1,0 +1,40 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T05-CONCEPT-ACTIVATION-VECTORS-TCAV-KIM-ET-AL-2018",
+  "lane": "M14-L04",
+  "target_evidence": "D3",
+  "model_revision": "openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+  "integration": "TransformerLMIntegration",
+  "adapter": "N/A",
+  "fixture": {
+    "path": "artifacts/m14/l04-prompt-factor-fixture.jsonl",
+    "sha256": "f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f",
+    "rows": 24,
+    "groups": 12,
+    "split": "group-preserving train/holdout"
+  },
+  "execution": {
+    "device": "CUDA server only",
+    "layer": 6,
+    "native_hidden_state_index": 7,
+    "seeds": [17, 29, 41, 53, 67],
+    "bootstrap_replicates": 2000,
+    "null_count": 99,
+    "target_tokens": {"true": 2081, "false": 3991}
+  },
+  "thresholds": {
+    "heldout_accuracy_min": 0.6,
+    "heldout_accuracy_wilson_lower_min": 0.55,
+    "bootstrap_ci_lower_min": 0.5,
+    "corrected_empirical_p_max": 0.05,
+    "intervention_agreement_min": 0.8
+  },
+  "controls": [
+    "shuffled concept labels",
+    "random concept directions",
+    "matched-norm null",
+    "off-target target token",
+    "zero-strength identity"
+  ],
+  "scope": "Owner-authorized real pinned GPT-2 TCAV execution; train-only concept direction and held-out group/pair aggregation. Failure is retained at D0 when frozen confidence/p-value gates fail; the authored fixture does not establish an external D3 claim."
+}

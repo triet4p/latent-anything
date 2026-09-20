@@ -1,0 +1,60 @@
+{
+  "schema_version": "m14-lane-evidence-v1",
+  "record_id": "THY-T06-STOCHASTIC-TRANSITION",
+  "lane": "M14-L15",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "scope": "Compact project-authored stochastic Gaussian latent transition benchmark on a synthetic linear system; this does not claim a real-world dataset, pretrained temporal model, LeWM, or CUDA execution.",
+  "benchmark": "stochastic_gaussian_latent_transition_rollout",
+  "execution": {
+    "historical_command": "uv run python scripts/stochastic_transition_benchmark.py",
+    "historical_source_sha256": "82cbc11e3e2c1bf4b67aa52e65c2877f5e33664e90c14c088a60733170acf13d",
+    "historical_config": "artifacts/stochastic_transition_rollout_config.json",
+    "historical_config_sha256": "6bf0c5fdaa6ebc47ae2a151c1d7df6bbf5267d417204cf41fdf0e0434a9bd6d6",
+    "historical_artifact": "artifacts/stochastic_transition_rollout.json",
+    "historical_artifact_sha256": "26aeb4f32230f9105f5ab8386f5f668684f4d60d2d8fe1354fe1ed6ab11aea5c",
+    "reconciled_without_rerun": true
+  },
+  "configuration": {
+    "path": "artifacts/m14/l15-stochastic-transition.config.json",
+    "sha256": "52bf13d496349578676de2f93024cd15f81c4e9fc05fd20a524486d6e1c4687d",
+    "seed": 64,
+    "episodes": 96,
+    "train_episodes": 72,
+    "heldout_episodes": 24,
+    "horizon": 24,
+    "rollout_samples": 512,
+    "interval_level": 0.95,
+    "source_space_identity": "synthetic-stochastic-linear-system-v1"
+  },
+  "metrics": {
+    "one_step_negative_log_likelihood": -1.6633257720710657,
+    "one_step_coverage": 0.9513888888888888,
+    "one_step_interval_width": 0.4538665938179671,
+    "one_step_sample_diversity": 0.11438866578096975,
+    "one_step_mean_error": 0.14813685794583398,
+    "rollout_mean_negative_log_likelihood": -0.21218875528884662,
+    "rollout_mean_coverage": 0.9739583333333334,
+    "rollout_mean_sample_diversity": 0.25192210707124435,
+    "rollout_final_error": 0.36706518632313667,
+    "rollout_stable": true
+  },
+  "acceptance": {
+    "all_metrics_finite": true,
+    "one_step_thresholds_pass": true,
+    "rollout_coverage_bounds_pass": true,
+    "rollout_stability_pass": true,
+    "seeded_reproducibility": true
+  },
+  "focused_test_command": "uv run pytest tests/test_latent_anything/test_transition.py -q",
+  "focused_test_source_sha256": "0e4c7a7df1c0db1afd1ce333ace71c5338acb345f776d2d607743f7aafe9a368",
+  "provenance": {
+    "source": [
+      {"path": "src/latent_anything/transition.py", "sha256": "200e3daa43ecac7c06d2d02895a46c061a8b6c0391957e1cec9d76c06eb6cd42"},
+      {"path": "src/latent_anything/_transition_stochastic.py", "sha256": "08eaee5db3c04c708a5f67b6e4edac0e28153534761f930c0049cff6f6640afb"}
+    ],
+    "benchmark": "scripts/stochastic_transition_benchmark.py",
+    "test": "tests/test_latent_anything/test_transition.py"
+  }
+}

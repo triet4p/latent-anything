@@ -1,0 +1,23 @@
+{
+  "schema_version": "m14-gap-threshold-config-v1",
+  "record_id": "THY-T06-TRAJECTORY-SIMILARITY-METRICS",
+  "lane": "M14-L02",
+  "target_evidence": "D2",
+  "dataset_revision": "sklearn.datasets.load_digits@scikit-learn-1.9.0",
+  "model_revision": "latent_anything.adapters.conv_vae.ConvVAE@compact-v1",
+  "device": "cpu",
+  "seed": 42,
+  "independent_pair_trials": 128,
+  "trajectory_query_points": 32,
+  "trajectory_warp": {"method": "power", "exponent": 2.0},
+  "acceptance": {
+    "finite": true,
+    "no_input_mutation": true,
+    "unequal_lengths": true,
+    "no_self_mapping": true,
+    "dtw_median_self_to_indexwise_ratio_max": 0.95,
+    "dtw_median_self_to_unrelated_ratio_max": 0.9,
+    "dtw_ranking_auc_min": 0.6
+  },
+  "scope": "Held-out pair-path trajectory alignment using train-only ConvVAE/GMM support; fixed indexwise and deranged unrelated-pair controls; compact sklearn-digits evidence only, not a physical-trajectory or Frechet claim."
+}

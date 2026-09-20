@@ -632,7 +632,10 @@ def run_true_activation_patching(
         torch.cuda.synchronize()
         torch.cuda.empty_cache()
         resources.update(
-            {"cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied", "stage": "complete"}
+            {
+                "cleanup": "CUDA synchronized; model gradients cleared; CUDA cache emptied",
+                "stage": "complete" if accepted else "cleanup",
+            }
         )
         return {
             "status": REAL_STATUS if accepted else "failed",
@@ -694,7 +697,7 @@ def run_true_activation_patching(
                 "device": resources["device"],
                 "execution_attempted": True,
                 "execution_backend": "cuda",
-                "stage": "complete",
+                "stage": "complete" if accepted else "cleanup",
                 "deterministic_algorithms": True,
                 "runtime_versions": runtime_versions(),
                 "resource_peak": resource_peak,

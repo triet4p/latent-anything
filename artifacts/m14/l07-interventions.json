@@ -1,0 +1,19 @@
+{
+  "schema_version": "m14-lane-matrix-receipt-v1",
+  "lane": "M14-L07",
+  "status": "accepted",
+  "accepted": true,
+  "evidence_level": "D2",
+  "source_sha": "04efc7cc4a75b775de74e42396b7c70c77086aa8",
+  "target": "GPT-2 hidden states and VAE latents; PyTorch CPU",
+  "model": {"id": "openai-community/gpt2", "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8", "weights_sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707", "license": "MIT", "layer": 6},
+  "command": "env LATENT_ANYTHING_RUN_NETWORK=1 uv run --locked --extra transformers --with huggingface-hub==0.35.3 python scripts/m14_l07_interventions.py",
+  "result": "GPT-2 hidden controls shape=(83,768), steering effect norm=0.5000000000002008, projection/LERP shape and reversibility gates passed; VAE latent shape=(40,8), activation-patch effect norm=20.72073172096069; finite/no-mutation gates passed",
+  "artifact": "artifacts/m14/l07-interventions-run.json",
+  "artifact_sha256": "f93a111e2ed5f8fce01d676c9decd261de06adbf33c5168ca8875a366bfd028b",
+  "seeds": {"gpt2_prompt_order": 0, "vae": 42},
+  "environment": {"device": "cpu", "python": "3.13.3", "platform": "Windows-11-10.0.26200-SP0", "numpy": "2.4.6", "torch": "2.10.0", "transformers": "4.57.6", "rss_peak_bytes": 1093476352, "network_policy": "HF cache-only after initial pinned acquisition; no model download during final measured rerun"},
+  "acceptance": "paired GPT-2/VAE effects; projection, steering, activation patch, and LERP shape/reversibility/no-mutation/finite gates all passed",
+  "cleanup": "No disposable corpus/checkpoint files; pinned HF cache retained and JSON is the immutable output artifact.",
+  "evidence_scope": "Real pinned GPT-2 hidden states plus fitted VAE digits latents; no mock model backend substituted."
+}

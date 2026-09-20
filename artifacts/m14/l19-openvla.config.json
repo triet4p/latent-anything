@@ -1,0 +1,105 @@
+{
+  "schema_version": "m14-l19-openvla-config-v1",
+  "record_id": "THY-X01-OPENVLA",
+  "lane": "M14-L19",
+  "target_evidence": "D3",
+  "status": "blocked",
+  "checkpoint": {
+    "repo_id": "openvla/openvla-7b-finetuned-libero-spatial",
+    "revision": "962318cec55ac10993ff0f5f43eda9a270b4c873",
+    "revision_source": "https://huggingface.co/api/models/openvla/openvla-7b-finetuned-libero-spatial",
+    "base_repo_id": "openvla/openvla-7b",
+    "base_revision": "47a0ec7fc4ec123775a391911046cf33cf9ed83f",
+    "architecture": "OpenVLAForActionPrediction",
+    "weight_format": "safetensors",
+    "weight_index_oid": "bd7cc8ff8070ead248023feae55303f5a3b900d1",
+    "weight_size_bytes": 15082474368,
+    "dtype": "bfloat16",
+    "license_card": "MIT",
+    "license_access_qualification": "The official OpenVLA repository states that its code is MIT but pretrained Llama-2-derived models inherit the Llama Community License; retain both notices and obtain owner/legal approval before redistribution or commercial use.",
+    "access": {
+      "hub_private": false,
+      "hub_gated": false,
+      "hub_disabled": false,
+      "configured_network_flag": false,
+      "hf_token_configured": false,
+      "local_checkpoint_cache": false
+    }
+  },
+  "dataset": {
+    "repo_id": "openvla/modified_libero_rlds",
+    "revision": "6ce6aaaaabdbe590b1eef5cd29c0d33f14a08551",
+    "subset": "libero_spatial_no_noops",
+    "subset_tree_oid": "e931d0643e15027b50bbb1d32cd90dbc35ee4c9b",
+    "license": "MIT",
+    "statistics": {
+      "transitions": 52970,
+      "trajectories": 432,
+      "source": "dataset_statistics.json at checkpoint revision"
+    }
+  },
+  "environment": {
+    "repository": "Lifelong-Robot-Learning/LIBERO",
+    "revision": "8f1084e3132a39270c3a13ebe37270a43ece2a01",
+    "license": "MIT",
+    "task_suite": "libero_spatial",
+    "tasks": 10,
+    "trials_per_task": 50,
+    "max_steps": 220,
+    "initial_wait_steps": 10,
+    "observation_resolution": 256,
+    "simulator": "robosuite==1.4.1",
+    "required_packages": ["imageio[ffmpeg]", "bddl", "easydict", "cloudpickle", "gym"]
+  },
+  "adapter_contract": {
+    "status": "not_implemented",
+    "upstream_loading": "transformers.AutoProcessor.from_pretrained and AutoModelForVision2Seq.from_pretrained with trust_remote_code=True, revision pinned",
+    "input": {
+      "prompt_template": "In: What action should the robot take to {task_description_lower}?\\nOut:",
+      "image": "RGB camera image; optional center crop to 90% area then resize to 224x224 for this randomly-cropped fine-tuned checkpoint",
+      "proprioception": "not passed to OpenVLA"
+    },
+    "output": {
+      "normalized_action": "7-vector (x, y, z, roll, pitch, yaw, gripper)",
+      "action_bins": 256,
+      "unnormalization_key": "libero_spatial",
+      "postprocessing": "normalize gripper to [-1,1], binarize, then invert gripper sign before LIBERO env.step",
+      "environment_action": "7 finite values passed as a list to env.step"
+    },
+    "representation_capture": "A future adapter must observe the official generate/predict_action path and preserve generated action token IDs plus a declared internal hidden-state capture point; no generic ModelAdapter or existing ACT/Diffusion/SmolVLA adapter proves OpenVLA."
+  },
+  "acceptance": {
+    "action_shape": [7],
+    "action_finite": true,
+    "action_token_count": 7,
+    "task_success_rate_min": 0.8,
+    "task_success_reference": "OpenVLA paper reports 84.7 +/- 0.9% on LIBERO-Spatial over 3 seeds x 500 rollouts; execute 500 trials for this lane.",
+    "causal_control": "paired no-intervention and declared internal-representation intervention on identical seeds/initial states; zero-strength identity must be exact and non-zero intervention must pass an owner-frozen effect threshold before execution",
+    "promotion": "D3 requires real checkpoint execution, causal artifact, revision manifest, and validator-clean evidence; this config is not evidence."
+  },
+  "runtime": {
+    "platform_required": "Linux with NVIDIA CUDA",
+    "python": "3.10.13",
+    "torch": "2.2.0",
+    "transformers": "4.40.1",
+    "tokenizers": "0.19.1",
+    "flash_attention": "2.5.5",
+    "hardware_reference": "NVIDIA A100 GPU; upstream evaluation used A100 and fine-tuning used 8 x A100 80GB",
+    "minimum_evidence_host": "CUDA-capable host with sufficient VRAM for a 7.5B-parameter bfloat16 checkpoint; use the upstream A100 80GB profile for the first lane run",
+    "network_policy": "network opt-in only; download pinned model and dataset into disposable isolated caches",
+    "cleanup": "remove disposable clone, model/data caches, and rollout logs after preserving signed artifact"
+  },
+  "blocker": {
+    "kind": "external_runtime_and_adapter",
+    "exact": "Canonical BF16 execution is infeasible with a defensible margin on the authorized RTX 4060 Ti 16 GB host: nvidia-smi measured 16,380 MiB total, 12,195 MiB free, and 3,754 MiB used (ollama llama-server resident at 3,576 MiB). The pinned BF16 checkpoint has 7,541,237,184 parameters and 15,082,474,368 weight bytes (~14.05 GiB) before CUDA context, activations, image inputs, action-token generation, and allocator overhead. Current free VRAM is below the weights floor; even a hypothetically idle card would leave only ~1.95 GiB. No checkpoint download, model construction, or avoidable OOM was attempted. The repository also has no OpenVLA adapter/capture implementation.",
+    "measurement_artifact": "artifacts/m14/l19-openvla-16gb-feasibility.json",
+    "next_action": "Use a CUDA host with at least 24 GiB VRAM (A100 40/80GB matches the upstream reference profile), then provision the pinned checkpoint/data in a disposable exact-SHA clone, implement/review the production Transformers capture adapter, and run the declared 500-trial LIBERO-Spatial paired intervention evaluation. A quantized 4-bit/8-bit run would require a separately approved non-canonical contract and cannot promote this BF16 row."
+  },
+  "sources": [
+    "https://huggingface.co/openvla/openvla-7b-finetuned-libero-spatial",
+    "https://huggingface.co/openvla/openvla-7b",
+    "https://github.com/openvla/openvla",
+    "https://github.com/Lifelong-Robot-Learning/LIBERO",
+    "https://huggingface.co/datasets/openvla/modified_libero_rlds"
+  ]
+}

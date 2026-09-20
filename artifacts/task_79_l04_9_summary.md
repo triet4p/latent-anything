@@ -201,3 +201,45 @@ and deleted individually; the sidecar records
 `historical_resource_provenance_invalid_measured_zero_peaks`, the prior
 canonical digest, and verified absence. This is not standard finalization and
 no evidence was promoted.
+
+## Current-checkpoint TrueActivationPatching execution
+
+After the DirectLogitLens checkpoint, one dependency-order TrueActivationPatching
+run was executed against the exact pushed source
+`c41ff8ff2c67ca400a1342ab2b59b81f3b69e854` using native Windows PowerShell
+`ssh.exe`, one disposable remote clone, isolated caches, and one CLI process.
+The pinned model was
+`openai-community/gpt2@e7da7f221d5bf496a48136c0cd264e630fe9fcc8` through
+`TransformerLMIntegration` on an NVIDIA GeForce RTX 4060 Ti (torch 2.10.0,
+Transformers 4.57.6). Frozen plan/content/split/pair digests remained
+`f3c315e356af0ee54d4196cc365ee22bd997b069d18a3e72c6b479f94e0b3e1a`,
+`f5c66f6d947c23f25d41e6aaf8982481feabc92bbff600bd929d27772fb62c0f`,
+`7d788c18212bb1d7e345528c68af6f2bf3e0f745ca77e2d115d74ac3e964121b`, and
+`7225e73c1238b23f6521718c8401331e59653a90499f4b2d75f32dddfe6c1c9c`.
+
+The run truthfully failed the frozen recovery gate: point estimate
+`0.03699461128888358`, CI95
+`[-0.09254197944193487, 0.20231268826835444]`, threshold `>0.1`; off-target
+combined effect was `0.082366943359375 <= 0.1`, zero-strength identity,
+no-mutation, and resource-budget gates passed. Seeds were
+`[17,29,41,53,67]`, native hidden-state index `7` at layer `6`, with
+`2,000` bootstrap replicates. Peak elapsed time was
+`23.116031719371676` seconds, CUDA allocated/reserved
+`529608192/572522496` bytes, and RSS `1605984256` bytes. The result is D0,
+non-eligible, non-promoting evidence.
+
+The final attempt-3 triad passed archive/envelope validation and was
+finalized/deleted with reopen validation PASS. Bundle SHA-256 is
+`dc296ac97caaab9c5450d4b59fb995979091c8f47a78a2a26fc2c1b40cdc3dc6`;
+member hashes are failure
+`d63272ae32784a12d9b06421cf637df214b27f1eaeeb0c43992e189b0bb1f217`,
+partial
+`2beb4470eb7f0a26dd526c4b444f2d7cd743e094c71e6cb87d0d2ac7fdbc8984`, and
+run
+`fd3429809fea29d20909f490c8bffa8cda407b1b3c37e8c0793e757b6ce1cc21`.
+The raw capture was `155122` bytes with SHA-256
+`a33f701e6c54e7149421d0e1d1d514c381992b1dec91536fe993d4911b478e03`,
+verified before deletion. Earlier attempts remain preserved in sanitized
+failure-retention audits documenting the demonstrated stage-normalization
+runner defect; no accepted record or gap ID was added, and AdditiveSteering
+was not run.
