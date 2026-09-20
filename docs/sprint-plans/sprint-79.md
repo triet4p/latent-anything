@@ -601,12 +601,13 @@ occurred. See
 - [x] Run remote CUDA only through the `remote-cuda-test` skill invariants and preserve disposable-clone/cache cleanup evidence; do not use remote CUDA as a substitute for missing local tests. The exact-HEAD report is [`task_79_line601_remote_cuda_summary.md`](../../artifacts/task_79_line601_remote_cuda_summary.md): L03/L11 current TransformerLM CUDA integration passed; pinned L20/L21 attempts retained truthful skips; all remaining remote candidates retain concrete hardware/checkpoint/license/access or explicit non-goal blockers. Every runner used a fresh exact-SHA clone, isolated caches, native OpenSSH, and trap-plus-independent cleanup proof.
 - [x] Publish an RC evidence report with failures, waivers, confidence intervals, hardware, upstream revisions, and exact reproduction commands. The self-contained English report is [`task_79_line602_rc_evidence_report.md`](../../artifacts/task_79_line602_rc_evidence_report.md). It records the exact tested source scope, 41/63 core and 41/64 scoped-overall threshold shortfalls, accepted/partial/pending/blocked/excluded M14 rows, explicit non-waiver blockers and owners, local Windows and remote Linux environments, pinned upstream revisions/license state, exact commands, and line-603 hold.
 - [x] Prepare the `0.9.0` pre-stable release candidate (candidate source committed and complete gate/build executed): reconcile the new depth-first scope across authoritative docs and ADRs, retain compatibility aliases, update metadata/changelog/migration/release notes, build and verify wheel/sdist from a clean checkout, run the complete release gate, and commit an exact candidate SHA. Preserve all negative evidence and do not claim `1.0.0` diagnostic readiness. Do not tag or publish before the candidate evidence review passes. Candidate evidence: [`task_79_line603_release_candidate_summary.md`](../../artifacts/task_79_line603_release_candidate_summary.md).
-- [ ] After the reviewed candidate passes with no actionable finding, run the
-  audited workflow against the exact `v0.9.0` tag, then verify the GitHub
-  Release contains the exact wheel, sdist, `SHA256SUMS`, `PROVENANCE.json`, and
-  release notes with matching hashes. PyPI publication is explicitly deferred
-  and is not a gate; task 604 remains open until the GitHub publication evidence
-  and clean GitHub-asset install are recorded.
+- [x] Publish and verify the `0.9.0` GitHub Release from the exact merged
+  candidate: annotated `v0.9.0` points to
+  `75341e4292fcdf1703186c58b626666b4a923c19`; the release workflow passed its
+  gate/build and publish jobs, uploaded exactly the wheel, sdist,
+  `SHA256SUMS`, `PROVENANCE.json`, and release notes, and independently
+  verified all five asset hashes. PyPI is explicitly deferred and non-gating.
+  Immutable evidence is [`task_604_publication_evidence.md`](../../artifacts/task_604_publication_evidence.md).
 
 ## Notes / Blockers
 
@@ -618,9 +619,12 @@ The scoped map remains **41/63 core and 41/64 overall qualifying rows** at the p
 API/evidence baseline for the depth work and does not authorize `1.0.0`, broad
 VLA support, or a claim that all M14 lanes passed.
 
-The 0.9.0 distribution contract is GitHub Release assets only: the gated
-workflow builds one deterministic wheel and sdist, emits `SHA256SUMS` and
-`PROVENANCE.json`, attaches those files and the extracted release notes to the
-release, and verifies the uploaded bytes against the local hashes. PyPI
-publication is explicitly deferred and non-gating for this release; its absence
-must not block task 604 or Sprint 79's release-contract verification.
+The 0.9.0 distribution contract is now complete through GitHub Release assets:
+the tagged workflow built one deterministic wheel and sdist, emitted
+`SHA256SUMS` and `PROVENANCE.json`, attached those files and the extracted
+release notes, and verified the uploaded bytes against local hashes. The clean
+wheel install smoke passed from a downloaded GitHub asset with no PyPI
+fallback. PyPI publication remains explicitly deferred and non-gating.
+
+Task 604 and Sprint 79 are complete. Sprint 80 and Sprint 81 retain their
+existing depth-first diagnostic and `1.0.0` scope.

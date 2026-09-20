@@ -1,175 +1,150 @@
 # Sprint 79 task 604 publication evidence
 
-Task 604 remains **open**. This artifact records the historical publication
-attempt before the GitHub-only 0.9.0 release contract was adopted: the gate
-passed, but the old workflow had no package assets and its PyPI Trusted
-Publishing exchange rejected the OIDC claim. PyPI `0.9.0` remains absent by
-policy and is not a blocker. The current task is to publish and verify the
-exact GitHub Release assets without mutating the tag or claiming task closure.
-No product code or Sprint 80/81 scope is changed.
+## Outcome
 
+Task 604 is **complete**. The exact merged main commit passed the audited
+tag-triggered release workflow, which created the annotated `v0.9.0` tag and
+published the five required GitHub Release assets. The workflow gate/build and
+publish jobs both passed, and the assets were downloaded independently for
+cross-source hash and provenance verification. PyPI remains explicitly
+deferred and non-gating for `0.9.0`; no PyPI upload or installation claim is
+part of this evidence.
 
-## Candidate, branch, and tag
+No product runtime code changed. Sprint 80/81 scope remains unchanged.
 
-- Authorized candidate: `2356c92d02022c02be25cd0c79944d07a74b6ca9`
-- Candidate parent: `c3fb0852d82dbda1cb424ed618d00e5dbd963477`
-- Candidate tree: `e833252570612ab8cf65f80c80e10a15e1092974`
-- Candidate subject: `docs: correct 0.9 snapshot digest references`
-- Remote branch: `sprint79-local-gate-remediation`
-- Candidate branch URL:
-  https://github.com/triet4p/latent-anything/tree/sprint79-local-gate-remediation
-- Candidate branch was already at the authorized SHA before publication.
+## Candidate, branch, and annotated tag
 
-The failed old tag was removed once, then recreated as the repository's
-lightweight-tag convention:
+- Merged release commit: `75341e4292fcdf1703186c58b626666b4a923c19`
+- Parent commits: `e662654775a1f1b85116e8b18a09f3dbdfe441f8` and
+  `de4f4ece600a2c53e91d087f6541627d15902d9b`
+- Release tree: `de61a4b2c7b1ee8dcd09dec054eb9195d4bfc782`
+- Tag: `v0.9.0`
+- Tag object: `8e346926dd088af56a06396655cab8c05d530e58`
+- Tag type: annotated
+- Peeled tag target: `75341e4292fcdf1703186c58b626666b4a923c19`
+- Tag message: `v0.9.0 pre-stable baseline`
+- Tag URL: https://github.com/triet4p/latent-anything/releases/tag/v0.9.0
 
-```text
-git tag -d v0.9.0
-git push origin :refs/tags/v0.9.0
-git tag v0.9.0 2356c92d02022c02be25cd0c79944d07a74b6ca9
-git push origin refs/tags/v0.9.0
-```
-
-The push output was:
-
-```text
-Deleted tag 'v0.9.0' (was 47f4486)
- - [deleted]         v0.9.0
- * [new tag]         v0.9.0 -> v0.9.0
-```
-
-Tag provenance verification:
+The remote and local provenance checks were:
 
 ```text
 git ls-remote origin refs/tags/v0.9.0
-2356c92d02022c02be25cd0c79944d07a74b6ca9 refs/tags/v0.9.0
+8e346926dd088af56a06396655cab8c05d530e58 refs/tags/v0.9.0
+
+git ls-remote origin refs/tags/v0.9.0^{}
+75341e4292fcdf1703186c58b626666b4a923c19 refs/tags/v0.9.0^{}
 
 git cat-file -t v0.9.0
-commit
+tag
 
 git rev-parse v0.9.0^{commit}
-2356c92d02022c02be25cd0c79944d07a74b6ca9
-
-git rev-parse v0.9.0
-2356c92d02022c02be25cd0c79944d07a74b6ca9
+75341e4292fcdf1703186c58b626666b4a923c19
 ```
-
-Therefore the exact tag type is **lightweight**, its ref/object is the commit
-`2356c92d02022c02be25cd0c79944d07a74b6ca9`, and its commit target is exactly
-the authorized candidate.
 
 ## Audited release workflow
 
 - Workflow: `Release`
-- Workflow file at the tagged candidate:
-  https://github.com/triet4p/latent-anything/blob/2356c92d02022c02be25cd0c79944d07a74b6ca9/.github/workflows/release.yml
-- Trigger: one push of `refs/tags/v0.9.0`
-- Run ID: `35380189555`
-- Run URL: https://github.com/triet4p/latent-anything/actions/runs/35380189555
+- Run ID: `35516933525`
+- Run URL: https://github.com/triet4p/latent-anything/actions/runs/35516933525
 - Event/ref/SHA: `push`, `v0.9.0`,
-  `2356c92d02022c02be25cd0c79944d07a74b6ca9`
+  `75341e4292fcdf1703186c58b626666b4a923c19`
 - Run conclusion: **success**
-- Job ID: `105714256827`
-- Job: `Release gate and GitHub Release`
-- Job conclusion: **success**
-- Job interval: `2026-09-18T18:26:31Z` to `2026-09-18T18:32:03Z`
+- Gate/build job: `Release gate and reproducible package build`
+- Gate/build job URL:
+  https://github.com/triet4p/latent-anything/actions/runs/35516933525/job/106094349102
+- Gate/build conclusion: **success**
+- Publish job: `Publish verified GitHub Release`
+- Publish job URL:
+  https://github.com/triet4p/latent-anything/actions/runs/35516933525/job/106095232699
+- Publish conclusion: **success**
 
-The terminal job/step observation command was:
+Every gate/build step passed: tag/SHA provenance, environment sync, Ruff
+check/format, Pyright, Pytest, release-note extraction, deterministic wheel
+and sdist build, sdist normalization, package validation, checksums,
+provenance, and immutable build-evidence upload. Every publish step passed:
+artifact download, provenance/checksum verification, idempotent GitHub Release
+creation/update, and post-upload asset download/hash verification.
 
-```text
-gh run watch 35380189555 --repo triet4p/latent-anything --interval 30 --exit-status
-```
+The retained workflow artifact is:
 
-Every job step concluded successfully: Set up job; Checkout; Set up Python;
-Install uv; Sync environment; Ruff check; Ruff format check; Pyright; Pytest;
-Extract release notes; Create GitHub Release; all post steps; Complete job.
-The remote test log recorded:
+- Name: `release-v0.9.0-35516933525`
+- Artifact ID: `10606937525`
+- Download URL:
+  https://api.github.com/repos/triet4p/latent-anything/actions/artifacts/10606937525/zip
+- Contents: the exact five files listed below.
 
-```text
-collected 2259 items / 2 skipped
-2194 passed, 67 skipped, 39 warnings in 258.19s (0:04:18)
-```
-
-The only annotations were informational Node.js 20 deprecation and a future
-`ubuntu-latest` image migration notice; neither changed the successful
-conclusion.
-
-## GitHub Release and archive hashes
+## GitHub Release metadata and exact assets
 
 - Release URL: https://github.com/triet4p/latent-anything/releases/tag/v0.9.0
-- API verification:
-  `gh api repos/triet4p/latent-anything/releases/tags/v0.9.0`
 - Name: `Latent Anything 0.9.0 - Core latent-space framework`
 - Tag name: `v0.9.0`
 - Draft: `false`
 - Prerelease: `false`
-- Published: `2026-09-18T18:31:58Z`
-- GitHub API `target_commitish`: `main` (the tag's immutable commit
-  provenance was independently verified above)
-- GitHub Release assets: **none** (`assets: []`).
+- Published: `2026-09-20T14:42:00Z`
+- GitHub API `target_commitish`: `main`
+- Asset count: **5**
 
-The historical workflow at the candidate commit only ran validation, extracted
-release notes, and called `softprops/action-gh-release`; it did not build,
-checksum, attach, or upload Python distribution assets. This is superseded by
-the current workflow contract, which builds one deterministic wheel and sdist
-after the release gate, emits checksums and provenance, attaches those exact
-files plus release notes, and downloads the release assets again to verify their
-SHA-256 hashes.
+The workflow artifact and independently downloaded GitHub Release directory
+each contained exactly these files. Local and remote bytes matched for every
+file:
 
-The published release body in that historical run was the extracted `0.9.0`
-changelog body. Its candidate-status sentence is retained as historical
-evidence; the current release notes define the GitHub-only distribution policy.
-## GitHub asset installation evidence
+| File | Bytes | SHA-256 |
+|---|---:|---|
+| `latent_anything-0.9.0-py3-none-any.whl` | 407224 | `a3667986eb01f96154958d7105e922abc424280aad7ad609fb2da45427300a85` |
+| `latent_anything-0.9.0.tar.gz` | 549080 | `529121041a6268ad89a43cd2b3baa1762bfb9133a648784bd39a1a4d22bfa26f` |
+| `SHA256SUMS` | 200 | `8515945050b619a6b37f79d71d94c2d7055e62b7d4164c25fe1f21e61c126db8` |
+| `PROVENANCE.json` | 601 | `0b50fead137e509a2e31bf014709b65fa4e860b9479dbed19383e7c64e39b5af` |
+| `release-body.md` | 3413 | `375abe62c4b43a9f405b2ea58e9abc9b4b21067eb2127580468cfee676452dd5` |
 
-The prior isolated PyPI smoke was intentionally not a successful publication
-check: PyPI was absent and is now explicitly deferred for `0.9.0`. The
-required verification path is instead a clean environment using the exact
-wheel downloaded from the GitHub Release:
+GitHub's asset API reported the same SHA-256 digest for each asset. The
+workflow's `SHA256SUMS` matches the wheel and sdist bytes, and
+`PROVENANCE.json` records:
 
-```text
-gh release download v0.9.0 --repo triet4p/latent-anything --dir release-assets
-sha256sum --check release-assets/SHA256SUMS
-uv venv .publication-github-smoke --python 3.13
-uv pip install --python .publication-github-smoke/Scripts/python.exe \
-  release-assets/latent_anything-0.9.0-py3-none-any.whl
+```json
+{
+  "tag": "v0.9.0",
+  "commit": "75341e4292fcdf1703186c58b626666b4a923c19",
+  "workflow_run": "35516933525",
+  "repository": "triet4p/latent-anything"
+}
 ```
 
-The smoke must import `latent_anything` and assert
-`latent_anything.__version__ == "0.9.0"`. No PyPI installation claim is made;
-the GitHub asset and checksum verification are the release evidence.
+Its `files` entries match the wheel/sdist names, byte sizes, and hashes above.
 
-## Historical package hashes and deferred PyPI state
+## Clean GitHub-wheel installation smoke
 
-Historical candidate-local build hashes (not published-file hashes) were:
+The release assets were downloaded into a new isolated environment. The wheel
+was installed by local file path with `--no-deps`, then dependencies were
+resolved only from the existing local uv cache with `--offline`; no PyPI
+fallback was permitted:
 
-| File | Candidate-local SHA-256 |
-|---|---|
-| `latent_anything-0.9.0-py3-none-any.whl` | `18b82bed4520c094c2de41c1f1ab78c1c9a993635d6082371ed2020deac9c117` |
-| `latent_anything-0.9.0.tar.gz` | `6e43f91cff8e2d4f8f73f82044e31e0282ac26dc5813bb42168e31019a0d36ad` |
+```text
+uv venv .release-verification/venv --python 3.13
+uv pip install --python .release-verification/venv/Scripts/python.exe \
+  --no-deps .release-verification/release/latent_anything-0.9.0-py3-none-any.whl
+uv pip install --python .release-verification/venv/Scripts/python.exe \
+  --offline .release-verification/release/latent_anything-0.9.0-py3-none-any.whl
+RELEASE_GITHUB_WHEEL_IMPORT_OK 0.9.0
+```
 
-The historical PyPI endpoint returned HTTP `404`; this is expected under the
-current deferred, non-gating policy. No PyPI upload command is part of the
-audited workflow.
+The final command imported `latent_anything` and asserted
+`latent_anything.__version__ == "0.9.0"`.
 
-## Cross-source integrity and install smoke
+## Cross-source integrity and plan state
 
-The historical integrity result was **PARTIAL / BLOCKED** because that
-workflow produced no package assets. The current workflow closes this evidence
-gap by attaching the deterministic build outputs to GitHub Release and
-re-downloading every asset for SHA-256 comparison. The clean-install smoke
-must use that downloaded GitHub wheel and verify the package version.
+Integrity result: **PASS**. The annotated tag, merged commit, workflow
+provenance, retained workflow artifact, GitHub Release asset bytes, API
+digests, checksums, and clean local-file installation all agree. PyPI remains
+absent by deliberate policy and is not a release gate.
 
-## Plan state and final branch
-
-- `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]`; Sprint 79 remains
-  open until the exact GitHub Release assets, their hashes, and the clean
-  GitHub-asset install are recorded. PyPI absence is expected and non-gating.
-- `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to the
-  completed-sprints section. Sprint 80/81 scope is unchanged.
-- `CHANGELOG.md`, `README.md`, and `docs/MIGRATION.md` define GitHub Release
-  assets as the 0.9.0 distribution channel and explicitly defer PyPI.
-- The final evidence/planning commit SHA and branch push result are returned
-  with delivery; the worktree is verified clean.
+- `docs/sprint-plans/sprint-79.md` task 604 is `[x]`; Sprint 79 publication
+  and closure evidence are complete.
+- `docs/PLAN.md` records the completed Sprint 79/0.9.0 publication while
+  Milestone 14 remains open for its unchanged Sprint 80 and Sprint 81 work.
+- `CHANGELOG.md`, `README.md`, and `docs/MIGRATION.md` identify the verified
+  GitHub Release assets as the 0.9.0 distribution channel and defer PyPI.
+- Closure branch/PR evidence is recorded separately; no release tag mutation,
+  release rerun, or task closure is performed by the closure PR.
 
 ## Previous release-path remediation (historical failed publisher exchange)
 
@@ -190,20 +165,18 @@ Release mutation:
   `Name`/`Version` metadata, and writes `SHA256SUMS` plus
   `PROVENANCE.json` containing tag, commit, workflow run, repository, and file
   sizes/hashes.
-- The build job uploads the exact archives and provenance as a retained
-  `actions/upload-artifact@v4` artifact. A dependent `publish` job downloads
-  that artifact, verifies provenance and hashes, then publishes to PyPI before
-  updating the GitHub Release. This ordering means a failed test/build cannot
-  create or mutate the release, while `skip-existing`, `overwrite_files`, and
-  `fail_on_unmatched_files` make authorized reruns safe and explicit.
-- PyPI publication uses `pypa/gh-action-pypi-publish@release/v1` with
-  `id-token: write` and no long-lived token. After upload, the workflow polls
-  PyPI JSON and fails unless both published file digests equal the built
-  `SHA256SUMS`; those verification records are also attached to the GitHub
-  Release.
-- A `workflow_dispatch` input accepts an existing tag so the already-created
-  `v0.9.0` Release can be repaired without moving/deleting the tag or creating
-  a second release.
+- The historical build job uploaded exact archives and provenance as a
+  retained artifact. Its dependent publish job then attempted the old PyPI
+  path before updating the GitHub Release. This ordering was superseded by
+  the current GitHub-only publish job, which uploads and verifies the exact
+  five assets without PyPI.
+- The old PyPI publication used `pypa/gh-action-pypi-publish@release/v1` with
+  `id-token: write`; that path and permission were removed by the reviewed
+  workflow change. The historical polling records below are retained only as
+  evidence for why PyPI is deferred.
+- The historical `workflow_dispatch` input accepted an existing tag. The
+  current successful publication was the single authorized tag-triggered run
+  recorded above.
 
 Focused dry-run/static proof on the repaired workflow:
 
@@ -276,12 +249,10 @@ Its `PROVENANCE.json` records tag `v0.9.0`, candidate commit
 | `latent_anything-0.9.0-py3-none-any.whl` | 406993 | `2d709eef8570df2ce3e6c1426823b8cbd7e24e557b27825c231cea2c05d143c8` |
 | `latent_anything-0.9.0.tar.gz` | 547990 | `bda07b2911df49a0427bc5886c625384ae7858efa50c597667a027f4780eee83` |
 
-PyPI remained HTTP `404` at
-https://pypi.org/pypi/latent-anything/0.9.0/json. The GitHub Release remained
-non-draft/non-prerelease with **zero assets**, so no published-file hash or
-clean-install smoke can be claimed. Task 604, Sprint 79, and Milestone 14
-remain open pending PyPI Trusted Publisher configuration; no token secret or
-local upload was attempted.
+The historical PyPI endpoint returned HTTP `404`, and that historical GitHub
+Release had zero assets. This is superseded by the successful tag-triggered
+run and five-asset release documented above. Task 604, Sprint 79 publication,
+and the GitHub Release evidence are now complete; PyPI remains non-gating.
 ## Final authorized retry (publisher configuration mismatch)
 
 - Dispatch command (run exactly once):
@@ -370,9 +341,16 @@ latent-anything==0.9.0, we can conclude that your requirements are
 unsatisfiable.
 ```
 
-No import/version output exists because public installation failed before
-installation. Task 604, Sprint 79, and Milestone 14 remain open pending a
-Trusted Publisher whose claims exactly match the OIDC block above.
+The historical public-install attempt failed because PyPI was intentionally
+absent at that time. It is superseded by the successful clean GitHub-wheel
+installation smoke recorded above; task 604 and Sprint 79 are complete.
+The historical GitHub Release had no assets and the historical cross-source
+result was **PARTIAL / BLOCKED**. That record is superseded by the successful
+five-asset publication and **PASS** integrity result above. Task 604 and
+Sprint 79 are complete; Milestone 14 remains open only for Sprint 80/81.
+This canceled dispatch is superseded integration work, not a product or test
+failure. The later default-branch tag-triggered run completed successfully;
+task 604 and Sprint 79 are complete, while Sprint 80/81 remain unchanged.
 ## Latest authorized retry (publisher still rejected)
 
 - Dispatch command (run exactly once for this retry):
@@ -428,11 +406,10 @@ Its `PROVENANCE.json` records tag `v0.9.0`, candidate commit
 | `latent_anything-0.9.0-py3-none-any.whl` | 406993 | `2d709eef8570df2ce3e6c1426823b8cbd7e24e557b27825c231cea2c05d143c8` |
 | `latent_anything-0.9.0.tar.gz` | 547990 | `bda07b2911df49a0427bc5886c625384ae7858efa50c597667a027f4780eee83` |
 
-The GitHub Release remained non-draft/non-prerelease with `assets=[]` at
-https://github.com/triet4p/latent-anything/releases/tag/v0.9.0, and PyPI JSON
-https://pypi.org/pypi/latent-anything/0.9.0/json still returned HTTP `404`.
-No package mutation occurred; cross-source package integrity remains
-**PARTIAL / BLOCKED**. Task 604, Sprint 79, and Milestone 14 remain open.
+The historical GitHub Release had no assets and the historical cross-source
+result was **PARTIAL / BLOCKED**. That record is superseded by the successful
+five-asset publication and **PASS** integrity result above. Task 604 and
+Sprint 79 are complete; Milestone 14 remains open only for Sprint 80/81.
 ## Superseded branch-dispatch attempt
 
 The final branch-dispatched attempt was superseded by the required
@@ -446,6 +423,6 @@ default-branch integration correction and was canceled before publication:
   correction; no build artifact or publication mutation occurred.
 - Publish job: `Publish verified distributions`, ID `106084643928`, canceled
   before starting.
-- This cancellation is **superseded integration work**, not a product or test
-  failure. Task 604, Sprint 79, and Milestone 14 remain open pending the
-  reviewed workflow integration on the repository default branch.
+This cancellation is superseded integration work, not a product or test
+failure. The later default-branch tag-triggered run completed successfully;
+task 604 and Sprint 79 are complete, while Sprint 80/81 remain unchanged.
