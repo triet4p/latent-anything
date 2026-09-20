@@ -1,14 +1,12 @@
 # Sprint 79 task 604 publication evidence
 
-## Outcome
-
-Task 604 remains **open**. The latest authorized retry run proved the tagged
-candidate, completed the full gate/build, and uploaded immutable build evidence,
-but PyPI Trusted Publishing still rejects the matching branch-ref OIDC claims
-with `invalid-publisher`. PyPI `0.9.0` remains HTTP 404 and the existing
-GitHub Release remains asset-free. Sprint 79 and Milestone 14 therefore remain
-open. No product code, workflow, tag, version, or Sprint 80/81 scope was
-changed.
+Task 604 remains **open**. This artifact records the historical publication
+attempt before the GitHub-only 0.9.0 release contract was adopted: the gate
+passed, but the old workflow had no package assets and its PyPI Trusted
+Publishing exchange rejected the OIDC claim. PyPI `0.9.0` remains absent by
+policy and is not a blocker. The current task is to publish and verify the
+exact GitHub Release assets without mutating the tag or claiming task closure.
+No product code or Sprint 80/81 scope is changed.
 
 
 ## Candidate, branch, and tag
@@ -110,102 +108,80 @@ conclusion.
   provenance was independently verified above)
 - GitHub Release assets: **none** (`assets: []`).
 
-The workflow at the candidate commit only runs validation, extracts release
-notes, and calls `softprops/action-gh-release`; it does not build, checksum,
-attach, or upload a wheel/sdist. Consequently there is no workflow-produced
-package artifact path or workflow artifact hash to claim. GitHub's generated
-source archives were downloaded only as release-page verification (they are
-not release assets and are not Python distribution artifacts):
+The historical workflow at the candidate commit only ran validation, extracted
+release notes, and called `softprops/action-gh-release`; it did not build,
+checksum, attach, or upload Python distribution assets. This is superseded by
+the current workflow contract, which builds one deterministic wheel and sdist
+after the release gate, emits checksums and provenance, attaches those exact
+files plus release notes, and downloads the release assets again to verify their
+SHA-256 hashes.
 
-| URL | Bytes | SHA-256 |
-|---|---:|---|
-| https://github.com/triet4p/latent-anything/archive/refs/tags/v0.9.0.tar.gz | 12737606 | `9033b9ae30d48a7855266c22e2c5f266ebfa75aec5e7a36ae5cced681c6c4f6f` |
-| https://github.com/triet4p/latent-anything/archive/refs/tags/v0.9.0.zip | 13942160 | `e6e87f333fb18307a14cbdef8c7f75c6fbecc8c8f0f52bfe102a1e96e6dcb70d` |
+The published release body in that historical run was the extracted `0.9.0`
+changelog body. Its candidate-status sentence is retained as historical
+evidence; the current release notes define the GitHub-only distribution policy.
+## GitHub asset installation evidence
 
-The published release body is the extracted `0.9.0` changelog body. Its
-historical candidate-status sentence still says that no tag/release exists;
-the current immutable release/tag state above and this evidence supersede
-that stale pre-publication sentence.
+The prior isolated PyPI smoke was intentionally not a successful publication
+check: PyPI was absent and is now explicitly deferred for `0.9.0`. The
+required verification path is instead a clean environment using the exact
+wheel downloaded from the GitHub Release:
 
-## Package hashes and PyPI state
+```text
+gh release download v0.9.0 --repo triet4p/latent-anything --dir release-assets
+sha256sum --check release-assets/SHA256SUMS
+uv venv .publication-github-smoke --python 3.13
+uv pip install --python .publication-github-smoke/Scripts/python.exe \
+  release-assets/latent_anything-0.9.0-py3-none-any.whl
+```
 
-Historical candidate-local build hashes (not published-file hashes and not
-recomputed or uploaded here) were:
+The smoke must import `latent_anything` and assert
+`latent_anything.__version__ == "0.9.0"`. No PyPI installation claim is made;
+the GitHub asset and checksum verification are the release evidence.
+
+## Historical package hashes and deferred PyPI state
+
+Historical candidate-local build hashes (not published-file hashes) were:
 
 | File | Candidate-local SHA-256 |
 |---|---|
 | `latent_anything-0.9.0-py3-none-any.whl` | `18b82bed4520c094c2de41c1f1ab78c1c9a993635d6082371ed2020deac9c117` |
 | `latent_anything-0.9.0.tar.gz` | `6e43f91cff8e2d4f8f73f82044e31e0282ac26dc5813bb42168e31019a0d36ad` |
 
-Verification commands and results:
-
-```text
-curl -sS -o pypi-0.9.0.json -w '%{http_code}' \
-  https://pypi.org/pypi/latent-anything/0.9.0/json
-404
-```
-
-- PyPI project/version URL:
-  https://pypi.org/project/latent-anything/0.9.0/
-- PyPI JSON URL: https://pypi.org/pypi/latent-anything/0.9.0/json
-- PyPI files and hashes: **none; version endpoint is HTTP 404**.
-- No `UV_PUBLISH_*`, `TWINE_*`, or `PYPI_*` environment credentials were
-  present; `gh secret list --repo triet4p/latent-anything` returned no secrets.
-- No PyPI upload command was run. The audited workflow contains no PyPI
-  publication step.
+The historical PyPI endpoint returned HTTP `404`; this is expected under the
+current deferred, non-gating policy. No PyPI upload command is part of the
+audited workflow.
 
 ## Cross-source integrity and install smoke
 
-Integrity result: **PARTIAL / BLOCKED**. The exact candidate commit is proven
-through the remote lightweight tag, workflow checkout log, successful workflow
-run, and GitHub Release tag. There is no workflow-produced wheel/sdist,
-no GitHub Release package asset, and no PyPI file to hash or compare. Thus a
-cross-source package-hash/provenance match cannot be established and no
-published-package claim is made.
-
-The required brand-new isolated PyPI smoke was attempted:
-
-```text
-rm -rf .publication-pypi-smoke
-uv venv .publication-pypi-smoke --python 3.13
-uv pip install --python .publication-pypi-smoke/Scripts/python.exe \
-  latent-anything==0.9.0
-rm -rf .publication-pypi-smoke
-```
-
-It failed as expected from the missing publication:
-
-```text
-No solution found when resolving dependencies:
-Because latent-anything was not found in the package registry and you require
-latent-anything==0.9.0, we can conclude that your requirements are
-unsatisfiable.
-```
-
-No published clean-install import/version output exists. The earlier
-candidate-local wheel/sdist smokes remain historical only: each imported
-`latent_anything` and asserted `latent_anything.__version__ == "0.9.0"`, but
-they do not satisfy published-distribution evidence.
+The historical integrity result was **PARTIAL / BLOCKED** because that
+workflow produced no package assets. The current workflow closes this evidence
+gap by attaching the deterministic build outputs to GitHub Release and
+re-downloading every asset for SHA-256 comparison. The clean-install smoke
+must use that downloaded GitHub wheel and verify the package version.
 
 ## Plan state and final branch
 
 - `docs/sprint-plans/sprint-79.md` task 604 remains `[ ]`; Sprint 79 remains
-  open because PyPI publication and published-package smoke failed with the
-  exact `invalid-publisher`/HTTP 404 blocker above.
+  open until the exact GitHub Release assets, their hashes, and the clean
+  GitHub-asset install are recorded. PyPI absence is expected and non-gating.
 - `docs/PLAN.md` Milestone 14 remains `[ ]`; Sprint 79 is not moved to the
   completed-sprints section. Sprint 80/81 scope is unchanged.
-- `CHANGELOG.md` and `docs/MIGRATION.md` record the current partial state:
-  the exact GitHub Release exists and immutable retry archives were built, but
-  PyPI publication remains pending.
+- `CHANGELOG.md`, `README.md`, and `docs/MIGRATION.md` define GitHub Release
+  assets as the 0.9.0 distribution channel and explicitly defer PyPI.
 - The final evidence/planning commit SHA and branch push result are returned
   with delivery; the worktree is verified clean.
 
 ## Previous release-path remediation (historical failed publisher exchange)
 
-The existing GitHub Release remains unchanged and no tag was moved or deleted
-during this remediation. The repaired path was dispatched once from the
-remediation branch and reached the trusted-publisher exchange; PyPI rejected
-the OIDC claim before any package or GitHub Release mutation:
+The following records are retained solely to explain why the OIDC/PyPI path was
+removed. They are historical evidence, not a current prerequisite or closure
+criterion. The current workflow has no PyPI upload, no OIDC permission, and no
+PyPI verification step.
+
+No tag was moved or deleted during the historical remediation. The old repaired
+path was dispatched once from the remediation branch and reached the trusted
+publisher exchange; PyPI rejected the OIDC claim before any package or GitHub
+Release mutation:
 
 - `gate-and-build` now performs the existing lint/type/test gate first, checks
   that the selected ref is exactly `v0.9.0`/`0.9.0` and that the checked-out
@@ -249,23 +225,11 @@ new Python 3.13 uv environment printed
 `latent_anything.__version__ == "0.9.0"`. The dry-run directories were
 removed. No project-wide lint/test/type/build suite was rerun.
 
-External prerequisite before dispatching this repaired path: configure PyPI
-Trusted Publishing for project `latent-anything` with owner `triet4p`,
-repository `latent-anything`, workflow filename
-`.github/workflows/release.yml`, and no environment (or an explicitly
-configured matching GitHub environment). Because the immutable tag points to
-the pre-remediation workflow, the first authorized retry must dispatch the
-repaired workflow from the branch carrying this fix while selecting the
-existing tag:
-
-```text
-gh workflow run release.yml --repo triet4p/latent-anything \
-  --ref sprint79-local-gate-remediation -f tag=v0.9.0
-```
-
-That previous dispatch was run exactly once. The publisher exchange failed
-before publication; task 604/Sprint 79/Milestone 14 remained open pending
-configuration. The final authorized retry is recorded above.
+The old dispatch depended on configuring PyPI Trusted Publishing for project
+`latent-anything`. That prerequisite was not available, and the publisher
+exchange failed before any publication. This historical failure is the reason
+the current 0.9.0 contract defers PyPI and uses only the verified GitHub
+Release assets.
 
 ## Remediation run evidence
 

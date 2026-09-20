@@ -1,16 +1,30 @@
 # Migration and compatibility guide
 
-This guide describes the current `0.9.0` pre-stable surface. The exact
-candidate is tagged as `v0.9.0` and has a non-prerelease GitHub Release.
-Latest authorized retry run `35398189493` passed the gate/build and uploaded
-immutable archives, but PyPI Trusted Publishing rejected the matching
-branch-ref OIDC claim again with `invalid-publisher`; PyPI `0.9.0` remains HTTP
-404, so the Sprint 79 publication task remains open. The authoritative
-machine-readable surface is
+This guide describes the current `0.9.0` pre-stable surface. The `v0.9.0`
+GitHub Release is the authoritative distribution channel: it carries the
+wheel, source distribution, `SHA256SUMS`, `PROVENANCE.json`, and release notes
+produced by the gated release workflow. PyPI publication is explicitly deferred
+for this release and is not a release, installation, or migration gate. The
+authoritative machine-readable surface is
 [`api_freeze_snapshot_0.9.0.json`](../artifacts/api_freeze_snapshot_0.9.0.json);
 the historical beta surface is preserved unchanged in
 [`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json).
 The human alias policy is [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md).
+
+## Installing the 0.9.0 release
+
+Download an asset from the
+[GitHub Release](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0),
+verify it against `SHA256SUMS`, and install the local file:
+
+```bash
+uv pip install ./latent_anything-0.9.0-py3-none-any.whl
+# or:
+uv pip install ./latent_anything-0.9.0.tar.gz
+```
+
+Do not resolve this version from PyPI: publication is deferred and intentionally
+non-gating for this release.
 
 ## From the published beta
 

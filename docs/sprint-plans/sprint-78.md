@@ -68,9 +68,9 @@ After this sprint, only release-blocking corrections may change public API befor
 `1.0.0`, and each change requires an ADR plus migration update. The `0.9.0`
 pre-stable baseline is a committed candidate, not a tag or publication: the
 historical beta metadata was `0.1.0b1`, the current candidate metadata is
-`0.9.0`, and no `v0.9.0` release is authorized until the candidate evidence
-review passes. The owner-level API-freeze checkpoint is recorded for the
-documented surface, but it authorizes neither alias removal nor
-tag/publication. (Historical note: the external GitHub Actions account blocker
+`0.9.0`. The API-freeze checkpoint did not itself authorize tag or publication;
+Sprint 79 owns the audited GitHub Release asset contract for `0.9.0`, with PyPI
+explicitly deferred and non-gating. (Historical note: the external GitHub
+Actions account blocker
 wording above described the pre-candidate state and is superseded by the
 Sprint 79 candidate review.)

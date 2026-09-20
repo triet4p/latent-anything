@@ -222,12 +222,11 @@ jobs:
           overwrite: true
 
   publish:
-    name: Publish verified distributions
+    name: Publish verified GitHub Release
     needs: gate-and-build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     env:
       RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
       RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
@@ -241,7 +240,7 @@ jobs:
           name: release-${{ needs.gate-and-build.outputs.release_tag }}-${{ github.run_id }}
           path: dist
 
-      - name: Set up Python for publication verification
+      - name: Set up Python for release asset verification
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -256,57 +255,7 @@ jobs:
           grep -Fq "\"tag\": \"${RELEASE_TAG}\"" dist/PROVENANCE.json
           (cd dist && sha256sum --check SHA256SUMS)
 
-      - name: Prepare PyPI package directory
-        run: |
-          mkdir -p dist/pypi
-          cp dist/*.whl dist/*.tar.gz dist/pypi/
-
-      - name: Publish to PyPI with trusted publishing
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/pypi/
-          skip-existing: true
-          print-hash: true
-          attestations: true
-
-      - name: Verify PyPI hashes match the built archives
-        env:
-          RELEASE_VERSION: "0.9.0"
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import time
-          import urllib.request
-          from pathlib import Path
-
-          expected = {}
-          for line in Path("dist/SHA256SUMS").read_text(encoding="utf-8").splitlines():
-              digest, name = line.split("  ", 1)
-              expected[name] = digest
-          url = f"https://pypi.org/pypi/latent-anything/{__import__('os').environ['RELEASE_VERSION']}/json"
-          last = None
-          for _ in range(12):
-              try:
-                  with urllib.request.urlopen(url, timeout=20) as response:
-                      payload = json.load(response)
-                  published = {item["filename"]: item["digests"]["sha256"] for item in payload["urls"]}
-                  if all(published.get(name) == digest for name, digest in expected.items()):
-                      Path("dist/PYPI-VERIFICATION.json").write_text(
-                          json.dumps({"url": url, "files": expected}, indent=2, sort_keys=True) + "\n",
-                          encoding="utf-8",
-                      )
-                      print(json.dumps({"url": url, "files": expected}, sort_keys=True))
-                      break
-                  last = f"hash mismatch: {published}"
-              except Exception as exc:
-                  last = repr(exc)
-              time.sleep(10)
-          else:
-              raise SystemExit(last or "PyPI verification did not complete")
-          PY
-
-      - name: Create or update GitHub Release with the same archives
+      - name: Create or update GitHub Release with verified assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
@@ -314,10 +263,48 @@ jobs:
           body_path: dist/release-body.md
           prerelease: ${{ env.RELEASE_PRERELEASE }}
           files: |
-            dist/*.whl
-            dist/*.tar.gz
+            dist/latent_anything-0.9.0-py3-none-any.whl
+            dist/latent_anything-0.9.0.tar.gz
             dist/SHA256SUMS
             dist/PROVENANCE.json
-            dist/PYPI-VERIFICATION.json
+            dist/release-body.md
           overwrite_files: true
           fail_on_unmatched_files: true
+
+      - name: Verify uploaded GitHub Release asset hashes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist/remote
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir dist/remote \
+            --clobber
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+              "latent_anything-0.9.0-py3-none-any.whl",
+              "latent_anything-0.9.0.tar.gz",
+              "SHA256SUMS",
+              "PROVENANCE.json",
+              "release-body.md",
+          }
+          local = Path("dist")
+          remote = local / "remote"
+          actual = {path.name for path in remote.iterdir() if path.is_file()}
+          if actual != expected:
+              raise SystemExit(f"unexpected GitHub Release asset set: {sorted(actual)}")
+          for name in sorted(expected):
+              local_digest = hashlib.sha256((local / name).read_bytes()).hexdigest()
+              remote_digest = hashlib.sha256((remote / name).read_bytes()).hexdigest()
+              if local_digest != remote_digest:
+                  raise SystemExit(
+                      f"GitHub Release asset hash mismatch for {name}: "
+                      f"{remote_digest} != {local_digest}"
+                  )
+          print("Verified exact GitHub Release assets and SHA-256 hashes")
+          PY

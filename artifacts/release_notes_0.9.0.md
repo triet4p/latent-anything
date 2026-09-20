@@ -54,6 +54,8 @@ are preserved unchanged.
 - No named trustworthy 3DGS checkpoint exists (L17 blocked); unavailable
   real-policy and LeRobot overhead measurements are secondary integration work;
   no unsupported performance claim is made.
-- Candidate status: source-committed only. No `v0.9.0` tag, GitHub Release, or
-  PyPI publication exists; the Sprint 79 publication task remains pending until
-  the candidate evidence review passes with no actionable finding.
+- Distribution contract: the verified GitHub Release is the `0.9.0`
+  distribution channel. Its wheel, sdist, `SHA256SUMS`, `PROVENANCE.json`, and
+  release notes are uploaded only after the gate/build succeeds and are checked
+  against their local SHA-256 values. PyPI publication is explicitly deferred
+  and is not a release or installation gate.
