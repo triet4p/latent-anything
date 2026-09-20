@@ -10,10 +10,11 @@ Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 [`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the documented
 205-runtime/202-canonical surface now requires reviewed compatibility handling,
 but this is not a release-readiness claim. Package metadata is `0.9.0` as
-the pre-stable candidate; candidate review passed, the exact `v0.9.0` tag and
-GitHub Release were published, and PyPI publication remains blocked at HTTP
-404 because the audited workflow has no PyPI upload route. The publication
-task remains open.
+the pre-stable candidate. The `v0.9.0` tag is the release input, and the gated
+workflow defines the GitHub Release (wheel, sdist, checksums, provenance, and
+release notes) as the `0.9.0` distribution channel. PyPI publication is
+explicitly deferred and non-gating; the publication task remains open until
+the GitHub assets and their hashes are independently verified.
 
 ## Definition of Stable
 
@@ -49,7 +50,7 @@ D-levels remain useful claim evidence, but the former 95% core / 90% overall the
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 is complete; Sprint 79's exact-candidate GitHub Release and immutable retry build evidence exist, but PyPI Trusted Publishing rejected the matching branch-ref OIDC claim again in run `35398189493` (`invalid-publisher`), so publication remains blocked; Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
+- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 is complete; Sprint 79's GitHub Release publication contract and immutable build evidence are the remaining 0.9.0 distribution work, with PyPI explicitly deferred and non-gating; Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
 
 ## Carryover Evidence Gates
 
@@ -179,7 +180,7 @@ Sprints 63–72 are complete as implementation increments, with the evidence lim
 ### Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release
 
 - [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
-- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish the `0.9.0` pre-stable evidence baseline. The exact candidate tag, GitHub Release, and retry build artifacts exist; PyPI Trusted Publishing rejected the matching branch-ref claim again in run `35398189493`, so the sprint remains open.
+- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish the `0.9.0` pre-stable evidence baseline through the verified GitHub Release assets. PyPI is explicitly deferred and does not gate this sprint.
 - [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
 - [Sprint 81](sprint-plans/sprint-81.md) - Publish `1.0.0` only after Sprint 80 diagnostic-depth evidence and the audited release gates pass.
 

@@ -37,9 +37,9 @@ remote servers, or team workflows.
 
 APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
 Sprint 79 closes the broad inventory as the `0.9.0` pre-stable API/evidence
-baseline. Package metadata is now `0.9.0` as a source-committed candidate; no
-`v0.9.0` tag, GitHub Release, or PyPI publication is authorized until the
-candidate evidence review passes. Sprint 81 targets `1.0.0`, with publication
+baseline. Package metadata is `0.9.0`, and the GitHub Release is the authoritative
+0.9.0 distribution channel. PyPI publication is explicitly deferred and is not a
+release or installation gate. Sprint 81 targets `1.0.0`, with publication
 stopping if any required supported-claim, packaging, documentation, or workflow
 gate is missing; Sprint 80 is the depth-first diagnostic gate.
 
@@ -58,7 +58,18 @@ surface. The current `0.9.0` snapshot is
 
 ## Installation
 
-The package is not published yet. Clone and install locally using [uv](https://docs.astral.sh/uv/):
+For the `0.9.0` release, download the wheel or sdist from the
+[GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).
+Verify the downloaded file against `SHA256SUMS`, then install the local asset:
+
+```bash
+uv pip install ./latent_anything-0.9.0-py3-none-any.whl
+# or, for the source distribution:
+uv pip install ./latent_anything-0.9.0.tar.gz
+```
+
+PyPI publication is deferred for this release and is intentionally non-gating.
+For development from a checkout, use [uv](https://docs.astral.sh/uv/):
 
 ```bash
 git clone <repo-url>
@@ -118,14 +129,21 @@ uv run pyright
 uv run pytest
 ```
 
-Proposed release tag after the candidate evidence review passes:
+The `0.9.0` release workflow builds one deterministic wheel and sdist, records
+`SHA256SUMS` and `PROVENANCE.json`, and uploads those exact files plus the
+release notes to the GitHub Release after the gates pass. PyPI is deferred and
+does not participate in this release contract.
+
+The `v0.9.0` tag is the release input:
 
 ```bash
-git tag v0.9.0
 git push origin v0.9.0
 ```
 
-Do not create or push this tag before the review passes. The GitHub Release workflow also accepts plain tags such as `0.9.0`, but the `v` prefix is recommended to keep package releases visually distinct from theory deployment tags such as `theory-v*`. The historical `v0.1.0-beta.1` tag and release remain unchanged history.
+The workflow also accepts plain tags such as `0.9.0`; the `v` prefix is
+recommended to keep package releases visually distinct from theory deployment
+tags such as `theory-v*`. The historical `v0.1.0-beta.1` tag and release remain
+unchanged history.
 
 ## Project Structure
 

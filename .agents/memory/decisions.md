@@ -1345,3 +1345,34 @@ adequate hardware.
 **Alternatives considered:** Keep 95% core / 90% overall theory coverage and the broad real-model matrix as hard 1.0 gates, publish `1.0.0` from the current breadth inventory, or continue Sprint 79 indefinitely until every external checkpoint, dataset, license, and hardware lane becomes available.
 **Reason:** The product is intended to give AI engineers actionable insight into internal representations. Capture, detection, localization, statistically controlled explanation, causal intervention, comparison, and reproducible reporting establish that value more directly than the number of integrated model families. The current breadth program already provides a useful baseline, while several remaining lanes depend on unavailable external resources and do not measure diagnostic depth.
 **Consequences:** Sprint 79 must preserve every negative, partial, blocked, and excluded result while publishing `0.9.0`; Sprint 80 must pass the depth-first gates on at least an encoder/autoencoder and a transformer; a small VLA is secondary evidence under the 16 GiB ceiling; Sprint 81 owns `1.0.0`. Existing D-levels and coverage percentages remain portfolio-health facts, not passes or release thresholds. Deprecated beta aliases remain available in `0.9.0` unless a separate reviewed migration task demonstrates that removal is safe; the pre-stable baseline itself does not authorize silent compatibility removal.
+
+## [2026-09-20] Make GitHub Release the temporary 0.9.0 distribution channel
+
+**Decision:** For the user-directed `0.9.0` release, the audited workflow
+publishes exactly one deterministic wheel and source distribution, their
+`SHA256SUMS`, `PROVENANCE.json`, and extracted release notes to an idempotent
+GitHub Release after the full gate/build succeeds. The publish job re-downloads
+the GitHub assets and compares their SHA-256 hashes with the local build.
+PyPI publication is explicitly deferred and is not a release, installation, or
+task-604 closure gate.
+
+**Alternatives considered:** Keep the failing Trusted Publishing/OIDC path as
+a required gate, upload only GitHub's generated source archives, or publish
+unverified package files without a deterministic build and post-upload hash
+check.
+
+**Reason:** The requested `0.9.0` contract needs an independently verifiable
+distribution channel now, while the existing PyPI publisher configuration is
+not available. Removing the unused `id-token: write` permission reduces
+workflow authority and avoids treating an external publisher failure as a
+release-quality signal.
+
+**Scope and reversibility:** This is a temporary, user-directed `0.9.0`
+release policy, not a permanent ban on PyPI. A later release may add a reviewed
+PyPI route with its own credentials, permissions, and evidence contract; that
+change requires a new ADR and must not weaken the GitHub asset checks.
+
+**Consequences:** Consumers install `0.9.0` from verified GitHub Release
+assets, and release evidence records the asset names, hashes, provenance, and
+clean asset-install smoke. Sprint 79 task 604 remains open until this GitHub
+publication evidence is recorded; Sprint 80/81 scope is unchanged.
