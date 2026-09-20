@@ -54,8 +54,9 @@ are preserved unchanged.
 - No named trustworthy 3DGS checkpoint exists (L17 blocked); unavailable
   real-policy and LeRobot overhead measurements are secondary integration work;
   no unsupported performance claim is made.
-- Distribution contract: the verified GitHub Release is the `0.9.0`
-  distribution channel. Its wheel, sdist, `SHA256SUMS`, `PROVENANCE.json`, and
-  release notes are uploaded only after the gate/build succeeds and are checked
-  against their local SHA-256 values. PyPI publication is explicitly deferred
-  and is not a release or installation gate.
+- Publication status: annotated tag `v0.9.0` points to merged commit
+  `75341e4292fcdf1703186c58b626666b4a923c19`; Release workflow run
+  `35516933525` passed the gate/build and publish jobs. The GitHub Release
+  contains exactly the wheel, sdist, `SHA256SUMS`, `PROVENANCE.json`, and
+  release notes; all five downloaded asset hashes and the clean local-wheel
+  import smoke passed. PyPI publication is explicitly deferred and non-gating.

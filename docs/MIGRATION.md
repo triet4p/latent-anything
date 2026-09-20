@@ -1,11 +1,13 @@
 # Migration and compatibility guide
 
-This guide describes the current `0.9.0` pre-stable surface. The `v0.9.0`
-GitHub Release is the authoritative distribution channel: it carries the
-wheel, source distribution, `SHA256SUMS`, `PROVENANCE.json`, and release notes
-produced by the gated release workflow. PyPI publication is explicitly deferred
-for this release and is not a release, installation, or migration gate. The
-authoritative machine-readable surface is
+This guide describes the current `0.9.0` pre-stable surface. The annotated
+`v0.9.0` tag points to merged commit
+`75341e4292fcdf1703186c58b626666b4a923c19`, and Release workflow run
+`35516933525` passed gate/build and publish. The GitHub Release carries the
+wheel, source distribution, `SHA256SUMS`, `PROVENANCE.json`, and release notes;
+all five asset hashes and a clean local-wheel import smoke were verified. PyPI
+publication is explicitly deferred for this release and is not a release,
+installation, or migration gate. The authoritative machine-readable surface is
 [`api_freeze_snapshot_0.9.0.json`](../artifacts/api_freeze_snapshot_0.9.0.json);
 the historical beta surface is preserved unchanged in
 [`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json).
