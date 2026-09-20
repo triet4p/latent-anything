@@ -469,3 +469,19 @@ https://github.com/triet4p/latent-anything/releases/tag/v0.9.0, and PyPI JSON
 https://pypi.org/pypi/latent-anything/0.9.0/json still returned HTTP `404`.
 No package mutation occurred; cross-source package integrity remains
 **PARTIAL / BLOCKED**. Task 604, Sprint 79, and Milestone 14 remain open.
+## Superseded branch-dispatch attempt
+
+The final branch-dispatched attempt was superseded by the required
+default-branch integration correction and was canceled before publication:
+
+- Run: https://github.com/triet4p/latent-anything/actions/runs/35512923025
+- Run ID: `35512923025`; workflow head
+  `71340b1aca2d6540bd72a7ba2106ee7e96d20c61`.
+- Gate job: `Release gate and reproducible package build`, ID
+  `106083905310`, canceled during `Pytest` after the branch-dispatch
+  correction; no build artifact or publication mutation occurred.
+- Publish job: `Publish verified distributions`, ID `106084643928`, canceled
+  before starting.
+- This cancellation is **superseded integration work**, not a product or test
+  failure. Task 604, Sprint 79, and Milestone 14 remain open pending the
+  reviewed workflow integration on the repository default branch.
