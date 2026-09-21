@@ -63,7 +63,6 @@ are preserved unchanged.
   All five downloaded asset hashes and the clean local-wheel import smoke
   passed. PyPI publication is explicitly deferred and non-gating.
 
-## [Unreleased]
 
 ### Added
 - Froze the Sprint 79 theory/performance baselines for `0.9.0` without
