@@ -2,57 +2,109 @@
 
 ## Sprint Goal
 
-Prove that Latent Anything provides a complete, trustworthy representation-diagnostic loop for ordinary deep-learning models: capture internal representations, detect and localize defects, form and test explanations with statistical controls, validate causality through intervention, compare runs, and emit a reproducible report. A bounded small-VLA lane may demonstrate portability, but breadth across heavyweight model families is not a stable-release gate.
+Deliver and prove one trustworthy representation-diagnostic workflow for ordinary deep-learning models: capture internal representations, detect and localize defects, test explanations with statistical controls, validate causality through intervention, compare runs, and emit a reproducible engineering report.
 
 ## Product Claim
 
-An AI engineer can use one documented workflow to turn model activations into a defensible representation diagnosis with quantitative evidence, uncertainty, controls, causal validation, provenance, and actionable localization.
+An AI engineer can start with a supported PyTorch model plus data and obtain a defensible diagnosis that states what failed, where it failed, how strong the evidence is, whether intervention supports the explanation, what changed between runs, and what remains unknown.
 
-The supported 1.0 core is ordinary PyTorch deep-learning representations, proven end to end on at least one encoder/autoencoder model and one transformer hidden-state model. SmolVLA is a secondary proof lane under the permanent 16 GiB hardware ceiling. OpenVLA, unnamed 3DGS checkpoints, broad world-model coverage, and integration count are not proxies for diagnostic depth.
+The supported core is proved on one encoder/autoencoder and one transformer hidden-state case. SmolVLA is a secondary, non-blocking portability lane under the permanent 16 GiB ceiling. Model-family count and historical theory-coverage percentages are not stable-release gates.
+
+## Entry State
+
+- `0.9.0` is published and verified through the GitHub Release asset contract.
+- `main` contains the depth-first 1.0 contract and the Sprint 80 / Sprint 81 split.
+- Historical Sprint 79 evidence remains immutable; negative, partial, blocked, and excluded results are not promoted.
+- Sprint 80 is implementation and evidence work. Sprint 81 owns `1.0.0` publication.
 
 ## Atomic Tasks
 
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Replace the breadth-led stable-release contract with a depth-first diagnostic contract in the global plan, M14 governance documents, evidence vocabulary, and ADR log without promoting or deleting historical evidence.
-- [ ] Freeze a machine-readable representation-problem taxonomy covering collapse/rank loss, anisotropy and inactive dimensions, redundancy/superposition, separability and probe leakage, density/OOD and distribution drift, sparse-feature instability, and sequence/trajectory drift where applicable.
-- [ ] Predeclare the diagnostic benchmark matrix: supported models, datasets and splits, issue injections or known counterexamples, metrics, uncertainty, null/random/shuffled/off-target controls, causal expectations, and pass/fail rules before implementation evidence is generated.
-- [ ] Define a versioned diagnostic input and report contract that records captured layers and slices, detected symptoms, localization, hypotheses, controls, interventions, downstream effects, limitations, and complete run/artifact provenance.
-- [ ] Deliver one high-level diagnostic workflow over existing capture, `LatentValue`/`Trajectory`, analysis, intervention, runtime, and artifact primitives; ordinary supported PyTorch models must not require architecture-specific glue for every layer.
-- [ ] Deliver detection and localization across layer, sample or dataset slice, checkpoint/run, and token/time axes where present; diagnostics must identify where a problem begins rather than emit only a global score.
-- [ ] Integrate probes, TCAV, Integrated Gradients, SAE/dictionary features, lens methods, geometry, density, and clustering only where each method answers a declared hypothesis; expose uncertainty and reject leakage, unstable seeds, degenerate inputs, and failed controls.
-- [ ] Integrate activation patching, ablation or removal, and steering into the same workflow so observational findings can be tested with identity/zero-strength, random-direction, shuffled/null, dose-response, and off-target controls.
-- [ ] Add checkpoint/run comparison that distinguishes representation change from task-metric change and preserves identical dataset slices, layer identity, preprocessing, seeds, and diagnostic configuration.
-- [ ] Produce a durable machine-readable diagnostic artifact and a concise human report that state symptom, affected location, evidence strength, causal result, limitations, and the next engineering action; unsupported conclusions must fail closed.
-- [ ] Prove the complete workflow on a real encoder/autoencoder case with a predeclared representation defect or controlled counterexample and a successful detect → localize → explain → intervene → report chain.
-- [ ] Prove the complete workflow on a pinned transformer hidden-state case with leakage-safe splits and the same detect → localize → explain → intervene → report chain.
-- [ ] Run one bounded SmolVLA diagnostic proof only if the pinned checkpoint, dataset, license, and 16 GiB execution path are available; otherwise retain an explicit secondary-lane blocker without blocking the ordinary-DL 1.0 core or authorizing a VLA diagnostic claim.
-- [ ] Publish an AI-engineer guide and executable example that start from a model plus data and reproduce both core diagnoses without requiring users to assemble low-level capture, statistics, intervention, and artifact plumbing manually.
-- [ ] Run the strict quality, packaging, documentation, compatibility, and clean-environment gates; publish a Sprint 80 depth-evidence report that lists every supported claim, negative result, excluded breadth lane, and remaining blocker for Sprint 81.
+### Phase A — Frozen diagnostic contracts
+
+- [ ] **80.1 — Freeze the representation-problem taxonomy.** Add one versioned machine-readable taxonomy for collapse/rank loss, anisotropy/inactive dimensions, redundancy/superposition, separability/probe leakage, density/OOD/distribution drift, sparse-feature instability, and sequence/trajectory drift where applicable. **Accept:** stable identifiers, applicability rules, required evidence, and unsupported-case behavior validate without model-specific code.
+- [ ] **80.2 — Freeze the benchmark-manifest schema.** Define one schema for model and revision, dataset and split, layer/slice axes, injected or known defect, metrics, seeds, controls, uncertainty, causal expectation, and pass/fail thresholds. **Accept:** malformed, post-hoc, or incomplete manifests fail closed.
+- [ ] **80.3 — Freeze the diagnostic-report schema.** Define versioned machine-readable fields for capture provenance, symptoms, localization, hypotheses, statistical evidence, interventions, comparisons, limitations, and next action. **Accept:** the schema distinguishes observation, explanation, causal result, and unsupported conclusion.
+- [ ] **80.4 — Implement the report validator.** Validate taxonomy references, evidence completeness, control outcomes, artifact hashes, and conclusion strength independently of report construction. **Accept:** missing controls, mismatched provenance, and overclaimed conclusions are rejected.
+- [ ] **80.5 — Predeclare the two core benchmark manifests.** Pin one encoder/autoencoder case and one transformer hidden-state case before workflow evidence is generated. **Accept:** revisions, data splits, defect/counterexample, thresholds, controls, expected localization, and causal success/falsification rules are immutable inputs.
+
+### Phase B — High-level workflow substrate
+
+- [ ] **80.6 — Define the high-level diagnostic request/result API.** Introduce the smallest public configuration and result types needed to select captures, diagnostics, controls, interventions, comparisons, and output location. **Accept:** the API contains domain terms, no architecture-specific fields, and no duplicate configuration path.
+- [ ] **80.7 — Generalize capture selection and axis metadata.** Bind requested modules/layers and sample, slice, token, time, or checkpoint axes to existing capture, `LatentValue`, and `Trajectory` primitives. **Accept:** deterministic capture identity and complete provenance are preserved for both core models.
+- [ ] **80.8 — Implement the diagnostic workflow state machine.** Orchestrate capture → detect → localize → explain → intervene → compare → report without embedding method-specific algorithms in the coordinator. **Accept:** stages have explicit inputs/outputs, failure states, and resumable artifact boundaries.
+
+### Phase C — Detection families
+
+- [ ] **80.9 — Integrate collapse, rank-loss, anisotropy, and inactive-dimension detection.** Reuse existing geometry/statistics primitives behind the taxonomy contract. **Accept:** positive/counterexample and negative controls separate real defects from benign low variance.
+- [ ] **80.10 — Integrate redundancy, superposition, separability, and probe-leakage detection.** **Accept:** leakage-safe splits, capacity controls, label randomization, and non-separable negatives prevent probe accuracy from becoming a diagnosis by itself.
+- [ ] **80.11 — Integrate density, OOD, and distribution-drift detection.** **Accept:** reference/test identity, calibration, uncertainty, shuffled controls, and distribution-free failure behavior are recorded.
+- [ ] **80.12 — Integrate sparse-feature and temporal-drift detection.** Reuse SAE/dictionary and trajectory primitives only where the representation exposes those axes. **Accept:** cross-seed feature stability and sequence controls gate the claim; non-applicable cases are omitted rather than passed.
+
+### Phase D — Localization and explanatory validity
+
+- [ ] **80.13 — Localize findings across layers and dataset slices.** **Accept:** the workflow identifies the earliest affected layer and affected sample/slice under predeclared correctness criteria, not only a global score.
+- [ ] **80.14 — Localize findings across checkpoint, token, and time axes.** **Accept:** applicable axes preserve alignment and identity; absent axes are explicit non-applicability, not empty success.
+- [ ] **80.15 — Implement the statistical-control executor.** Centralize seeded repetitions, confidence intervals, null, shuffled, randomized, and cross-seed controls. **Accept:** failed controls block the associated diagnostic conclusion.
+- [ ] **80.16 — Integrate probe, TCAV, and Integrated-Gradients explanation evidence.** **Accept:** each method runs only for a declared hypothesis and reports fidelity, stability, selectivity, leakage checks, and uncertainty.
+- [ ] **80.17 — Integrate SAE, lens, geometry, density, and clustering explanation evidence.** **Accept:** feature labels or projections are never promoted without frozen stability/selectivity criteria and a declared relationship to the diagnosed symptom.
+
+### Phase E — Causality, comparison, and reporting
+
+- [ ] **80.18 — Implement activation patching, ablation, and removal trials.** **Accept:** identity/zero-strength, random, shuffled, and off-target controls share the same captured inputs and downstream metric.
+- [ ] **80.19 — Implement steering and dose-response trials.** **Accept:** intervention strength, direction provenance, monotonic/non-monotonic response, random-direction behavior, off-target effects, and downstream task change are recorded.
+- [ ] **80.20 — Implement aligned checkpoint/run comparison.** **Accept:** comparisons require identical dataset slices, preprocessing, layer identity, seeds, and diagnostic configuration, and distinguish representation change from task-metric change.
+- [ ] **80.21 — Persist the content-addressed diagnostic artifact.** Reuse run-record and portable-artifact conventions. **Accept:** schema version, hashes, inputs, environment, seeds, intermediate stages, and validator result reproduce without hidden local state.
+- [ ] **80.22 — Render the concise AI-engineer report.** **Accept:** the report names symptom, location, evidence strength, causal support or falsification, limitations, and next engineering action; unsupported statements fail closed.
+
+### Phase F — Core proof
+
+- [ ] **80.23 — Prove the encoder/autoencoder diagnosis end to end.** Execute the frozen manifest through the single high-level workflow. **Accept:** detect → localize → explain → intervene → compare → report passes with the declared positive/counterexample and negative controls.
+- [ ] **80.24 — Prove the transformer diagnosis end to end.** Execute the frozen leakage-safe transformer manifest through the same workflow. **Accept:** the same chain passes without a transformer-only reporting or orchestration path.
+- [ ] **80.25 — Reproduce both core cases from a clean environment.** **Accept:** pinned inputs regenerate validator-clean run records and content-addressed artifacts with bounded runtime/resource evidence.
+- [ ] **80.26 — Publish the AI-engineer guide and executable examples.** **Accept:** a user starts from model plus data and reproduces both diagnoses without manually assembling low-level capture, statistics, intervention, comparison, or artifact plumbing.
+
+### Phase G — Secondary proof and handoff
+
+- [ ] **80.27 — Resolve the bounded SmolVLA lane.** Verify checkpoint, dataset, license, and 16 GiB execution feasibility before running one secondary diagnostic proof. **Accept:** either a truthful bounded artifact passes or an explicit blocker remains; neither outcome gates the ordinary-DL core.
+- [ ] **80.28 — Run proportionate quality and compatibility gates.** Use focused checks per atomic task; run full lint, type, test, packaging, documentation, clean-environment, and compatibility gates only for the final code/release candidate. Docs/evidence-only changes use focused validation and `[skip ci]` where appropriate.
+- [ ] **80.29 — Publish the Sprint 80 depth-evidence report.** Map every supported claim to the frozen manifests, reports, controls, interventions, clean reproductions, and review artifacts. **Accept:** negative results and excluded breadth lanes remain explicit, and the report gives Sprint 81 a binary readiness decision for the supported core.
+
+## Execution Order
+
+1. Complete Phase A before generating benchmark evidence.
+2. Complete the shared workflow substrate before detector- or model-specific integration.
+3. Evidence-review each atomic task or explicitly tagged consecutive batch before advancing.
+4. The encoder and transformer proofs may run in parallel only after their shared contracts and workflow dependencies pass.
+5. Run the sprint-wide deep review only after all 29 task evidence gates pass.
+
+Each completed task records a concise artifact summary under `artifacts/`, exact validation evidence, affected claims, negative results, and its evidence-review verdict.
 
 ## Stable-Depth Acceptance Gates
 
 Sprint 80 passes only when all of the following are true:
 
-1. **Capture:** the supported core models expose deterministic, provenance-bound internal representations through the documented workflow.
-2. **Detection:** every supported representation-problem family has at least one non-trivial positive or counterexample benchmark and one negative/control case; unsupported families are omitted from the 1.0 claim rather than counted by documentation coverage.
-3. **Localization:** the report identifies affected layers and relevant sample, slice, checkpoint, token, or time axes with predeclared correctness criteria.
-4. **Statistical validity:** applicable results include uncertainty and leakage-safe randomized, shuffled, null, and cross-seed controls; a failed control blocks that diagnostic claim.
-5. **Explanatory validity:** a projection or probe alone is never called an explanation; headline explanations must meet their frozen fidelity, stability, and selectivity criteria.
-6. **Causal validity:** at least one intervention confirms or falsifies each headline diagnosis, with identity/zero-strength, dose-response, random, and off-target behavior recorded where applicable.
-7. **Reproducibility:** each core case can be reproduced from a clean environment using pinned inputs and emits validator-clean run records and content-addressed artifacts.
-8. **Usability:** both core cases run through the same documented high-level workflow and terminate in a report that tells an AI engineer what failed, where, how strong the evidence is, and what evidence remains missing.
+1. **Capture:** supported core models expose deterministic, provenance-bound internal representations through the documented workflow.
+2. **Detection:** each claimed representation-problem family has a non-trivial positive/counterexample benchmark and a negative/control case.
+3. **Localization:** reports identify affected layers and relevant sample, slice, checkpoint, token, or time axes with predeclared correctness criteria.
+4. **Statistical validity:** applicable results include uncertainty and leakage-safe randomized, shuffled, null, and cross-seed controls; a failed control blocks the claim.
+5. **Explanatory validity:** projections and probes are not explanations by themselves; headline explanations pass frozen fidelity, stability, and selectivity gates.
+6. **Causal validity:** at least one intervention confirms or falsifies each headline diagnosis with identity/zero-strength, dose-response, random, and off-target behavior where applicable.
+7. **Reproducibility:** both core cases reproduce from a clean environment with pinned inputs and validator-clean, content-addressed artifacts.
+8. **Usability:** both cases use the same high-level workflow and end in an actionable report that states what failed, where, evidence strength, causal result, limitations, and missing evidence.
 
 ## Non-Goals
 
-- Maximizing the percentage of researched theory topics with D2/D3 artifacts.
-- Supporting every adapter, model family, VLA, 3D representation, world model, or planner before 1.0.
-- Treating attractive visualization, successful import, checkpoint loading, or smoke execution as diagnostic evidence.
-- Replacing failed controls with waivers or lowering a predeclared threshold after observing results.
+- Maximizing historical D2/D3 theory-row percentages.
+- Supporting every adapter, VLA, 3D representation, world model, or planner before 1.0.
+- Treating visualization, import, checkpoint loading, or smoke execution as diagnostic evidence.
+- Lowering thresholds or replacing failed controls after observing results.
 - Requiring hardware above the approved 16 GiB release-evidence ceiling.
+- Publishing `1.0.0`; Sprint 81 owns publication after the depth-evidence handoff passes.
 
 ## Notes / Blockers
 
-Historical Sprint 79 evidence remains immutable and truthfully classified. Existing TCAV significance, SAE cross-seed stability, steering randomized-control, and any selected manifold/geometry failures remain hard blockers only for the corresponding supported diagnostic claims. They are not converted into passes by this plan revision.
+Historical Sprint 79 evidence remains immutable. Existing TCAV significance, SAE cross-seed stability, steering randomized-control, and selected manifold/geometry failures remain blockers for only the corresponding diagnostic claims. The workflow must either resolve them under the frozen Sprint 80 contracts or omit those claims.
 
-The old 95% core / 90% overall theory-coverage percentages and broad real-model matrix become portfolio-health metrics and backlog inputs, not 1.0 release gates. Sprint 81 owns `1.0.0` publication only after this sprint's depth-evidence report has no unresolved blocker for the supported core claims.
+The first execution task is **80.1**. No product implementation begins before tasks 80.1-80.5 freeze the taxonomy, schemas, and core benchmark manifests.

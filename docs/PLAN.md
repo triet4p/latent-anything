@@ -93,16 +93,9 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-- [Sprint 73](sprint-plans/sprint-73.md) - *Status: Complete; delivery and bounded audit-remediation closure finished.*
-- [Sprint 74](sprint-plans/sprint-74.md) - *Status: Complete; bounded post-closure remediation of Arrow decoding, state fidelity, path safety, cache coherence, and traceability finished.*
-- [Sprint 75](sprint-plans/sprint-75.md) - *Status: Complete; bounded-memory rollout streaming delivery and post-closure async/boundedness remediation are validated.*
+- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Planned; depth-first diagnostic contracts and 29 ordered atomic tasks are frozen. Execution begins at task 80.1 on `main`.*
 
-- [Sprint 76](sprint-plans/sprint-76.md) - *Status: Complete; final lexical URI/Windows-path, exact provider-ID resume, provider atomicity, offline network, private SDK seam, and evidence-count remediation passed the supported gates.*
-- [Sprint 77](sprint-plans/sprint-77.md) - *Status: Complete for Phase A/B; Rust/PyO3 is deferred with conditional reconsideration criteria, closure gates pass, the cumulative audit found no implementation blocker, and typed-ledger traceability is complete.*
-
-Sprint 73 delivery and its audit-remediation closure are complete. Sprint 74 delivery and bounded post-closure remediation are complete. Sprint 75 delivery and its post-closure audit remediation are complete. Sprint 76 delivery and final post-audit remediation are complete. Sprint 77 Phase A/B are complete for the supported scope, including the owner-approved Rust/PyO3 deferral, closure gates, cumulative audit, and typed-ledger traceability. The Sprint 34 and Sprint 35 carryover evidence gates are complete within their declared local CPU scopes; no stable-release claim follows from these compact lanes.
-
-Sprints 63–72 are complete as implementation increments, with the evidence limitations recorded below and in the ledger. Milestone 8 is complete for its declared bounded evidence scope; broader real-model and perceptual-quality claims remain outside these gates.
+Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 now owns the supported diagnostic-depth proof; Sprint 81 remains planned for `1.0.0` publication only after the Sprint 80 handoff passes.
 
 ## Planned Sprints
 
