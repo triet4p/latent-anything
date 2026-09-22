@@ -1,0 +1,437 @@
+{
+  "schema_version": "representation-problem-taxonomy-v1",
+  "taxonomy_id": "representation-problem",
+  "status": "frozen",
+  "applicability_states": [
+    "applicable",
+    "not_applicable",
+    "unsupported"
+  ],
+  "evidence_statuses": [
+    "observed",
+    "missing",
+    "invalid",
+    "not_evaluated"
+  ],
+  "claim_outcomes": [
+    "supported",
+    "inconclusive",
+    "unsupported"
+  ],
+  "unsupported_case": {
+    "outcome": "unsupported",
+    "claim_allowed": false,
+    "evidence_status": "not_evaluated",
+    "reason_codes": [
+      "missing_required_axis",
+      "unknown_axis",
+      "unavailable_evidence",
+      "invalid_declaration"
+    ]
+  },
+  "not_applicable_case": {
+    "outcome": "unsupported",
+    "claim_allowed": false,
+    "evidence_status": "not_evaluated",
+    "reason_code": "declared_not_applicable"
+  },
+  "families": [
+    {
+      "id": "collapse_rank_loss",
+      "label": "Collapse and rank loss",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature"
+        ],
+        "non_applicable_when": [
+          "The representation has no independent sample axis."
+        ],
+        "unsupported_when": [
+          "The feature axis cannot be measured as numeric coordinates.",
+          "Fewer than two independent samples are available.",
+          "Rank or effective-dimension evidence cannot be computed.",
+          "The sample or feature identity is ambiguous."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "collapse_rank_profile",
+          "kind": "measurement",
+          "description": "Rank, effective rank, or an equivalent predeclared dimensionality profile.",
+          "minimum_records": 1
+        },
+        {
+          "id": "collapse_variance_or_singular_values",
+          "kind": "measurement",
+          "description": "Variance or singular-value profile bound to the same representation identity.",
+          "minimum_records": 1
+        },
+        {
+          "id": "collapse_healthy_counterexample",
+          "kind": "counterexample",
+          "description": "A non-collapsed reference or counterexample evaluated with the same measurement contract.",
+          "minimum_records": 1
+        },
+        {
+          "id": "collapse_negative_control",
+          "kind": "control",
+          "description": "A control that distinguishes benign low variance from loss of usable rank.",
+          "minimum_records": 1
+        },
+        {
+          "id": "collapse_provenance",
+          "kind": "provenance",
+          "description": "Representation identity, sample scope, feature axis, and predeclared thresholds.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "anisotropy_inactive_dimensions",
+      "label": "Anisotropy and inactive dimensions",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature"
+        ],
+        "non_applicable_when": [
+          "The representation does not expose a measurable feature coordinate axis."
+        ],
+        "unsupported_when": [
+          "The sample distribution or feature identity is unavailable.",
+          "A variance, covariance, or equivalent directional-activity measure cannot be computed.",
+          "Thresholds are chosen after inspecting the target result."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "anisotropy_activity_spectrum",
+          "kind": "measurement",
+          "description": "Directional variance, covariance spectrum, or an equivalent activity profile.",
+          "minimum_records": 1
+        },
+        {
+          "id": "anisotropy_predeclared_threshold",
+          "kind": "provenance",
+          "description": "A threshold or decision rule declared before target evaluation.",
+          "minimum_records": 1
+        },
+        {
+          "id": "anisotropy_isotropy_negative_control",
+          "kind": "control",
+          "description": "An isotropic or otherwise healthy negative control under the same estimator.",
+          "minimum_records": 1
+        },
+        {
+          "id": "anisotropy_provenance",
+          "kind": "provenance",
+          "description": "Representation identity, sample scope, feature axis, and estimator settings.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "redundancy_superposition",
+      "label": "Redundancy and superposition",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature"
+        ],
+        "non_applicable_when": [
+          "The representation has no feature coordinates or feature relationship semantics."
+        ],
+        "unsupported_when": [
+          "Feature relationships cannot be estimated with a declared method.",
+          "The feature basis or sample scope is ambiguous.",
+          "A sparse or overcomplete comparison is unavailable where the claim requires it."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "redundancy_dependency_measure",
+          "kind": "measurement",
+          "description": "A predeclared dependence, overlap, or redundancy measure across features.",
+          "minimum_records": 1
+        },
+        {
+          "id": "superposition_sparse_or_overcomplete_comparison",
+          "kind": "measurement",
+          "description": "A sparse, overcomplete, or otherwise explicit comparison that tests the superposition hypothesis.",
+          "minimum_records": 1
+        },
+        {
+          "id": "redundancy_randomized_feature_control",
+          "kind": "control",
+          "description": "A randomized or shuffled feature control using the same estimator and sample scope.",
+          "minimum_records": 1
+        },
+        {
+          "id": "redundancy_healthy_counterexample",
+          "kind": "counterexample",
+          "description": "A representation expected not to exhibit the claimed redundancy pattern.",
+          "minimum_records": 1
+        },
+        {
+          "id": "redundancy_provenance",
+          "kind": "provenance",
+          "description": "Feature identity, sample scope, estimator, and comparison configuration.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "separability_probe_leakage",
+      "label": "Separability and probe leakage",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature",
+          "label"
+        ],
+        "non_applicable_when": [
+          "No declared target labels or target attributes exist."
+        ],
+        "unsupported_when": [
+          "Labels are unavailable for an independent evaluation split.",
+          "The split, probe capacity, or preprocessing is not declared.",
+          "A label-randomization or leakage control cannot be run."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "probe_split_provenance",
+          "kind": "provenance",
+          "description": "Independent train/evaluation split identity and preprocessing provenance.",
+          "minimum_records": 1
+        },
+        {
+          "id": "probe_heldout_metric",
+          "kind": "measurement",
+          "description": "Held-out probe performance with uncertainty under a declared metric.",
+          "minimum_records": 1
+        },
+        {
+          "id": "probe_capacity_control",
+          "kind": "control",
+          "description": "A capacity or regularization control that bounds probe expressivity.",
+          "minimum_records": 1
+        },
+        {
+          "id": "probe_label_randomization_control",
+          "kind": "control",
+          "description": "Label randomization or permutation control on the same split.",
+          "minimum_records": 1
+        },
+        {
+          "id": "probe_nonseparable_negative_control",
+          "kind": "counterexample",
+          "description": "A non-separable or leakage-negative control evaluated by the same probe protocol.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "density_ood_distribution_drift",
+      "label": "Density, OOD, and distribution drift",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature",
+          "split"
+        ],
+        "non_applicable_when": [
+          "No reference and comparison sample distributions are declared."
+        ],
+        "unsupported_when": [
+          "Reference and comparison identities cannot be bound to the same representation space.",
+          "The density or distance estimator is unavailable or uncalibrated.",
+          "Uncertainty or shuffled/null controls are unavailable."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "density_reference_test_identity",
+          "kind": "provenance",
+          "description": "Reference and comparison split identities, preprocessing, and representation identity.",
+          "minimum_records": 1
+        },
+        {
+          "id": "density_or_distance_score",
+          "kind": "measurement",
+          "description": "Density, distance, or score distribution computed under a declared estimator.",
+          "minimum_records": 1
+        },
+        {
+          "id": "density_calibration_uncertainty",
+          "kind": "measurement",
+          "description": "Calibration and uncertainty for the score or threshold decision.",
+          "minimum_records": 1
+        },
+        {
+          "id": "density_shuffled_null_control",
+          "kind": "control",
+          "description": "Shuffled, null, or permutation control for the distribution comparison.",
+          "minimum_records": 1
+        },
+        {
+          "id": "density_no_shift_negative_control",
+          "kind": "counterexample",
+          "description": "A same-distribution or no-drift negative control.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "sparse_feature_instability",
+      "label": "Sparse-feature instability",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature",
+          "seed"
+        ],
+        "non_applicable_when": [
+          "No sparse-feature or dictionary representation is being evaluated.",
+          "No repeated seed or fit axis exists."
+        ],
+        "unsupported_when": [
+          "Feature identities cannot be aligned across repeated fits.",
+          "The seed or fit provenance is unavailable.",
+          "Sparsity quality and stability cannot be measured separately."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "sparse_cross_seed_stability",
+          "kind": "measurement",
+          "description": "Feature stability across at least two independently seeded fits.",
+          "minimum_records": 2
+        },
+        {
+          "id": "sparse_feature_alignment",
+          "kind": "measurement",
+          "description": "A declared feature matching or alignment measure across fits.",
+          "minimum_records": 1
+        },
+        {
+          "id": "sparse_quality_measure",
+          "kind": "measurement",
+          "description": "Sparsity and reconstruction or selectivity quality for each compared fit.",
+          "minimum_records": 2
+        },
+        {
+          "id": "sparse_seed_control",
+          "kind": "control",
+          "description": "A seed or initialization control that bounds instability attributable to fitting noise.",
+          "minimum_records": 1
+        },
+        {
+          "id": "sparse_non_applicable_negative_control",
+          "kind": "counterexample",
+          "description": "A stable or explicitly non-sparse negative control under the same comparison protocol.",
+          "minimum_records": 1
+        },
+        {
+          "id": "sparse_provenance",
+          "kind": "provenance",
+          "description": "Feature basis, seed identities, fit configuration, and sample scope.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      }
+    },
+    {
+      "id": "sequence_trajectory_drift",
+      "label": "Sequence and trajectory drift",
+      "applicability": {
+        "required_axes": [
+          "sample",
+          "feature",
+          "sequence_or_time"
+        ],
+        "non_applicable_when": [
+          "The representation explicitly has no sequence, time, checkpoint, token, or trajectory axis."
+        ],
+        "unsupported_when": [
+          "Sequence or time identity cannot be aligned across observations.",
+          "The horizon, step, token, or checkpoint axis is present but its ordering is unavailable.",
+          "A null or shuffled sequence control cannot be evaluated."
+        ]
+      },
+      "required_evidence": [
+        {
+          "id": "trajectory_alignment_identity",
+          "kind": "provenance",
+          "description": "Stable sequence or trajectory identity and alignment across compared observations.",
+          "minimum_records": 1
+        },
+        {
+          "id": "trajectory_stepwise_drift_metric",
+          "kind": "measurement",
+          "description": "Stepwise or horizon-level drift metric with declared normalization.",
+          "minimum_records": 1
+        },
+        {
+          "id": "trajectory_null_sequence_control",
+          "kind": "control",
+          "description": "A null, shuffled, or deranged sequence control using the same alignment and metric.",
+          "minimum_records": 1
+        },
+        {
+          "id": "trajectory_no_drift_negative_control",
+          "kind": "counterexample",
+          "description": "A sequence expected not to exhibit the claimed drift pattern.",
+          "minimum_records": 1
+        },
+        {
+          "id": "trajectory_repeatability",
+          "kind": "measurement",
+          "description": "Repeatability or uncertainty across declared seeds, runs, or repeated trajectories.",
+          "minimum_records": 1
+        }
+      ],
+      "unsupported_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated"
+      },
+      "not_applicable_case": {
+        "outcome": "unsupported",
+        "claim_allowed": false,
+        "evidence_status": "not_evaluated",
+        "reason_code": "declared_not_applicable"
+      }
+    }
+  ]
+}

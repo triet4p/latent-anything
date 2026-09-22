@@ -1,0 +1,213 @@
+{
+  "schema_version": "benchmark-manifest-schema-v1",
+  "schema_id": "benchmark-manifest",
+  "status": "frozen",
+  "canonicalization": "json-sort-keys-no-whitespace-utf8",
+  "additional_properties": false,
+  "required_fields": [
+    "schema_version",
+    "manifest_id",
+    "status",
+    "model",
+    "dataset",
+    "representation",
+    "defect",
+    "metrics",
+    "seeds",
+    "controls",
+    "uncertainty",
+    "causal_expectation",
+    "thresholds",
+    "commitment"
+  ],
+  "manifest_status": "predeclared",
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "min_length": 1,
+      "description": "Stable caller-chosen identity for this benchmark declaration."
+    },
+    "model": {
+      "type": "object",
+      "required_fields": [
+        "id",
+        "revision",
+        "revision_kind",
+        "revision_immutable",
+        "artifact_digest"
+      ],
+      "additional_properties": false,
+      "revision_kinds": [
+        "commit",
+        "digest"
+      ],
+      "description": "Model identity and immutable revision; no model family is prescribed."
+    },
+    "dataset": {
+      "type": "object",
+      "required_fields": [
+        "id",
+        "revision",
+        "split",
+        "split_identity",
+        "data_digest"
+      ],
+      "additional_properties": false,
+      "description": "Dataset identity, immutable revision, and exact split binding."
+    },
+    "representation": {
+      "type": "object",
+      "required_fields": [
+        "identity",
+        "axes"
+      ],
+      "additional_properties": false,
+      "axis_item_required_fields": [
+        "name",
+        "selection",
+        "identity"
+      ],
+      "description": "Layer or slice axis selections bound to one representation identity."
+    },
+    "defect": {
+      "type": "object",
+      "required_fields": [
+        "classification",
+        "declaration",
+        "predeclared",
+        "source"
+      ],
+      "additional_properties": false,
+      "classifications": [
+        "injected",
+        "known",
+        "counterexample",
+        "none"
+      ],
+      "description": "Injected or known defect declaration, or an explicit negative/counterexample case."
+    },
+    "metrics": {
+      "type": "array",
+      "minimum_items": 1,
+      "item_required_fields": [
+        "id",
+        "taxonomy_family_id",
+        "direction",
+        "unit",
+        "estimator",
+        "aggregation"
+      ],
+      "directions": [
+        "higher_is_better",
+        "lower_is_better",
+        "target_value"
+      ],
+      "description": "Named measurements linked to a taxonomy family without selecting an implementation."
+    },
+    "seeds": {
+      "type": "object",
+      "required_fields": [
+        "training",
+        "evaluation",
+        "controls",
+        "independent"
+      ],
+      "additional_properties": false,
+      "minimum_seed_count": 1,
+      "description": "Predeclared seeds for training, evaluation, and controls."
+    },
+    "controls": {
+      "type": "array",
+      "minimum_items": 1,
+      "item_required_fields": [
+        "id",
+        "kind",
+        "metric_ids",
+        "required",
+        "expected_behavior"
+      ],
+      "description": "Controls and their expected behavior, bound to declared metrics."
+    },
+    "uncertainty": {
+      "type": "object",
+      "required_fields": [
+        "method",
+        "confidence_level",
+        "repetitions",
+        "unit_of_analysis",
+        "predeclared"
+      ],
+      "additional_properties": false,
+      "minimum_repetitions": 2,
+      "confidence_level_open_interval": true,
+      "description": "Predeclared uncertainty method, repetitions, and unit of analysis."
+    },
+    "causal_expectation": {
+      "type": "object",
+      "required_fields": [
+        "applicable",
+        "expectation",
+        "target_metric_ids",
+        "falsification_rule",
+        "non_applicable_reason"
+      ],
+      "additional_properties": false,
+      "description": "Causal expectation and falsification rule, or an explicit non-applicability declaration."
+    },
+    "thresholds": {
+      "type": "array",
+      "minimum_items": 1,
+      "item_required_fields": [
+        "metric_id",
+        "comparator",
+        "value",
+        "tolerance",
+        "predeclared"
+      ],
+      "comparators": [
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "=="
+      ],
+      "description": "Immutable pass/fail thresholds declared before evidence is generated."
+    },
+    "commitment": {
+      "type": "object",
+      "required_fields": [
+        "locked",
+        "declared_at",
+        "manifest_sha256",
+        "canonicalization"
+      ],
+      "additional_properties": false,
+      "canonicalization": "json-sort-keys-no-whitespace-utf8",
+      "description": "Content digest and lock commitment prevent post-hoc manifest mutation."
+    }
+  },
+  "fail_closed": {
+    "malformed": {
+      "outcome": "rejected",
+      "claim_allowed": false
+    },
+    "incomplete": {
+      "outcome": "rejected",
+      "claim_allowed": false
+    },
+    "post_hoc": {
+      "outcome": "rejected",
+      "claim_allowed": false,
+      "requirements": [
+        "status must be predeclared",
+        "commitment.locked must be true",
+        "commitment.manifest_sha256 must match canonical content"
+      ]
+    },
+    "unsupported": {
+      "outcome": "unsupported",
+      "claim_allowed": false,
+      "evidence_status": "not_evaluated"
+    }
+  }
+}

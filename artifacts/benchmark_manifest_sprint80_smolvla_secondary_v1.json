@@ -1,0 +1,144 @@
+{
+  "causal_expectation": {
+    "applicable": true,
+    "expectation": "Ablating the smallest-heldout-variance vision-context direction reduces the captured feature effective rank beyond tolerance while random and off-target ablations do not.",
+    "falsification_rule": "If on-target ablation fails to move the effective rank beyond tolerance while the collapse defect is claimed, the causal claim is falsified; if a random or off-target direction moves it equally, the localization claim is falsified.",
+    "non_applicable_reason": "not_applicable",
+    "target_metric_ids": [
+      "bottleneck-effective-rank"
+    ]
+  },
+  "commitment": {
+    "canonicalization": "json-sort-keys-no-whitespace-utf8",
+    "declared_at": "2026-09-22T00:00:00Z",
+    "locked": true,
+    "manifest_sha256": "cb45b0e90c8a30def0a34294a9e19665bf9204f262a346d608a70712549df8bc"
+  },
+  "controls": [
+    {
+      "expected_behavior": "healthy full-rank reference scores above both diagnostic thresholds",
+      "id": "control-healthy-counterexample",
+      "kind": "counterexample",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "benign low-variance case does not trigger the collapse diagnosis",
+      "id": "control-benign-low-variance",
+      "kind": "negative",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "shuffled null shows no claimed collapse effect",
+      "id": "control-null-shuffle",
+      "kind": "null",
+      "metric_ids": [
+        "bottleneck-effective-rank"
+      ],
+      "required": false
+    }
+  ],
+  "dataset": {
+    "data_digest": "0ee63f53aa9e6fba04b79b382297bfa235a2df6d6544e3402862fe69689d4b51",
+    "id": "lerobot/libero",
+    "revision": "a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+    "split": "train",
+    "split_identity": "bounded-episodes0000-0003-frames-even0to30-16per-episode-64-total-train-episodes-0-1-eval-episodes-2-3"
+  },
+  "defect": {
+    "classification": "none",
+    "declaration": "Secondary bounded SmolVLA lane (Sprint 80 task 80.27): no defect is injected and none is claimed as known a priori on the pinned checkpoint. The frozen collapse thresholds (bottleneck-effective-rank >= 3.0, bottleneck-singular-spread >= 0.25, unchanged from the frozen encoder manifest) are evaluated on real captured vision-context features from 64 real LIBERO frames (episodes 0-3, frames 0,2,...,30 of each episode) of the model card paired dataset; a positive observation would require localization before any claim and a negative observation blocks the chain at explain by contract. Expected localization if positive: the predeclared slice axis. Resource ceiling: CPU-only lane under the permanent 16 GiB. No observed values are encoded here.",
+    "predeclared": true,
+    "source": "not_applicable"
+  },
+  "manifest_id": "sprint80-secondary-smolvla-vision-collapse-v1",
+  "metrics": [
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-singular-value-profile",
+      "id": "bottleneck-effective-rank",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "effective-rank"
+    },
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-variance-profile",
+      "id": "bottleneck-singular-spread",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "ratio"
+    }
+  ],
+  "model": {
+    "artifact_digest": "9a9f6413e42c0f332fccbce9a0dc796af2790f82cf002f791cdbf7e01e1afca8",
+    "id": "lerobot/smolvla_libero",
+    "revision": "31d453f7edd78c839a8bbc39744a292686daf0de",
+    "revision_immutable": true,
+    "revision_kind": "commit"
+  },
+  "representation": {
+    "axes": [
+      {
+        "identity": "libero-frame-sample-axis-64",
+        "name": "sample",
+        "selection": "frames-64"
+      },
+      {
+        "identity": "vision-context-feature-axis-1024",
+        "name": "feature",
+        "selection": "vision-context-dim0-1023"
+      },
+      {
+        "identity": "slice-axis-all",
+        "name": "slice",
+        "selection": "all"
+      }
+    ],
+    "identity": "lerobot-smolvla-libero:vision-context:dim1024"
+  },
+  "schema_version": "benchmark-manifest-schema-v1",
+  "seeds": {
+    "controls": [
+      17
+    ],
+    "evaluation": [
+      42
+    ],
+    "independent": true,
+    "training": [
+      0
+    ]
+  },
+  "status": "predeclared",
+  "thresholds": [
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-effective-rank",
+      "predeclared": true,
+      "tolerance": 0.1,
+      "value": 3.0
+    },
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-singular-spread",
+      "predeclared": true,
+      "tolerance": 0.02,
+      "value": 0.25
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "method": "bootstrap",
+    "predeclared": true,
+    "repetitions": 200,
+    "unit_of_analysis": "sample"
+  }
+}
