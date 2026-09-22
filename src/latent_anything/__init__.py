@@ -63,6 +63,15 @@ from latent_anything.density import (
 from latent_anything.density import (
     mahalanobis_baseline as mahalanobis_baseline,
 )
+from latent_anything.diagnostics import CaptureSelection as CaptureSelection
+from latent_anything.diagnostics import ComparisonRequest as ComparisonRequest
+from latent_anything.diagnostics import ControlSelection as ControlSelection
+from latent_anything.diagnostics import DiagnosticRequest as DiagnosticRequest
+from latent_anything.diagnostics import DiagnosticRequestError as DiagnosticRequestError
+from latent_anything.diagnostics import DiagnosticResult as DiagnosticResult
+from latent_anything.diagnostics import DiagnosticSelection as DiagnosticSelection
+from latent_anything.diagnostics import InterventionRequest as InterventionRequest
+from latent_anything.diagnostics import OutputSelection as OutputSelection
 from latent_anything.dtw import DTWConfig as DTWConfig
 from latent_anything.dtw import DTWCostSummary as DTWCostSummary
 from latent_anything.dtw import DTWResult as DTWResult
@@ -338,6 +347,15 @@ __all__ = [
     "PipelineContract",
     "BatchExecutor",
     "CacheKey",
+    "CaptureSelection",
+    "ComparisonRequest",
+    "ControlSelection",
+    "DiagnosticRequest",
+    "DiagnosticRequestError",
+    "DiagnosticResult",
+    "DiagnosticSelection",
+    "InterventionRequest",
+    "OutputSelection",
     "CacheStats",
     "DiskCacheError",
     "DiskCacheStats",
