@@ -306,7 +306,7 @@ def _spread(data: np.ndarray) -> float:
 def adapter_case() -> dict[str, object]:
     """Real pinned policy + captured vision-context features from real frames."""
     torch.manual_seed(42)
-    adapter = load_smolvla_policy(DEFAULT_SMOLVLA_CHECKPOINT, device="cpu")
+    adapter = load_smolvla_policy(DEFAULT_SMOLVLA_CHECKPOINT, device=_DEVICE)
     rows: list[np.ndarray] = []
     query_seconds = 0.0
 
@@ -1066,6 +1066,14 @@ def run_proof() -> int:
     current = time.perf_counter()
     phase_text = ", ".join(f"{name}={seconds:.2f}s" for name, seconds in _phases.items())
     print(verdict)
+    cuda_peak = (
+        torch.cuda.max_memory_allocated() / (1 << 20) if torch.cuda.is_available() else 0.0
+    )
+    cuda_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none"
+    print(
+        f"device: {cuda_name}; cuda {torch.version.cuda or 'n/a'}; "
+        f"peak GPU memory {cuda_peak:.1f} MiB; torch {torch.__version__}"
+    )
     print(
         f"resources: proof body {current - started:.2f}s ({phase_text}); "
         f"wall including imports {current - _MODULE_START:.2f}s; "
@@ -1086,7 +1094,20 @@ def run_proof() -> int:
 
 
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--device",
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Policy device (defaults to cuda when available, matching the hardware profile).",
+    )
+    args = parser.parse_args()
+    globals()["_DEVICE"] = str(args.device)
     return run_proof()
+
+
+_DEVICE = "cpu"
 
 
 if __name__ == "__main__":
