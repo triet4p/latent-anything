@@ -5,16 +5,15 @@
 
 **Sprint:** Sprint 80 — Stable Depth
 **Task:** 80.26
-**Status:** **BLOCKED — NOT checked.** The checkbox for 80.26 remains `[ ]` in
-`docs/sprint-plans/sprint-80.md`. The guide and both executable examples are
-published, indexed, and smoke-exercised with observed evidence, but the
-literal acceptance — a user reproduces **both diagnoses** end to end — is
-unreachable under the frozen contracts: no validator-clean content-addressed
-artifact or rendered report can exist for either frozen manifest (the encoder
-chain fails closed at `explain` so `report` never runs; the transformer report
-cannot pass the independent validator because of the frozen
-taxonomy/manifest/binder axes triangle). Nothing was promoted, no frozen
-contract was reopened, and no success is claimed.
+**Status at the initial iteration:** **BLOCKED — NOT checked.** At that time the
+80.26 plan row was `[ ]`. The guide and examples existed in the shared worktree
+and were smoke-exercised, but remained untracked in that handoff revision; a
+Git clone therefore could not execute them. The original v1 cases could not
+produce a validator-clean artifact or rendered report: the encoder chain failed
+closed at `explain`, and the transformer report failed independent validation
+because of the frozen taxonomy/manifest/binder axes triangle. This describes
+only the original attempt; no v1 contract or outcome was changed or promoted as
+success. The later accepted v3/v2 results are recorded separately below.
 
 ## Summary of Work
 
@@ -134,9 +133,9 @@ sprint plan): EXIT=0 — 15696 nodes, 35476 edges, 1070 aggregated communities,
 wall 82.72 s. A final confirming `graphify update .` runs after this artifact,
 with no writes afterwards.
 
-## Follow-up — current accepted example results
+## Follow-up — previously observed accepted example results
 
-This follow-up records the updated guide and executable examples. The fail-closed v1 results and explanations above remain historical evidence, unchanged and distinguishable from these accepted v3/v2 runs. The current evidence handoff is [task 80.26](sprint-80/task-26.md); the sprint row remains `[~]` pending Main's review.
+This follow-up preserves the earlier accepted-run outputs for the updated guide and examples. They are distinct from the initial fail-closed v1 outcomes above and from the later clean-clone publication run recorded in the current [task 80.26 handoff](sprint-80/task-26.md). The sprint row remains `[~]` pending Main's evidence review.
 
 ### Encoder v3
 
@@ -162,9 +161,9 @@ Observed exit 0, 513.85 s total wall (498.77 s proof body). Pinned GPT-2/Wikitex
 
 Rerunning against the populated `--output` path refused before proof execution, exit 2; no overwrite occurred. The smoke also exercised fail-closed manifest-tamper, capture-provenance, leakage and resume-identity checks plus the failed-control inconclusive outcome.
 
-The guide's resource envelope and cross-run variability are sourced from the independent non-editable 80.25 reproduction: encoder 15.563 s / 353,533,952 bytes (337.2 MiB); cold transformer 983.945 s / 1,784,811,520 bytes (1,702.1 MiB), under the 16-GiB ceiling; randomized-control leakage-gap variation `0.002004008016` across accepted runs, with pinned inputs and thresholds unchanged.
+An earlier non-editable 80.25 replay measured encoder 15.563 s / 353,533,952 bytes (337.2 MiB) and cold transformer 983.945 s / 1,784,811,520 bytes (1,702.1 MiB). These are historical measurements, not the figures now quoted in the guide: the guide cites the accepted revision-backed replay at source commit `5241553` (run `20260925-065327-115093-14640`), which measured encoder 7.272 s / 353,763,328 bytes and transformer 944.193 s / 1,840,766,976 bytes. The leakage-gap difference `0.002004008016` compares that accepted committed run (`0.44889779559118237`) with historical inline-driver run `c4012406e89254ea` (`0.45090180360721444`); it is one of 499 evaluation rows. The pinned inputs and thresholds were unchanged.
 
-Relative-link check: 52 local Markdown links across the guide, index, historical summary, and this task artifact resolved; zero failures. The sprint row remains `[~]`; these results are evidence for Main's review, not a task-completion verdict.
+Historical workspace link check: 52 local Markdown links across the guide, index, historical summary, and task artifact resolved; zero failures. The current publication revision is separately checked in the task handoff. The sprint row remains `[~]`; these results are evidence for Main's review, not a task-completion verdict.
 
 ## Current Graph Refresh
 

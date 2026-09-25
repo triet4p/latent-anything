@@ -8,13 +8,12 @@ Updated the user-facing guide and its two executable examples to demonstrate the
 
 The old fail-closed v1 guide/example results remain distinguishable historical evidence in the [initial task summary](../task_80.26_ai_engineer_guide_examples_summary.md); they have not been rewritten as earlier successes. No frozen input/manifest, source API, proof composition, or sprint-plan row was changed. `docs/INDEX.md` and the sprint-wide evidence packaging remain outside this H2 publication; task80.29 owns those updates. `mkdocs.yml` was not changed because its `docs_dir` is the separate `latent-anything-theory` site.
 
-## Changed files and evidence outputs
+## Published files and generated evidence
 
 - `scripts/ai_engineer_example_encoder.py` — runnable encoder v3 entry point, safe output selection, persisted-artifact reload, independent validation and deterministic render check.
 - `scripts/ai_engineer_example_transformer.py` — corresponding transformer v1 / target-evidence-v2 entry point.
 - `docs/AI_ENGINEER_GUIDE.md` — prerequisites, pinned model/data/manifest/target record, exact commands, expected diagnoses, output behavior, interpretation limits and observed resource envelope.
-- `artifacts/diagnostics/ai-engineer-task80-26-encoder/` — encoder smoke output.
-- `artifacts/diagnostics/ai-engineer-task80-26-transformer/` — transformer smoke output.
+- `artifacts/diagnostics/ai-engineer-task80-26-encoder/` and `artifacts/diagnostics/ai-engineer-task80-26-transformer/` — prior shared-worktree smoke outputs, not included in the publication commit. Clean-clone outputs are generated in the disposable verification checkout and recorded below; they are not checked in.
 - `artifacts/task_80.26_ai_engineer_guide_examples_summary.md` — retained historical negative evidence with a current-results follow-up.
 - `graphify-out/graph.json`, `graphify-out/graph.html`, and `graphify-out/GRAPH_REPORT.md` — local ignored code-graph outputs refreshed during this task; they are not part of the scoped publication commit.
 - `artifacts/sprint-80/task-26.md` — this evidence handoff.
@@ -55,7 +54,7 @@ A second run of the transformer command against the populated output path was re
 
 The guide gives a one-time pinned GPT-2 snapshot-download command, exact runtime overlays, run commands, expected artifacts, uncertainty and task-specific limitations. It distinguishes the current accepted cases from the old fail-closed v1 history and does not claim a general-purpose auto-diagnoser. The guide follows the project’s English documentation convention; the index update is outside this publication and remains with task80.29.
 
-Relative-link verification after the G4/G5 edits: 55 local Markdown links across the guide, index, historical summary, and this task artifact resolved; zero failures.
+Earlier worktree link verification after the G4/G5 edits found 55 local Markdown links across the guide, index, historical summary, and task handoff; all resolved. The clean-clone link check appears under H2 publication evidence below.
 
 ## Graph refresh
 
@@ -92,10 +91,8 @@ deltas.
 
 ## Changed files and focused verification
 
-- `docs/AI_ENGINEER_GUIDE.md` lines 19, 80-86, and 159-177 — bounded-core
-  readiness, accepted-replay resource metrics, and per-run transformer evidence.
-- `artifacts/sprint-80/task-26.md` lines 51, 59, and 67-113 — corrected
-  provenance, focused verification, and this evidence handoff.
+- `docs/AI_ENGINEER_GUIDE.md` — bounded-core readiness, accepted-replay resource measurements, and per-run transformer evidence.
+- `artifacts/sprint-80/task-26.md` — corrected provenance, focused evidence, and review status.
 - Focused evidence comparison used the accepted `runs.json`, `diagnostic-report`,
   persisted intervention record, and `task-25.md`, plus the historical
   temporary-driver `diagnostic-report`. The accepted run records transformer
@@ -110,3 +107,39 @@ deltas.
   changed.
 - Graph update: not run because this correction changes Markdown only; existing
   `graphify-out/graph.json` is present and was not refreshed.
+
+## H2 publication and clean-clone evidence
+
+The five-file publication commit is `85a4c77c38ab8ec0a0905602dfac53924126b067` (`feat(sprint80): publish ai engineer guide examples`). The scoped files were exactly `docs/AI_ENGINEER_GUIDE.md`, both `scripts/ai_engineer_example_*.py` entry points, this task handoff, and the historical task summary. Before staging, the shared worktree had nine modified and 94 untracked paths; the staged-name check contained only those five files. `docs/INDEX.md`, `docs/PLAN.md`, `docs/SPRINT_80_DEPTH_EVIDENCE.md`, `docs/sprint-plans/sprint-80.md`, task80.29, frozen proof sources, and generated output directories were not staged.
+
+A disposable local Git clone at that revision had an empty `git status --short` before setup and execution, `core.autocrlf=true`, and HEAD `85a4c77c38ab8ec0a0905602dfac53924126b067`. `uv sync --frozen` succeeded with CPython 3.13.3 / uv 0.9.7 and installed 48 locked packages. The two examples and both committed case-composition modules were present in the clone. A relative-link check found 22 local Markdown links across the guide (13), handoff (2), and historical summary (7); all 22 resolved in the clone. The same links still resolve after the evidence-record edits below.
+
+### Encoder v3
+
+Command from the clean clone root:
+
+```bash
+uv run python scripts/ai_engineer_example_encoder.py --output artifacts/diagnostics/ai-engineer-task80-26-clean-encoder
+```
+
+Observed exit 0, wall 16.42 s. The frozen model lesion and digits data completed the full seven-stage workflow; required controls and independent validation passed, the example reloaded the persisted artifact, and deterministic rendering/content-address checks passed. Run `6889aada172832a9`; artifact SHA-256 `4a731e6e586a9bcca7fc39eda8db0071cfab38407157b2664d423237314a7d1d`; report SHA-256 `8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194`; rendered report SHA-256 `ceb15e47ece2d939154da2cce83524fb1cdf3f22372d5c0c719bf2fac6904baa`; 12 content-addressed blobs reloaded.
+
+### Transformer v1 with target-evidence-v2
+
+The pinned GPT-2 snapshot and Wikitext cache were external to the clone under `F:/llms/hf/models`. Executed with `HF_HOME=F:/llms/hf/models`:
+
+```bash
+env HF_HOME=F:/llms/hf/models uv run --extra transformers --with "datasets==3.6.0" --with "huggingface-hub==0.35.3" python scripts/ai_engineer_example_transformer.py --output artifacts/diagnostics/ai-engineer-task80-26-clean-transformer
+```
+
+Observed exit 0, wall 498.15 s (proof body 490.59 s). Frozen model/data checks passed, including all 3,760 official Wikitext rows, 2,461 nonblank rows, and 2,048 selected index/text hashes; the 1,549/499 grouped split was disjoint. The full seven-stage diagnosis and required controls passed, including deterministic replay, frozen-input invariance, independent report validation, all 13 content-addressed evidence links, and deterministic rendering. The probe found held-out accuracy `1.0000` and leakage gap `0.4489`; the removal intervention changed accuracy to `0.7315` (effect `-0.2685`), and the aligned comparison remained `neither` with zero deltas. Run `375b5a873b731e31`; artifact SHA-256 `22e194cb37f9303454f2d020084a8379c66633350c63982da2439fe5e90e3988`; report SHA-256 `c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb`; rendered report SHA-256 `883f4e58e040776ead885fb0f5433f3ddeb3afb1271150aaaff9f36cb3e1fa35`; 13 content-addressed blobs independently reloaded. The entry point printed `ACCEPTANCE PASSED`.
+
+### Output-collision, scope, and graph checks
+
+Re-running each entry point against its populated `--output` directory refused before proof execution with exit 2. The encoder output-tree SHA-256 remained `1f03598a773a0543eac3f90d2ce7549f255c5a454bee38c7418b0eaff4c21ab2`; the transformer output-tree SHA-256 remained `789b6154e2fcd22eccd9b87eaa33192fe664dfc0b1cf4a88b14a8888a4aadb29`. A first transformer collision invocation transiently reported `can't open file` for the tracked entry point; file/status inspection showed the source present and unchanged, and an immediate identical retry produced the expected exit-2 refusal with the output-tree digest unchanged. The transient's cause is unknown; the full transformer run and collision behavior both passed on retry.
+
+The clean-clone run outputs totalled 114,423 bytes (19 encoder files) and 322,099 bytes (17 transformer files); no large model/checkpoint files or credential-shaped assignments were found. They are run-specific outputs and were not committed. The external Hugging Face cache stayed outside the repository. No tracked example code changed after commit `85a4c77`.
+
+After publishing the example entry points, `graphify update .` exited 0 in 83.72 s. The local ignored graph now reports 16,431 nodes, 37,814 edges, and 1,108 communities; the aggregate HTML contains 1,108 community nodes and 1,614 cross-community edges. Graphify noted 326 source files with zero nodes (mostly JSON) and 1,089 saved labels for 1,108 communities, renaming 211 by hub; no label refresh or semantic-document extraction was run. `graphify-out/` remains uncommitted.
+
+The guide retains the bounded-core READY statement only as conditional on the final review and plan gate. Its accepted revision-backed leakage gap remains `0.44889779559118237`; the distinct historical inline-driver value `0.45090180360721444` remains attributed to run `c4012406e89254ea`, a one-row difference across 499 evaluation rows. The historical summary now labels the earlier resource envelope separately from the newer `5241553` replay used by the guide. No final deep-review or plan-gate PASS is asserted; the sprint row remains `[~]` for Main's review.
