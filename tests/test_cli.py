@@ -54,8 +54,14 @@ def test_inspect_dataset_missing_lerobot_has_actionable_extra() -> None:
     code = """
 import builtins
 from latent_anything.cli import main
+from latent_anything.integrations import lerobot
+
+# Distribution metadata can be present even when the import seam is blocked.
+installed_version = lerobot._installed_version
+lerobot._installed_version = lambda distribution: None if distribution == "lerobot" else installed_version(distribution)
 
 original_import = builtins.__import__
+
 
 def block_lerobot(name, globals=None, locals=None, fromlist=(), level=0):
     if name == "lerobot" or name.startswith("lerobot."):
