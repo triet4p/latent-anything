@@ -7,9 +7,15 @@ Latent Anything will reach `1.0.0` by proving diagnostic depth on real model rep
 Sprints 1-26 established the beta foundation. Sprints 27-79 establish the `0.9.0` pre-stable API and evidence baseline. Sprint 80 proves the depth-first representation-diagnostic contract on ordinary deep-learning models, with a small VLA as a secondary bounded proof lane. Sprint 81 owns `1.0.0` publication after those depth gates pass. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
 
 Sprint 78's API-freeze checkpoint is recorded in the owner decision and
-[`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the documented
-205-runtime/202-canonical surface now requires reviewed compatibility handling,
-but this is not a release-readiness claim. Package metadata is `0.9.0` as
+[`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the published
+`v0.9.0` release-time snapshot recorded 205 runtime exports / 202
+canonical-stable names / 7 public exceptions (SHA-256
+`048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`).
+Those values are historical, not the current source inventory. The checked-in
+source API-freeze snapshot now records 214 runtime exports / 211
+canonical-stable names / 8 public exceptions (SHA-256
+`3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`).
+Neither inventory alone is a release-readiness claim. Package metadata is
 the pre-stable candidate. The `v0.9.0` tag now points to the merged release
 commit, and the gated workflow published and verified the GitHub Release
 (wheel, sdist, checksums, provenance, and release notes) as the `0.9.0`
@@ -93,7 +99,7 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Active; the bounded supported ordinary-DL core has conditional READY status based on the replay measured from source revision `5241553`. The 80.28 full-gate selection was measured in the shared worktree at code basis `f15859b` (that commit contains the 80.25 handoff, not the 80.28 handoff); the API snapshot/tool/test overlays and focused clean-clone checks are revision-backed at `cef267e`, but the full suite was not rerun in a clean clone. The latest deep review returned FAIL on H1–H3; H1 is corrected, this publication addresses H2/H3, and a fresh final deep review is pending. Sprint 80 is not complete; Sprint 81 general-release, broad stable-depth, and GPU/CUDA claims remain gated or excluded.*
+- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Active; the bounded supported ordinary-DL core has conditional READY status based on the replay measured from source revision `5241553`. The 80.28 full-gate selection was measured in the shared worktree at code basis `f15859b` (that commit contains the 80.25 handoff, not the 80.28 handoff); the API snapshot/tool/test overlays and focused clean-clone checks are revision-backed at `cef267e`, but the full suite was not rerun in a clean clone. The third deep review returned FAIL on H1–H3, with its publication corrections revision-backed; the fourth deep review (`agent://DeepReviewSprint80Fourth`) returned FAIL on D1/D2. This correction distinguishes the Sprint 78 API checkpoint from the current snapshot and publishes only Sprint 80-scoped memory additions. A fresh sprint-wide deep review remains pending. Sprint 80 is not complete; Sprint 81 general-release, broad stable-depth, and GPU/CUDA claims remain gated or excluded.*
 
 Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 remains Active pending its final deep review. Its bounded-core Sprint 81 handoff is READY only within the evidence boundary in [the depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md); this does not mark Sprint 80 complete or authorize general-release, arbitrary-model, or GPU/CUDA claims for Sprint 81.
 

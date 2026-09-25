@@ -1376,3 +1376,85 @@ change requires a new ADR and must not weaken the GitHub asset checks.
 assets, and release evidence records the asset names, hashes, provenance, and
 clean asset-install smoke. Sprint 79 task 604 remains open until this GitHub
 publication evidence is recorded; Sprint 80/81 scope is unchanged.
+
+## [2026-09-21] Keep Sprint 80 diagnostics on a frozen dataclass request/result API
+
+**Decision:** Define the Sprint 80 high-level diagnostic contract as frozen dataclasses in `latent_anything.diagnostics` (`DiagnosticRequest`/`DiagnosticResult` plus domain selection types), validated fail-closed at construction, instead of extending the registry-backed `ObjectSpec`/`PipelineSpec` configuration path.
+**Alternatives considered:** Extend `ObjectSpec` kinds or `PipelineSpec` with diagnostic fields; model the request as pydantic specs resolved through the runtime registry.
+**Reason:** The diagnostic workflow must declare capture, family, control, intervention, comparison, manifest, and output choices in domain terms without architecture-specific fields and without executing stages; the registry path instantiates adapters/methods by kind/name and would couple declaration to implementation lookup. A separate frozen dataclass boundary keeps 80.6 construction-only while 80.7/80.8 own binding and orchestration.
+**Consequences:** Future workflow tasks consume `DiagnosticRequest`/`DiagnosticResult` as the single declaration surface and must not add a parallel diagnostic config loader; the 0.9 API-freeze snapshot must be regenerated under review because this adds public symbols.
+
+## [2026-09-21] Bind diagnostic capture axes in a private rank-driven module with no new public exports
+
+**Decision:** Implement Sprint 80.7 capture-axis binding as a private module (`latent_anything._capture_binding`) that assigns array-axis indices from rank alone (feature-last; sample/slice share batch axis 0; at most one of token/time on the sequence axis; layer/module/checkpoint stay selection axes), reuses `CapturedActivation`/`LatentValue`/`Trajectory` with no parallel container, and adds zero top-level re-exports.
+**Alternatives considered:** A new public `CaptureBinding` API re-exported from `latent_anything`; per-architecture binder branches for the encoder bottleneck vs transformer hidden states; a parallel capture-metadata container beside `LatentValue.metadata`.
+**Reason:** The reviewed 80.6 nine-name top-level surface must survive unless 80.7 acceptance strictly requires an addition; both core shapes reduce to the same rank rule so architecture branching would be weightless code; and `LatentValue` already owns immutability plus coordinate identity, so a second container would duplicate the serialization/provenance path.
+**Consequences:** Task 80.8 consumes the private binder directly; any future public export of binding types needs explicit review; ranks above 3 and `layer`+`module` co-requests reject fail-closed rather than guessing, which later axes support must extend deliberately.
+
+## [2026-09-21] Keep the diagnostic workflow coordinator private, executor-driven, and identity-bound
+
+**Decision:** Implement Sprint 80.8 as a private executor-driven coordinator (`latent_anything._diagnostic_workflow.DiagnosticWorkflow`) that enforces the exact seven-stage order through caller-supplied `StageExecutor` callables, binds every run to canonical request/manifest/config digests plus per-stage output digests, resumes only on full identity match without rerunning completed stages, and adds zero top-level exports.
+**Alternatives considered:** A public `DiagnosticWorkflow` re-export from `latent_anything`; embedding detector/explainer/intervention defaults inside the coordinator; registry-backed `ObjectSpec`/`PipelineSpec` stage lookup; stage-skipping or partial re-execution modes.
+**Reason:** The 80.6 decision forbids a parallel diagnostic config path and the 80.7 decision keeps binding private with no new exports; method algorithms belong to 80.9+ executors, and resume safety requires digest-bound artifact boundaries rather than positional trust. A `__call__` entry keeps the coordinator usable as a supplied callable without widening the public surface.
+**Consequences:** Tasks 80.9+ supply per-stage executors against the frozen `StageInvocation`/`StageOutput`/`WorkflowCheckpoint` contracts; any public export, default executor, or persistence (80.21) needs its own reviewed decision; `restart=True` is the only rerun path.
+
+## [2026-09-21] Detect collapse/anisotropy in a private executor reusing the shared health spectrum
+
+**Decision:** Implement Sprint 80.9 as a private detector (`latent_anything._collapse_detection`) that reuses `compute_latent_health` for the covariance spectrum/effective rank/inactive fraction, adds one thin SVD for singular spread only, reads anisotropy through the same frozen metrics with distinct taxonomy evidence identifiers, gates claims with `evaluate_claim`, and plugs into `DiagnosticWorkflow` via a supplied `detect` executor with zero top-level exports.
+**Alternatives considered:** A public detector API re-exported from `latent_anything`; a separate anisotropy estimator with its own metric/threshold path; embedding detection defaults inside `DiagnosticWorkflow`; tuning thresholds from observed values.
+**Reason:** The 80.6/80.7/80.8 decisions keep declaration, binding, and coordination private and method-free; the frozen encoder manifest wires both metrics to `collapse_rank_loss` with `>=` thresholds, so a second estimator would duplicate the spectrum and a second threshold path would violate the predeclared-threshold contract. Scale-invariant rank/spread already separates structural defects from benign global gain.
+**Consequences:** Tasks 80.10+ add their own family executors against the same `StageInvocation`/`StageOutput` contracts; any new metric ids, public exports, or centralized control execution (80.15) need their own reviewed decisions; bootstrap cost stays at the manifest-predeclared 200 resamples.
+
+## [2026-09-21] Evaluate 80.9 detection once per executor call through a shared context
+
+**Decision:** Route every 80.9 detect-executor call through one `_DetectionContext` (`evaluate_detection`): each target/control batch decomposed once (`_evaluate_batch`: one shared health spectrum + one thin SVD), the shuffled null computed once, and the seeded bootstrap run once (`_bootstrap_both`: exactly `repetitions` shared draws recording both statistics), with `_decide` and payload assembly consuming the same context.
+**Alternatives considered:** Keeping the `detect_families` + `detection_payload` naive composition (which recomputed null, both bootstrap loops, and all control metrics); caching resample draws across calls in module state.
+**Reason:** The evidence gate proved the naive composition cost roughly twice the manifest-declared 200 resamples per metric plus duplicate control decompositions while reporting identical thresholds/seeds/counts. A shared per-call context preserves every observable output with exactly the declared work and no cross-call state.
+**Consequences:** Production paths (including `make_detect_executor`) must use `evaluate_detection`; `detect_families`/`detection_payload` stay as documented unit-check seams whose naive composition is known-double. The instrumented single-evaluation test guards the 200-not-400 resample count and one control pass behaviorally.
+
+## [2026-09-23] Review the Sprint 80.6 exports in the 0.9.0 API freeze
+
+**Decision:** Keep exactly the nine diagnostic request/result types introduced by Sprint 80.6 as intentional additive public beta exports in the current `0.9.0` API-freeze snapshot. Do not remove those exports to match the older 205-name snapshot, and do not accept additional public-surface drift without review.
+**Alternatives considered:** Leave the snapshot stale; mechanically regenerate it without reviewing the names and signatures; or retract the Sprint 80.6 exports.
+**Reason:** The nine names are the deliberately small, domain-oriented public contract required by 80.6, not accidental leaks. Its frozen dataclasses provide one declaration path for capture, diagnostics, controls, interventions, comparisons, and output while leaving binding and orchestration private.
+**Consequences:** The reviewed snapshot and semantic API tests must record the exact nine names and preserve all prior aliases, modules, and signatures; the historical `0.1.0b1` snapshot remains unchanged. Future public exports require the same explicit review.
+
+## [2026-09-23] Preserve the frozen encoder case and predeclare a separate injected v2
+
+**Decision:** Keep the original encoder v1 manifest and its PASS_BLOCKED evidence immutable; evaluate any capture-level injected defect only under a distinct versioned manifest whose defect, metric, controls, and thresholds are hashed before new proof data is generated.
+
+**Alternatives considered:** Reclassify the v1 endogenous case after observing that its pinned representation remains healthy; adjust the v1 thresholds or target feature; or use a separate v2 manifest with an explicitly injected capture lesion.
+
+**Reason:** The v1 evidence already establishes that the declared defect is absent on the pinned model; changing that frozen claim or tuning around its observed outcome would invalidate the evidence. A versioned injected case can test detector/localizer/intervention behavior prospectively while preserving the original negative result.
+
+**Consequences:** V2 results describe only a capture-level injected defect, not model-weight corruption or success of the original v1 case. Sprint 80.23 acceptance must be amended by the task owner before v2 can satisfy the original frozen-case gate.
+
+## [2026-09-23] Localize feature coordinates through the existing private axial seam
+
+**Decision:** Add manifest-bound feature declarations and ordered per-feature evidence cells to the private axial localizer rather than introducing an encoder-only localization path or treating features as samples or slices.
+
+**Alternatives considered:** Add a one-off encoder feature localizer; overload sample/slice identities with feature names; or generalize the existing checkpoint/token/time axial contract to a feature coordinate axis.
+
+**Reason:** Feature coordinates share the axial seam's essential contract—explicit manifest identity/selection, declared order, aligned per-coordinate measurements, prequalified detector evidence, and a deterministic supported-location result—without sharing sample or slice semantics. Reusing that contract preserves architecture neutrality and allows explanation binding to require the exact localized feature identity.
+
+**Consequences:** `feature` localization remains private and control-qualified; new callers must provide full ordered feature coverage aligned to the manifest axis and representation identity. Feature-axis additions require updating the shared axial tests and stage version, not adding top-level API exports.
+
+## [2026-09-23] Bind causal interventions to comparison-only task utility
+
+**Decision:** Permit a causal intervention to measure a manifest-declared metric outside detector selection only when it is a manifest causal-expectation target with a predeclared threshold and is declared by a requested comparison; retain the existing request, hypothesis, family, representation, manifest, and evaluated-explanation bindings. The comparison contract requires its representation metric to be detector-selected, so the remaining comparison-only metric is the task role. The renderer must verify that a comparison-only intervention metric is the task metric named by the same request-declared, report-declared comparison. Render positive localization rows with status `supported` as supported locations.
+
+**Alternatives considered:** Require downstream task utility to be added to detector selection; allow any comparison metric to bypass the prior-localization metric requirement without checking its task role during rendering; or add an encoder-specific report/intervention path.
+
+**Reason:** Detection and localization remain about the selected representation metric, while causal intervention and aligned comparison can measure a distinct downstream utility metric that was frozen in the manifest. Requiring its comparison task role preserves the evidence boundary without broadening detector claims; checking report/request identities prevents the generic renderer from falsely rejecting that task metric or suppressing a supported location.
+
+**Consequences:** Comparison-only intervention metrics still require a manifest metric, causal target, predeclared threshold, requested comparison, and evaluated hypothesis evidence. Only the aligned comparison's declared task metric supplies non-detection measurement provenance; an unrelated or representation-only metric is insufficient. A localized result with `supported` status remains visible in the rendered report.
+
+## [2026-09-24] Separate target labels from activation axes in diagnostic evidence v2
+
+**Decision:** Preserve the v1 diagnostic evidence contract and frozen taxonomy/manifest behavior. Add `diagnostic-evidence-v2` with a content-addressed target record that binds the predeclared rule, labels, sample identities, split memberships, dataset split, representation, and detector capacity separately from real activation-capture axes.
+
+**Alternatives considered:** Relabel target labels or sample identities as activation axes; weaken the independent taxonomy applicability gate; or add a transformer-only persistence path.
+
+**Reason:** Supervised labels are target provenance, not activation-array dimensions. The frozen transformer v1 manifest and real capture cannot truthfully supply the taxonomy's label axis, while its evaluated target and grouped split are available as independently bound evidence.
+
+**Consequences:** V2 persistence and reload must validate the target record against the detect-stage provenance and actual registered capture axes. Missing, tampered, or misaligned target evidence remains fail-closed. Reports without the v2 target block retain v1 behavior, including the historical taxonomy mismatch; no frozen input or v1 claim is rewritten.

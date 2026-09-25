@@ -1483,3 +1483,142 @@ provenance. Keep matched-norm as a separate control.
 **Watch out for:** Never let independently rehashed metrics, controls, or
 provenance become authoritative; derive and compare every retained view at
 the artifact boundary.
+
+## [2026-09-22] Non-editable wheel install cannot load frozen schemas because artifact loaders assumed the editable repo layout
+
+**Symptom:** In a genuinely clean environment (`uv sync --frozen --no-dev
+--extra transformers --no-editable` into a fresh root `.venv`), both Sprint 80
+core proofs crashed before any workflow stage ran:
+`FileNotFoundError: <fresh-root>\.venv\Lib\artifacts\benchmark_manifest_schema_v1.json`
+wrapped as `BenchmarkManifestValidationError: benchmark-manifest schema cannot
+be loaded`.
+**Root cause:** `_benchmark_manifest.SCHEMA_PATH`,
+`_diagnostic_report.SCHEMA_PATH`, and `_representation_taxonomy.TAXONOMY_PATH`
+were computed as `Path(__file__).resolve().parents[2] / "artifacts" / ...`,
+which is only the repo root when the package lives at `<root>/src/<pkg>`. From
+an installed wheel at `<venv>/Lib/site-packages/<pkg>`, `parents[2]` is
+`<venv>/Lib`, so every schema lookup pointed outside the project.
+**Fix / workaround:** Added the shared resolver
+`src/latent_anything/_artifact_path.py::resolve_artifact_path(filename)`,
+which walks upward from `_PACKAGE_DIR` until a directory containing
+`artifacts/<filename>` exists (the loaders still fail closed on schema
+identity/content), with the historical developer location kept as the error
+fallback; rewired the three constants to it. `tests/test_artifact_path_resolution.py`
+pins byte-identical dev resolution, cwd-independent installed-layout
+resolution, and the legacy fallback.
+**Watch out for:** Any `Path(__file__).parents[N]`-based resource lookup — it
+works in the developer source tree and breaks the first time the package is
+installed non-editable (wheel install, `uv sync --no-editable`, `pip install .`).
+Clean-environment/reproducibility tasks are exactly the trigger; resolve
+resources by walking to the owning project root instead.
+
+## [2026-09-22] Importing PyTorch silently creates an empty `torchinductor_<user>` directory under `tempfile.tempdir`
+
+**Symptom:** An isolation assertion demanding an exactly empty per-run temp
+directory failed with `["torchinductor_admin"]` even though no proof cache had
+leaked; transformer runs listed `["latent-anything-80-24-...npz",
+"torchinductor_admin"]`, so the expected pooled cache and a foreign entry
+appeared together.
+**Root cause:** On Windows, merely importing `torch` creates
+`%TEMP%\torchinductor_<username>` (PyTorch's empty inductor compile-cache
+directory) under `tempfile.gettempdir()` — no compilation required. The same
+empty directory (0 children) exists in the developer OS temp, so it is a
+framework artifact of import, not generated proof state.
+**Fix / workaround:** Filter `torchinductor_*` entries out of temp-isolation
+assertions and assert only on proof-content entries —
+`scripts/sprint80_task80_25_clean_repro.py::_check_temp_behavior` now requires
+exactly the non-empty `latent-anything-80-24-*.npz` for transformer runs and no
+proof entries for encoder runs — while an independent before/after comparison
+proves the developer's warm pooled cache was never touched. The as-run
+`CHECK_FAILURES` verdict was preserved rather than rewritten.
+**Watch out for:** Any "temp/output directory must be exactly empty" check in a
+process that imports torch (or other frameworks that seed their own caches).
+Distinguish framework-created cache directories from generated proof caches by
+name prefix and content instead of exact listing equality, and keep a
+separate untouched-warm-cache check so real leakage still fails loudly.
+
+## [2026-09-22] Windows uv virtualenv `python.exe` is a launcher — single-process RSS sampling reads the idle parent
+
+**Symptom:** Peak-RSS monitoring of proof subprocesses reported a constant
+~4.1 MiB for processes that had imported numpy/sklearn/torch, and psutil
+eventually raised `NoSuchProcess` naming a different pid than the one the child
+printed via `os.getpid()`.
+**Root cause:** uv-created Windows virtualenv `Scripts\python.exe` is a
+254,696-byte launcher executable (the base interpreter is 105,832 bytes).
+`Popen.pid` is the launcher, which spawns the real interpreter as a child and
+then idles at ~4.2 MB RSS until the child exits — so sampling only
+`Popen.pid` measures the wrong, nearly constant process.
+**Fix / workaround:** Sample the whole tree each tick —
+`psutil.Process(pid)` plus `children(recursive=True)`, taking the max of
+`peak_wset`/`rss` across all entries — and kill the whole tree on timeout so
+the worker is not orphaned
+(`scripts/sprint80_task80_25_clean_repro.py::_tree/_sample_tree/_kill_tree`).
+Added a sanity floor (>32 MiB) so a launcher-only sample fails the check
+loudly instead of passing a resource ceiling vacuously.
+**Watch out for:** Any resource monitoring or process-tree cleanup around
+`uv run`, uv-managed venvs, or Windows shim executables — always measure and
+terminate the full process tree, and cross-check the reported peak against a
+lower bound derived from what the process must have loaded.
+
+## [2026-09-23] Boolean values are not valid explanation confidence inputs
+
+**Symptom:** `confidence_level=True` was accepted by the probe and SAE explanation APIs even though a boolean is not a meaningful confidence value.
+**Root cause:** Python and NumPy booleans can pass generic numeric conversion/checks, so a range check alone does not distinguish them from real-valued confidence inputs.
+**Fix / workaround:** Reject `bool` and `numpy.bool_` explicitly before numeric conversion in both explanation validators; regression assertions cover the Python boolean case.
+**Watch out for:** Any strict numeric API parameter where boolean coercion is technically possible but semantically invalid; reject boolean scalars before conversion and range checks.
+
+## [2026-09-23] Axial-axis serialization must retain its validated status
+
+**Symptom:** Probe/SAE explain executors could not localize a supported checkpoint from an `AxialAxisResult` payload.
+**Root cause:** The result validated its `status`, but `to_dict()` omitted that field, so the downstream fail-closed consumer never received the discriminator it needs.
+**Fix / workaround:** Include the validated `status` in `AxialAxisResult.to_dict()` so the serialized result retains the axis contract.
+**Watch out for:** When serializing validated result objects, preserve the status/discriminator fields that downstream consumers use to distinguish supported from unsupported cases.
+
+## [2026-09-23] Malformed SAE context objects leaked attribute errors
+
+**Symptom:** A malformed context object lacking the expected fields raised `AttributeError` instead of the explanation API's documented `ExplanationError`.
+**Root cause:** Context fields were dereferenced before the payload was validated at the API boundary.
+**Fix / workaround:** Validate the SAE context payload before field access and raise `ExplanationError` for invalid objects.
+**Watch out for:** Validate caller-provided context payloads before dereferencing them so invalid inputs preserve the public domain-error contract.
+
+## [2026-09-24] Optional v2 evidence left the v1 contract token unbound
+
+**Symptom:** Persisting a legacy report with no target-evidence block raised `UnboundLocalError` while selecting its evidence-contract version.
+**Root cause:** The v2 contract constant was imported only inside the optional target-evidence branch, then referenced by the v1 default path; Python treats the conditional import as a local name.
+**Fix / workaround:** Import both version constants at module scope and initialize the selected contract to v1 before entering the optional v2 branch.
+**Watch out for:** Any versioned sidecar where the default contract must remain usable when the newer optional block is absent; test the absent-block path as well as v2 validation.
+
+## [2026-09-24] A self-consistent target rule was not tied to evaluated labels
+
+**Symptom:** A target record and report could agree on a newly hashed rule even though the detect-stage provenance did not identify which rule accompanied its labels.
+**Root cause:** The artifact builder sourced rule metadata from the report while the independent validator compared only labels and split fields to the detect-stage payload; content addressing proved byte integrity, not origin.
+**Fix / workaround:** Carry target ID, rule, and rule kind as optional `LabeledBatch` provenance, serialize them in the detect output, build the record from those observed fields, and compare them during independent validation.
+**Watch out for:** Any content-addressed claim whose declaration is copied only from the report; verify the declaration against an independently produced stage record and test rehashed tampering.
+
+## [2026-09-24] Target binding omitted its evaluation split identity
+
+**Symptom:** `bind_target_from_batch()` could not build a v2 target record from a valid `LabeledBatch` because the required evaluation split identity was missing.
+**Root cause:** The helper forwarded the training split identity and membership vectors but omitted the batch's separately validated evaluation split identity.
+**Fix / workaround:** Forward `LabeledBatch.eval_split_identity` into `build_target_record()` and validate a record built through the high-level binder in a regression test.
+**Watch out for:** When extending provenance schemas, test the high-level binder against every required identity, not just the low-level record builder.
+
+## [2026-09-24] Windows PowerShell 5.1 prepends a BOM to redirected standard input
+
+**Symptom:** The byte-exact transport fake returned exit 1 on native Windows PowerShell 5.1 because its first stdin byte was a UTF-8 BOM.
+**Root cause:** .NET Framework creates `Process.StandardInput` using `Console.InputEncoding` when the process starts; the default UTF-8 encoding includes a BOM even when callers write through `BaseStream`.
+**Fix / workaround:** Temporarily set `Console.InputEncoding` to UTF-8 without a preamble only while calling `Process.Start()`, then restore the original encoding. The native PowerShell regression verifies the child receives the exact bootstrap bytes.
+**Watch out for:** On PowerShell 5.1/.NET Framework, `BaseStream` does not guarantee a BOM-free redirected stdin because the writer preamble can be emitted at process start. Exercise the native host, not only PowerShell 7.
+
+## [2026-09-24] Windows autocrlf breaks raw-byte-pinned inputs
+
+**Symptom:** The clean-reproduction pin check rejected `diagnostic_report_schema_v1.json` on Windows even though its parsed JSON was unchanged and replacing CRLF with LF produced the frozen expected SHA-256.
+**Root cause:** The repository-wide `* text=auto` rule allowed Git to check out raw-byte-pinned JSON and proof scripts with CRLF, while the verifier hashes the working-tree bytes exactly.
+**Fix / workaround:** Mark each byte-pinned path `-text` in `.gitattributes` and restore its canonical LF bytes; keep the existing scientific-data hash rather than repinning it.
+**Watch out for:** When a raw-byte verifier fails on Windows, compare both raw and LF-normalized hashes and JSON semantics before changing a frozen digest. Add path-specific line-ending attributes for every byte-addressed input.
+
+## [2026-09-24] Explanation hypothesis serialization omitted target identity
+
+**Symptom:** The prospective transformer evidence validator rejected a record because the serialized hypothesis lacked `target_id`, although the in-memory hypothesis declared it.
+**Root cause:** `ExplanationHypothesis.to_dict()` omitted its own validated target identity, preventing persisted shared explanation evidence from binding that declaration to target provenance.
+**Fix / workaround:** Serialize `target_id` in the shared hypothesis mapping and assert it with a regression test; leave already accepted content-addressed historical artifacts unchanged.
+**Watch out for:** Keep every contract-bearing identity in `to_dict()` when downstream validators must reconcile a hypothesis with separate target or split provenance.
