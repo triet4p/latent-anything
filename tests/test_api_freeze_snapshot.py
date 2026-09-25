@@ -28,8 +28,8 @@ def test_api_freeze_snapshot_separates_canonical_and_beta_surfaces() -> None:
     snapshot = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     public = snapshot["sections"]["A_public_surface"]
     aliases = snapshot["sections"]["B_beta_compatibility"]["symbol_aliases"]
-    assert public["current_count"] == 205
-    assert public["canonical_stable_count"] == 202
+    assert public["current_count"] == 214
+    assert public["canonical_stable_count"] == 211
     stable_names = {item["name"] for item in public["canonical_stable_surface"]}
     assert not stable_names.intersection({"Method", "BMethod", "ManipulationPipeline"})
     assert {item["canonical"] for item in aliases} == {
@@ -105,7 +105,7 @@ def test_api_freeze_runtime_helpers_are_live_contract_sources() -> None:
     assert cast(dict[str, object], serialized["disk_cache"])["version"] == "disk-cache-v1"
     assert alias_rows[1]["observed_identity"] is True
     assert async_pairs()["count"] == 9
-    assert exceptions()["count"] == 7
+    assert exceptions()["count"] == 8
 
 
 def test_api_freeze_cli_runtime_failure_keeps_domain_error_contract(tmp_path: Path) -> None:

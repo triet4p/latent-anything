@@ -5,22 +5,22 @@
   "regenerate": "uv run python scripts/api_freeze_snapshot.py --write",
   "schema_version": 1,
   "section_digests": {
-    "A_public_surface": "67052ff2f4ac026df707182a5238de87d7f633083b892e9527dcb7c05f67b6a9",
+    "A_public_surface": "32628380752653701f101360e520faaf5236b7422cd14300b94a127fd1eebd8c",
     "B_beta_compatibility": "ad12ace8595c38dd38812c828cd08e3fcbdf38562640714df2eadfc8f5496763",
     "C_submodule_reexports": "98c9d79bd169954b22373711bec13e285790e956381fed42788227b57bd9b3b3",
     "D_registry": "e8fd704a1ee60db288201eb9b02754e0c8474819b1266687671e42b803ed1ae8",
     "E_plugin_groups": "8e3c5f6982cb5f2b258406774b445b3c3e495f7f23df978c8d5641882ac362f5",
     "F_optional_profiles": "3fd27b66b977bd286621a89821d59034fa69629b0a4c64bdd23bc1f5b917d1ae",
     "G_config_schemas": "8ce2a8a8a170e6cfe0bc8cf788f719bd0401c1e0e254964bed4b7ed23fa89fc7",
-    "H_dataclass_schemas": "19339f6a76379d16decde5c4d9c563de2271a7f367d168033613cc947df0adfb",
+    "H_dataclass_schemas": "a0840e5c32f1c5dda640d254edb84cbd7c815d2c676046f822a37f017e38a139",
     "I_cli": "aa55734bba15a7224f66cfb7741893cf49af4c0397896c8d74c93f5fbeb11752",
     "J_serialization": "027077285c04063cd01ca68dc2c6c3192defc8a69ffd020fb0fdf7d8d5c404f2",
     "K_sync_async": "66889c6764310bb22e5db60d2e79916aa872de79ee1494d7c8d4d52177398458",
-    "L_exceptions": "5f17dc95ec1ea977bf5e04c01c5409fd41805cc766ae498233803f5b620e2887"
+    "L_exceptions": "fc29926a4fae37f56b224fdd918d6db0a1dadd7eaa1d32df5ed02828f1495c7b"
   },
   "sections": {
     "A_public_surface": {
-      "canonical_stable_count": 202,
+      "canonical_stable_count": 211,
       "canonical_stable_surface": [
         {
           "import_path": "latent_anything",
@@ -112,6 +112,69 @@
           "name": "CacheKey",
           "object_name": "CacheKey",
           "signature": "(namespace: 'str', operation: 'str', component_name: 'str', config_hash: 'str', state_hash: 'str', data_hash: 'str', framework_version: 'str | None') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "CaptureSelection",
+          "object_name": "CaptureSelection",
+          "signature": "(capture_id: 'str', representation_identity: 'str', axes: 'tuple[str, ...]' = ('sample', 'feature')) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "ComparisonRequest",
+          "object_name": "ComparisonRequest",
+          "signature": "(comparison_id: 'str', baseline_run: 'str', candidate_run: 'str', metric_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "ControlSelection",
+          "object_name": "ControlSelection",
+          "signature": "(control_ids: 'tuple[str, ...]', metric_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequest",
+          "object_name": "DiagnosticRequest",
+          "signature": "(request_id: 'str', manifest_id: 'str', capture: 'CaptureSelection', diagnostics: 'DiagnosticSelection', controls: 'ControlSelection', output: 'OutputSelection', interventions: 'tuple[InterventionRequest, ...]' = (), comparisons: 'tuple[ComparisonRequest, ...]' = ()) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequestError",
+          "object_name": "DiagnosticRequestError",
+          "signature": "<no-signature>"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticResult",
+          "object_name": "DiagnosticResult",
+          "signature": "(request_id: 'str', manifest_id: 'str', status: 'ResultStatus', completed_stages: 'tuple[str, ...]' = (), artifact_refs: 'tuple[str, ...]' = (), report_id: 'str | None' = None, message: 'str' = '', stage_results: 'Mapping[str, object]' = <factory>) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticSelection",
+          "object_name": "DiagnosticSelection",
+          "signature": "(family_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "InterventionRequest",
+          "object_name": "InterventionRequest",
+          "signature": "(intervention_id: 'str', target: 'str', control_ids: 'tuple[str, ...]' = ()) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "OutputSelection",
+          "object_name": "OutputSelection",
+          "signature": "(output_location: 'str', artifact_name: 'str' = 'diagnostic-report', include_report: 'bool' = True) -> None"
         },
         {
           "import_path": "latent_anything",
@@ -1442,7 +1505,7 @@
         "Intervention",
         "InterventionPipeline"
       ],
-      "current_count": 205,
+      "current_count": 214,
       "current_top_level": [
         {
           "import_path": "latent_anything",
@@ -1534,6 +1597,69 @@
           "name": "CacheKey",
           "object_name": "CacheKey",
           "signature": "(namespace: 'str', operation: 'str', component_name: 'str', config_hash: 'str', state_hash: 'str', data_hash: 'str', framework_version: 'str | None') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "CaptureSelection",
+          "object_name": "CaptureSelection",
+          "signature": "(capture_id: 'str', representation_identity: 'str', axes: 'tuple[str, ...]' = ('sample', 'feature')) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "ComparisonRequest",
+          "object_name": "ComparisonRequest",
+          "signature": "(comparison_id: 'str', baseline_run: 'str', candidate_run: 'str', metric_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "ControlSelection",
+          "object_name": "ControlSelection",
+          "signature": "(control_ids: 'tuple[str, ...]', metric_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequest",
+          "object_name": "DiagnosticRequest",
+          "signature": "(request_id: 'str', manifest_id: 'str', capture: 'CaptureSelection', diagnostics: 'DiagnosticSelection', controls: 'ControlSelection', output: 'OutputSelection', interventions: 'tuple[InterventionRequest, ...]' = (), comparisons: 'tuple[ComparisonRequest, ...]' = ()) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequestError",
+          "object_name": "DiagnosticRequestError",
+          "signature": "<no-signature>"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticResult",
+          "object_name": "DiagnosticResult",
+          "signature": "(request_id: 'str', manifest_id: 'str', status: 'ResultStatus', completed_stages: 'tuple[str, ...]' = (), artifact_refs: 'tuple[str, ...]' = (), report_id: 'str | None' = None, message: 'str' = '', stage_results: 'Mapping[str, object]' = <factory>) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticSelection",
+          "object_name": "DiagnosticSelection",
+          "signature": "(family_ids: 'tuple[str, ...]') -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "InterventionRequest",
+          "object_name": "InterventionRequest",
+          "signature": "(intervention_id: 'str', target: 'str', control_ids: 'tuple[str, ...]' = ()) -> None"
+        },
+        {
+          "import_path": "latent_anything",
+          "module": "latent_anything.diagnostics",
+          "name": "OutputSelection",
+          "object_name": "OutputSelection",
+          "signature": "(output_location: 'str', artifact_name: 'str' = 'diagnostic-report', include_report: 'bool' = True) -> None"
         },
         {
           "import_path": "latent_anything",
@@ -4738,7 +4864,7 @@
       ]
     },
     "H_dataclass_schemas": {
-      "count": 81,
+      "count": 89,
       "schemas": [
         {
           "fields": [
@@ -5027,6 +5153,249 @@
           ],
           "module": "latent_anything.runtime.cache",
           "name": "CacheKey"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "capture_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "representation_identity",
+              "required": true
+            },
+            {
+              "default": [
+                "sample",
+                "feature"
+              ],
+              "default_factory": null,
+              "name": "axes",
+              "required": false
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "CaptureSelection"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "comparison_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "baseline_run",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "candidate_run",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "metric_ids",
+              "required": true
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "ComparisonRequest"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "control_ids",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "metric_ids",
+              "required": true
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "ControlSelection"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "request_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "manifest_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "capture",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "diagnostics",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "controls",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "output",
+              "required": true
+            },
+            {
+              "default": [],
+              "default_factory": null,
+              "name": "interventions",
+              "required": false
+            },
+            {
+              "default": [],
+              "default_factory": null,
+              "name": "comparisons",
+              "required": false
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequest"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "request_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "manifest_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "status",
+              "required": true
+            },
+            {
+              "default": [],
+              "default_factory": null,
+              "name": "completed_stages",
+              "required": false
+            },
+            {
+              "default": [],
+              "default_factory": null,
+              "name": "artifact_refs",
+              "required": false
+            },
+            {
+              "default": null,
+              "default_factory": null,
+              "name": "report_id",
+              "required": false
+            },
+            {
+              "default": "",
+              "default_factory": null,
+              "name": "message",
+              "required": false
+            },
+            {
+              "default": "<required>",
+              "default_factory": "<factory>",
+              "name": "stage_results",
+              "required": false
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticResult"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "family_ids",
+              "required": true
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticSelection"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "intervention_id",
+              "required": true
+            },
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "target",
+              "required": true
+            },
+            {
+              "default": [],
+              "default_factory": null,
+              "name": "control_ids",
+              "required": false
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "InterventionRequest"
+        },
+        {
+          "fields": [
+            {
+              "default": "<required>",
+              "default_factory": null,
+              "name": "output_location",
+              "required": true
+            },
+            {
+              "default": "diagnostic-report",
+              "default_factory": null,
+              "name": "artifact_name",
+              "required": false
+            },
+            {
+              "default": true,
+              "default_factory": null,
+              "name": "include_report",
+              "required": false
+            }
+          ],
+          "module": "latent_anything.diagnostics",
+          "name": "OutputSelection"
         },
         {
           "fields": [
@@ -8895,12 +9264,17 @@
       ]
     },
     "L_exceptions": {
-      "count": 7,
+      "count": 8,
       "entries": [
         {
           "base": "ValueError",
           "module": "latent_anything.artifact_store",
           "name": "ArtifactStoreError"
+        },
+        {
+          "base": "ValueError",
+          "module": "latent_anything.diagnostics",
+          "name": "DiagnosticRequestError"
         },
         {
           "base": "ValueError",
@@ -8935,6 +9309,6 @@
       ]
     }
   },
-  "snapshot_sha256": "048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26",
+  "snapshot_sha256": "3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec",
   "verify": "uv run python scripts/api_freeze_snapshot.py --check"
 }
