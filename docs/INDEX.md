@@ -32,3 +32,5 @@ Now, our projects include:
 26. [EVIDENCE_GAP_PLAN](EVIDENCE_GAP_PLAN.md): Sprint 79 closure plan for every current D0/D1 implementation-applicable or benchmark-only theory item.
 27. [MIGRATION](MIGRATION.md): Published beta to planned pre-stable compatibility and data-migration guide.
 28. [API_REFERENCE](API_REFERENCE.md): Human index to the checked-in API-freeze snapshot and public contract sections.
+29. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
+30. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.

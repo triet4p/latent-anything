@@ -81,3 +81,11 @@ artifacts/sprint-80/task-25.md -text
 # The driver fingerprints all 162 installed package sources; the remaining
 # package files are covered by the same byte-preservation guarantee.
 src/latent_anything/**/*.py -text
+# Sprint 80.29: preserve frozen manifests and raw/content-addressed task evidence
+# exactly in Windows clones with core.autocrlf=true.
+artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v2_injected.json -text
+artifacts/benchmark_manifest_sprint80_smolvla_secondary_v2.json -text
+artifacts/diagnostics/proof-80-24-stability-v1/** -text
+artifacts/diagnostics/proof-80-23-v3-model-weight-lesion/** -text
+artifacts/diagnostics/80-27-smolvla-v1-remote-capture.log -text
+artifacts/diagnostics/80-27-smolvla-v1-dim768-probe.json -text

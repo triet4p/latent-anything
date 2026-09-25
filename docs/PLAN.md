@@ -93,9 +93,9 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Planned; depth-first diagnostic contracts and 29 ordered atomic tasks are frozen. Execution begins at task 80.1 on `main`.*
+- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Active; the bounded supported ordinary-DL core has conditional READY status based on the replay measured from source revision `5241553`. The 80.28 full-gate selection was measured in the shared worktree at code basis `f15859b` (that commit contains the 80.25 handoff, not the 80.28 handoff); the API snapshot/tool/test overlays and focused clean-clone checks are revision-backed at `cef267e`, but the full suite was not rerun in a clean clone. The latest deep review returned FAIL on H1–H3; H1 is corrected, this publication addresses H2/H3, and a fresh final deep review is pending. Sprint 80 is not complete; Sprint 81 general-release, broad stable-depth, and GPU/CUDA claims remain gated or excluded.*
 
-Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 now owns the supported diagnostic-depth proof; Sprint 81 remains planned for `1.0.0` publication only after the Sprint 80 handoff passes.
+Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 remains Active pending its final deep review. Its bounded-core Sprint 81 handoff is READY only within the evidence boundary in [the depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md); this does not mark Sprint 80 complete or authorize general-release, arbitrary-model, or GPU/CUDA claims for Sprint 81.
 
 ## Planned Sprints
 

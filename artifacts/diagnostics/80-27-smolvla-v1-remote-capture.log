@@ -1,0 +1,21 @@
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 4 files:  25%|██▌       | 1/4 [00:00<00:00,  3.69it/s]Fetching 4 files:  75%|███████▌  | 3/4 [00:01<00:00,  1.92it/s]Fetching 4 files: 100%|██████████| 4/4 [00:01<00:00,  2.54it/s]
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files:  25%|██▌       | 1/4 [00:01<00:04,  1.45s/it]Fetching 4 files:  75%|███████▌  | 3/4 [00:02<00:00,  1.16it/s]Fetching 4 files: 100%|██████████| 4/4 [00:02<00:00,  1.43it/s]
+PASS data: bounded real selection 64 frames from episodes (0, 1, 2, 3) (scanned 874 items); selection digest 0ee63f53aa9e6fba… matches the predeclared commitment
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 726.70it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading  HuggingFaceTB/SmolVLM2-500M-Video-Instruct weights ...
+Loading weights:   0%|          | 0/489 [00:00<?, ?it/s]Loading weights:  70%|██████▉   | 340/489 [00:00<00:00, 3399.28it/s]Loading weights: 100%|██████████| 489/489 [00:00<00:00, 3822.75it/s]
+Reducing the number of VLM layers to 16 ...
+Traceback (most recent call last):
+  File "/home/trietlm/remote-80-27-proof/repo/scripts/sprint80_task80_27_smolvla_proof.py", line 1114, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/trietlm/remote-80-27-proof/repo/scripts/sprint80_task80_27_smolvla_proof.py", line 1107, in main
+    return run_proof()
+  File "/home/trietlm/remote-80-27-proof/repo/scripts/sprint80_task80_27_smolvla_proof.py", line 931, in run_proof
+    case = adapter_case()
+  File "/home/trietlm/remote-80-27-proof/repo/scripts/sprint80_task80_27_smolvla_proof.py", line 342, in adapter_case
+    raise AssertionError(f"captured matrix shape {matrix.shape} != ({N_SAMPLES}, 1024)")
+AssertionError: captured matrix shape (64, 768) != (64, 1024)

@@ -1,0 +1,10 @@
+{
+  "acceptance": "not_passed",
+  "checkpoint_status": "failed",
+  "error_type": "StageContractError",
+  "failed_stage": "intervene",
+  "manifest_digest": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+  "manifest_raw_sha256": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+  "message": "trial 'restore-lesioned-encoder-dim0-v3' metric 'heldout-brightness-bin-accuracy' is not a request-declared metric",
+  "workflow_status": "failed"
+}

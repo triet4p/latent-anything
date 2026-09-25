@@ -1,0 +1,144 @@
+{
+  "causal_expectation": {
+    "applicable": true,
+    "expectation": "Ablating the smallest-heldout-variance orthogonal-sketch direction, mapped back through its declared raw-space basis vector, reduces projected vision-context effective rank beyond tolerance while random and off-target ablations do not.",
+    "falsification_rule": "If on-target ablation fails to move the projected effective rank beyond tolerance while collapse is claimed, the causal claim is falsified; if a random or off-target direction moves it equally, the localization claim is falsified.",
+    "non_applicable_reason": "not_applicable",
+    "target_metric_ids": [
+      "bottleneck-effective-rank"
+    ]
+  },
+  "commitment": {
+    "canonicalization": "json-sort-keys-no-whitespace-utf8",
+    "declared_at": "2026-09-24T05:48:12Z",
+    "locked": true,
+    "manifest_sha256": "ec70d423fcf33a6ebbaabfb2dccbcac6ee8de167f53a125bc377386f6cd1cf1f"
+  },
+  "controls": [
+    {
+      "expected_behavior": "healthy full-rank reference scores above both diagnostic thresholds in the declared projected representation",
+      "id": "control-healthy-counterexample",
+      "kind": "counterexample",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "benign low-variance case does not trigger the projected collapse diagnosis",
+      "id": "control-benign-low-variance",
+      "kind": "negative",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "shuffled null shows no claimed projected collapse effect",
+      "id": "control-null-shuffle",
+      "kind": "null",
+      "metric_ids": [
+        "bottleneck-effective-rank"
+      ],
+      "required": false
+    }
+  ],
+  "dataset": {
+    "data_digest": "0ee63f53aa9e6fba04b79b382297bfa235a2df6d6544e3402862fe69689d4b51",
+    "id": "lerobot/libero",
+    "revision": "a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+    "split": "train",
+    "split_identity": "bounded-episodes0000-0003-frames-even0to30-16per-episode-64-total-train-episodes-0-1-eval-episodes-2-3"
+  },
+  "defect": {
+    "classification": "none",
+    "declaration": "Prospective secondary SmolVLA lane v2 (Sprint 80 task 80.27), declared after the frozen v1 capture-shape failure but before any v2 measurement. No defect is injected or claimed known. Preserve v1 unchanged. Reuse the same pinned model, dataset, 64-frame selection, episode split, seeds, controls, and thresholds. The real token-mean-pooled frame vector has 768 features; before new measurements, map each row x to y=xQ, where Q is the fixed 768x32 orthonormal basis generated with pinned NumPy 2.2.6 PCG64 seed 20260924, a standard-normal (768,32) draw, reduced QR, and per-column sign canonicalization that makes the first maximum-absolute-value coordinate positive. Analyze only the resulting 64x32 representation (64 samples > 32 features); map a projected-coordinate ablation back to its declared raw-space basis vector. The diagnostic claim is limited to this fixed projected representation and does not establish the full 768-feature spectrum. Preserve all frozen metric thresholds unchanged. A positive observation requires localization before a claim; a negative observation blocks the chain at explain by contract. The 64 frames are nested in four episodes; bootstrap remains at the predeclared frame/sample unit and any output is descriptive only for this bounded split, not episode-level or population uncertainty. No observed values are encoded here. The real policy remains one query at a time under the permanent 16 GiB CUDA ceiling.",
+    "predeclared": true,
+    "source": "not_applicable"
+  },
+  "manifest_id": "sprint80-secondary-smolvla-vision-collapse-v2",
+  "metrics": [
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-singular-value-profile",
+      "id": "bottleneck-effective-rank",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "effective-rank"
+    },
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-variance-profile",
+      "id": "bottleneck-singular-spread",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "ratio"
+    }
+  ],
+  "model": {
+    "artifact_digest": "9a9f6413e42c0f332fccbce9a0dc796af2790f82cf002f791cdbf7e01e1afca8",
+    "id": "lerobot/smolvla_libero",
+    "revision": "31d453f7edd78c839a8bbc39744a292686daf0de",
+    "revision_immutable": true,
+    "revision_kind": "commit"
+  },
+  "representation": {
+    "axes": [
+      {
+        "identity": "libero-frame-sample-axis-64",
+        "name": "sample",
+        "selection": "frames-64"
+      },
+      {
+        "identity": "vision-context-orthogonal-projection-axis-32-seed-20260924",
+        "name": "feature",
+        "selection": "768-to-32-numpy2.2.6-PCG64-20260924-standard-normal-reduced-QR-canonical-sign"
+      },
+      {
+        "identity": "slice-axis-all",
+        "name": "slice",
+        "selection": "all"
+      }
+    ],
+    "identity": "lerobot-smolvla-libero:vision-context:mean-token:orthogonal-projection-768-to-32-seed-20260924"
+  },
+  "schema_version": "benchmark-manifest-schema-v1",
+  "seeds": {
+    "controls": [
+      17
+    ],
+    "evaluation": [
+      42
+    ],
+    "independent": true,
+    "training": [
+      0
+    ]
+  },
+  "status": "predeclared",
+  "thresholds": [
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-effective-rank",
+      "predeclared": true,
+      "tolerance": 0.1,
+      "value": 3.0
+    },
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-singular-spread",
+      "predeclared": true,
+      "tolerance": 0.02,
+      "value": 0.25
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "method": "bootstrap",
+    "predeclared": true,
+    "repetitions": 200,
+    "unit_of_analysis": "sample"
+  }
+}
