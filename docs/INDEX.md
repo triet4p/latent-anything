@@ -21,7 +21,7 @@ Now, our projects include:
 15. [PLAN](PLAN.md): Global stable-release gates, milestones, and sprint sequencing.
 16. [EVIDENCE_LEDGER](EVIDENCE_LEDGER.md): Human-readable D0–D3 evidence contract and promotion rules.
 17. [DIFFUSERS_INTEGRATION](DIFFUSERS_INTEGRATION.md): Revision-pinned Diffusers VAE boundary and D1/D2 evidence scope.
-18. [LEROBOT_INTEGRATION](LEROBOT_INTEGRATION.md): LeRobot policy, dataset, recorder, and historical-vs-authoritative evidence scope.
+18. [LEROBOT_INTEGRATION](LEROBOT_INTEGRATION.md): Optional LeRobot implementation seams, pinned version range, and explicit blocked/non-gating SmolVLA status.
 19. [GEODESIC_INTERPOLATION](GEODESIC_INTERPOLATION.md): Density-geodesic usage guidance and theory links.
 20. [RSSM_TRANSITION](RSSM_TRANSITION.md): Recurrent transition contract and evidence boundary.
 21. [STOCHASTIC_TRANSITION](STOCHASTIC_TRANSITION.md): Stochastic transition contract and evidence boundary.
@@ -30,7 +30,8 @@ Now, our projects include:
 24. [visual-qa-checklist](visual-qa-checklist.md): Visual-quality review checklist for generated artifacts.
 25. [API_COMPATIBILITY](API_COMPATIBILITY.md): Current user-facing alias, deprecation, and schema/path migration ledger.
 26. [EVIDENCE_GAP_PLAN](EVIDENCE_GAP_PLAN.md): Sprint 79 closure plan for every current D0/D1 implementation-applicable or benchmark-only theory item.
-27. [MIGRATION](MIGRATION.md): Published beta to planned pre-stable compatibility and data-migration guide.
+27. [MIGRATION](MIGRATION.md): Published 0.9.0 to unpublished 1.0.0 candidate compatibility and data-migration guide.
 28. [API_REFERENCE](API_REFERENCE.md): Human index to the checked-in API-freeze snapshot and public contract sections.
 29. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
 30. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.
+31. [1.0.0 candidate release notes](RELEASE_NOTES_1.0.0.md): Unpublished draft scoped to signed-off ordinary-DL evidence and open release gates.

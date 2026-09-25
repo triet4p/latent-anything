@@ -4,20 +4,17 @@ This page is a human index to the mechanically generated API contract. It does
 not duplicate every generated signature or default. The checked-in snapshot is
 the source of truth:
 
-```text
-artifacts/api_freeze_snapshot_0.9.0.json
-```
+artifacts/api_freeze_snapshot_1.0.0.json
 
 The historical beta surface is preserved unchanged in
 `artifacts/api_freeze_snapshot_0.1.0b1.json` and must not be rewritten.
 
-The checked-in snapshot follows the current source tree; it is not the API
-contract of the already-published `0.9.0` distribution. At release, the
-published snapshot had 205 runtime exports, a 202-entry canonical-stable
-projection, 7 public exceptions, and digest
+The checked-in snapshot describes the current `1.0.0` candidate source tree; it
+is not a published API contract because the candidate has not been built or
+released. The already-published `0.9.0` distribution had 205 runtime exports,
+a 202-entry canonical-stable projection, 7 public exceptions, and digest
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
-repository-root `CHANGELOG.md` preserves that historical release record; this
-source snapshot does not retroactively change the published assets.
+repository-root `CHANGELOG.md` preserves that historical release record.
 
 Regenerate only after a reviewed public-surface change, then run:
 
@@ -28,7 +25,7 @@ uv run pytest tests/test_api_freeze_snapshot.py tests/test_api_compatibility.py 
 
 The snapshot normalizes sorted JSON keys and contractually public declaration
 order; it excludes object addresses and unstable representations. Its current
-digest is `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`.
+digest is `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`.
 
 ## Public surface
 
@@ -117,12 +114,12 @@ infer a new contract from an implementation detail.
 ## Explicitly non-API inventory
 
 SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and an
-unnamed 3DGS checkpoint are not stable public APIs. They remain backlog or
-M14 blocker rows and do not block the `0.9` pre-stable baseline. Likewise, a
-compact fixture or a historical artifact does not establish a real checkpoint,
-hosted provider, CUDA, or model-quality claim. Diffusers, Transformers,
-gsplat, LeRobot, MLflow, W&B, Plotly/Kaleido, and related provider objects are
-optional boundaries, not base-package API requirements.
+unnamed 3DGS checkpoint are not part of the candidate's supported diagnostic
+claim. A compact fixture or historical artifact does not establish support for
+arbitrary real checkpoints, hosted providers, CUDA, or model quality.
+Diffusers, Transformers, gsplat, LeRobot, MLflow, W&B, Plotly/Kaleido, and
+related provider objects remain optional boundaries, not base-package API
+requirements.
 
 For evidence and qualification, see
 [`M14_REAL_SYSTEM_VALIDATION.md`](M14_REAL_SYSTEM_VALIDATION.md),

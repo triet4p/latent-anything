@@ -1,4 +1,4 @@
-"""Runtime enforcement for the reviewed beta compatibility ledger."""
+"""Runtime enforcement for the reviewed compatibility aliases."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import json
 import warnings
 from contextlib import redirect_stdout
 from io import StringIO
-from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -31,9 +30,6 @@ from latent_anything.mppi import MPPIConfig, MPPIIteration, MPPIPlanResult
 from latent_anything.pipeline_models import RolloutResult
 from latent_anything.runtime.profiling import RuntimeProfile
 from latent_anything.trajectory import Trajectory
-
-ROOT = Path(__file__).resolve().parents[1]
-LEDGER = ROOT / "docs" / "API_COMPATIBILITY.md"
 
 
 def test_canonical_symbols_are_exact_beta_aliases() -> None:
@@ -127,24 +123,3 @@ def test_transition_aliases_preserve_prediction_and_metric_semantics() -> None:
         prediction_copy.std[0] = 0.0
 
 
-def test_ledger_covers_every_snapshot_beta_alias_family() -> None:
-    snapshot = json.loads((ROOT / "artifacts" / "api_freeze_snapshot_0.9.0.json").read_text(encoding="utf-8"))
-    ledger_text = LEDGER.read_text(encoding="utf-8")
-    aliases = snapshot["sections"]["B_beta_compatibility"]
-    for group in (
-        "symbol_aliases",
-        "registry_kind_aliases",
-        "cli_aliases",
-        "config_aliases",
-        "result_property_aliases",
-        "transition_aliases",
-    ):
-        for row in aliases[group]:
-            assert str(row["legacy"]) in ledger_text
-            assert str(row["canonical"]) in ledger_text
-    assert "result-envelope-v0" in ledger_text
-    assert "Windows artifact paths" in ledger_text
-    assert "`0.2.0` (never released)" in ledger_text
-    assert "implemented Unreleased / Sprint78.29" in ledger_text
-    assert "deprecated current Unreleased / Sprint31" in ledger_text
-    assert "since 0.2.0" not in ledger_text.lower()

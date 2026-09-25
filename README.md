@@ -4,7 +4,7 @@
 
 A Python framework that treats latent space as a first-class object: load latent representations from models, inspect them, manipulate them, and execute small runtime pipelines.
 
-## Pre-stable Scope
+## Published 0.9.0 Baseline and 1.0.0 Candidate
 
 `0.9.0` is a pre-stable API/evidence baseline (pre-1.0). It includes:
 
@@ -39,37 +39,40 @@ rollout story, not a LeRobot or real-model throughput claim. Sprint 76
 tracking evidence is local/offline only; it does not claim hosted tracking,
 remote servers, or team workflows.
 
-APIs are still pre-1.0 and may change under normal `0.x` SemVer expectations.
-Sprint 79 closes the broad inventory as the `0.9.0` pre-stable API/evidence
-baseline. Package metadata is `0.9.0`, and the GitHub Release is the authoritative
-0.9.0 distribution channel. PyPI publication is explicitly deferred and is not a
-release or installation gate. Sprint 81 targets `1.0.0`, with publication
-stopping if any required supported-claim, packaging, documentation, or workflow
-gate is missing; Sprint 80 is the depth-first diagnostic gate.
+The published `0.9.0` package is pre-1.0 and follows the `0.x` compatibility
+expectation. The working-tree package metadata now targets `1.0.0` for Sprint
+81, but this is an unpublished candidate: it has not been built, tagged, or
+released. Its diagnostic claim is limited to the two accepted ordinary-DL
+cases and separate stability supplement in
+[`docs/SPRINT_80_DEPTH_EVIDENCE.md`](docs/SPRINT_80_DEPTH_EVIDENCE.md); this is
+not broad VLA, GPU/CUDA, or arbitrary-model support. The external tag-ruleset
+and PyPI Trusted Publisher prerequisites remain pending, and Task 4 still owns
+the clean package build and installation checks.
 
-Registry configs now use `adapter`, `analysis`, and `intervention` kinds.
-The beta `method_a` and `method_b` spellings remain supported with a migration
-warning in `0.9.0`; removal is deferred past `0.9.0` pending a separate reviewed
-migration decision. Run `uv run python scripts/report_config_migration.py <config.json>`
-to inspect repository-owned JSON configs without rewriting them.
+Registry configs use `adapter`, `analysis`, and `intervention` kinds. The beta
+`method_a` and `method_b` spellings remain deprecated warning aliases. The
+1.0.0 candidate retains all 18 beta aliases; they remain available through the
+1.x line, and removal requires a separately reviewed major-version migration.
+Run `uv run python scripts/report_config_migration.py <config.json>` to inspect
+repository-owned JSON configs without rewriting them.
 
 See the [migration and compatibility guide](docs/MIGRATION.md) and the
 [API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger,
 the two separate schema/path migrations, frozen signatures, and current
 source API contract.
 
-The checked-in `0.9.0` source snapshot records 214 runtime top-level exports,
-211 canonical-stable entries, 28 config schemas, 89 public dataclass/result
-schemas, and 8 public exceptions (SHA-256
-`3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`). These
-numbers describe the current source tree, not the already-published `0.9.0`
-distribution: the release-time snapshot had 205 runtime top-level exports,
+The unpublished `1.0.0` candidate source snapshot records 214 runtime top-level
+exports, 211 canonical-stable entries, 28 config schemas, 89 public
+dataclass/result schemas, and 8 public exceptions (SHA-256
+`46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`). These
+numbers describe candidate source, not the already-published `0.9.0`
+distribution: its release-time snapshot had 205 runtime top-level exports,
 202 canonical-stable entries, 7 public exceptions, and digest
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
-historical release record is preserved in [CHANGELOG.md](CHANGELOG.md).
-The current source snapshot is
-`artifacts/api_freeze_snapshot_0.9.0.json`; the historical beta snapshot
-`artifacts/api_freeze_snapshot_0.1.0b1.json` is preserved unchanged.
+historical release record is preserved in [CHANGELOG.md](CHANGELOG.md). The
+candidate snapshot is `artifacts/api_freeze_snapshot_1.0.0.json`; the later
+pre-candidate `0.9.0`-labeled source snapshot and historical beta snapshot
+remain preserved separately.
 
 ## Installation
 
@@ -102,7 +105,7 @@ from latent_anything import LatentSpace, Trajectory
 from latent_anything.methods import PCA
 
 print(latent_anything.__version__)
-# 0.9.0
+# 1.0.0 (unpublished candidate source)
 
 rng = np.random.default_rng(42)
 space = LatentSpace(dim=4)
@@ -134,31 +137,18 @@ Representative scripts live in `scripts/`, including:
 
 ## Release Gate
 
-Before tagging a package release, run:
+The audited release workflow runs the readiness preflight, strict documentation,
+quality, test, and package checks before its dedicated job creates the stable
+tag. It is dispatched from `main` with the exact `v1.0.0` candidate tag; direct
+tag pushes do not trigger publication. The tag-ruleset and PyPI Trusted
+Publisher prerequisites are still pending, so this checkout is not authorized
+to create the tag or publish a release.
 
-```bash
-uv sync --locked
-uv run ruff check src tests scripts
-uv run ruff format --check src tests scripts
-uv run pyright
-uv run pytest
-```
-
-The `0.9.0` release workflow builds one deterministic wheel and sdist, records
-`SHA256SUMS` and `PROVENANCE.json`, and uploads those exact files plus the
-release notes to the GitHub Release after the gates pass. PyPI is deferred and
-does not participate in this release contract.
-
-The `v0.9.0` tag is the release input:
-
-```bash
-git push origin v0.9.0
-```
-
-The workflow also accepts plain tags such as `0.9.0`; the `v` prefix is
-recommended to keep package releases visually distinct from theory deployment
-tags such as `theory-v*`. The historical `v0.1.0-beta.1` tag and release remain
-unchanged history.
+The only published package release remains `v0.9.0`, available from the
+[GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).
+Its historical install instructions and checksums are documented in
+[`docs/MIGRATION.md`](docs/MIGRATION.md). The 1.0.0 candidate notes are a
+[draft only](docs/RELEASE_NOTES_1.0.0.md).
 
 ## Project Structure
 
@@ -185,6 +175,7 @@ latent-anything/
 - [docs/PLAN.md](docs/PLAN.md) - Incremental project plan
 - [docs/PLUGIN_AUTHOR_GUIDE.md](docs/PLUGIN_AUTHOR_GUIDE.md) - External plugin contract and security boundary
 - [docs/PLUGIN_TEMPLATE.md](docs/PLUGIN_TEMPLATE.md) - Minimal plugin package template
+- [1.0.0 candidate release notes (unpublished draft)](docs/RELEASE_NOTES_1.0.0.md)
 
 ## License
 

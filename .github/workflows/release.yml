@@ -1,14 +1,10 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v[0-9]*.[0-9]*.[0-9]*"
-      - "[0-9]*.[0-9]*.[0-9]*"
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to validate, build, and publish
+        description: New release tag to create after all release gates pass
         required: true
         type: string
 
@@ -24,13 +20,13 @@ jobs:
       release_name: ${{ steps.release_notes.outputs.title }}
       prerelease: ${{ steps.release_notes.outputs.prerelease }}
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      RELEASE_TAG: ${{ inputs.tag }}
 
     steps:
-      - name: Checkout release ref
+      - name: Checkout release candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -41,29 +37,44 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Verify release ref provenance
+      - name: Verify release candidate and unused tag
         id: verify_ref
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$RELEASE_TAG" != "v0.9.0" && "$RELEASE_TAG" != "0.9.0" ]]; then
-            echo "This workflow publishes only 0.9.0; got $RELEASE_TAG" >&2
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Release dispatch must use the main branch; got $GITHUB_REF" >&2
             exit 1
           fi
+          if [[ ! "$RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must be a stable semantic version; got $RELEASE_TAG" >&2
+            exit 1
+          fi
+          if [[ "${RELEASE_TAG#v}" != "1.0.0" ]]; then
+            echo "Release tag must match the 1.0.0 package candidate; got $RELEASE_TAG" >&2
+            exit 1
+          fi
+
           tag_ref="refs/tags/$RELEASE_TAG"
-          git show-ref --verify --quiet "$tag_ref"
-          tag_commit="$(git rev-list -n 1 "$tag_ref")"
+          if git ls-remote --exit-code --refs origin "$tag_ref" >/dev/null; then
+            echo "Release tag already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
           checkout_commit="$(git rev-parse HEAD)"
-          test "$tag_commit" = "$checkout_commit"
           {
             echo "release_tag=$RELEASE_TAG"
             echo "commit=$checkout_commit"
             echo "commit_epoch=$(git show -s --format=%ct "$checkout_commit")"
           } >> "$GITHUB_OUTPUT"
-          echo "Verified $RELEASE_TAG -> $checkout_commit"
+          echo "Verified release candidate $RELEASE_TAG -> $checkout_commit"
 
       - name: Sync environment
-        run: uv sync --locked
+        run: uv sync --locked --extra docs
+      - name: Enforce depth-first release stop
+        run: uv run python scripts/check_release_readiness.py
+
+      - name: MkDocs strict
+        run: uv run mkdocs build --strict
 
       - name: Ruff check
         run: uv run ruff check src tests scripts
@@ -103,7 +114,7 @@ jobs:
           import tarfile
           from pathlib import Path
 
-          source = Path("dist/latent_anything-0.9.0.tar.gz")
+          source = Path("dist/latent_anything-1.0.0.tar.gz")
           temporary = source.with_suffix(source.suffix + ".tmp")
           epoch = int(os.environ["SOURCE_DATE_EPOCH"])
           with (
@@ -142,8 +153,8 @@ jobs:
 
           dist = Path("dist")
           expected = {
-              "latent_anything-0.9.0-py3-none-any.whl",
-              "latent_anything-0.9.0.tar.gz",
+              "latent_anything-1.0.0-py3-none-any.whl",
+              "latent_anything-1.0.0.tar.gz",
           }
           actual = {path.name for path in dist.iterdir() if path.is_file() and path.suffix in {".whl", ".gz"}}
           if actual != expected:
@@ -155,10 +166,10 @@ jobs:
 
           def check_metadata(raw: bytes, source: str) -> None:
               metadata = email.message_from_bytes(raw)
-              if metadata.get("Name") != "latent-anything" or metadata.get("Version") != "0.9.0":
+              if metadata.get("Name") != "latent-anything" or metadata.get("Version") != "1.0.0":
                   raise SystemExit(f"invalid metadata in {source}")
 
-          wheel = dist / "latent_anything-0.9.0-py3-none-any.whl"
+          wheel = dist / "latent_anything-1.0.0-py3-none-any.whl"
           with zipfile.ZipFile(wheel) as archive:
               if archive.testzip() is not None:
                   raise SystemExit("wheel CRC validation failed")
@@ -170,7 +181,7 @@ jobs:
                   raise SystemExit("wheel content contract failed")
               check_metadata(archive.read(metadata_names[0]), wheel.name)
 
-          sdist = dist / "latent_anything-0.9.0.tar.gz"
+          sdist = dist / "latent_anything-1.0.0.tar.gz"
           with tarfile.open(sdist, "r:gz") as archive:
               members = archive.getmembers()
               for member in members:
@@ -220,10 +231,40 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           overwrite: true
+  create-release-tag:
+    name: Create approved release tag
+    needs: gate-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
+      RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
+
+    steps:
+      - name: Checkout approved release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.gate-and-build.outputs.commit }}
+          fetch-depth: 0
+
+      - name: Create and push annotated release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_ref="refs/tags/$RELEASE_TAG"
+          if git ls-remote --exit-code --refs origin "$tag_ref" >/dev/null; then
+            echo "Release tag already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          git tag --annotate --message "Release $RELEASE_TAG" "$RELEASE_TAG" "$RELEASE_COMMIT"
+          git push origin "$tag_ref"
 
   publish:
     name: Publish verified GitHub Release
-    needs: gate-and-build
+    needs:
+      - gate-and-build
+      - create-release-tag
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -263,8 +304,8 @@ jobs:
           body_path: dist/release-body.md
           prerelease: ${{ env.RELEASE_PRERELEASE }}
           files: |
-            dist/latent_anything-0.9.0-py3-none-any.whl
-            dist/latent_anything-0.9.0.tar.gz
+            dist/latent_anything-1.0.0-py3-none-any.whl
+            dist/latent_anything-1.0.0.tar.gz
             dist/SHA256SUMS
             dist/PROVENANCE.json
             dist/release-body.md
@@ -287,8 +328,8 @@ jobs:
           from pathlib import Path
 
           expected = {
-              "latent_anything-0.9.0-py3-none-any.whl",
-              "latent_anything-0.9.0.tar.gz",
+              "latent_anything-1.0.0-py3-none-any.whl",
+              "latent_anything-1.0.0.tar.gz",
               "SHA256SUMS",
               "PROVENANCE.json",
               "release-body.md",

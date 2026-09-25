@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
-SNAPSHOT = ROOT / "artifacts" / "api_freeze_snapshot_0.9.0.json"
+SNAPSHOT = ROOT / "artifacts" / "api_freeze_snapshot_1.0.0.json"
 
 
 def test_api_freeze_snapshot_has_no_unreviewed_drift() -> None:
@@ -37,7 +37,9 @@ def test_api_freeze_snapshot_separates_canonical_and_beta_surfaces() -> None:
         "Intervention",
         "InterventionPipeline",
     }
-    assert all(item["deadline"] == "0.9.0" for item in aliases)
+    assert all(
+        item["deadline"] == "no-earlier-than-2.0.0" and item["policy"] == "retain-through-1.x" for item in aliases
+    )
     assert snapshot["sections"]["D_registry"]["count"] == 32
     assert snapshot["sections"]["E_plugin_groups"]["count"] == 5
     assert snapshot["sections"]["F_optional_profiles"]["count"] == 12
@@ -51,6 +53,7 @@ def test_api_freeze_snapshot_records_runtime_observations() -> None:
     aliases = snapshot["sections"]["B_beta_compatibility"]
     assert all(item["observed_identity"] for item in aliases["symbol_aliases"])
     assert all(item["observed_same_parser"] for item in aliases["cli_aliases"])
+    assert all(item["policy"] == "retain-through-1.x" for item in aliases["cli_aliases"])
     assert all(item["observed_warning"] for item in aliases["registry_kind_aliases"])
     assert aliases["config_aliases"][0]["observed_values"] == [2.0, 2.0]
     assert all(item["observed_presence"] for item in aliases["result_property_aliases"])

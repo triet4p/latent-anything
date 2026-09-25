@@ -16,9 +16,11 @@ target record. Its v2 validator pass does not establish the coefficient-stabilit
 gate because the recorded threshold is null; a separately frozen supplement
 evaluates stability without mutating that artifact. The earlier v1 persistence
 refusal remains historical.
-**Bounded-core readiness:** The revision-backed 80.25 replay at source commit `5241553` (run `20260925-065327-115093-14640`) supports **READY for Sprint 81 to proceed with this bounded core, conditional on completion of the final review and plan gate**. This status is limited to the evidence below; it is not Sprint 80's final signoff or general release readiness. Main owns the remaining review and plan status, and no sprint-wide gate pass is claimed.
 
-Evidence: The revision-backed [80.25 clean-environment reproduction](../artifacts/sprint-80/task-25.md) and
+**Bounded-core readiness:** The final Sprint 80 review returned **PASS** with no actionable findings at revision `8392b04`, closing the prior pending-review condition for the bounded ordinary-DL core only. The accepted scope is the prospective encoder v3 case, transformer target-evidence-v2 case, and separately gated transformer stability supplement; the secondary SmolVLA lane remains **BLOCKED** and non-gating. This is not overall `1.0.0` release approval, arbitrary-model support, or GPU/CUDA readiness; Sprint 81's separate release gates remain open.
+
+Evidence: The [final Sprint 80 depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md),
+the [80.25 clean-environment reproduction](../artifacts/sprint-80/task-25.md), and
 the [80.26 guide/example handoff](../artifacts/sprint-80/task-26.md) document the
 accepted diagnoses and their provenance. Earlier fail-closed outcomes remain in the
 [historical 80.26 record](../artifacts/task_80.26_ai_engineer_guide_examples_summary.md).

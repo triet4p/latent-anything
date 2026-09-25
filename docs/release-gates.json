@@ -1,0 +1,14 @@
+{
+  "schema": "latent-anything-release-prerequisites-v1",
+  "external_prerequisites": {
+    "release-tag-ruleset": {
+      "status": "pending",
+      "evidence": "No repository tag-ruleset verification is recorded; task 5 must confirm stable-release tags are writable only through the audited workflow."
+    },
+    "pypi-trusted-publisher": {
+      "status": "pending",
+      "environment": "pypi",
+      "evidence": "artifacts/sprint-81/task-1.md records the reported pending configuration; task 5 must replace this with verified activation evidence."
+    }
+  }
+}

@@ -71,10 +71,10 @@ def aliases() -> dict[str, object]:
         {
             "canonical": canonical,
             "legacy": legacy,
-            "deadline": "0.9.0",
+            "deadline": "no-earlier-than-2.0.0",
             "planned_rfc_window": "0.2.0 (planned; never released)",
             "actual_state": "Unreleased / Sprint78.29 (metadata 0.1.0b1)",
-            "policy": "retain-exact-alias-through-beta",
+            "policy": "retain-through-1.x",
             "observed_identity": resolve(canonical) is resolve(legacy),
         }
         for canonical, legacy in (
@@ -95,7 +95,8 @@ def aliases() -> dict[str, object]:
             "canonical": normalized_a,
             "legacy": "method_a",
             "constant": "KIND_METHOD_A",
-            "deadline": "0.9.0",
+            "deadline": "no-earlier-than-2.0.0",
+            "policy": "retain-through-1.x",
             "planned_rfc_window": "0.2.0 (planned; never released)",
             "actual_state": "Unreleased / Sprint31 (metadata 0.1.0b1)",
             "observed_warning": bool(captured_a),
@@ -104,7 +105,8 @@ def aliases() -> dict[str, object]:
             "canonical": normalized_b,
             "legacy": "method_b",
             "constant": "KIND_METHOD_B",
-            "deadline": "0.9.0",
+            "deadline": "no-earlier-than-2.0.0",
+            "policy": "retain-through-1.x",
             "planned_rfc_window": "0.2.0 (planned; never released)",
             "actual_state": "Unreleased / Sprint31 (metadata 0.1.0b1)",
             "observed_warning": bool(captured_b),
@@ -117,7 +119,7 @@ def aliases() -> dict[str, object]:
         {
             "canonical": canonical,
             "legacy": legacy,
-            "policy": "retain-through-beta",
+            "policy": "retain-through-1.x",
             "observed_same_parser": subparsers.choices[canonical] is subparsers.choices[legacy],
         }
         for canonical, legacy in (("capture-points", "list-capture-points"), ("replay-run", "replay-run-config"))

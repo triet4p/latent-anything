@@ -4,7 +4,7 @@
 
 Latent Anything will reach `1.0.0` by proving diagnostic depth on real model representations, not by accumulating model-family integrations, theory-row percentages, or attractive visualizations. The stable product claim is an end-to-end loop that lets an AI engineer capture, detect, localize, explain, causally validate, compare, and report internal representation problems with reproducible evidence.
 
-Sprints 1-26 established the beta foundation. Sprints 27-79 establish the `0.9.0` pre-stable API and evidence baseline. Sprint 80 proves the depth-first representation-diagnostic contract on ordinary deep-learning models, with a small VLA as a secondary bounded proof lane. Sprint 81 owns `1.0.0` publication after those depth gates pass. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
+Sprints 1-26 established the beta foundation. Sprints 27-79 establish the `0.9.0` pre-stable API and evidence baseline. Sprint 80 signs off only the bounded ordinary-DL depth cases; its secondary SmolVLA lane remains explicitly blocked. Sprint 81 owns all `1.0.0` release gates, and publication follows only when every gate passes. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
 
 Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 [`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the published
@@ -12,15 +12,17 @@ Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 canonical-stable names / 7 public exceptions (SHA-256
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`).
 Those values are historical, not the current source inventory. The checked-in
-source API-freeze snapshot now records 214 runtime exports / 211
+1.0.0 candidate API-freeze snapshot now records 214 runtime exports / 211
 canonical-stable names / 8 public exceptions (SHA-256
-`3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`).
-Neither inventory alone is a release-readiness claim. Package metadata is
-the pre-stable candidate. The `v0.9.0` tag now points to the merged release
-commit, and the gated workflow published and verified the GitHub Release
-(wheel, sdist, checksums, provenance, and release notes) as the `0.9.0`
-distribution channel. PyPI publication is explicitly deferred and non-gating.
-Sprint 79 task 604 is complete; Sprint 80 and Sprint 81 remain in scope.
+`46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`).
+Neither inventory alone is a release-readiness claim. The working-tree package
+metadata is now `1.0.0` for the unpublished Sprint 81 candidate; it has not
+been built, tagged, or published. The verified `v0.9.0` tag and GitHub Release
+remain the only published package distribution; PyPI publication was
+explicitly deferred for `0.9.0`. The `1.0.0` candidate is not release-authorized:
+the stable-tag ruleset and PyPI Trusted Publisher prerequisites remain pending,
+and Task 4 still owns clean package build and installation checks. Sprint 79
+task 604 is complete; Sprint 80 and Sprint 81 remain in scope.
 
 ## Definition of Stable
 
@@ -99,9 +101,11 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-No sprint is currently Active. Sprint 81 remains planned and owns the `1.0.0` publication gates.
+Sprint 81 is Active and owns the `1.0.0` publication gates; no tag or
+publication occurs until every supported diagnostic and release-quality gate
+passes. The current `1.0.0` source metadata is only a candidate.
 
-Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. Its [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) was cut before that final review; the report's pending-review condition is now satisfied, not a claim that arbitrary models, general release, or GPU/CUDA readiness passed. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81 must apply its own release gates.
+Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) now records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81 must apply its own release gates.
 
 ## Planned Sprints
 

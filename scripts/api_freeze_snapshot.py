@@ -22,7 +22,7 @@ from latent_anything._api_freeze_inventory import (
 from latent_anything._api_freeze_runtime import aliases, async_pairs, cli_contract, exceptions, serialization
 
 ROOT = Path(__file__).resolve().parents[1]
-SNAPSHOT_PATH = ROOT / "artifacts" / "api_freeze_snapshot_0.9.0.json"
+SNAPSHOT_PATH = ROOT / "artifacts" / "api_freeze_snapshot_1.0.0.json"
 
 
 def build_snapshot() -> dict[str, object]:

@@ -33,6 +33,18 @@ diagnosis-depth gaps carry into Sprint 80; the remaining breadth rows move to
 the post-1.0 research backlog. Sprint 80 is the depth gate; Sprint 81 owns
 stable publication.
 
+### Sprint 81 / 1.0.0 candidate boundary
+
+The theory-row percentages and former breadth thresholds above describe portfolio
+coverage only; they are not 1.0.0 release gates and do not measure diagnostic
+quality. The final Sprint 80 review signs off the bounded ordinary-DL encoder
+v3 and transformer target-evidence-v2 cases plus their separate stability
+supplement, as recorded in the [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md).
+SmolVLA remains an explicitly blocked, non-gating secondary lane; broad VLA,
+GPU/CUDA, arbitrary-model, and dataset support are not claimed. The working-tree
+`1.0.0` package metadata and API snapshot identify an unpublished candidate,
+not a release or a theory-coverage promotion.
+
 ### Sprint 79 L02 partial result
 
 The committed, reproducible artifact

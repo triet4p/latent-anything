@@ -70,10 +70,28 @@ chain.
   remote trong giai đoạn planning và không dùng local CPU để thay real-model
   evidence.
 - GitHub Actions cần tài khoản external có quyền; nếu thiếu thì là blocker,
-  không đổi workflow để giả PASS. Sprint 81 dừng trước tag/publish nếu còn
-  blocker cho yêu cầu được hỗ trợ, waiver chưa được owner ký, hoặc Sprint 80
-  còn blocker depth chưa được giải quyết. Ngưỡng breadth cũ 95% core /
-  90% overall là chỉ số sức khỏe portfolio, không phải gate `0.9` hay depth.
+  không đổi workflow để giả PASS. Release workflow chỉ nhận
+  `workflow_dispatch` từ `main`; các release tag được tạo và push bởi job riêng
+  sau khi gate, quality checks và build đã thành công. Push tag trực tiếp không
+  kích hoạt publication; repository ruleset phải chặn direct write và chỉ cho
+  phép workflow được kiểm toán. Trạng thái này còn `pending` trong manifest.
+- `scripts/check_release_readiness.py` đọc trạng thái hiện tại của tasks 1, 2,
+  3, 4, 8 thuộc Sprint 81, bảng stable-depth trong báo cáo Sprint 80 và
+  `docs/release-gates.json`. Prerequisite còn mở, thiếu hoặc sai định dạng đều
+  chặn. Gate depth chỉ áp dụng cho bounded ordinary-DL core đã được ký nhận.
+  SmolVLA vẫn `BLOCKED` và non-gating; lane bị loại không tự trở thành release
+  claim.
+- Nếu còn blocker cho capture, detection, localization, statistical control,
+  explanation, causal validation, reporting, packaging, documentation hoặc
+  workflow thì dừng trước tag và mọi publication. Workflow hiện chưa publish
+  PyPI. Cấu hình PyPI Trusted Publisher được báo cáo đang `pending`, không phải
+  publisher đã hoạt động; task 5 chỉ được thêm PyPI publish sau khi prerequisite
+  bên ngoài được bật, với `environment: pypi` và dependency trực tiếp vào các
+  gate/tag đã kiểm chứng.
+- Sprint 81 dừng trước tag/publish nếu còn blocker cho yêu cầu được hỗ trợ,
+  waiver chưa được owner ký, hoặc Sprint 80 còn blocker depth chưa được giải
+  quyết. Ngưỡng breadth cũ 95% core / 90% overall là chỉ số sức khỏe portfolio,
+  không phải gate `0.9` hay depth.
 
 ## 24 lane bắt buộc
 

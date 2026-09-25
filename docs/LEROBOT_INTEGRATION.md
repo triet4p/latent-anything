@@ -5,6 +5,13 @@ policy, processor, dataset, environment, evaluation, and plugin surfaces.
 The supported upstream window is LeRobot `>=0.6.0,<0.7.0` (currently locked to
 `0.6.1`) on Python `>=3.12`, Torch `>=2.7,<2.12`, and NumPy `>=2.0,<2.3`.
 
+**1.0.0 candidate boundary:** This guide documents optional LeRobot
+implementation seams, not a release-level model-support claim. The accepted
+candidate diagnostic scope is limited to the bounded ordinary-DL cases in the
+[Sprint 80 depth report](SPRINT_80_DEPTH_EVIDENCE.md). SmolVLA remains
+**BLOCKED** and non-gating; this document does not claim general VLA or
+GPU/CUDA readiness.
+
 Install the boundary with:
 
 ```text
@@ -165,7 +172,16 @@ It writes `artifacts/diffusion_policy_representation_benchmark.json`. The
 marked public checkpoint smoke is in `tests/test_lerobot_diffusion.py` and is
 opt-in with `LATENT_ANYTHING_RUN_NETWORK=1`.
 
-## SmolVLA representation capture and bounded intervention
+## SmolVLA implementation lane — BLOCKED, non-gating for 1.0.0
+
+The Sprint 80 secondary-lane attempt is explicitly **BLOCKED**, not a
+diagnosis pass. The pinned policy produced a `(64, 768)` capture while the
+frozen v1 proof asserted `(64, 1024)`; separately, the estimator cannot
+support 768 dimensions from 64 samples. Execution stopped before
+detect/localize/explain/intervene/compare/report, and no validator-clean
+artifact exists. The prospective v2 manifest freezes a 768-to-32 projection
+but remains unexecuted. None of the implementation detail or historical
+benchmark output below promotes SmolVLA into the 1.0.0 supported claim.
 
 Sprint 60 pins the public SmolVLA checkpoint `lerobot/smolvla_libero` at model
 revision `31d453f7edd78c839a8bbc39744a292686daf0de` and its documented training
@@ -230,9 +246,12 @@ uv run python scripts/smolvla_policy_representation_benchmark.py
 It writes `artifacts/smolvla_policy_representation_benchmark.json`. The marked
 public checkpoint lane is in `tests/test_lerobot_smolvla.py` and requires a
 CUDA device plus `LATENT_ANYTHING_RUN_NETWORK=1` in an environment containing
-the `lerobot-smolvla` extra. The SmolVLA claim is an observational and
-bounded-intervention claim; environment-level causal effects are the Sprint 61
-simulation benchmark below.
+the `lerobot-smolvla` extra.
+
+The benchmark code below describes the blocked secondary lane's measurement
+interface, not evidence of a supported diagnosis. Environment-level causal
+effects were defined as a Sprint 61 experiment; they do not convert the
+blocked lane into a 1.0.0 support claim.
 
 ## SmolVLA causal simulation benchmark
 
@@ -295,8 +314,10 @@ The authoritative ledger keeps `THY-T05-CAUSAL-INTERVENTION-VS-
 OBSERVATIONAL-STUDY` at D2 pending a corrected, pinned real CUDA rerun; this
 document does not promote the retained artifact to D3. Per-query latency is a
 recorded diagnostic only: no real-policy overhead or LeRobot overhead claim is
-made, and unavailable overhead measurements are secondary integration work that
-does not block `0.9`.
+made. Unavailable overhead measurements are secondary integration work and do
+not block the accepted bounded ordinary-DL core. SmolVLA remains blocked by its
+separately documented capture and estimator failures; no general `1.0.0` VLA,
+GPU/CUDA, or latency claim is established.
 
 ## Sprint 62 run records and inspection commands
 

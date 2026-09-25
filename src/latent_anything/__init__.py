@@ -331,7 +331,7 @@ from latent_anything.transition import StochasticRollout as StochasticRollout
 from latent_anything.transition import StochasticRolloutMetrics as StochasticRolloutMetrics
 from latent_anything.transition_contract import LatentTransition as LatentTransition
 
-__version__ = "0.9.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "AnalysisPipeline",

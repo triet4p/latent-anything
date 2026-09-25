@@ -5,6 +5,11 @@ Sprint 73 supports external Python distributions through standard
 small: listing declarations reads metadata only; loading a plugin imports its
 callable and registers it in a caller-owned `Registry`.
 
+The framework source metadata currently targets an unpublished `1.0.0`
+candidate. The version-1 plugin contract below becomes a stable 1.x host
+compatibility promise only after the 1.0.0 release gates pass; no 1.0.0
+distribution is available from this candidate work.
+
 ## Supported groups
 
 Declare one of these canonical groups in your distribution's `pyproject.toml`:
@@ -43,6 +48,16 @@ class AcmeNormalizer:
 The target is not imported while users list plugins. A missing or unsupported
 version is reported as an isolated load failure; it does not prevent healthy
 plugins from loading.
+
+## Versioning and compatibility
+
+`__latent_anything_plugin_api_version__ = "1"` identifies the plugin contract,
+not the plugin distribution's own version. Keep the canonical entry-point
+groups and version-1 callable/config/provenance contract compatible across the
+framework's `1.x` releases. Breaking plugin-contract changes require a new
+major host/API version. The template's `latent-anything>=1.0.0,<2.0.0`
+dependency range is for use after 1.0.0 is actually published; the current
+candidate source metadata is not an installable release.
 
 ## Build from config
 

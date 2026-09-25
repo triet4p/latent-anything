@@ -23,7 +23,7 @@ def canonical_kind(kind: str, *, warn: bool = False) -> str:
     if warn and canonical != kind:
         warnings.warn(
             f"Registry kind {kind!r} is deprecated; use {canonical!r}. "
-            "Removal is deferred past 0.9.0 pending a separate reviewed migration decision.",
+            "Aliases are retained throughout 1.x; removals require a separately reviewed major-version migration.",
             DeprecationWarning,
             stacklevel=3,
         )
