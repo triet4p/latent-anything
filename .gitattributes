@@ -74,3 +74,6 @@ src/latent_anything/probes.py -text
 tests/test_sprint80_25_clean_repro.py -text
 tests/test_target_evidence.py -text
 artifacts/sprint-80/task-25.md -text
+# The driver fingerprints all 162 installed package sources; the remaining
+# package files are covered by the same byte-preservation guarantee.
+src/latent_anything/**/*.py -text

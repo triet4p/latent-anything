@@ -68,13 +68,12 @@ from latent_anything._benchmark_manifest import (
 )
 from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
 from latent_anything._portable_contract import PortableNodeError, canonical_json
-from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
+from latent_anything._representation_taxonomy import evaluate_claim
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
 from latent_anything._statistical_controls import execute_plan as _execute_plan
 from latent_anything._statistical_controls import failed_required as _failed_required
-from latent_anything._statistical_controls import run_permutation_control as _central_control
-from latent_anything._representation_taxonomy import evaluate_claim
+from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
 from latent_anything.density import GaussianMixtureDensity, GMMConfig
 from latent_anything.diagnostics import DiagnosticRequest
 from latent_anything.latent_value import LatentValue
@@ -163,7 +162,7 @@ class Provenance:
     split: str
     split_identity: str
     preprocessing: str
-    axes: tuple[str, ...]
+    axes: object
 
     def __post_init__(self) -> None:
         _non_empty_string(self.representation_identity, name="representation_identity")
@@ -172,16 +171,14 @@ class Provenance:
         _non_empty_string(self.split, name="split")
         _non_empty_string(self.split_identity, name="split_identity")
         _non_empty_string(self.preprocessing, name="preprocessing")
-        if not self.axes:
-            raise DetectionError("axes must not be empty")
-        for index, axis in enumerate(self.axes):
-            if not isinstance(axis, str) or not axis.strip():
-                raise DetectionError(f"axes[{index}] must be a non-empty string")
+        axes = _require_axes_tuple(self.axes)
+        object.__setattr__(self, "axes", axes)
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible mapping of this provenance."""
+        axes = _require_axes_tuple(self.axes)
         return {
-            "axes": list(self.axes),
+            "axes": list(axes),
             "dataset_id": self.dataset_id,
             "dataset_revision": self.dataset_revision,
             "preprocessing": self.preprocessing,
@@ -209,7 +206,7 @@ class DetectionConfig:
     training_seed: int
     evaluation_seed: int
     control_seed: int
-    manifest_metric_families: tuple[str, ...] = ()
+    manifest_metric_families: object = ()
 
     def __post_init__(self) -> None:
         _non_empty_string(self.manifest_id, name="manifest_id")
@@ -239,7 +236,7 @@ class DetectionConfig:
         for control_id in (*self.required_controls, *self.optional_controls):
             if control_id not in self.control_kinds:
                 raise DetectionError(f"control {control_id!r} is missing its manifest kind")
-        object.__setattr__(self, "manifest_metric_families", tuple(self.manifest_metric_families))
+        object.__setattr__(self, "manifest_metric_families", _require_families(self.manifest_metric_families))
         _non_empty_string(self.calibration_rule, name="calibration_rule")
         if self.calibration_rule != CALIBRATION_RULE:
             raise DetectionError(f"unsupported calibration rule: {self.calibration_rule!r}")
@@ -259,7 +256,7 @@ class DetectionConfig:
             "confidence_level": float(self.confidence_level),
             "control_metrics": {key: list(value) for key, value in self.control_metrics.items()},
             "control_kinds": dict(self.control_kinds),
-            "manifest_metric_families": list(self.manifest_metric_families),
+            "manifest_metric_families": list(_require_families(self.manifest_metric_families)),
             "control_seed": int(self.control_seed),
             "evaluation_seed": int(self.evaluation_seed),
             "family_ids": list(self.family_ids),
@@ -281,6 +278,150 @@ class DetectionConfig:
         }
 
 
+def _require_metric_ids(value: object, *, control_id: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"control {control_id!r} metric_ids must be a non-empty list")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DetectionError(f"control {control_id!r} metric_ids must be strings")
+    return items
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+    from latent_anything._diagnostic_workflow import StageInvocation as _Invocation
+
+    if not isinstance(value, _Invocation):
+        raise _ContractError("detect executor requires a StageInvocation")
+    return value
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+
+    if not isinstance(value, DiagnosticRequest):
+        raise _ContractError("detect executor requires a DiagnosticRequest")
+    return value
+
+
+def _require_families(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("manifest_metric_families must be a tuple of strings")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DetectionError("manifest_metric_families must be a tuple of strings")
+    return items
+
+
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise DetectionError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_sample_ids(value: object, *, name: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError(f"{name} must be a tuple of sample identities")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, str) or not item.strip():
+            raise DetectionError(f"{name}[{position}] must be a non-empty string")
+    return items
+
+
+def _require_stream_seed(value: object, *, fallback: int) -> int:
+    if not isinstance(value, Mapping):
+        return int(fallback)
+    seed = value.get("stream_seed", fallback)
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        return int(fallback)
+    return int(seed)
+
+
+def _require_observed(value: object) -> Mapping[str, float]:
+    if not isinstance(value, Mapping):
+        raise DetectionError("central null observed must be a mapping")
+    return value
+
+
+def _require_detail(value: object) -> Mapping[str, object]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise DetectionError("central null control detail must be a mapping")
+    return value
+
+
+def _require_scores(value: object) -> tuple[object, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DetectionError("central null shuffled_scores must be a sequence")
+    return tuple(value)
+
+
+def _require_config(value: object) -> DetectionConfig:
+    if not isinstance(value, DetectionConfig):
+        raise DetectionError("config must be a DetectionConfig")
+    return value
+
+
+def _require_pair_or_value(value: object) -> ReferenceTestPair | LatentValue:
+    if not isinstance(value, (ReferenceTestPair, LatentValue)):
+        raise DetectionError("pair must be a ReferenceTestPair or LatentValue")
+    return value
+
+
+def _require_pair(value: object, *, name: str = "pair") -> ReferenceTestPair:
+    if not isinstance(value, ReferenceTestPair):
+        if name == "pair":
+            raise DetectionError("pair must be a ReferenceTestPair")
+        raise DetectionError(f"control {name!r} must carry a bound reference/test pair")
+    return value
+
+
+def _require_batch(value: object, *, name: str) -> LatentValue:
+    if not isinstance(value, LatentValue):
+        raise DetectionError(f"{name} must be a LatentValue")
+    return value
+
+
+def _require_provenance(value: object, *, name: str) -> Provenance:
+    if not isinstance(value, Provenance):
+        raise DetectionError(f"{name} must be a Provenance")
+    return value
+
+
+def _require_axes_tuple(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)) or not value:
+        raise DetectionError("axes must not be empty")
+    items = tuple(value)
+    for index, axis in enumerate(items):
+        if not isinstance(axis, str) or not axis.strip():
+            raise DetectionError(f"axes[{index}] must be a non-empty string")
+    return items
+
+
+def _require_bool(value: object) -> bool:
+    if not isinstance(value, bool):
+        raise DetectionError("claim_allowed must be boolean")
+    return value
+
+
+def _require_repetitions(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 2:
+        raise DetectionError("uncertainty.repetitions must be at least two")
+    return int(value)
+
+
+def _require_seed_rows(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"{name} must be a non-empty list")
+    return tuple(value)
+
+
 def _mapping(value: object, *, name: str) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise DetectionError(f"{name} must be an object")
@@ -300,16 +441,13 @@ def _non_negative_int(value: object, *, name: str) -> int:
 
 
 def detection_config_from_manifest(
-    request: DiagnosticRequest,
+    request: object,
     manifest: Mapping[str, object],
     *,
     calibration_rule: str = CALIBRATION_RULE,
 ) -> DetectionConfig:
     """Parse the predeclared detector configuration; fail closed on any gap."""
-    if not isinstance(request, DiagnosticRequest):
-        raise DetectionError("request must be a DiagnosticRequest")
-    if not isinstance(manifest, Mapping):
-        raise DetectionError("manifest must be a mapping")
+    request = _require_request(request)
     try:
         validate_manifest(manifest)
     except BenchmarkManifestValidationError as exc:
@@ -329,7 +467,9 @@ def detection_config_from_manifest(
     manifest_metric_families: list[str] = []
     for index, raw in enumerate(raw_metrics):
         item = _mapping(raw, name=f"metrics[{index}]")
-        manifest_metric_families.append(_non_empty_string(item.get("taxonomy_family_id"), name=f"metrics[{index}].taxonomy_family_id"))
+        manifest_metric_families.append(
+            _non_empty_string(item.get("taxonomy_family_id"), name=f"metrics[{index}].taxonomy_family_id")
+        )
     raw_thresholds = manifest.get("thresholds")
     if isinstance(raw_thresholds, (str, bytes)) or not isinstance(raw_thresholds, Sequence):
         raise DetectionError("manifest thresholds must be a list")
@@ -377,27 +517,24 @@ def detection_config_from_manifest(
             raise DetectionError(f"required control {control_id!r} links undeclared metrics")
 
     uncertainty = _mapping(manifest.get("uncertainty"), name="uncertainty")
-    repetitions = uncertainty.get("repetitions")
-    if isinstance(repetitions, bool) or not isinstance(repetitions, int) or repetitions < 2:
-        raise DetectionError("uncertainty.repetitions must be at least two")
+    repetitions = _require_repetitions(uncertainty.get("repetitions"))
     seeds = _mapping(manifest.get("seeds"), name="seeds")
-    training = seeds.get("training")
-    evaluation = seeds.get("evaluation")
-    controls_seed = seeds.get("controls")
-    for field_name, field_value in (("training", training), ("evaluation", evaluation), ("controls", controls_seed)):
-        if isinstance(field_value, (str, bytes)) or not isinstance(field_value, Sequence) or not field_value:
-            raise DetectionError(f"seeds.{field_name} must be a non-empty list")
+    training = _require_seed_rows(seeds.get("training"), name="seeds.training")
+    evaluation = _require_seed_rows(seeds.get("evaluation"), name="seeds.evaluation")
+    controls_seed = _require_seed_rows(seeds.get("controls"), name="seeds.controls")
     return DetectionConfig(
         manifest_id=manifest_id,
         family_ids=family_ids,
         metric_ids=tuple(request.controls.metric_ids),
         thresholds=tuple(thresholds),
-        required_controls=tuple(control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True),
+        required_controls=tuple(
+            control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True
+        ),
         optional_controls=tuple(
             control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is not True
         ),
         control_metrics={
-            control_id: tuple(str(item) for item in cast(Sequence[object], manifest_controls[control_id]["metric_ids"]))
+            control_id: _require_metric_ids(manifest_controls[control_id]["metric_ids"], control_id=control_id)
             for control_id in manifest_controls
         },
         control_kinds={control_id: str(manifest_controls[control_id]["kind"]) for control_id in manifest_controls},
@@ -417,7 +554,7 @@ class FamilyDetection:
 
     family_id: str
     outcome: ClaimOutcome
-    claim_allowed: bool
+    claim_allowed: object
     observed_metrics: Mapping[str, float]
     threshold_pass: Mapping[str, bool]
     control_outcomes: Mapping[str, str]
@@ -430,8 +567,7 @@ class FamilyDetection:
             raise DetectionError(f"unsupported family: {self.family_id!r}")
         if self.outcome not in ("supported", "inconclusive", "unsupported"):
             raise DetectionError(f"unsupported claim outcome: {self.outcome!r}")
-        if not isinstance(self.claim_allowed, bool):
-            raise DetectionError("claim_allowed must be boolean")
+        object.__setattr__(self, "claim_allowed", _require_bool(self.claim_allowed))
         object.__setattr__(self, "observed_metrics", MappingProxyType(dict(self.observed_metrics)))
         object.__setattr__(self, "threshold_pass", MappingProxyType(dict(self.threshold_pass)))
         object.__setattr__(self, "control_outcomes", MappingProxyType(dict(self.control_outcomes)))
@@ -471,35 +607,36 @@ class ReferenceTestPair:
     evaluation returns honest ``unsupported``.
     """
 
-    reference: LatentValue
-    calibration: LatentValue
-    test: LatentValue
-    reference_sample_ids: tuple[str, ...]
-    calibration_sample_ids: tuple[str, ...]
-    test_sample_ids: tuple[str, ...]
-    reference_provenance: Provenance
-    test_provenance: Provenance
-    distribution_free: bool = False
+    reference: object
+    calibration: object
+    test: object
+    reference_sample_ids: object
+    calibration_sample_ids: object
+    test_sample_ids: object
+    reference_provenance: object
+    test_provenance: object
+    distribution_free: object = False
 
     def __post_init__(self) -> None:
-        for name in ("reference", "calibration", "test"):
-            if not isinstance(getattr(self, name), LatentValue):
-                raise DetectionError(f"{name} must be a LatentValue")
-        for name in ("reference_provenance", "test_provenance"):
-            if not isinstance(getattr(self, name), Provenance):
-                raise DetectionError(f"{name} must be a Provenance")
-        if not isinstance(self.distribution_free, bool):
-            raise DetectionError("distribution_free must be boolean")
-        reference_matrix = _batch_matrix(self.reference, name="reference")
-        calibration_matrix = _batch_matrix(self.calibration, name="calibration")
-        test_matrix = _batch_matrix(self.test, name="test")
+        reference = _require_batch(self.reference, name="reference")
+        calibration = _require_batch(self.calibration, name="calibration")
+        test = _require_batch(self.test, name="test")
+        object.__setattr__(self, "reference", reference)
+        object.__setattr__(self, "calibration", calibration)
+        object.__setattr__(self, "test", test)
+        reference_provenance = _require_provenance(self.reference_provenance, name="reference_provenance")
+        test_provenance = _require_provenance(self.test_provenance, name="test_provenance")
+        object.__setattr__(self, "reference_provenance", reference_provenance)
+        object.__setattr__(self, "test_provenance", test_provenance)
+        object.__setattr__(self, "distribution_free", _require_bool(self.distribution_free))
+        reference_matrix = _batch_matrix(reference, name="reference")
+        calibration_matrix = _batch_matrix(calibration, name="calibration")
+        test_matrix = _batch_matrix(test, name="test")
         widths = {int(reference_matrix.shape[1]), int(calibration_matrix.shape[1]), int(test_matrix.shape[1])}
         if len(widths) != 1:
-            raise DetectionError(
-                f"reference/calibration/test feature widths diverge: {sorted(widths)}"
-            )
-        reference_space = self.reference.space
-        for name, value in (("calibration", self.calibration), ("test", self.test)):
+            raise DetectionError(f"reference/calibration/test feature widths diverge: {sorted(widths)}")
+        reference_space = reference.space
+        for name, value in (("calibration", calibration), ("test", test)):
             other = value.space
             if other.geometry != reference_space.geometry:
                 raise DetectionError(
@@ -516,42 +653,47 @@ class ReferenceTestPair:
             ("calibration_sample_ids", self.calibration_sample_ids),
             ("test_sample_ids", self.test_sample_ids),
         ):
-            items = tuple(value)
+            items = _require_sample_ids(value, name=name)
             object.__setattr__(self, name, items)
-            expected = int({"reference_sample_ids": reference_matrix.shape[0], "calibration_sample_ids": calibration_matrix.shape[0], "test_sample_ids": test_matrix.shape[0]}[name])
+            expected = int(
+                {
+                    "reference_sample_ids": reference_matrix.shape[0],
+                    "calibration_sample_ids": calibration_matrix.shape[0],
+                    "test_sample_ids": test_matrix.shape[0],
+                }[name]
+            )
             if len(items) != expected:
                 raise DetectionError(f"{name} cover {len(items)} samples but the batch holds {expected}")
-            for position, sample_id in enumerate(items):
-                if not isinstance(sample_id, str) or not sample_id.strip():
-                    raise DetectionError(f"{name}[{position}] must be a non-empty string")
             if len(set(items)) != len(items):
                 raise DetectionError(f"{name} must be unique within one batch")
-        if set(self.reference_sample_ids) & set(self.calibration_sample_ids):
+        reference_ids = _require_sample_ids(self.reference_sample_ids, name="reference_sample_ids")
+        calibration_ids = _require_sample_ids(self.calibration_sample_ids, name="calibration_sample_ids")
+        test_ids = _require_sample_ids(self.test_sample_ids, name="test_sample_ids")
+        if set(reference_ids) & set(calibration_ids):
             raise DetectionError("reference/calibration overlap: a sample identity appears on both sides")
-        if set(self.reference_sample_ids) & set(self.test_sample_ids):
+        if set(reference_ids) & set(test_ids):
             raise DetectionError("reference/test overlap: a sample identity appears on both sides")
-        if set(self.calibration_sample_ids) & set(self.test_sample_ids):
+        if set(calibration_ids) & set(test_ids):
             raise DetectionError("calibration/test overlap: a sample identity appears on both sides")
-        reference_identity = self.reference.identity
-        for name, value in (("calibration", self.calibration), ("test", self.test)):
+        reference_identity = reference.identity
+        for name, value in (("calibration", calibration), ("test", test)):
             if value.identity != reference_identity:
-                raise DetectionError(
-                    f"{name} representation identity does not match the reference identity"
-                )
+                raise DetectionError(f"{name} representation identity does not match the reference identity")
         if not reference_identity:
             raise DetectionError("bound values must declare a representation identity")
-        if self.reference_provenance.representation_identity != self.test_provenance.representation_identity:
+        if reference_provenance.representation_identity != test_provenance.representation_identity:
             raise DetectionError("reference/test representation identities must match")
-        if self.reference_provenance.split_identity == self.test_provenance.split_identity:
+        if reference_provenance.split_identity == test_provenance.split_identity:
             raise DetectionError("reference/test split identities must be distinct")
         for field in ("dataset_id", "dataset_revision", "preprocessing"):
-            if getattr(self.reference_provenance, field) != getattr(self.test_provenance, field):
+            if getattr(reference_provenance, field) != getattr(test_provenance, field):
                 raise DetectionError(f"reference/test {field} must match")
-        if tuple(self.reference_provenance.axes) != tuple(self.test_provenance.axes):
+        if tuple(_require_axes_tuple(reference_provenance.axes)) != tuple(_require_axes_tuple(test_provenance.axes)):
             raise DetectionError("reference/test axes must match")
 
 
-def _batch_matrix(value: LatentValue, *, name: str = "batch") -> np.ndarray:
+def _batch_matrix(value: object, *, name: str = "batch") -> np.ndarray:
+    value = _require_batch(value, name=name)
     data = np.asarray(value.to_numpy(), dtype=np.float64)
     if data.ndim != 2:
         raise DetectionError(f"incompatible rank: {name} requires one 2D (n_samples, dim) batch, got {data.ndim}D")
@@ -560,25 +702,6 @@ def _batch_matrix(value: LatentValue, *, name: str = "batch") -> np.ndarray:
     if not np.isfinite(data).all():
         raise DetectionError(f"{name} contains non-finite values")
     return data
-
-
-def _summarize(
-    samples: Sequence[float], *, repetitions: int, seed: int, confidence_level: float
-) -> dict[str, object]:
-    """Summarize draws through the central statistical-control executor.
-
-    Strict seam: the percentile math lives in
-    ``_statistical_controls.summarize_interval``; this local alias keeps the
-    detector's one-fit/one-calibration call sites unchanged while the central
-    executor owns the interval contract.
-    """
-    from latent_anything._statistical_controls import summarize_interval as _summarize_central
-
-    return dict(
-        _summarize_central(
-            samples, repetitions=repetitions, seed=seed, confidence_level=confidence_level
-        )
-    )
 
 
 def _flag_rate(scores: np.ndarray, threshold: float) -> float:
@@ -596,8 +719,10 @@ def _bootstrap_scores(
     flat = np.asarray(scores, dtype=np.float64).ravel()
     n = int(flat.shape[0])
 
-    def _draw(rng: np.random.Generator) -> float:
+    def _draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n, size=n)
+
         return float(np.mean(flat[positions] >= threshold))
 
     _, interval = _central_bootstrap(
@@ -668,12 +793,11 @@ def _fit_once(
     reference_provenance: Provenance,
     test_provenance: Provenance,
 ) -> tuple[GaussianMixtureDensity, float]:
-    """Fit one density on reference rows and calibrate on held-out reference rows."""
+    if test_provenance.representation_identity != reference_provenance.representation_identity:
+        raise DetectionError("reference/test identity mismatch at density fit")
     if geometry not in _DENSITY_GEOMETRIES:
         raise DetectionError(f"unsupported geometry for density estimation: {geometry!r}")
-    estimator = GaussianMixtureDensity(
-        GMMConfig(n_components=2, random_state=config.training_seed)
-    )
+    estimator = GaussianMixtureDensity(GMMConfig(n_components=2, random_state=config.training_seed))
     try:
         estimator.fit(
             reference_matrix,
@@ -717,7 +841,8 @@ def _bootstrap_gap(
     n_test = int(flat_test.shape[0])
     n_reference = int(flat_reference.shape[0])
 
-    def _draw(rng: np.random.Generator) -> float:
+    def _draw(rng: object) -> float:
+        rng = _require_generator(rng)
         test_positions = rng.integers(0, n_test, size=n_test)
         reference_positions = rng.integers(0, n_reference, size=n_reference)
         return float(np.mean(flat_test[test_positions]) - np.mean(flat_reference[reference_positions]))
@@ -751,7 +876,11 @@ def _score_with(
     gap = float(float(np.mean(scores)) - reference_mean)
     uncertainty = {
         "ood-flag-rate": _bootstrap_scores(
-            scores, threshold, repetitions=config.repetitions, seed=config.evaluation_seed, confidence_level=config.confidence_level
+            scores,
+            threshold,
+            repetitions=config.repetitions,
+            seed=config.evaluation_seed,
+            confidence_level=config.confidence_level,
         ),
         "density-drift-gap": _bootstrap_gap(
             scores,
@@ -765,7 +894,7 @@ def _score_with(
 
 
 def _evaluate_context(
-    pair: ReferenceTestPair | LatentValue,
+    pair: object,
     config: DetectionConfig,
     supplied: Mapping[str, ReferenceTestPair | LatentValue],
 ) -> _DetectionContext:
@@ -781,16 +910,21 @@ def _evaluate_context(
             raise DetectionError(f"required controls are missing batch data: {control_id}")
 
     wants_family = "density_ood_distribution_drift" in config.family_ids
-    declared_metrics = [metric_id for metric_id in config.metric_ids if METRIC_FAMILY.get(metric_id) == "density_ood_distribution_drift"]
-    manifest_declared = [family for family in getattr(config, "manifest_metric_families", ()) if isinstance(family, str)]
-    manifest_covers = (
-        "density_ood_distribution_drift" in manifest_declared
-        and set(declared_metrics) == set(config.metric_ids)
+    declared_metrics = [
+        metric_id for metric_id in config.metric_ids if METRIC_FAMILY.get(metric_id) == "density_ood_distribution_drift"
+    ]
+    manifest_declared = list(_require_families(getattr(config, "manifest_metric_families", ())))
+    manifest_covers = "density_ood_distribution_drift" in manifest_declared and set(declared_metrics) == set(
+        config.metric_ids
     )
     if wants_family and (not declared_metrics or (manifest_declared and not manifest_covers)):
         # Honest missing-declaration path: no promotable metrics predeclared.
-        identity = "" if isinstance(pair, LatentValue) else pair.reference.identity
-        geometry_name = "" if isinstance(pair, LatentValue) else pair.reference.space.geometry
+        missing_pair = None if isinstance(pair, LatentValue) else _require_pair(pair)
+        identity = "" if missing_pair is None else _require_batch(missing_pair.reference, name="reference").identity
+        geometry_name = (
+            "" if missing_pair is None else _require_batch(missing_pair.reference, name="reference").space.geometry
+        )
+        free = missing_pair is not None and bool(missing_pair.distribution_free)
         return _DetectionContext(
             representation_identity=identity,
             geometry=geometry_name,
@@ -799,29 +933,30 @@ def _evaluate_context(
             counterexample_evaluation=None,
             control_outcomes={},
             central_outcomes={},
-            distribution_free=isinstance(pair, ReferenceTestPair) and pair.distribution_free,
+            distribution_free=free,
             unsupported_geometry=None,
         )
     if isinstance(pair, LatentValue):
         raise DetectionError("density evaluation requires a bound reference/test pair with declared provenance")
-    if not isinstance(pair, ReferenceTestPair):
-        raise DetectionError("pair must be a ReferenceTestPair")
-    geometry = pair.reference.space.geometry
+    pair = _require_pair(pair)
+    pair_reference = _require_batch(pair.reference, name="reference")
+    pair_free = bool(pair.distribution_free)
+    geometry = pair_reference.space.geometry
     if geometry not in _DENSITY_GEOMETRIES:
         return _DetectionContext(
-            representation_identity=pair.reference.identity,
+            representation_identity=pair_reference.identity,
             geometry=geometry,
             evaluation=None,
             null_evaluation=None,
             counterexample_evaluation=None,
             control_outcomes={},
             central_outcomes={},
-            distribution_free=pair.distribution_free,
+            distribution_free=pair_free,
             unsupported_geometry=geometry,
         )
-    if pair.distribution_free:
+    if pair_free:
         return _DetectionContext(
-            representation_identity=pair.reference.identity,
+            representation_identity=pair_reference.identity,
             geometry=geometry,
             evaluation=None,
             null_evaluation=None,
@@ -832,18 +967,22 @@ def _evaluate_context(
             unsupported_geometry=None,
         )
 
-    reference_matrix = _batch_matrix(pair.reference, name="reference")
-    calibration_matrix = _batch_matrix(pair.calibration, name="calibration")
-    test_matrix = _batch_matrix(pair.test, name="test")
-    identity = pair.reference.identity
+    pair_calibration = _require_batch(pair.calibration, name="calibration")
+    pair_test = _require_batch(pair.test, name="test")
+    pair_reference_provenance = _require_provenance(pair.reference_provenance, name="reference_provenance")
+    pair_test_provenance = _require_provenance(pair.test_provenance, name="test_provenance")
+    reference_matrix = _batch_matrix(pair_reference, name="reference")
+    calibration_matrix = _batch_matrix(pair_calibration, name="calibration")
+    test_matrix = _batch_matrix(pair_test, name="test")
+    identity = pair_reference.identity
     estimator, threshold = _fit_once(
         reference_matrix,
         calibration_matrix,
         identity,
         config,
         geometry=geometry,
-        reference_provenance=pair.reference_provenance,
-        test_provenance=pair.test_provenance,
+        reference_provenance=pair_reference_provenance,
+        test_provenance=pair_test_provenance,
     )
     reference_scores = np.asarray(estimator.score(calibration_matrix).calibrated_ood_score, dtype=np.float64)
     reference_mean = float(np.mean(reference_scores))
@@ -871,7 +1010,11 @@ def _evaluate_context(
         estimator_digest=estimator.state_digest(),
         uncertainty={
             "ood-flag-rate": _bootstrap_scores(
-                test_scores_raw, threshold, repetitions=config.repetitions, seed=config.evaluation_seed, confidence_level=config.confidence_level
+                test_scores_raw,
+                threshold,
+                repetitions=config.repetitions,
+                seed=config.evaluation_seed,
+                confidence_level=config.confidence_level,
             ),
             "density-drift-gap": _bootstrap_gap(
                 test_scores_raw,
@@ -886,10 +1029,10 @@ def _evaluate_context(
     # Shuffled null: the actual column permutation plus scoring through the
     # already-fitted/calibrated shared model runs inside the
     # executor-supplied stream. Observed flag/gap bind from the outcome.
-    def _null_statistic(rng: np.random.Generator) -> Mapping[str, object]:
-        shuffled = np.column_stack(
-            [rng.permutation(test_matrix[:, j]) for j in range(test_matrix.shape[1])]
-        )
+    def _null_statistic(rng: object) -> Mapping[str, object]:
+        rng = _require_generator(rng)
+        shuffled = np.column_stack([rng.permutation(test_matrix[:, j]) for j in range(test_matrix.shape[1])])
+
         scores = np.asarray(estimator.score(shuffled).calibrated_ood_score, dtype=np.float64)
         reference_mean = float(np.mean(np.asarray(reference_scores, dtype=np.float64)))
         return {
@@ -931,22 +1074,26 @@ def _evaluate_context(
     counterexample_evaluation: _DensityEvaluation | None = None
     negative_id: str | None = None
     for control_id in (*config.required_controls, *config.optional_controls):
-        if config.control_kinds[control_id] in _SUPPLIED_KINDS and set(config.control_metrics[control_id]) & set(declared_metrics):
+        if config.control_kinds[control_id] in _SUPPLIED_KINDS and set(config.control_metrics[control_id]) & set(
+            declared_metrics
+        ):
             negative_id = control_id
             break
     if negative_id is not None:
-        negative_pair = supplied[negative_id]
-        if not isinstance(negative_pair, ReferenceTestPair):
-            raise DetectionError(f"control {negative_id!r} must carry a bound reference/test pair")
-        if negative_pair.distribution_free:
+        negative_pair = _require_pair(supplied[negative_id], name=negative_id)
+        if bool(negative_pair.distribution_free):
             raise DetectionError(f"control {negative_id!r} must not declare distribution-free estimation")
-        negative_test = _batch_matrix(negative_pair.test, name=f"control {negative_id!r} test")
+        negative_test_value = _require_batch(negative_pair.test, name=f"control {negative_id!r} test")
+        negative_test = _batch_matrix(negative_test_value, name=f"control {negative_id!r} test")
         if negative_test.shape[1] != test_matrix.shape[1]:
             raise DetectionError(
-                f"control {negative_id!r} has {negative_test.shape[1]} features but the target has {test_matrix.shape[1]}"
+                f"control {negative_id!r} has {negative_test.shape[1]} features"
+                f" but the target has {test_matrix.shape[1]}"
             )
-        if negative_pair.test.identity != identity:
-            raise DetectionError(f"control {negative_id!r} representation identity does not match the reference identity")
+        if negative_test_value.identity != identity:
+            raise DetectionError(
+                f"control {negative_id!r} representation identity does not match the reference identity"
+            )
         negative_flag, negative_gap, negative_scores, negative_uncertainty = _score_with(
             estimator, negative_test, threshold, reference_scores, config
         )
@@ -1016,10 +1163,12 @@ def _evaluate_context(
                 _dens_derived[part_id] = control_id
                 _dens_specs.append(
                     _ControlSpec(
-                        control_id=part_id, kind="counterexample", required=required,
+                        control_id=part_id,
+                        kind="counterexample",
+                        required=required,
                         metric_ids=(metric_id,),
                         expected_behavior="no-shift negative must not meet headline thresholds",
-                        comparator=gate,  # type: ignore[arg-type]
+                        comparator=gate,
                         threshold_value=float(gate_threshold.value),
                     )
                 )
@@ -1027,7 +1176,9 @@ def _evaluate_context(
             continue
         _dens_specs.append(
             _ControlSpec(
-                control_id=control_id, kind="null", required=required,
+                control_id=control_id,
+                kind="null",
+                required=required,
                 metric_ids=linked,
                 expected_behavior="shuffled null recorded without gating",
             )
@@ -1045,7 +1196,8 @@ def _evaluate_context(
         ),
         _dens_supplied,
         statistics={"control-shuffled-null": _null_statistic}
-        if any(spec.control_id == "control-shuffled-null" for spec in _dens_specs) else None,
+        if any(spec.control_id == "control-shuffled-null" for spec in _dens_specs)
+        else None,
     )
     # Bind the executed null outcome: real flag/gap/scores from the central
     # callback replace the placeholder null evaluation (no replay, no refit).
@@ -1053,19 +1205,25 @@ def _evaluate_context(
     if _executed_null is not None:
         if _executed_null.status == "failed":
             raise DetectionError(f"central null control failed: {_executed_null.reason}")
-        _null_detail = dict(_executed_null.detail or {})
-        shuffled_scores = tuple(float(item) for item in _null_detail.get("shuffled_scores", ()))  # type: ignore[union-attr]
-        shuffled_flag = float(_executed_null.observed["ood-flag-rate"])
-        shuffled_gap = float(_executed_null.observed["density-drift-gap"])
+        _null_detail = dict(_require_detail(_executed_null.detail))
+        shuffled_raw = _require_scores(_null_detail.get("shuffled_scores"))
+        shuffled_scores = tuple(_finite_number(item, name="shuffled_scores") for item in shuffled_raw)
+        null_observed = _require_observed(_executed_null.observed)
+        shuffled_flag = _finite_number(null_observed["ood-flag-rate"], name="ood-flag-rate")
+        shuffled_gap = _finite_number(null_observed["density-drift-gap"], name="density-drift-gap")
         shuffled_uncertainty = {
             "ood-flag-rate": _bootstrap_scores(
-                np.asarray(shuffled_scores, dtype=np.float64), threshold,
-                repetitions=config.repetitions, seed=config.evaluation_seed,
+                np.asarray(shuffled_scores, dtype=np.float64),
+                threshold,
+                repetitions=config.repetitions,
+                seed=config.evaluation_seed,
                 confidence_level=config.confidence_level,
             ),
             "density-drift-gap": _bootstrap_gap(
-                np.asarray(shuffled_scores, dtype=np.float64), reference_scores,
-                repetitions=config.repetitions, seed=config.evaluation_seed,
+                np.asarray(shuffled_scores, dtype=np.float64),
+                reference_scores,
+                repetitions=config.repetitions,
+                seed=config.evaluation_seed,
                 confidence_level=config.confidence_level,
             ),
         }
@@ -1094,14 +1252,18 @@ def _evaluate_context(
         if control_id in _dens_derived.values() or any(parent == control_id for parent in _dens_derived.values()):
             parts = [part for part, parent in _dens_derived.items() if parent == control_id]
             statuses = [_dens_gating[part].status for part in parts]
-            control_outcomes[control_id] = "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+            control_outcomes[control_id] = (
+                "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+            )
             continue
         outcome = _dens_gating.get(control_id)
         if outcome is None:
             continue
         control_outcomes[control_id] = "passed" if outcome.status in ("passed", "recorded") else "failed"
     _dens_central: dict[str, object] = {control_id: outcome.to_dict() for control_id, outcome in _dens_gating.items()}
-    _dens_blocked = sorted({_dens_derived.get(part, part) for part in _failed_required(_dens_gating)} & set(config.required_controls))
+    _dens_blocked = sorted(
+        {_dens_derived.get(part, part) for part in _failed_required(_dens_gating)} & set(config.required_controls)
+    )
     if _dens_blocked:
         control_outcomes.update({control_id: "failed" for control_id in _dens_blocked})
 
@@ -1141,7 +1303,10 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                         "density_no_shift_negative_control": "not_evaluated",
                     },
                     missing_evidence=("unsupported-geometry:density_ood_distribution_drift",),
-                    reason=f"density convention does not support geometry {context.unsupported_geometry!r}; refusing a distribution-free verdict",
+                    reason=(
+                        f"density convention does not support geometry {context.unsupported_geometry!r}; "
+                        "refusing a distribution-free verdict"
+                    ),
                 )
             )
             continue
@@ -1241,7 +1406,7 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                     threshold_pass=dict(verdicts),
                     control_outcomes=dict(context.control_outcomes),
                     evidence_status=dict(evidence),
-                    missing_evidence=tuple(decision.missing),
+                    missing_evidence=tuple(decision.missing_evidence),
                     reason=decision.reason,
                 )
             )
@@ -1263,8 +1428,8 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
 
 
 def detect_families(
-    pair: ReferenceTestPair | LatentValue,
-    config: DetectionConfig,
+    pair: object,
+    config: object,
     *,
     controls: Mapping[str, ReferenceTestPair | LatentValue] | None = None,
 ) -> tuple[FamilyDetection, ...]:
@@ -1274,10 +1439,8 @@ def detect_families(
     separate :func:`detection_payload` call evaluates twice. Production paths
     (including :func:`make_detect_executor`) must use :func:`evaluate_detection`.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(pair, (ReferenceTestPair, LatentValue)):
-        raise DetectionError("pair must be a ReferenceTestPair or LatentValue")
+    config = _require_config(config)
+    pair = _require_pair_or_value(pair)
     supplied = dict(controls or {})
     return _decide(_evaluate_context(pair, config, supplied), config)
 
@@ -1309,9 +1472,23 @@ def detection_payload(
             "calibration_rule": CALIBRATION_RULE,
             "shuffled_null_method": "independent-per-column-permutation",
             "shuffled_null_seed": int(config.control_seed),
-            "shuffled_null_stream_seed": int(resolved.central_outcomes.get("control-shuffled-null", {}).get("stream_seed", config.control_seed)),  # type: ignore[union-attr]
-            "fit_provenance": dict(pair.reference_provenance.to_dict(), role="reference-fit", geometry=evaluation.geometry) if isinstance(pair, ReferenceTestPair) else {},
-            "calibration_provenance": dict(pair.reference_provenance.to_dict(), role="heldout-calibration", geometry=evaluation.geometry) if isinstance(pair, ReferenceTestPair) else {},
+            "shuffled_null_stream_seed": _require_stream_seed(
+                resolved.central_outcomes.get("control-shuffled-null"), fallback=config.control_seed
+            ),
+            "fit_provenance": dict(
+                _require_provenance(pair.reference_provenance, name="reference_provenance").to_dict(),
+                role="reference-fit",
+                geometry=evaluation.geometry,
+            )
+            if isinstance(pair, ReferenceTestPair)
+            else {},
+            "calibration_provenance": dict(
+                _require_provenance(pair.reference_provenance, name="reference_provenance").to_dict(),
+                role="heldout-calibration",
+                geometry=evaluation.geometry,
+            )
+            if isinstance(pair, ReferenceTestPair)
+            else {},
             "estimator_digest": evaluation.estimator_digest,
             "flag_threshold": float(evaluation.flag_threshold),
             "geometry": evaluation.geometry,
@@ -1328,22 +1505,23 @@ def detection_payload(
         }
         if isinstance(pair, ReferenceTestPair):
             measurements["provenance"] = {
-                "reference": pair.reference_provenance.to_dict(),
-                "test": pair.test_provenance.to_dict(),
+                "reference": _require_provenance(pair.reference_provenance, name="reference_provenance").to_dict(),
+                "test": _require_provenance(pair.test_provenance, name="test_provenance").to_dict(),
             }
     return {
         "config": config.to_dict(),
         "control_metrics": supplied_metrics,
-        "controls": {control_id: dict(outcome) for control_id, outcome in resolved.central_outcomes.items()},
+        "controls": {
+            control_id: dict(cast(Mapping[str, object], outcome))
+            for control_id, outcome in resolved.central_outcomes.items()
+        },
         "families": [detection.to_dict() for detection in detections],
         "family_evidence": {detection.family_id: dict(detection.evidence_status) for detection in detections},
         "measurements": measurements,
     }
 
 
-def _control_table(
-    context: _DetectionContext, config: DetectionConfig
-) -> dict[str, dict[str, float]]:
+def _control_table(context: _DetectionContext, config: DetectionConfig) -> dict[str, dict[str, float]]:
     """Record per-control metric observations without refitting anything."""
     table: dict[str, dict[str, float]] = {}
     evaluation = context.evaluation
@@ -1371,8 +1549,8 @@ def _control_table(
 
 
 def evaluate_detection(
-    pair: ReferenceTestPair | LatentValue,
-    config: DetectionConfig,
+    pair: object,
+    config: object,
     controls: Mapping[str, ReferenceTestPair | LatentValue],
 ) -> tuple[tuple[FamilyDetection, ...], dict[str, object]]:
     """Evaluate one pair plus controls exactly once and return decisions plus payload.
@@ -1382,20 +1560,20 @@ def evaluate_detection(
     shared by family decisions and payload assembly. Uncertainty resamples
     fitted calibrated scores without refitting.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(pair, (ReferenceTestPair, LatentValue)):
-        raise DetectionError("pair must be a ReferenceTestPair or LatentValue")
+    config = _require_config(config)
+    pair = _require_pair_or_value(pair)
     supplied = dict(controls)
     context = _evaluate_context(pair, config, supplied)
     detections = _decide(context, config)
-    payload = detection_payload(detections, config, pair, control_metrics=_control_table(context, config), context=context)
+    payload = detection_payload(
+        detections, config, pair, control_metrics=_control_table(context, config), context=context
+    )
     return detections, payload
 
 
 def make_detect_executor(
-    pair: ReferenceTestPair | LatentValue,
-    config: DetectionConfig,
+    pair: object,
+    config: object,
     *,
     controls: Mapping[str, ReferenceTestPair | LatentValue] | None = None,
     version: str = "density-ood-drift-detector-v1",
@@ -1410,19 +1588,18 @@ def make_detect_executor(
     gating. No algorithm enters ``DiagnosticWorkflow`` itself.
     """
     _non_empty_string(version, name="version")
-    if not isinstance(pair, (ReferenceTestPair, LatentValue)):
-        raise DetectionError("pair must be a ReferenceTestPair or LatentValue")
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    frozen_pair = pair
+    frozen_pair = _require_pair_or_value(pair)
+    config = _require_config(config)
     frozen_controls = dict(controls or {})
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
 
+        invocation = _require_invocation(invocation)
         if invocation.stage != "detect":
             raise _ContractError(f"detect executor received stage {invocation.stage!r}")
-        if invocation.request.manifest_id != config.manifest_id:
+        request = _require_request(invocation.request)
+        if request.manifest_id != config.manifest_id:
             raise _ContractError("detect executor manifest identity mismatch")
         _, payload = evaluate_detection(frozen_pair, config, frozen_controls)
         aggregate_outcome: Literal["completed", "unsupported"] = "completed"

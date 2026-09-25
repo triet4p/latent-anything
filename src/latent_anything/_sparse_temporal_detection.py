@@ -61,14 +61,14 @@ from latent_anything._benchmark_manifest import (
 )
 from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
 from latent_anything._portable_contract import PortableNodeError, canonical_json
-from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
+from latent_anything._representation_taxonomy import evaluate_claim
+from latent_anything._sae_metrics import match_by_decoder_cosine
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
 from latent_anything._statistical_controls import execute_plan as _execute_plan
 from latent_anything._statistical_controls import failed_required as _failed_required
+from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
 from latent_anything._statistical_controls import run_permutation_control as _central_control
-from latent_anything._representation_taxonomy import evaluate_claim
-from latent_anything._sae_metrics import match_by_decoder_cosine
 from latent_anything.diagnostics import DiagnosticRequest
 from latent_anything.dictionary_learning import DictionaryLearning, DictionaryLearningConfig
 from latent_anything.latent_space import LatentSpace
@@ -159,7 +159,7 @@ class DetectionConfig:
     training_seed: int
     evaluation_seed: int
     control_seed: int
-    manifest_metric_families: tuple[str, ...] = ()
+    manifest_metric_families: object = ()
 
     def __post_init__(self) -> None:
         _non_empty_string(self.manifest_id, name="manifest_id")
@@ -189,7 +189,7 @@ class DetectionConfig:
         for control_id in (*self.required_controls, *self.optional_controls):
             if control_id not in self.control_kinds:
                 raise DetectionError(f"control {control_id!r} is missing its manifest kind")
-        object.__setattr__(self, "manifest_metric_families", tuple(self.manifest_metric_families))
+        object.__setattr__(self, "manifest_metric_families", _require_families(self.manifest_metric_families))
         object.__setattr__(self, "seed_axis", tuple(self.seed_axis))
         if self.repetitions < 2:
             raise DetectionError("repetitions must be at least two")
@@ -210,7 +210,7 @@ class DetectionConfig:
             "evaluation_seed": int(self.evaluation_seed),
             "family_ids": list(self.family_ids),
             "manifest_id": self.manifest_id,
-            "manifest_metric_families": list(self.manifest_metric_families),
+            "manifest_metric_families": list(_require_families(self.manifest_metric_families)),
             "metric_ids": list(self.metric_ids),
             "optional_controls": list(self.optional_controls),
             "repetitions": int(self.repetitions),
@@ -229,10 +229,215 @@ class DetectionConfig:
         }
 
 
+def _require_metric_ids(value: object, *, control_id: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"control {control_id!r} metric_ids must be a non-empty list")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DetectionError(f"control {control_id!r} metric_ids must be strings")
+    return items
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+    from latent_anything._diagnostic_workflow import StageInvocation as _Invocation
+
+    if not isinstance(value, _Invocation):
+        raise _ContractError("detect executor requires a StageInvocation")
+    return value
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+
+    if not isinstance(value, DiagnosticRequest):
+        raise _ContractError("detect executor requires a DiagnosticRequest")
+    return value
+
+
+def _require_negative_batches(value: object) -> Mapping[str, object]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise DetectionError("negative_batches must be a mapping")
+    return value
+
+
+def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise DetectionError(f"{name} must be a mapping")
+    return value
+
+
+def _require_trajectory(value: object, *, name: str) -> Trajectory:
+    if not isinstance(value, Trajectory):
+        raise DetectionError(f"{name} must be a Trajectory")
+    return value
+
+
+def _require_step_ids(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("step_ids must be a tuple of non-empty strings")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, str) or not item.strip():
+            raise DetectionError(f"step_ids[{position}] must be a non-empty string")
+    return items
+
+
+def _require_space(value: object) -> LatentSpace:
+    if not isinstance(value, LatentSpace):
+        raise DetectionError("space must be a LatentSpace")
+    return value
+
+
+def _require_seed_axis(value: object) -> tuple[int, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)) or len(tuple(value)) < 2:
+        raise DetectionError("seed_axis must hold at least two seeds")
+    items = tuple(value)
+    for item in items:
+        if isinstance(item, bool) or not isinstance(item, int) or item < 0:
+            raise DetectionError("seed_axis must hold non-negative integers")
+    return tuple(int(item) for item in items)
+
+
+def _require_bool(value: object) -> bool:
+    if not isinstance(value, bool):
+        raise DetectionError("claim_allowed must be boolean")
+    return value
+
+
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise DetectionError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_temporal_input(value: object) -> TemporalInput:
+    if not isinstance(value, TemporalInput):
+        raise DetectionError("pair must be a TemporalInput")
+    return value
+
+
+def _require_sparse_input(value: object) -> SparseInput:
+    if not isinstance(value, SparseInput):
+        raise DetectionError("pair must be a SparseInput")
+    return value
+
+
+def _require_batch(value: object, *, name: str) -> LatentValue:
+    if not isinstance(value, LatentValue):
+        raise DetectionError(f"{name} must be a LatentValue")
+    return value
+
+
+def _require_sample_ids(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("sample_ids must be a tuple of non-empty strings")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, str) or not item.strip():
+            raise DetectionError(f"sample_ids[{position}] must be a non-empty string")
+    return items
+
+
+def _require_seeds(value: object) -> tuple[int, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("sparse evaluation requires at least two seeds")
+    items = tuple(value)
+    if len(items) < 2:
+        raise DetectionError("sparse evaluation requires at least two seeds")
+    for item in items:
+        if isinstance(item, bool) or not isinstance(item, int):
+            raise DetectionError("sparse evaluation requires at least two seeds")
+    return tuple(int(item) for item in items)
+
+
+def _require_seed_list(value: object, *, seed: int) -> tuple[object, ...]:
+    if value is None:
+        raise DetectionError(f"seed {seed} sample identities must cover every row")
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError(f"seed {seed} sample identities must cover every row")
+    return tuple(value)
+
+
+def _require_families(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("manifest_metric_families must be a tuple of strings")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DetectionError("manifest_metric_families must be a tuple of strings")
+    return items
+
+
+def _require_seed_ids(value: object, *, seed: int) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError(f"seed {seed} sample identities must cover every row")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, str) or not item.strip():
+            raise DetectionError(f"seed {seed} sample_ids[{position}] must be a non-empty string")
+    return items
+
+
+def _require_config(value: object) -> DetectionConfig:
+    if not isinstance(value, DetectionConfig):
+        raise DetectionError("config must be a DetectionConfig")
+    return value
+
+
+def _require_target(value: object) -> SparseInput | TemporalInput | LatentValue:
+    if not isinstance(value, (SparseInput, TemporalInput, LatentValue)):
+        raise DetectionError("target must be a SparseInput, TemporalInput, or LatentValue")
+    return value
+
+
+def _require_repetitions(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 2:
+        raise DetectionError("uncertainty.repetitions must be at least two")
+    return int(value)
+
+
+def _require_seed_rows(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"{name} must be a non-empty list")
+    return tuple(value)
+
+
 def _mapping(value: object, *, name: str) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise DetectionError(f"{name} must be an object")
     return cast(Mapping[str, object], value)
+
+
+def _require_observed(value: object) -> Mapping[str, float]:
+    if not isinstance(value, Mapping):
+        raise DetectionError("central control observed must be a mapping")
+    return value
+
+
+def _require_seed_int(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not np.isfinite(float(value)):
+        raise DetectionError("control fit_seed must be a finite number")
+    return int(value)
+
+
+def _require_detail(value: object) -> Mapping[str, object]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise DetectionError("central control detail must be a mapping")
+    return value
+
+
+def _require_scores(value: object) -> tuple[object, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DetectionError("central control shuffled_steps must be a sequence")
+    return tuple(value)
 
 
 def _finite_number(value: object, *, name: str) -> float:
@@ -248,16 +453,13 @@ def _non_negative_int(value: object, *, name: str) -> int:
 
 
 def detection_config_from_manifest(
-    request: DiagnosticRequest,
+    request: object,
     manifest: Mapping[str, object],
     *,
-    seed_axis: tuple[int, ...] = (11, 12),
+    seed_axis: object = (11, 12),
 ) -> DetectionConfig:
     """Parse the predeclared detector configuration; fail closed on any gap."""
-    if not isinstance(request, DiagnosticRequest):
-        raise DetectionError("request must be a DiagnosticRequest")
-    if not isinstance(manifest, Mapping):
-        raise DetectionError("manifest must be a mapping")
+    request = _require_request(request)
     try:
         validate_manifest(manifest)
     except BenchmarkManifestValidationError as exc:
@@ -277,7 +479,9 @@ def detection_config_from_manifest(
     manifest_metric_families: list[str] = []
     for index, raw in enumerate(raw_metrics):
         item = _mapping(raw, name=f"metrics[{index}]")
-        manifest_metric_families.append(_non_empty_string(item.get("taxonomy_family_id"), name=f"metrics[{index}].taxonomy_family_id"))
+        manifest_metric_families.append(
+            _non_empty_string(item.get("taxonomy_family_id"), name=f"metrics[{index}].taxonomy_family_id")
+        )
 
     raw_thresholds = manifest.get("thresholds")
     if isinstance(raw_thresholds, (str, bytes)) or not isinstance(raw_thresholds, Sequence):
@@ -326,33 +530,25 @@ def detection_config_from_manifest(
             raise DetectionError(f"required control {control_id!r} links undeclared metrics")
 
     uncertainty = _mapping(manifest.get("uncertainty"), name="uncertainty")
-    repetitions = uncertainty.get("repetitions")
-    if isinstance(repetitions, bool) or not isinstance(repetitions, int) or repetitions < 2:
-        raise DetectionError("uncertainty.repetitions must be at least two")
+    repetitions = _require_repetitions(uncertainty.get("repetitions"))
     seeds = _mapping(manifest.get("seeds"), name="seeds")
-    training = seeds.get("training")
-    evaluation = seeds.get("evaluation")
-    controls_seed = seeds.get("controls")
-    for field_name, field_value in (("training", training), ("evaluation", evaluation), ("controls", controls_seed)):
-        if isinstance(field_value, (str, bytes)) or not isinstance(field_value, Sequence) or not field_value:
-            raise DetectionError(f"seeds.{field_name} must be a non-empty list")
-    seeds_tuple = tuple(seed_axis)
-    if len(seeds_tuple) < 2:
-        raise DetectionError("seed_axis must hold at least two seeds")
-    for seed in seeds_tuple:
-        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
-            raise DetectionError("seed_axis must hold non-negative integers")
+    training = _require_seed_rows(seeds.get("training"), name="seeds.training")
+    evaluation = _require_seed_rows(seeds.get("evaluation"), name="seeds.evaluation")
+    controls_seed = _require_seed_rows(seeds.get("controls"), name="seeds.controls")
+    seeds_tuple = _require_seed_axis(seed_axis)
     return DetectionConfig(
         manifest_id=manifest_id,
         family_ids=family_ids,
         metric_ids=tuple(request.controls.metric_ids),
         thresholds=tuple(thresholds),
-        required_controls=tuple(control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True),
+        required_controls=tuple(
+            control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True
+        ),
         optional_controls=tuple(
             control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is not True
         ),
         control_metrics={
-            control_id: tuple(str(item) for item in cast(Sequence[object], manifest_controls[control_id]["metric_ids"]))
+            control_id: _require_metric_ids(manifest_controls[control_id]["metric_ids"], control_id=control_id)
             for control_id in manifest_controls
         },
         control_kinds={control_id: str(manifest_controls[control_id]["kind"]) for control_id in manifest_controls},
@@ -372,7 +568,7 @@ class FamilyDetection:
 
     family_id: str
     outcome: ClaimOutcome
-    claim_allowed: bool
+    claim_allowed: object
     observed_metrics: Mapping[str, float]
     threshold_pass: Mapping[str, bool]
     control_outcomes: Mapping[str, str]
@@ -385,8 +581,7 @@ class FamilyDetection:
             raise DetectionError(f"unsupported family: {self.family_id!r}")
         if self.outcome not in ("supported", "inconclusive", "unsupported"):
             raise DetectionError(f"unsupported claim outcome: {self.outcome!r}")
-        if not isinstance(self.claim_allowed, bool):
-            raise DetectionError("claim_allowed must be boolean")
+        object.__setattr__(self, "claim_allowed", _require_bool(self.claim_allowed))
         object.__setattr__(self, "observed_metrics", MappingProxyType(dict(self.observed_metrics)))
         object.__setattr__(self, "threshold_pass", MappingProxyType(dict(self.threshold_pass)))
         object.__setattr__(self, "control_outcomes", MappingProxyType(dict(self.control_outcomes)))
@@ -423,46 +618,46 @@ class SparseInput:
     must be unique within each batch.
     """
 
-    value: LatentValue
-    sample_ids: tuple[str, ...]
-    seeds: tuple[int, ...]
-    seed_batches: Mapping[str, LatentValue]
-    seed_sample_ids: Mapping[str, tuple[str, ...]] | None = None
-    negative_batches: Mapping[str, LatentValue] | None = None
+    value: object
+    sample_ids: object
+    seeds: object
+    seed_batches: object
+    seed_sample_ids: object = None
+    negative_batches: object = None
     representation_identity: str = ""
 
     def __post_init__(self) -> None:
-        if not isinstance(self.value, LatentValue):
-            raise DetectionError("value must be a LatentValue")
-        _batch_matrix(self.value, name="sparse batch")
-        sample_ids = tuple(self.sample_ids)
+        value = _require_batch(self.value, name="sparse batch")
+        object.__setattr__(self, "value", value)
+        _batch_matrix(value, name="sparse batch")
+        sample_ids = _require_sample_ids(self.sample_ids)
         object.__setattr__(self, "sample_ids", sample_ids)
-        if len(sample_ids) != int(np.asarray(self.value.to_numpy()).shape[0]):
+        if len(sample_ids) != int(np.asarray(value.to_numpy()).shape[0]):
             raise DetectionError("sample_ids must cover every sparse sample")
-        for position, sample_id in enumerate(sample_ids):
-            if not isinstance(sample_id, str) or not sample_id.strip():
-                raise DetectionError(f"sample_ids[{position}] must be a non-empty string")
         if len(set(sample_ids)) != len(sample_ids):
             raise DetectionError("sample identities must be unique within one batch")
-        seeds = tuple(self.seeds)
+        seeds = _require_seeds(self.seeds)
         object.__setattr__(self, "seeds", seeds)
-        if len(seeds) < 2:
-            raise DetectionError("sparse evaluation requires at least two seeds")
-        seed_batches = dict(self.seed_batches)
+        seed_batches: dict[str, LatentValue] = {
+            key: _require_batch(value, name=f"seed batch {key!r}")
+            for key, value in _require_mapping(self.seed_batches, name="seed_batches").items()
+        }
         object.__setattr__(self, "seed_batches", MappingProxyType(seed_batches))
-        raw_seed_ids = dict(self.seed_sample_ids) if self.seed_sample_ids is not None else {}
+        raw_seed_ids = (
+            dict(_require_mapping(self.seed_sample_ids, name="seed_sample_ids"))
+            if self.seed_sample_ids is not None
+            else {}
+        )
         seed_ids: dict[str, tuple[str, ...]] = {}
         for seed in seeds:
             key = str(seed)
-            if key not in seed_batches or not isinstance(seed_batches[key], LatentValue):
+            if key not in seed_batches:
                 raise DetectionError(f"seed_batches is missing batch data for seed {seed}")
             batch_matrix = _batch_matrix(seed_batches[key], name=f"seed {seed} batch")
-            ids = tuple(raw_seed_ids[key]) if key in raw_seed_ids else sample_ids
+            raw_ids = _require_seed_list(raw_seed_ids.get(key, sample_ids), seed=seed)
+            ids = _require_seed_ids(raw_ids, seed=seed)
             if len(ids) != int(batch_matrix.shape[0]):
                 raise DetectionError(f"seed {seed} sample identities must cover every row")
-            for position, sample_id in enumerate(ids):
-                if not isinstance(sample_id, str) or not sample_id.strip():
-                    raise DetectionError(f"seed {seed} sample_ids[{position}] must be a non-empty string")
             if len(set(ids)) != len(ids):
                 raise DetectionError(f"seed {seed} sample identities must be unique")
             seed_ids[key] = ids
@@ -472,13 +667,14 @@ class SparseInput:
             if set(seed_ids[str(seed)]) != set(seed_ids[str(seeds[0])]):
                 raise DetectionError("seed batches must cover the same samples")
         object.__setattr__(self, "seed_sample_ids", MappingProxyType(seed_ids))
-        negative_batches = dict(self.negative_batches or {})
+        negative_batches: dict[str, LatentValue] = {
+            key: _require_batch(value, name=f"negative {key!r} batch")
+            for key, value in _require_negative_batches(self.negative_batches).items()
+        }
         object.__setattr__(self, "negative_batches", MappingProxyType(negative_batches))
         if not negative_batches:
             raise DetectionError("sparse evaluation requires at least one negative batch")
         for name, batch in negative_batches.items():
-            if not isinstance(batch, LatentValue):
-                raise DetectionError(f"negative batch {name!r} must be a LatentValue")
             _batch_matrix(batch, name=f"negative {name!r} batch")
         _non_empty_string(self.representation_identity, name="representation_identity")
 
@@ -492,44 +688,45 @@ class TemporalInput:
     same alignment. Shuffled/reversed controls are derived by the detector.
     """
 
-    reference: Trajectory
-    test: Trajectory
-    negative: Trajectory
-    step_ids: tuple[str, ...]
-    space: LatentSpace
+    reference: object
+    test: object
+    negative: object
+    step_ids: object
+    space: object
     representation_identity: str
 
     def __post_init__(self) -> None:
-        for name in ("reference", "test", "negative"):
-            if not isinstance(getattr(self, name), Trajectory):
-                raise DetectionError(f"{name} must be a Trajectory")
-        step_ids = tuple(self.step_ids)
+        reference = _require_trajectory(self.reference, name="reference")
+        test = _require_trajectory(self.test, name="test")
+        negative = _require_trajectory(self.negative, name="negative")
+        object.__setattr__(self, "reference", reference)
+        object.__setattr__(self, "test", test)
+        object.__setattr__(self, "negative", negative)
+        step_ids = _require_step_ids(self.step_ids)
         object.__setattr__(self, "step_ids", step_ids)
-        if len(step_ids) != len(self.test):
+        if len(step_ids) != len(test):
             raise DetectionError("step_ids must cover every test step")
-        for position, step_id in enumerate(step_ids):
-            if not isinstance(step_id, str) or not step_id.strip():
-                raise DetectionError(f"step_ids[{position}] must be a non-empty string")
         if len(set(step_ids)) != len(step_ids):
             raise DetectionError("step identities must be unique within one trajectory")
-        if not isinstance(self.space, LatentSpace):
-            raise DetectionError("space must be a LatentSpace")
-        if self.space.geometry not in ("euclidean", "unit_norm"):
-            raise DetectionError(f"unsupported geometry for trajectory drift: {self.space.geometry!r}")
-        for name, trajectory in (("reference", self.reference), ("test", self.test), ("negative", self.negative)):
+        space = _require_space(self.space)
+        object.__setattr__(self, "space", space)
+        if space.geometry not in ("euclidean", "unit_norm"):
+            raise DetectionError(f"unsupported geometry for trajectory drift: {space.geometry!r}")
+        for name, trajectory in (("reference", reference), ("test", test), ("negative", negative)):
             points = trajectory.to_numpy()
-            if points.ndim != 2 or points.shape[1] != self.space.dim:
-                raise DetectionError(f"{name} trajectory width {points.shape} does not match space dim {self.space.dim}")
+            if points.ndim != 2 or points.shape[1] != space.dim:
+                raise DetectionError(f"{name} trajectory width {points.shape} does not match space dim {space.dim}")
             if not np.isfinite(points).all():
                 raise DetectionError(f"{name} trajectory contains non-finite values")
-        if len(self.reference) != len(self.test) or len(self.negative) != len(self.test):
+        if len(reference) != len(test) or len(negative) != len(test):
             raise DetectionError("reference/test/negative trajectories must share one horizon")
-        if len(self.test) < 2:
+        if len(test) < 2:
             raise DetectionError("temporal evaluation requires at least two steps")
         _non_empty_string(self.representation_identity, name="representation_identity")
 
 
-def _batch_matrix(value: LatentValue, *, name: str = "batch") -> np.ndarray:
+def _batch_matrix(value: object, *, name: str = "batch") -> np.ndarray:
+    value = _require_batch(value, name=name)
     data = np.asarray(value.to_numpy(), dtype=np.float64)
     if data.ndim != 2:
         raise DetectionError(f"incompatible rank: {name} requires one 2D (n_samples, dim) batch, got {data.ndim}D")
@@ -538,25 +735,6 @@ def _batch_matrix(value: LatentValue, *, name: str = "batch") -> np.ndarray:
     if not np.isfinite(data).all():
         raise DetectionError(f"{name} contains non-finite values")
     return data
-
-
-def _summarize(
-    samples: Sequence[float], *, repetitions: int, seed: int, confidence_level: float
-) -> dict[str, object]:
-    """Summarize draws through the central statistical-control executor.
-
-    Strict seam: the percentile math lives in
-    ``_statistical_controls.summarize_interval``; this local alias keeps the
-    detector's one-fit call sites unchanged while the central executor owns
-    the interval contract.
-    """
-    from latent_anything._statistical_controls import summarize_interval as _summarize_central
-
-    return dict(
-        _summarize_central(
-            samples, repetitions=repetitions, seed=seed, confidence_level=confidence_level
-        )
-    )
 
 
 @dataclass(frozen=True)
@@ -588,6 +766,7 @@ class _TemporalEvaluation:
     shuffled_drift: float
     reversed_drift: float
     stepwise: tuple[float, ...]
+    shuffled_steps: tuple[float, ...]
     uncertainty: Mapping[str, dict[str, object]]
 
 
@@ -609,7 +788,9 @@ class _DetectionContext:
         object.__setattr__(self, "omissions", dict(self.omissions))
 
 
-def _fit_sparse_once(matrix: np.ndarray, *, seed: int, n_components: int = 4, max_iter: int = 100) -> tuple[np.ndarray, float, str]:
+def _fit_sparse_once(
+    matrix: np.ndarray, *, seed: int, n_components: int = 4, max_iter: int = 100
+) -> tuple[np.ndarray, float, str]:
     """Fit one dictionary and return atoms, held-out quality gain, and digest."""
     learner = DictionaryLearning(
         DictionaryLearningConfig(n_components=n_components, max_iter=max_iter, random_state=seed)
@@ -638,18 +819,22 @@ def _stability_of(atoms_a: np.ndarray, atoms_b: np.ndarray) -> tuple[float, tupl
     return float(len(cosines) / n) if n else 0.0, cosines
 
 
-def _evaluate_sparse(pair: SparseInput, config: DetectionConfig) -> _SparseEvaluation:
+def _evaluate_sparse(pair: object, config: DetectionConfig) -> _SparseEvaluation:
     """Fit one dictionary per seed and align features permutation-invariantly."""
-    seeds = tuple(pair.seeds)
-    matrices = {seed: _batch_matrix(pair.seed_batches[str(seed)], name=f"seed {seed} batch") for seed in seeds}
+    pair = _require_sparse_input(pair)
+    seeds = _require_seeds(pair.seeds)
+    seed_batches = _require_mapping(pair.seed_batches, name="seed_batches")
+    seed_matrices = {str(seed): _require_batch(seed_batches[str(seed)], name=f"seed {seed} batch") for seed in seeds}
+    matrices = {seed: _batch_matrix(seed_matrices[str(seed)], name=f"seed {seed} batch") for seed in seeds}
     # Same-sample cross-seed comparison: canonicalize every seed batch to
     # the bound sample-identity order before fitting. Row permutation is a
     # sample artifact; feature stability must not depend on it.
-    canonical = list(pair.sample_ids)
+    canonical = list(_require_sample_ids(pair.sample_ids))
     position_of = {sample_id: position for position, sample_id in enumerate(canonical)}
     aligned: dict[int, np.ndarray] = {}
+    seed_sample_ids = _require_mapping(pair.seed_sample_ids, name="seed_sample_ids")
     for seed in seeds:
-        ids = pair.seed_sample_ids[str(seed)]
+        ids = _require_seed_ids(seed_sample_ids[str(seed)], seed=seed)
         order = np.asarray([position_of[sample_id] for sample_id in ids], dtype=np.int64)
         aligned[seed] = matrices[seed][np.argsort(order, kind="stable")]
     matrices = aligned
@@ -678,11 +863,13 @@ def _evaluate_sparse(pair: SparseInput, config: DetectionConfig) -> _SparseEvalu
         raise DetectionError("sparse alignment produced no matched features")
     stability = float(sum(pair_fractions) / len(pair_fractions))
     quality = float(sum(qualities.values()) / len(qualities))
+
     # Cross-seed control: the actual fit-seed draw plus the single predeclared
     # extra dictionary fit and stability scoring runs inside the
     # executor-supplied stream. Observed fit seed and metrics bind directly.
-    def _cross_seed_statistic(rng: np.random.Generator) -> Mapping[str, object]:
-        fit_seed = int(rng.integers(0, 2**31 - 1))
+    def _cross_seed_statistic(rng: object) -> Mapping[str, float]:
+        generator = _require_generator(rng)
+        fit_seed = int(generator.integers(0, 2**31 - 1))
         fitted_atoms, _, _ = _fit_sparse_once(matrices[seeds[0]], seed=fit_seed)
         control_stability, _ = _stability_of(reference, fitted_atoms)
         return {
@@ -698,24 +885,32 @@ def _evaluate_sparse(pair: SparseInput, config: DetectionConfig) -> _SparseEvalu
         kind="cross_seed",
         metric_ids=("sparse-cross-seed-stability",),
         expected_behavior="first-seed refit under the control stream",
-        statistic=_cross_seed_statistic,  # type: ignore[arg-type]
+        statistic=_cross_seed_statistic,
     )
     if _seed_control.status != "recorded":
         raise DetectionError("central cross-seed control must record, not gate")
-    seed_control_stability = float(_seed_control.observed["sparse-cross-seed-stability"])
-    _recorded_fit_seed = int(_seed_control.observed["fit_seed"])
+    seed_observed = _require_observed(_seed_control.observed)
+    seed_control_stability = _finite_number(
+        seed_observed["sparse-cross-seed-stability"], name="sparse-cross-seed-stability"
+    )
+    _recorded_fit_seed = _require_seed_int(seed_observed["fit_seed"])
     # Negative control: evaluate the caller-supplied negative batch with the
     # target reference atoms under the same permutation-invariant protocol. A
     # genuinely stable negative (same sparse family) aligns to the reference
     # and fails the control; unstructured negatives do not align and pass.
     # No raw-index comparison anywhere.
-    negative_name = next(iter(pair.negative_batches), "")
-    negative_matrix = _batch_matrix(pair.negative_batches[negative_name], name=f"negative {negative_name!r} batch")
+    negative_batches_map = _require_mapping(pair.negative_batches, name="negative_batches")
+    negative_name = next(iter(negative_batches_map), "")
+    negative_matrix = _batch_matrix(
+        _require_batch(negative_batches_map[negative_name], name=f"negative {negative_name!r} batch"),
+        name=f"negative {negative_name!r} batch",
+    )
     negative_atoms, _, _ = _fit_sparse_once(negative_matrix, seed=int(seeds[0]))
     negative_stability, _ = _stability_of(reference, negative_atoms)
     cosine_array = np.asarray(pair_cosines, dtype=np.float64)
 
-    def _stability_draw(rng: np.random.Generator) -> float:
+    def _stability_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, cosine_array.shape[0], size=cosine_array.shape[0])
         return float(np.mean(cosine_array[positions]))
 
@@ -749,6 +944,7 @@ def _evaluate_sparse(pair: SparseInput, config: DetectionConfig) -> _SparseEvalu
         seed_control_fit_seed=_recorded_fit_seed,
     )
 
+
 def _stepwise_drift(reference: np.ndarray, test: np.ndarray, space: LatentSpace) -> tuple[float, tuple[float, ...]]:
     """Score one ordered pair once with stepwise index-wise distances.
 
@@ -780,18 +976,29 @@ def _shuffled_sequence_statistic(
     }
 
 
-def _evaluate_temporal(pair: TemporalInput, config: DetectionConfig) -> _TemporalEvaluation:
+def _evaluate_temporal(pair: object, config: DetectionConfig) -> _TemporalEvaluation:
+    pair = _require_temporal_input(pair)
     """Score ordered, shuffled, and reversed trajectories with one pass each.
 
     Central schedule: the shuffled-sequence null permutes under the
     executor's identity-derived control stream; the drift interval resamples
     fitted stepwise distances without recomputing alignments.
     """
-    reference = pair.reference.to_numpy()
-    test = pair.test.to_numpy()
-    negative = pair.negative.to_numpy()
-    drift, stepwise = _stepwise_drift(reference, test, pair.space)
-    negative_drift, _ = _stepwise_drift(reference, negative, pair.space)
+    pair_reference = _require_trajectory(pair.reference, name="reference")
+    pair_test = _require_trajectory(pair.test, name="test")
+    pair_negative = _require_trajectory(pair.negative, name="negative")
+    pair_space = _require_space(pair.space)
+    reference = pair_reference.to_numpy()
+    test = pair_test.to_numpy()
+    negative = pair_negative.to_numpy()
+    drift, stepwise = _stepwise_drift(reference, test, pair_space)
+    negative_drift, _ = _stepwise_drift(reference, negative, pair_space)
+
+    def _shuffle_statistic(rng: object) -> Mapping[str, float]:
+        raw = _shuffled_sequence_statistic(_require_generator(rng), reference, test, pair_space)
+        drift_value = _finite_number(raw.get("trajectory-stepwise-drift"), name="trajectory-stepwise-drift")
+        return {"trajectory-stepwise-drift": drift_value}
+
     _sequence_shuffle = _central_control(
         control_id="control-shuffled-sequence",
         base_seed=config.control_seed,
@@ -800,17 +1007,21 @@ def _evaluate_temporal(pair: TemporalInput, config: DetectionConfig) -> _Tempora
         kind="shuffled",
         metric_ids=("trajectory-stepwise-drift",),
         expected_behavior="sequence permutation under the control stream",
-        statistic=lambda rng: _shuffled_sequence_statistic(rng, reference, test, pair.space),
+        statistic=_shuffle_statistic,
     )
     if _sequence_shuffle.status != "recorded":
         raise DetectionError("central shuffled control must record, not gate")
-    shuffled_drift = float(_sequence_shuffle.observed["trajectory-stepwise-drift"])
-    _shuffled_detail = dict(_sequence_shuffle.detail or {})
-    shuffled_steps = tuple(float(item) for item in _shuffled_detail["shuffled_steps"])  # type: ignore[union-attr]
-    reversed_drift, _ = _stepwise_drift(reference, test[::-1], pair.space)
+    shuffle_observed = _require_observed(_sequence_shuffle.observed)
+    shuffled_drift = _finite_number(shuffle_observed["trajectory-stepwise-drift"], name="trajectory-stepwise-drift")
+    _shuffled_detail = dict(_require_detail(_sequence_shuffle.detail))
+    shuffled_steps = tuple(
+        _finite_number(item, name="shuffled_steps") for item in _require_scores(_shuffled_detail.get("shuffled_steps"))
+    )
+    reversed_drift, _ = _stepwise_drift(reference, test[::-1], pair_space)
     stepwise_array = np.asarray(stepwise, dtype=np.float64)
 
-    def _drift_draw(rng: np.random.Generator) -> float:
+    def _drift_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, stepwise_array.shape[0], size=stepwise_array.shape[0])
         return float(np.mean(stepwise_array[positions]))
 
@@ -840,6 +1051,7 @@ def _evaluate_temporal(pair: TemporalInput, config: DetectionConfig) -> _Tempora
         shuffled_drift=shuffled_drift,
         reversed_drift=reversed_drift,
         stepwise=stepwise,
+        shuffled_steps=shuffled_steps,
         uncertainty=uncertainty,
     )
 
@@ -860,7 +1072,7 @@ def _evaluate_context(
     wants_temporal = "sequence_trajectory_drift" in config.family_ids
     sparse_metrics = [m for m in config.metric_ids if METRIC_FAMILY.get(m) == "sparse_feature_instability"]
     temporal_metrics = [m for m in config.metric_ids if METRIC_FAMILY.get(m) == "sequence_trajectory_drift"]
-    manifest_declared = [f for f in config.manifest_metric_families if isinstance(f, str)]
+    manifest_declared = list(_require_families(config.manifest_metric_families))
     sparse_covered = "sparse_feature_instability" in manifest_declared and set(sparse_metrics) == {
         m for m in config.metric_ids if METRIC_FAMILY.get(m) == "sparse_feature_instability"
     }
@@ -913,7 +1125,9 @@ def _evaluate_context(
                     if not stability_linked:
                         _sparse_specs.append(
                             _ControlSpec(
-                                control_id=control_id, kind="counterexample", required=required,
+                                control_id=control_id,
+                                kind="counterexample",
+                                required=required,
                                 metric_ids=linked,
                                 expected_behavior="stable negative recorded without stability gating",
                             )
@@ -927,10 +1141,12 @@ def _evaluate_context(
                         _sparse_derived[part_id] = control_id
                         _sparse_specs.append(
                             _ControlSpec(
-                                control_id=part_id, kind="counterexample", required=required,
+                                control_id=part_id,
+                                kind="counterexample",
+                                required=required,
                                 metric_ids=(metric_id,),
                                 expected_behavior="stable negative must not reach stability threshold",
-                                comparator=gate,  # type: ignore[arg-type]
+                                comparator=gate,
                                 threshold_value=float(gate_threshold.value),
                             )
                         )
@@ -938,8 +1154,10 @@ def _evaluate_context(
                     continue
                 _sparse_specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="seed" if kind == "seed" else "null",
-                        required=required, metric_ids=linked,
+                        control_id=control_id,
+                        kind="seed" if kind == "seed" else "null",
+                        required=required,
+                        metric_ids=linked,
                         expected_behavior="seed/shuffled control recorded without gating",
                     )
                 )
@@ -967,10 +1185,13 @@ def _evaluate_context(
                         _sparse_derived[part_id] = control_id
                         _sparse_specs.append(
                             _ControlSpec(
-                                control_id=part_id, kind="counterexample", required=required,
+                                control_id=part_id,
+                                kind="counterexample",
+                                required=required,
                                 metric_ids=("trajectory-stepwise-drift",),
                                 expected_behavior="no-drift negative declares no drift threshold",
-                                comparator="below_threshold", threshold_value=0.0,
+                                comparator="below_threshold",
+                                threshold_value=0.0,
                             )
                         )
                         _sparse_supplied[part_id] = {"trajectory-stepwise-drift": float("inf")}
@@ -980,10 +1201,12 @@ def _evaluate_context(
                         _sparse_derived[part_id] = control_id
                         _sparse_specs.append(
                             _ControlSpec(
-                                control_id=part_id, kind="counterexample", required=required,
+                                control_id=part_id,
+                                kind="counterexample",
+                                required=required,
                                 metric_ids=("trajectory-stepwise-drift",),
                                 expected_behavior="no-drift negative must not reach drift threshold",
-                                comparator=gate,  # type: ignore[arg-type]
+                                comparator=gate,
                                 threshold_value=float(drift_threshold.value),
                             )
                         )
@@ -991,8 +1214,10 @@ def _evaluate_context(
                     continue
                 _sparse_specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="shuffled" if kind == "shuffled" else "null",
-                        required=required, metric_ids=linked,
+                        control_id=control_id,
+                        kind="shuffled" if kind == "shuffled" else "null",
+                        required=required,
+                        metric_ids=linked,
                         expected_behavior="shuffled sequence recorded without gating",
                     )
                 )
@@ -1001,17 +1226,29 @@ def _evaluate_context(
         _sparse_statistics: dict[str, object] = {}
         if sparse is not None:
             for control_id in (*config.required_controls, *config.optional_controls):
-                if config.control_kinds.get(control_id) == "seed" and set(config.control_metrics[control_id]) & set(sparse_metrics):
-                    _sparse_statistics[control_id] = lambda rng, _s=sparse: {  # type: ignore[misc]
-                        "sparse-cross-seed-stability": float(_s.seed_control_stability),
-                        "fit_seed": float(_s.seed_control_fit_seed),
-                    }
+                if config.control_kinds.get(control_id) == "seed" and set(config.control_metrics[control_id]) & set(
+                    sparse_metrics
+                ):
+
+                    def _seed_statistic(rng: object, _s: _SparseEvaluation = sparse) -> Mapping[str, float]:
+                        del rng
+                        return {
+                            "sparse-cross-seed-stability": float(_s.seed_control_stability),
+                            "fit_seed": float(_s.seed_control_fit_seed),
+                        }
+
+                    _sparse_statistics[control_id] = _seed_statistic
         if temporal is not None:
             for control_id in (*config.required_controls, *config.optional_controls):
-                if config.control_kinds.get(control_id) == "shuffled" and set(config.control_metrics[control_id]) & set(temporal_metrics):
-                    _sparse_statistics[control_id] = lambda rng, _t=temporal: {  # type: ignore[misc]
-                        "trajectory-stepwise-drift": float(_t.shuffled_drift),
-                    }
+                if config.control_kinds.get(control_id) == "shuffled" and set(config.control_metrics[control_id]) & set(
+                    temporal_metrics
+                ):
+
+                    def _temporal_statistic(rng: object, _t: _TemporalEvaluation = temporal) -> Mapping[str, float]:
+                        del rng
+                        return {"trajectory-stepwise-drift": float(_t.shuffled_drift)}
+
+                    _sparse_statistics[control_id] = _temporal_statistic
         _sparse_gating = _execute_plan(
             _ControlPlan(
                 plan_id=f"{config.manifest_id}:sparse-temporal",
@@ -1032,18 +1269,24 @@ def _evaluate_context(
             parts = [part for part, parent in _sparse_derived.items() if parent == control_id]
             if parts:
                 statuses = [_sparse_gating[part].status for part in parts]
-                control_outcomes[control_id] = "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+                control_outcomes[control_id] = (
+                    "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+                )
                 continue
             outcome = _sparse_gating.get(control_id)
             if outcome is not None:
                 control_outcomes[control_id] = "passed" if outcome.status in ("passed", "recorded") else "failed"
-        _sparse_blocked = sorted({_sparse_derived.get(part, part) for part in _failed_required(_sparse_gating)} & set(config.required_controls))
+        _sparse_blocked = sorted(
+            {_sparse_derived.get(part, part) for part in _failed_required(_sparse_gating)}
+            & set(config.required_controls)
+        )
         if _sparse_blocked:
             control_outcomes.update({control_id: "failed" for control_id in _sparse_blocked})
     else:
         _sparse_central = {}
     identity = (
-        sparse_input.representation_identity if sparse_input is not None
+        sparse_input.representation_identity
+        if sparse_input is not None
         else (temporal_input.representation_identity if temporal_input is not None else "")
     )
     return _DetectionContext(
@@ -1173,7 +1416,10 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                     control_outcomes=dict(context.control_outcomes),
                     evidence_status=dict(evidence),
                     missing_evidence=tuple(f"threshold:{m}" for m in unmet),
-                    reason=f"predeclared thresholds unmet; a sparse/drift score alone is not a diagnosis: {', '.join(unmet)}",
+                    reason=(
+                        f"predeclared thresholds unmet; a sparse/drift score alone is not a diagnosis: "
+                        f"{', '.join(unmet)}"
+                    ),
                 )
             )
             continue
@@ -1209,8 +1455,8 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
 
 
 def detect_families(
-    target: SparseInput | TemporalInput | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     *,
     controls: Mapping[str, SparseInput | TemporalInput | LatentValue] | None = None,
 ) -> tuple[FamilyDetection, ...]:
@@ -1220,13 +1466,13 @@ def detect_families(
     separate :func:`detection_payload` call evaluates twice. Production paths
     (including :func:`make_detect_executor`) must use :func:`evaluate_detection`.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(target, (SparseInput, TemporalInput, LatentValue)):
-        raise DetectionError("target must be a SparseInput, TemporalInput, or LatentValue")
+    config = _require_config(config)
+    target = _require_target(target)
     supplied = dict(controls or {})
     if supplied:
-        raise DetectionError("this detector carries negative controls inside the bound input; no external control batches are accepted")
+        raise DetectionError(
+            "this detector carries negative controls inside the bound input; no external control batches are accepted"
+        )
     return _decide(_evaluate_context(target, config, supplied), config)
 
 
@@ -1276,6 +1522,7 @@ def detection_payload(
             "shuffled_drift": float(evaluation.shuffled_drift),
             "reversed_drift": float(evaluation.reversed_drift),
             "stepwise": list(evaluation.stepwise),
+            "shuffled_steps": list(evaluation.shuffled_steps),
             "uncertainty": {key: dict(item) for key, item in evaluation.uncertainty.items()},
         }
     if resolved.omissions:
@@ -1283,16 +1530,17 @@ def detection_payload(
     return {
         "config": config.to_dict(),
         "control_metrics": supplied_metrics,
-        "controls": {control_id: dict(outcome) for control_id, outcome in resolved.central_outcomes.items()},
+        "controls": {
+            control_id: dict(_require_mapping(outcome, name="central outcome"))
+            for control_id, outcome in resolved.central_outcomes.items()
+        },
         "families": [detection.to_dict() for detection in detections],
         "family_evidence": {detection.family_id: dict(detection.evidence_status) for detection in detections},
         "measurements": measurements,
     }
 
 
-def _control_table(
-    context: _DetectionContext, config: DetectionConfig
-) -> dict[str, dict[str, float]]:
+def _control_table(context: _DetectionContext, config: DetectionConfig) -> dict[str, dict[str, float]]:
     """Record per-control metric observations without refitting anything."""
     table: dict[str, dict[str, float]] = {}
     for control_id in (*config.required_controls, *config.optional_controls):
@@ -1315,8 +1563,8 @@ def _control_table(
 
 
 def evaluate_detection(
-    target: SparseInput | TemporalInput | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     controls: Mapping[str, SparseInput | TemporalInput | LatentValue],
 ) -> tuple[tuple[FamilyDetection, ...], dict[str, object]]:
     """Evaluate one input plus controls exactly once and return decisions plus payload.
@@ -1327,20 +1575,20 @@ def evaluate_detection(
     assembly. Sparse uncertainty resamples fitted matched cosines without
     refitting; temporal uncertainty resamples fitted stepwise distances.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(target, (SparseInput, TemporalInput, LatentValue)):
-        raise DetectionError("target must be a SparseInput, TemporalInput, or LatentValue")
+    config = _require_config(config)
+    target = _require_target(target)
     supplied = dict(controls)
     context = _evaluate_context(target, config, supplied)
     detections = _decide(context, config)
-    payload = detection_payload(detections, config, target, control_metrics=_control_table(context, config), context=context)
+    payload = detection_payload(
+        detections, config, target, control_metrics=_control_table(context, config), context=context
+    )
     return detections, payload
 
 
 def make_detect_executor(
-    target: SparseInput | TemporalInput | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     *,
     controls: Mapping[str, SparseInput | TemporalInput | LatentValue] | None = None,
     version: str = "sparse-temporal-detector-v1",
@@ -1355,19 +1603,18 @@ def make_detect_executor(
     gating. No algorithm enters ``DiagnosticWorkflow`` itself.
     """
     _non_empty_string(version, name="version")
-    if not isinstance(target, (SparseInput, TemporalInput, LatentValue)):
-        raise DetectionError("target must be a SparseInput, TemporalInput, or LatentValue")
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    frozen_target = target
+    frozen_target = _require_target(target)
+    config = _require_config(config)
     frozen_controls = dict(controls or {})
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
 
+        invocation = _require_invocation(invocation)
         if invocation.stage != "detect":
             raise _ContractError(f"detect executor received stage {invocation.stage!r}")
-        if invocation.request.manifest_id != config.manifest_id:
+        request = _require_request(invocation.request)
+        if request.manifest_id != config.manifest_id:
             raise _ContractError("detect executor manifest identity mismatch")
         _, payload = evaluate_detection(frozen_target, config, frozen_controls)
         aggregate_outcome: Literal["completed", "unsupported"] = "completed"

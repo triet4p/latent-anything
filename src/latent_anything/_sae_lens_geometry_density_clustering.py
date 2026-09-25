@@ -60,7 +60,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Literal, cast
+from typing import Any, Literal, SupportsFloat, cast
 
 import numpy as np
 
@@ -74,20 +74,16 @@ from latent_anything._probe_tcav_ig_explanation import (
     ExplanationHypothesis,
     MethodInputs,
 )
-from latent_anything._probe_tcav_ig_explanation import (
-    _bound_control_ids as _bound_ids,
-    _central_bootstrap,
-    _central_control,
-    _check_disjoint_identities,
-    _finite_array,
-    _passes,
-    _require_mapping,
-    _sign_aware_cosine,
-)
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
 from latent_anything._statistical_controls import execute_plan as _execute_plan
 from latent_anything._statistical_controls import failed_required as _failed_required
+from latent_anything._statistical_controls import (
+    run_bootstrap as _central_bootstrap,
+)
+from latent_anything._statistical_controls import (
+    run_permutation_control as _central_control,
+)
 
 SUPPORTED_FEATURE_METHODS: tuple[str, ...] = (
     "sae_sparse",
@@ -113,47 +109,279 @@ _MISSING_DIMS = {
 }
 
 
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise ExplanationError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_float(value: object, *, name: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (str, bytes, bytearray, SupportsFloat)):
+        raise ExplanationError(f"{name} must be a finite number")
+    try:
+        level = float(value)
+    except (OverflowError, TypeError, ValueError) as exc:
+        raise ExplanationError(f"{name} must be a finite number") from exc
+    if not np.isfinite(level):
+        raise ExplanationError(f"{name} must be a finite number")
+    return level
+
+
+def _require_count(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ExplanationError(f"{name} must be an integer")
+    return int(value)
+
+
+def _require_observed_floats(value: object, *, name: str) -> Mapping[str, float]:
+    if not isinstance(value, Mapping):
+        raise ExplanationError(f"{name} must be a mapping")
+    narrowed: dict[str, float] = {}
+    for key, entry in value.items():
+        if not isinstance(key, str):
+            raise ExplanationError(f"{name} must map strings to numbers")
+        narrowed[key] = _require_float(entry, name=f"{name}[{key!r}]")
+    return narrowed
+
+
 def _central_name(comparator: str) -> str:
     """Map a hypothesis ``>=``/``<=`` comparator onto a central comparator."""
     return "meets_threshold" if comparator == ">=" else "below_threshold"
 
 
-def _relationship_of(bundle: Mapping[str, object], hypothesis: ExplanationHypothesis) -> str:
+def _passes(comparator: str, observed: float, target: float) -> bool:
+    """Compare an observed value against a declared threshold comparator."""
+    if comparator == ">=":
+        return bool(observed >= target)
+    return bool(observed <= target)
+
+
+def _finite_array(values: object, *, name: str) -> np.ndarray:
+    """Validate numeric finite array input at the executor boundary."""
+    try:
+        array = np.asarray(values, dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise ExplanationError(f"{name} must be numeric: {exc}") from exc
+    if array.size == 0:
+        raise ExplanationError(f"{name} must not be empty")
+    if not np.isfinite(array).all():
+        raise ExplanationError(f"{name} contains non-finite values")
+    return array
+
+
+_FEATURE_CONTROL_ROLES: Mapping[str, tuple[str, ...]] = {
+    "sae_sparse": ("fidelity", "stability", "selectivity"),
+    "lens": ("fidelity", "stability", "selectivity"),
+    "geometry": ("fidelity", "stability", "selectivity"),
+    "density": ("fidelity", "stability", "selectivity"),
+    "clustering": ("fidelity", "stability", "selectivity"),
+}
+"""Feature-local role binding for declared control IDs (mirrors the 80.16 table for feature methods)."""
+
+
+def _bound_feature_controls(hypothesis: ExplanationHypothesis) -> dict[str, str]:
+    """Validate feature control_ids against the feature role table; return role->ID."""
+    roles = _FEATURE_CONTROL_ROLES.get(hypothesis.method)
+    if roles is None:
+        raise ExplanationError(f"method {hypothesis.method!r} has no feature control-role binding")
+    declared = tuple(hypothesis.control_ids)
+    if len(declared) != len(roles):
+        raise ExplanationError(
+            f"hypothesis {hypothesis.hypothesis_id!r} must declare exactly "
+            f"{len(roles)} role-bound controls ({', '.join(roles)}), got {len(declared)}"
+        )
+    bound: dict[str, str] = {}
+    for role, declaration in zip(roles, declared, strict=True):
+        if ":" not in declaration:
+            raise ExplanationError(
+                f"hypothesis {hypothesis.hypothesis_id!r} control {declaration!r} "
+                f"must be '<role>:<id>' with role {role!r}"
+            )
+        prefix, _, identity = declaration.partition(":")
+        if prefix != role or not identity.strip():
+            raise ExplanationError(
+                f"hypothesis {hypothesis.hypothesis_id!r} control {declaration!r} "
+                f"must carry role prefix {role!r} and a non-empty identity"
+            )
+        if identity in bound.values():
+            raise ExplanationError(
+                f"hypothesis {hypothesis.hypothesis_id!r} declares duplicate control identity {identity!r}"
+            )
+        bound[role] = identity
+    return bound
+
+
+def _check_feature_identities(hypotheses: tuple[ExplanationHypothesis, ...], invocation: Any) -> None:
+    """Bind feature hypothesis identity against the workflow invocation (fail-closed)."""
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+
+    manifest = invocation.manifest
+    if not isinstance(manifest, Mapping):
+        raise _ContractError("feature explain executor requires a manifest mapping")
+    manifest_id = manifest.get("manifest_id")
+    if not isinstance(manifest_id, str) or not manifest_id:
+        raise _ContractError("feature explain executor requires a manifest_id")
+    request = invocation.request
+    if request.manifest_id != manifest_id:
+        raise _ContractError(
+            f"feature explain manifest mismatch: request {request.manifest_id!r} != manifest {manifest_id!r}"
+        )
+    capture_rep = getattr(getattr(request, "capture", None), "representation_identity", "")
+    for hypothesis in hypotheses:
+        if hypothesis.manifest_id and hypothesis.manifest_id != request.manifest_id:
+            raise _ContractError(
+                f"feature hypothesis {hypothesis.hypothesis_id!r} declares manifest "
+                f"{hypothesis.manifest_id!r} != request {request.manifest_id!r}"
+            )
+        if hypothesis.representation_id != capture_rep:
+            raise _ContractError(
+                f"feature hypothesis {hypothesis.hypothesis_id!r} declares representation "
+                f"{hypothesis.representation_id!r} != capture {capture_rep!r}"
+            )
+    prior = tuple(getattr(invocation, "prior", ()) or ())
+    payload_of = {str(getattr(item, "stage", "")): getattr(item, "payload", {}) for item in prior}
+    localize = payload_of.get("localize", {})
+    detect = payload_of.get("detect", {})
+    families: set[str] = set()
+    if isinstance(detect, Mapping):
+        for key in ("family_id", "family_ids"):
+            value = detect.get(key)
+            if isinstance(value, str) and value:
+                families.add(value)
+            elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                families.update(item for item in value if isinstance(item, str) and item)
+        nested = detect.get("families")
+        if isinstance(nested, Sequence) and not isinstance(nested, (str, bytes)):
+            for item in nested:
+                if isinstance(item, Mapping) and isinstance(item.get("family_id"), str):
+                    families.add(str(item["family_id"]))
+        evidence = detect.get("family_evidence")
+        if isinstance(evidence, Mapping):
+            families.update(key for key in evidence if isinstance(key, str))
+    metrics: set[str] = set()
+    if isinstance(detect, Mapping):
+        for key in ("metric_id", "metric_ids"):
+            value = detect.get(key)
+            if isinstance(value, str) and value:
+                metrics.add(value)
+            elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                metrics.update(item for item in value if isinstance(item, str) and item)
+        nested_metrics = detect.get("measurements")
+        if isinstance(nested_metrics, Mapping):
+            metrics.update(key for key in nested_metrics if isinstance(key, str))
+        config = detect.get("config")
+        if isinstance(config, Mapping):
+            declared_metrics = config.get("metric_ids")
+            if isinstance(declared_metrics, Sequence) and not isinstance(declared_metrics, (str, bytes)):
+                metrics.update(item for item in declared_metrics if isinstance(item, str) and item)
+    for hypothesis in hypotheses:
+        if hypothesis.family_id not in families:
+            raise _ContractError(
+                f"feature hypothesis {hypothesis.hypothesis_id!r} declares detect family "
+                f"{hypothesis.family_id!r} absent from the detect payload"
+            )
+        for metric_id in hypothesis.metric_ids:
+            if metric_id not in metrics:
+                raise _ContractError(
+                    f"feature hypothesis {hypothesis.hypothesis_id!r} declares metric "
+                    f"{metric_id!r} absent from the detect payload"
+                )
+    localize_family = localize.get("family_id") if isinstance(localize, Mapping) else None
+    for hypothesis in hypotheses:
+        if (
+            isinstance(localize, Mapping)
+            and isinstance(localize_family, str)
+            and localize_family
+            and hypothesis.family_id != localize_family
+        ):
+            raise _ContractError(
+                f"feature hypothesis {hypothesis.hypothesis_id!r} declares localize family "
+                f"{hypothesis.family_id!r} != prior {localize_family!r}"
+            )
+    axial_axes: dict[str, Mapping[str, object]] = {}
+    if isinstance(localize, Mapping):
+        layer_order = localize.get("layer_order")
+        affected_layers = localize.get("affected_layers")
+        if isinstance(layer_order, Sequence) and not isinstance(layer_order, (str, bytes)):
+            known = {str(item) for item in layer_order if isinstance(item, str) and item}
+            hit = (
+                {str(item) for item in affected_layers if isinstance(item, str)}
+                if isinstance(affected_layers, Sequence) and not isinstance(affected_layers, (str, bytes))
+                else set()
+            )
+            if known:
+                axial_axes["layer"] = {
+                    "axis": "layer",
+                    "status": "localized",
+                    "affected": sorted(hit or known),
+                }
+        declared_slices = localize.get("declared_slice_ids")
+        affected_slices = localize.get("affected_slices")
+        if isinstance(declared_slices, Sequence) and not isinstance(declared_slices, (str, bytes)):
+            known_slices = {str(item) for item in declared_slices if isinstance(item, str) and item}
+            hit_slices = (
+                {str(item) for item in affected_slices if isinstance(item, str)}
+                if isinstance(affected_slices, Sequence) and not isinstance(affected_slices, (str, bytes))
+                else set()
+            )
+            if known_slices:
+                axial_axes["slice"] = {
+                    "axis": "slice",
+                    "status": "localized",
+                    "affected": sorted(hit_slices or known_slices),
+                }
+        raw_axes = localize.get("axes")
+        if isinstance(raw_axes, Sequence) and not isinstance(raw_axes, (str, bytes)):
+            for entry in raw_axes:
+                if isinstance(entry, Mapping) and isinstance(entry.get("axis"), str):
+                    axial_axes[str(entry["axis"])] = entry
+        if not axial_axes:
+            report_rows = localize.get("report_localization")
+            if isinstance(report_rows, Sequence) and not isinstance(report_rows, (str, bytes)):
+                for row in report_rows:
+                    if not isinstance(row, Mapping):
+                        continue
+                    axis = row.get("axis")
+                    if not isinstance(axis, str) or not axis:
+                        continue
+                    selection = row.get("selection")
+                    adapted: dict[str, object] = dict(row)
+                    if isinstance(selection, str) and selection:
+                        affected = adapted.get("affected")
+                        if not (isinstance(affected, Sequence) and not isinstance(affected, (str, bytes)) and affected):
+                            adapted["affected"] = [selection]
+                    axial_axes.setdefault(axis, adapted)
+    for hypothesis in hypotheses:
+        for axis, identity in hypothesis.localization_bindings:
+            bound = axial_axes.get(axis)
+            if bound is None:
+                raise _ContractError(
+                    f"feature hypothesis {hypothesis.hypothesis_id!r} binds localization "
+                    f"({axis!r}, {identity!r}) absent from the prior axial payload"
+                )
+            if str(bound.get("status")) != "localized":
+                raise _ContractError(
+                    f"feature hypothesis {hypothesis.hypothesis_id!r} binds localization "
+                    f"({axis!r}, {identity!r}) with status {bound.get('status')!r}"
+                )
+            affected = bound.get("affected")
+            if (
+                isinstance(affected, Sequence)
+                and not isinstance(affected, (str, bytes))
+                and identity not in {str(item) for item in affected}
+            ):
+                raise _ContractError(
+                    f"feature hypothesis {hypothesis.hypothesis_id!r} binds localization "
+                    f"({axis!r}, {identity!r}) not in prior affected {sorted(str(item) for item in affected)!r}"
+                )
+
+
+def _relationship_of(bundle: Mapping[str, object]) -> str:
     """Return the declared feature-to-symptom relationship, or ``""``."""
     candidate = bundle.get("symptom_relationship")
     if isinstance(candidate, str) and candidate.strip():
         return candidate.strip()
     return ""
-
-
-def _blocked_record(
-    hypothesis: ExplanationHypothesis,
-    *,
-    outcome: Literal["inconclusive", "unsupported"],
-    reason: str,
-    gaps: Sequence[str],
-    provenance: Mapping[str, object],
-    limitation: str,
-) -> ExplanationEvidence:
-    dims = {name: dict(value) for name, value in _MISSING_DIMS.items()}
-    return ExplanationEvidence(
-        hypothesis_id=hypothesis.hypothesis_id,
-        method="probe",
-        outcome="inconclusive",
-        claim_allowed=False,
-        observed_effect={},
-        fidelity=dict(dims["fidelity"]),
-        stability=dict(dims["stability"]),
-        selectivity=dict(dims["selectivity"]),
-        leakage=dict(dims["leakage"]),
-        uncertainty=dict(dims["uncertainty"]),
-        control_outcomes={},
-        central_outcomes={},
-        missing_evidence=tuple(gaps),
-        limitations=(limitation,),
-        reason=reason,
-        provenance=dict(provenance),
-    )
 
 
 def _remethod(record: ExplanationEvidence, method: str) -> ExplanationEvidence:
@@ -288,7 +516,9 @@ def _gate_dimensions(
         provenance={
             **dict(provenance),
             "promoted_label": promoted_label,
-            "promoted_projection": None if promoted_projection is None else [float(item) for item in promoted_projection],
+            "promoted_projection": None
+            if promoted_projection is None
+            else [float(item) for item in promoted_projection],
         },
     )
     return _remethod(record, method)
@@ -363,7 +593,7 @@ def _evaluate_sae_sparse(
         return _remethod(record, method)
 
     try:
-        bound_controls = _bound_ids(hypothesis)
+        bound_controls = _bound_feature_controls(hypothesis)
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:control-declaration",))
     try:
@@ -382,10 +612,12 @@ def _evaluate_sae_sparse(
         return _blocked("sae sample identities are missing", ("missing-evidence:leakage-identities",))
     ids = tuple(sample_ids) if isinstance(sample_ids, Sequence) and not isinstance(sample_ids, (str, bytes)) else ()
     if not ids or len(ids) != int(symptom.shape[0]) or len(set(str(i) for i in ids)) != len(ids):
-        return _blocked("sae sample identities must uniquely cover every symptom row", ("missing-evidence:leakage-identities",))
+        return _blocked(
+            "sae sample identities must uniquely cover every symptom row", ("missing-evidence:leakage-identities",)
+        )
     n_components_raw = bundle.get("n_components")
     try:
-        n_components = int(n_components_raw) if n_components_raw is not None else 4
+        n_components = int(cast(int, n_components_raw)) if n_components_raw is not None else 4
     except (TypeError, ValueError):
         return _blocked("sae n_components is non-numeric", ("missing-evidence:sae-config",))
     if n_components < 2:
@@ -445,8 +677,10 @@ def _evaluate_sae_sparse(
     selectivity_margin = float(min(headline_margin, off_margin, headline_margin - random_feature_margin))
     cosine_array = np.asarray(all_cosines if all_cosines else [0.0], dtype=np.float64)
 
-    def _stability_draw(rng: np.random.Generator) -> float:
+    def _stability_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, cosine_array.shape[0], size=cosine_array.shape[0])
+
         return float(np.mean(cosine_array[positions]))
 
     _, stability_interval = _central_bootstrap(
@@ -463,8 +697,10 @@ def _evaluate_sae_sparse(
     )
     activation_magnitudes = np.abs(symptom_act[:, headline_feature])
 
-    def _activation_draw(rng: np.random.Generator) -> float:
+    def _activation_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, activation_magnitudes.shape[0], size=activation_magnitudes.shape[0])
+
         return float(np.mean(activation_magnitudes[positions]))
 
     _, activation_interval = _central_bootstrap(
@@ -479,10 +715,13 @@ def _evaluate_sae_sparse(
         expected_behavior="seeded resampling of fitted headline-feature activations",
         draw=_activation_draw,
     )
+
     # Selectivity permutation control: the actual shuffled-activation margin
     # runs inside the executor-owned stream; observed binds from the outcome.
-    def _selectivity_statistic(rng: np.random.Generator) -> Mapping[str, float]:
+    def _selectivity_statistic(rng: object) -> Mapping[str, float]:
+        rng = _require_generator(rng)
         order = rng.permutation(symptom_act.shape[0])
+
         shuffled_margin = float(symptom_act[order, headline_feature].mean() - negative_act[:, headline_feature].mean())
         return {"selectivity_margin": float(selectivity_margin), "shuffled_margin": float(shuffled_margin)}
 
@@ -501,15 +740,24 @@ def _evaluate_sae_sparse(
             f"sae shuffled control failed: {shuffle_outcome.reason}",
             (f"failed-control:{bound_controls['selectivity']}",),
         )
-    shuffled_margin = float(shuffle_outcome.observed["shuffled_margin"])
+    sae_observed = _require_observed_floats(shuffle_outcome.observed, name="sae shuffled control observed")
+    shuffled_margin = sae_observed["shuffled_margin"]
 
     fidelity_threshold = hypothesis.threshold_for("reconstruction_quality")
     stability_threshold = hypothesis.threshold_for("sae_stability")
     selectivity_threshold = hypothesis.threshold_for("selectivity_margin")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], quality, float(fidelity_threshold[1]))
-    stability_met = True if stability_threshold is None else _passes(stability_threshold[0], stability_value, float(stability_threshold[1]))
+    fidelity_met = (
+        True if fidelity_threshold is None else _passes(fidelity_threshold[0], quality, float(fidelity_threshold[1]))
+    )
+    stability_met = (
+        True
+        if stability_threshold is None
+        else _passes(stability_threshold[0], stability_value, float(stability_threshold[1]))
+    )
     selectivity_met = (
-        True if selectivity_threshold is None else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
+        True
+        if selectivity_threshold is None
+        else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
     )
     leakage_ok = True
     if hypothesis.train_split_identity == hypothesis.eval_split_identity:
@@ -542,7 +790,9 @@ def _evaluate_sae_sparse(
         "status": "passed" if selectivity_met else "failed",
         "metric": "selectivity_margin",
         "observed": float(selectivity_margin),
-        "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
         "off_target_margin": float(off_margin),
         "random_feature": int(random_feature),
         "random_feature_margin": float(random_feature_margin),
@@ -609,31 +859,55 @@ def _evaluate_sae_sparse(
     if not leakage_ok:
         gaps.append("failed-leakage:split-identity")
     record = _gate_dimensions(
-        hypothesis, method,
-        observed=observed, fidelity=fidelity, stability=stability_dims, selectivity=selectivity,
-        leakage=leakage, uncertainty=uncertainty, control_specs=specs, supplied=supplied,
-        provenance=provenance, limitation=limitation,
-        support_reason="declared sparse feature meets reconstruction, cross-seed stability, selectivity, leakage, and uncertainty gates",
+        hypothesis,
+        method,
+        observed=observed,
+        fidelity=fidelity,
+        stability=stability_dims,
+        selectivity=selectivity,
+        leakage=leakage,
+        uncertainty=uncertainty,
+        control_specs=specs,
+        supplied=supplied,
+        provenance=provenance,
+        limitation=limitation,
+        support_reason=(
+            "declared sparse feature meets reconstruction, cross-seed stability, selectivity, "
+            "leakage, and uncertainty gates"
+        ),
         block_prefix="sae evidence",
-        fidelity_ok=fidelity_met, stability_ok=stability_met, selectivity_ok=selectivity_met,
-        leakage_ok=leakage_ok, gaps=gaps, repetitions=int(repetitions),
-        confidence_level=float(confidence_level), evaluation_seed=int(evaluation_seed),
-        control_seed=int(control_seed), promoted_label=promoted_label if (
-            fidelity_met and stability_met and selectivity_met and leakage_ok) else None,
+        fidelity_ok=fidelity_met,
+        stability_ok=stability_met,
+        selectivity_ok=selectivity_met,
+        leakage_ok=leakage_ok,
+        gaps=gaps,
+        repetitions=int(repetitions),
+        confidence_level=float(confidence_level),
+        evaluation_seed=int(evaluation_seed),
+        control_seed=int(control_seed),
+        promoted_label=promoted_label if (fidelity_met and stability_met and selectivity_met and leakage_ok) else None,
     )
     if record.outcome != "supported":
         # Redact any semantic label on non-promoted output.
         provenance_redacted = dict(record.provenance)
         provenance_redacted.pop("promoted_label", None)
         base = ExplanationEvidence(
-            hypothesis_id=record.hypothesis_id, method="probe", outcome=record.outcome,  # type: ignore[arg-type]
-            claim_allowed=False, observed_effect=dict(record.observed_effect),
-            fidelity=dict(record.fidelity), stability=dict(record.stability),
-            selectivity=dict(record.selectivity), leakage=dict(record.leakage),
-            uncertainty=dict(record.uncertainty), control_outcomes=dict(record.control_outcomes),
+            hypothesis_id=record.hypothesis_id,
+            method="probe",
+            outcome=record.outcome,  # type: ignore[arg-type]
+            claim_allowed=False,
+            observed_effect=dict(record.observed_effect),
+            fidelity=dict(record.fidelity),
+            stability=dict(record.stability),
+            selectivity=dict(record.selectivity),
+            leakage=dict(record.leakage),
+            uncertainty=dict(record.uncertainty),
+            control_outcomes=dict(record.control_outcomes),
             central_outcomes=dict(record.central_outcomes),
             missing_evidence=tuple([*record.missing_evidence, "redacted:semantic-feature-label"]),
-            limitations=tuple(record.limitations), reason=record.reason, provenance=provenance_redacted,
+            limitations=tuple(record.limitations),
+            reason=record.reason,
+            provenance=provenance_redacted,
         )
         return _remethod(base, method)
     return record
@@ -660,17 +934,27 @@ def _evaluate_lens(
     def _blocked(reason: str, gaps: Sequence[str]) -> ExplanationEvidence:
         dims = _empty_dims()
         record = ExplanationEvidence(
-            hypothesis_id=hypothesis.hypothesis_id, method="probe", outcome="inconclusive",
-            claim_allowed=False, observed_effect={}, fidelity=dict(dims["fidelity"]),
-            stability=dict(dims["stability"]), selectivity=dict(dims["selectivity"]),
-            leakage=dict(dims["leakage"]), uncertainty=dict(dims["uncertainty"]),
-            control_outcomes={}, central_outcomes={}, missing_evidence=tuple(gaps),
-            limitations=(limitation,), reason=reason, provenance=dict(provenance),
+            hypothesis_id=hypothesis.hypothesis_id,
+            method="probe",
+            outcome="inconclusive",
+            claim_allowed=False,
+            observed_effect={},
+            fidelity=dict(dims["fidelity"]),
+            stability=dict(dims["stability"]),
+            selectivity=dict(dims["selectivity"]),
+            leakage=dict(dims["leakage"]),
+            uncertainty=dict(dims["uncertainty"]),
+            control_outcomes={},
+            central_outcomes={},
+            missing_evidence=tuple(gaps),
+            limitations=(limitation,),
+            reason=reason,
+            provenance=dict(provenance),
         )
         return _remethod(record, method)
 
     try:
-        bound_controls = _bound_ids(hypothesis)
+        bound_controls = _bound_feature_controls(hypothesis)
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:control-declaration",))
 
@@ -681,8 +965,12 @@ def _evaluate_lens(
         random_logits = _finite_array(bundle.get("random_logits"), name="lens random_logits")
     except ExplanationError as exc:
         return _blocked(f"lens input is incomplete: {exc}", ("missing-evidence:lens-logits",))
-    for name, matrix in (("symptom_logits", symptom_logits), ("benign_logits", benign_logits),
-                         ("off_target_logits", off_target_logits), ("random_logits", random_logits)):
+    for name, matrix in (
+        ("symptom_logits", symptom_logits),
+        ("benign_logits", benign_logits),
+        ("off_target_logits", off_target_logits),
+        ("random_logits", random_logits),
+    ):
         if matrix.ndim != 2:
             return _blocked(f"lens {name} must be 2D (n_samples, vocab)", ("missing-evidence:lens-logits",))
     vocab = int(symptom_logits.shape[1])
@@ -697,27 +985,30 @@ def _evaluate_lens(
         return _blocked("lens target/off-target indices are missing or non-numeric", ("missing-evidence:lens-target",))
     if not 0 <= target_index < vocab or not 0 <= off_index < vocab or target_index == off_index:
         return _blocked("lens target indices are out of range or identical", ("missing-evidence:lens-target",))
-    try:
-        target_token = int(hypothesis.target_id) if hypothesis.target_id.lstrip("-").isdigit() else target_index
-    except (TypeError, ValueError):
-        target_token = target_index
-    if isinstance(hypothesis.target_id, str) and hypothesis.target_id.lstrip("-").isdigit():
-        if int(hypothesis.target_id) != target_index:
-            return _blocked("lens target does not match the declared hypothesis target", ("failed-leakage:target-identity",))
+    if hypothesis.target_id.lstrip("-").isdigit() and int(hypothesis.target_id) != target_index:
+        return _blocked(
+            "lens target does not match the declared hypothesis target", ("failed-leakage:target-identity",)
+        )
     token_ids = bundle.get("token_ids")
     sample_ids = bundle.get("sample_ids")
     preprocessing = bundle.get("preprocessing_identity")
     if token_ids is None or sample_ids is None or not isinstance(preprocessing, str) or not preprocessing.strip():
         return _blocked("lens token/sample/preprocessing identity is missing", ("missing-evidence:lens-identity",))
     token_list = tuple(token_ids) if isinstance(token_ids, Sequence) and not isinstance(token_ids, (str, bytes)) else ()
-    sample_list = tuple(sample_ids) if isinstance(sample_ids, Sequence) and not isinstance(sample_ids, (str, bytes)) else ()
+    sample_list = (
+        tuple(sample_ids) if isinstance(sample_ids, Sequence) and not isinstance(sample_ids, (str, bytes)) else ()
+    )
     if len(token_list) != int(symptom_logits.shape[0]) or len(sample_list) != int(symptom_logits.shape[0]):
-        return _blocked("lens token/sample identities must cover every symptom row", ("missing-evidence:lens-identity",))
+        return _blocked(
+            "lens token/sample identities must cover every symptom row", ("missing-evidence:lens-identity",)
+        )
     provenance["target_index"] = int(target_index)
     provenance["layer_id"] = hypothesis.layer_id
     promoted = bundle.get("promoted_projection")
     promoted_projection = (
-        [float(item) for item in promoted] if isinstance(promoted, Sequence) and not isinstance(promoted, (str, bytes)) else None
+        [float(item) for item in promoted]
+        if isinstance(promoted, Sequence) and not isinstance(promoted, (str, bytes))
+        else None
     )
 
     from latent_anything._transformer_analysis import softmax as _softmax
@@ -727,7 +1018,6 @@ def _evaluate_lens(
 
     symptom_p = _probs(symptom_logits)
     benign_p = _probs(benign_logits)
-    off_p = _probs(off_target_logits)
     random_p = _probs(random_logits)
     target_mass = float(symptom_p[:, target_index].mean())
     benign_mass = float(benign_p[:, target_index].mean())
@@ -739,7 +1029,10 @@ def _evaluate_lens(
     # declared reference logits (same lens recomputed = near 1.0).
     reference_logits = bundle.get("reference_logits")
     if reference_logits is None:
-        return _blocked("lens reference logits are missing: fidelity needs a declared recomputation", ("missing-evidence:lens-fidelity",))
+        return _blocked(
+            "lens reference logits are missing: fidelity needs a declared recomputation",
+            ("missing-evidence:lens-fidelity",),
+        )
     try:
         reference = _finite_array(reference_logits, name="lens reference_logits")
     except ExplanationError as exc:
@@ -757,7 +1050,10 @@ def _evaluate_lens(
     # readout-direction noise that collapses vector cosine on near-tied rows).
     seed_bundles = bundle.get("seed_logits")
     if not isinstance(seed_bundles, Mapping) or not seed_bundles:
-        return _blocked("lens seed logits are missing: declare at least one seed alternative", ("missing-evidence:stability-variants",))
+        return _blocked(
+            "lens seed logits are missing: declare at least one seed alternative",
+            ("missing-evidence:stability-variants",),
+        )
     seed_masses: list[float] = [float(target_mass)]
     for key in sorted(seed_bundles):
         try:
@@ -774,8 +1070,10 @@ def _evaluate_lens(
 
     masses = np.asarray(symptom_p[:, target_index], dtype=np.float64)
 
-    def _mass_draw(rng: np.random.Generator) -> float:
+    def _mass_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, masses.shape[0], size=masses.shape[0])
+
         return float(np.mean(masses[positions]))
 
     _, mass_interval = _central_bootstrap(
@@ -807,15 +1105,31 @@ def _evaluate_lens(
         statistic=_selectivity_statistic,
     )
     if shuffle_outcome.status == "failed":
-        return _blocked(f"lens shuffled control failed: {shuffle_outcome.reason}", (f"failed-control:{bound_controls['selectivity']}",))
-    _ = float(shuffle_outcome.observed["shuffled_margin"])
+        return _blocked(
+            f"lens shuffled control failed: {shuffle_outcome.reason}",
+            (f"failed-control:{bound_controls['selectivity']}",),
+        )
+    lens_observed = _require_observed_floats(shuffle_outcome.observed, name="lens shuffled control observed")
+    _ = lens_observed["shuffled_margin"]
 
     fidelity_threshold = hypothesis.threshold_for("readout_fidelity")
     stability_threshold = hypothesis.threshold_for("readout_stability")
     selectivity_threshold = hypothesis.threshold_for("readout_margin")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], fidelity_value, float(fidelity_threshold[1]))
-    stability_met = True if stability_threshold is None else _passes(stability_threshold[0], readout_stability, float(stability_threshold[1]))
-    selectivity_met = True if selectivity_threshold is None else _passes(selectivity_threshold[0], readout_margin, float(selectivity_threshold[1]))
+    fidelity_met = (
+        True
+        if fidelity_threshold is None
+        else _passes(fidelity_threshold[0], fidelity_value, float(fidelity_threshold[1]))
+    )
+    stability_met = (
+        True
+        if stability_threshold is None
+        else _passes(stability_threshold[0], readout_stability, float(stability_threshold[1]))
+    )
+    selectivity_met = (
+        True
+        if selectivity_threshold is None
+        else _passes(selectivity_threshold[0], readout_margin, float(selectivity_threshold[1]))
+    )
     leakage_ok = bool(token_list and sample_list and str(preprocessing).strip())
 
     observed = {
@@ -825,34 +1139,73 @@ def _evaluate_lens(
         "target_margin": float(target_margin),
         "target_mass": float(target_mass),
     }
-    fidelity = {"status": "passed" if fidelity_met else "failed", "metric": "readout_fidelity",
-                "observed": float(fidelity_value),
-                "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])]}
-    stability = {"status": "passed" if stability_met else "failed", "metric": "readout_stability",
-                 "observed": float(readout_stability),
-                 "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
-                 "seed_cosines": [float(item) for item in seed_cosines]}
-    selectivity = {"status": "passed" if selectivity_met else "failed", "metric": "readout_margin",
-                   "observed": float(readout_margin),
-                   "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
-                   "target_margin": float(target_margin), "off_mass": float(off_mass), "random_mass": float(random_mass)}
-    leakage = {"status": "passed" if leakage_ok else "failed", "layer_id": hypothesis.layer_id,
-               "target_index": int(target_index), "preprocessing_identity": str(preprocessing)}
-    uncertainty = {"status": "passed", "lens_target_mass": dict(mass_interval),
-                   "evaluation_seed": int(evaluation_seed), "repetitions": int(repetitions)}
+    fidelity = {
+        "status": "passed" if fidelity_met else "failed",
+        "metric": "readout_fidelity",
+        "observed": float(fidelity_value),
+        "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
+    }
+    stability = {
+        "status": "passed" if stability_met else "failed",
+        "metric": "readout_stability",
+        "observed": float(readout_stability),
+        "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
+        "seed_cosines": [float(item) for item in seed_cosines],
+    }
+    selectivity = {
+        "status": "passed" if selectivity_met else "failed",
+        "metric": "readout_margin",
+        "observed": float(readout_margin),
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "target_margin": float(target_margin),
+        "off_mass": float(off_mass),
+        "random_mass": float(random_mass),
+    }
+    leakage = {
+        "status": "passed" if leakage_ok else "failed",
+        "layer_id": hypothesis.layer_id,
+        "target_index": int(target_index),
+        "preprocessing_identity": str(preprocessing),
+    }
+    uncertainty = {
+        "status": "passed",
+        "lens_target_mass": dict(mass_interval),
+        "evaluation_seed": int(evaluation_seed),
+        "repetitions": int(repetitions),
+    }
     fid_gate = fidelity_threshold if fidelity_threshold is not None else (">=", 0.99)
     stab_gate = stability_threshold if stability_threshold is not None else (">=", 0.9)
     sel_gate = selectivity_threshold if selectivity_threshold is not None else (">=", 0.1)
     specs = [
-        _ControlSpec(control_id=bound_controls["fidelity"], kind="seed", required=True,
-                     metric_ids=("readout_fidelity",), expected_behavior="lens readout fidelity under predeclared floor",
-                     comparator=_central_name(fid_gate[0]), threshold_value=float(fid_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["stability"], kind="cross_seed", required=True,
-                     metric_ids=("readout_stability",), expected_behavior="readout stability across declared seeds",
-                     comparator=_central_name(stab_gate[0]), threshold_value=float(stab_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["selectivity"], kind="negative", required=True,
-                     metric_ids=("readout_margin",), expected_behavior="target readout separates symptom from benign slices",
-                     comparator=_central_name(sel_gate[0]), threshold_value=float(sel_gate[1])),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["fidelity"],
+            kind="seed",
+            required=True,
+            metric_ids=("readout_fidelity",),
+            expected_behavior="lens readout fidelity under predeclared floor",
+            comparator=_central_name(fid_gate[0]),
+            threshold_value=float(fid_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["stability"],
+            kind="cross_seed",
+            required=True,
+            metric_ids=("readout_stability",),
+            expected_behavior="readout stability across declared seeds",
+            comparator=_central_name(stab_gate[0]),
+            threshold_value=float(stab_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["selectivity"],
+            kind="negative",
+            required=True,
+            metric_ids=("readout_margin",),
+            expected_behavior="target readout separates symptom from benign slices",
+            comparator=_central_name(sel_gate[0]),
+            threshold_value=float(sel_gate[1]),
+        ),  # type: ignore[arg-type]
     ]
     supplied = {
         bound_controls["fidelity"]: {"readout_fidelity": float(fidelity_value)},
@@ -867,29 +1220,53 @@ def _evaluate_lens(
     if not selectivity_met:
         gaps.append("failed-selectivity:readout_margin")
     record = _gate_dimensions(
-        hypothesis, method, observed=observed, fidelity=fidelity, stability=stability,
-        selectivity=selectivity, leakage=leakage, uncertainty=uncertainty,
-        control_specs=specs, supplied=supplied, provenance=provenance, limitation=limitation,
+        hypothesis,
+        method,
+        observed=observed,
+        fidelity=fidelity,
+        stability=stability,
+        selectivity=selectivity,
+        leakage=leakage,
+        uncertainty=uncertainty,
+        control_specs=specs,
+        supplied=supplied,
+        provenance=provenance,
+        limitation=limitation,
         support_reason="declared lens readout meets fidelity, stability, selectivity, leakage, and uncertainty gates",
-        block_prefix="lens evidence", fidelity_ok=fidelity_met, stability_ok=stability_met,
-        selectivity_ok=selectivity_met, leakage_ok=leakage_ok, gaps=gaps,
-        repetitions=int(repetitions), confidence_level=float(confidence_level),
-        evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
-        promoted_projection=list(promoted_projection) if (
-            promoted_projection is not None and fidelity_met and stability_met and selectivity_met and leakage_ok) else None,
+        block_prefix="lens evidence",
+        fidelity_ok=fidelity_met,
+        stability_ok=stability_met,
+        selectivity_ok=selectivity_met,
+        leakage_ok=leakage_ok,
+        gaps=gaps,
+        repetitions=int(repetitions),
+        confidence_level=float(confidence_level),
+        evaluation_seed=int(evaluation_seed),
+        control_seed=int(control_seed),
+        promoted_projection=list(promoted_projection)
+        if (promoted_projection is not None and fidelity_met and stability_met and selectivity_met and leakage_ok)
+        else None,
     )
     if record.outcome != "supported":
         provenance_redacted = dict(record.provenance)
         provenance_redacted.pop("promoted_projection", None)
         base = ExplanationEvidence(
-            hypothesis_id=record.hypothesis_id, method="probe", outcome=record.outcome,  # type: ignore[arg-type]
-            claim_allowed=False, observed_effect=dict(record.observed_effect),
-            fidelity=dict(record.fidelity), stability=dict(record.stability),
-            selectivity=dict(record.selectivity), leakage=dict(record.leakage),
-            uncertainty=dict(record.uncertainty), control_outcomes=dict(record.control_outcomes),
+            hypothesis_id=record.hypothesis_id,
+            method="probe",
+            outcome=record.outcome,  # type: ignore[arg-type]
+            claim_allowed=False,
+            observed_effect=dict(record.observed_effect),
+            fidelity=dict(record.fidelity),
+            stability=dict(record.stability),
+            selectivity=dict(record.selectivity),
+            leakage=dict(record.leakage),
+            uncertainty=dict(record.uncertainty),
+            control_outcomes=dict(record.control_outcomes),
             central_outcomes=dict(record.central_outcomes),
             missing_evidence=tuple([*record.missing_evidence, "redacted:semantic-projection"]),
-            limitations=tuple(record.limitations), reason=record.reason, provenance=provenance_redacted,
+            limitations=tuple(record.limitations),
+            reason=record.reason,
+            provenance=provenance_redacted,
         )
         return _remethod(base, method)
     return record
@@ -916,17 +1293,27 @@ def _evaluate_geometry(
     def _blocked(reason: str, gaps: Sequence[str]) -> ExplanationEvidence:
         dims = _empty_dims()
         record = ExplanationEvidence(
-            hypothesis_id=hypothesis.hypothesis_id, method="probe", outcome="inconclusive",
-            claim_allowed=False, observed_effect={}, fidelity=dict(dims["fidelity"]),
-            stability=dict(dims["stability"]), selectivity=dict(dims["selectivity"]),
-            leakage=dict(dims["leakage"]), uncertainty=dict(dims["uncertainty"]),
-            control_outcomes={}, central_outcomes={}, missing_evidence=tuple(gaps),
-            limitations=(limitation,), reason=reason, provenance=dict(provenance),
+            hypothesis_id=hypothesis.hypothesis_id,
+            method="probe",
+            outcome="inconclusive",
+            claim_allowed=False,
+            observed_effect={},
+            fidelity=dict(dims["fidelity"]),
+            stability=dict(dims["stability"]),
+            selectivity=dict(dims["selectivity"]),
+            leakage=dict(dims["leakage"]),
+            uncertainty=dict(dims["uncertainty"]),
+            control_outcomes={},
+            central_outcomes={},
+            missing_evidence=tuple(gaps),
+            limitations=(limitation,),
+            reason=reason,
+            provenance=dict(provenance),
         )
         return _remethod(record, method)
 
     try:
-        bound_controls = _bound_ids(hypothesis)
+        bound_controls = _bound_feature_controls(hypothesis)
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:control-declaration",))
 
@@ -944,7 +1331,7 @@ def _evaluate_geometry(
     dim = int(symptom.shape[1])
     rank_raw = bundle.get("subspace_rank")
     try:
-        rank = int(rank_raw) if rank_raw is not None else 2
+        rank = int(rank_raw) if rank_raw is not None else 2  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return _blocked("geometry subspace_rank is non-numeric", ("missing-evidence:geometry-config",))
     if not 1 <= rank < dim:
@@ -954,7 +1341,9 @@ def _evaluate_geometry(
         return _blocked("geometry sample identities are missing", ("missing-evidence:leakage-identities",))
     ids = tuple(sample_ids) if isinstance(sample_ids, Sequence) and not isinstance(sample_ids, (str, bytes)) else ()
     if not ids or len(ids) != int(symptom.shape[0]):
-        return _blocked("geometry sample identities must cover every symptom row", ("missing-evidence:leakage-identities",))
+        return _blocked(
+            "geometry sample identities must cover every symptom row", ("missing-evidence:leakage-identities",)
+        )
     provenance["subspace_rank"] = int(rank)
 
     from latent_anything.geometry import (
@@ -993,9 +1382,14 @@ def _evaluate_geometry(
     # halves (order-free; no raw QR basis-order dependence).
     half = int(symptom.shape[0] // 2)
     if half < rank + 1:
-        return _blocked("geometry needs at least 2*(rank+1) symptom rows for split-half stability", ("missing-evidence:geometry-matrices",))
+        return _blocked(
+            "geometry needs at least 2*(rank+1) symptom rows for split-half stability",
+            ("missing-evidence:geometry-matrices",),
+        )
     half_a = np.asarray(symptom[:half], dtype=np.float64) - np.asarray(symptom[:half], dtype=np.float64).mean(axis=0)
-    half_b = np.asarray(symptom[half:2 * half], dtype=np.float64) - np.asarray(symptom[half:2 * half], dtype=np.float64).mean(axis=0)
+    half_b = np.asarray(symptom[half : 2 * half], dtype=np.float64) - np.asarray(
+        symptom[half : 2 * half], dtype=np.float64
+    ).mean(axis=0)
     try:
         values_a, vectors_a = np.linalg.eigh(np.cov(half_a, rowvar=False))
         values_b, vectors_b = np.linalg.eigh(np.cov(half_b, rowvar=False))
@@ -1016,7 +1410,9 @@ def _evaluate_geometry(
                 return _blocked(str(exc), ("missing-evidence:stability-variants",))
             if variant.shape[1] != dim:
                 return _blocked("geometry seed matrices disagree on width", ("missing-evidence:stability-variants",))
-            centered_variant = np.asarray(variant, dtype=np.float64) - np.asarray(variant, dtype=np.float64).mean(axis=0)
+            centered_variant = np.asarray(variant, dtype=np.float64) - np.asarray(variant, dtype=np.float64).mean(
+                axis=0
+            )
             try:
                 variant_values, variant_vectors = np.linalg.eigh(np.cov(centered_variant, rowvar=False))
             except (ValueError, np.linalg.LinAlgError) as exc:
@@ -1031,8 +1427,10 @@ def _evaluate_geometry(
     selectivity_margin = float(min(symptom_coverage - benign_coverage, symptom_coverage - negative_coverage))
     coverages = np.asarray([float(_coverage(row, basis)) for row in np.asarray(symptom, dtype=np.float64)])
 
-    def _coverage_draw(rng: np.random.Generator) -> float:
+    def _coverage_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, coverages.shape[0], size=coverages.shape[0])
+
         return float(np.mean(coverages[positions]))
 
     _, coverage_interval = _central_bootstrap(
@@ -1048,8 +1446,10 @@ def _evaluate_geometry(
         draw=_coverage_draw,
     )
 
-    def _null_statistic(rng: np.random.Generator) -> Mapping[str, float]:
+    def _null_statistic(rng: object) -> Mapping[str, float]:
+        rng = _require_generator(rng)
         shuffled = np.column_stack([rng.permutation(np.asarray(symptom, dtype=np.float64)[:, j]) for j in range(dim)])
+
         centered_null = shuffled - shuffled.mean(axis=0)
         try:
             null_values, null_vectors = np.linalg.eigh(np.cov(centered_null, rowvar=False))
@@ -1071,15 +1471,29 @@ def _evaluate_geometry(
         statistic=_null_statistic,
     )
     if null_outcome.status == "failed":
-        return _blocked(f"geometry shuffled null failed: {null_outcome.reason}", (f"failed-control:{bound_controls['selectivity']}",))
-    null_coverage = float(null_outcome.observed["null_coverage"])
+        return _blocked(
+            f"geometry shuffled null failed: {null_outcome.reason}",
+            (f"failed-control:{bound_controls['selectivity']}",),
+        )
+    geometry_observed = _require_observed_floats(null_outcome.observed, name="geometry shuffled null observed")
+    null_coverage = geometry_observed["null_coverage"]
     fidelity_threshold = hypothesis.threshold_for("fit_fidelity")
     stability_threshold = hypothesis.threshold_for("subspace_stability")
     selectivity_threshold = hypothesis.threshold_for("coverage_margin")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], fit_fidelity, float(fidelity_threshold[1]))
-    stability_met = True if stability_threshold is None else _passes(stability_threshold[0], stability_value, float(stability_threshold[1]))
+    fidelity_met = (
+        True
+        if fidelity_threshold is None
+        else _passes(fidelity_threshold[0], fit_fidelity, float(fidelity_threshold[1]))
+    )
+    stability_met = (
+        True
+        if stability_threshold is None
+        else _passes(stability_threshold[0], stability_value, float(stability_threshold[1]))
+    )
     selectivity_met = (
-        True if selectivity_threshold is None else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
+        True
+        if selectivity_threshold is None
+        else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
     )
     leakage_ok = bool(ids) and hypothesis.train_split_identity != hypothesis.eval_split_identity
 
@@ -1090,37 +1504,74 @@ def _evaluate_geometry(
         "symptom_coverage": float(symptom_coverage),
         "null_coverage": float(null_coverage),
     }
-    fidelity = {"status": "passed" if fidelity_met else "failed", "metric": "fit_fidelity",
-                "observed": float(fit_fidelity),
-                "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])]}
-    stability = {"status": "passed" if stability_met else "failed", "metric": "subspace_stability",
-                 "observed": float(stability_value),
-                 "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
-                 "principal_angle_metric": True, "subspace_rank": int(rank)}
-    selectivity = {"status": "passed" if selectivity_met else "failed", "metric": "coverage_margin",
-                   "observed": float(selectivity_margin),
-                   "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
-                   "benign_coverage": float(benign_coverage), "negative_coverage": float(negative_coverage),
-                   "null_coverage": float(null_coverage)}
-    leakage = {"status": "passed" if leakage_ok else "failed",
-               "train_split_identity": hypothesis.train_split_identity,
-               "eval_split_identity": hypothesis.eval_split_identity,
-               "subspace_identity": subspace.source_representation_identity}
-    uncertainty = {"status": "passed", "geometry_coverage": dict(coverage_interval),
-                   "evaluation_seed": int(evaluation_seed), "repetitions": int(repetitions)}
+    fidelity = {
+        "status": "passed" if fidelity_met else "failed",
+        "metric": "fit_fidelity",
+        "observed": float(fit_fidelity),
+        "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
+    }
+    stability = {
+        "status": "passed" if stability_met else "failed",
+        "metric": "subspace_stability",
+        "observed": float(stability_value),
+        "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
+        "principal_angle_metric": True,
+        "subspace_rank": int(rank),
+    }
+    selectivity = {
+        "status": "passed" if selectivity_met else "failed",
+        "metric": "coverage_margin",
+        "observed": float(selectivity_margin),
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "benign_coverage": float(benign_coverage),
+        "negative_coverage": float(negative_coverage),
+        "null_coverage": float(null_coverage),
+    }
+    leakage = {
+        "status": "passed" if leakage_ok else "failed",
+        "train_split_identity": hypothesis.train_split_identity,
+        "eval_split_identity": hypothesis.eval_split_identity,
+        "subspace_identity": subspace.source_representation_identity,
+    }
+    uncertainty = {
+        "status": "passed",
+        "geometry_coverage": dict(coverage_interval),
+        "evaluation_seed": int(evaluation_seed),
+        "repetitions": int(repetitions),
+    }
     fid_gate = fidelity_threshold if fidelity_threshold is not None else (">=", 0.5)
     stab_gate = stability_threshold if stability_threshold is not None else (">=", 0.9)
     sel_gate = selectivity_threshold if selectivity_threshold is not None else (">=", 0.2)
     specs = [
-        _ControlSpec(control_id=bound_controls["fidelity"], kind="seed", required=True,
-                     metric_ids=("fit_fidelity",), expected_behavior="subspace fit under predeclared floor",
-                     comparator=_central_name(fid_gate[0]), threshold_value=float(fid_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["stability"], kind="cross_seed", required=True,
-                     metric_ids=("subspace_stability",), expected_behavior="principal-angle stability across splits/seeds",
-                     comparator=_central_name(stab_gate[0]), threshold_value=float(stab_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["selectivity"], kind="counterexample", required=True,
-                     metric_ids=("coverage_margin",), expected_behavior="coverage separates diagnosed slice from benign data",
-                     comparator=_central_name(sel_gate[0]), threshold_value=float(sel_gate[1])),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["fidelity"],
+            kind="seed",
+            required=True,
+            metric_ids=("fit_fidelity",),
+            expected_behavior="subspace fit under predeclared floor",
+            comparator=_central_name(fid_gate[0]),
+            threshold_value=float(fid_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["stability"],
+            kind="cross_seed",
+            required=True,
+            metric_ids=("subspace_stability",),
+            expected_behavior="principal-angle stability across splits/seeds",
+            comparator=_central_name(stab_gate[0]),
+            threshold_value=float(stab_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["selectivity"],
+            kind="counterexample",
+            required=True,
+            metric_ids=("coverage_margin",),
+            expected_behavior="coverage separates diagnosed slice from benign data",
+            comparator=_central_name(sel_gate[0]),
+            threshold_value=float(sel_gate[1]),
+        ),  # type: ignore[arg-type]
     ]
     supplied = {
         bound_controls["fidelity"]: {"fit_fidelity": float(fit_fidelity)},
@@ -1137,14 +1588,31 @@ def _evaluate_geometry(
     if not leakage_ok:
         gaps.append("failed-leakage:split-identity")
     return _gate_dimensions(
-        hypothesis, method, observed=observed, fidelity=fidelity, stability=stability,
-        selectivity=selectivity, leakage=leakage, uncertainty=uncertainty,
-        control_specs=specs, supplied=supplied, provenance=provenance, limitation=limitation,
-        support_reason="declared subspace meets fit, principal-angle stability, selectivity, leakage, and uncertainty gates",
-        block_prefix="geometry evidence", fidelity_ok=fidelity_met, stability_ok=stability_met,
-        selectivity_ok=selectivity_met, leakage_ok=leakage_ok, gaps=gaps,
-        repetitions=int(repetitions), confidence_level=float(confidence_level),
-        evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
+        hypothesis,
+        method,
+        observed=observed,
+        fidelity=fidelity,
+        stability=stability,
+        selectivity=selectivity,
+        leakage=leakage,
+        uncertainty=uncertainty,
+        control_specs=specs,
+        supplied=supplied,
+        provenance=provenance,
+        limitation=limitation,
+        support_reason=(
+            "declared subspace meets fit, principal-angle stability, selectivity, leakage, and uncertainty gates"
+        ),
+        block_prefix="geometry evidence",
+        fidelity_ok=fidelity_met,
+        stability_ok=stability_met,
+        selectivity_ok=selectivity_met,
+        leakage_ok=leakage_ok,
+        gaps=gaps,
+        repetitions=int(repetitions),
+        confidence_level=float(confidence_level),
+        evaluation_seed=int(evaluation_seed),
+        control_seed=int(control_seed),
     )
 
 
@@ -1165,22 +1633,34 @@ def _evaluate_density(
 ) -> ExplanationEvidence:
     method = "density"
     provenance = _base_provenance(hypothesis, method)
-    limitation = "an outlying density score does not mean the location caused the symptom; causal claims require 80.18+ trials"
+    limitation = (
+        "an outlying density score does not mean the location caused the symptom; causal claims require 80.18+ trials"
+    )
 
     def _blocked(reason: str, gaps: Sequence[str]) -> ExplanationEvidence:
         dims = _empty_dims()
         record = ExplanationEvidence(
-            hypothesis_id=hypothesis.hypothesis_id, method="probe", outcome="inconclusive",
-            claim_allowed=False, observed_effect={}, fidelity=dict(dims["fidelity"]),
-            stability=dict(dims["stability"]), selectivity=dict(dims["selectivity"]),
-            leakage=dict(dims["leakage"]), uncertainty=dict(dims["uncertainty"]),
-            control_outcomes={}, central_outcomes={}, missing_evidence=tuple(gaps),
-            limitations=(limitation,), reason=reason, provenance=dict(provenance),
+            hypothesis_id=hypothesis.hypothesis_id,
+            method="probe",
+            outcome="inconclusive",
+            claim_allowed=False,
+            observed_effect={},
+            fidelity=dict(dims["fidelity"]),
+            stability=dict(dims["stability"]),
+            selectivity=dict(dims["selectivity"]),
+            leakage=dict(dims["leakage"]),
+            uncertainty=dict(dims["uncertainty"]),
+            control_outcomes={},
+            central_outcomes={},
+            missing_evidence=tuple(gaps),
+            limitations=(limitation,),
+            reason=reason,
+            provenance=dict(provenance),
         )
         return _remethod(record, method)
 
     try:
-        bound_controls = _bound_ids(hypothesis)
+        bound_controls = _bound_feature_controls(hypothesis)
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:control-declaration",))
 
@@ -1191,8 +1671,12 @@ def _evaluate_density(
         negative = _finite_array(bundle.get("negative_matrix"), name="density negative_matrix")
     except ExplanationError as exc:
         return _blocked(f"density input is incomplete: {exc}", ("missing-evidence:density-matrices",))
-    for name, matrix in (("reference_matrix", reference), ("calibration_matrix", calibration),
-                         ("symptom_matrix", symptom), ("negative_matrix", negative)):
+    for name, matrix in (
+        ("reference_matrix", reference),
+        ("calibration_matrix", calibration),
+        ("symptom_matrix", symptom),
+        ("negative_matrix", negative),
+    ):
         if matrix.ndim != 2:
             return _blocked(f"density {name} must be 2D", ("missing-evidence:density-matrices",))
     widths = {int(matrix.shape[1]) for matrix in (reference, calibration, symptom, negative)}
@@ -1201,34 +1685,49 @@ def _evaluate_density(
     ref_identity = bundle.get("reference_identity")
     test_identity = bundle.get("test_identity")
     calibration_identity = bundle.get("calibration_identity")
-    for name, value in (("reference_identity", ref_identity), ("test_identity", test_identity),
-                        ("calibration_identity", calibration_identity)):
+    for name, value in (
+        ("reference_identity", ref_identity),
+        ("test_identity", test_identity),
+        ("calibration_identity", calibration_identity),
+    ):
         if not isinstance(value, str) or not value.strip():
             return _blocked(f"density {name} is missing", ("missing-evidence:density-identity",))
     if str(ref_identity) != str(calibration_identity):
         return _blocked("density reference/calibration identities disagree", ("failed-leakage:reference-identity",))
     if str(ref_identity) != hypothesis.representation_id:
-        return _blocked("density reference identity does not match the declared representation", ("failed-leakage:representation-identity",))
+        return _blocked(
+            "density reference identity does not match the declared representation",
+            ("failed-leakage:representation-identity",),
+        )
     if str(test_identity) == str(ref_identity):
         return _blocked("density test/reference identities are identical", ("failed-leakage:test-identity",))
     provenance["test_identity"] = str(test_identity)
 
-    from latent_anything.density import GMMConfig, GaussianMixtureDensity
+    from latent_anything.density import GaussianMixtureDensity, GMMConfig
 
     fit_calls = {"count": 0}
     estimator = GaussianMixtureDensity(GMMConfig(n_components=2, random_state=int(training_seed)))
     try:
-        estimator.fit(np.asarray(reference, dtype=np.float64),
-                      source_representation_identity=str(ref_identity), geometry="euclidean",
-                      provenance={"role": "reference-fit"})
+        estimator.fit(
+            np.asarray(reference, dtype=np.float64),
+            source_representation_identity=str(ref_identity),
+            geometry="euclidean",
+            provenance={"role": "reference-fit"},
+        )
         fit_calls["count"] += 1
         estimator.calibrate(np.asarray(calibration, dtype=np.float64), provenance={"role": "heldout-calibration"})
     except (ValueError, RuntimeError) as exc:
         return _blocked(f"density fit/calibration failed: {exc}", ("missing-evidence:fidelity",))
     try:
-        calibration_scores = np.asarray(estimator.score(np.asarray(calibration, dtype=np.float64)).calibrated_ood_score, dtype=np.float64)
-        symptom_scores = np.asarray(estimator.score(np.asarray(symptom, dtype=np.float64)).calibrated_ood_score, dtype=np.float64)
-        negative_scores = np.asarray(estimator.score(np.asarray(negative, dtype=np.float64)).calibrated_ood_score, dtype=np.float64)
+        calibration_scores = np.asarray(
+            estimator.score(np.asarray(calibration, dtype=np.float64)).calibrated_ood_score, dtype=np.float64
+        )
+        symptom_scores = np.asarray(
+            estimator.score(np.asarray(symptom, dtype=np.float64)).calibrated_ood_score, dtype=np.float64
+        )
+        negative_scores = np.asarray(
+            estimator.score(np.asarray(negative, dtype=np.float64)).calibrated_ood_score, dtype=np.float64
+        )
     except (ValueError, RuntimeError) as exc:
         return _blocked(f"density scoring failed: {exc}", ("missing-evidence:fidelity",))
     threshold = float(np.quantile(calibration_scores, 0.9))
@@ -1236,14 +1735,15 @@ def _evaluate_density(
         return _blocked("density calibration produced a non-finite threshold", ("missing-evidence:fidelity",))
     symptom_flag = float(np.mean(symptom_scores >= threshold))
     negative_flag = float(np.mean(negative_scores >= threshold))
-    id_flag = float(np.mean(calibration_scores >= threshold))
-    from sklearn.metrics import roc_auc_score
+    from sklearn.metrics import roc_auc_score  # type: ignore[reportMissingTypeStubs]
 
     try:
-        auroc = float(roc_auc_score(
-            np.concatenate([np.zeros(symptom_scores.shape[0]), np.ones(symptom_scores.shape[0])]),
-            np.concatenate([calibration_scores[:symptom_scores.shape[0]], symptom_scores]),
-        ))
+        auroc = float(
+            roc_auc_score(
+                np.concatenate([np.zeros(symptom_scores.shape[0]), np.ones(symptom_scores.shape[0])]),
+                np.concatenate([calibration_scores[: symptom_scores.shape[0]], symptom_scores]),
+            )
+        )
     except ValueError as exc:
         return _blocked(f"density ranking failed: {exc}", ("missing-evidence:fidelity",))
     # Stability: AUROC across declared seeds uses the SAME one-fit estimator
@@ -1251,17 +1751,21 @@ def _evaluate_density(
     # estimator variance is reported by scoring with fixed alternate configs
     # only where declared; here stability is the bootstrap AUROC spread.
     flat_symptom = symptom_scores.ravel()
-    flat_id = calibration_scores[:symptom_scores.shape[0]].ravel()
+    flat_id = calibration_scores[: symptom_scores.shape[0]].ravel()
     n = int(flat_symptom.shape[0])
 
-    def _auroc_draw(rng: np.random.Generator) -> float:
+    def _auroc_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         sym_positions = rng.integers(0, n, size=n)
+
         id_positions = rng.integers(0, n, size=n)
         try:
-            return float(roc_auc_score(
-                np.concatenate([np.zeros(n), np.ones(n)]),
-                np.concatenate([flat_id[id_positions], flat_symptom[sym_positions]]),
-            ))
+            return float(
+                roc_auc_score(
+                    np.concatenate([np.zeros(n), np.ones(n)]),
+                    np.concatenate([flat_id[id_positions], flat_symptom[sym_positions]]),
+                )
+            )
         except ValueError:
             return 0.5
 
@@ -1286,12 +1790,18 @@ def _evaluate_density(
             except ExplanationError as exc:
                 return _blocked(str(exc), ("missing-evidence:stability-variants",))
             if variant.shape[0] != n:
-                return _blocked("density seed scores disagree on sample count", ("missing-evidence:stability-variants",))
+                return _blocked(
+                    "density seed scores disagree on sample count", ("missing-evidence:stability-variants",)
+                )
             try:
-                seed_aurocs.append(float(roc_auc_score(
-                    np.concatenate([np.zeros(n), np.ones(n)]),
-                    np.concatenate([flat_id, np.asarray(variant, dtype=np.float64)]),
-                )))
+                seed_aurocs.append(
+                    float(
+                        roc_auc_score(
+                            np.concatenate([np.zeros(n), np.ones(n)]),
+                            np.concatenate([flat_id, np.asarray(variant, dtype=np.float64)]),
+                        )
+                    )
+                )
             except ValueError:
                 return _blocked("density seed ranking failed", ("missing-evidence:stability-variants",))
     stability_spread = float(max(seed_aurocs) - min(seed_aurocs)) if seed_aurocs else 0.0
@@ -1304,10 +1814,12 @@ def _evaluate_density(
         except (ValueError, RuntimeError):
             return {"density_auroc": float(auroc), "null_auroc": 0.5}
         try:
-            null_auroc = float(roc_auc_score(
-                np.concatenate([np.zeros(n), np.ones(n)]),
-                np.concatenate([flat_id, shuffled_scores[:n]]),
-            ))
+            null_auroc = float(
+                roc_auc_score(
+                    np.concatenate([np.zeros(n), np.ones(n)]),
+                    np.concatenate([flat_id, shuffled_scores[:n]]),
+                )
+            )
         except ValueError:
             null_auroc = 0.5
         return {"density_auroc": float(auroc), "null_auroc": float(null_auroc)}
@@ -1323,18 +1835,27 @@ def _evaluate_density(
         statistic=_null_statistic,
     )
     if null_outcome.status == "failed":
-        return _blocked(f"density shuffled null failed: {null_outcome.reason}", (f"failed-control:{bound_controls['selectivity']}",))
-    null_auroc = float(null_outcome.observed["null_auroc"])
+        return _blocked(
+            f"density shuffled null failed: {null_outcome.reason}", (f"failed-control:{bound_controls['selectivity']}",)
+        )
+    density_observed = _require_observed_floats(null_outcome.observed, name="density shuffled null observed")
+    null_auroc = density_observed["null_auroc"]
     fidelity_threshold = hypothesis.threshold_for("density_auroc")
     stability_threshold = hypothesis.threshold_for("auroc_stability")
     selectivity_threshold = hypothesis.threshold_for("flag_margin")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], auroc, float(fidelity_threshold[1]))
+    fidelity_met = (
+        True if fidelity_threshold is None else _passes(fidelity_threshold[0], auroc, float(fidelity_threshold[1]))
+    )
     stability_met = (
-        True if stability_threshold is None else _passes(stability_threshold[0], stability_spread, float(stability_threshold[1]))
+        True
+        if stability_threshold is None
+        else _passes(stability_threshold[0], stability_spread, float(stability_threshold[1]))
     )
     flag_margin = float(symptom_flag - negative_flag)
     selectivity_met = (
-        True if selectivity_threshold is None else _passes(selectivity_threshold[0], flag_margin, float(selectivity_threshold[1]))
+        True
+        if selectivity_threshold is None
+        else _passes(selectivity_threshold[0], flag_margin, float(selectivity_threshold[1]))
     )
     leakage_ok = fit_calls["count"] == 1
     if hypothesis.train_split_identity == hypothesis.eval_split_identity:
@@ -1349,35 +1870,72 @@ def _evaluate_density(
         "null_auroc": float(null_auroc),
         "estimator_fits": float(fit_calls["count"]),
     }
-    fidelity = {"status": "passed" if fidelity_met else "failed", "metric": "density_auroc",
-                "observed": float(auroc),
-                "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])]}
-    stability = {"status": "passed" if stability_met else "failed", "metric": "auroc_stability",
-                 "observed": float(stability_spread),
-                 "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
-                 "seed_aurocs": [float(item) for item in seed_aurocs]}
-    selectivity = {"status": "passed" if selectivity_met else "failed", "metric": "flag_margin",
-                   "observed": float(flag_margin),
-                   "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
-                   "null_auroc": float(null_auroc)}
-    leakage = {"status": "passed" if leakage_ok else "failed",
-               "reference_identity": str(ref_identity), "test_identity": str(test_identity),
-               "estimator_fits": int(fit_calls["count"]), "one_fit": bool(fit_calls["count"] == 1)}
-    uncertainty = {"status": "passed", "density_auroc": dict(auroc_interval),
-                   "evaluation_seed": int(evaluation_seed), "repetitions": int(repetitions)}
+    fidelity = {
+        "status": "passed" if fidelity_met else "failed",
+        "metric": "density_auroc",
+        "observed": float(auroc),
+        "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
+    }
+    stability = {
+        "status": "passed" if stability_met else "failed",
+        "metric": "auroc_stability",
+        "observed": float(stability_spread),
+        "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
+        "seed_aurocs": [float(item) for item in seed_aurocs],
+    }
+    selectivity = {
+        "status": "passed" if selectivity_met else "failed",
+        "metric": "flag_margin",
+        "observed": float(flag_margin),
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "null_auroc": float(null_auroc),
+    }
+    leakage = {
+        "status": "passed" if leakage_ok else "failed",
+        "reference_identity": str(ref_identity),
+        "test_identity": str(test_identity),
+        "estimator_fits": int(fit_calls["count"]),
+        "one_fit": bool(fit_calls["count"] == 1),
+    }
+    uncertainty = {
+        "status": "passed",
+        "density_auroc": dict(auroc_interval),
+        "evaluation_seed": int(evaluation_seed),
+        "repetitions": int(repetitions),
+    }
     auroc_gate = fidelity_threshold if fidelity_threshold is not None else (">=", 0.8)
     spread_gate = stability_threshold if stability_threshold is not None else ("<=", 0.1)
     margin_gate = selectivity_threshold if selectivity_threshold is not None else (">=", 0.3)
     specs = [
-        _ControlSpec(control_id=bound_controls["fidelity"], kind="counterexample", required=True,
-                     metric_ids=("density_auroc",), expected_behavior="ranking separates symptom from in-distribution data",
-                     comparator=_central_name(auroc_gate[0]), threshold_value=float(auroc_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["stability"], kind="seed", required=True,
-                     metric_ids=("auroc_stability",), expected_behavior="AUROC spread across declared seeds stays bounded",
-                     comparator=_central_name(spread_gate[0]), threshold_value=float(spread_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["selectivity"], kind="negative", required=True,
-                     metric_ids=("flag_margin",), expected_behavior="symptom flag rate exceeds the negative flag rate",
-                     comparator=_central_name(margin_gate[0]), threshold_value=float(margin_gate[1])),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["fidelity"],
+            kind="counterexample",
+            required=True,
+            metric_ids=("density_auroc",),
+            expected_behavior="ranking separates symptom from in-distribution data",
+            comparator=_central_name(auroc_gate[0]),
+            threshold_value=float(auroc_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["stability"],
+            kind="seed",
+            required=True,
+            metric_ids=("auroc_stability",),
+            expected_behavior="AUROC spread across declared seeds stays bounded",
+            comparator=_central_name(spread_gate[0]),
+            threshold_value=float(spread_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["selectivity"],
+            kind="negative",
+            required=True,
+            metric_ids=("flag_margin",),
+            expected_behavior="symptom flag rate exceeds the negative flag rate",
+            comparator=_central_name(margin_gate[0]),
+            threshold_value=float(margin_gate[1]),
+        ),  # type: ignore[arg-type]
     ]
     supplied = {
         bound_controls["fidelity"]: {"density_auroc": float(auroc)},
@@ -1393,16 +1951,30 @@ def _evaluate_density(
         gaps.append("failed-selectivity:flag_margin")
     if not leakage_ok:
         gaps.append("failed-leakage:estimator-fits")
-    central_extra = {bound_controls["selectivity"]: dict(null_outcome.to_dict())}
     record = _gate_dimensions(
-        hypothesis, method, observed=observed, fidelity=fidelity, stability=stability,
-        selectivity=selectivity, leakage=leakage, uncertainty=uncertainty,
-        control_specs=specs, supplied=supplied, provenance=provenance, limitation=limitation,
+        hypothesis,
+        method,
+        observed=observed,
+        fidelity=fidelity,
+        stability=stability,
+        selectivity=selectivity,
+        leakage=leakage,
+        uncertainty=uncertainty,
+        control_specs=specs,
+        supplied=supplied,
+        provenance=provenance,
+        limitation=limitation,
         support_reason="declared density run meets ranking, stability, selectivity, leakage, and uncertainty gates",
-        block_prefix="density evidence", fidelity_ok=fidelity_met, stability_ok=stability_met,
-        selectivity_ok=selectivity_met, leakage_ok=leakage_ok, gaps=gaps,
-        repetitions=int(repetitions), confidence_level=float(confidence_level),
-        evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
+        block_prefix="density evidence",
+        fidelity_ok=fidelity_met,
+        stability_ok=stability_met,
+        selectivity_ok=selectivity_met,
+        leakage_ok=leakage_ok,
+        gaps=gaps,
+        repetitions=int(repetitions),
+        confidence_level=float(confidence_level),
+        evaluation_seed=int(evaluation_seed),
+        control_seed=int(control_seed),
     )
     return record
 
@@ -1420,7 +1992,6 @@ def _evaluate_clustering(
     confidence_level: float,
     evaluation_seed: int,
     control_seed: int,
-    training_seed: int,
 ) -> ExplanationEvidence:
     method = "clustering"
     provenance = _base_provenance(hypothesis, method)
@@ -1429,17 +2000,27 @@ def _evaluate_clustering(
     def _blocked(reason: str, gaps: Sequence[str]) -> ExplanationEvidence:
         dims = _empty_dims()
         record = ExplanationEvidence(
-            hypothesis_id=hypothesis.hypothesis_id, method="probe", outcome="inconclusive",
-            claim_allowed=False, observed_effect={}, fidelity=dict(dims["fidelity"]),
-            stability=dict(dims["stability"]), selectivity=dict(dims["selectivity"]),
-            leakage=dict(dims["leakage"]), uncertainty=dict(dims["uncertainty"]),
-            control_outcomes={}, central_outcomes={}, missing_evidence=tuple(gaps),
-            limitations=(limitation,), reason=reason, provenance=dict(provenance),
+            hypothesis_id=hypothesis.hypothesis_id,
+            method="probe",
+            outcome="inconclusive",
+            claim_allowed=False,
+            observed_effect={},
+            fidelity=dict(dims["fidelity"]),
+            stability=dict(dims["stability"]),
+            selectivity=dict(dims["selectivity"]),
+            leakage=dict(dims["leakage"]),
+            uncertainty=dict(dims["uncertainty"]),
+            control_outcomes={},
+            central_outcomes={},
+            missing_evidence=tuple(gaps),
+            limitations=(limitation,),
+            reason=reason,
+            provenance=dict(provenance),
         )
         return _remethod(record, method)
 
     try:
-        bound_controls = _bound_ids(hypothesis)
+        bound_controls = _bound_feature_controls(hypothesis)
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:control-declaration",))
 
@@ -1457,10 +2038,12 @@ def _evaluate_clustering(
     if labels.shape[0] != int(symptom.shape[0]):
         return _blocked("clustering labels must cover every symptom row", ("missing-evidence:clustering-matrices",))
     if len(np.unique(labels)) < 2:
-        return _blocked("clustering labels must contain at least two classes", ("missing-evidence:clustering-matrices",))
+        return _blocked(
+            "clustering labels must contain at least two classes", ("missing-evidence:clustering-matrices",)
+        )
     n_clusters_raw = bundle.get("n_clusters")
     try:
-        n_clusters = int(n_clusters_raw) if n_clusters_raw is not None else 2
+        n_clusters = int(cast(int, n_clusters_raw)) if n_clusters_raw is not None else 2
     except (TypeError, ValueError):
         return _blocked("clustering n_clusters is non-numeric", ("missing-evidence:clustering-config",))
     if n_clusters < 2 or n_clusters > int(symptom.shape[0]):
@@ -1470,7 +2053,10 @@ def _evaluate_clustering(
         return _blocked("clustering sample identities are missing", ("missing-evidence:leakage-identities",))
     ids = tuple(sample_ids) if isinstance(sample_ids, Sequence) and not isinstance(sample_ids, (str, bytes)) else ()
     if not ids or len(ids) != int(symptom.shape[0]) or len(set(str(i) for i in ids)) != len(ids):
-        return _blocked("clustering sample identities must uniquely cover every symptom row", ("missing-evidence:leakage-identities",))
+        return _blocked(
+            "clustering sample identities must uniquely cover every symptom row",
+            ("missing-evidence:leakage-identities",),
+        )
     cluster_label = bundle.get("cluster_label")
     promoted_label = str(cluster_label) if isinstance(cluster_label, str) and cluster_label.strip() else None
     provenance["n_clusters"] = int(n_clusters)
@@ -1490,7 +2076,7 @@ def _evaluate_clustering(
     except ValueError as exc:
         return _blocked(f"clustering fit failed: {exc}", ("missing-evidence:fidelity",))
     reference = results[0]
-    from sklearn.metrics import adjusted_rand_score
+    from sklearn.metrics import adjusted_rand_score  # type: ignore[reportMissingTypeStubs]
 
     aris = [1.0]
     for other in results[1:]:
@@ -1516,29 +2102,50 @@ def _evaluate_clustering(
         statistic=_shuffled_selectivity,
     )
     if shuffle_outcome.status == "failed":
-        return _blocked(f"clustering shuffled control failed: {shuffle_outcome.reason}", (f"failed-control:{bound_controls['selectivity']}",))
-    shuffled_ari = float(shuffle_outcome.observed["shuffled_ari"])
+        return _blocked(
+            f"clustering shuffled control failed: {shuffle_outcome.reason}",
+            (f"failed-control:{bound_controls['selectivity']}",),
+        )
+    clustering_observed = _require_observed_floats(
+        shuffle_outcome.observed, name="clustering shuffled control observed"
+    )
+    shuffled_ari = clustering_observed["shuffled_ari"]
     selectivity_margin = float(label_ari - shuffled_ari)
-    benign_agreement = compare_with_labels(
-        np.asarray(np.random.default_rng(int(control_seed)).permutation(np.asarray(labels).ravel())[: benign.shape[0]] if benign.shape[0] <= labels.shape[0] else np.zeros(benign.shape[0])),
-        np.asarray(KMeans(KMeansConfig(n_clusters=int(n_clusters), random_state=int(seeds[0]), n_init=10)).fit_predict(
-            np.asarray(benign, dtype=np.float64)).assignments).ravel(),
-    ) if False else None
+    benign_agreement = (
+        compare_with_labels(
+            np.asarray(
+                np.random.default_rng(int(control_seed)).permutation(np.asarray(labels).ravel())[: benign.shape[0]]
+                if benign.shape[0] <= labels.shape[0]
+                else np.zeros(benign.shape[0])
+            ),
+            np.asarray(
+                KMeans(KMeansConfig(n_clusters=int(n_clusters), random_state=int(seeds[0]), n_init=10))
+                .fit_predict(np.asarray(benign, dtype=np.float64))
+                .assignments
+            ).ravel(),
+        )
+        if False
+        else None
+    )
     _ = benign_agreement
     benign_fit = KMeans(KMeansConfig(n_clusters=int(n_clusters), random_state=int(seeds[0]), n_init=10)).fit_predict(
-        np.asarray(benign, dtype=np.float64))
+        np.asarray(benign, dtype=np.float64)
+    )
     fit_calls["count"] += 1
     benign_silhouette = float(benign_fit.silhouette_score)
 
     assignments = np.asarray(reference.assignments).ravel()
 
-    def _assignment_draw(rng: np.random.Generator) -> float:
+    def _assignment_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, assignments.shape[0], size=assignments.shape[0])
+
         # Agreement of the resampled assignments with resampled labels (ARI
         # needs no label alignment: permutation-invariant by construction).
         try:
-            return float(adjusted_rand_score(
-                np.asarray(labels).ravel()[positions], np.asarray(assignments).ravel()[positions]))
+            return float(
+                adjusted_rand_score(np.asarray(labels).ravel()[positions], np.asarray(assignments).ravel()[positions])
+            )
         except ValueError:
             return 0.0
 
@@ -1558,10 +2165,16 @@ def _evaluate_clustering(
     fidelity_threshold = hypothesis.threshold_for("label_agreement")
     stability_threshold = hypothesis.threshold_for("cluster_stability")
     selectivity_threshold = hypothesis.threshold_for("selectivity_margin")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], label_ari, float(fidelity_threshold[1]))
-    stability_met = True if stability_threshold is None else _passes(stability_threshold[0], ari, float(stability_threshold[1]))
+    fidelity_met = (
+        True if fidelity_threshold is None else _passes(fidelity_threshold[0], label_ari, float(fidelity_threshold[1]))
+    )
+    stability_met = (
+        True if stability_threshold is None else _passes(stability_threshold[0], ari, float(stability_threshold[1]))
+    )
     selectivity_met = (
-        True if selectivity_threshold is None else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
+        True
+        if selectivity_threshold is None
+        else _passes(selectivity_threshold[0], selectivity_margin, float(selectivity_threshold[1]))
     )
     leakage_ok = fit_calls["count"] == len(seeds) + 1
     if hypothesis.train_split_identity == hypothesis.eval_split_identity:
@@ -1576,37 +2189,73 @@ def _evaluate_clustering(
         "benign_silhouette": float(benign_silhouette),
         "cluster_fits": float(fit_calls["count"]),
     }
-    fidelity = {"status": "passed" if fidelity_met else "failed", "metric": "label_agreement",
-                "observed": float(label_ari),
-                "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
-                "silhouette": float(silhouette)}
-    stability = {"status": "passed" if stability_met else "failed", "metric": "cluster_stability",
-                 "observed": float(ari),
-                 "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
-                 "seed_aris": [float(item) for item in aris], "permutation_invariant": True}
-    selectivity = {"status": "passed" if selectivity_met else "failed", "metric": "selectivity_margin",
-                   "observed": float(selectivity_margin),
-                   "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
-                   "shuffled_ari": float(shuffled_ari)}
-    leakage = {"status": "passed" if leakage_ok else "failed",
-               "train_split_identity": hypothesis.train_split_identity,
-               "eval_split_identity": hypothesis.eval_split_identity,
-               "cluster_fits": int(fit_calls["count"])}
-    uncertainty = {"status": "passed", "clustering_ari": dict(ari_interval),
-                   "evaluation_seed": int(evaluation_seed), "repetitions": int(repetitions)}
+    fidelity = {
+        "status": "passed" if fidelity_met else "failed",
+        "metric": "label_agreement",
+        "observed": float(label_ari),
+        "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
+        "silhouette": float(silhouette),
+    }
+    stability = {
+        "status": "passed" if stability_met else "failed",
+        "metric": "cluster_stability",
+        "observed": float(ari),
+        "threshold": None if stability_threshold is None else [stability_threshold[0], float(stability_threshold[1])],
+        "seed_aris": [float(item) for item in aris],
+        "permutation_invariant": True,
+    }
+    selectivity = {
+        "status": "passed" if selectivity_met else "failed",
+        "metric": "selectivity_margin",
+        "observed": float(selectivity_margin),
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "shuffled_ari": float(shuffled_ari),
+    }
+    leakage = {
+        "status": "passed" if leakage_ok else "failed",
+        "train_split_identity": hypothesis.train_split_identity,
+        "eval_split_identity": hypothesis.eval_split_identity,
+        "cluster_fits": int(fit_calls["count"]),
+    }
+    uncertainty = {
+        "status": "passed",
+        "clustering_ari": dict(ari_interval),
+        "evaluation_seed": int(evaluation_seed),
+        "repetitions": int(repetitions),
+    }
     agree_gate = fidelity_threshold if fidelity_threshold is not None else (">=", 0.8)
     stab_gate = stability_threshold if stability_threshold is not None else (">=", 0.8)
     sel_gate = selectivity_threshold if selectivity_threshold is not None else (">=", 0.5)
     specs = [
-        _ControlSpec(control_id=bound_controls["fidelity"], kind="counterexample", required=True,
-                     metric_ids=("label_agreement",), expected_behavior="clusters agree with symptom labels under predeclared floor",
-                     comparator=_central_name(agree_gate[0]), threshold_value=float(agree_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["stability"], kind="cross_seed", required=True,
-                     metric_ids=("cluster_stability",), expected_behavior="permutation-invariant assignment stability across seeds",
-                     comparator=_central_name(stab_gate[0]), threshold_value=float(stab_gate[1])),  # type: ignore[arg-type]
-        _ControlSpec(control_id=bound_controls["selectivity"], kind="randomized", required=True,
-                     metric_ids=("selectivity_margin",), expected_behavior="agreement exceeds shuffled-label agreement",
-                     comparator=_central_name(sel_gate[0]), threshold_value=float(sel_gate[1])),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["fidelity"],
+            kind="counterexample",
+            required=True,
+            metric_ids=("label_agreement",),
+            expected_behavior="clusters agree with symptom labels under predeclared floor",
+            comparator=_central_name(agree_gate[0]),
+            threshold_value=float(agree_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["stability"],
+            kind="cross_seed",
+            required=True,
+            metric_ids=("cluster_stability",),
+            expected_behavior="permutation-invariant assignment stability across seeds",
+            comparator=_central_name(stab_gate[0]),
+            threshold_value=float(stab_gate[1]),
+        ),  # type: ignore[arg-type]
+        _ControlSpec(
+            control_id=bound_controls["selectivity"],
+            kind="randomized",
+            required=True,
+            metric_ids=("selectivity_margin",),
+            expected_behavior="agreement exceeds shuffled-label agreement",
+            comparator=_central_name(sel_gate[0]),
+            threshold_value=float(sel_gate[1]),
+        ),  # type: ignore[arg-type]
     ]
     supplied = {
         bound_controls["fidelity"]: {"label_agreement": float(label_ari)},
@@ -1623,28 +2272,54 @@ def _evaluate_clustering(
     if not leakage_ok:
         gaps.append("failed-leakage:cluster-fits")
     record = _gate_dimensions(
-        hypothesis, method, observed=observed, fidelity=fidelity, stability=stability,
-        selectivity=selectivity, leakage=leakage, uncertainty=uncertainty,
-        control_specs=specs, supplied=supplied, provenance=provenance, limitation=limitation,
-        support_reason="declared clusters meet agreement, permutation-invariant stability, selectivity, leakage, and uncertainty gates",
-        block_prefix="clustering evidence", fidelity_ok=fidelity_met, stability_ok=stability_met,
-        selectivity_ok=selectivity_met, leakage_ok=leakage_ok, gaps=gaps,
-        repetitions=int(repetitions), confidence_level=float(confidence_level),
-        evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
+        hypothesis,
+        method,
+        observed=observed,
+        fidelity=fidelity,
+        stability=stability,
+        selectivity=selectivity,
+        leakage=leakage,
+        uncertainty=uncertainty,
+        control_specs=specs,
+        supplied=supplied,
+        provenance=provenance,
+        limitation=limitation,
+        support_reason=(
+            "declared clusters meet agreement, permutation-invariant stability, selectivity, "
+            "leakage, and uncertainty gates"
+        ),
+        block_prefix="clustering evidence",
+        fidelity_ok=fidelity_met,
+        stability_ok=stability_met,
+        selectivity_ok=selectivity_met,
+        leakage_ok=leakage_ok,
+        gaps=gaps,
+        repetitions=int(repetitions),
+        confidence_level=float(confidence_level),
+        evaluation_seed=int(evaluation_seed),
+        control_seed=int(control_seed),
         promoted_label=promoted_label if (fidelity_met and stability_met and selectivity_met and leakage_ok) else None,
     )
     if record.outcome != "supported":
         provenance_redacted = dict(record.provenance)
         provenance_redacted.pop("promoted_label", None)
         base = ExplanationEvidence(
-            hypothesis_id=record.hypothesis_id, method="probe", outcome=record.outcome,  # type: ignore[arg-type]
-            claim_allowed=False, observed_effect=dict(record.observed_effect),
-            fidelity=dict(record.fidelity), stability=dict(record.stability),
-            selectivity=dict(record.selectivity), leakage=dict(record.leakage),
-            uncertainty=dict(record.uncertainty), control_outcomes=dict(record.control_outcomes),
+            hypothesis_id=record.hypothesis_id,
+            method="probe",
+            outcome=record.outcome,  # type: ignore[arg-type]
+            claim_allowed=False,
+            observed_effect=dict(record.observed_effect),
+            fidelity=dict(record.fidelity),
+            stability=dict(record.stability),
+            selectivity=dict(record.selectivity),
+            leakage=dict(record.leakage),
+            uncertainty=dict(record.uncertainty),
+            control_outcomes=dict(record.control_outcomes),
             central_outcomes=dict(record.central_outcomes),
             missing_evidence=tuple([*record.missing_evidence, "redacted:semantic-cluster-label"]),
-            limitations=tuple(record.limitations), reason=record.reason, provenance=provenance_redacted,
+            limitations=tuple(record.limitations),
+            reason=record.reason,
+            provenance=provenance_redacted,
         )
         return _remethod(base, method)
     return record
@@ -1662,7 +2337,7 @@ class _FeatureExplainContext:
     hypotheses: tuple[ExplanationHypothesis, ...]
     evidence: tuple[ExplanationEvidence, ...]
     central_outcomes: Mapping[str, object]
-    control_outcomes: Mapping[str, str]
+    control_outcomes: Mapping[str, Mapping[str, str]]
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "hypotheses", tuple(self.hypotheses))
@@ -1703,14 +2378,14 @@ _EVALUATORS = {
 
 
 def evaluate_feature_explanations(
-    hypotheses: Sequence[ExplanationHypothesis],
-    inputs: MethodInputs,
+    hypotheses: object,
+    inputs: object,
     *,
-    repetitions: int = 20,
-    confidence_level: float = 0.95,
-    evaluation_seed: int = 0,
-    control_seed: int = 1,
-    training_seed: int = 0,
+    repetitions: object = 20,
+    confidence_level: object = 0.95,
+    evaluation_seed: object = 0,
+    control_seed: object = 1,
+    training_seed: object = 0,
 ) -> tuple[tuple[ExplanationEvidence, ...], dict[str, object]]:
     """Evaluate every declared feature hypothesis exactly once.
 
@@ -1721,23 +2396,34 @@ def evaluate_feature_explanations(
     decisions and payload assembly. ``inputs`` carries one bundle per
     feature method; :class:`MethodInputs` is reused as the typed carrier.
     """
-    if not hypotheses:
+    raw_hypotheses = hypotheses
+    if isinstance(raw_hypotheses, (str, bytes)) or not isinstance(raw_hypotheses, Sequence):
         raise ExplanationError("hypotheses must declare at least one hypothesis")
-    declared = tuple(hypotheses)
-    identities = [item.hypothesis_id for item in declared]
-    if len(set(identities)) != len(identities):
-        raise ExplanationError("hypothesis identifiers must be unique")
-    for item in declared:
+    declared: list[ExplanationHypothesis] = []
+    for item in raw_hypotheses:
         if not isinstance(item, ExplanationHypothesis):
             raise ExplanationError("hypotheses must hold ExplanationHypothesis items")
         if item.method not in SUPPORTED_FEATURE_METHODS:
             raise ExplanationError(f"method {item.method!r} is not a feature explanation method")
+        declared.append(item)
+    if not declared:
+        raise ExplanationError("hypotheses must declare at least one hypothesis")
+    identities = [item.hypothesis_id for item in declared]
+    if len(set(identities)) != len(identities):
+        raise ExplanationError("hypothesis identifiers must be unique")
     if not isinstance(inputs, MethodInputs):
         raise ExplanationError("inputs must be a MethodInputs")
-    if isinstance(repetitions, bool) or not isinstance(repetitions, int) or repetitions < 2:
+    resolved_inputs = inputs
+    run_repetitions = _require_count(repetitions, name="repetitions")
+    if run_repetitions < 2:
         raise ExplanationError("repetitions must be at least two")
-    if not 0.0 < float(confidence_level) < 1.0:
+    try:
+        run_confidence = _require_float(confidence_level, name="confidence_level")
+    except ExplanationError as exc:
+        raise ExplanationError("confidence_level must be between zero and one") from exc
+    if not 0.0 < run_confidence < 1.0:
         raise ExplanationError("confidence_level must be between zero and one")
+    run_seeds: dict[str, int] = {}
     for name, seed in (
         ("evaluation_seed", evaluation_seed),
         ("control_seed", control_seed),
@@ -1745,57 +2431,96 @@ def evaluate_feature_explanations(
     ):
         if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
             raise ExplanationError(f"{name} must be a non-negative integer")
+        run_seeds[name] = int(seed)
 
     evidence: list[ExplanationEvidence] = []
     for hypothesis in declared:
-        bundle = inputs.callback_for(hypothesis.method)
+        bundle = resolved_inputs.callback_for(hypothesis.method)
         if bundle is None:
             evidence.append(
                 _omitted_feature(
                     hypothesis.hypothesis_id,
                     hypothesis.method,
-                    reason=f"method {hypothesis.method!r} has no declared input for hypothesis {hypothesis.hypothesis_id!r}; callback uncalled",
+                    reason=(
+                        f"method {hypothesis.method!r} has no declared input "
+                        f"for hypothesis {hypothesis.hypothesis_id!r}; callback uncalled"
+                    ),
                 )
             )
             continue
-        resolved = _require_mapping(bundle, hypothesis_id=hypothesis.hypothesis_id)
-        if not _relationship_of(resolved, hypothesis):
+        resolved = bundle
+        if not _relationship_of(resolved):
             evidence.append(
                 _omitted_feature(
                     hypothesis.hypothesis_id,
                     hypothesis.method,
-                    reason=f"hypothesis {hypothesis.hypothesis_id!r} declares no feature-to-symptom relationship; method callback uncalled",
+                    reason=(
+                        f"hypothesis {hypothesis.hypothesis_id!r} declares no feature-to-symptom "
+                        "relationship; method callback uncalled"
+                    ),
                 )
             )
             continue
-        evaluator = _EVALUATORS[hypothesis.method]
-        if hypothesis.method == "density" or hypothesis.method == "clustering":
+        run_evaluation_seed = run_seeds["evaluation_seed"]
+        run_control_seed = run_seeds["control_seed"]
+        if hypothesis.method == "density":
             evidence.append(
-                evaluator(
-                    hypothesis, resolved,
-                    repetitions=int(repetitions), confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
-                    training_seed=int(training_seed),
+                _evaluate_density(
+                    hypothesis,
+                    resolved,
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
+                    training_seed=run_seeds["training_seed"],
+                )
+            )
+        elif hypothesis.method == "clustering":
+            evidence.append(
+                _evaluate_clustering(
+                    hypothesis,
+                    resolved,
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
                 )
             )
         elif hypothesis.method == "sae_sparse":
             evidence.append(
-                evaluator(
-                    hypothesis, resolved,
-                    repetitions=int(repetitions), confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
+                _evaluate_sae_sparse(
+                    hypothesis,
+                    resolved,
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
+                )
+            )
+        elif hypothesis.method == "lens":
+            evidence.append(
+                _evaluate_lens(
+                    hypothesis,
+                    resolved,
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
                 )
             )
         else:
             evidence.append(
-                evaluator(
-                    hypothesis, resolved,
-                    repetitions=int(repetitions), confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed), control_seed=int(control_seed),
+                _evaluate_geometry(
+                    hypothesis,
+                    resolved,
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
                 )
             )
     context = _FeatureExplainContext(
-        hypotheses=declared,
+        hypotheses=tuple(declared),
         evidence=tuple(evidence),
         central_outcomes={record.hypothesis_id: dict(record.central_outcomes) for record in evidence},
         control_outcomes={record.hypothesis_id: dict(record.control_outcomes) for record in evidence},
@@ -1804,7 +2529,7 @@ def evaluate_feature_explanations(
     return tuple(evidence), payload
 
 
-def feature_explanation_payload(context: _FeatureExplainContext) -> dict[str, object]:
+def feature_explanation_payload(context: object) -> dict[str, object]:
     """Assemble the canonical machine-readable feature explain-stage payload."""
     if not isinstance(context, _FeatureExplainContext):
         raise ExplanationError("context must be a _FeatureExplainContext")
@@ -1826,8 +2551,10 @@ def feature_explanation_payload(context: _FeatureExplainContext) -> dict[str, ob
             }
             for record in context.evidence
         },
-        "controls": {key: dict(value) for key, value in context.central_outcomes.items()},
-        "control_outcomes": {key: dict(value) for key, value in context.control_outcomes.items()},
+        "controls": {
+            key: dict(entry) if isinstance(entry, Mapping) else {} for key, entry in context.central_outcomes.items()
+        },
+        "control_outcomes": {key: dict(entry) for key, entry in context.control_outcomes.items()},
     }
 
 
@@ -1861,34 +2588,31 @@ def make_feature_explain_executor(
     presence. Missing required upstream fields fail closed. No algorithm
     enters ``DiagnosticWorkflow`` itself.
     """
-    if not isinstance(version, str) or not version.strip():
+    if not version.strip():
         raise ExplanationError("version must be a non-empty string")
     frozen = tuple(hypotheses)
     if not frozen:
         raise ExplanationError("hypotheses must declare at least one hypothesis")
     for item in frozen:
-        if not isinstance(item, ExplanationHypothesis):
-            raise ExplanationError("hypotheses must hold ExplanationHypothesis items")
         if item.method not in SUPPORTED_FEATURE_METHODS:
             raise ExplanationError(f"method {item.method!r} is not a feature explanation method")
-    if not isinstance(inputs, MethodInputs):
-        raise ExplanationError("inputs must be a MethodInputs")
+    resolved_inputs = inputs
 
     def _execute(invocation: Any) -> Any:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
         from latent_anything._diagnostic_workflow import StageOutput as _StageOutput
-        from latent_anything._probe_tcav_ig_explanation import _check_explain_identities as _check_ids
 
         if invocation.stage != "explain":
             raise _ContractError(f"explain executor received stage {invocation.stage!r}")
-        _check_ids(frozen, invocation)
+        _check_feature_identities(frozen, invocation)
         _, payload = evaluate_feature_explanations(
             frozen,
-            inputs,
-            repetitions=int(repetitions),
-            evaluation_seed=int(evaluation_seed),
-            control_seed=int(control_seed),
-            training_seed=int(training_seed),
+            resolved_inputs,
+            repetitions=repetitions,
+            confidence_level=confidence_level,
+            evaluation_seed=evaluation_seed,
+            control_seed=control_seed,
+            training_seed=training_seed,
         )
         aggregate: Literal["completed", "unsupported"] = "completed"
         if payload["evidence"] and all(
