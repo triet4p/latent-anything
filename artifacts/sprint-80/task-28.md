@@ -212,3 +212,98 @@ The earlier full Ruff, formatting, strict Pyright, and 2,549-pass offline pytest
 ### Graph update
 
 After the code commits, `graphify update .` completed: 16,428 nodes, 37,813 edges, and 1,089 communities; the aggregated graph has 1,089 community nodes and 1,592 cross-community edges. Six semantic/curated graph files were backed up under `graphify-out/2026-09-25/`. Graphify reported 326 source files with zero nodes and stale labels (1,096 saved labels versus 1,089 current communities; 199 renamed); no `graphify label` ran.
+
+## Fourth deep-review D1 — committed live API documentation audit (2026-09-25)
+
+This closes the live-documentation portion of D1 only. Task 80.28 remains
+`[~]` pending Main's evidence review; this is not a task-completion or sprint
+sign-off. The interrupted predecessor had already committed the four live-doc
+correction at `e6c7754ddd85be467963d910944eac4f3f487cba`, so no further edits to
+those documents were necessary.
+
+### Revision, scope, and preserved work
+
+- The existing clean checkout `F:/ai-ml/s80-task80-28-d1-clean-20260925` was at
+  `e6c7754ddd85be467963d910944eac4f3f487cba`; its initial Git status was
+  `## main...origin/main` with no changes.
+- `git show --format=fuller --name-status e6c7754ddd85be467963d910944eac4f3f487cba`
+  identifies only `CHANGELOG.md`, `README.md`, `docs/API_REFERENCE.md`, and
+  `docs/MIGRATION.md`. The committed text distinguishes current source from
+  the already-published `0.9.0` contract. Current values are 214 runtime
+  exports, 211 canonical-stable entries, 28 config schemas, 89
+  dataclass/result schemas, 8 public exceptions, and digest
+  `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`.
+- The shared worktree at audit start was `main` ahead of `origin/main` by 18,
+  with 0 staged, 5 modified tracked paths, and 76 untracked paths. The five
+  tracked modifications were `.agents/memory/decisions.md`,
+  `.agents/memory/lessons-learned.md`,
+  `artifacts/m14/l04-explanations.ssh.TCAV.attempt2.audit.json`,
+  `artifacts/m14/l04-explanations.ssh.TCAV.attempt2.exit.txt`, and
+  `docs/sprint-plans/sprint-80.md`. They were unrelated to this D1 audit and
+  preserved. The scoped status showed only the pre-existing sprint-plan
+  modification; this work did not edit `docs/PLAN.md`, the sprint plan,
+  memory, source, or tests.
+
+### Snapshot, semantic, historical, and link audit
+
+- In the clean checkout, the current JSON inventory was independently counted:
+  `current_top_level`/`current_count` = 214,
+  `canonical_stable_surface`/`canonical_stable_count` = 211,
+  config `schemas`/`count` = 28, dataclass/result `schemas`/`count` = 89,
+  and exception `entries`/`count` = 8. `snapshot_sha256` is
+  `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`.
+- `README.md`, `docs/API_REFERENCE.md`, `docs/MIGRATION.md`, and the
+  `[Unreleased]` changelog section agree with the current snapshot. The dated
+  changelog release section and the historical paragraphs in the other three
+  documents retain the published `0.9.0` values; they do not present those
+  values as the current source contract.
+- Historical provenance was checked against the release commit itself:
+
+  ```text
+  git show 75341e4292fcdf1703186c58b626666b4a923c19:artifacts/api_freeze_snapshot_0.9.0.json | python -c "import json,sys; d=json.load(sys.stdin); s=d['sections']['A_public_surface']; h=d['sections']['H_dataclass_schemas']; l=d['sections']['L_exceptions']; print({'runtime_exports':s['current_count'],'stable_exports':s['canonical_stable_count'],'dataclass_result_schemas':len(h['schemas']),'public_exceptions':len(l['entries']),'digest':d['snapshot_sha256']})"
+  ```
+
+  Result: runtime 205, canonical-stable 202, dataclass/result schemas 81,
+  public exceptions 7, digest
+  `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`.
+  Thus the old 205/202/7/048ac553 claims are valid only in their published
+  release-time context; the current source snapshot supersedes them.
+- A throwaway normalized semantic audit of the four documents and current JSON
+  passed all 11 snapshot/doc checks, including the 89-schema list length,
+  current and historical scoping, and every stated current digest/count. It
+  checked 35 relative Markdown link destinations; all targets existed and
+  there were no broken local paths. The only local fragment in the README
+  points to the existing `Registry, plugin groups, optional profiles` heading.
+- A first draft of the throwaway checker was too strict about Markdown bold
+  markers/line breaks and returned false negatives; normalization fixed the
+  checker, and the final audit passed.
+
+### Clean-checkout verification
+
+```text
+uv run --locked --python 3.13 --extra viz --extra transformers --with datasets==3.6.0 --with huggingface-hub==0.35.3 python scripts/api_freeze_snapshot.py --check
+```
+
+**PASS** — `snapshot clean
+(3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec)`.
+
+```text
+uv run --locked --python 3.13 --extra docs mkdocs build --strict --site-dir F:/ai-ml/s80-task80-28-d1-mkdocs-20260925
+```
+
+**PASS** — documentation built in 62.30 seconds. MkDocs Material printed its
+upstream MkDocs 2.0 advisory; there were no strict-build errors. The isolated
+site output was removed after the build. The existing clean checkout was not
+deleted.
+
+No broad lint, formatting, type-check, or project-wide test suite was run for
+this docs-only correction. These results do not claim a clean-clone full-suite
+pass. The separate previously recorded shared-worktree gates remain as
+historical evidence and are not re-attributed to this audit.
+
+### Graph update
+
+No source/code changed in D1, so `graphify update .` was not run. The project
+graph already exists in `graphify-out/graph.json`; `graphify reflect --if-stale`
+and a graph query were used for orientation, not a graph rebuild or extraction
+update.
