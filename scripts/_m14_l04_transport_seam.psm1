@@ -503,8 +503,21 @@ function Invoke-L04TransportProcess {
             [void](Set-L04ProcessArguments -ProcessStartInfo $psi -ArgumentList $ArgumentList)
             $process = [System.Diagnostics.Process]::new()
             $process.StartInfo = $psi
-            if (-not $process.Start()) {
-                throw [System.InvalidOperationException]::new("transport process did not start")
+            # Windows PowerShell 5.1 creates StandardInput with the console encoding;
+            # its UTF-8 preamble would corrupt the byte-exact transport stream.
+            $consoleInputEncoding = [System.Console]::InputEncoding
+            $restoreConsoleInputEncoding = $consoleInputEncoding.GetPreamble().Length -gt 0
+            try {
+                if ($restoreConsoleInputEncoding) {
+                    [System.Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+                }
+                if (-not $process.Start()) {
+                    throw [System.InvalidOperationException]::new("transport process did not start")
+                }
+            } finally {
+                if ($restoreConsoleInputEncoding) {
+                    [System.Console]::InputEncoding = $consoleInputEncoding
+                }
             }
             $state.process_started = $true
             if ((Get-L04RemainingMilliseconds $deadlineTicks) -le 0) {
