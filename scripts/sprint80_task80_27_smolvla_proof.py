@@ -76,8 +76,8 @@ from latent_anything._layer_slice_localization import (
     LocalizationInput,
     SampleCell,
     SliceDefinition,
-    evidence_from_manifest,
     evaluate_localization,
+    evidence_from_manifest,
     make_localize_executor,
 )
 from latent_anything._portable_contract import canonical_json
@@ -100,7 +100,7 @@ from latent_anything._run_comparison import (
     make_compare_executor,
     manifest_seed_identity,
 )
-from latent_anything.capture import CaptureMetadata, CapturedActivation
+from latent_anything.capture import CapturedActivation, CaptureMetadata
 from latent_anything.integrations.lerobot_smolvla import (
     DEFAULT_SMOLVLA_CHECKPOINT,
     SMOLVLA_VISION_LOCATION,
@@ -259,9 +259,10 @@ def build_data() -> dict[str, object]:
         )
     if wanted:
         raise AssertionError(f"bounded selection incomplete; missing {sorted(wanted)}")
-    order = {(episode, frame): position for position, (episode, frame) in enumerate(
-        (episode, frame) for episode in EPISODES for frame in FRAME_INDICES
-    )}
+    order = {
+        (episode, frame): position
+        for position, (episode, frame) in enumerate((episode, frame) for episode in EPISODES for frame in FRAME_INDICES)
+    }
     samples.sort(key=lambda row: order[(int(row["episode"]), int(row["frame"]))])
     selection = {
         "repo_id": "lerobot/libero",
@@ -313,9 +314,7 @@ def adapter_case() -> dict[str, object]:
     for position, sample in enumerate(build_data()["samples"]):  # type: ignore[union-attr]
         adapter.reset()
         state = sample["state"]
-        noise = np.zeros(
-            (1, adapter.metadata.chunk_size, adapter.metadata.max_action_dim), dtype=np.float32
-        )
+        noise = np.zeros((1, adapter.metadata.chunk_size, adapter.metadata.max_action_dim), dtype=np.float32)
         batch = {
             "observation.images.image": _as_tensor(sample["image1"]),
             "observation.images.image2": _as_tensor(sample["image2"]),
@@ -415,9 +414,7 @@ def detect_case() -> dict[str, object]:
     manifest = load_manifest()
     config = detection_config_from_manifest(_detect_request(), manifest)
     features = np.asarray(adapter_case()["features"])
-    detections, payload = evaluate_detection(
-        _value(features), config, controls=_control_batches()
-    )
+    detections, payload = evaluate_detection(_value(features), config, controls=_control_batches())
     return {"config": config, "detections": detections, "payload": payload, "family": detections[0]}
 
 
@@ -774,7 +771,8 @@ def _build_report(
     rank_interval = uncertainty.get(METRIC_ER, {"lower": rank * 0.9, "upper": rank * 1.1})
     spread_interval = uncertainty.get(METRIC_SPREAD, {"lower": spread_value * 0.9, "upper": spread_value * 1.1})
     explanation_record = next(
-        record for record in explain["evidence"]  # type: ignore[index]
+        record
+        for record in explain["evidence"]  # type: ignore[index]
         if record["hypothesis_id"] == HYPOTHESIS_ID
     )
     explanation_status = str(explanation_record["outcome"])
@@ -826,8 +824,7 @@ def _build_report(
                 "evidence_refs": ["o-1"],
                 "id": HYPOTHESIS_ID,
                 "statement": (
-                    "the localized vision-context direction carries the rank defect under "
-                    "the frozen collapse estimator"
+                    "the localized vision-context direction carries the rank defect under the frozen collapse estimator"
                 ),
                 "status": explanation_status if explanation_status != "omitted" else "unsupported",
             }
@@ -882,8 +879,7 @@ def _build_report(
             {
                 "causal": False,
                 "claim": (
-                    f"the captured vision-context features show a rank-collapse symptom at "
-                    f"{METRIC_ER} {rank:.4f}"
+                    f"the captured vision-context features show a rank-collapse symptom at {METRIC_ER} {rank:.4f}"
                 ),
                 "claim_allowed": bool(family.get("claim_allowed")),
                 "control_refs": [],
@@ -1009,8 +1005,12 @@ def run_proof() -> int:
             with tempfile.TemporaryDirectory(prefix="proof-80-27-") as tmp:
                 root = Path(tmp) / "root"
                 handle = persist_diagnostic_artifact(
-                    root, request=request, manifest=manifest,
-                    result=result, checkpoint=checkpoint, report=report,
+                    root,
+                    request=request,
+                    manifest=manifest,
+                    result=result,
+                    checkpoint=checkpoint,
+                    report=report,
                 )
                 first = render_diagnostic_report(root, run_id=handle.run_id, manifest=manifest)
                 second = render_diagnostic_report(root, run_id=handle.run_id, manifest=manifest)
@@ -1035,8 +1035,12 @@ def run_proof() -> int:
             root = Path(tmp) / "root"
             try:
                 persist_diagnostic_artifact(
-                    root, request=request, manifest=manifest,
-                    result=result, checkpoint=checkpoint, report={},
+                    root,
+                    request=request,
+                    manifest=manifest,
+                    result=result,
+                    checkpoint=checkpoint,
+                    report={},
                 )
             except DiagnosticArtifactError as exc:
                 refusal = str(exc)
@@ -1049,10 +1053,7 @@ def run_proof() -> int:
         verdict = "ACCEPTANCE: PASSED — bounded secondary artifact persisted"
     else:
         print(f"RECORD persistence: {artifact_note}")
-        verdict = (
-            "ACCEPTANCE: NOT PASSED — no validator-clean artifact; "
-            "the exact blocker is recorded above"
-        )
+        verdict = "ACCEPTANCE: NOT PASSED — no validator-clean artifact; the exact blocker is recorded above"
 
     after = frozen_digests()
     if before != after:
@@ -1066,9 +1067,7 @@ def run_proof() -> int:
     current = time.perf_counter()
     phase_text = ", ".join(f"{name}={seconds:.2f}s" for name, seconds in _phases.items())
     print(verdict)
-    cuda_peak = (
-        torch.cuda.max_memory_allocated() / (1 << 20) if torch.cuda.is_available() else 0.0
-    )
+    cuda_peak = torch.cuda.max_memory_allocated() / (1 << 20) if torch.cuda.is_available() else 0.0
     cuda_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none"
     print(
         f"device: {cuda_name}; cuda {torch.version.cuda or 'n/a'}; "
@@ -1085,10 +1084,7 @@ def run_proof() -> int:
         f"declared output location {OUTPUT_LOCATION!r} "
         f"{'materialized' if persisted else 'not materialized (persistence refused)'}"
     )
-    print(
-        "commands: F:/ai-ml/sprint80_27_env/Scripts/python "
-        "scripts/sprint80_task80_27_smolvla_proof.py"
-    )
+    print("commands: F:/ai-ml/sprint80_27_env/Scripts/python scripts/sprint80_task80_27_smolvla_proof.py")
     tracemalloc.stop()
     return 0
 
