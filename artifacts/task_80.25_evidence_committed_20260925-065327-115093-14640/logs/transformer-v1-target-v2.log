@@ -1,0 +1,32 @@
+
+Generating test split:   0%|          | 0/4358 [00:00<?, ? examples/s]
+Generating test split: 100%|██████████| 4358/4358 [00:00<00:00, 92074.78 examples/s]
+
+Generating train split:   0%|          | 0/36718 [00:00<?, ? examples/s]
+Generating train split: 100%|██████████| 36718/36718 [00:00<00:00, 1375770.08 examples/s]
+
+Generating validation split:   0%|          | 0/3760 [00:00<?, ? examples/s]
+Generating validation split: 100%|██████████| 3760/3760 [00:00<00:00, 724052.30 examples/s]
+PASS frozen-inputs: manifest c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a validated; gpt2@e7da7f221d5b… snapshot present; wikitext f776294184f1… validation verified against the pinned L04 manifest (official 3760, nonblank 2461, selected 2048 indices+hashes exact); 6 frozen artifacts hashed
+PASS leakage-safe grouping: grouped original-index//8 split seed79 -> train 1549 rows (grouped-original-index-div8-train79-1549rows) / eval 499 rows (grouped-original-index-div8-eval79-499rows); groups disjoint, both classes in both partitions, n_train>=770 capacity gate satisfied
+RECORD declared attribute: is-section-header (pattern '^ = .+ = $') -> 516 positives / 1532 negatives (predeclared before evidence; never changed)
+PASS deterministic-replay: pooled hidden states sha b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b reproduced bit-identically on a full re-extraction (12 layers x 2048 rows x768)
+PASS capture: capture_identity 28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89 shape (2048, 768) dtype float64 via bind_selection/resolve_captures (native output_hidden_states, last-nonpadding-token-pooling-v1)
+RECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4489 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}
+RECORD controls: capacity passed (declared linear-logreg, n_params770<=n_train), label-randomization passed (randomized acc 0.5511), nonseparable-negative passed (noise acc 0.5832 <0.7), split-swap null recorded
+RECORD headline probe: accuracy 1.0000 at the localized-layer probe (cached predictions shared by detect/compare/intervene — no stage refits)
+RECORD per-layer probe accuracies h.0..h.11: [1.0, 0.998, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; localize verdict 'localized', earliest 'transformer.h.0', affected layers ['transformer.h.0', 'transformer.h.1', 'transformer.h.2', 'transformer.h.3', 'transformer.h.4', 'transformer.h.5', 'transformer.h.6', 'transformer.h.7', 'transformer.h.8', 'transformer.h.9', 'transformer.h.10', 'transformer.h.11']
+PASS determinism: detect payload sha b4d7beb8b27f7578fecdc49690a8ceffd299ec6a5f6de8e7ae7cc2fa8b5f5d2f, localize payload sha 1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc, capture identity stable (split digests train/eval identities fixed)
+RECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}
+RECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000
+PASS artifact: run c64d382b1560e40e, artifact sha b8a4afdc17108e14ebf028b469b0e32fd519b63acdfb5aea8cd91b26de3f488d, report sha c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb; independent validator re-run on fresh load passed (13 content-addressed blobs)
+PASS report: deterministic render 5820 bytes, sha 8ee798f01d730df6e991a0fa4d64db5b16cf5fcd76029d53ff3bffaad3d2fde5; 13 evidence links re-hashed; content-addressed render sha 8ee798f01d730df6e991a0fa4d64db5b16cf5fcd76029d53ff3bffaad3d2fde5; output materialized at artifacts/diagnostics/proof-80-25-committed-transformer-v1-target-v2-20260925-065327-115093-14640/diagnostic-report
+PASS fail-closed manifest tamper: BenchmarkManifestValidationError: manifest digest does not match canonical content
+PASS fail-closed capture provenance: CaptureBindingError: provenance mismatch: selection representation_identity 'openai-community-gpt2:hidden-states:layers0-10:dim768' != manifest 'openai-community-gpt2:hidden-states:layers0-11:dim768'
+PASS fail-closed leakage: DetectionError: train/eval split leaks: a sample position appears on both sides
+PASS fail-closed resume identity: WorkflowError: checkpoint request_digest does not match current inputs
+PASS fail-closed failed control: using the target itself as the non-separable negative -> outcome inconclusive, claim_allowed=False, missing ['failed-control:control-nonseparable-negative']
+PASS frozen invariance: all six frozen artifacts byte-identical after the run
+ACCEPTANCE: PASSED — detect -> localize -> explain -> intervene -> compare -> report completed with the declared positive, counterexample, and negative controls
+resources: proof body 937.92s (frozen+data=0.00s, extraction+replay=884.56s, capture=10.76s, detect=2.08s, localize=0.21s, determinism=2.16s, workflow=5.02s, report-assembly=0.33s, persist+render=6.37s); wall including imports 942.04s; tracemalloc peak 547.0 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0
+commands: uv run --extra transformers --with "datasets>=2.19,<4" --with "huggingface-hub>=0.34,<1" python scripts/sprint80_task80_24_proof.py; uv run --extra transformers --with "datasets>=2.19,<4" --with "huggingface-hub>=0.34,<1" pytest tests/test_transformer_end_to_end_proof.py -q

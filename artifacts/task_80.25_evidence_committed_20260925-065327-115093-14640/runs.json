@@ -1,0 +1,628 @@
+[
+  {
+    "acceptance": "passed",
+    "artifact_digest": "b2db02d6b9f39dc2331d503018b0f964a93e3e29414303c112652ac08e9ec0cb",
+    "cache_files_after": {
+      "datasets": {
+        "files": [],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\encoder_v3\\generated\\datasets"
+      },
+      "modules": {
+        "files": [],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\encoder_v3\\generated\\modules"
+      },
+      "tmp": {
+        "files": [],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\encoder_v3\\tmp"
+      }
+    },
+    "cache_seed": {
+      "file_count": 0,
+      "files": [],
+      "verified": {}
+    },
+    "case": "encoder-v3",
+    "comparison_candidate_minus_baseline_delta": -0.4638888888888889,
+    "content_addressed_blob_count": 14,
+    "external_snapshot_verified_after": {},
+    "fresh_snapshot_verified_after": {},
+    "independent_validator": {
+      "inputs_digest": "3a9169adb0f910416c2228a4b4c35453150f8fe10365b5ba690ec4c0a50c7643",
+      "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "status": "passed",
+      "validator": "diagnostic-report-validator"
+    },
+    "intervention_effect_restoration_increase": 0.4638888888888889,
+    "lesion_record_sha256": "d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570",
+    "lesioned_checkpoint_sha256": "81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008",
+    "manifest_commitment": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+    "manifest_sha256": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+    "output_location": "artifacts/diagnostics/proof-80-25-committed-encoder-v3-20260925-065327-115093-14640",
+    "peak_process_tree_rss_bytes": 353763328,
+    "render_sha256": "e43f27391a8af063e3971b10bd94adbb00470de35e9e72e8c6f98a777c013b32",
+    "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+    "run_id": "fa9bfd738a7dbc01",
+    "timeout_s": 1800,
+    "wall_s": 7.272,
+    "workflow_stages": [
+      "capture",
+      "detect",
+      "localize",
+      "explain",
+      "intervene",
+      "compare",
+      "report"
+    ],
+    "workflow_status": "completed"
+  },
+  {
+    "acceptance": "passed",
+    "artifact_digest": "b8a4afdc17108e14ebf028b469b0e32fd519b63acdfb5aea8cd91b26de3f488d",
+    "cache_files_after": {
+      "datasets": {
+        "files": [
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/dataset_info.json",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-test.arrow",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-train.arrow",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-validation.arrow"
+        ],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_v1_target_v2\\generated\\datasets"
+      },
+      "modules": {
+        "files": [],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_v1_target_v2\\generated\\modules"
+      },
+      "tmp": {
+        "files": [
+          "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz"
+        ],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_v1_target_v2\\tmp"
+      }
+    },
+    "cache_seed": {
+      "file_count": 10,
+      "files": [
+        {
+          "path": "config.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "generation_config.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "merges.txt",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "model.safetensors",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "tokenizer.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "vocab.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "README.md",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/test-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/train-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/validation-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        }
+      ],
+      "verified": {
+        "datasets--Salesforce--wikitext": {
+          "files": {
+            "README.md": {
+              "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+              "size_bytes": 10464
+            },
+            "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+              "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+              "size_bytes": 731216
+            },
+            "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+              "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+              "size_bytes": 6342468
+            },
+            "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+              "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+              "size_bytes": 656408
+            }
+          },
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        "models--openai-community--gpt2": {
+          "files": {
+            "config.json": {
+              "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+              "size_bytes": 665
+            },
+            "generation_config.json": {
+              "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+              "size_bytes": 124
+            },
+            "merges.txt": {
+              "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+              "size_bytes": 456318
+            },
+            "model.safetensors": {
+              "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+              "size_bytes": 548105171
+            },
+            "tokenizer.json": {
+              "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+              "size_bytes": 1355256
+            },
+            "vocab.json": {
+              "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+              "size_bytes": 1042301
+            }
+          },
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        }
+      }
+    },
+    "case": "transformer-v1-target-v2",
+    "content_addressed_blob_count": 15,
+    "detect_heldout_accuracy": 1.0,
+    "detect_leakage_gap": 0.44889779559118237,
+    "detect_randomized_accuracy": 0.5511022044088176,
+    "evidence_contract": "diagnostic-evidence-v2",
+    "external_snapshot_verified_after": {
+      "datasets--Salesforce--wikitext": {
+        "files": {
+          "README.md": {
+            "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+            "size_bytes": 10464
+          },
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+            "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+            "size_bytes": 731216
+          },
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+            "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+            "size_bytes": 6342468
+          },
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+            "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+            "size_bytes": 656408
+          }
+        },
+        "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+      },
+      "models--openai-community--gpt2": {
+        "files": {
+          "config.json": {
+            "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+            "size_bytes": 665
+          },
+          "generation_config.json": {
+            "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+            "size_bytes": 124
+          },
+          "merges.txt": {
+            "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            "size_bytes": 456318
+          },
+          "model.safetensors": {
+            "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+            "size_bytes": 548105171
+          },
+          "tokenizer.json": {
+            "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+            "size_bytes": 1355256
+          },
+          "vocab.json": {
+            "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+            "size_bytes": 1042301
+          }
+        },
+        "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+      }
+    },
+    "fresh_snapshot_verified_after": {
+      "datasets--Salesforce--wikitext": {
+        "files": {
+          "README.md": {
+            "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+            "size_bytes": 10464
+          },
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+            "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+            "size_bytes": 731216
+          },
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+            "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+            "size_bytes": 6342468
+          },
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+            "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+            "size_bytes": 656408
+          }
+        },
+        "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+      },
+      "models--openai-community--gpt2": {
+        "files": {
+          "config.json": {
+            "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+            "size_bytes": 665
+          },
+          "generation_config.json": {
+            "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+            "size_bytes": 124
+          },
+          "merges.txt": {
+            "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            "size_bytes": 456318
+          },
+          "model.safetensors": {
+            "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+            "size_bytes": 548105171
+          },
+          "tokenizer.json": {
+            "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+            "size_bytes": 1355256
+          },
+          "vocab.json": {
+            "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+            "size_bytes": 1042301
+          }
+        },
+        "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+      }
+    },
+    "independent_validator": {
+      "inputs_digest": "d95ccd45cda9b5aea3507eaec395b18b6fd709515fc532676def5938e90f5bd9",
+      "report_digest": "c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb",
+      "status": "passed",
+      "validator": "diagnostic-report-validator"
+    },
+    "localize_outcome": "completed",
+    "manifest_commitment": "c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a",
+    "output_location": "artifacts/diagnostics/proof-80-25-committed-transformer-v1-target-v2-20260925-065327-115093-14640",
+    "peak_process_tree_rss_bytes": 1840766976,
+    "pooled_hidden_states_sha256": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b",
+    "render_sha256": "8ee798f01d730df6e991a0fa4d64db5b16cf5fcd76029d53ff3bffaad3d2fde5",
+    "report_digest": "c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb",
+    "run_id": "c64d382b1560e40e",
+    "target_record_sha256": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+    "target_rule_sha256": "9b12485635decf738c4904702f75d7d5ae8cb6663555e2af5ee66476269f025b",
+    "timeout_s": 1800,
+    "wall_s": 944.193,
+    "workflow_status": "completed"
+  },
+  {
+    "acceptance": {
+      "all_three_gates_passed": true,
+      "claim_allowed": true,
+      "controls_passed": true,
+      "outcome": "supported"
+    },
+    "cache_files_after": {
+      "datasets": {
+        "files": [
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/dataset_info.json",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-test.arrow",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-train.arrow",
+          "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-validation.arrow"
+        ],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_stability_supplement\\generated\\datasets"
+      },
+      "modules": {
+        "files": [],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_stability_supplement\\generated\\modules"
+      },
+      "tmp": {
+        "files": [
+          "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz"
+        ],
+        "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260925-065327-115093-14640-qqpxdsm8\\runtime\\transformer_stability_supplement\\tmp"
+      }
+    },
+    "cache_seed": {
+      "file_count": 10,
+      "files": [
+        {
+          "path": "config.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "generation_config.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "merges.txt",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "model.safetensors",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "tokenizer.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "vocab.json",
+          "repo_id": "models--openai-community--gpt2",
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        },
+        {
+          "path": "README.md",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/test-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/train-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        {
+          "path": "wikitext-2-raw-v1/validation-00000-of-00001.parquet",
+          "repo_id": "datasets--Salesforce--wikitext",
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        }
+      ],
+      "verified": {
+        "datasets--Salesforce--wikitext": {
+          "files": {
+            "README.md": {
+              "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+              "size_bytes": 10464
+            },
+            "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+              "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+              "size_bytes": 731216
+            },
+            "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+              "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+              "size_bytes": 6342468
+            },
+            "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+              "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+              "size_bytes": 656408
+            }
+          },
+          "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+        },
+        "models--openai-community--gpt2": {
+          "files": {
+            "config.json": {
+              "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+              "size_bytes": 665
+            },
+            "generation_config.json": {
+              "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+              "size_bytes": 124
+            },
+            "merges.txt": {
+              "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+              "size_bytes": 456318
+            },
+            "model.safetensors": {
+              "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+              "size_bytes": 548105171
+            },
+            "tokenizer.json": {
+              "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+              "size_bytes": 1355256
+            },
+            "vocab.json": {
+              "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+              "size_bytes": 1042301
+            }
+          },
+          "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+        }
+      }
+    },
+    "case": "transformer-stability-supplement",
+    "content_addressed_report_sha256": "5f88ac98fe84ab80ed93dfc5a0e08a9972e2665649e152ecb2030503494135d0",
+    "content_addressed_run_sha256": "111fb5726b0f338eadd15d250d70470bb8e7922355e8192acb70f9294fc844fe",
+    "external_snapshot_verified_after": {
+      "datasets--Salesforce--wikitext": {
+        "files": {
+          "README.md": {
+            "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+            "size_bytes": 10464
+          },
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+            "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+            "size_bytes": 731216
+          },
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+            "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+            "size_bytes": 6342468
+          },
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+            "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+            "size_bytes": 656408
+          }
+        },
+        "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+      },
+      "models--openai-community--gpt2": {
+        "files": {
+          "config.json": {
+            "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+            "size_bytes": 665
+          },
+          "generation_config.json": {
+            "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+            "size_bytes": 124
+          },
+          "merges.txt": {
+            "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            "size_bytes": 456318
+          },
+          "model.safetensors": {
+            "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+            "size_bytes": 548105171
+          },
+          "tokenizer.json": {
+            "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+            "size_bytes": 1355256
+          },
+          "vocab.json": {
+            "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+            "size_bytes": 1042301
+          }
+        },
+        "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+      }
+    },
+    "fidelity": {
+      "metric": "heldout_accuracy",
+      "observed": 1.0,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.7
+      ],
+      "train_accuracy_note": "train accuracy is recorded nowhere and never promoted"
+    },
+    "fresh_snapshot_verified_after": {
+      "datasets--Salesforce--wikitext": {
+        "files": {
+          "README.md": {
+            "sha256": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+            "size_bytes": 10464
+          },
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": {
+            "sha256": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+            "size_bytes": 731216
+          },
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": {
+            "sha256": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+            "size_bytes": 6342468
+          },
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": {
+            "sha256": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f",
+            "size_bytes": 656408
+          }
+        },
+        "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+      },
+      "models--openai-community--gpt2": {
+        "files": {
+          "config.json": {
+            "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+            "size_bytes": 665
+          },
+          "generation_config.json": {
+            "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+            "size_bytes": 124
+          },
+          "merges.txt": {
+            "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            "size_bytes": 456318
+          },
+          "model.safetensors": {
+            "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+            "size_bytes": 548105171
+          },
+          "tokenizer.json": {
+            "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+            "size_bytes": 1355256
+          },
+          "vocab.json": {
+            "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+            "size_bytes": 1042301
+          }
+        },
+        "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+      }
+    },
+    "output_location": "artifacts/diagnostics/proof-80-25-committed-transformer-stability-supplement-20260925-065327-115093-14640",
+    "peak_process_tree_rss_bytes": 1692811264,
+    "protocol_sha256": "a69b7152a800ac543ac76fec4d699c16681517708a95b353e5d241241c8acf0a",
+    "runtime_seconds": 997.4832313999068,
+    "selectivity": {
+      "metric": "leakage_gap",
+      "observed": 0.4254901960784314,
+      "randomized_accuracy": 0.5745098039215686,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.15
+      ]
+    },
+    "stability": {
+      "basis": "identity-bound-training-set-replicates",
+      "metric": "coef_stability",
+      "observed": 0.9748782295192386,
+      "replicates": [
+        {
+          "coefficient_cosine": 0.9786931985648903,
+          "fit_seed": 193,
+          "train_rows": 1243
+        },
+        {
+          "coefficient_cosine": 0.9751965270929158,
+          "fit_seed": 197,
+          "train_rows": 1228
+        },
+        {
+          "coefficient_cosine": 0.9748782295192386,
+          "fit_seed": 199,
+          "train_rows": 1211
+        },
+        {
+          "coefficient_cosine": 0.9767669967641031,
+          "fit_seed": 211,
+          "train_rows": 1238
+        },
+        {
+          "coefficient_cosine": 0.9889866590020718,
+          "fit_seed": 223,
+          "train_rows": 1223
+        }
+      ],
+      "seed_accuracies": [],
+      "sign_aware": true,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.8
+      ]
+    },
+    "supplemental_not_part_of_transformer_v2_seven_stage_run": true,
+    "timeout_s": 1800,
+    "wall_s": 1005.243
+  }
+]
