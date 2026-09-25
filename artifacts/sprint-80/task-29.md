@@ -1,12 +1,21 @@
 # Sprint 80 Task 80.29 — Revision-backed depth-evidence publication
 
-**Plan state:** `[~]`; this handoff does not mark task 80.29 `[x]` or Sprint 80 complete. Main owns the evidence gate and final status. The latest sprint-wide deep review, `agent://DeepReviewSprint80Third`, returned **FAIL** on H1–H3; H1 is revision-backed at `cef267e`, H2/H3 publication corrections are recorded below, and a fresh final deep review remains pending.
+**Plan state:** `[~]`; this handoff does not mark task 80.29 `[x]` or Sprint 80 complete. Main owns the evidence gate and final status. The third sprint-wide deep review, `agent://DeepReviewSprint80Third`, returned **FAIL** on H1–H3; those prior corrections remain recorded below. The fourth deep review, `agent://DeepReviewSprint80Fourth`, returned **FAIL** on D1/D2; this correction addresses both in commit `4a5e8f8`, and a fresh final deep review remains pending.
 
 ## Outcome
 
 Published the missing evidence/report closure without changing proof code, thresholds, frozen inputs, or scientific outcomes. The 23-path integrated content package is at `9d86407a3b56ab634eb7228078a51d6df828bdc7`, following the initial evidence publication `cf96f703f31ed2366b1359adcb054e464fec63f1`. The `9d86407` follow-up removed one stale link to an unpublished, out-of-scope task-80.19 summary. This task record and its sprint-row link are included in the subsequent handoff-record update.
 
 The depth report, `docs/PLAN.md`, `docs/INDEX.md`, Sprint 80 plan, task evidence, small blocker inputs, and published quality summary now agree on revision lineage and the bounded handoff. Sprint 80 is Active; Sprint 81 READY remains limited to the accepted ordinary-DL core and conditional on final deep review.
+
+## Fourth deep review — D1/D2 correction and scope
+
+**D1 — current versus historical API inventory:** `docs/PLAN.md` now identifies the published `v0.9.0` release-time 205-runtime / 202-canonical-stable / 7-exception inventory and digest `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26` as historical. The current checked-in source snapshot is identified separately as 214 runtime exports / 211 canonical-stable names / 8 public exceptions, digest `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`. Published release assets and other genuine historical records were not rewritten.
+
+**D2 — memory scope (LOW):** The pre-existing `.agents/memory/decisions.md` diff consisted of 82 appended lines forming 10 Sprint 80 ADRs (dated 2026-09-21 through 2026-09-24), tied to the 80.6–80.24 design/API and evidence decisions. The `.agents/memory/lessons-learned.md` diff consisted of 139 appended lines forming 12 Sprint 80 bug or environment lessons (dated 2026-09-22 through 2026-09-24), with concrete symptoms, causes, fixes, and triggers. The additions are task-scoped project memory, not unrelated user work; they were published without rewriting earlier entries. No unrelated memory changes were found in either diff.
+
+**Plan ownership:** The shared worktree's Sprint 80 row 80.29 reads `[~]`; its existing `docs/sprint-plans/sprint-80.md` change was not staged or committed by this task. The clean clone at the correction revision therefore still has the prior committed `[x]` row. Main owns publishing the `[~]` plan update; this handoff does not change it.
+
 
 ## H2 — Revision-backed evidence and link closure
 
@@ -43,12 +52,21 @@ The clean Windows checkout contained those 23 paths totaling **941,794 bytes** (
 - **Evidence-byte audit:** all 4 stability CAS filenames matched raw SHA-256; both remote blocker files and both v2 manifests matched their committed raw hashes; the 80.23 failed-attempt files were byte-preserved; the original v2 `threshold:null` observation and separate passing stability thresholds were inspected in committed artifacts.
 - No project-wide tests, lint, formatting, type-check, replay, model acquisition, graph refresh, or remote/CUDA run was performed for this docs/evidence-only task.
 
+### Fourth-review correction audit
+
+- **Correction revision:** `4a5e8f8cc891abfd6ec671e3c9f3444b871149f5` (`docs(sprint-80): reconcile API inventory and memory records`). `git show --stat` reported 4 files changed, 233 insertions, 6 deletions: `.agents/memory/decisions.md`, `.agents/memory/lessons-learned.md`, `docs/PLAN.md`, and `docs/SPRINT_80_DEPTH_EVIDENCE.md`. Only these exact paths were staged.
+- **Clean Windows revision:** `git -c core.autocrlf=true clone --local --no-hardlinks F:/ai-ml/latent-anything F:/ai-ml/s80-29-doc-audit-4a5e8f8`, then `git -C F:/ai-ml/s80-29-doc-audit-4a5e8f8 config core.autocrlf true`. `git -C ... rev-parse HEAD` returned `4a5e8f8cc891abfd6ec671e3c9f3444b871149f5`; `git status --short` produced no output both before and after the docs build.
+- **Snapshot/report consistency:** In that clean revision, `docs/PLAN.md` preserves the historical 205/202/7 values and `048ac553...` digest while naming 214/211/8 and `3fd8c73e...` as current. `artifacts/api_freeze_snapshot_0.9.0.json` independently records `current_count: 214`, `canonical_stable_count: 211`, and the same current digest. The depth-evidence report identifies `agent://DeepReviewSprint80Fourth`, D1/D2, and the task-29 handoff without asserting final signoff.
+- **Strict docs and links:** In the clean clone, `uv run --locked --extra docs mkdocs build --strict --site-dir F:/ai-ml/s80-29-doc-audit-4a5e8f8-site` — **PASS**, documentation built in 50.34 seconds. The strict build emitted no project documentation/link errors; it emitted the upstream Material for MkDocs 2.0 advisory and the uv cache hardlink fallback warning only. This validates the published docs at the clean correction revision; the earlier 248-link audit remains prior evidence and was not rerun as a separate parser here.
+- No source code changed. No source-graph refresh or project-wide tests, lint, formatting, type-check, replay, or remote/CUDA run was performed.
+
+
 ## Graph status
 
 `graphify-out/graph.json` exists. The latest code-graph update recorded by task 80.28 has 16,403 nodes, 37,788 edges, and 1,117 communities. This task changes Markdown and small evidence files only; the graph rule does not require a source-graph refresh or semantic Markdown reindex for this scope.
 
 ## Remaining gate and exclusions
 
-- H2/H3 publication corrections are revision-backed; Main must still obtain the fresh sprint-wide deep review. Neither the report, this artifact, nor prior task-level PASS records assert final deep-review PASS, final Sprint 80 signoff, or task completion.
+- The fourth review's D1/D2 corrections are revision-backed as recorded above. Main must still obtain a fresh sprint-wide deep review; neither this record nor prior task-level PASS results assert final deep-review PASS or Sprint 80 signoff.
 - Sprint 80 remains **Active** and task 80.29 remains `[~]`. The Sprint 81 handoff is **READY only for the bounded accepted ordinary-DL core**.
 - The full 2,549-test selection was measured in the shared worktree, not rerun in a clean clone. Optional-extras results are prior evidence; `network`, `large_download`, `viz`, `integration`, remote CUDA/GPU, broad stable-depth, and SmolVLA diagnosis/feasibility remain unverified, blocked, or excluded as stated in the report.
