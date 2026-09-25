@@ -99,9 +99,9 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-- [Sprint 80](sprint-plans/sprint-80.md) - *Status: Active; the bounded supported ordinary-DL core has conditional READY status based on the replay measured from source revision `5241553`. The 80.28 full-gate selection was measured in the shared worktree at code basis `f15859b` (that commit contains the 80.25 handoff, not the 80.28 handoff); the API snapshot/tool/test overlays and focused clean-clone checks are revision-backed at `cef267e`, but the full suite was not rerun in a clean clone. The third deep review returned FAIL on H1–H3, with its publication corrections revision-backed; the fourth deep review (`agent://DeepReviewSprint80Fourth`) returned FAIL on D1/D2. This correction distinguishes the Sprint 78 API checkpoint from the current snapshot and publishes only Sprint 80-scoped memory additions. A fresh sprint-wide deep review remains pending. Sprint 80 is not complete; Sprint 81 general-release, broad stable-depth, and GPU/CUDA claims remain gated or excluded.*
+No sprint is currently Active. Sprint 81 remains planned and owns the `1.0.0` publication gates.
 
-Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 remains Active pending its final deep review. Its bounded-core Sprint 81 handoff is READY only within the evidence boundary in [the depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md); this does not mark Sprint 80 complete or authorize general-release, arbitrary-model, or GPU/CUDA claims for Sprint 81.
+Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. Its [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) was cut before that final review; the report's pending-review condition is now satisfied, not a claim that arbitrary models, general release, or GPU/CUDA readiness passed. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81 must apply its own release gates.
 
 ## Planned Sprints
 
@@ -237,6 +237,8 @@ Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 remai
 - [x] [Sprint 70](sprint-plans/sprint-70.md) - Compact VQ/discrete-latent adapter, codebook health diagnostics, and explicit collapse evidence.
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Compact decoder-free JEPA/LeWM-style prediction, target-encoder health diagnostics, rollout/record integration, and marked public I-JEPA checkpoint smoke.
 - [x] [Sprint 72](sprint-plans/sprint-72.md) - Tokenized world-model next-token prediction, seeded rollout, codebook/likelihood/drift metrics, and reproducible synthetic evidence.
+
+- [Sprint 80](sprint-plans/sprint-80.md) - Bounded encoder v3 and transformer target-evidence-v2 diagnostic proofs, revision-backed 24/24 clean replay, guide/examples, and depth-evidence handoff; final differential review `agent://DeepReviewSprint80Fifth` — PASS. Secondary SmolVLA lane remains blocked; `1.0.0` publication belongs to Sprint 81.
 
 ## Planning Rules
 
