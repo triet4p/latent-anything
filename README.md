@@ -11,7 +11,11 @@ A Python framework that treats latent space as a first-class object: load latent
 - Core primitives: `LatentSpace`, `LatentValue`, and `Trajectory`
 - Layer A introspection methods: PCA, UMAP, and SAE
 - Layer B manipulation methods: Lerp, SteeringVector, and ActivationPatch
-- Representative built-in adapters: VAE, RandomProjection, HiddenStateAdapter, and GaussianRendererAdapter; the authoritative current inventory is the 205-runtime-export/202-canonical-stable-projection/32-registry contract in [M14_REAL_SYSTEM_VALIDATION](docs/M14_REAL_SYSTEM_VALIDATION.md#registry-plugin-groups-optional-profiles)
+- Representative built-in adapters: VAE, RandomProjection, HiddenStateAdapter,
+  and GaussianRendererAdapter; the checked-in source export inventory is in
+  the [API reference](docs/API_REFERENCE.md), while
+  [M14_REAL_SYSTEM_VALIDATION](docs/M14_REAL_SYSTEM_VALIDATION.md#registry-plugin-groups-optional-profiles) documents registry, plugin, and
+  profile validation.
 - Registry/config construction for built-ins
 - Concrete analysis and manipulation pipelines
 - First runtime helpers: batching, in-memory cache, async wrappers, and profiling hooks
@@ -50,9 +54,20 @@ migration decision. Run `uv run python scripts/report_config_migration.py <confi
 to inspect repository-owned JSON configs without rewriting them.
 
 See the [migration and compatibility guide](docs/MIGRATION.md) and the
-[API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger and
-the two separate schema/path migrations, frozen signatures, and current 205-runtime/202-canonical
-surface. The current `0.9.0` snapshot is
+[API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger,
+the two separate schema/path migrations, frozen signatures, and current
+source API contract.
+
+The checked-in `0.9.0` source snapshot records 214 runtime top-level exports,
+211 canonical-stable entries, 28 config schemas, 89 public dataclass/result
+schemas, and 8 public exceptions (SHA-256
+`3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`). These
+numbers describe the current source tree, not the already-published `0.9.0`
+distribution: the release-time snapshot had 205 runtime top-level exports,
+202 canonical-stable entries, 7 public exceptions, and digest
+`048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
+historical release record is preserved in [CHANGELOG.md](CHANGELOG.md).
+The current source snapshot is
 `artifacts/api_freeze_snapshot_0.9.0.json`; the historical beta snapshot
 `artifacts/api_freeze_snapshot_0.1.0b1.json` is preserved unchanged.
 

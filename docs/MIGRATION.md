@@ -1,7 +1,8 @@
 # Migration and compatibility guide
 
-This guide describes the current `0.9.0` pre-stable surface. The annotated
-`v0.9.0` tag points to merged commit
+This guide separates the current checked-in source API from the already-published
+`0.9.0` pre-stable release.
+The annotated `v0.9.0` tag points to merged commit
 `75341e4292fcdf1703186c58b626666b4a923c19`, and Release workflow run
 `35516933525` passed gate/build and publish. The GitHub Release carries the
 wheel, source distribution, `SHA256SUMS`, `PROVENANCE.json`, and release notes;
@@ -36,8 +37,19 @@ data remain readable during the beta window. New code should use the canonical
 spellings below. This is an additive migration; this document does not remove
 an alias or rewrite historical release artifacts.
 
-The snapshot records **205 current runtime top-level exports** and a **202-entry
-canonical-stable projection**. The three additive entries are
+The checked-in source snapshot records **214 current runtime top-level
+exports**, **211 canonical-stable entries**, **28 config schemas**, **89
+public dataclass/result schemas**, and **8 public exceptions** (SHA-256
+`3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`). This is
+the contract of the current source tree, not the already-published `0.9.0`
+distribution: its release-time snapshot had **205 runtime top-level
+exports**, **202 canonical-stable entries**, and **7 public exceptions** (SHA-256
+`048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`). The
+dated `0.9.0` section in the repository-root `CHANGELOG.md` preserves those
+release values. Current source additions do not retroactively change the
+published release assets.
+
+Relative to the published beta, the three additive canonical entries are
 `AnalysisMethod`, `Intervention`, and `InterventionPipeline`; the legacy
 `Method`, `BMethod`, and `ManipulationPipeline` identities remain available.
 `BMethod` was not a beta top-level export, but remains available through its

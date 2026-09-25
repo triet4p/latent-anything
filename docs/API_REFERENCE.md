@@ -11,6 +11,14 @@ artifacts/api_freeze_snapshot_0.9.0.json
 The historical beta surface is preserved unchanged in
 `artifacts/api_freeze_snapshot_0.1.0b1.json` and must not be rewritten.
 
+The checked-in snapshot follows the current source tree; it is not the API
+contract of the already-published `0.9.0` distribution. At release, the
+published snapshot had 205 runtime exports, a 202-entry canonical-stable
+projection, 7 public exceptions, and digest
+`048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
+repository-root `CHANGELOG.md` preserves that historical release record; this
+source snapshot does not retroactively change the published assets.
+
 Regenerate only after a reviewed public-surface change, then run:
 
 ```text
@@ -20,16 +28,20 @@ uv run pytest tests/test_api_freeze_snapshot.py tests/test_api_compatibility.py 
 
 The snapshot normalizes sorted JSON keys and contractually public declaration
 order; it excludes object addresses and unstable representations. Its current
-digest is `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`.
+digest is `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`.
 
 ## Public surface
 
-- Current runtime top-level exports: **205**.
-- Canonical-stable projection: **202**.
+- Current runtime top-level exports: **214**.
+- Canonical-stable projection: **211**.
+- Sprint 80.6 adds nine diagnostic request/result types: `CaptureSelection`,
+  `ComparisonRequest`, `ControlSelection`, `DiagnosticRequest`,
+  `DiagnosticRequestError`, `DiagnosticResult`, `DiagnosticSelection`,
+  `InterventionRequest`, and `OutputSelection`.
 - Additive canonical symbols: `AnalysisMethod`, `Intervention`,
   `InterventionPipeline`.
 - The complete ordered symbol list and normalized signatures are section A;
-  do not hand-maintain a second 205-name table.
+  do not hand-maintain a second 214-name table.
 
 The stable public import modules are:
 
@@ -61,7 +73,7 @@ The human ledger expands snapshot section B into **18 alias rows**; the two
 schema/path data migrations are separate compatibility mechanisms and are not
 included in that alias count.
 
-Section H inventories **81 public dataclass/result schemas**. Result aliases
+Section H inventories **89 public dataclass/result schemas**. Result aliases
 are read-only compatibility properties: planner results expose canonical
 `actions`, rollout results expose canonical `trajectory`, and transition
 metrics expose descriptive negative-log-likelihood/error names. Exact field
@@ -98,7 +110,7 @@ Section J records the exact runtime versions and deterministic fixture digests
 for `portable-node-v1`, `result-envelope-v1` (including v0 migration),
 `artifact-envelope-v1`, `disk-cache-v1`, and run-record `schema-v1`. Section K
 records **9** sync/async pairs with normalized signatures and coroutine or
-async-generator status. Section L records **7** public custom exceptions and
+async-generator status. Section L records **8** public custom exceptions and
 their base classes. Use these sections when reviewing compatibility; do not
 infer a new contract from an implementation detail.
 

@@ -1,5 +1,35 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- The checked-in 0.9.0 source API freeze records 214 runtime top-level
+  exports (211 canonical-stable), 28 config schemas, 89 public dataclass/result
+  schemas, and 8 public exceptions. Its SHA-256 is
+  `3fd8c73e6fd9fa9bae107b4be6727cc3e9c3c907c9b9d757fdae4c267d8691ec`.
+  This describes the current source tree, not the already-published `0.9.0`
+  distribution, whose release-time snapshot remains at 205 runtime top-level
+  exports, 202 canonical-stable entries, 7 public exceptions, and SHA-256
+  `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
+  nine reviewed Sprint 80.6 diagnostic request/result types are in the
+  current source surface; the historical `0.1.0-beta.1` freeze remains
+  unchanged.
+
+- Added versioned `diagnostic-evidence-v2` target provenance, binding evaluated
+  labels and exact sample/split/rule metadata separately from truthful
+  activation capture axes while keeping legacy v1 fail-closed.
+
+### Fixed
+- Axial-localization results now serialize each validated per-axis status, so
+  supported checkpoint identity remains available to probe and SAE explainers.
+- Confidence inputs reject boolean values, and invalid SAE feature-explanation
+  contexts now raise `ExplanationError` instead of leaking an attribute error.
+- Shared explanation hypotheses now serialize their declared target identity, preserving target binding in explanation evidence.
+- Intervention trials can now measure predeclared downstream task metrics outside
+  detector selection when a metric is a requested comparison's task role; reports
+  verify that binding and render supported locations.
+
 ## [0.9.0] - 2026-09-17
 
 ### Release Summary
@@ -9,8 +39,8 @@ diagnostic-depth program. It freezes the broad Sprint 79 inventory as a
 reproducible baseline and does **not** claim `1.0.0` diagnostic readiness,
 broad VLA support, or that all M14 lanes passed.
 
-Package metadata and runtime `latent_anything.__version__` are `0.9.0`. The
-current compatibility snapshot is
+Package metadata and runtime `latent_anything.__version__` are `0.9.0`.
+The published 0.9.0 compatibility snapshot was
 `artifacts/api_freeze_snapshot_0.9.0.json` (SHA-256
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`); the only
 content change from the preserved historical beta snapshot is the
@@ -22,11 +52,11 @@ are preserved unchanged.
 
 ### Accepted Scope
 
-- 205 current runtime top-level exports with a 202-entry canonical-stable
-  projection; 32 built-in registry entries; 5 entry-point groups; 12 optional
-  profiles; 5 CLI commands with 2 retained aliases; 28 config schemas; 9
-  sync/async pairs; 7 public exceptions; versioned serialization envelopes
-  (`portable-node-v1`, `result-envelope-v1` with `v0` migration,
+- At release, 205 runtime top-level exports had a 202-entry canonical-stable
+  projection; there were 32 built-in registry entries; 5 entry-point groups;
+  12 optional profiles; 5 CLI commands with 2 retained aliases; 28 config
+  schemas; 9 sync/async pairs; 7 public exceptions; and versioned serialization
+  envelopes (`portable-node-v1`, `result-envelope-v1` with `v0` migration,
   `artifact-envelope-v1`, `disk-cache-v1`, run-record `schema-v1`).
 - All 18 beta compatibility aliases retained with exact identity/behavior;
   removal is deferred past `0.9.0` pending a separate reviewed migration
