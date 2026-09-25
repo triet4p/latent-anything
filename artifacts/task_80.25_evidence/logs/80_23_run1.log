@@ -1,0 +1,34 @@
+PASS frozen-inputs: manifest b4c49c890cf34cc0530d499c2b82a09057f1f1ebf5b9d9a3843200760b137dd3 validated; scikit-learn 1.9.0; 5 frozen artifacts hashed
+PASS split: train1437/heldout360 disjoint; index digests 0b03643758a0/48e9e0ed2c89 match the pinned benchmark
+PASS deterministic-replay: refit (latent4/seed0/epochs5) re-encodes heldout bit-identically; heldout latents sha a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a
+PASS capture: capture_identity 16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd shape (360, 4) dtype float64 device cpu via bind_selection/resolve_captures
+RECORD positive-case (declared known defect): NOT OBSERVED — bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25; threshold_pass={'bottleneck-effective-rank': True, 'bottleneck-singular-spread': True}; bootstrap CI bottleneck-effective-rank [2.9134, 3.2664]
+RECORD counterexample: control-healthy-counterexample passed — ER 3.8490 ≥3.0, spread 0.7491 ≥0.25 (PCA-4 of the same heldout pixels)
+RECORD negative: control-benign-low-variance passed, not triggered — ER 3.1149, spread 0.4735, min-variance 2.168e-09 (real bottleneck ×1e-3)
+RECORD null: control-null-shuffle recorded — shuffled ER 3.7654, spread 0.6929
+RECORD capture-variant diligence (trained-mu-on-train): ER 3.0126, spread 0.4644 — passes both frozen thresholds
+RECORD capture-variant diligence (trained-mu-on-all-digits): ER 3.0346, spread 0.4662 — passes both frozen thresholds
+RECORD capture-variant diligence (untrained-init-mu-on-heldout): ER 3.1469, spread 0.4777 — passes both frozen thresholds
+RECORD feature-axis localization arithmetic: leave-one-feature-out effective ranks [2.6354, 2.4429, 2.6009, 2.2737] — all below the2.9 affected boundary, so every direction would be flagged and the earliest-in-order selection (bottleneck-mu-dim0) != the manifest-expected smallest-variance direction (bottleneck-mu-dim2); a single direction carries rank ≤1, so no per-feature effective-rank observation ≥3.0 exists to separate it
+RECORD localize: truthful negative — no layer/sample meets the declared affected criterion (no layer or sample meets the declared affected criterion; benign negative produces no location); the manifest's expected feature-axis selection cannot be named without fabricating a location
+PASS determinism: detect payload sha faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a, localize payload sha 35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df, capture identity stable across reruns
+BLOCKED explain: StageContractError — explain hypothesis 'h-collapse-bottleneck-mu' declares localization ('slice', 'slice-all') with no localized/supported prior slice selection carrying that identity; workflow failed at explain (7-stage chain cannot complete, no validator-clean artifact or rendered report is producible without fabricating a localization)
+PASS fail-closed resume identity: WorkflowError: checkpoint request_digest does not match current inputs
+PASS fail-closed persistence: DiagnosticArtifactError: diagnostic result must be completed
+PASS fail-closed manifest tamper: BenchmarkManifestValidationError: manifest digest does not match canonical content
+PASS fail-closed capture provenance: CaptureBindingError: provenance mismatch: selection representation_identity 'conv_vae_8x8:bottleneck-mu:latent_dim=99' != manifest 'conv_vae_8x8:bottleneck-mu:latent_dim=4'
+PASS fail-closed failed control: real rank-2 counterexample fails the frozen threshold → outcome inconclusive, claim_allowed=False, missing ['failed-control:control-healthy-counterexample']
+RECORD ablation dim0: bottleneck-effective-rank 2.6354 (delta -0.4795), heldout reconstruction mse 0.177033 (delta +0.000334), heldout variance 3.259790e-03
+RECORD ablation dim1: bottleneck-effective-rank 2.4429 (delta -0.6720), heldout reconstruction mse 0.176497 (delta -0.000202), heldout variance 3.788530e-03
+RECORD ablation dim2: bottleneck-effective-rank 2.6009 (delta -0.5140), heldout reconstruction mse 0.176671 (delta -0.000028), heldout variance 2.167675e-03
+RECORD ablation dim3: bottleneck-effective-rank 2.2737 (delta -0.8412), heldout reconstruction mse 0.176699 (delta +0.000000), heldout variance 4.336445e-03
+RECORD downstream (direct; stage chain blocked at explain): per-direction ablation effects on bottleneck-effective-rank + heldout reconstruction MSE recorded for4 directions; declared trial target bottleneck-mu-dim2 (smallest heldout variance per frozen estimator), off-target bottleneck-mu-dim3; on-target heldout-reconstruction delta -0.000028 against baseline 0.176699 (negligible — the manifest falsification rule1 arithmetic would fire); off-target specificity rule violated by arithmetic=True (the manifest falsification rule2 would fire if the trial executed)
+RECORD comparison preview (direct; stage chain blocked): aligned evaluation replays of the pinned revision give identical points — bottleneck-effective-rank 3.1149, bottleneck-singular-spread 0.4735 on both sides, |delta|=0; frozen manifest declares no downstream task metric (the compare task role is bound to a second manifest-declared metric by contract)
+PASS frozen invariance: all five frozen artifacts byte-identical after the run
+ACCEPTANCE: NOT PASSED —80.23 frozen acceptance cannot be satisfied truthfully
+  blocker: declared known defect not observed on the pinned revision: both frozen metrics pass on the declared capture (bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25) and on every other legitimate mu capture of the pinned artifacts (train, all-digits, untrained-init variants recorded above)
+  blocker: truthful negative localization leaves the80.16 localization binding unresolvable, so the seven-stage chain fails closed at explain and no validator-clean artifact/rendered report exists
+  blocker: no localization seam can express the manifest's expected feature-axis direction selection under the frozen effective-rank metric (per-feature rank observations cannot separate a direction at the ≥3.0 threshold)
+  blocker record: artifacts/task_80.23_encoder_end_to_end_proof_summary.md (positive/counterexample/negative results, hashes, runtime, limitations, commands)
+resources: proof body 6.05s (frozen+data+model=4.56s, capture=0.01s, detect=0.24s, localize=0.34s, workflow=0.53s, guards+previews=0.37s); wall including imports 10.61s; tracemalloc peak 62.1 MiB; environment python 3.13.3, numpy 2.4.6, torch-cpu, scikit-learn 1.9.0; declared output location 'artifacts/diagnostics/proof-80-23' intentionally not materialized (persistence refused)
+commands: uv run python scripts/sprint80_task80_23_proof.py; uv run pytest tests/test_encoder_end_to_end_proof.py -q

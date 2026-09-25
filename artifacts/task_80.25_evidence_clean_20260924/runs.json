@@ -1,0 +1,133 @@
+[
+  {
+    "acceptance": "passed",
+    "artifact_digest": "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681",
+    "case": "80.23-encoder-v3",
+    "command": [
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "-c",
+      "import scripts.sprint80_task80_23_v3_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996'; proof.OUTPUT_ROOT=proof.REPO / proof.OUTPUT_LOCATION; raise SystemExit(proof.main())"
+    ],
+    "content_addressed": {
+      "blob_count": 14,
+      "blobs": {
+        "031daeeccf5e63c374860b2ca536007f3a1668105013b6418bae3f27d358784c": 123,
+        "16a79fe1fa0c5de5fc32923a4ee837ea3c31754e60317f75fee9a503c1d6c584": 975,
+        "2a78208b19117f3322c488aaa96a66808254dd3d0a2b82ea051979982004206b": 2054,
+        "45acfc305d86ac7ab4a075f7606d7211b2f110d926c265f5366918ec66cec47b": 7435,
+        "60a7497096f5e5cf008f785dd1988afc52afcbbbb2393cf8a18639d5785f6085": 6692,
+        "61bb2cbbec7afce6f6083fc3506d3055bdbda269449c109db7cdcd56d98cddec": 6133,
+        "63daf9c06ac88458a0b4ed4e93a265c98e9f3d15d571af1ccec9d6d870dc3c14": 5496,
+        "7fe22088bdc847d3b0d646dccdc5ca34bc27be402e1aab5e10f3f33ddde13c4c": 7052,
+        "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194": 7218,
+        "95fb45cc3d9dee15335ab45acf02d337b1959bdbe21ef14c3932f061053e0bda": 1983,
+        "9f1738367b9eee150f5b3065fa8b937c6df29ef6c2c3cd2657c22d5b1b9d0412": 8263,
+        "ebb664af871d7d0a57d4294b8b59e59eff5c4f9eedc27912c78ca4f5398487f0": 2993,
+        "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681": 9252,
+        "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5": 5690
+      }
+    },
+    "deterministic_render": true,
+    "fresh_dataset_cache_files_after": [],
+    "fresh_model_cache_files_after": {},
+    "fresh_modules_cache_files_after": [],
+    "fresh_temp_files_after": [],
+    "independent_validator": {
+      "inputs_digest": "92b86dea2a44c2d8e946d0247b7e251b5e36a37414ead8c5ef0decc8d26baff3",
+      "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "status": "passed",
+      "validator": "diagnostic-report-validator"
+    },
+    "lesion_record_sha256": "d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570",
+    "lesioned_checkpoint_sha256": "81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_23_encoder_v3.log",
+    "memory_limit_bytes": 17179869184,
+    "output_root": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996",
+    "peak_process_tree_rss_bytes": 353533952,
+    "render_sha256": "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5",
+    "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+    "run_id": "ae320a82c7db5f8b",
+    "stages": [
+      "capture",
+      "detect",
+      "localize",
+      "explain",
+      "intervene",
+      "compare",
+      "report"
+    ],
+    "timeout_s": 1800,
+    "wall_s": 15.563,
+    "workflow_status": "completed"
+  },
+  {
+    "artifact_digest": "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba",
+    "case": "80.24-transformer-v1-target-evidence-v2",
+    "command": [
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "-c",
+      "import scripts.sprint80_task80_24_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996'; raise SystemExit(proof.main())"
+    ],
+    "content_addressed": {
+      "blob_count": 15,
+      "blobs": {
+        "027701ec421a56829f7e6cfeefcc3816bddcfea0a97d0a0b52a2b716556731e2": 146849,
+        "080853337f4274c6d92b700ddbc592f55ada5f4a83611408d116b580ade1a160": 6969,
+        "0944fca9e50a3e2118ccd97d82d619cd06009c6354d72416347190b476866983": 6310,
+        "12792403ee021875ed3cc9130e497a5e24a7f6fc23b946842b70835952a1eb62": 6484,
+        "257e66114a672c30727fbb1a8a5a94f5d750e21387aa2f080136dc0569e62ddb": 111,
+        "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19": 50335,
+        "4c3cc683e515312460bac83a049014d685c64fd09bed031be283172c370fd044": 1771,
+        "5dd1432fefe8bbd757f852fe4ecc47067f2e4bc69173483382bce61db0a81865": 1842,
+        "791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838": 5266,
+        "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad": 5819,
+        "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba": 9500,
+        "c19c88c2296f12bee550f6d16fe8a2b0d27052aeb94ee037b411832d4250acbe": 55087,
+        "c9d7f0d94b6b33a63464b03b26d4a340b578ebaa443c2a2bd249fe6d9bb967de": 6253,
+        "d1560b5bff6335222f7a6f9bbccc0d0ccb61d74b67e8e3c633622651fefeeb76": 1013,
+        "eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b": 6590
+      }
+    },
+    "evidence_contract": "diagnostic-evidence-v2",
+    "evidence_links_rehashed": 13,
+    "fresh_dataset_cache_files_after": [
+      "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/dataset_info.json",
+      "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-test.arrow",
+      "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-train.arrow",
+      "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-validation.arrow"
+    ],
+    "fresh_model_cache_files_after": {
+      "datasets--Salesforce--wikitext": {
+        "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+        "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+        "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+        "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+      },
+      "models--openai-community--gpt2": {
+        "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+        "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+        "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+        "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+        "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+        "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+      }
+    },
+    "fresh_modules_cache_files_after": [],
+    "fresh_temp_files_after": [
+      "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz"
+    ],
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_24_transformer_v1_target_evidence_v2.log",
+    "manifest_commitment": "c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a",
+    "memory_limit_bytes": 17179869184,
+    "output_root": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996",
+    "peak_process_tree_rss_bytes": 1784811520,
+    "render_sha256": "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad",
+    "report_digest": "eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b",
+    "run_id": "c4012406e89254ea",
+    "run_status": "completed",
+    "target_record_sha256": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+    "timeout_s": 1800,
+    "validator_status": "passed",
+    "wall_s": 983.945
+  }
+]

@@ -1,0 +1,176 @@
+{
+  "causal_expectation": {
+    "applicable": true,
+    "expectation": "Restoring the predeclared encoder row 0 and its bias in the lesioned model copy increases heldout high/low global-brightness classification accuracy. The aligned healthy-versus-lesion task comparison uses a predeclared absolute-delta tolerance of 0.05; zero-strength, brightness-orthogonal random-row, shuffled-pairing, and off-target-row controls do not reproduce the targeted recovery.",
+    "falsification_rule": "The causal claim is falsified if restoring encoder row 0 fails to increase task accuracy beyond its predeclared tolerance, if the uncertainty interval includes the lesioned baseline, or if any declared zero-strength, random, shuffled-pairing, or off-target control reproduces the gain.",
+    "non_applicable_reason": "not_applicable",
+    "target_metric_ids": [
+      "heldout-brightness-bin-accuracy"
+    ]
+  },
+  "commitment": {
+    "canonicalization": "json-sort-keys-no-whitespace-utf8",
+    "declared_at": "2026-09-23T14:11:21Z",
+    "locked": true,
+    "manifest_sha256": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f"
+  },
+  "controls": [
+    {
+      "expected_behavior": "the intact train-only encoder is a healthy full-rank counterexample above all three collapse thresholds",
+      "id": "control-healthy-counterexample",
+      "kind": "counterexample",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread",
+        "bottleneck-feature-variance-ratio"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "global low gain preserves effective rank, singular spread, and relative feature variance and remains negative",
+      "id": "control-benign-low-variance",
+      "kind": "negative",
+      "metric_ids": [
+        "bottleneck-effective-rank",
+        "bottleneck-singular-spread",
+        "bottleneck-feature-variance-ratio"
+      ],
+      "required": true
+    },
+    {
+      "expected_behavior": "the predeclared column-shuffle null records no promoted collapse claim",
+      "id": "control-null-shuffle",
+      "kind": "null",
+      "metric_ids": [
+        "bottleneck-effective-rank"
+      ],
+      "required": false
+    }
+  ],
+  "dataset": {
+    "data_digest": "b3ed6f2d420b7dc8de35bb8adc0088b49f76a3b05d31057a0a48e37430966148",
+    "id": "sklearn.datasets.load_digits",
+    "revision": "scikit-learn==1.9.0",
+    "split": "heldout",
+    "split_identity": "default_rng-42-permutation-train1437-heldout360"
+  },
+  "defect": {
+    "classification": "injected",
+    "declaration": "Prospective model-boundary lesion: load the train-only linear four-dimensional autoencoder checkpoint committed by model.artifact_digest, copy the model, then set encoder_weight[0, :] and encoder_bias[0] to zero before encoding the frozen heldout digits. Input images, baseline weights, decoder, and other encoder rows remain unchanged. The positive detector, healthy counterexample, benign low-gain negative, task label cutoff, task-utility tolerance, restoration target, and causal controls are frozen here before any heldout proof output.",
+    "predeclared": true,
+    "source": "sprint-80-task-80.23-prospective-model-weight-lesion-v3"
+  },
+  "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+  "metrics": [
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-singular-value-profile",
+      "id": "bottleneck-effective-rank",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "effective-rank"
+    },
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "predeclared-variance-profile",
+      "id": "bottleneck-singular-spread",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "ratio"
+    },
+    {
+      "aggregation": "minimum-across-features",
+      "direction": "higher_is_better",
+      "estimator": "minimum-feature-sample-variance-divided-by-median-feature-sample-variance",
+      "id": "bottleneck-feature-variance-ratio",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "ratio"
+    },
+    {
+      "aggregation": "mean-with-interval",
+      "direction": "higher_is_better",
+      "estimator": "fixed-training-median-global-brightness-bin-accuracy",
+      "id": "heldout-brightness-bin-accuracy",
+      "taxonomy_family_id": "collapse_rank_loss",
+      "unit": "accuracy"
+    }
+  ],
+  "model": {
+    "artifact_digest": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+    "id": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+    "revision": "linear-pca-autoencoder-4d-train-only-v1",
+    "revision_immutable": true,
+    "revision_kind": "digest"
+  },
+  "representation": {
+    "axes": [
+      {
+        "identity": "heldout-sample-axis-360",
+        "name": "sample",
+        "selection": "heldout-360"
+      },
+      {
+        "identity": "linear-autoencoder-feature-axis-4",
+        "name": "feature",
+        "selection": "brightness-axis-dim0,brightness-axis-dim1,brightness-axis-dim2,brightness-axis-dim3"
+      },
+      {
+        "identity": "slice-axis-all",
+        "name": "slice",
+        "selection": "all"
+      }
+    ],
+    "identity": "linear_pca_autoencoder:bottleneck:latent_dim=4"
+  },
+  "schema_version": "benchmark-manifest-schema-v1",
+  "seeds": {
+    "controls": [
+      17
+    ],
+    "evaluation": [
+      42
+    ],
+    "independent": true,
+    "training": [
+      0
+    ]
+  },
+  "status": "predeclared",
+  "thresholds": [
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-effective-rank",
+      "predeclared": true,
+      "tolerance": 0.1,
+      "value": 3.0
+    },
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-singular-spread",
+      "predeclared": true,
+      "tolerance": 0.02,
+      "value": 0.25
+    },
+    {
+      "comparator": ">=",
+      "metric_id": "bottleneck-feature-variance-ratio",
+      "predeclared": true,
+      "tolerance": 0.01,
+      "value": 0.1
+    },
+    {
+      "comparator": ">=",
+      "metric_id": "heldout-brightness-bin-accuracy",
+      "predeclared": true,
+      "tolerance": 0.02,
+      "value": 0.9
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "method": "bootstrap",
+    "predeclared": true,
+    "repetitions": 200,
+    "unit_of_analysis": "sample"
+  }
+}

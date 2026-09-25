@@ -55,9 +55,83 @@ def _non_empty_string(value: object, *, name: str) -> str:
 
 def _manifest_section(manifest: Mapping[str, object], key: str) -> Mapping[str, object]:
     section = manifest.get(key)
-    if not isinstance(section, Mapping):
-        raise CaptureBindingError(f"manifest {key} must be an object")
-    return cast(Mapping[str, object], section)
+    return _require_section(section, name=f"manifest {key}")
+
+
+def _require_plan(value: object) -> BoundCapture:
+    if not isinstance(value, BoundCapture):
+        raise CaptureBindingError("plan must be a BoundCapture")
+    return value
+
+
+def _require_bound(value: object) -> BoundCapture:
+    if not isinstance(value, BoundCapture):
+        raise CaptureBindingError("bound must be a BoundCapture")
+    return value
+
+
+def _require_value(value: object) -> LatentValue:
+    if not isinstance(value, LatentValue):
+        raise CaptureBindingError("value must be a LatentValue")
+    return value
+
+
+def _require_captured(value: object) -> CapturedActivation:
+    if not isinstance(value, CapturedActivation):
+        raise CaptureBindingError("captured must be a CapturedActivation")
+    return value
+
+
+def _require_captures(value: object) -> tuple[CapturedActivation, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise CaptureBindingError("captures must be a non-empty sequence")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, CapturedActivation):
+            raise CaptureBindingError("captures must be CapturedActivation items")
+    return items
+
+
+def _require_array(value: object) -> np.ndarray:
+    if not isinstance(value, np.ndarray):
+        raise CaptureBindingError("captured values must be a NumPy array")
+    return value
+
+
+def _require_selection(value: object) -> CaptureSelection:
+    if not isinstance(value, CaptureSelection):
+        raise CaptureBindingError("selection must be a CaptureSelection")
+    return value
+
+
+def _require_section(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise CaptureBindingError(f"{name} must be an object")
+    return cast(Mapping[str, object], value)
+
+
+def _require_positive_int(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise CaptureBindingError(f"{name} must be a positive integer")
+    return int(value)
+
+
+def _require_optional_positive_int(value: object, *, name: str) -> int | None:
+    if value is None:
+        return None
+    return _require_positive_int(value, name=name)
+
+
+def _require_optional_non_negative_int(value: object, *, name: str) -> int | None:
+    if value is None:
+        return None
+    return _require_non_negative_int(value, name=name)
+
+
+def _require_non_negative_int(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise CaptureBindingError(f"{name} must be a non-negative integer")
+    return int(value)
 
 
 @dataclass(frozen=True)
@@ -67,8 +141,8 @@ class AxisBinding:
     name: str
     selection: str
     identity: str
-    size: int | None = None
-    axis_index: int | None = None
+    size: object = None
+    axis_index: object = None
 
     def __post_init__(self) -> None:
         _non_empty_string(self.name, name="axis name")
@@ -76,10 +150,10 @@ class AxisBinding:
         _non_empty_string(self.identity, name=f"axis {self.name} identity")
         if self.name not in SUPPORTED_AXES:
             raise CaptureBindingError(f"unsupported axis: {self.name!r}")
-        if self.size is not None and (not isinstance(self.size, int) or self.size < 1):
-            raise CaptureBindingError(f"axis {self.name} size must be a positive integer")
-        if self.axis_index is not None and (not isinstance(self.axis_index, int) or self.axis_index < 0):
-            raise CaptureBindingError(f"axis {self.name} index must be a non-negative integer")
+        size = _require_optional_positive_int(self.size, name=f"axis {self.name} size")
+        axis_index = _require_optional_non_negative_int(self.axis_index, name=f"axis {self.name} index")
+        object.__setattr__(self, "size", size)
+        object.__setattr__(self, "axis_index", axis_index)
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible mapping of this axis binding."""
@@ -194,7 +268,7 @@ def _digest(payload: object) -> str:
 
 
 def bind_selection(
-    selection: CaptureSelection,
+    selection: object,
     *,
     manifest: Mapping[str, object],
     request_id: str,
@@ -206,10 +280,8 @@ def bind_selection(
     :func:`resolve_capture` / :func:`resolve_captures` so the same generic path
     serves the encoder bottleneck and transformer hidden-state selections.
     """
-    if not isinstance(selection, CaptureSelection):
-        raise CaptureBindingError("selection must be a CaptureSelection")
-    if not isinstance(manifest, Mapping):
-        raise CaptureBindingError("manifest must be a mapping")
+    selection = _require_selection(selection)
+    _require_section(manifest, name="manifest")
     clean_request = _non_empty_string(request_id, name="request_id")
     manifest_id = _non_empty_string(manifest.get("manifest_id"), name="manifest.manifest_id")
 
@@ -327,7 +399,8 @@ def _assign_indices(names: tuple[str, ...], ndim: int) -> dict[str, int | None]:
         roles = (1 if has_batch else 0) + (1 if sequence is not None else 0)
         if roles != 1:
             raise CaptureBindingError(
-                "ambiguous axes: rank 2 carries exactly one of batch (sample/slice) or sequence (token/time) plus feature"
+                "ambiguous axes: rank 2 carries exactly one of batch (sample/slice)"
+                " or sequence (token/time) plus feature"
             )
         target = 0
         for name in names:
@@ -348,7 +421,9 @@ def _assign_indices(names: tuple[str, ...], ndim: int) -> dict[str, int | None]:
     return indices
 
 
-def _concrete_identity(plan: BoundCapture, *, location: str, call_index: int, shape: tuple[int, ...], dtype: str) -> str:
+def _concrete_identity(
+    plan: BoundCapture, *, location: str, call_index: int, shape: tuple[int, ...], dtype: str
+) -> str:
     return _digest(
         {
             "plan_identity": plan.capture_identity,
@@ -361,8 +436,8 @@ def _concrete_identity(plan: BoundCapture, *, location: str, call_index: int, sh
 
 
 def resolve_capture(
-    plan: BoundCapture,
-    captured: CapturedActivation,
+    plan: object,
+    captured: object,
     *,
     order_index: int = 0,
     total: int = 1,
@@ -372,25 +447,23 @@ def resolve_capture(
     The tensor is passed straight into the existing ``LatentValue`` primitive
     (which owns its single copy); this binder performs no additional copy.
     """
-    if not isinstance(plan, BoundCapture):
-        raise CaptureBindingError("plan must be a BoundCapture")
+    plan = _require_plan(plan)
     if not plan.is_plan:
         raise CaptureBindingError("resolve_capture requires a plan-level binding without observed shape")
-    if not isinstance(captured, CapturedActivation):
-        raise CaptureBindingError("captured must be a CapturedActivation")
+    captured = _require_captured(captured)
     if order_index < 0 or total < 1 or order_index >= total:
         raise CaptureBindingError("ordering must satisfy 0 <= order_index < total with total >= 1")
 
-    values = captured.values
-    if not isinstance(values, np.ndarray):
-        raise CaptureBindingError("captured values must be a NumPy array")
+    values = _require_array(captured.values)
     shape = tuple(int(size) for size in values.shape)
     if tuple(int(size) for size in captured.metadata.shape) != shape:
         raise CaptureBindingError("incompatible shape/axis metadata: capture metadata shape differs from values shape")
 
     version = captured.metadata.source_model_version
     if version and plan.model_revision not in version and version != plan.model_id:
-        raise CaptureBindingError("provenance mismatch: capture source_model_version matches neither model id nor revision")
+        raise CaptureBindingError(
+            "provenance mismatch: capture source_model_version matches neither model id nor revision"
+        )
     location = _non_empty_string(captured.metadata.location, name="capture location")
 
     indices = _assign_indices(tuple(axis.name for axis in plan.axes), values.ndim)
@@ -445,18 +518,14 @@ def resolve_capture(
     return concrete, value
 
 
-def resolve_captures(
-    plan: BoundCapture, captures: Sequence[CapturedActivation]
-) -> tuple[tuple[BoundCapture, ...], tuple[LatentValue, ...]]:
+def resolve_captures(plan: object, captures: object) -> tuple[tuple[BoundCapture, ...], tuple[LatentValue, ...]]:
     """Resolve captures in forward execution order, preserving alignment."""
-    if isinstance(captures, (str, bytes)) or not isinstance(captures, Sequence) or not captures:
-        raise CaptureBindingError("captures must be a non-empty sequence")
+    plan = _require_plan(plan)
+    captures = _require_captures(captures)
     points: set[tuple[str, int]] = set()
     shapes: set[tuple[int, ...]] = set()
     dtypes: set[str] = set()
     for item in captures:
-        if not isinstance(item, CapturedActivation):
-            raise CaptureBindingError("captures must be CapturedActivation items")
         point = (item.metadata.location, item.metadata.call_index)
         if point in points:
             raise CaptureBindingError(f"duplicate capture point: {point!r}")
@@ -464,9 +533,13 @@ def resolve_captures(
         shapes.add(tuple(int(size) for size in item.values.shape))
         dtypes.add(item.metadata.dtype)
     if len(shapes) != 1:
-        raise CaptureBindingError(f"incompatible shape/axis metadata: layer captures disagree on shape {sorted(shapes)!r}")
+        raise CaptureBindingError(
+            f"incompatible shape/axis metadata: layer captures disagree on shape {sorted(shapes)!r}"
+        )
     if len(dtypes) != 1:
-        raise CaptureBindingError(f"incompatible shape/axis metadata: layer captures disagree on dtype {sorted(dtypes)!r}")
+        raise CaptureBindingError(
+            f"incompatible shape/axis metadata: layer captures disagree on dtype {sorted(dtypes)!r}"
+        )
     bounds: list[BoundCapture] = []
     values: list[LatentValue] = []
     total = len(captures)
@@ -477,7 +550,7 @@ def resolve_captures(
     return tuple(bounds), tuple(values)
 
 
-def bound_trajectory(bound: BoundCapture, value: LatentValue, *, axis: str) -> Trajectory:
+def bound_trajectory(bound: object, value: object, *, axis: str) -> Trajectory:
     """Project one resolved 2D value onto an explicit sequence axis.
 
     Only the declared ``token``/``time`` axes convert; every other axis name
@@ -485,10 +558,8 @@ def bound_trajectory(bound: BoundCapture, value: LatentValue, *, axis: str) -> T
     empty success. Rank-3 values must be sliced to one sample first via the
     existing ``LatentValue`` indexing rather than squeezed silently here.
     """
-    if not isinstance(bound, BoundCapture):
-        raise CaptureBindingError("bound must be a BoundCapture")
-    if not isinstance(value, LatentValue):
-        raise CaptureBindingError("value must be a LatentValue")
+    bound = _require_bound(bound)
+    value = _require_value(value)
     if bound.is_plan or bound.shape is None:
         raise CaptureBindingError("bound_trajectory requires a resolved capture with observed shape")
     if axis not in _TRAJECTORY_AXES:
@@ -496,9 +567,13 @@ def bound_trajectory(bound: BoundCapture, value: LatentValue, *, axis: str) -> T
     if axis not in {entry.name for entry in bound.axes}:
         raise CaptureBindingError(f"axis {axis!r} is non-applicable: it is absent from this bound capture")
     if value.shape[-1] != bound.shape[-1]:
-        raise CaptureBindingError("incompatible shape/axis metadata: value feature width differs from the bound capture")
+        raise CaptureBindingError(
+            "incompatible shape/axis metadata: value feature width differs from the bound capture"
+        )
     if len(value.shape) != 2:
-        raise CaptureBindingError("incompatible shape/axis metadata: trajectory binding requires one 2D (n_points, dim) value")
+        raise CaptureBindingError(
+            "incompatible shape/axis metadata: trajectory binding requires one 2D (n_points, dim) value"
+        )
     metadata: dict[str, Any] = dict(bound.provenance())
     metadata["trajectory_axis"] = axis
     return Trajectory(value.to_numpy(), metadata=metadata)

@@ -8,7 +8,7 @@ dimensions: fidelity, stability, selectivity, leakage, and uncertainty.
 
 Reused primitives (no new estimators):
 
-- ``probes._fast_probe`` is the single probe-fitting seam: training-only
+- a local bounded probe fit (training-only scaler + logreg): training-only
   ``StandardScaler`` plus ``LogisticRegression`` (C=1.0, lbfgs, balanced).
 - ``tcav.learn_mean_diff_direction`` / ``learn_linear_separator_direction``
   own CAV fitting; ``_tcav_statistics.assemble_tcav_result`` is not reused
@@ -45,11 +45,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from types import MappingProxyType
-from typing import Any, Literal, cast
+from typing import Any, Literal, SupportsFloat, cast
 
 import numpy as np
 
+from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
 from latent_anything._portable_contract import PortableNodeError, canonical_json
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
@@ -59,6 +59,7 @@ from latent_anything._statistical_controls import run_bootstrap as _central_boot
 from latent_anything._statistical_controls import (
     run_permutation_control as _central_control,
 )
+from latent_anything.probes import LinearProbeConfig, LinearProbeResult
 
 EXPLAINER_VERSION = "probe-tcav-ig-explainer-v1"
 """Version string bound into explain-stage payloads."""
@@ -89,10 +90,121 @@ class ExplanationError(ValueError):
     """Raised when explanation input, hypothesis, or evidence is fail-closed invalid."""
 
 
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise ExplanationError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_float(value: object, *, name: str) -> float:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (str, bytes, bytearray, SupportsFloat)):
+        raise ExplanationError(f"{name} must be a finite number")
+    try:
+        level = float(value)
+    except (OverflowError, TypeError, ValueError) as exc:
+        raise ExplanationError(f"{name} must be a finite number") from exc
+    if not np.isfinite(level):
+        raise ExplanationError(f"{name} must be a finite number")
+    return level
+
+
+def _require_count(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ExplanationError(f"{name} must be an integer")
+    return int(value)
+
+
+def _require_confidence_level(value: object) -> float:
+    level = _require_float(value, name="confidence_level")
+    if not 0.0 < level < 1.0:
+        raise ExplanationError("confidence_level must be between zero and one")
+    return level
+
+
+def _require_observed_floats(value: object, *, name: str) -> Mapping[str, float]:
+    if not isinstance(value, Mapping):
+        raise ExplanationError(f"{name} must be a mapping")
+    narrowed: dict[str, float] = {}
+    for key, entry in value.items():
+        if not isinstance(key, str):
+            raise ExplanationError(f"{name} must map strings to numbers")
+        narrowed[key] = _require_float(entry, name=f"{name}[{key!r}]")
+    return narrowed
+
+
+def _require_central_outcomes(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise ExplanationError("context central_outcomes must be a mapping")
+    return dict(value)
+
+
+def _require_control_outcomes(value: object) -> dict[str, dict[str, str]]:
+    if not isinstance(value, Mapping):
+        raise ExplanationError("context control_outcomes must be a mapping")
+    normalized: dict[str, dict[str, str]] = {}
+    for key, entry in value.items():
+        if not isinstance(key, str) or not isinstance(entry, Mapping):
+            raise ExplanationError("context control_outcomes must map strings to string mappings")
+        normalized[key] = {str(item): str(val) for item, val in entry.items()}
+    return normalized
+
+
+def _optional_str_items(value: object) -> tuple[str, ...]:
+    """Return the non-empty string entries of an optional payload list."""
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        return ()
+    return tuple(item for item in value if isinstance(item, str) and item)
+
+
 def _non_empty_string(value: object, *, name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ExplanationError(f"{name} must be a non-empty string")
     return value
+
+
+def _require_hypotheses(value: object) -> tuple[ExplanationHypothesis, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ExplanationError("hypotheses must declare at least one hypothesis")
+    checked: list[ExplanationHypothesis] = []
+    for item in value:
+        if not isinstance(item, ExplanationHypothesis):
+            raise ExplanationError("hypotheses must hold ExplanationHypothesis items")
+        checked.append(item)
+    if not checked:
+        raise ExplanationError("hypotheses must declare at least one hypothesis")
+    return tuple(checked)
+
+
+def _require_inputs(value: object) -> MethodInputs:
+    if not isinstance(value, MethodInputs):
+        raise ExplanationError("inputs must be a MethodInputs")
+    return value
+
+
+def _require_evidence_items(value: object) -> tuple[ExplanationEvidence, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ExplanationError("evidence must hold ExplanationEvidence items")
+    checked: list[ExplanationEvidence] = []
+    for item in value:
+        if not isinstance(item, ExplanationEvidence):
+            raise ExplanationError("evidence must hold ExplanationEvidence items")
+        checked.append(item)
+    return tuple(checked)
+
+
+def _require_payload_evidence(value: object) -> tuple[Mapping[str, object], ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ExplanationError("explain payload evidence must be a list")
+    checked: list[Mapping[str, object]] = []
+    for item in value:
+        if not isinstance(item, Mapping):
+            raise ExplanationError("explain payload evidence must hold objects")
+        checked.append(item)
+    return tuple(checked)
+
+
+def _raw(record: object, field: str) -> object:
+    return object.__getattribute__(record, field)
 
 
 def _finite_number(value: object, *, name: str) -> float:
@@ -142,12 +254,17 @@ report unless the declaration bound it.
 """
 
 
+def _declared_control_ids(hypothesis: ExplanationHypothesis) -> tuple[str, ...]:
+    declared = _string_tuple(tuple(hypothesis.control_ids), name="control_ids", minimum=1)
+    return declared
+
+
 def _bound_control_ids(hypothesis: ExplanationHypothesis) -> dict[str, str]:
     """Validate ``control_ids`` against the method roles; return role->ID."""
     roles = METHOD_CONTROL_ROLES.get(hypothesis.method)
     if roles is None:
         raise ExplanationError(f"method {hypothesis.method!r} has no control-role binding")
-    declared = tuple(hypothesis.control_ids)
+    declared = _declared_control_ids(hypothesis)
     if len(declared) != len(roles):
         raise ExplanationError(
             f"hypothesis {hypothesis.hypothesis_id!r} must declare exactly "
@@ -155,7 +272,7 @@ def _bound_control_ids(hypothesis: ExplanationHypothesis) -> dict[str, str]:
         )
     bound: dict[str, str] = {}
     for role, declaration in zip(roles, declared, strict=True):
-        if not isinstance(declaration, str) or ":" not in declaration:
+        if ":" not in declaration:
             raise ExplanationError(
                 f"hypothesis {hypothesis.hypothesis_id!r} control {declaration!r} "
                 f"must be '<role>:<id>' with role {role!r}"
@@ -172,6 +289,7 @@ def _bound_control_ids(hypothesis: ExplanationHypothesis) -> dict[str, str]:
             )
         bound[role] = identity
     return bound
+
 
 def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     flat_a = np.asarray(a, dtype=np.float64).ravel()
@@ -203,10 +321,10 @@ class ExplanationHypothesis:
     definitions as applicable. ``localization_bindings`` is the explicit
     declared localization contract: a non-empty tuple of ``(axis, identity)``
     records with axes drawn from ``layer``/``slice``/``checkpoint``/``token``/
-    ``time``. Only declared bindings are upstream-localized; ``layer_id``/
-    ``slice_id`` remain method context and prove nothing by their mere
-    non-emptiness. Optional fields use ``""``/``()`` when the method does not
-    need them; required per-method fields are enforced by
+    ``time``/``feature``. Only declared bindings are upstream-localized;
+    ``layer_id``/``slice_id`` remain method context and prove nothing by their
+    mere non-emptiness. Optional fields use ``""``/``()`` when the method does
+    not need them; required per-method fields are enforced by
     :func:`evaluate_explanations`, not here, so declaration stays uniform.
     """
 
@@ -254,25 +372,31 @@ class ExplanationHypothesis:
             _non_negative_int(seed, name=f"seeds[{position}]")
         object.__setattr__(self, "seeds", tuple(int(item) for item in self.seeds))
         object.__setattr__(self, "control_ids", _string_tuple(tuple(self.control_ids), name="control_ids", minimum=1))
-        items = tuple(self.thresholds)
+        raw_thresholds: object = _raw(self, "thresholds")
+        if isinstance(raw_thresholds, (str, bytes)) or not isinstance(raw_thresholds, Sequence):
+            raise ExplanationError("thresholds must declare at least one (metric, comparator, value) rule")
+        items = tuple(raw_thresholds)
         if not items:
             raise ExplanationError("thresholds must declare at least one (metric, comparator, value) rule")
         seen: set[str] = set()
+        normalized_thresholds: list[tuple[str, str, float]] = []
         for position, item in enumerate(items):
             if not isinstance(item, (tuple, list)) or len(item) != 3:
                 raise ExplanationError(f"thresholds[{position}] must be a (metric_id, comparator, value) triple")
-            metric_id, comparator, target = item
+            parts = tuple(item)
+            metric_id, comparator, target = parts[0], parts[1], parts[2]
             _non_empty_string(metric_id, name=f"thresholds[{position}].metric_id")
             if comparator not in (">=", "<="):
                 raise ExplanationError(f"thresholds[{position}].comparator must be '>=' or '<='")
             _finite_number(target, name=f"thresholds[{position}].value")
-            if metric_id in seen:
+            key = str(metric_id)
+            if key in seen:
                 raise ExplanationError(f"thresholds declare duplicate metric: {metric_id!r}")
-            seen.add(str(metric_id))
-        object.__setattr__(
-            self, "thresholds", tuple((str(metric_id), str(comparator), float(target)) for metric_id, comparator, target in items)
-        )
-        if not isinstance(self.baseline_policy, str):
+            seen.add(key)
+            normalized_thresholds.append((str(metric_id), str(comparator), float(target)))
+        object.__setattr__(self, "thresholds", tuple(normalized_thresholds))
+        raw_baseline: object = _raw(self, "baseline_policy")
+        if not isinstance(raw_baseline, str):
             raise ExplanationError("baseline_policy must be a string")
         _non_empty_string(self.concept_id, name="concept_id") if self.method == "tcav" else None
         if self.method == "tcav" and not self.concept_id.strip():
@@ -280,15 +404,18 @@ class ExplanationHypothesis:
         if self.method == "integrated_gradients" and not self.baseline_policy.strip():
             raise ExplanationError("integrated_gradients hypotheses must declare a baseline_policy")
         object.__setattr__(self, "negative_concept_ids", tuple(str(item) for item in self.negative_concept_ids))
-        bindings = tuple(self.localization_bindings)
-        allowed_axes = ("layer", "slice", "checkpoint", "token", "time")
+        raw_bindings: object = _raw(self, "localization_bindings")
+        if isinstance(raw_bindings, (str, bytes)) or not isinstance(raw_bindings, Sequence):
+            raise ExplanationError("localization_bindings must be a list of (axis, identity) pairs")
+        bindings = tuple(raw_bindings)
+        allowed_axes = ("layer", "slice", "checkpoint", "token", "time", "feature")
         seen_axes: set[str] = set()
         seen_pairs: set[tuple[str, str]] = set()
         normalized: list[tuple[str, str]] = []
         for position, entry in enumerate(bindings):
             if not isinstance(entry, (tuple, list)) or len(entry) != 2:
                 raise ExplanationError(f"localization_bindings[{position}] must be an (axis, identity) pair")
-            axis, identity = entry
+            axis, identity = entry[0], entry[1]
             if axis not in allowed_axes:
                 raise ExplanationError(
                     f"localization_bindings[{position}].axis must be one of {list(allowed_axes)}, got {axis!r}"
@@ -331,11 +458,13 @@ class ExplanationHypothesis:
                 {"comparator": comparator, "metric_id": metric_id, "value": float(target)}
                 for metric_id, comparator, target in self.thresholds
             ],
+            "target_id": self.target_id,
             "train_split_identity": self.train_split_identity,
             "localization_bindings": [
                 {"axis": axis, "identity": identity} for axis, identity in self.localization_bindings
             ],
         }
+
 
 _KNOWN_FAMILY_IDS: tuple[str, ...] = (
     "collapse_rank_loss",
@@ -456,10 +585,10 @@ def _localize_axis_map(localize_payload: Mapping[str, object]) -> dict[str, dict
     """Build a structured ``axis -> {supported, status}`` map from a localize payload.
 
     Layer/slice axes read the layer/slice payload's declared/affected/earliest
-    layer and declared/affected slice identities. Checkpoint/token/time axes
-    read the axial payload's ``axes`` entries plus ``report_localization``
-    and earliest+affected selections: each entry contributes its axis, its
-    status, and every localized/supported selection identity it carries.
+    layer and declared/affected slice identities. Checkpoint/token/time/feature
+    axes read the axial payload's ``axes`` entries plus ``report_localization``
+    and earliest+affected selections: each entry contributes its axis, status,
+    and every localized/supported selection identity it carries.
     Applicability is never decided by key presence: an axis counts as covered
     only when its entry (or payload-level verdict for layer/slice) marks a
     localized/supported selection.
@@ -473,21 +602,29 @@ def _localize_axis_map(localize_payload: Mapping[str, object]) -> dict[str, dict
 
     verdict = localize_payload.get("verdict")
     verdict_supported = verdict in ("localized",)
-    for identity in list(localize_payload.get("layer_order", []) or []) + list(
-        localize_payload.get("affected_layers", []) or []
-    ):
-        if isinstance(identity, str) and identity:
-            _record("layer", identity, supported=bool(verdict_supported and identity in set(
-                localize_payload.get("affected_layers", []) or [])))
+    order_items = _optional_str_items(localize_payload.get("layer_order", []))
+    affected_items = _optional_str_items(localize_payload.get("affected_layers", []))
+    affected_set = set(affected_items)
+    layer_identities = list(order_items) + list(affected_items)
+    for identity in layer_identities:
+        _record(
+            "layer",
+            identity,
+            supported=bool(verdict_supported and identity in affected_set),
+        )
     earliest_layer = localize_payload.get("earliest_layer")
     if isinstance(earliest_layer, str) and earliest_layer:
         _record("layer", earliest_layer, supported=bool(verdict_supported))
-    for identity in list(localize_payload.get("declared_slice_ids", []) or []) + list(
-        localize_payload.get("affected_slices", []) or []
-    ):
-        if isinstance(identity, str) and identity:
-            _record("slice", identity, supported=bool(verdict_supported and identity in set(
-                localize_payload.get("affected_slices", []) or [])))
+    slice_items = _optional_str_items(localize_payload.get("declared_slice_ids", []))
+    slice_hits = _optional_str_items(localize_payload.get("affected_slices", []))
+    slice_hit_set = set(slice_hits)
+    slice_identities = list(slice_items) + list(slice_hits)
+    for identity in slice_identities:
+        _record(
+            "slice",
+            identity,
+            supported=bool(verdict_supported and identity in slice_hit_set),
+        )
     axes = localize_payload.get("axes")
     if isinstance(axes, Sequence) and not isinstance(axes, (str, bytes)):
         for entry in axes:
@@ -506,7 +643,11 @@ def _localize_axis_map(localize_payload: Mapping[str, object]) -> dict[str, dict
                     for identity in value:
                         if isinstance(identity, str) and identity:
                             _record(axis, identity, supported=supported)
-            for row in entry.get("report_rows", []) or []:
+            rows_raw = entry.get("report_rows", [])
+            rows_items = (
+                tuple(rows_raw) if isinstance(rows_raw, Sequence) and not isinstance(rows_raw, (str, bytes)) else ()
+            )
+            for row in rows_items:
                 if isinstance(row, Mapping):
                     selection = row.get("selection")
                     if isinstance(selection, str) and selection:
@@ -516,8 +657,13 @@ def _localize_axis_map(localize_payload: Mapping[str, object]) -> dict[str, dict
         for entry in axes:
             if isinstance(entry, Mapping) and isinstance(entry.get("axis"), str):
                 axial_supported[str(entry.get("axis"))] = axial_supported.get(str(entry.get("axis")), False) or (
-                    entry.get("status") in ("localized", "supported"))
-    for row in localize_payload.get("report_localization", []) or []:
+                    entry.get("status") in ("localized", "supported")
+                )
+    report_raw = localize_payload.get("report_localization", [])
+    report_items = (
+        tuple(report_raw) if isinstance(report_raw, Sequence) and not isinstance(report_raw, (str, bytes)) else ()
+    )
+    for row in report_items:
         if isinstance(row, Mapping):
             axis = row.get("axis")
             selection = row.get("selection")
@@ -528,9 +674,7 @@ def _localize_axis_map(localize_payload: Mapping[str, object]) -> dict[str, dict
     return axis_map
 
 
-def _check_explain_identities(
-    hypotheses: Sequence[ExplanationHypothesis], invocation: Any
-) -> None:
+def _check_explain_identities(hypotheses: Sequence[ExplanationHypothesis], invocation: Any) -> None:
     """Bind declared hypothesis identity against the workflow invocation.
 
     Fails closed with ``StageContractError`` when the invocation's manifest
@@ -650,6 +794,8 @@ def _check_explain_identities(
                         f"({axis!r}, {identity!r}) with no localized/supported prior "
                         f"{axis} selection carrying that identity"
                     )
+
+
 # ---------------------------------------------------------------------------
 # Method input carriers (caller-fitted data + one callback per method)
 # ---------------------------------------------------------------------------
@@ -723,32 +869,35 @@ class ExplanationEvidence:
     limitations: tuple[str, ...]
     reason: str
     provenance: Mapping[str, object]
+
     def __post_init__(self) -> None:
         _non_empty_string(self.hypothesis_id, name="hypothesis_id")
-        if self.method not in _ALL_METHODS:
-            raise ExplanationError(f"unsupported explanation method: {self.method!r}")
-        if self.outcome not in ("supported", "inconclusive", "unsupported", "omitted"):
-            raise ExplanationError(f"unsupported evidence outcome: {self.outcome!r}")
-        if not isinstance(self.claim_allowed, bool):
-            raise ExplanationError("claim_allowed must be boolean")
-        object.__setattr__(self, "observed_effect", dict(self.observed_effect))
-        for metric_id, value in self.observed_effect.items():
-            if not isinstance(metric_id, str) or not metric_id:
-                raise ExplanationError("observed_effect metric identities must be non-empty strings")
-            _finite_number(value, name=f"observed_effect[{metric_id}]")
         for name in ("fidelity", "stability", "selectivity", "leakage", "uncertainty"):
-            item = getattr(self, name)
+            item = _raw(self, name)
             if not isinstance(item, Mapping):
                 raise ExplanationError(f"{name} must be a mapping")
             object.__setattr__(self, name, dict(item))
-        object.__setattr__(self, "control_outcomes", dict(self.control_outcomes))
-        object.__setattr__(self, "central_outcomes", dict(self.central_outcomes))
-        object.__setattr__(self, "missing_evidence", tuple(self.missing_evidence))
-        object.__setattr__(self, "limitations", tuple(self.limitations))
+        control_records: object = _raw(self, "control_outcomes")
+        if not isinstance(control_records, Mapping):
+            raise ExplanationError("control_outcomes must be a mapping")
+        object.__setattr__(self, "control_outcomes", dict(control_records))
+        central_records: object = _raw(self, "central_outcomes")
+        if not isinstance(central_records, Mapping):
+            raise ExplanationError("central_outcomes must be a mapping")
+        object.__setattr__(self, "central_outcomes", dict(central_records))
+        raw_missing: object = _raw(self, "missing_evidence")
+        if isinstance(raw_missing, (str, bytes)) or not isinstance(raw_missing, Sequence):
+            raise ExplanationError("missing_evidence must be a list of strings")
+        object.__setattr__(self, "missing_evidence", tuple(raw_missing))
+        raw_limits: object = _raw(self, "limitations")
+        if isinstance(raw_limits, (str, bytes)) or not isinstance(raw_limits, Sequence):
+            raise ExplanationError("limitations must be a list of strings")
+        object.__setattr__(self, "limitations", tuple(raw_limits))
         _non_empty_string(self.reason, name="reason")
-        if not isinstance(self.provenance, Mapping):
+        raw_provenance: object = _raw(self, "provenance")
+        if not isinstance(raw_provenance, Mapping):
             raise ExplanationError("provenance must be a mapping")
-        object.__setattr__(self, "provenance", dict(self.provenance))
+        object.__setattr__(self, "provenance", dict(raw_provenance))
         if self.outcome == "supported" and (not self.claim_allowed or self.missing_evidence):
             raise ExplanationError("supported outcomes must allow the claim and admit no missing evidence")
         if self.outcome in ("unsupported", "omitted") and self.claim_allowed:
@@ -784,12 +933,6 @@ def _passes(comparator: str, observed: float, target: float) -> bool:
     return bool(observed <= target)
 
 
-def _require_mapping(bundle: Mapping[str, object], *, hypothesis_id: str) -> Mapping[str, object]:
-    if not isinstance(bundle, Mapping):
-        raise ExplanationError(f"hypothesis {hypothesis_id!r} method input must be a mapping")
-    return bundle
-
-
 def _finite_array(values: object, *, name: str) -> np.ndarray:
     try:
         array = np.asarray(values, dtype=np.float64)
@@ -815,9 +958,7 @@ def _check_disjoint_identities(
         raise ExplanationError(f"hypothesis {hypothesis_id!r} sample identities must be unique within each split")
     overlap = sorted(set(train) & set(eval_items))
     if overlap:
-        raise ExplanationError(
-            f"hypothesis {hypothesis_id!r} train/eval split leaks: {', '.join(overlap[:4])}"
-        )
+        raise ExplanationError(f"hypothesis {hypothesis_id!r} train/eval split leaks: {', '.join(overlap[:4])}")
     return train
 
 
@@ -825,21 +966,75 @@ def _check_disjoint_identities(
 class _ExplainContext:
     """One executor call evaluated exactly once and shared by decisions."""
 
-    hypotheses: tuple[ExplanationHypothesis, ...]
-    evidence: tuple[ExplanationEvidence, ...]
-    central_outcomes: Mapping[str, object]
-    control_outcomes: Mapping[str, str]
+    hypotheses: object
+    evidence: object
+    central_outcomes: object
+    control_outcomes: object
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "hypotheses", tuple(self.hypotheses))
-        object.__setattr__(self, "evidence", tuple(self.evidence))
-        object.__setattr__(self, "central_outcomes", dict(self.central_outcomes))
-        object.__setattr__(self, "control_outcomes", dict(self.control_outcomes))
+        checked_hypotheses = list(_require_hypotheses(self.hypotheses))
+        object.__setattr__(self, "hypotheses", tuple(checked_hypotheses))
+        checked_evidence = list(_require_evidence_items(self.evidence))
+        object.__setattr__(self, "evidence", tuple(checked_evidence))
+        raw_central: object = self.central_outcomes
+        if not isinstance(raw_central, Mapping):
+            raise ExplanationError("context central_outcomes must be a mapping")
+        object.__setattr__(self, "central_outcomes", dict(raw_central))
+        raw_controls: object = self.control_outcomes
+        if not isinstance(raw_controls, Mapping):
+            raise ExplanationError("context control_outcomes must be a mapping")
+        normalized: dict[str, dict[str, str]] = {}
+        for key, value in raw_controls.items():
+            if not isinstance(key, str) or not isinstance(value, Mapping):
+                raise ExplanationError("context control_outcomes must map strings to string mappings")
+            normalized[key] = {str(item): str(entry) for item, entry in value.items()}
+        object.__setattr__(self, "control_outcomes", normalized)
 
 
 # ---------------------------------------------------------------------------
 # Probe evaluation (one fit, leakage-safe)
 # ---------------------------------------------------------------------------
+
+
+def _fit_probe(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    test_x: np.ndarray,
+    test_y: np.ndarray,
+    random_state: int,
+) -> LinearProbeResult:
+    """Fit one bounded linear probe (training-only scaler + C=1.0/lbfgs/balanced logreg)."""
+    from sklearn.linear_model import LogisticRegression  # type: ignore[reportMissingTypeStubs]
+    from sklearn.preprocessing import StandardScaler  # type: ignore[reportMissingTypeStubs]
+
+    scaler = StandardScaler()
+    train_scaled: np.ndarray = np.asarray(scaler.fit_transform(np.asarray(train_x, dtype=np.float64)))
+    test_scaled: np.ndarray = np.asarray(scaler.transform(np.asarray(test_x, dtype=np.float64)))
+    classifier = LogisticRegression(
+        C=1.0, solver="lbfgs", max_iter=1000, random_state=int(random_state), class_weight="balanced"
+    )
+    classifier.fit(train_scaled, np.asarray(train_y))
+    predictions: np.ndarray = np.asarray(classifier.predict(test_scaled))
+    probabilities: np.ndarray = np.asarray(classifier.predict_proba(test_scaled))
+    coefficients: np.ndarray = np.asarray(classifier.coef_)
+    n_classes = len(np.unique(np.asarray(train_y)))
+    return LinearProbeResult(
+        accuracy=float(np.mean(predictions == np.asarray(test_y))),
+        val_accuracy=0.0,
+        classes=np.unique(np.asarray(train_y)),
+        predictions=predictions,
+        probabilities=probabilities,
+        coefficients=coefficients[0] if n_classes == 2 and coefficients.shape[0] == 1 else coefficients,
+        intercept=np.asarray(classifier.intercept_),
+        n_iter=int(classifier.n_iter_[0]) if hasattr(classifier, "n_iter_") else 0,
+        train_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        val_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        test_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        feature_means=np.asarray(scaler.mean_) if hasattr(scaler, "mean_") else None,
+        feature_stds=np.asarray(scaler.scale_) if hasattr(scaler, "scale_") else None,
+        config=LinearProbeConfig(random_state=int(random_state)),
+        provenance={"method": "diagnostic-probe"},
+    )
 
 
 def _evaluate_probe(
@@ -930,8 +1125,6 @@ def _evaluate_probe(
     if n_params > int(train_x.shape[0]):
         capacity_passed = False
 
-    from latent_anything.probes import _fast_probe as _fit_probe
-
     try:
         headline = _fit_probe(train_x, train_y, eval_x, eval_y, int(training_seed))
     except ValueError as exc:
@@ -952,8 +1145,11 @@ def _evaluate_probe(
     randomized_id = bound_controls["randomized"]
     negative_id = bound_controls["negative"]
     randomized_holder: dict[str, object] = {}
-    def _randomized_statistic(rng: np.random.Generator) -> Mapping[str, float]:
+
+    def _randomized_statistic(rng: object) -> Mapping[str, float]:
+        rng = _require_generator(rng)
         shuffled = np.asarray(rng.permutation(np.asarray(train_y).ravel()))
+
         refit = _fit_probe(train_x, shuffled, eval_x, eval_y, int(training_seed))
         randomized = float(refit.accuracy)
         randomized_holder["predictions"] = np.asarray(refit.predictions).ravel()
@@ -979,30 +1175,113 @@ def _evaluate_probe(
             f"probe randomized control failed: {shuffle_outcome.reason}",
             (f"failed-control:{randomized_id}",),
         )
-    randomized_accuracy = float(shuffle_outcome.observed["randomized_accuracy"])
-    gap = float(shuffle_outcome.observed["leakage_gap"])
+    probe_observed = _require_observed_floats(shuffle_outcome.observed, name="probe randomized control observed")
+    randomized_accuracy = probe_observed["randomized_accuracy"]
+    gap = probe_observed["leakage_gap"]
     randomized_pred = np.asarray(randomized_holder["predictions"], dtype=np.float64).ravel()
 
-    # Stability: coefficient direction across declared seeds (sign-aware) plus
-    # accuracy spread; uncertainty resamples fitted predictions without refits.
+    # Stability: compare the headline fit with either declared estimator-seed
+    # refits or caller-supplied, identity-bound training-set perturbations.
     coef_cosines: list[float] = []
     seed_accuracies: list[float] = []
-    for position, seed in enumerate(hypothesis.seeds):
-        if position == 0:
-            coef_cosines.append(1.0)
-            seed_accuracies.append(heldout)
-            continue
-        refit = _fit_probe(train_x, train_y, eval_x, eval_y, int(seed))
-        coef_cosines.append(_sign_aware_cosine(headline_coef, np.asarray(refit.coefficients, dtype=np.float64).ravel()))
-        seed_accuracies.append(float(refit.accuracy))
+    stability_raw = bundle.get("stability_replicates")
+    stability_replicates: list[dict[str, object]] = []
+    if stability_raw is None:
+        for position, seed in enumerate(hypothesis.seeds):
+            if position == 0:
+                coef_cosines.append(1.0)
+                seed_accuracies.append(heldout)
+                continue
+            refit = _fit_probe(train_x, train_y, eval_x, eval_y, int(seed))
+            coef_cosines.append(
+                _sign_aware_cosine(headline_coef, np.asarray(refit.coefficients, dtype=np.float64).ravel())
+            )
+            seed_accuracies.append(float(refit.accuracy))
+    else:
+        if isinstance(stability_raw, (str, bytes)) or not isinstance(stability_raw, Sequence) or len(stability_raw) < 2:
+            return _blocked(
+                "probe stability requires at least two training-set replicates",
+                ("failed-stability:stability-replicates",),
+            )
+        if (
+            isinstance(train_ids, (str, bytes))
+            or not isinstance(train_ids, Sequence)
+            or isinstance(eval_ids, (str, bytes))
+            or not isinstance(eval_ids, Sequence)
+        ):
+            return _blocked(
+                "probe stability requires explicit sample identities",
+                ("failed-stability:stability-replicates",),
+            )
+        train_identity_set = {str(item) for item in train_ids}
+        eval_identity_set = {str(item) for item in eval_ids}
+        replicate_identity_sets: set[frozenset[str]] = set()
+        for position, raw_replicate in enumerate(stability_raw):
+            if not isinstance(raw_replicate, Mapping):
+                return _blocked(
+                    f"probe stability replicate {position} must be an object",
+                    ("failed-stability:stability-replicates",),
+                )
+            try:
+                replicate_x = _finite_array(raw_replicate.get("train_matrix"), name="stability train_matrix")
+                replicate_y = _finite_array(raw_replicate.get("train_labels"), name="stability train_labels").ravel()
+                raw_ids = raw_replicate.get("train_ids")
+                if isinstance(raw_ids, (str, bytes)) or not isinstance(raw_ids, Sequence):
+                    raise ExplanationError("stability train_ids must be a sequence")
+                replicate_ids = tuple(str(item) for item in raw_ids)
+                fit_seed = _require_count(raw_replicate.get("fit_seed"), name="stability fit_seed")
+                _non_negative_int(fit_seed, name="stability fit_seed")
+                if replicate_x.ndim != 2 or replicate_x.shape[1] != train_x.shape[1]:
+                    raise ExplanationError("stability train features must match the probe feature dimension")
+                if replicate_x.shape[0] != replicate_y.shape[0] or replicate_y.shape[0] != len(replicate_ids):
+                    raise ExplanationError("stability rows, labels, and identities must align")
+                if any(not item.strip() for item in replicate_ids) or len(set(replicate_ids)) != len(replicate_ids):
+                    raise ExplanationError("stability train identities must be non-empty and unique")
+                identity_set = frozenset(replicate_ids)
+                if not identity_set < train_identity_set or identity_set & eval_identity_set:
+                    raise ExplanationError(
+                        "stability train identities must be a proper subset of the headline train split"
+                    )
+                if identity_set in replicate_identity_sets:
+                    raise ExplanationError("stability replicates must use distinct training identities")
+                replicate_identity_sets.add(identity_set)
+                if not np.array_equal(np.unique(replicate_y), np.unique(train_y)):
+                    raise ExplanationError("stability training labels must retain every headline class")
+                if n_params > replicate_x.shape[0]:
+                    raise ExplanationError("stability training subset does not satisfy probe capacity")
+            except ExplanationError as exc:
+                return _blocked(
+                    f"probe stability replicate {position} is invalid: {exc}",
+                    ("failed-stability:stability-replicates",),
+                )
+            try:
+                refit = _fit_probe(replicate_x, replicate_y, eval_x, eval_y, fit_seed)
+            except ValueError as exc:
+                return _blocked(
+                    f"probe stability replicate {position} fit failed: {exc}",
+                    ("failed-stability:stability-replicates",),
+                )
+            cosine = _sign_aware_cosine(headline_coef, np.asarray(refit.coefficients, dtype=np.float64).ravel())
+            coef_cosines.append(cosine)
+            stability_replicates.append(
+                {
+                    "coefficient_cosine": float(cosine),
+                    "fit_seed": int(fit_seed),
+                    "train_rows": int(replicate_x.shape[0]),
+                }
+            )
     coef_stability = float(min(coef_cosines)) if coef_cosines else 0.0
 
-    def _heldout_draw(rng: np.random.Generator) -> float:
+    def _heldout_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n_eval, size=n_eval)
+
         return float(np.mean(headline_pred[positions] == truth[positions]))
 
-    def _gap_draw(rng: np.random.Generator) -> float:
+    def _gap_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n_eval, size=n_eval)
+
         held = float(np.mean(headline_pred[positions] == truth[positions]))
         drawn = float(np.mean(randomized_pred[positions] == truth[positions]))
         return float(held - drawn)
@@ -1035,11 +1314,15 @@ def _evaluate_probe(
     fidelity_threshold = hypothesis.threshold_for("heldout_accuracy")
     stability_threshold = hypothesis.threshold_for("coef_stability")
     selectivity_threshold = hypothesis.threshold_for("leakage_gap")
-    fidelity_met = True if fidelity_threshold is None else _passes(fidelity_threshold[0], heldout, fidelity_threshold[1])
+    fidelity_met = (
+        True if fidelity_threshold is None else _passes(fidelity_threshold[0], heldout, fidelity_threshold[1])
+    )
     stability_met = (
         True if stability_threshold is None else _passes(stability_threshold[0], coef_stability, stability_threshold[1])
     )
-    selectivity_met = True if selectivity_threshold is None else _passes(selectivity_threshold[0], gap, selectivity_threshold[1])
+    selectivity_met = (
+        True if selectivity_threshold is None else _passes(selectivity_threshold[0], gap, selectivity_threshold[1])
+    )
 
     # Required-control gating through the central executor under the exact
     # declared identities (extracted above). A declared required control not
@@ -1090,8 +1373,8 @@ def _evaluate_probe(
         supplied[negative_id] = None
     else:
         try:
-            negative_value = float(negative_accuracy)
-        except (TypeError, ValueError):
+            negative_value = _require_float(negative_accuracy, name="probe negative control")
+        except ExplanationError:
             return _blocked("probe negative control is non-numeric", (f"failed-control:{negative_id}",))
         if not np.isfinite(negative_value):
             return _blocked("probe negative control is non-finite", (f"failed-control:{negative_id}",))
@@ -1138,7 +1421,7 @@ def _evaluate_probe(
         "threshold": None if fidelity_threshold is None else [fidelity_threshold[0], float(fidelity_threshold[1])],
         "train_accuracy_note": "train accuracy is recorded nowhere and never promoted",
     }
-    stability = {
+    stability: dict[str, object] = {
         "status": "passed" if stability_met else "failed",
         "metric": "coef_stability",
         "observed": float(coef_stability),
@@ -1146,11 +1429,16 @@ def _evaluate_probe(
         "seed_accuracies": [float(item) for item in seed_accuracies],
         "sign_aware": True,
     }
+    if stability_raw is not None:
+        stability["basis"] = "identity-bound-training-set-replicates"
+        stability["replicates"] = stability_replicates
     selectivity = {
         "status": "passed" if selectivity_met else "failed",
         "metric": "leakage_gap",
         "observed": float(gap),
-        "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
         "randomized_accuracy": float(randomized_accuracy),
     }
     leakage = {
@@ -1257,9 +1545,7 @@ def _evaluate_tcav(
             control_outcomes={},
             central_outcomes={},
             missing_evidence=tuple(gaps),
-            limitations=(
-                "a CAV direction is not a semantic label; causal claims require 80.18+ trials",
-            ),
+            limitations=("a CAV direction is not a semantic label; causal claims require 80.18+ trials",),
             reason=reason,
             provenance=provenance,
         )
@@ -1278,9 +1564,13 @@ def _evaluate_tcav(
         return _blocked("tcav matrices must be 2D", ("missing-evidence:tcav-matrices",))
     dim = int(grad_matrix.shape[1])
     if concept_x.shape[1] != dim or reference_x.shape[1] != dim:
-        return _blocked("tcav concept/reference dimensions disagree with gradients", ("missing-evidence:tcav-matrices",))
+        return _blocked(
+            "tcav concept/reference dimensions disagree with gradients", ("missing-evidence:tcav-matrices",)
+        )
     if concept_x.shape[0] < 2 or reference_x.shape[0] < 2:
-        return _blocked("tcav concept/reference sets need at least two examples each", ("missing-evidence:tcav-matrices",))
+        return _blocked(
+            "tcav concept/reference sets need at least two examples each", ("missing-evidence:tcav-matrices",)
+        )
     direction_method = bundle.get("direction_method")
     method_name = str(direction_method) if isinstance(direction_method, str) and direction_method else "mean_diff"
     if method_name not in ("mean_diff", "linear_separator"):
@@ -1339,13 +1629,17 @@ def _evaluate_tcav(
     cav_stability = float(min(cav_cosines)) if cav_cosines else 0.0
     stability_threshold = hypothesis.threshold_for("cav_stability")
     stability_met = (
-        True if stability_threshold is None else _passes(stability_threshold[0], cav_stability, float(stability_threshold[1]))
+        True
+        if stability_threshold is None
+        else _passes(stability_threshold[0], cav_stability, float(stability_threshold[1]))
     )
 
     # Selectivity: headline fraction minus the averaged permutation
     # random-concept baseline, executed inside the central stream; plus the
     # declared negative concepts scored without refitting.
-    pooled = np.concatenate([np.asarray(concept_x, dtype=np.float64), np.asarray(reference_x, dtype=np.float64)], axis=0)
+    pooled = np.concatenate(
+        [np.asarray(concept_x, dtype=np.float64), np.asarray(reference_x, dtype=np.float64)], axis=0
+    )
     n_concept = int(concept_x.shape[0])
 
     def _random_selectivity(rng: np.random.Generator) -> Mapping[str, float]:
@@ -1382,7 +1676,8 @@ def _evaluate_tcav(
             f"tcav random-concept control failed: {random_outcome.reason}",
             (f"failed-control:{bound_controls['selectivity']}",),
         )
-    random_score = float(random_outcome.observed["random_score"])
+    tcav_observed = _require_observed_floats(random_outcome.observed, name="tcav random-concept control observed")
+    random_score = tcav_observed["random_score"]
     selectivity_margin = float(headline - random_score)
     selectivity_threshold = hypothesis.threshold_for("selectivity_margin")
     selectivity_met = (
@@ -1416,16 +1711,16 @@ def _evaluate_tcav(
             negative_scores[str(negative_id)] = float(
                 np.mean((np.asarray(grad_matrix, dtype=np.float64) @ np.asarray(neg_direction.direction).ravel()) > 0)
             )
-    negative_margin = (
-        min((float(headline - score) for score in negative_scores.values()), default=float("nan"))
-    )
+    negative_margin = min((float(headline - score) for score in negative_scores.values()), default=float("nan"))
 
     # Sample-level uncertainty: resample directional-derivative signs without
     # refitting the CAV, under the central repetition schedule.
     signs = (np.asarray(sensitivities).ravel() > 0).astype(np.float64)
 
-    def _tcav_draw(rng: np.random.Generator) -> float:
+    def _tcav_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n_examples, size=n_examples)
+
         return float(np.mean(signs[positions]))
 
     _, tcav_interval = _central_bootstrap(
@@ -1452,8 +1747,12 @@ def _evaluate_tcav(
     else:
         try:
             _check_disjoint_identities(
-                tuple(concept_ids) if isinstance(concept_ids, Sequence) and not isinstance(concept_ids, (str, bytes)) else [],
-                tuple(reference_ids) if isinstance(reference_ids, Sequence) and not isinstance(reference_ids, (str, bytes)) else [],
+                tuple(concept_ids)
+                if isinstance(concept_ids, Sequence) and not isinstance(concept_ids, (str, bytes))
+                else [],
+                tuple(reference_ids)
+                if isinstance(reference_ids, Sequence) and not isinstance(reference_ids, (str, bytes))
+                else [],
                 hypothesis_id=hypothesis.hypothesis_id,
             )
         except ExplanationError as exc:
@@ -1469,7 +1768,10 @@ def _evaluate_tcav(
     stability_id = bound_controls["stability"]
     selectivity_id = bound_controls["selectivity"]
     separability_gate = fidelity_threshold if fidelity_threshold is not None else (">=", 0.7)
-    neg_gate = "below_threshold" if separability_gate[0] == ">=" else "meets_threshold"
+    neg_gate: Literal["below_threshold", "meets_threshold"] = (
+        "below_threshold" if separability_gate[0] == ">=" else "meets_threshold"
+    )
+    assert neg_gate in ("below_threshold", "meets_threshold")
     fidelity_comparator = "meets_threshold" if separability_gate[0] == ">=" else "below_threshold"
     specs.append(
         _ControlSpec(
@@ -1552,9 +1854,12 @@ def _evaluate_tcav(
         "status": "passed" if selectivity_met else "failed",
         "metric": "selectivity_margin",
         "observed": float(selectivity_margin),
-        "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
         "random_score": float(random_score),
         "negative_scores": {key: float(value) for key, value in negative_scores.items()},
+        "negative_margin": float(negative_margin),
     }
     leakage = {
         "status": "passed" if leakage_passed and not blocked else "failed",
@@ -1691,9 +1996,9 @@ def _evaluate_integrated_gradients(
     if completeness_error is None or completeness_delta is None:
         return _blocked("ig completeness report is missing", ("missing-evidence:completeness",))
     try:
-        completeness_value = float(completeness_error)
-        delta_value = float(completeness_delta)
-    except (TypeError, ValueError):
+        completeness_value = _require_float(completeness_error, name="ig completeness_error")
+        delta_value = _require_float(completeness_delta, name="ig completeness_delta")
+    except ExplanationError:
         return _blocked("ig completeness report is non-numeric", ("missing-evidence:completeness",))
     if not np.isfinite(completeness_value) or not np.isfinite(delta_value):
         return _blocked("ig completeness report is non-finite", ("missing-evidence:completeness",))
@@ -1798,7 +2103,9 @@ def _evaluate_integrated_gradients(
     except ExplanationError as exc:
         return _blocked(str(exc), ("missing-evidence:selectivity-controls",))
     if off_target.shape[0] != flat.shape[0] or random_baseline.shape[0] != flat.shape[0]:
-        return _blocked("ig selectivity controls disagree on attribution shape", ("missing-evidence:selectivity-controls",))
+        return _blocked(
+            "ig selectivity controls disagree on attribution shape", ("missing-evidence:selectivity-controls",)
+        )
     off_cosine = _cosine(flat, off_target)
     random_cosine = _cosine(flat, random_baseline)
     selectivity_margin = float(min(1.0 - off_cosine, 1.0 - random_cosine))
@@ -1813,8 +2120,10 @@ def _evaluate_integrated_gradients(
     # recomputing any gradient, under the central repetition schedule.
     coordinate_magnitudes = np.abs(flat)
 
-    def _attribution_draw(rng: np.random.Generator) -> float:
+    def _attribution_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, flat.shape[0], size=flat.shape[0])
+
         return float(np.sum(coordinate_magnitudes[positions]) / flat.shape[0])
 
     _, attribution_interval = _central_bootstrap(
@@ -1918,7 +2227,9 @@ def _evaluate_integrated_gradients(
         "status": "passed" if selectivity_met else "failed",
         "metric": "selectivity_margin",
         "observed": float(selectivity_margin),
-        "threshold": None if selectivity_threshold is None else [selectivity_threshold[0], float(selectivity_threshold[1])],
+        "threshold": None
+        if selectivity_threshold is None
+        else [selectivity_threshold[0], float(selectivity_threshold[1])],
         "off_target_cosine": float(off_cosine),
         "random_cosine": float(random_cosine),
     }
@@ -1978,7 +2289,9 @@ def _evaluate_integrated_gradients(
         central_outcomes=dict(central_records),
         missing_evidence=(),
         limitations=("attribution is not causation; causal claims require 80.18+ trials",),
-        reason="declared target/baseline run meets completeness, stability, selectivity, leakage, and uncertainty gates",
+        reason=(
+            "declared target/baseline run meets completeness, stability, selectivity, leakage, and uncertainty gates"
+        ),
         provenance=dict(provenance),
     )
 
@@ -2010,14 +2323,14 @@ def _omitted(hypothesis_id: str, method: str, *, reason: str) -> ExplanationEvid
 
 
 def evaluate_explanations(
-    hypotheses: Sequence[ExplanationHypothesis],
-    inputs: MethodInputs,
+    hypotheses: object,
+    inputs: object,
     *,
-    repetitions: int = 20,
-    confidence_level: float = 0.95,
-    evaluation_seed: int = 0,
-    control_seed: int = 1,
-    training_seed: int = 0,
+    repetitions: object = 20,
+    confidence_level: object = 0.95,
+    evaluation_seed: object = 0,
+    control_seed: object = 1,
+    training_seed: object = 0,
 ) -> tuple[tuple[ExplanationEvidence, ...], dict[str, object]]:
     """Evaluate every declared hypothesis exactly once and return evidence plus payload.
 
@@ -2027,25 +2340,22 @@ def evaluate_explanations(
     any callback, and one shared context feeds decisions and payload
     assembly. Uncertainty resamples already-fitted state without refitting.
     """
-    if not hypotheses:
-        raise ExplanationError("hypotheses must declare at least one hypothesis")
-    declared = tuple(hypotheses)
+    declared = list(_require_hypotheses(hypotheses))
     identities = [item.hypothesis_id for item in declared]
     if len(set(identities)) != len(identities):
         raise ExplanationError("hypothesis identifiers must be unique")
-    for item in declared:
-        if not isinstance(item, ExplanationHypothesis):
-            raise ExplanationError("hypotheses must hold ExplanationHypothesis items")
-    if not isinstance(inputs, MethodInputs):
-        raise ExplanationError("inputs must be a MethodInputs")
-    if isinstance(repetitions, bool) or not isinstance(repetitions, int) or repetitions < 2:
+    resolved_inputs = _require_inputs(inputs)
+    run_repetitions = _require_count(repetitions, name="repetitions")
+    if run_repetitions < 2:
         raise ExplanationError("repetitions must be at least two")
-    if not 0.0 < float(confidence_level) < 1.0:
-        raise ExplanationError("confidence_level must be between zero and one")
+    run_confidence = _require_confidence_level(confidence_level)
+    run_evaluation_seed = _require_count(evaluation_seed, name="evaluation_seed")
+    run_control_seed = _require_count(control_seed, name="control_seed")
+    run_training_seed = _require_count(training_seed, name="training_seed")
     for name, seed in (
-        ("evaluation_seed", evaluation_seed),
-        ("control_seed", control_seed),
-        ("training_seed", training_seed),
+        ("evaluation_seed", run_evaluation_seed),
+        ("control_seed", run_control_seed),
+        ("training_seed", run_training_seed),
     ):
         _non_negative_int(seed, name=name)
 
@@ -2056,27 +2366,30 @@ def evaluate_explanations(
                 f"method {hypothesis.method!r} is not an 80.16 explanation method; "
                 "feature methods belong to the 80.17 feature explainer"
             )
-        bundle = inputs.callback_for(hypothesis.method)
+        bundle = resolved_inputs.callback_for(hypothesis.method)
         if bundle is None:
             evidence.append(
                 _omitted(
                     hypothesis.hypothesis_id,
                     hypothesis.method,
-                    reason=f"method {hypothesis.method!r} has no declared input for hypothesis {hypothesis.hypothesis_id!r}; callback uncalled",
+                    reason=(
+                        f"method {hypothesis.method!r} has no declared input "
+                        f"for hypothesis {hypothesis.hypothesis_id!r}; callback uncalled"
+                    ),
                 )
             )
             continue
-        resolved = _require_mapping(bundle, hypothesis_id=hypothesis.hypothesis_id)
+        resolved = bundle
         if hypothesis.method == "probe":
             evidence.append(
                 _evaluate_probe(
                     hypothesis,
                     resolved,
-                    repetitions=int(repetitions),
-                    confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed),
-                    control_seed=int(control_seed),
-                    training_seed=int(training_seed),
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
+                    training_seed=run_training_seed,
                 )
             )
         elif hypothesis.method == "tcav":
@@ -2084,10 +2397,10 @@ def evaluate_explanations(
                 _evaluate_tcav(
                     hypothesis,
                     resolved,
-                    repetitions=int(repetitions),
-                    confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed),
-                    control_seed=int(control_seed),
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
                 )
             )
         else:
@@ -2095,10 +2408,10 @@ def evaluate_explanations(
                 _evaluate_integrated_gradients(
                     hypothesis,
                     resolved,
-                    repetitions=int(repetitions),
-                    confidence_level=float(confidence_level),
-                    evaluation_seed=int(evaluation_seed),
-                    control_seed=int(control_seed),
+                    repetitions=run_repetitions,
+                    confidence_level=run_confidence,
+                    evaluation_seed=run_evaluation_seed,
+                    control_seed=run_control_seed,
                 )
             )
     context = _ExplainContext(
@@ -2111,18 +2424,23 @@ def evaluate_explanations(
     return tuple(evidence), payload
 
 
-def explanation_payload(context: _ExplainContext) -> dict[str, object]:
+def explanation_payload(context: object) -> dict[str, object]:
     """Assemble the canonical machine-readable explain-stage payload."""
     if not isinstance(context, _ExplainContext):
         raise ExplanationError("context must be a _ExplainContext")
-    records = [record.to_dict() for record in context.evidence]
+    typed = context
+    hypotheses = _require_hypotheses(typed.hypotheses)
+    records_evidence = _require_evidence_items(typed.evidence)
+    records = [record.to_dict() for record in records_evidence]
     try:
         canonical_json(records)
     except PortableNodeError as exc:
         raise ExplanationError(f"explanation records are not canonical JSON: {exc}") from exc
+    central = _require_central_outcomes(typed.central_outcomes)
+    controls = _require_control_outcomes(typed.control_outcomes)
     return {
         "explainer_version": EXPLAINER_VERSION,
-        "hypotheses": [hypothesis.to_dict() for hypothesis in context.hypotheses],
+        "hypotheses": [hypothesis.to_dict() for hypothesis in hypotheses],
         "evidence": records,
         "family_evidence": {
             record.hypothesis_id: {
@@ -2130,14 +2448,14 @@ def explanation_payload(context: _ExplainContext) -> dict[str, object]:
                 "claim_allowed": record.claim_allowed,
                 "method": record.method,
             }
-            for record in context.evidence
+            for record in records_evidence
         },
-        "controls": {key: dict(value) for key, value in context.central_outcomes.items()},
-        "control_outcomes": {key: dict(value) for key, value in context.control_outcomes.items()},
+        "controls": {key: dict(entry) if isinstance(entry, Mapping) else {} for key, entry in central.items()},
+        "control_outcomes": {key: dict(entry) for key, entry in controls.items()},
     }
 
 
-def explanation_report_items(evidence: Sequence[ExplanationEvidence]) -> list[dict[str, object]]:
+def explanation_report_items(evidence: object) -> list[dict[str, object]]:
     """Render evidence records as shape-compatible report claim fragments.
 
     Phase-IV boundary (not 80.21/80.22): items pass ``validate_report_shape``
@@ -2155,21 +2473,20 @@ def explanation_report_items(evidence: Sequence[ExplanationEvidence]) -> list[di
     ``unsupported`` claim status so the report validator fails closed on
     any promotion attempt.
     """
+    raw_records = _require_evidence_items(evidence)
     items: list[dict[str, object]] = []
-    for record in evidence:
-        if not isinstance(record, ExplanationEvidence):
-            raise ExplanationError("evidence must hold ExplanationEvidence items")
-        status = "supported" if record.outcome == "supported" else (
-            "inconclusive" if record.outcome == "inconclusive" else "unsupported"
+    for record in raw_records:
+        status = (
+            "supported"
+            if record.outcome == "supported"
+            else ("inconclusive" if record.outcome == "inconclusive" else "unsupported")
         )
         items.append(
             {
                 "id": f"explanation-{record.hypothesis_id}",
                 "kind": "explanation",
                 "status": status,
-                "claim": (
-                    f"{record.method} explanation for hypothesis {record.hypothesis_id}: {record.reason}"
-                ),
+                "claim": (f"{record.method} explanation for hypothesis {record.hypothesis_id}: {record.reason}"),
                 "evidence_refs": [f"explanation-{record.hypothesis_id}-record"],
                 "control_refs": sorted(record.control_outcomes),
                 "causal": False,
@@ -2181,15 +2498,15 @@ def explanation_report_items(evidence: Sequence[ExplanationEvidence]) -> list[di
 
 
 def make_explain_executor(
-    hypotheses: Sequence[ExplanationHypothesis],
-    inputs: MethodInputs,
+    hypotheses: object,
+    inputs: object,
     *,
-    repetitions: int = 20,
-    confidence_level: float = 0.95,
-    evaluation_seed: int = 0,
-    control_seed: int = 1,
-    training_seed: int = 0,
-    version: str = EXPLAINER_VERSION,
+    repetitions: object = 20,
+    confidence_level: object = 0.95,
+    evaluation_seed: object = 0,
+    control_seed: object = 1,
+    training_seed: object = 0,
+    version: object = EXPLAINER_VERSION,
 ) -> Any:
     """Build a supplied ``explain``-stage executor bound to declared hypotheses.
 
@@ -2212,38 +2529,35 @@ def make_explain_executor(
     enters ``DiagnosticWorkflow`` itself.
     """
     _non_empty_string(version, name="version")
-    frozen = tuple(hypotheses)
-    if not frozen:
-        raise ExplanationError("hypotheses must declare at least one hypothesis")
-    for item in frozen:
-        if not isinstance(item, ExplanationHypothesis):
-            raise ExplanationError("hypotheses must hold ExplanationHypothesis items")
+    raw_frozen = _require_hypotheses(hypotheses)
+    frozen: list[ExplanationHypothesis] = []
+    for item in raw_frozen:
         if item.method not in SUPPORTED_METHODS:
             raise ExplanationError(f"method {item.method!r} is not an 80.16 explanation method")
-    if not isinstance(inputs, MethodInputs):
-        raise ExplanationError("inputs must be a MethodInputs")
+        frozen.append(item)
+    resolved_inputs = _require_inputs(inputs)
+
     def _execute(invocation: StageInvocation) -> StageOutput:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
-        from latent_anything._diagnostic_workflow import StageOutput as _StageOutput
 
         if invocation.stage != "explain":
             raise _ContractError(f"explain executor received stage {invocation.stage!r}")
         _check_explain_identities(frozen, invocation)
         _, payload = evaluate_explanations(
-            frozen,
-            inputs,
-            repetitions=int(repetitions),
-            confidence_level=float(confidence_level),
-            evaluation_seed=int(evaluation_seed),
-            control_seed=int(control_seed),
-            training_seed=int(training_seed),
+            tuple(frozen),
+            resolved_inputs,
+            repetitions=_require_count(repetitions, name="repetitions"),
+            confidence_level=_require_confidence_level(confidence_level),
+            evaluation_seed=_require_count(evaluation_seed, name="evaluation_seed"),
+            control_seed=_require_count(control_seed, name="control_seed"),
+            training_seed=_require_count(training_seed, name="training_seed"),
         )
         aggregate: Literal["completed", "unsupported"] = "completed"
-        if payload["evidence"] and all(
-            str(item.get("outcome")) == "omitted" for item in cast(Sequence[Mapping[str, object]], payload["evidence"])
-        ):
+        raw_evidence = _require_payload_evidence(payload.get("evidence"))
+        rows = list(raw_evidence)
+        if rows and all(str(item.get("outcome")) == "omitted" for item in rows):
             aggregate = "unsupported"
-        return _StageOutput(stage="explain", outcome=aggregate, payload=payload, artifact_refs=())
+        return StageOutput(stage="explain", outcome=aggregate, payload=payload, artifact_refs=())
 
     _execute.explainer_version = version  # type: ignore[attr-defined]
     return _execute

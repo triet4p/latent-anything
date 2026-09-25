@@ -32,6 +32,7 @@ A report is accepted only when every check below holds:
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from collections.abc import Mapping, Sequence
 from typing import cast
@@ -43,6 +44,7 @@ from latent_anything._representation_taxonomy import (
     load_taxonomy,
     validate_taxonomy,
 )
+from latent_anything._run_record_codec import canonical_json
 
 _PASSED = "passed"
 _FAILED = "failed"
@@ -59,6 +61,12 @@ def _mapping(value: object, *, name: str) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise ReportValidationError(f"{name} must be an object")
     return cast(Mapping[str, object], value)
+
+
+def _require_digest(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or _DIGEST_RE.match(value) is None:
+        raise ReportValidationError(f"{name} is malformed")
+    return value
 
 
 def _string(value: object, *, name: str) -> str:
@@ -127,6 +135,8 @@ def validate_diagnostic_report(
     control_outcomes: Mapping[str, str] | None = None,
     artifacts: Mapping[str, bytes] | None = None,
     artifact_digests: Mapping[str, str] | None = None,
+    target_evidence: Mapping[str, object] | None = None,
+    target_provenance: Mapping[str, object] | None = None,
 ) -> None:
     """Validate an externally supplied report against frozen contracts.
 
@@ -135,7 +145,10 @@ def validate_diagnostic_report(
     applicability state, ``control_outcomes`` maps each manifest control
     to ``"passed"`` or ``"failed"``, ``artifacts`` carries artifact
     payloads by reference, and ``artifact_digests`` carries the expected
-    SHA-256 hex digest per artifact reference.
+    SHA-256 hex digest per artifact reference. ``target_evidence`` carries
+    the v2 content-addressed target-label record; ``target_provenance`` is
+    the matching evaluated-target provenance from the detect-stage payload.
+    Under the legacy v1 contract both v2 inputs must be absent.
     """
 
     validate_report_shape(report)
@@ -205,12 +218,19 @@ def validate_diagnostic_report(
 
     digests = dict(artifact_digests) if artifact_digests is not None else {}
     for reference, digest in digests.items():
-        if not isinstance(digest, str) or _DIGEST_RE.match(digest) is None:
-            raise ReportValidationError(f"artifact digest for {reference} is malformed")
+        _require_digest(digest, name=f"artifact digest for {reference}")
     payloads = dict(artifacts) if artifacts is not None else {}
 
     by_id: dict[str, list[tuple[str, Mapping[str, object]]]] = {}
-    for section in ("symptoms", "localization", "hypotheses", "statistical_evidence", "interventions", "comparisons", "claims"):
+    for section in (
+        "symptoms",
+        "localization",
+        "hypotheses",
+        "statistical_evidence",
+        "interventions",
+        "comparisons",
+        "claims",
+    ):
         for row in _rows(report, section):
             by_id.setdefault(_row_id(row, section=section), []).append((section, row))
 
@@ -258,7 +278,15 @@ def validate_diagnostic_report(
         for reference in _string_list(capture.get("artifact_refs"), name=f"captures[{index}].artifact_refs"):
             _resolve_evidence(reference)
 
-    for section in ("symptoms", "localization", "hypotheses", "statistical_evidence", "interventions", "comparisons", "claims"):
+    for section in (
+        "symptoms",
+        "localization",
+        "hypotheses",
+        "statistical_evidence",
+        "interventions",
+        "comparisons",
+        "claims",
+    ):
         for row in _rows(report, section):
             if "evidence_refs" in row:
                 for reference in _string_list(row.get("evidence_refs"), name=f"{section}.evidence_refs"):
@@ -300,12 +328,134 @@ def validate_diagnostic_report(
         if not decision.claim_allowed or decision.outcome != "supported":
             incomplete_families.add(family_id)
     captures = [_mapping(item, name="capture") for item in raw_captures]
+    target_block = report.get("target_evidence")
+    resolved_target: Mapping[str, object] | None = None
+    if target_block is not None or target_evidence is not None:
+        from latent_anything._target_evidence import (
+            ACTIVATION_AXES,
+            EVIDENCE_CONTRACT_V2,
+            PROVENANCE_TOKENS,
+            TargetEvidenceError,
+            validate_target_record,
+        )
+
+        declared = _mapping(target_block, name="target_evidence")
+        supplied = _mapping(target_evidence, name="target_evidence input")
+        record = {key: value for key, value in supplied.items() if key != "record_digest"}
+        for key in ("target_id", "rule", "rule_digest", "rule_kind", "label_digest", "sample_digest", "record_digest"):
+            if _string(declared.get(key), name=f"target_evidence.{key}") != _string(
+                supplied.get(key), name=f"target input.{key}"
+            ):
+                raise ReportValidationError(f"target evidence {key} disagrees with the validated record")
+        try:
+            validate_target_record(record)
+        except TargetEvidenceError as exc:
+            raise ReportValidationError(f"target evidence is invalid: {exc}") from exc
+        if _string(report.get("evidence_contract"), name="report.evidence_contract") != EVIDENCE_CONTRACT_V2:
+            raise ReportValidationError("target evidence must declare the v2 evidence contract")
+        if target_provenance is None:
+            raise ReportValidationError("v2 target evidence requires evaluated detect-stage provenance")
+        evaluated = _mapping(target_provenance, name="evaluated target provenance")
+        for key in (
+            "capacity",
+            "eval_indices",
+            "eval_split_identity",
+            "label_digest",
+            "labels",
+            "rule",
+            "rule_kind",
+            "sample_digest",
+            "sample_ids",
+            "target_id",
+            "train_indices",
+            "train_split_identity",
+        ):
+            if record.get(key) != evaluated.get(key):
+                raise ReportValidationError(f"target evidence does not match evaluated target provenance at {key}")
+        record_digest = _require_digest(supplied.get("record_digest"), name="target record digest")
+        record_bytes = canonical_json(record) + b"\n"
+        if record_digest != hashlib.sha256(record_bytes).hexdigest():
+            raise ReportValidationError("target record digest does not match the validated record bytes")
+        target_ref = f"target-{_string(record.get('target_id'), name='target_id')}-record"
+        target_refs = _string_list(declared.get("evidence_refs"), name="target_evidence.evidence_refs")
+        if target_refs != [target_ref]:
+            raise ReportValidationError("target evidence must reference its single content-addressed record")
+        _resolve_evidence(target_ref)
+        if digests.get(target_ref) != record_digest or payloads.get(target_ref) != record_bytes:
+            raise ReportValidationError("target record blob disagrees with its content-addressed evidence")
+        expected_split = _string(dataset.get("split_identity"), name="dataset.split_identity")
+        if _string(record.get("dataset_split_identity"), name="target dataset split") != expected_split:
+            raise ReportValidationError("target dataset split disagrees with the manifest")
+        expected_representation = _string(representation.get("identity"), name="representation.identity")
+        if _string(record.get("representation_identity"), name="target representation") != expected_representation:
+            raise ReportValidationError("target representation disagrees with the manifest")
+        raw_representation_axes = representation.get("axes")
+        if not isinstance(raw_representation_axes, Sequence) or isinstance(raw_representation_axes, (str, bytes)):
+            raise ReportValidationError("manifest representation axes are invalid")
+        declared_axes = {
+            _string(_mapping(axis, name=f"representation.axes[{index}]").get("name"), name="axis.name")
+            for index, axis in enumerate(raw_representation_axes)
+        }
+        allowed_capture_axes = declared_axes | {"feature"}
+        resolved_target = record
+        for index, capture in enumerate(captures):
+            capture_axis_names = _string_list(capture.get("axes"), name=f"captures[{index}].axes")
+            axes = set(capture_axis_names)
+            smuggled = axes & set(PROVENANCE_TOKENS)
+            if smuggled:
+                raise ReportValidationError(f"capture axes must not alias target provenance: {sorted(smuggled)}")
+            unknown = axes - set(ACTIVATION_AXES)
+            if unknown:
+                raise ReportValidationError(f"capture axes contain unknown axis: {sorted(unknown)}")
+            undeclared = axes - allowed_capture_axes
+            if undeclared:
+                raise ReportValidationError(
+                    f"capture axes are not declared by the manifest or binder: {sorted(undeclared)}"
+                )
+            capture_references = _string_list(
+                capture.get("artifact_refs"),
+                name=f"captures[{index}].artifact_refs",
+            )
+            if not capture_references:
+                raise ReportValidationError(f"captures[{index}] must reference its bound capture record")
+            for reference in capture_references:
+                capture_bytes = payloads.get(reference)
+                if not isinstance(capture_bytes, bytes):
+                    raise ReportValidationError(f"bound capture artifact {reference!r} is missing")
+                try:
+                    capture_document = json.loads(capture_bytes.decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    raise ReportValidationError(f"bound capture artifact {reference!r} is not valid JSON") from exc
+                bound_payload = _mapping(capture_document, name=f"capture artifact {reference}")
+                bound_capture = _mapping(bound_payload.get("capture"), name=f"capture artifact {reference}.capture")
+                bound_axes = _string_list(
+                    bound_capture.get("axes"),
+                    name=f"capture artifact {reference}.capture.axes",
+                )
+                if capture_axis_names != bound_axes:
+                    raise ReportValidationError(
+                        f"capture axes disagree with the registered bound capture at captures[{index}]"
+                    )
+                for report_key, bound_key in (
+                    ("capture_id", "capture_id"),
+                    ("dataset_split", "split_identity"),
+                    ("model_revision", "model_revision"),
+                    ("representation_identity", "representation_identity"),
+                ):
+                    if capture.get(report_key) != bound_capture.get(bound_key):
+                        raise ReportValidationError(
+                            f"capture provenance disagrees with its bound artifact at captures[{index}].{report_key}"
+                        )
     for family_id in sorted(set(metric_family.values())):
         if applied_applicability[family_id] != "applicable":
             continue
         needed = set(required_axes.get(family_id, ()))
         for index, capture in enumerate(captures):
             axes = set(_string_list(capture.get("axes"), name=f"captures[{index}].axes"))
+            if resolved_target is not None:
+                # Target evidence supplies distinct sample identity and label
+                # provenance; neither is fabricated as an activation-array axis.
+                axes |= {"sample", "label"}
             if not needed.issubset(axes):
                 mismatched_families.add(family_id)
 

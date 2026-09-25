@@ -43,6 +43,8 @@ _TOP_FIELDS = frozenset(
         "claims",
     }
 )
+_OPTIONAL_TOP_FIELDS = frozenset({"target_evidence", "evidence_contract"})
+"""Optional v2 evidence-contract fields. Frozen v1 reports omit both."""
 
 
 class DiagnosticReportValidationError(ValueError):
@@ -90,7 +92,7 @@ def _validate_schema_shape(schema: Mapping[str, object]) -> None:
         raise DiagnosticReportValidationError("unsupported diagnostic-report schema version or identity")
     if schema.get("status") != "frozen" or schema.get("report_status") != "declared":
         raise DiagnosticReportValidationError("diagnostic-report schema is not frozen")
-    required = set(_string_list(schema.get("required_fields"), name="required_fields", minimum=1))
+    required = frozenset(_string_list(schema.get("required_fields"), name="required_fields", minimum=1))
     if required != _TOP_FIELDS:
         raise DiagnosticReportValidationError("schema required fields are incomplete or unstable")
     kinds = set(_string_list(schema.get("evidence_kinds"), name="evidence_kinds", minimum=1))
@@ -103,7 +105,7 @@ def _validate_schema_shape(schema: Mapping[str, object]) -> None:
     for kind in _EVIDENCE_KINDS:
         _mapping(semantics.get(kind), name=f"evidence_semantics.{kind}")
     sections = _mapping(schema.get("sections"), name="sections")
-    if set(sections) != _TOP_FIELDS - {"schema_version", "report_id", "status"}:
+    if frozenset(sections) != _TOP_FIELDS - {"schema_version", "report_id", "status"}:
         raise DiagnosticReportValidationError("report sections are incomplete or unstable")
     fail_closed = _mapping(schema.get("fail_closed"), name="fail_closed")
     for case_name in ("malformed", "conflated_evidence_kind", "unsupported_conclusion"):
@@ -130,7 +132,9 @@ def _validate_capture_provenance(value: Mapping[str, object]) -> None:
     if isinstance(captures, (str, bytes)) or not isinstance(captures, Sequence) or not captures:
         raise DiagnosticReportValidationError("capture_provenance.captures must be non-empty")
     identities: set[str] = set()
-    fields = frozenset({"capture_id", "model_revision", "dataset_split", "representation_identity", "axes", "artifact_refs"})
+    fields = frozenset(
+        {"capture_id", "model_revision", "dataset_split", "representation_identity", "axes", "artifact_refs"}
+    )
     for index, raw_capture in enumerate(captures):
         capture = _mapping(raw_capture, name=f"capture_provenance.captures[{index}]")
         _exact_keys(capture, fields, name=f"capture_provenance.captures[{index}]")
@@ -167,7 +171,19 @@ def _validate_status(value: object, *, name: str) -> str:
 def _validate_claims(value: object) -> None:
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
         raise DiagnosticReportValidationError("claims must be a non-empty list")
-    fields = frozenset({"id", "kind", "status", "claim", "evidence_refs", "control_refs", "causal", "claim_allowed", "missing_evidence"})
+    fields = frozenset(
+        {
+            "id",
+            "kind",
+            "status",
+            "claim",
+            "evidence_refs",
+            "control_refs",
+            "causal",
+            "claim_allowed",
+            "missing_evidence",
+        }
+    )
     identities: set[str] = set()
     for index, raw_claim in enumerate(value):
         claim = _mapping(raw_claim, name=f"claims[{index}]")
@@ -213,6 +229,43 @@ def _validate_claims(value: object) -> None:
             raise DiagnosticReportValidationError("observed claims require evidence references")
 
 
+def _validate_target_evidence_shape(value: object, contract: object) -> None:
+    """Validate the optional v2 target-evidence block without 80.4 semantics."""
+    if value is None and contract is None:
+        return
+    if (value is None) != (contract is None):
+        raise DiagnosticReportValidationError("target_evidence and evidence_contract must appear together")
+    if contract not in ("diagnostic-evidence-v1", "diagnostic-evidence-v2"):
+        raise DiagnosticReportValidationError("evidence_contract must be a known evidence version")
+    if contract == "diagnostic-evidence-v1" and value is not None:
+        raise DiagnosticReportValidationError("v1 reports must not declare target_evidence")
+    block = _mapping(value, name="target_evidence")
+    expected = frozenset(
+        {
+            "evidence_refs",
+            "label_digest",
+            "record_digest",
+            "rule",
+            "rule_digest",
+            "rule_kind",
+            "sample_digest",
+            "target_id",
+        }
+    )
+    _exact_keys(block, expected, name="target_evidence")
+    for field in ("target_id", "rule", "rule_kind"):
+        _string(block.get(field), name=f"target_evidence.{field}")
+    for field in ("rule_digest", "label_digest", "sample_digest", "record_digest"):
+        digest = block.get(field)
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise DiagnosticReportValidationError(f"target_evidence.{field} must be a 64-character hex digest")
+    refs = block.get("evidence_refs")
+    if isinstance(refs, (str, bytes)) or not isinstance(refs, Sequence) or not refs:
+        raise DiagnosticReportValidationError("target_evidence.evidence_refs must be non-empty")
+    for item in refs:
+        _string(item, name="target_evidence.evidence_refs")
+
+
 def validate_report_shape(report: Mapping[str, object], *, schema: Mapping[str, object] | None = None) -> None:
     """Validate report structure and evidence-kind semantics without 80.4 checks."""
 
@@ -220,9 +273,13 @@ def validate_report_shape(report: Mapping[str, object], *, schema: Mapping[str, 
         load_schema()
     else:
         _validate_schema_shape(schema)
-    _exact_keys(report, _TOP_FIELDS, name="report")
-    if report.get("schema_version") != SCHEMA_VERSION or report.get("status") != "declared":
-        raise DiagnosticReportValidationError("report must use the frozen schema and declared status")
+    actual = frozenset(report)
+    if not actual.issuperset(_TOP_FIELDS) or not actual.issubset(_TOP_FIELDS | _OPTIONAL_TOP_FIELDS):
+        raise DiagnosticReportValidationError(
+            f"report fields are invalid (missing {sorted(_TOP_FIELDS - actual)}; "
+            f"unexpected {sorted(actual - _TOP_FIELDS - _OPTIONAL_TOP_FIELDS)})"
+        )
+    _validate_target_evidence_shape(report.get("target_evidence"), report.get("evidence_contract"))
     _string(report.get("report_id"), name="report.report_id")
     _validate_capture_provenance(_mapping(report.get("capture_provenance"), name="capture_provenance"))
     _validate_item_list(
@@ -243,7 +300,12 @@ def validate_report_shape(report: Mapping[str, object], *, schema: Mapping[str, 
         _string(row.get("selection"), name=f"localization[{index}].selection")
         _string_list(row.get("evidence_refs"), name=f"localization[{index}].evidence_refs")
         confidence = row.get("confidence")
-        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not math.isfinite(float(confidence)) or not 0.0 <= float(confidence) <= 1.0:
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not math.isfinite(float(confidence))
+            or not 0.0 <= float(confidence) <= 1.0
+        ):
             raise DiagnosticReportValidationError(f"localization[{index}].confidence must be between zero and one")
         _validate_status(row.get("status"), name=f"localization[{index}].status")
     _validate_item_list(

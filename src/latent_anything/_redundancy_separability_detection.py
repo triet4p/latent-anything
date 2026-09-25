@@ -62,25 +62,26 @@ from typing import Any, Literal, cast
 
 import numpy as np
 
-from latent_anything.probes import _fast_probe
-
 from latent_anything._benchmark_manifest import (
     BenchmarkManifestValidationError,
     validate_manifest,
 )
 from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
 from latent_anything._portable_contract import PortableNodeError, canonical_json
-from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
+from latent_anything._representation_taxonomy import evaluate_claim
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
+from latent_anything._statistical_controls import derive_stream_seed as _derive_stream
 from latent_anything._statistical_controls import execute_plan as _execute_plan
 from latent_anything._statistical_controls import failed_required as _failed_required
+from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
 from latent_anything._statistical_controls import run_permutation_control as _central_control
-from latent_anything._representation_taxonomy import evaluate_claim
+from latent_anything._target_evidence import TargetEvidenceError, target_label_digest, target_sample_digest
 from latent_anything.diagnostics import DiagnosticRequest
 from latent_anything.dictionary_learning import DictionaryLearning, DictionaryLearningConfig
 from latent_anything.geometry import fit_covariance
 from latent_anything.latent_value import LatentValue
+from latent_anything.probes import LinearProbeConfig, LinearProbeResult
 
 SUPPORTED_FAMILIES: tuple[str, ...] = ("redundancy_superposition", "separability_probe_leakage")
 """Detector scope for this task. Exact taxonomy identifiers; nothing else is evaluated."""
@@ -238,6 +239,107 @@ class DetectionConfig:
         }
 
 
+def _require_metric_ids(value: object, *, control_id: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"control {control_id!r} metric_ids must be a non-empty list")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DetectionError(f"control {control_id!r} metric_ids must be strings")
+    return items
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+    from latent_anything._diagnostic_workflow import StageInvocation as _Invocation
+
+    if not isinstance(value, _Invocation):
+        raise _ContractError("detect executor requires a StageInvocation")
+    return value
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+
+    if not isinstance(value, DiagnosticRequest):
+        raise _ContractError("detect executor requires a DiagnosticRequest")
+    return value
+
+
+def _require_bool(value: object) -> bool:
+    if not isinstance(value, bool):
+        raise DetectionError("claim_allowed must be boolean")
+    return value
+
+
+def _require_observed(value: object) -> Mapping[str, float]:
+    if not isinstance(value, Mapping):
+        raise DetectionError("central control observed must be a mapping")
+    return value
+
+
+def _require_config(value: object) -> DetectionConfig:
+    if not isinstance(value, DetectionConfig):
+        raise DetectionError("config must be a DetectionConfig")
+    return value
+
+
+def _require_target(value: object) -> LabeledBatch | LatentValue:
+    if not isinstance(value, (LabeledBatch, LatentValue)):
+        raise DetectionError("target must be a LabeledBatch or LatentValue")
+    return value
+
+
+def _require_batch(value: object) -> LatentValue:
+    if not isinstance(value, LatentValue):
+        raise DetectionError("value must be a LatentValue")
+    return value
+
+
+def _require_tuple(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError(f"{name} must be a tuple")
+    return tuple(value)
+
+
+def _require_sample_ids(value: object) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError("sample_ids must be a tuple of non-empty strings")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, str) or not item.strip():
+            raise DetectionError(f"sample_ids[{position}] must be a non-empty string")
+    return items
+
+
+def _require_indices(value: object, *, name: str) -> tuple[int, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise DetectionError(f"{name} must be a tuple of integer positions")
+    items = tuple(value)
+    for item in items:
+        if isinstance(item, bool) or not isinstance(item, (int, np.integer)):
+            raise DetectionError(f"{name} must hold integer positions")
+    return tuple(int(item) for item in items)
+
+
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise DetectionError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_repetitions(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 2:
+        raise DetectionError("uncertainty.repetitions must be at least two")
+    return int(value)
+
+
+def _require_seed_rows(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DetectionError(f"{name} must be a non-empty list")
+    return tuple(value)
+
+
 def _mapping(value: object, *, name: str) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise DetectionError(f"{name} must be an object")
@@ -256,12 +358,9 @@ def _non_negative_int(value: object, *, name: str) -> int:
     return value
 
 
-def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping[str, object]) -> DetectionConfig:
+def detection_config_from_manifest(request: object, manifest: Mapping[str, object]) -> DetectionConfig:
     """Parse the predeclared detector configuration; fail closed on any gap."""
-    if not isinstance(request, DiagnosticRequest):
-        raise DetectionError("request must be a DiagnosticRequest")
-    if not isinstance(manifest, Mapping):
-        raise DetectionError("manifest must be a mapping")
+    request = _require_request(request)
     try:
         validate_manifest(manifest)
     except BenchmarkManifestValidationError as exc:
@@ -322,27 +421,24 @@ def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping
             raise DetectionError(f"required control {control_id!r} links undeclared metrics")
 
     uncertainty = _mapping(manifest.get("uncertainty"), name="uncertainty")
-    repetitions = uncertainty.get("repetitions")
-    if isinstance(repetitions, bool) or not isinstance(repetitions, int) or repetitions < 2:
-        raise DetectionError("uncertainty.repetitions must be at least two")
+    repetitions = _require_repetitions(uncertainty.get("repetitions"))
     seeds = _mapping(manifest.get("seeds"), name="seeds")
-    training = seeds.get("training")
-    evaluation = seeds.get("evaluation")
-    controls_seed = seeds.get("controls")
-    for field_name, field_value in (("training", training), ("evaluation", evaluation), ("controls", controls_seed)):
-        if isinstance(field_value, (str, bytes)) or not isinstance(field_value, Sequence) or not field_value:
-            raise DetectionError(f"seeds.{field_name} must be a non-empty list")
+    training = _require_seed_rows(seeds.get("training"), name="seeds.training")
+    evaluation = _require_seed_rows(seeds.get("evaluation"), name="seeds.evaluation")
+    controls_seed = _require_seed_rows(seeds.get("controls"), name="seeds.controls")
     return DetectionConfig(
         manifest_id=manifest_id,
         family_ids=family_ids,
         metric_ids=tuple(request.controls.metric_ids),
         thresholds=tuple(thresholds),
-        required_controls=tuple(control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True),
+        required_controls=tuple(
+            control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True
+        ),
         optional_controls=tuple(
             control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is not True
         ),
         control_metrics={
-            control_id: tuple(str(item) for item in cast(Sequence[object], manifest_controls[control_id]["metric_ids"]))
+            control_id: _require_metric_ids(manifest_controls[control_id]["metric_ids"], control_id=control_id)
             for control_id in manifest_controls
         },
         control_kinds={control_id: str(manifest_controls[control_id]["kind"]) for control_id in manifest_controls},
@@ -360,7 +456,7 @@ class FamilyDetection:
 
     family_id: str
     outcome: ClaimOutcome
-    claim_allowed: bool
+    claim_allowed: object
     observed_metrics: Mapping[str, float]
     threshold_pass: Mapping[str, bool]
     control_outcomes: Mapping[str, str]
@@ -373,8 +469,7 @@ class FamilyDetection:
             raise DetectionError(f"unsupported family: {self.family_id!r}")
         if self.outcome not in ("supported", "inconclusive", "unsupported"):
             raise DetectionError(f"unsupported claim outcome: {self.outcome!r}")
-        if not isinstance(self.claim_allowed, bool):
-            raise DetectionError("claim_allowed must be boolean")
+        object.__setattr__(self, "claim_allowed", _require_bool(self.claim_allowed))
         object.__setattr__(self, "observed_metrics", MappingProxyType(dict(self.observed_metrics)))
         object.__setattr__(self, "threshold_pass", MappingProxyType(dict(self.threshold_pass)))
         object.__setattr__(self, "control_outcomes", MappingProxyType(dict(self.control_outcomes)))
@@ -401,9 +496,8 @@ class FamilyDetection:
         }
 
 
-def _batch_matrix(value: LatentValue) -> np.ndarray:
-    if not isinstance(value, LatentValue):
-        raise DetectionError("value must be a LatentValue")
+def _batch_matrix(value: object) -> np.ndarray:
+    value = _require_batch(value)
     data = np.asarray(value.to_numpy(), dtype=np.float64)
     if data.ndim != 2:
         raise DetectionError(f"incompatible rank: detection requires one 2D (n_samples, dim) batch, got {data.ndim}D")
@@ -424,24 +518,27 @@ class LabeledBatch:
     leakage or overlap fails closed at construction.
     """
 
-    value: LatentValue
-    labels: tuple[object, ...]
-    sample_ids: tuple[str, ...]
-    train_indices: tuple[int, ...]
-    eval_indices: tuple[int, ...]
+    value: object
+    labels: object
+    sample_ids: object
+    train_indices: object
+    eval_indices: object
     train_split_identity: str
     eval_split_identity: str
     capacity: str
+    target_id: str | None = None
+    target_rule: str | None = None
+    target_rule_kind: str | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.value, LatentValue):
-            raise DetectionError("value must be a LatentValue")
-        matrix = _batch_matrix(self.value)
+        value = _require_batch(self.value)
+        matrix = _batch_matrix(value)
+        object.__setattr__(self, "value", value)
         n = int(matrix.shape[0])
-        labels = tuple(self.labels) if not isinstance(self.labels, tuple) else self.labels
-        sample_ids = tuple(self.sample_ids) if not isinstance(self.sample_ids, tuple) else self.sample_ids
-        train_indices = tuple(self.train_indices) if not isinstance(self.train_indices, tuple) else self.train_indices
-        eval_indices = tuple(self.eval_indices) if not isinstance(self.eval_indices, tuple) else self.eval_indices
+        labels = _require_tuple(self.labels, name="labels")
+        sample_ids = _require_sample_ids(self.sample_ids)
+        train_indices = _require_indices(self.train_indices, name="train_indices")
+        eval_indices = _require_indices(self.eval_indices, name="eval_indices")
         object.__setattr__(self, "labels", labels)
         object.__setattr__(self, "sample_ids", sample_ids)
         object.__setattr__(self, "train_indices", train_indices)
@@ -450,9 +547,6 @@ class LabeledBatch:
             raise DetectionError(f"labels cover {len(labels)} samples but the batch holds {n}")
         if len(sample_ids) != n:
             raise DetectionError(f"sample_ids cover {len(sample_ids)} samples but the batch holds {n}")
-        for position, sample_id in enumerate(sample_ids):
-            if not isinstance(sample_id, str) or not sample_id.strip():
-                raise DetectionError(f"sample_ids[{position}] must be a non-empty string")
         if len(set(sample_ids)) != n:
             raise DetectionError("sample identities must be unique within one batch")
         label_array = np.asarray(labels)
@@ -465,8 +559,6 @@ class LabeledBatch:
         for name, indices in (("train_indices", train_indices), ("eval_indices", eval_indices)):
             if not indices:
                 raise DetectionError(f"{name} must not be empty")
-            if any(isinstance(item, bool) or not isinstance(item, (int, np.integer)) for item in indices):
-                raise DetectionError(f"{name} must hold integer positions")
             if any(int(item) < 0 or int(item) >= n for item in indices):
                 raise DetectionError(f"{name} holds a position outside the batch of {n} samples")
             if len(set(int(item) for item in indices)) != len(indices):
@@ -482,6 +574,54 @@ class LabeledBatch:
         if self.train_split_identity == self.eval_split_identity:
             raise DetectionError("train/eval split identities must be distinct")
         _non_empty_string(self.capacity, name="capacity")
+        target_values = (self.target_id, self.target_rule, self.target_rule_kind)
+        if any(value is not None for value in target_values):
+            if any(value is None for value in target_values):
+                raise DetectionError("target_id, target_rule, and target_rule_kind must be supplied together")
+            _non_empty_string(self.target_id, name="target_id")
+            _non_empty_string(self.target_rule, name="target_rule")
+            _non_empty_string(self.target_rule_kind, name="target_rule_kind")
+
+
+def _fit_probe(
+    train_x: np.ndarray,
+    train_y: np.ndarray,
+    test_x: np.ndarray,
+    test_y: np.ndarray,
+    random_state: int,
+) -> LinearProbeResult:
+    """Fit one bounded linear probe (training-only scaler + C=1.0/lbfgs/balanced logreg)."""
+    from sklearn.linear_model import LogisticRegression  # type: ignore[reportMissingTypeStubs]
+    from sklearn.preprocessing import StandardScaler  # type: ignore[reportMissingTypeStubs]
+
+    scaler = StandardScaler()
+    train_scaled: np.ndarray = np.asarray(scaler.fit_transform(np.asarray(train_x, dtype=np.float64)))
+    test_scaled: np.ndarray = np.asarray(scaler.transform(np.asarray(test_x, dtype=np.float64)))
+    classifier = LogisticRegression(
+        C=1.0, solver="lbfgs", max_iter=1000, random_state=int(random_state), class_weight="balanced"
+    )
+    classifier.fit(train_scaled, np.asarray(train_y))
+    predictions: np.ndarray = np.asarray(classifier.predict(test_scaled))
+    probabilities: np.ndarray = np.asarray(classifier.predict_proba(test_scaled))
+    coefficients: np.ndarray = np.asarray(classifier.coef_)
+    n_classes = len(np.unique(np.asarray(train_y)))
+    return LinearProbeResult(
+        accuracy=float(np.mean(predictions == np.asarray(test_y))),
+        val_accuracy=0.0,
+        classes=np.unique(np.asarray(train_y)),
+        predictions=predictions,
+        probabilities=probabilities,
+        coefficients=coefficients[0] if n_classes == 2 and coefficients.shape[0] == 1 else coefficients,
+        intercept=np.asarray(classifier.intercept_),
+        n_iter=int(classifier.n_iter_[0]) if hasattr(classifier, "n_iter_") else 0,
+        train_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        val_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        test_indices=np.full(len(np.asarray(train_x)) + len(np.asarray(test_x)), False),
+        feature_means=np.asarray(scaler.mean_) if hasattr(scaler, "mean_") else None,
+        feature_stds=np.asarray(scaler.scale_) if hasattr(scaler, "scale_") else None,
+        config=LinearProbeConfig(random_state=int(random_state)),
+        provenance={"method": "diagnostic-probe"},
+    )
 
 
 def _probe_predictions(
@@ -489,15 +629,14 @@ def _probe_predictions(
 ) -> np.ndarray:
     """Fit one bounded linear probe on train rows and predict query rows.
 
-    Thin wrapper over the shared ``probes._fast_probe`` seam (identical
-    estimator: training-only ``StandardScaler``, ``LogisticRegression``
+    Bounded local probe fit (training-only ``StandardScaler``, ``LogisticRegression``
     C=1.0/lbfgs/balanced). ``query_y`` is used only for the shared seam's
     accuracy bookkeeping; this detector recomputes accuracy against its own
     leakage-safe labels. Exactly one classifier fit per call; callers must not
     refit to obtain intervals.
     """
     try:
-        result = _fast_probe(
+        result = _fit_probe(
             np.asarray(train_x, dtype=np.float64),
             np.asarray(train_y),
             np.asarray(query_x, dtype=np.float64),
@@ -507,25 +646,6 @@ def _probe_predictions(
     except ValueError as exc:
         raise DetectionError(f"probe fit failed: {exc}") from exc
     return np.asarray(result.predictions)
-
-
-def _summarize(
-    samples: Sequence[float], *, repetitions: int, seed: int, confidence_level: float
-) -> dict[str, object]:
-    """Summarize draws through the central statistical-control executor.
-
-    Strict seam: the percentile math lives in
-    ``_statistical_controls.summarize_interval``; this local alias keeps the
-    detector's one-fit call sites unchanged while the central executor owns
-    the interval contract.
-    """
-    from latent_anything._statistical_controls import summarize_interval as _summarize_central
-
-    return dict(
-        _summarize_central(
-            samples, repetitions=repetitions, seed=seed, confidence_level=confidence_level
-        )
-    )
 
 
 @dataclass(frozen=True)
@@ -572,10 +692,13 @@ class _DetectionContext:
     counterexample_redundancy: _RedundancyEvaluation | None
     control_outcomes: Mapping[str, str]
     central_outcomes: Mapping[str, object]
+    target_provenance: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "control_outcomes", dict(self.control_outcomes))
         object.__setattr__(self, "central_outcomes", dict(self.central_outcomes))
+        if self.target_provenance is not None:
+            object.__setattr__(self, "target_provenance", dict(self.target_provenance))
 
 
 def _accuracy_of(predictions: np.ndarray, truths: np.ndarray) -> float:
@@ -593,15 +716,12 @@ def _randomized_statistic(
 ) -> Mapping[str, float]:
     """Permute labels with the supplied central RNG, refit, and score once."""
     shuffled_train_y = np.asarray(rng.permutation(np.asarray(train_y).ravel()))
-    randomized_predictions = _probe_predictions(
-        train_x, shuffled_train_y, eval_x, eval_y, seed=training_seed
-    )
+    randomized_predictions = _probe_predictions(train_x, shuffled_train_y, eval_x, eval_y, seed=training_seed)
     randomized = _accuracy_of(randomized_predictions, eval_y)
     return {
         "heldout_accuracy": float(heldout),
         "leakage_gap": float(float(heldout) - randomized),
         "randomized_accuracy": float(randomized),
-        "randomized_predictions": [float(item) for item in np.asarray(randomized_predictions).ravel()],
     }
 
 
@@ -613,10 +733,15 @@ def _evaluate_separability(
     Four probe fits via the shared ``probes._fast_probe`` seam; uncertainty
     resamples the fitted predictions without refitting.
     """
-    matrix = _batch_matrix(batch.value)
-    labels = np.asarray(batch.labels)
-    train = np.asarray([int(item) for item in batch.train_indices], dtype=np.int64)
-    evaluation = np.asarray([int(item) for item in batch.eval_indices], dtype=np.int64)
+    batch_value = _require_batch(batch.value)
+    matrix = _batch_matrix(batch_value)
+    labels = np.asarray(_require_tuple(batch.labels, name="labels"))
+    train = np.asarray(
+        [int(item) for item in _require_indices(batch.train_indices, name="train_indices")], dtype=np.int64
+    )
+    evaluation = np.asarray(
+        [int(item) for item in _require_indices(batch.eval_indices, name="eval_indices")], dtype=np.int64
+    )
     train_x, train_y = matrix[train], labels[train]
     eval_x, eval_y = matrix[evaluation], labels[evaluation]
     if len(np.unique(train_y)) < 2:
@@ -637,29 +762,42 @@ def _evaluate_separability(
         kind="randomized",
         metric_ids=("heldout-probe-accuracy", "probe-leakage-gap"),
         expected_behavior="one seeded permutation of the training labels",
-        statistic=lambda rng: _randomized_statistic(rng, train_x, train_y, eval_x, eval_y, heldout, config.training_seed),
+        statistic=lambda rng: _randomized_statistic(
+            rng, train_x, train_y, eval_x, eval_y, heldout, config.training_seed
+        ),
     )
     if _shuffle_outcome.status != "recorded":
         raise DetectionError("central randomized control must record, not gate")
-    randomized = float(_shuffle_outcome.observed["randomized_accuracy"])
-    gap = float(_shuffle_outcome.observed["leakage_gap"])
-    _randomized_detail = dict(_shuffle_outcome.detail or {})
-    randomized_predictions = np.asarray(
-        [float(item) for item in _randomized_detail["randomized_predictions"]], dtype=np.float64
+    shuffle_observed = _require_observed(_shuffle_outcome.observed)
+    randomized = _finite_number(shuffle_observed["randomized_accuracy"], name="randomized_accuracy")
+    gap = _finite_number(shuffle_observed["leakage_gap"], name="leakage_gap")
+    randomized_predictions = _probe_predictions(
+        train_x,
+        np.asarray(
+            np.random.default_rng(
+                _derive_stream(config.control_seed, "control-label-randomization", role="control")
+            ).permutation(np.asarray(train_y).ravel())
+        ),
+        eval_x,
+        eval_y,
+        seed=config.training_seed,
     )
-
 
     swap_predictions = _probe_predictions(eval_x, eval_y, train_x, train_y, seed=config.training_seed)
     swap = _accuracy_of(swap_predictions, train_y)
 
-    negative_matrix = _batch_matrix(negative.value)
+    negative_matrix = _batch_matrix(_require_batch(negative.value))
     if negative_matrix.shape[1] != matrix.shape[1]:
         raise DetectionError(
             f"negative control has {negative_matrix.shape[1]} features but the target has {matrix.shape[1]}"
         )
-    negative_labels = np.asarray(negative.labels)
-    negative_train = np.asarray([int(item) for item in negative.train_indices], dtype=np.int64)
-    negative_eval = np.asarray([int(item) for item in negative.eval_indices], dtype=np.int64)
+    negative_labels = np.asarray(_require_tuple(negative.labels, name="labels"))
+    negative_train = np.asarray(
+        [int(item) for item in _require_indices(negative.train_indices, name="train_indices")], dtype=np.int64
+    )
+    negative_eval = np.asarray(
+        [int(item) for item in _require_indices(negative.eval_indices, name="eval_indices")], dtype=np.int64
+    )
     negative_predictions = _probe_predictions(
         negative_matrix[negative_train],
         negative_labels[negative_train],
@@ -678,12 +816,16 @@ def _evaluate_separability(
     flat_randomized = np.asarray(randomized_predictions).ravel()
     flat_truth = np.asarray(eval_y).ravel()
 
-    def _heldout_draw(rng: np.random.Generator) -> float:
+    def _heldout_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n_eval, size=n_eval)
+
         return float(np.mean(flat_eval[positions] == flat_truth[positions]))
 
-    def _gap_draw(rng: np.random.Generator) -> float:
+    def _gap_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, n_eval, size=n_eval)
+
         held_draw = float(np.mean(flat_eval[positions] == flat_truth[positions]))
         random_draw = float(np.mean(flat_randomized[positions] == flat_truth[positions]))
         return float(held_draw - random_draw)
@@ -802,8 +944,10 @@ def _evaluate_redundancy(matrix: np.ndarray, config: DetectionConfig) -> _Redund
     n = int(matrix.shape[0])
     gain_array = np.asarray(gains, dtype=np.float64)
 
-    def _correlation_draw(rng: np.random.Generator) -> float:
+    def _correlation_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         rows = rng.integers(0, n, size=n)
+
         block = matrix[rows]
         _, covariance = fit_covariance(block, reg_coef=1e-6)
         scales = np.sqrt(np.diag(covariance))
@@ -811,8 +955,10 @@ def _evaluate_redundancy(matrix: np.ndarray, config: DetectionConfig) -> _Redund
         off_diagonal = np.abs(correlation - np.diag(np.diag(correlation)))
         return float(np.max(off_diagonal))
 
-    def _sharing_draw(rng: np.random.Generator) -> float:
+    def _sharing_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         positions = rng.integers(0, gain_array.shape[0], size=gain_array.shape[0])
+
         return float(np.max(gain_array[positions]))
 
     _, correlation_interval = _central_bootstrap(
@@ -883,9 +1029,10 @@ def _evaluate_context(
         assert labeled is not None
         negative_id: str | None = None
         for control_id in (*config.required_controls, *config.optional_controls):
-            if config.control_kinds[control_id] in _SUPPLIED_KINDS and METRIC_FAMILY.get(
-                config.control_metrics[control_id][0], ""
-            ) == "separability_probe_leakage":
+            if (
+                config.control_kinds[control_id] in _SUPPLIED_KINDS
+                and METRIC_FAMILY.get(config.control_metrics[control_id][0], "") == "separability_probe_leakage"
+            ):
                 negative_id = control_id
         if negative_id is None:
             raise DetectionError("separability evaluation requires a supplied non-separable negative control")
@@ -911,24 +1058,33 @@ def _evaluate_context(
                 _sep_supplied[control_id] = {"capacity": gate_value}
                 _sep_specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="capacity", required=required,
+                        control_id=control_id,
+                        kind="capacity",
+                        required=required,
                         metric_ids=("capacity",),
                         expected_behavior="declared probe capacity bound",
-                        comparator="meets_threshold", threshold_value=1.0,
+                        comparator="meets_threshold",
+                        threshold_value=1.0,
                     )
                 )
                 continue
             if kind == "randomized":
                 gate_threshold = _sep_thresholds.get("probe-leakage-gap")
-                gate = "meets_threshold" if gate_threshold is None or gate_threshold.comparator == ">=" else "below_threshold"
+                gate = (
+                    "meets_threshold"
+                    if gate_threshold is None or gate_threshold.comparator == ">="
+                    else "below_threshold"
+                )
                 bound = float(gate_threshold.value) if gate_threshold is not None else 0.0
                 _sep_supplied[control_id] = {"probe-leakage-gap": float(separability.leakage_gap)}
                 _sep_specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="randomized", required=required,
+                        control_id=control_id,
+                        kind="randomized",
+                        required=required,
                         metric_ids=("probe-leakage-gap",),
                         expected_behavior="label-randomization gap under predeclared threshold",
-                        comparator=gate,  # type: ignore[arg-type]
+                        comparator=gate,
                         threshold_value=bound,
                     )
                 )
@@ -939,10 +1095,13 @@ def _evaluate_context(
                     _sep_supplied[control_id] = {"heldout-probe-accuracy": float(separability.negative_accuracy)}
                     _sep_specs.append(
                         _ControlSpec(
-                            control_id=control_id, kind="counterexample", required=required,
+                            control_id=control_id,
+                            kind="counterexample",
+                            required=required,
                             metric_ids=("heldout-probe-accuracy",),
                             expected_behavior="non-separable negative must not meet headline accuracy",
-                            comparator="below_threshold", threshold_value=0.0,
+                            comparator="below_threshold",
+                            threshold_value=0.0,
                         )
                     )
                     continue
@@ -950,17 +1109,21 @@ def _evaluate_context(
                 _sep_supplied[control_id] = {"heldout-probe-accuracy": float(separability.negative_accuracy)}
                 _sep_specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="counterexample", required=required,
+                        control_id=control_id,
+                        kind="counterexample",
+                        required=required,
                         metric_ids=("heldout-probe-accuracy",),
                         expected_behavior="non-separable negative must not meet headline accuracy",
-                        comparator=gate,  # type: ignore[arg-type]
+                        comparator=gate,
                         threshold_value=float(held_threshold.value),
                     )
                 )
                 continue
             _sep_specs.append(
                 _ControlSpec(
-                    control_id=control_id, kind="null", required=required,
+                    control_id=control_id,
+                    kind="null",
+                    required=required,
                     metric_ids=linked,
                     expected_behavior="split direction recorded without gating",
                 )
@@ -998,13 +1161,18 @@ def _evaluate_context(
         # from that ControlOutcome (no replay, no second transform).
         _null_declared: str | None = None
         for _candidate in (*config.required_controls, *config.optional_controls):
-            if config.control_kinds[_candidate] == "randomized" and set(config.control_metrics[_candidate]) & {"feature-max-abs-correlation", "sparse-feature-sharing"}:
+            if config.control_kinds[_candidate] == "randomized" and set(config.control_metrics[_candidate]) & {
+                "feature-max-abs-correlation",
+                "sparse-feature-sharing",
+            }:
                 _null_declared = _candidate
                 break
         _null_statistic_holder: dict[str, object] = {}
 
-        def _null_statistic(rng: np.random.Generator) -> Mapping[str, object]:
+        def _null_statistic(rng: object) -> Mapping[str, object]:
+            rng = _require_generator(rng)
             shuffled = np.column_stack([rng.permutation(matrix[:, j]) for j in range(matrix.shape[1])])
+
             evaluated = _evaluate_redundancy(shuffled, config)
             # Store the already-evaluated result: the single central transform
             # plus its full evaluation is consumed directly below (one
@@ -1033,11 +1201,15 @@ def _evaluate_context(
                     evaluation_seed=config.evaluation_seed,
                     control_seed=config.control_seed,
                     training_seed=config.training_seed,
-                    controls=(_ControlSpec(
-                        control_id=_null_declared_id, kind="randomized", required=False,
-                        metric_ids=("feature-max-abs-correlation", "sparse-feature-sharing"),
-                        expected_behavior="independent-per-column permutation destroys joint structure",
-                    ),),
+                    controls=(
+                        _ControlSpec(
+                            control_id=_null_declared_id,
+                            kind="randomized",
+                            required=False,
+                            metric_ids=("feature-max-abs-correlation", "sparse-feature-sharing"),
+                            expected_behavior="independent-per-column permutation destroys joint structure",
+                        ),
+                    ),
                 ),
                 {},
                 statistics={_null_declared_id: _null_statistic},  # type: ignore[dict-item]
@@ -1067,7 +1239,9 @@ def _evaluate_context(
             if kind in ("null",) or "swap" in control_id or "shuffle" in control_id.lower():
                 specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="null", required=required,
+                        control_id=control_id,
+                        kind="null",
+                        required=required,
                         metric_ids=linked,
                         expected_behavior="split/sequence direction recorded without gating",
                     )
@@ -1079,10 +1253,13 @@ def _evaluate_context(
                     supplied_parts[control_id] = None
                     specs.append(
                         _ControlSpec(
-                            control_id=control_id, kind="capacity", required=required,
+                            control_id=control_id,
+                            kind="capacity",
+                            required=required,
                             metric_ids=linked,
                             expected_behavior="declared probe capacity bound",
-                            comparator="meets_threshold", threshold_value=1.0,
+                            comparator="meets_threshold",
+                            threshold_value=1.0,
                         )
                     )
                     continue
@@ -1090,10 +1267,13 @@ def _evaluate_context(
                 supplied_parts[control_id] = {"capacity": gate_value}
                 specs.append(
                     _ControlSpec(
-                        control_id=control_id, kind="capacity", required=required,
+                        control_id=control_id,
+                        kind="capacity",
+                        required=required,
                         metric_ids=("capacity",),
                         expected_behavior="declared probe capacity bound",
-                        comparator="meets_threshold", threshold_value=1.0,
+                        comparator="meets_threshold",
+                        threshold_value=1.0,
                     )
                 )
                 continue
@@ -1111,10 +1291,12 @@ def _evaluate_context(
                     }
                     specs.append(
                         _ControlSpec(
-                            control_id=part_id, kind="randomized", required=required,
+                            control_id=part_id,
+                            kind="randomized",
+                            required=required,
                             metric_ids=(gate_metric,),
                             expected_behavior="label-randomization gap under predeclared threshold",
-                            comparator=gate,  # type: ignore[arg-type]
+                            comparator=gate,
                             threshold_value=float(gate_threshold.value),
                         )
                     )
@@ -1136,10 +1318,12 @@ def _evaluate_context(
                     }
                     specs.append(
                         _ControlSpec(
-                            control_id=part_id, kind="randomized", required=required,
+                            control_id=part_id,
+                            kind="randomized",
+                            required=required,
                             metric_ids=(metric_id,),
                             expected_behavior="shuffled null must not meet defect thresholds",
-                            comparator=gate,  # type: ignore[arg-type]
+                            comparator=gate,
                             threshold_value=float(gate_threshold.value),
                         )
                     )
@@ -1147,10 +1331,13 @@ def _evaluate_context(
                 continue
             if kind in _SUPPLIED_KINDS:
                 control_value = supplied[control_id]
-                control_matrix = _batch_matrix(control_value.value if isinstance(control_value, LabeledBatch) else control_value)
+                control_matrix = _batch_matrix(
+                    control_value.value if isinstance(control_value, LabeledBatch) else control_value
+                )
                 if control_matrix.shape[1] != matrix.shape[1]:
                     raise DetectionError(
-                        f"control {control_id!r} has {control_matrix.shape[1]} features but the target has {matrix.shape[1]}"
+                        f"control {control_id!r} has {control_matrix.shape[1]} features"
+                        f" but the target has {matrix.shape[1]}"
                     )
                 evaluated = _evaluate_redundancy(control_matrix, config)
                 if counterexample_redundancy is None:
@@ -1158,7 +1345,9 @@ def _evaluate_context(
                 observed_counter = {
                     "feature-max-abs-correlation": float(evaluated.max_abs_correlation),
                     "sparse-feature-sharing": float(evaluated.sparse_sharing),
-                    "heldout-probe-accuracy": float(separability.negative_accuracy) if separability is not None else 0.0,
+                    "heldout-probe-accuracy": float(separability.negative_accuracy)
+                    if separability is not None
+                    else 0.0,
                 }
                 for metric_id in linked:
                     if metric_id == "heldout-probe-accuracy":
@@ -1176,10 +1365,12 @@ def _evaluate_context(
                     derived_ids[part_id] = control_id
                     specs.append(
                         _ControlSpec(
-                            control_id=part_id, kind="counterexample", required=required,
+                            control_id=part_id,
+                            kind="counterexample",
+                            required=required,
                             metric_ids=(metric_id,),
                             expected_behavior="counterexample must not exhibit the claimed pattern",
-                            comparator=gate,  # type: ignore[arg-type]
+                            comparator=gate,
                             threshold_value=float(gate_threshold.value),
                         )
                     )
@@ -1187,10 +1378,23 @@ def _evaluate_context(
                 continue
             specs.append(
                 _ControlSpec(
-                    control_id=control_id, kind=config.control_kinds[control_id]
-                    if config.control_kinds[control_id] in ("bootstrap", "null", "shuffled", "randomized", "cross_seed", "counterexample", "negative", "capacity", "seed")
+                    control_id=control_id,
+                    kind=config.control_kinds[control_id]
+                    if config.control_kinds[control_id]
+                    in (
+                        "bootstrap",
+                        "null",
+                        "shuffled",
+                        "randomized",
+                        "cross_seed",
+                        "counterexample",
+                        "negative",
+                        "capacity",
+                        "seed",
+                    )
                     else "null",
-                    required=required, metric_ids=linked,
+                    required=required,
+                    metric_ids=linked,
                     expected_behavior="recorded control; not threshold-gated",
                 )
             )
@@ -1216,20 +1420,63 @@ def _evaluate_context(
             parts = [part for part, parent in derived_ids.items() if parent == control_id]
             if not parts:
                 if _null_declared is not None and control_id == _null_declared and _null_outcome is not None:
-                    control_outcomes[control_id] = "passed" if _null_outcome.status in ("passed", "recorded") else "failed"
+                    control_outcomes[control_id] = (
+                        "passed" if _null_outcome.status in ("passed", "recorded") else "failed"
+                    )
                     continue
                 outcome = _central_gating[control_id]
                 control_outcomes[control_id] = "passed" if outcome.status in ("passed", "recorded") else "failed"
                 continue
             statuses = [_central_gating[part].status for part in parts]
-            control_outcomes[control_id] = "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
-        _central_folded: dict[str, object] = {control_id: outcome.to_dict() for control_id, outcome in _central_gating.items()}
-        _blocked = sorted({derived_ids.get(part, part) for part in _failed_required(_central_gating)} & set(config.required_controls))
+            control_outcomes[control_id] = (
+                "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+            )
+        _central_folded: dict[str, object] = {
+            control_id: outcome.to_dict() for control_id, outcome in _central_gating.items()
+        }
+        _blocked = sorted(
+            {derived_ids.get(part, part) for part in _failed_required(_central_gating)} & set(config.required_controls)
+        )
         if _blocked:
             control_outcomes.update({control_id: "failed" for control_id in _blocked})
     _all_central.update(_sep_central)
     _all_central.update(_central_folded)
-    bound_identity = labeled.value.identity if labeled is not None else cast(LatentValue, target).identity
+    bound_value = _require_batch(labeled.value) if labeled is not None else _require_batch(target)
+    bound_identity = bound_value.identity
+    target_provenance: Mapping[str, object] | None = None
+    if labeled is not None:
+        raw_labels = cast(Sequence[object], labeled.labels)
+        label_values = cast(Sequence[int], raw_labels)
+        try:
+            label_digest = target_label_digest(label_values)
+        except TargetEvidenceError:
+            # V1 detection still accepts labels outside v1's integer target-record
+            # schema; v2 persistence then fails closed because no exact binding exists.
+            pass
+        else:
+            sample_ids = cast(Sequence[str], labeled.sample_ids)
+            eval_indices = cast(Sequence[int], labeled.eval_indices)
+            train_indices = cast(Sequence[int], labeled.train_indices)
+            target_data: dict[str, object] = {
+                "capacity": str(labeled.capacity),
+                "eval_indices": [int(item) for item in eval_indices],
+                "eval_split_identity": str(labeled.eval_split_identity),
+                "label_digest": label_digest,
+                "labels": [int(item) for item in label_values],
+                "sample_digest": target_sample_digest(sample_ids),
+                "sample_ids": list(sample_ids),
+                "train_indices": [int(item) for item in train_indices],
+                "train_split_identity": str(labeled.train_split_identity),
+            }
+            if labeled.target_id is not None:
+                target_data.update(
+                    {
+                        "rule": cast(str, labeled.target_rule),
+                        "rule_kind": cast(str, labeled.target_rule_kind),
+                        "target_id": labeled.target_id,
+                    }
+                )
+            target_provenance = target_data
     return _DetectionContext(
         representation_identity=bound_identity,
         separability=separability,
@@ -1238,6 +1485,7 @@ def _evaluate_context(
         counterexample_redundancy=counterexample_redundancy,
         control_outcomes=control_outcomes,
         central_outcomes=_all_central,
+        target_provenance=target_provenance,
     )
 
 
@@ -1282,7 +1530,10 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                         "redundancy_provenance": "not_evaluated",
                     },
                     missing_evidence=("missing-declaration:redundancy_superposition",),
-                    reason="manifest predeclares no redundancy/superposition metrics; refusing to borrow another family's label",
+                    reason=(
+                        "manifest predeclares no redundancy/superposition metrics; "
+                        "refusing to borrow another family's label"
+                    ),
                 )
             )
             continue
@@ -1352,7 +1603,7 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                     threshold_pass=dict(verdicts),
                     control_outcomes=dict(context.control_outcomes),
                     evidence_status=dict(evidence),
-                    missing_evidence=tuple(decision.missing),
+                    missing_evidence=tuple(decision.missing_evidence),
                     reason=decision.reason,
                 )
             )
@@ -1385,7 +1636,10 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                         control_outcomes=dict(context.control_outcomes),
                         evidence_status=dict(evidence),
                         missing_evidence=("inconsistent-evidence:redundancy_superposition",),
-                        reason="correlation without sparse-comparison support cannot promote a redundancy/superposition claim",
+                        reason=(
+                            "correlation without sparse-comparison support "
+                            "cannot promote a redundancy/superposition claim"
+                        ),
                     )
                 )
                 continue
@@ -1427,8 +1681,8 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
 
 
 def detect_families(
-    target: LabeledBatch | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     *,
     controls: Mapping[str, LabeledBatch | LatentValue] | None = None,
 ) -> tuple[FamilyDetection, ...]:
@@ -1438,10 +1692,8 @@ def detect_families(
     separate :func:`detection_payload` call evaluates twice. Production paths
     (including :func:`make_detect_executor`) must use :func:`evaluate_detection`.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(target, (LabeledBatch, LatentValue)):
-        raise DetectionError("target must be a LabeledBatch or LatentValue")
+    config = _require_config(config)
+    target = _require_target(target)
     supplied = dict(controls or {})
     return _decide(_evaluate_context(target, config, supplied), config)
 
@@ -1503,19 +1755,23 @@ def detection_payload(
                 "sparse_sharing": float(resolved.counterexample_redundancy.sparse_sharing),
             }
         measurements["redundancy"] = redundancy_block
-    return {
+    payload: dict[str, object] = {
         "config": config.to_dict(),
         "control_metrics": supplied_metrics,
-        "controls": {control_id: dict(outcome) for control_id, outcome in resolved.central_outcomes.items()},
+        "controls": {
+            control_id: dict(cast(Mapping[str, object], outcome))
+            for control_id, outcome in resolved.central_outcomes.items()
+        },
         "families": [detection.to_dict() for detection in detections],
         "family_evidence": {detection.family_id: dict(detection.evidence_status) for detection in detections},
         "measurements": measurements,
     }
+    if resolved.target_provenance is not None:
+        payload["target_provenance"] = dict(resolved.target_provenance)
+    return payload
 
 
-def _control_table(
-    context: _DetectionContext, config: DetectionConfig
-) -> dict[str, dict[str, float]]:
+def _control_table(context: _DetectionContext, config: DetectionConfig) -> dict[str, dict[str, float]]:
     """Record per-control metric observations without refitting anything."""
     table: dict[str, dict[str, float]] = {}
     evaluation = context.separability
@@ -1555,8 +1811,8 @@ def _control_table(
 
 
 def evaluate_detection(
-    target: LabeledBatch | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     controls: Mapping[str, LabeledBatch | LatentValue],
 ) -> tuple[tuple[FamilyDetection, ...], dict[str, object]]:
     """Evaluate one input plus controls exactly once and return decisions plus payload.
@@ -1572,20 +1828,20 @@ def evaluate_detection(
     must not be composed naively in production paths, since that composition
     would evaluate everything twice.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    if not isinstance(target, (LabeledBatch, LatentValue)):
-        raise DetectionError("target must be a LabeledBatch or LatentValue")
+    config = _require_config(config)
+    target = _require_target(target)
     supplied = dict(controls)
     context = _evaluate_context(target, config, supplied)
     detections = _decide(context, config)
-    payload = detection_payload(detections, config, target, control_metrics=_control_table(context, config), context=context)
+    payload = detection_payload(
+        detections, config, target, control_metrics=_control_table(context, config), context=context
+    )
     return detections, payload
 
 
 def make_detect_executor(
-    target: LabeledBatch | LatentValue,
-    config: DetectionConfig,
+    target: object,
+    config: object,
     *,
     controls: Mapping[str, LabeledBatch | LatentValue] | None = None,
     version: str = "redundancy-separability-detector-v1",
@@ -1600,19 +1856,18 @@ def make_detect_executor(
     gating. No algorithm enters ``DiagnosticWorkflow`` itself.
     """
     _non_empty_string(version, name="version")
-    if not isinstance(target, (LabeledBatch, LatentValue)):
-        raise DetectionError("target must be a LabeledBatch or LatentValue")
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
-    frozen_target = target
+    frozen_target = _require_target(target)
+    config = _require_config(config)
     frozen_controls = dict(controls or {})
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
 
+        invocation = _require_invocation(invocation)
         if invocation.stage != "detect":
             raise _ContractError(f"detect executor received stage {invocation.stage!r}")
-        if invocation.request.manifest_id != config.manifest_id:
+        request = _require_request(invocation.request)
+        if request.manifest_id != config.manifest_id:
             raise _ContractError("detect executor manifest identity mismatch")
         _, payload = evaluate_detection(frozen_target, config, frozen_controls)
         aggregate_outcome: Literal["completed", "unsupported"] = "completed"

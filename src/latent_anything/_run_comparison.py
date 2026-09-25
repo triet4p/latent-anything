@@ -26,11 +26,12 @@ seeds vs ``manifest_seed_identity``, diagnostic config vs
 ``detect_config_identity`` of the prior detect payload, manifest/schema
 identity vs the manifest, taxonomy identity vs the prior localize family,
 axes vs the bound capture axes, and the metric fields vs the spec's own
-representation/task metrics. Metrics must be request-declared and
-manifest-declared (the representation metric additionally equals the prior
-localize metric and is carried by a non-omitted prior explain row; the task
-metric must appear in prior detect metric evidence). Request-declared
-comparisons, sides, and metric sets must match the declared specs exactly;
+representation/task metrics. Metrics must be manifest-declared and request-declared
+by the comparison; the representation metric additionally must be selected for
+detection, equal the prior localize metric, and be carried by a non-omitted prior
+explain row. The task metric is evaluated on the aligned comparison sides and
+does not have to be a detector metric. Request-declared comparisons, sides, and
+metric sets must match the declared specs exactly;
 prior capture/detect/localize/explain/intervene records must be present and
 structurally intact. Missing or duplicate sides, mismatched alignment,
 invented metric/config identities, non-finite tolerances, and malformed
@@ -78,7 +79,7 @@ import numpy as np
 from latent_anything._diagnostic_workflow import StageContractError, StageInvocation, StageOutput
 from latent_anything._portable_contract import PortableNodeError, canonical_json
 from latent_anything._statistical_controls import derive_stream_seed, run_bootstrap
-from latent_anything.diagnostics import ComparisonRequest, DiagnosticRequest
+from latent_anything.diagnostics import CaptureSelection, ComparisonRequest, ControlSelection, DiagnosticRequest
 
 ALIGNMENT_FIELDS: tuple[str, ...] = (
     "axes",
@@ -130,6 +131,240 @@ def _finite(value: object, *, name: str) -> float:
     return float(value)
 
 
+def _require_prior(value: object) -> tuple[StageOutput, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise ComparisonError("invocation prior outputs must be StageOutput items")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, StageOutput):
+            raise ComparisonError("invocation prior outputs must be StageOutput items")
+    return items
+
+
+def _require_capture_payload(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError("the prior capture payload must carry a bound capture under the 'capture' key")
+    return value
+
+
+def _require_detect_config(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError("prior detect payload must declare a config object")
+    return value
+
+
+def _require_mapping(value: object, *, name: str, error: type[ValueError] = ComparisonError) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise error(f"{name} must be a mapping")
+    return value
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    if not isinstance(value, DiagnosticRequest):
+        raise StageContractError("compare executor requires a DiagnosticRequest")
+    return value
+
+
+def _require_manifest(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError("compare executor requires a manifest mapping")
+    return value
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    if not isinstance(value, StageInvocation):
+        raise StageContractError("compare executor requires a StageInvocation")
+    return value
+
+
+def _require_seed_rows(value: object, *, role: str) -> Sequence[object]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError(f"compare executor requires manifest seeds.{role}")
+    return value
+
+
+def _require_seed_int(value: object, *, role: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise StageContractError(f"manifest seeds.{role}[0] must be a non-negative integer")
+    return int(value)
+
+
+def _require_controls(value: object) -> ControlSelection:
+    if not isinstance(value, ControlSelection):
+        raise StageContractError("compare executor requires declared controls")
+    return value
+
+
+def _require_capture_selection(value: object) -> CaptureSelection:
+    if not isinstance(value, CaptureSelection):
+        raise StageContractError("compare executor requires a capture selection")
+    return value
+
+
+def _require_stage_str(value: object, *, name: str) -> str:
+    if not isinstance(value, str):
+        raise StageContractError(f"{name} must be a string")
+    return value
+
+
+def _require_non_empty(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise StageContractError(f"{name} must be a non-empty string")
+    return value
+
+
+def _require_metric_list(value: object) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        return ()
+    return tuple(value)
+
+
+def _require_trials(value: object) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError("prior intervene payload must declare recorded trials")
+    return tuple(value)
+
+
+def _require_conclusions(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping) or not value:
+        raise StageContractError("prior intervene payload must declare recorded conclusions")
+    return value
+
+
+def _require_sequence(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise StageContractError(f"{name} must be a sequence")
+    return tuple(value)
+
+
+def _require_spec_list(value: object) -> tuple[ComparisonSpec, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ComparisonError("comparisons must be a sequence of ComparisonSpec items")
+    items = tuple(value)
+    if not items:
+        raise ComparisonError("comparisons must declare at least one comparison")
+    for position, item in enumerate(items):
+        if not isinstance(item, ComparisonSpec):
+            raise ComparisonError(f"comparisons[{position}] must be a ComparisonSpec")
+    return items
+
+
+def _require_record_list(value: object) -> tuple[Mapping[str, object], ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ComparisonError("records must be a sequence of comparison records")
+    items = tuple(value)
+    for position, item in enumerate(items):
+        if not isinstance(item, Mapping):
+            raise ComparisonError(f"records[{position}] must be an object")
+    return items
+
+
+def _require_evidence_row(value: object, hypothesis_id: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError(f"explain hypothesis {hypothesis_id!r} has no family evidence")
+    return value
+
+
+def _require_evidence_outcome(value: object, hypothesis_id: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise StageContractError(f"explain evidence for {hypothesis_id!r} must declare an outcome")
+    return value
+
+
+def _require_hypothesis_rows(value: object) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError("prior explain payload must declare at least one hypothesis")
+    return tuple(value)
+
+
+def _require_axis_name(value: object) -> str:
+    if not isinstance(value, str) or not value:
+        raise ComparisonError("capture payload axes must be non-empty strings")
+    return value
+
+
+def _require_checkpoint_id(value: object) -> str:
+    if not isinstance(value, str):
+        raise ComparisonError("checkpoint_id must be a string (empty for run-level identity)")
+    return value
+
+
+def _require_alignment(value: object) -> Mapping[str, str]:
+    if not isinstance(value, Mapping):
+        raise ComparisonError("alignment must be a mapping")
+    actual = set(value)
+    expected = set(ALIGNMENT_FIELDS)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        details = []
+        if missing:
+            details.append(f"missing {', '.join(missing)}")
+        if extra:
+            details.append(f"unexpected {', '.join(extra)}")
+        raise ComparisonError(f"alignment fields are invalid ({'; '.join(details)})")
+    frozen: dict[str, str] = {}
+    for key in ALIGNMENT_FIELDS:
+        frozen[key] = _non_empty(value[key], name=f"alignment[{key!r}]")
+    return dict(frozen)
+
+
+def _require_side(value: object) -> RunSide:
+    if not isinstance(value, RunSide):
+        raise ComparisonError("baseline and candidate must be RunSide declarations")
+    return value
+
+
+def _require_app_checkpoint(value: object) -> str:
+    if not isinstance(value, str):
+        raise ComparisonError("application checkpoint_id must be a string")
+    return value
+
+
+def _require_app_seed(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ComparisonError("application stream_seed must be a non-negative integer")
+    return int(value)
+
+
+def _require_app_rng(value: object) -> np.random.Generator | None:
+    if value is not None and not isinstance(value, np.random.Generator):
+        raise ComparisonError("application rng must be a numpy Generator or None")
+    return value
+
+
+def _require_axes(value: object) -> tuple[str, ...]:
+    if isinstance(value, str | bytes) or not isinstance(value, Sequence) or not value:
+        raise ComparisonError("capture payload must declare a non-empty axes list")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str) or not item:
+            raise ComparisonError("capture payload axes must be non-empty strings")
+    return items
+
+
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise ComparisonError("control stream must be a numpy Generator")
+    return value
+
+
+def _require_repetitions(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 2:
+        raise StageContractError("manifest uncertainty.repetitions must be at least two")
+    return int(value)
+
+
+def _require_comparisons(value: object) -> tuple[ComparisonRequest, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise StageContractError("requested comparisons must be ComparisonRequest items")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, ComparisonRequest):
+            raise StageContractError("requested comparisons must be ComparisonRequest items")
+    return items
+
+
 def _require(condition: bool, message: str, *, error: type[ValueError] = ComparisonError) -> None:
     if not condition:
         raise error(message)
@@ -147,34 +382,24 @@ def _digest(value: object, *, name: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def manifest_seed_identity(manifest: Mapping[str, object]) -> str:
+def manifest_seed_identity(manifest: object) -> str:
     """Return the canonical seed identity for one frozen manifest."""
-    if not isinstance(manifest, Mapping):
-        raise ComparisonError("manifest must be a mapping")
-    seeds = manifest.get("seeds")
-    if not isinstance(seeds, Mapping):
-        raise ComparisonError("manifest must declare seeds")
+    manifest = _require_manifest(manifest)
+    seeds = _require_mapping(manifest.get("seeds"), name="manifest must declare seeds")
     parts: list[str] = []
     for role in ("training", "evaluation", "controls"):
-        rows = seeds.get(role)
-        if isinstance(rows, str | bytes) or not isinstance(rows, Sequence) or not rows:
-            raise ComparisonError(f"manifest seeds.{role} must be a non-empty list")
+        rows = _require_seed_rows(seeds.get(role), role=role)
         values: list[str] = []
         for raw in rows:
-            if isinstance(raw, bool) or not isinstance(raw, int) or raw < 0:
-                raise ComparisonError(f"manifest seeds.{role} entries must be non-negative integers")
-            values.append(str(int(raw)))
+            values.append(str(_require_seed_int(raw, role=role)))
         parts.append(f"{role}={','.join(values)}")
     return ";".join(parts)
 
 
-def detect_config_identity(detect_payload: Mapping[str, object]) -> str:
+def detect_config_identity(detect_payload: object) -> str:
     """Return the canonical SHA-256 identity of a prior detect payload config."""
-    if not isinstance(detect_payload, Mapping):
-        raise ComparisonError("detect payload must be a mapping")
-    config = detect_payload.get("config")
-    if not isinstance(config, Mapping):
-        raise ComparisonError("detect payload must declare a config object")
+    detect_payload = _require_mapping(detect_payload, name="detect payload must be a mapping")
+    config = _require_detect_config(detect_payload.get("config"))
     try:
         encoded = canonical_json(dict(config))
     except PortableNodeError as exc:
@@ -182,18 +407,13 @@ def detect_config_identity(detect_payload: Mapping[str, object]) -> str:
     return sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def capture_axes_identity(capture_payload: Mapping[str, object]) -> str:
+def capture_axes_identity(capture_payload: object) -> str:
     """Return the canonical axes identity of a bound capture payload."""
-    if not isinstance(capture_payload, Mapping):
-        raise ComparisonError("capture payload must be a mapping")
-    axes = capture_payload.get("axes")
-    if isinstance(axes, str | bytes) or not isinstance(axes, Sequence) or not axes:
-        raise ComparisonError("capture payload must declare a non-empty axes list")
+    capture_payload = _require_mapping(capture_payload, name="capture payload must be a mapping")
+    axes = _require_axes(capture_payload.get("axes"))
     names: list[str] = []
     for raw in axes:
-        if not isinstance(raw, str) or not raw:
-            raise ComparisonError("capture payload axes must be non-empty strings")
-        names.append(raw)
+        names.append(_require_axis_name(raw))
     return ",".join(names)
 
 
@@ -207,34 +427,18 @@ class RunSide:
     """One declared comparison side: immutable run/checkpoint identity plus alignment."""
 
     run_id: str
-    checkpoint_id: str
-    alignment: Mapping[str, str]
+    checkpoint_id: object
+    alignment: object
 
     def __post_init__(self) -> None:
         _non_empty(self.run_id, name="run_id")
-        if not isinstance(self.checkpoint_id, str):
-            raise ComparisonError("checkpoint_id must be a string (empty for run-level identity)")
-        if not isinstance(self.alignment, Mapping):
-            raise ComparisonError("alignment must be a mapping")
-        actual = set(self.alignment)
-        expected = set(ALIGNMENT_FIELDS)
-        if actual != expected:
-            missing = sorted(expected - actual)
-            extra = sorted(actual - expected)
-            details = []
-            if missing:
-                details.append(f"missing {', '.join(missing)}")
-            if extra:
-                details.append(f"unexpected {', '.join(extra)}")
-            raise ComparisonError(f"alignment fields are invalid ({'; '.join(details)})")
-        frozen: dict[str, str] = {}
-        for key in ALIGNMENT_FIELDS:
-            frozen[key] = _non_empty(self.alignment[key], name=f"alignment[{key!r}]")
-        object.__setattr__(self, "alignment", dict(frozen))
+        _non_empty(self.run_id, name="run_id")
+        object.__setattr__(self, "checkpoint_id", _require_checkpoint_id(self.checkpoint_id))
+        object.__setattr__(self, "alignment", _require_alignment(self.alignment))
 
     def to_dict(self) -> dict[str, object]:
         return {
-            "alignment": dict(self.alignment),
+            "alignment": dict(_require_alignment(self.alignment)),
             "checkpoint_id": self.checkpoint_id,
             "run_id": self.run_id,
         }
@@ -245,8 +449,8 @@ class ComparisonSpec:
     """One declared aligned comparison of exactly two sides."""
 
     comparison_id: str
-    baseline: RunSide
-    candidate: RunSide
+    baseline: object
+    candidate: object
     representation_metric_id: str
     task_metric_id: str
     representation_tolerance: float
@@ -254,33 +458,28 @@ class ComparisonSpec:
 
     def __post_init__(self) -> None:
         _non_empty(self.comparison_id, name="comparison_id")
-        if not isinstance(self.baseline, RunSide) or not isinstance(self.candidate, RunSide):
-            raise ComparisonError("baseline and candidate must be RunSide declarations")
+        baseline = _require_side(self.baseline)
+        candidate = _require_side(self.candidate)
+        object.__setattr__(self, "baseline", baseline)
+        object.__setattr__(self, "candidate", candidate)
         _non_empty(self.representation_metric_id, name="representation_metric_id")
         _non_empty(self.task_metric_id, name="task_metric_id")
         if self.representation_metric_id == self.task_metric_id:
-            raise ComparisonError(
-                "representation and task metrics must differ to distinguish their changes"
-            )
-        if self.baseline.run_id == self.candidate.run_id:
-            raise ComparisonError(
-                "baseline and candidate sides must declare different run identities"
-            )
+            raise ComparisonError("representation and task metrics must differ to distinguish their changes")
+        if baseline.run_id == candidate.run_id:
+            raise ComparisonError("baseline and candidate sides must declare different run identities")
         object.__setattr__(
             self, "representation_tolerance", _finite(self.representation_tolerance, name="representation_tolerance")
         )
         object.__setattr__(self, "task_tolerance", _finite(self.task_tolerance, name="task_tolerance"))
         if self.representation_tolerance < 0.0 or self.task_tolerance < 0.0:
             raise ComparisonError("declared tolerances must be non-negative")
-        if self.baseline.alignment != self.candidate.alignment:
-            differing = sorted(
-                key
-                for key in ALIGNMENT_FIELDS
-                if self.baseline.alignment[key] != self.candidate.alignment[key]
-            )
+        baseline_alignment = _require_alignment(baseline.alignment)
+        candidate_alignment = _require_alignment(candidate.alignment)
+        if baseline_alignment != candidate_alignment:
+            differing = sorted(key for key in ALIGNMENT_FIELDS if baseline_alignment[key] != candidate_alignment[key])
             raise ComparisonError(
-                "baseline and candidate alignment must be identical; differing fields: "
-                f"{', '.join(differing)}"
+                f"baseline and candidate alignment must be identical; differing fields: {', '.join(differing)}"
             )
 
 
@@ -296,28 +495,25 @@ class ComparisonApplication:
     comparison_id: str
     side: Literal["baseline", "candidate"]
     run_id: str
-    checkpoint_id: str
+    checkpoint_id: object
     metric_id: str
     metric_role: Literal["representation", "task"]
     inputs_digest: str
-    stream_seed: int
-    rng: np.random.Generator | None
+    stream_seed: object
+    rng: object
 
     def __post_init__(self) -> None:
         _non_empty(self.comparison_id, name="application comparison_id")
         if self.side not in ("baseline", "candidate"):
             raise ComparisonError("application side must be 'baseline' or 'candidate'")
         _non_empty(self.run_id, name="application run_id")
-        if not isinstance(self.checkpoint_id, str):
-            raise ComparisonError("application checkpoint_id must be a string")
+        object.__setattr__(self, "checkpoint_id", _require_app_checkpoint(self.checkpoint_id))
         _non_empty(self.metric_id, name="application metric_id")
         if self.metric_role not in ("representation", "task"):
             raise ComparisonError("application metric_role must be 'representation' or 'task'")
         _digest(self.inputs_digest, name="application inputs_digest")
-        if isinstance(self.stream_seed, bool) or not isinstance(self.stream_seed, int) or self.stream_seed < 0:
-            raise ComparisonError("application stream_seed must be a non-negative integer")
-        if self.rng is not None and not isinstance(self.rng, np.random.Generator):
-            raise ComparisonError("application rng must be a numpy Generator or None")
+        object.__setattr__(self, "stream_seed", _require_app_seed(self.stream_seed))
+        object.__setattr__(self, "rng", _require_app_rng(self.rng))
 
 
 @dataclass(frozen=True)
@@ -383,66 +579,44 @@ class _CompareContext:
 
 
 def _prior_payloads(invocation: StageInvocation) -> dict[str, Mapping[str, object]]:
-    return {item.stage: dict(item.payload) for item in invocation.prior}
+    prior = _require_prior(invocation.prior)
+    return {item.stage: dict(_require_mapping(item.payload, name="prior payload")) for item in prior}
 
 
 def _manifest_seeds(manifest: Mapping[str, object]) -> tuple[int, int]:
-    seeds = manifest.get("seeds")
-    _require(isinstance(seeds, Mapping), "compare executor requires manifest seeds", error=StageContractError)
+    seeds = _require_mapping(manifest.get("seeds"), name="compare executor requires manifest seeds")
     values: list[int] = []
     for role in ("evaluation", "controls"):
-        rows = seeds.get(role)  # pyright: ignore[reportUnknownMemberType]
-        _require(
-            isinstance(rows, Sequence) and not isinstance(rows, str | bytes) and len(rows) > 0,
-            f"compare executor requires manifest seeds.{role}",
-            error=StageContractError,
-        )
-        first = rows[0]  # pyright: ignore[reportUnknownVariableType]
-        _require(
-            isinstance(first, int) and not isinstance(first, bool) and first >= 0,
-            f"manifest seeds.{role}[0] must be a non-negative integer",
-            error=StageContractError,
-        )
-        values.append(int(first))
+        rows = _require_seed_rows(seeds.get(role), role=role)
+        values.append(_require_seed_int(rows[0], role=role))
     return values[0], values[1]
 
 
-def _bind_capture(
-    invocation: StageInvocation, request: DiagnosticRequest
-) -> tuple[str, str, str, str]:
+def _bind_capture(invocation: StageInvocation, request: DiagnosticRequest) -> tuple[str, str, str, str]:
     """Bind the prior capture record: identity, representation, model, axes."""
     prior = _prior_payloads(invocation)
     _require("capture" in prior, "compare executor requires a prior capture payload", error=StageContractError)
-    raw = prior["capture"].get("capture")
-    _require(
-        isinstance(raw, Mapping),
-        "the prior capture payload must carry a bound capture under the 'capture' key",
-        error=StageContractError,
-    )
+    raw = _require_capture_payload(prior["capture"].get("capture"))
     try:
         capture_identity = _digest(raw.get("capture_identity"), name="capture_identity")
         axes = capture_axes_identity(raw)
     except ComparisonError as exc:
         raise StageContractError(str(exc)) from exc
+    capture_selection = _require_capture_selection(request.capture)
     for key, expected in (
-        ("capture_id", request.capture.capture_id),
-        ("representation_identity", request.capture.representation_identity),
+        ("capture_id", capture_selection.capture_id),
+        ("representation_identity", capture_selection.representation_identity),
         ("manifest_id", request.manifest_id),
         ("request_id", request.request_id),
     ):
-        value = raw.get(key)
+        value = _require_stage_str(raw.get(key), name=f"prior capture {key!r}")
         _require(
-            isinstance(value, str) and value == expected,
+            value == expected,
             f"prior capture {key!r} is {value!r}, expected {expected!r}",
             error=StageContractError,
         )
-    model_id = raw.get("model_id")
-    _require(
-        isinstance(model_id, str) and bool(model_id),
-        "prior capture payload must declare model_id",
-        error=StageContractError,
-    )
-    return capture_identity, request.capture.representation_identity, axes, model_id
+    model_id = _require_non_empty(raw.get("model_id"), name="prior capture payload must declare model_id")
+    return capture_identity, capture_selection.representation_identity, axes, model_id
 
 
 def _bind_localize(
@@ -451,31 +625,22 @@ def _bind_localize(
     prior = _prior_payloads(invocation)
     _require("localize" in prior, "compare executor requires a prior localize payload", error=StageContractError)
     localize = prior["localize"]
-    manifest_id = manifest.get("manifest_id")
+    manifest_id = _require_non_empty(manifest.get("manifest_id"), name="prior localize manifest_id")
+    localize_capture = _require_capture_selection(request.capture)
     for key, expected in (
         ("manifest_id", manifest_id),
-        ("representation_identity", request.capture.representation_identity),
+        ("representation_identity", localize_capture.representation_identity),
     ):
-        value = localize.get(key)
+        value = _require_stage_str(localize.get(key), name=f"prior localize {key!r}")
         _require(
-            isinstance(value, str) and isinstance(expected, str) and value == expected,
+            value == expected,
             f"prior localize {key!r} is {value!r}, expected {expected!r}",
             error=StageContractError,
         )
-    family_id = localize.get("family_id")
-    metric_id = localize.get("metric_id")
-    verdict = localize.get("verdict")
-    _require(
-        isinstance(family_id, str) and bool(family_id.strip()),
-        "prior localize payload must declare family_id",
-        error=StageContractError,
-    )
-    _require(
-        isinstance(metric_id, str) and bool(metric_id.strip()),
-        "prior localize payload must declare metric_id",
-        error=StageContractError,
-    )
-    _require(isinstance(verdict, str), "prior localize payload must declare verdict", error=StageContractError)
+    family_id = _require_non_empty(localize.get("family_id"), name="prior localize payload must declare family_id")
+    metric_id = _require_non_empty(localize.get("metric_id"), name="prior localize payload must declare metric_id")
+    _require_stage_str(localize.get("verdict"), name="prior localize payload must declare verdict")
+    selections: set[str] = set()
     selections: set[str] = set()
     for key in ("layer_order", "affected_layers", "declared_slice_ids", "affected_slices"):
         raw = localize.get(key)
@@ -526,52 +691,28 @@ def _detect_metric_ids(detect_payload: Mapping[str, object]) -> set[str]:
 def _explain_representative_row(
     explain: Mapping[str, object], representation_metric_id: str
 ) -> tuple[str, Mapping[str, object]]:
-    rows = explain.get("hypotheses")
-    _require(
-        isinstance(rows, Sequence) and not isinstance(rows, str | bytes) and len(rows) > 0,
-        "prior explain payload must declare at least one hypothesis",
-        error=StageContractError,
+    rows = _require_hypothesis_rows(explain.get("hypotheses"))
+    evidence = _require_mapping(
+        explain.get("family_evidence"),
+        name="prior explain payload must declare structured family_evidence",
     )
-    evidence = explain.get("family_evidence")
-    _require(
-        isinstance(evidence, Mapping),
-        "prior explain payload must declare structured family_evidence",
-        error=StageContractError,
-    )
-    for raw in rows:  # pyright: ignore[reportUnknownVariableType]
-        _require(isinstance(raw, Mapping), "explain hypotheses must be objects", error=StageContractError)
-        metrics = raw.get("metric_ids")
-        if not (
-            isinstance(metrics, Sequence)
-            and not isinstance(metrics, str | bytes)
-            and representation_metric_id in {str(item) for item in metrics}
-        ):
+    for raw in rows:
+        hypothesis = _require_mapping(raw, name="explain hypotheses must be objects")
+        metrics = _require_metric_list(hypothesis.get("metric_ids"))
+        if representation_metric_id not in {str(item) for item in metrics}:
             continue
-        hypothesis_id = raw.get("hypothesis_id")
-        _require(
-            isinstance(hypothesis_id, str) and bool(hypothesis_id),
-            "explain hypotheses must declare hypothesis_id",
-            error=StageContractError,
+        hypothesis_id = _require_non_empty(
+            hypothesis.get("hypothesis_id"), name="explain hypotheses must declare hypothesis_id"
         )
-        row = evidence.get(hypothesis_id)
-        _require(
-            isinstance(row, Mapping),
-            f"explain hypothesis {hypothesis_id!r} has no family evidence",
-            error=StageContractError,
-        )
-        outcome = row.get("outcome")
-        _require(
-            isinstance(outcome, str) and bool(outcome),
-            f"explain evidence for {hypothesis_id!r} must declare an outcome",
-            error=StageContractError,
-        )
+        row = _require_evidence_row(evidence.get(hypothesis_id), hypothesis_id)
+        outcome = _require_evidence_outcome(row.get("outcome"), hypothesis_id)
         _require(
             outcome != "omitted",
             f"representation metric {representation_metric_id!r} is carried only by omitted "
             f"explanation {hypothesis_id!r}",
             error=StageContractError,
         )
-        return hypothesis_id, raw
+        return hypothesis_id, hypothesis
     raise StageContractError(
         f"no prior explain hypothesis carries the representation metric {representation_metric_id!r}"
     )
@@ -581,20 +722,10 @@ def _bind_intervene(invocation: StageInvocation) -> tuple[str, ...]:
     prior = _prior_payloads(invocation)
     _require("intervene" in prior, "compare executor requires a prior intervene payload", error=StageContractError)
     intervene = prior["intervene"]
-    trials = intervene.get("trials")
-    _require(
-        isinstance(trials, Sequence) and not isinstance(trials, str | bytes) and len(trials) > 0,
-        "prior intervene payload must declare recorded trials",
-        error=StageContractError,
-    )
-    conclusions = intervene.get("conclusions")
-    _require(
-        isinstance(conclusions, Mapping) and bool(conclusions),
-        "prior intervene payload must declare recorded conclusions",
-        error=StageContractError,
-    )
+    _require_trials(intervene.get("trials"))
+    _require_conclusions(intervene.get("conclusions"))
     blocked: list[str] = []
-    for item in invocation.prior:
+    for item in _require_prior(invocation.prior):
         if item.outcome == "unsupported":
             blocked.append(item.stage)
     return tuple(blocked)
@@ -605,24 +736,15 @@ def _metric_binding(
     tolerance: float,
     manifest: Mapping[str, object],
 ) -> _MetricBinding:
-    raw_metrics = manifest.get("metrics")
-    _require(
-        isinstance(raw_metrics, Sequence) and not isinstance(raw_metrics, str | bytes),
-        "compare executor requires manifest metrics",
-        error=StageContractError,
-    )
-    for raw in raw_metrics:  # pyright: ignore[reportUnknownVariableType]
-        _require(isinstance(raw, Mapping), "manifest metrics must be objects", error=StageContractError)
-        if raw.get("id") != metric_id:
+    raw_metrics = _require_sequence(manifest.get("metrics"), name="compare executor requires manifest metrics")
+    for raw in raw_metrics:
+        metric = _require_mapping(raw, name="manifest metrics must be objects")
+        if metric.get("id") != metric_id:
             continue
-        definition = {
-            key: raw.get(key)
-            for key in ("direction", "estimator", "taxonomy_family_id", "unit")
-        }
+        definition = {key: metric.get(key) for key in ("direction", "estimator", "taxonomy_family_id", "unit")}
         _require(
             all(isinstance(value, str) and value for value in definition.values()),
-            f"manifest metric {metric_id!r} must declare direction, estimator, "
-            "taxonomy_family_id, and unit",
+            f"manifest metric {metric_id!r} must declare direction, estimator, taxonomy_family_id, and unit",
             error=StageContractError,
         )
         return _MetricBinding(metric_id=metric_id, definition=dict(definition), tolerance=tolerance)
@@ -641,7 +763,7 @@ def _alignment_cross_checks(
     localize_selections: set[str],
     detect_identity: str,
 ) -> None:
-    alignment = spec.baseline.alignment
+    alignment = _require_alignment(_require_side(spec.baseline).alignment)
     checks: tuple[tuple[str, str, str], ...] = (
         ("manifest_identity", alignment["manifest_identity"], str(manifest.get("manifest_id"))),
         ("schema_identity", alignment["schema_identity"], str(manifest.get("schema_version"))),
@@ -670,8 +792,7 @@ def _alignment_cross_checks(
     )
     _require(
         alignment["dataset_slice_id"] in localize_selections,
-        f"alignment field 'dataset_slice_id' {alignment['dataset_slice_id']!r} is not a "
-        "prior localize selection",
+        f"alignment field 'dataset_slice_id' {alignment['dataset_slice_id']!r} is not a prior localize selection",
         error=StageContractError,
     )
     layer = alignment["layer_module_identity"]
@@ -692,52 +813,37 @@ def _alignment_cross_checks(
 def _bind_comparisons(
     specs: tuple[ComparisonSpec, ...], invocation: StageInvocation
 ) -> tuple[_CompareContext, tuple[_BoundComparison, ...]]:
-    request = invocation.request
-    manifest = invocation.manifest
-    manifest_id = manifest.get("manifest_id")
-    _require(
-        isinstance(manifest_id, str) and bool(manifest_id),
-        "compare executor requires a manifest_id",
-        error=StageContractError,
-    )
+    request = _require_request(invocation.request)
+    manifest = _require_manifest(invocation.manifest)
+    manifest_id = _require_non_empty(manifest.get("manifest_id"), name="compare executor requires a manifest_id")
     _require(
         request.manifest_id == manifest_id,
-        f"compare executor manifest mismatch: request {request.manifest_id!r} != "
-        f"manifest {manifest_id!r}",
+        f"compare executor manifest mismatch: request {request.manifest_id!r} != manifest {manifest_id!r}",
         error=StageContractError,
     )
     expected_prior = ("capture", "detect", "localize", "explain", "intervene")
-    stages = tuple(item.stage for item in invocation.prior)
+    stages = tuple(item.stage for item in _require_prior(invocation.prior))
     _require(
         stages == expected_prior,
         f"compare executor prior stages must be exactly {list(expected_prior)!r}, got {stages!r}",
         error=StageContractError,
     )
 
-    capture_identity, representation_identity, capture_axes, model_identity = _bind_capture(
-        invocation, request
-    )
-    localize_family, localize_metric, localize_selections = _bind_localize(
-        invocation, request, manifest
-    )
+    capture_identity, representation_identity, capture_axes, model_identity = _bind_capture(invocation, request)
+    localize_family, localize_metric, localize_selections = _bind_localize(invocation, request, manifest)
 
     prior = _prior_payloads(invocation)
     _require("detect" in prior, "compare executor requires a prior detect payload", error=StageContractError)
     detect_payload = prior["detect"]
-    _require(
-        isinstance(detect_payload.get("config"), Mapping),
-        "prior detect payload must declare a config object",
-        error=StageContractError,
-    )
     detect_identity = detect_config_identity(detect_payload)
+    _require_detect_config(detect_payload.get("config"))
     detect_metrics = _detect_metric_ids(detect_payload)
 
     _require("explain" in prior, "compare executor requires a prior explain payload", error=StageContractError)
     blocked_by = _bind_intervene(invocation)
 
-    request_index: dict[str, ComparisonRequest] = {
-        entry.comparison_id: entry for entry in request.comparisons
-    }
+    request_comparisons = _require_comparisons(request.comparisons)
+    request_index: dict[str, ComparisonRequest] = {entry.comparison_id: entry for entry in request_comparisons}
     _require(
         {spec.comparison_id for spec in specs} == set(request_index),
         "declared comparisons and requested comparisons must match exactly: "
@@ -746,18 +852,8 @@ def _bind_comparisons(
         error=StageContractError,
     )
     evaluation_seed, control_seed = _manifest_seeds(manifest)
-    uncertainty = manifest.get("uncertainty")
-    _require(
-        isinstance(uncertainty, Mapping),
-        "compare executor requires manifest uncertainty",
-        error=StageContractError,
-    )
-    repetitions = uncertainty.get("repetitions")
-    _require(
-        isinstance(repetitions, int) and not isinstance(repetitions, bool) and repetitions >= 2,
-        "manifest uncertainty.repetitions must be at least two",
-        error=StageContractError,
-    )
+    uncertainty = _require_mapping(manifest.get("uncertainty"), name="compare executor requires manifest uncertainty")
+    repetitions = _require_repetitions(uncertainty.get("repetitions"))
     confidence = uncertainty.get("confidence_level")
     try:
         confidence_level = _finite(confidence, name="uncertainty.confidence_level")
@@ -772,15 +868,17 @@ def _bind_comparisons(
     bound: list[_BoundComparison] = []
     for spec in specs:
         entry = request_index[spec.comparison_id]
+        spec_baseline = _require_side(spec.baseline)
+        spec_candidate = _require_side(spec.candidate)
         _require(
-            entry.baseline_run == spec.baseline.run_id,
-            f"comparison {spec.comparison_id!r} baseline run {spec.baseline.run_id!r} != "
+            entry.baseline_run == spec_baseline.run_id,
+            f"comparison {spec.comparison_id!r} baseline run {spec_baseline.run_id!r} != "
             f"requested {entry.baseline_run!r}",
             error=StageContractError,
         )
         _require(
-            entry.candidate_run == spec.candidate.run_id,
-            f"comparison {spec.comparison_id!r} candidate run {spec.candidate.run_id!r} != "
+            entry.candidate_run == spec_candidate.run_id,
+            f"comparison {spec.comparison_id!r} candidate run {spec_candidate.run_id!r} != "
             f"requested {entry.candidate_run!r}",
             error=StageContractError,
         )
@@ -791,30 +889,28 @@ def _bind_comparisons(
             f"declared {sorted(expected_metrics)!r}",
             error=StageContractError,
         )
-        declared_metrics = set(request.controls.metric_ids)
-        for metric_id in expected_metrics:
-            _require(
-                metric_id in declared_metrics,
-                f"comparison {spec.comparison_id!r} metric {metric_id!r} is not a "
-                "request-declared metric",
-                error=StageContractError,
-            )
-            _require(
-                metric_id in detect_metrics,
-                f"comparison {spec.comparison_id!r} metric {metric_id!r} has no prior "
-                "detect metric evidence (invented metric identity)",
-                error=StageContractError,
-            )
-        # The two sides must declare identical alignment before cross-checking.
-        differing = sorted(
-            key
-            for key in ALIGNMENT_FIELDS
-            if spec.baseline.alignment[key] != spec.candidate.alignment[key]
+        detected_metrics = set(_require_controls(request.controls).metric_ids)
+        _require(
+            spec.representation_metric_id in detected_metrics,
+            f"comparison {spec.comparison_id!r} representation metric "
+            f"{spec.representation_metric_id!r} is not request-declared for detection",
+            error=StageContractError,
         )
         _require(
+            spec.representation_metric_id in detect_metrics,
+            f"comparison {spec.comparison_id!r} representation metric "
+            f"{spec.representation_metric_id!r} has no prior detect metric evidence",
+            error=StageContractError,
+        )
+        # The two sides must declare identical alignment before cross-checking.
+        baseline_side = _require_side(spec.baseline)
+        candidate_side = _require_side(spec.candidate)
+        baseline_alignment = _require_alignment(baseline_side.alignment)
+        candidate_alignment = _require_alignment(candidate_side.alignment)
+        differing = sorted(key for key in ALIGNMENT_FIELDS if baseline_alignment[key] != candidate_alignment[key])
+        _require(
             not differing,
-            f"comparison {spec.comparison_id!r} side alignment mismatches on: "
-            f"{', '.join(differing)}",
+            f"comparison {spec.comparison_id!r} side alignment mismatches on: {', '.join(differing)}",
             error=StageContractError,
         )
         _alignment_cross_checks(
@@ -833,9 +929,7 @@ def _bind_comparisons(
             _BoundComparison(
                 spec=spec,
                 request_entry=entry,
-                representation=_metric_binding(
-                    spec.representation_metric_id, spec.representation_tolerance, manifest
-                ),
+                representation=_metric_binding(spec.representation_metric_id, spec.representation_tolerance, manifest),
                 task=_metric_binding(spec.task_metric_id, spec.task_tolerance, manifest),
             )
         )
@@ -865,17 +959,20 @@ def _bind_comparisons(
 # ---------------------------------------------------------------------------
 
 
+def _call_measure(measure: ComparisonMeasureFn, application: ComparisonApplication) -> object:
+    return measure(application)
+
+
 def _checked_measure(
     measure: ComparisonMeasureFn,
     application: ComparisonApplication,
     *,
     comparison_id: str,
 ) -> ComparisonMeasurement:
-    result = measure(application)
+    result = _call_measure(measure, application)
     if not isinstance(result, ComparisonMeasurement):
         raise ComparisonError(
-            f"measure callback for {comparison_id!r} must return a ComparisonMeasurement, "
-            f"got {type(result).__name__}"
+            f"measure callback for {comparison_id!r} must return a ComparisonMeasurement, got {type(result).__name__}"
         )
     if result.run_id != application.run_id:
         raise ComparisonError(
@@ -919,16 +1016,14 @@ def _application(
     )
 
 
-def _measurement_record(
-    measurement: ComparisonMeasurement, application: ComparisonApplication
-) -> dict[str, object]:
+def _measurement_record(measurement: ComparisonMeasurement, application: ComparisonApplication) -> dict[str, object]:
     return {
         "checkpoint_id": application.checkpoint_id,
         "inputs_digest": measurement.inputs_digest,
         "metric_id": measurement.metric_id,
         "metric_role": application.metric_role,
         "run_id": measurement.run_id,
-        "stream_seed": int(application.stream_seed),
+        "stream_seed": _require_app_seed(application.stream_seed),
         "value": float(measurement.value),
     }
 
@@ -988,11 +1083,7 @@ def _classify(
             f"{', '.join(context.blocked_by)} recorded an unsupported outcome; the "
             "comparison cannot be interpreted",
         )
-    unresolved = [
-        name
-        for name, block in (("representation", representation), ("task", task))
-        if block["unresolved"]
-    ]
+    unresolved = [name for name, block in (("representation", representation), ("task", task)) if block["unresolved"]]
     if unresolved:
         return (
             "inconclusive",
@@ -1036,8 +1127,8 @@ def _execute_comparison(
     }
     roles: tuple[Literal["representation", "task"], ...] = ("representation", "task")
     sides: tuple[tuple[Literal["baseline", "candidate"], RunSide], ...] = (
-        ("baseline", spec.baseline),
-        ("candidate", spec.candidate),
+        ("baseline", _require_side(spec.baseline)),
+        ("candidate", _require_side(spec.candidate)),
     )
     for role in roles:
         binding = metrics[role]
@@ -1059,24 +1150,22 @@ def _execute_comparison(
                 stream_seed=point_seed,
                 rng=None,
             )
-            point_measurement = _checked_measure(
-                measure, point_application, comparison_id=spec.comparison_id
-            )
+            point_measurement = _checked_measure(measure, point_application, comparison_id=spec.comparison_id)
             points[side_label] = (point_application, point_measurement)
 
             uncertainty_id = f"compare:{spec.comparison_id}:{side_label}:{role}"
 
             def _draw(
-                rng: np.random.Generator,
+                rng: object,
                 *,
                 label: Literal["baseline", "candidate"] = side_label,
                 declared_side: RunSide = run_side,
                 metric: str = binding.metric_id,
                 metric_role: Literal["representation", "task"] = role,
+                resample_id: str = uncertainty_id,
             ) -> float:
-                draw_seed = derive_stream_seed(
-                    context.evaluation_seed, uncertainty_id, role="evaluation"
-                )
+                rng = _require_generator(rng)
+                draw_seed = derive_stream_seed(context.evaluation_seed, resample_id, role="evaluation")
                 application = _application(
                     bound,
                     context,
@@ -1087,9 +1176,7 @@ def _execute_comparison(
                     stream_seed=draw_seed,
                     rng=rng,
                 )
-                return float(
-                    _checked_measure(measure, application, comparison_id=spec.comparison_id).value
-                )
+                return float(_checked_measure(measure, application, comparison_id=spec.comparison_id).value)
 
             outcome, interval = run_bootstrap(
                 control_id=uncertainty_id,
@@ -1143,10 +1230,12 @@ def _execute_comparison(
         "upstream_blocked_by": list(context.blocked_by),
     }
 
+    record_baseline = _require_side(spec.baseline)
+    record_candidate = _require_side(spec.candidate)
     return {
-        "alignment": dict(spec.baseline.alignment),
-        "baseline": spec.baseline.to_dict(),
-        "candidate": spec.candidate.to_dict(),
+        "alignment": dict(_require_alignment(record_baseline.alignment)),
+        "baseline": record_baseline.to_dict(),
+        "candidate": record_candidate.to_dict(),
         "classification": classification,
         "comparison_id": spec.comparison_id,
         "provenance": provenance,
@@ -1156,12 +1245,8 @@ def _execute_comparison(
     }
 
 
-def _compare_output(
-    records: Sequence[Mapping[str, object]], context: _CompareContext
-) -> StageOutput:
-    classifications = {
-        str(record["comparison_id"]): str(record["classification"]) for record in records
-    }
+def _compare_output(records: Sequence[Mapping[str, object]], context: _CompareContext) -> StageOutput:
+    classifications = {str(record["comparison_id"]): str(record["classification"]) for record in records}
     payload: dict[str, object] = {
         "classifications": dict(classifications),
         "comparison_version": COMPARISON_VERSION,
@@ -1181,8 +1266,7 @@ def _compare_output(
     }
     aggregate = (
         "unsupported"
-        if classifications
-        and all(value == "unsupported" for value in classifications.values())
+        if classifications and all(value == "unsupported" for value in classifications.values())
         else "completed"
     )
     return StageOutput(stage="compare", outcome=aggregate, payload=payload, artifact_refs=())
@@ -1207,8 +1291,7 @@ def comparison_report_items(
     comparisons stay unsupported so the frozen validator fails closed on any
     promotion attempt.
     """
-    if isinstance(records, str | bytes) or not isinstance(records, Sequence):
-        raise ComparisonError("records must be a sequence of comparison records")
+    records = _require_record_list(records)
     status_by_classification = {
         "representation_only": "observed",
         "task_only": "observed",
@@ -1219,41 +1302,27 @@ def comparison_report_items(
     }
     items: list[dict[str, object]] = []
     seen: set[str] = set()
-    for position, raw in enumerate(records):
-        if not isinstance(raw, Mapping):
-            raise ComparisonError(f"records[{position}] must be an object")
-        record = raw
+    for record in _require_record_list(records):
         comparison_id = _non_empty(record.get("comparison_id"), name="record comparison_id")
         if comparison_id in seen:
             raise ComparisonError("comparison identifiers must be unique in report rows")
         seen.add(comparison_id)
-        classification = _non_empty(
-            record.get("classification"), name=f"comparison {comparison_id!r} classification"
-        )
+        classification = _non_empty(record.get("classification"), name=f"comparison {comparison_id!r} classification")
         if classification not in status_by_classification:
             raise ComparisonError(
-                f"comparison {comparison_id!r} classification must be one of "
-                f"{list(status_by_classification)!r}"
+                f"comparison {comparison_id!r} classification must be one of {list(status_by_classification)!r}"
             )
-        baseline = record.get("baseline")
-        candidate = record.get("candidate")
-        alignment = record.get("alignment")
-        _require(
-            isinstance(baseline, Mapping) and isinstance(candidate, Mapping),
-            f"comparison {comparison_id!r} must record both sides",
-        )
-        _require(isinstance(alignment, Mapping), f"comparison {comparison_id!r} must record alignment")
+        baseline = _require_mapping(record.get("baseline"), name=f"comparison {comparison_id!r} baseline")
+        candidate = _require_mapping(record.get("candidate"), name=f"comparison {comparison_id!r} candidate")
+        alignment = _require_mapping(record.get("alignment"), name=f"comparison {comparison_id!r} alignment")
         baseline_run = _non_empty(baseline.get("run_id"), name="baseline run_id")
         candidate_run = _non_empty(candidate.get("run_id"), name="candidate run_id")
-        representation = record.get("representation")
-        task = record.get("task")
-        _require(
-            isinstance(representation, Mapping) and isinstance(task, Mapping),
-            f"comparison {comparison_id!r} must record representation and task metrics",
+        representation = _require_mapping(
+            record.get("representation"),
+            name=f"comparison {comparison_id!r} representation",
         )
-        representation_metric = _non_empty(
-            representation.get("metric_id"), name="representation metric_id"
-        )
+        task = _require_mapping(record.get("task"), name=f"comparison {comparison_id!r} task")
+        representation_metric = _non_empty(representation.get("metric_id"), name="representation metric_id")
         task_metric = _non_empty(task.get("metric_id"), name="task metric_id")
         items.append(
             {
@@ -1275,7 +1344,7 @@ def comparison_report_items(
 
 
 def make_compare_executor(
-    comparisons: Sequence[ComparisonSpec],
+    comparisons: object,
     measure: ComparisonMeasureFn,
     *,
     version: str = COMPARISON_VERSION,
@@ -1297,14 +1366,7 @@ def make_compare_executor(
     ``DiagnosticWorkflow`` itself.
     """
     _non_empty(version, name="version")
-    if isinstance(comparisons, str | bytes) or not isinstance(comparisons, Sequence):
-        raise ComparisonError("comparisons must be a sequence of ComparisonSpec items")
-    frozen = tuple(comparisons)
-    if not frozen:
-        raise ComparisonError("comparisons must declare at least one comparison")
-    for position, spec in enumerate(frozen):
-        if not isinstance(spec, ComparisonSpec):
-            raise ComparisonError(f"comparisons[{position}] must be a ComparisonSpec")
+    frozen = _require_spec_list(comparisons)
     identities = [spec.comparison_id for spec in frozen]
     if len(set(identities)) != len(identities):
         raise ComparisonError("comparison identifiers must be unique")
@@ -1312,7 +1374,8 @@ def make_compare_executor(
         raise ComparisonError("measure must be callable")
     declared: tuple[ComparisonSpec, ...] = frozen
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
+        invocation = _require_invocation(invocation)
         if invocation.stage != "compare":
             raise StageContractError(f"compare executor received stage {invocation.stage!r}")
         context, bound = _bind_comparisons(declared, invocation)

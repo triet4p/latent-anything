@@ -1,0 +1,149 @@
+[
+  {
+    "argv": [
+      "uv",
+      "sync",
+      "--frozen",
+      "--no-dev",
+      "--extra",
+      "transformers",
+      "--no-editable"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "uv-sync",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-sync.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 1571,
+    "output_tail": "Using CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\nPrepared 1 package in 4.24s\nInstalled 50 packages in 10.51s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+    "peak_process_tree_rss_bytes": 91734016,
+    "timed_out": false,
+    "timeout_s": 1800,
+    "wall_s": 15.172
+  },
+  {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "datasets==3.6.0",
+      "huggingface-hub==0.35.3"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "datasets-overlay",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/datasets-overlay.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 400,
+    "output_tail": "Resolved 31 packages in 29ms\nUninstalled 1 package in 9ms\nInstalled 15 packages in 841ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+    "peak_process_tree_rss_bytes": 93286400,
+    "timed_out": false,
+    "timeout_s": 900,
+    "wall_s": 1.12
+  },
+  {
+    "argv": [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "uv-pip-check",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-pip-check.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 65,
+    "output_tail": "Checked 64 packages in 4ms\nAll installed packages are compatible\n",
+    "peak_process_tree_rss_bytes": 15736832,
+    "timed_out": false,
+    "timeout_s": 300,
+    "wall_s": 0.251
+  },
+  {
+    "argv": [
+      "uv",
+      "pip",
+      "list",
+      "--python",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "--format",
+      "json"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "uv-pip-list",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-pip-list.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 2524,
+    "output_tail": "[{\"name\":\"aiohappyeyeballs\",\"version\":\"2.7.1\"},{\"name\":\"aiohttp\",\"version\":\"3.14.3\"},{\"name\":\"aiosignal\",\"version\":\"1.4.0\"},{\"name\":\"annotated-types\",\"version\":\"0.7.0\"},{\"name\":\"attrs\",\"version\":\"26.1.0\"},{\"name\":\"certifi\",\"version\":\"2026.6.17\"},{\"name\":\"charset-normalizer\",\"version\":\"3.4.9\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"contourpy\",\"version\":\"1.3.3\"},{\"name\":\"cycler\",\"version\":\"0.12.1\"},{\"name\":\"datasets\",\"version\":\"3.6.0\"},{\"name\":\"dill\",\"version\":\"0.3.8\"},{\"name\":\"filelock\",\"version\":\"3.29.4\"},{\"name\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"frozenlist\",\"version\":\"1.8.0\"},{\"name\":\"fsspec\",\"version\":\"2025.3.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"multidict\",\"version\":\"6.9.1\"},{\"name\":\"multiprocess\",\"version\":\"0.70.16\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pandas\",\"version\":\"3.0.6\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"propcache\",\"version\":\"0.5.4\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"tzdata\",\"version\":\"2026.4\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"},{\"name\":\"xxhash\",\"version\":\"4.0.1\"},{\"name\":\"yarl\",\"version\":\"1.25.1\"}]\n",
+    "peak_process_tree_rss_bytes": 20885504,
+    "timed_out": false,
+    "timeout_s": 300,
+    "wall_s": 0.255
+  },
+  {
+    "argv": [
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "-c",
+      "import json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nnames = ['datasets','huggingface-hub','numpy','scikit-learn','tokenizers','torch','transformers']\nd = distribution('latent-anything')\nurl = d.read_text('direct_url.json')\neditable = bool(json.loads(url).get('dir_info', {}).get('editable')) if url else False\nprint('@@JSON@@' + json.dumps({'python':sys.version.split()[0], 'executable':sys.executable, 'prefix':sys.prefix, 'latent_file':latent_anything.__file__, 'sys_path':sys.path, 'editable':editable, 'versions':{n:version(n) for n in names}, 'torch_module':__import__('torch').__version__}))\n"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "isolation-probe",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/isolation-probe.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 1178,
+    "output_tail": "@@JSON@@{\"python\": \"3.13.3\", \"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"datasets\": \"3.6.0\", \"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module\": \"2.10.0+cpu\"}\n",
+    "peak_process_tree_rss_bytes": 342978560,
+    "timed_out": false,
+    "timeout_s": 300,
+    "wall_s": 14.656
+  },
+  {
+    "argv": [
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "-c",
+      "import scripts.sprint80_task80_23_v3_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996'; proof.OUTPUT_ROOT=proof.REPO / proof.OUTPUT_LOCATION; raise SystemExit(proof.main())"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "80_23_encoder_v3",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_23_encoder_v3.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 21644,
+    "output_tail": "del-random-direction\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-random-direction\",\n        \"detail\": null,\n        \"expected_behavior\": \"a seeded brightness-orthogonal random row does not recover task accuracy\",\n        \"interval\": null,\n        \"kind\": \"randomized\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.17222222222222222\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.4638888888888889\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5256802323007345929\n      },\n      \"model-shuffled-pairing\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-shuffled-pairing\",\n        \"detail\": null,\n        \"expected_behavior\": \"restoring the row with shuffled heldout pairing does not recover accuracy\",\n        \"interval\": null,\n        \"kind\": \"shuffled\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.019444444444444375\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.4638888888888889\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5692638005944590380\n      },\n      \"model-zero-strength\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-zero-strength\",\n        \"detail\": null,\n        \"expected_behavior\": \"zero-strength leaves the lesioned encoder row unchanged\",\n        \"interval\": null,\n        \"kind\": \"null\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.005555555555555536\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.02\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5998771819571697858\n      }\n    },\n    \"control_thresholds\": {\n      \"model-off-target-row\": 0.4638888888888889,\n      \"model-random-direction\": 0.4638888888888889,\n      \"model-shuffled-pairing\": 0.4638888888888889,\n      \"model-zero-strength\": 0.02\n    },\n    \"effect\": 0.4638888888888889,\n    \"expected_effect\": \"increase\",\n    \"hypothesis_id\": \"h-brightness-axis-dim0-v3\",\n    \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n    \"intervention_id\": \"restore-lesioned-encoder-dim0-v3\",\n    \"kind\": \"patch\",\n    \"measurements\": {\n      \"baseline\": {\n        \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n        \"metric_id\": \"heldout-brightness-bin-accuracy\",\n        \"role\": \"baseline\",\n        \"stream_seed\": 2664558170771750229,\n        \"value\": 0.5361111111111111\n      },\n      \"controls\": {\n        \"model-off-target-row\": {\n          \"control_class\": \"off_target\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 7680239923086700748,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim1\",\n          \"value\": 0.5388888888888889\n        },\n        \"model-random-direction\": {\n          \"control_class\": \"random\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5256802323007345929,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.3638888888888889\n        },\n        \"model-shuffled-pairing\": {\n          \"control_class\": \"shuffled\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5692638005944590380,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.5166666666666667\n        },\n        \"model-zero-strength\": {\n          \"control_class\": \"zero_strength\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5998771819571697858,\n          \"strength\": 0.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.5305555555555556\n        }\n      },\n      \"intervened\": {\n        \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n        \"metric_id\": \"heldout-brightness-bin-accuracy\",\n        \"role\": \"intervened\",\n        \"stream_seed\": 1623955078298768741,\n        \"value\": 1.0\n      }\n    },\n    \"metric_direction\": \"higher_is_better\",\n    \"metric_id\": \"heldout-brightness-bin-accuracy\",\n    \"provenance\": {\n      \"capture_identity\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n      \"carrier\": \"paired-baseline-encoder-row\",\n      \"hypothesis_id\": \"h-brightness-axis-dim0-v3\",\n      \"localize_family_id\": \"collapse_rank_loss\",\n      \"localize_metric_id\": \"bottleneck-feature-variance-ratio\",\n      \"localize_verdict\": \"localized\",\n      \"manifest_id\": \"sprint80-core-encoder-autoencoder-collapse-model-lesion-v3\",\n      \"method\": \"encoder-weight-restoration\",\n      \"metric_direction\": \"higher_is_better\",\n      \"representation_identity\": \"linear_pca_autoencoder:bottleneck:latent_dim=4\",\n      \"request_id\": \"proof-80-23-v3-model-lesion\",\n      \"seeds\": {\n        \"baseline_stream\": 2664558170771750229,\n        \"controls\": 17,\n        \"evaluation\": 42,\n        \"intervened_stream\": 1623955078298768741,\n        \"uncertainty_stream\": 6817681662129837904\n      }\n    },\n    \"reason\": \"material increase effect 0.4638888888888889 beyond tolerance 0.02 with identity, random, shuffled, and off-target controls passing and uncertainty excluding the baseline\",\n    \"strength\": 1.0,\n    \"strength_semantics\": \"fraction-of-paired-baseline-encoder-row-restored\",\n    \"target\": \"brightness-axis-dim0\",\n    \"threshold\": {\n      \"comparator\": \">=\",\n      \"metric_id\": \"heldout-brightness-bin-accuracy\",\n      \"predeclared\": true,\n      \"tolerance\": 0.02,\n      \"value\": 0.9\n    },\n    \"uncertainty\": {\n      \"confidence_level\": 0.95,\n      \"lower\": 1.0,\n      \"mean\": 1.0,\n      \"method\": \"bootstrap\",\n      \"repetitions\": 200,\n      \"seed\": 6817681662129837904,\n      \"upper\": 1.0\n    },\n    \"zero_tolerance\": 0.02\n  },\n  \"lesion_boundary\": \"encoder row 0 and bias zeroed before heldout encoding\",\n  \"lesion_record_sha256\": \"d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570\",\n  \"lesioned_checkpoint_sha256\": \"81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008\",\n  \"localization\": {\n    \"axes\": [\n      {\n        \"affected\": [\n          \"brightness-axis-dim0\"\n        ],\n        \"axis\": \"feature\",\n        \"earliest\": \"brightness-axis-dim0\",\n        \"reason\": \"affected feature coordinate(s) brightness-axis-dim0 under declared feature-axis identity 'linear-autoencoder-feature-axis-4' and order\",\n        \"report_rows\": [\n          {\n            \"axis\": \"feature\",\n            \"confidence\": 1.0,\n            \"evidence_refs\": [\n              \"detect:collapse_rank_loss:bottleneck-feature-variance-ratio\"\n            ],\n            \"id\": \"location-feature-brightness-axis-dim0\",\n            \"selection\": \"brightness-axis-dim0\",\n            \"status\": \"supported\"\n          }\n        ],\n        \"status\": \"localized\"\n      }\n    ],\n    \"control_outcomes\": {\n      \"control-benign-low-variance\": \"passed\",\n      \"control-healthy-counterexample\": \"passed\",\n      \"control-null-shuffle\": \"passed\"\n    },\n    \"family_id\": \"collapse_rank_loss\",\n    \"metric_id\": \"bottleneck-feature-variance-ratio\",\n    \"reason\": \"1 axe(s) localized (feature); global score ignored\",\n    \"report_localization\": [\n      {\n        \"axis\": \"feature\",\n        \"confidence\": 1.0,\n        \"evidence_refs\": [\n          \"detect:collapse_rank_loss:bottleneck-feature-variance-ratio\"\n        ],\n        \"id\": \"location-feature-brightness-axis-dim0\",\n        \"selection\": \"brightness-axis-dim0\",\n        \"status\": \"supported\"\n      }\n    ],\n    \"representation_identity\": \"linear_pca_autoencoder:bottleneck:latent_dim=4\",\n    \"verdict\": \"localized\"\n  },\n  \"manifest_digest\": \"f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f\",\n  \"manifest_id\": \"sprint80-core-encoder-autoencoder-collapse-model-lesion-v3\",\n  \"manifest_raw_sha256\": \"e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82\",\n  \"manifest_raw_unchanged_during_run\": true,\n  \"output_root\": \"artifacts\\\\diagnostics\\\\proof-80-25-clean-encoder-v3-20260924-035357-6996\",\n  \"proof_completed_at\": \"2026-09-24T03:54:56.173740+00:00\",\n  \"proof_started_at\": \"2026-09-24T03:54:55.142623+00:00\",\n  \"workflow_stages\": [\n    \"capture\",\n    \"detect\",\n    \"localize\",\n    \"explain\",\n    \"intervene\",\n    \"compare\",\n    \"report\"\n  ],\n  \"workflow_status\": \"completed\"\n}\n",
+    "peak_process_tree_rss_bytes": 353533952,
+    "timed_out": false,
+    "timeout_s": 1800,
+    "wall_s": 15.563
+  },
+  {
+    "argv": [
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "-c",
+      "import scripts.sprint80_task80_24_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996'; raise SystemExit(proof.main())"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "exit": 0,
+    "label": "80_24_transformer_v1_target_evidence_v2",
+    "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_24_transformer_v1_target_evidence_v2.log",
+    "memory_limit_bytes": 17179869184,
+    "memory_limit_exceeded": false,
+    "output_bytes": 5642,
+    "output_tail": "\nGenerating test split:   0%|          | 0/4358 [00:00<?, ? examples/s]\nGenerating test split: 100%|██████████| 4358/4358 [00:00<00:00, 102786.19 examples/s]\n\nGenerating train split:   0%|          | 0/36718 [00:00<?, ? examples/s]\nGenerating train split: 100%|██████████| 36718/36718 [00:00<00:00, 773384.89 examples/s]\n\nGenerating validation split:   0%|          | 0/3760 [00:00<?, ? examples/s]\nGenerating validation split: 100%|██████████| 3760/3760 [00:00<00:00, 253685.02 examples/s]\nPASS frozen-inputs: manifest c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a validated; gpt2@e7da7f221d5b… snapshot present; wikitext f776294184f1… validation verified against the pinned L04 manifest (official 3760, nonblank 2461, selected 2048 indices+hashes exact); 6 frozen artifacts hashed\nPASS leakage-safe grouping: grouped original-index//8 split seed79 -> train 1549 rows (grouped-original-index-div8-train79-1549rows) / eval 499 rows (grouped-original-index-div8-eval79-499rows); groups disjoint, both classes in both partitions, n_train>=770 capacity gate satisfied\nRECORD declared attribute: is-section-header (pattern '^ = .+ = $') -> 516 positives / 1532 negatives (predeclared before evidence; never changed)\nPASS deterministic-replay: pooled hidden states sha b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b reproduced bit-identically on a full re-extraction (12 layers x 2048 rows x768)\nPASS capture: capture_identity 28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89 shape (2048, 768) dtype float64 via bind_selection/resolve_captures (native output_hidden_states, last-nonpadding-token-pooling-v1)\nRECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4509 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}\nRECORD controls: capacity passed (declared linear-logreg, n_params770<=n_train), label-randomization passed (randomized acc 0.5491), nonseparable-negative passed (noise acc 0.5832 <0.7), split-swap null recorded\nRECORD headline probe: accuracy 1.0000 at the localized-layer probe (cached predictions shared by detect/compare/intervene — no stage refits)\nRECORD per-layer probe accuracies h.0..h.11: [1.0, 0.998, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; localize verdict 'localized', earliest 'transformer.h.0', affected layers ['transformer.h.0', 'transformer.h.1', 'transformer.h.2', 'transformer.h.3', 'transformer.h.4', 'transformer.h.5', 'transformer.h.6', 'transformer.h.7', 'transformer.h.8', 'transformer.h.9', 'transformer.h.10', 'transformer.h.11']\nPASS determinism: detect payload sha f0b63c4c41cf0a50c155b06f8751df4ebd9616ec2740e7a75d9b74434d59a737, localize payload sha 1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc, capture identity stable (split digests train/eval identities fixed)\nRECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}\nRECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000\nPASS artifact: run c4012406e89254ea, artifact sha 972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba, report sha eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b; independent validator re-run on fresh load passed (13 content-addressed blobs)\nPASS report: deterministic render 5819 bytes, sha 930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad; 13 evidence links re-hashed; content-addressed render sha 930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad; output materialized at artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996/diagnostic-report\nPASS fail-closed manifest tamper: BenchmarkManifestValidationError: manifest digest does not match canonical content\nPASS fail-closed capture provenance: CaptureBindingError: provenance mismatch: selection representation_identity 'openai-community-gpt2:hidden-states:layers0-10:dim768' != manifest 'openai-community-gpt2:hidden-states:layers0-11:dim768'\nPASS fail-closed leakage: DetectionError: train/eval split leaks: a sample position appears on both sides\nPASS fail-closed resume identity: WorkflowError: checkpoint request_digest does not match current inputs\nPASS fail-closed failed control: using the target itself as the non-separable negative -> outcome inconclusive, claim_allowed=False, missing ['failed-control:control-nonseparable-negative']\nPASS frozen invariance: all six frozen artifacts byte-identical after the run\nACCEPTANCE: PASSED — detect -> localize -> explain -> intervene -> compare -> report completed with the declared positive, counterexample, and negative controls\nresources: proof body 969.65s (frozen+data=0.00s, extraction+replay=909.97s, capture=10.10s, detect=2.54s, localize=0.38s, determinism=3.39s, workflow=6.58s, report-assembly=0.28s, persist+render=7.17s); wall including imports 982.12s; tracemalloc peak 535.4 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0\ncommands: uv run --extra transformers --with \"datasets>=2.19,<4\" --with \"huggingface-hub>=0.34,<1\" python scripts/sprint80_task80_24_proof.py; uv run --extra transformers --with \"datasets>=2.19,<4\" --with \"huggingface-hub>=0.34,<1\" pytest tests/test_transformer_end_to_end_proof.py -q\n",
+    "peak_process_tree_rss_bytes": 1784811520,
+    "timed_out": false,
+    "timeout_s": 1800,
+    "wall_s": 983.945
+  }
+]

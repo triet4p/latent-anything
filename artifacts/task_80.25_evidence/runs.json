@@ -1,0 +1,130 @@
+[
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run0",
+  "exit": 0,
+  "label": "80_23_run0",
+  "log": "task_80.25_evidence\\logs\\80_23_run0.log",
+  "parsed": {
+   "acceptance": "NOT PASSED",
+   "blocked_lines": [
+    "BLOCKED explain: StageContractError — explain hypothesis 'h-collapse-bottleneck-mu' declares localization ('slice', 'slice-all') with no localized/supported prior slice selection carrying that identity; workflow failed at explain (7-stage chain cannot complete, no validator-clean artifact or rendered report is producible without fabricating a localization)"
+   ],
+   "capture_identity": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd",
+   "case": "80_23",
+   "compare_line": null,
+   "detect_sha": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a",
+   "determinism_line_found": true,
+   "heldout_latents_sha": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a",
+   "intervene_line": null,
+   "localize_line": "RECORD localize: truthful negative — no layer/sample meets the declared affected criterion (no layer or sample meets the declared affected criterion; benign negative produces no location); the manifest's expected feature-axis selection cannot be named without fabricating a location",
+   "localize_sha": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df",
+   "pooled_sha": null,
+   "positive_line": "RECORD positive-case (declared known defect): NOT OBSERVED — bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25; threshold_pass={'bottleneck-effective-rank': True, 'bottleneck-singular-spread': True}; bootstrap CI bottleneck-effective-rank [2.9134, 3.2664]",
+   "resources_line": "resources: proof body 72.01s (frozen+data+model=70.40s, capture=0.02s, detect=0.25s, localize=0.34s, workflow=0.59s, guards+previews=0.41s); wall including imports 79.89s; tracemalloc peak 81.1 MiB; environment python 3.13.3, numpy 2.4.6, torch-cpu, scikit-learn 1.9.0; declared output location 'artifacts/diagnostics/proof-80-23' intentionally not materialized (persistence refused)",
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 512221184,
+  "script": "sprint80_task80_23_proof.py",
+  "wall_s": 81.173
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run1",
+  "exit": 0,
+  "label": "80_23_run1",
+  "log": "task_80.25_evidence\\logs\\80_23_run1.log",
+  "parsed": {
+   "acceptance": "NOT PASSED",
+   "blocked_lines": [
+    "BLOCKED explain: StageContractError — explain hypothesis 'h-collapse-bottleneck-mu' declares localization ('slice', 'slice-all') with no localized/supported prior slice selection carrying that identity; workflow failed at explain (7-stage chain cannot complete, no validator-clean artifact or rendered report is producible without fabricating a localization)"
+   ],
+   "capture_identity": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd",
+   "case": "80_23",
+   "compare_line": null,
+   "detect_sha": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a",
+   "determinism_line_found": true,
+   "heldout_latents_sha": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a",
+   "intervene_line": null,
+   "localize_line": "RECORD localize: truthful negative — no layer/sample meets the declared affected criterion (no layer or sample meets the declared affected criterion; benign negative produces no location); the manifest's expected feature-axis selection cannot be named without fabricating a location",
+   "localize_sha": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df",
+   "pooled_sha": null,
+   "positive_line": "RECORD positive-case (declared known defect): NOT OBSERVED — bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25; threshold_pass={'bottleneck-effective-rank': True, 'bottleneck-singular-spread': True}; bootstrap CI bottleneck-effective-rank [2.9134, 3.2664]",
+   "resources_line": "resources: proof body 6.05s (frozen+data+model=4.56s, capture=0.01s, detect=0.24s, localize=0.34s, workflow=0.53s, guards+previews=0.37s); wall including imports 10.61s; tracemalloc peak 62.1 MiB; environment python 3.13.3, numpy 2.4.6, torch-cpu, scikit-learn 1.9.0; declared output location 'artifacts/diagnostics/proof-80-23' intentionally not materialized (persistence refused)",
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 479645696,
+  "script": "sprint80_task80_23_proof.py",
+  "wall_s": 11.688
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run2",
+  "exit": 0,
+  "label": "80_24_run2",
+  "log": "task_80.25_evidence\\logs\\80_24_run2.log",
+  "parsed": {
+   "acceptance": "NOT PASSED",
+   "blocked_lines": [
+    "BLOCKED persistence: the taxonomy/manifest/binder axes triangle makes a validator-clean artifact unreachable — DiagnosticArtifactError: report failed independent validation; nothing was persisted: taxonomy applicability mismatch for separability_probe_leakage"
+   ],
+   "capture_identity": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89",
+   "case": "80_24",
+   "compare_line": "RECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000",
+   "detect_sha": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce",
+   "determinism_line_found": true,
+   "heldout_latents_sha": null,
+   "intervene_line": "RECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}",
+   "localize_line": null,
+   "localize_sha": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc",
+   "pooled_sha": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b",
+   "positive_line": "RECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4489 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}",
+   "resources_line": "resources: proof body 948.87s (frozen+data=0.00s, extraction+replay=911.86s, capture=9.86s, detect=1.35s, localize=0.21s, determinism=1.36s, workflow=4.00s, report-assembly=0.00s); wall including imports 953.03s; tracemalloc peak 538.8 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0",
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 1809317888,
+  "script": "sprint80_task80_24_proof.py",
+  "wall_s": 955.053
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run3",
+  "exit": 0,
+  "label": "80_24_run3",
+  "log": "task_80.25_evidence\\logs\\80_24_run3.log",
+  "parsed": {
+   "acceptance": "NOT PASSED",
+   "blocked_lines": [
+    "BLOCKED persistence: the taxonomy/manifest/binder axes triangle makes a validator-clean artifact unreachable — DiagnosticArtifactError: report failed independent validation; nothing was persisted: taxonomy applicability mismatch for separability_probe_leakage"
+   ],
+   "capture_identity": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89",
+   "case": "80_24",
+   "compare_line": "RECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000",
+   "detect_sha": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce",
+   "determinism_line_found": true,
+   "heldout_latents_sha": null,
+   "intervene_line": "RECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}",
+   "localize_line": null,
+   "localize_sha": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc",
+   "pooled_sha": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b",
+   "positive_line": "RECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4489 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}",
+   "resources_line": "resources: proof body 1040.18s (frozen+data=0.00s, extraction+replay=1003.40s, capture=9.78s, detect=1.37s, localize=0.26s, determinism=1.38s, workflow=4.00s, report-assembly=0.00s); wall including imports 1045.80s; tracemalloc peak 535.8 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0",
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 1776611328,
+  "script": "sprint80_task80_24_proof.py",
+  "wall_s": 1047.59
+ }
+]

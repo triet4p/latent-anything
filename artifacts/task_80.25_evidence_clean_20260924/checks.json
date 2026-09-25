@@ -1,0 +1,225 @@
+[
+  {
+    "check": "disk_headroom_12_gib",
+    "free_bytes": 58234064896,
+    "ok": true
+  },
+  {
+    "check": "pinned_repo_inputs_pre",
+    "count": 10,
+    "hashes": {
+      ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+      "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+      "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+      "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+      "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+      "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+      "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+      "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+      "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+      "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+    },
+    "ok": true
+  },
+  {
+    "check": "pinned_hf_snapshots_pre",
+    "hashes": {
+      "datasets--Salesforce--wikitext": {
+        "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+        "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+        "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+        "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+      },
+      "models--openai-community--gpt2": {
+        "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+        "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+        "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+        "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+        "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+        "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+      }
+    },
+    "ok": true
+  },
+  {
+    "bytes": 24725021,
+    "check": "fresh_root_copy_and_pin_match",
+    "count": 1404,
+    "inventory_files": 1404,
+    "ok": true
+  },
+  {
+    "check": "uv_frozen_no_dev_transformers_noneditable_install",
+    "latent_anything": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages\\latent_anything\\__init__.py",
+    "ok": true,
+    "python": "3.13.3"
+  },
+  {
+    "check": "pinned_runtime_versions",
+    "ok": true,
+    "torch_module": "2.10.0+cpu",
+    "versions": {
+      "datasets": "3.6.0",
+      "huggingface-hub": "0.35.3",
+      "numpy": "2.4.6",
+      "scikit-learn": "1.9.0",
+      "tokenizers": "0.22.2",
+      "torch": "2.10.0",
+      "transformers": "4.57.6"
+    }
+  },
+  {
+    "check": "uv_pip_check_clean",
+    "detail": "Checked 64 packages in 4ms\nAll installed packages are compatible",
+    "ok": true
+  },
+  {
+    "case": "80.23-encoder-v3",
+    "check": "fresh_runtime_caches_empty_or_pinned_only_pre",
+    "generated_caches_empty": {
+      "HF_DATASETS_CACHE": true,
+      "HF_MODULES_CACHE": true,
+      "TMP": true
+    },
+    "hf_cache": {
+      "empty_before_pinned_copy": true
+    },
+    "ok": true
+  },
+  {
+    "artifact_digest": "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681",
+    "case": "80.23-encoder-v3",
+    "check": "validator_clean_content_addressed_artifact",
+    "ok": true,
+    "run_id": "ae320a82c7db5f8b"
+  },
+  {
+    "case": "80.23-encoder-v3",
+    "check": "independent_reload_and_deterministic_render",
+    "ok": true,
+    "render_sha256": "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5"
+  },
+  {
+    "case": "80.23-encoder-v3",
+    "check": "bounded_wall_and_process_tree_memory",
+    "ok": true,
+    "peak_process_tree_rss_bytes": 353533952,
+    "wall_s": 15.563
+  },
+  {
+    "case": "80.24-transformer-v1-target-evidence-v2",
+    "check": "fresh_runtime_caches_empty_or_pinned_only_pre",
+    "generated_caches_empty": {
+      "HF_DATASETS_CACHE": true,
+      "HF_MODULES_CACHE": true,
+      "TMP": true
+    },
+    "hf_cache": {
+      "copied_pinned_files": {
+        "datasets--Salesforce--wikitext": {
+          "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+        },
+        "models--openai-community--gpt2": {
+          "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+          "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+          "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+          "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+          "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+          "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+        }
+      },
+      "empty_before_pinned_copy": true
+    },
+    "ok": true
+  },
+  {
+    "artifact_digest": "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba",
+    "case": "80.24-transformer-v1-target-evidence-v2",
+    "check": "validator_clean_content_addressed_artifact",
+    "ok": true,
+    "run_id": "c4012406e89254ea"
+  },
+  {
+    "case": "80.24-transformer-v1-target-evidence-v2",
+    "check": "independent_reload_and_deterministic_render",
+    "ok": true,
+    "render_sha256": "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad"
+  },
+  {
+    "case": "80.24-transformer-v1-target-evidence-v2",
+    "check": "bounded_wall_and_process_tree_memory",
+    "ok": true,
+    "peak_process_tree_rss_bytes": 1784811520,
+    "wall_s": 983.945
+  },
+  {
+    "check": "pinned_inputs_and_external_snapshots_unchanged_post",
+    "hf_snapshot_hashes": {
+      "datasets--Salesforce--wikitext": {
+        "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+        "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+        "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+        "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+      },
+      "models--openai-community--gpt2": {
+        "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+        "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+        "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+        "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+        "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+        "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+      }
+    },
+    "ok": true,
+    "repo_hashes": {
+      ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+      "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+      "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+      "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+      "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+      "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+      "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+      "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+      "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+      "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+    }
+  },
+  {
+    "check": "fresh_root_source_inventory_unchanged_except_expected_outputs",
+    "delta": {
+      "added": [],
+      "modified": [],
+      "removed": []
+    },
+    "ok": true,
+    "unexpected_added": []
+  },
+  {
+    "check": "validator_clean_artifacts_copied_byte_exact",
+    "ok": true,
+    "outputs": [
+      {
+        "bytes": 114407,
+        "files": 19,
+        "inventory_sha256": "2a319348133847872a54a5989324ad13d254419ad3f2b683d0d14f45daf48b71",
+        "matches_fresh_root": true,
+        "relative_path": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996"
+      },
+      {
+        "bytes": 322070,
+        "files": 17,
+        "inventory_sha256": "aa93bd5e7cb3249641a3485b15b0ad5bfac5f258b65a36eee63bbf5702613ec7",
+        "matches_fresh_root": true,
+        "relative_path": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996"
+      }
+    ]
+  },
+  {
+    "check": "fresh_environment_and_runtime_cache_cleanup",
+    "ok": true,
+    "work_removed": true
+  }
+]

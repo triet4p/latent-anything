@@ -1,0 +1,23 @@
+
+Generating test split:   0%|          | 0/4358 [00:00<?, ? examples/s]
+Generating test split: 100%|██████████| 4358/4358 [00:00<00:00, 377629.47 examples/s]
+
+Generating train split:   0%|          | 0/36718 [00:00<?, ? examples/s]
+Generating train split: 100%|██████████| 36718/36718 [00:00<00:00, 767090.48 examples/s]
+
+Generating validation split:   0%|          | 0/3760 [00:00<?, ? examples/s]
+Generating validation split: 100%|██████████| 3760/3760 [00:00<00:00, 377404.05 examples/s]
+PASS prospective protocol: sprint80-core-transformer-explanation-stability-v1 sha256=a69b7152a800ac543ac76fec4d699c16681517708a95b353e5d241241c8acf0a
+PASS historical immutability: prior v2 run 421578bb1c06fa15 unchanged; stability threshold remains null
+PASS real GPT-2 replay: openai-community/gpt2@e7da7f221d5b…; pooled hidden-state sha256=b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b; bit-identical full extraction
+PASS independent grouped split: seed=83, train=1538 rows, heldout=510 rows, group/sample overlap=0
+RECORD target provenance: rule_sha256=9b12485635decf738c4904702f75d7d5ae8cb6663555e2af5ee66476269f025b; sample_ids_sha256=156c6517670fd4298324056e3581dc5064092287bfdbaf2fb9bf51182920333a; label_sha256=d3eb6ab1052f09a26a927ded5f75232e069546e9faa9c973372a2741b4df0e5b
+RECORD capture contract: identity=28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89, axes=['slice', 'feature'], shape=[2048, 768], dtype=float64
+RECORD fidelity: heldout_accuracy=1.000000 >= 0.700 -> passed
+RECORD stability: coef_stability=0.974878 >= 0.800 -> passed
+RECORD selectivity: leakage_gap=0.425490 >= 0.150 -> passed
+RECORD stability refits: sampling=109/fit=193 cosine=0.978693 rows=1243, sampling=113/fit=197 cosine=0.975197 rows=1228, sampling=127/fit=199 cosine=0.974878 rows=1211, sampling=131/fit=211 cosine=0.976767 rows=1238, sampling=137/fit=223 cosine=0.988987 rows=1223
+RECORD controls: {'control-capacity': 'passed', 'control-label-randomization': 'passed', 'control-nonseparable-negative': 'passed'}; negative_accuracy=0.619608
+PASS independent validator/report: outcome=supported, all_gates=True, controls=True; artifact=artifacts/diagnostics/proof-80-25-committed-transformer-stability-supplement-20260924-160321-176370-23440/runs/a6428146d414129e9a34a2ebb9b93f1556a18b6d32fe339a18e51816a6d574c5.json sha256=a6428146d414129e9a34a2ebb9b93f1556a18b6d32fe339a18e51816a6d574c5; report=artifacts/diagnostics/proof-80-25-committed-transformer-stability-supplement-20260924-160321-176370-23440/reports/5f88ac98fe84ab80ed93dfc5a0e08a9972e2665649e152ecb2030503494135d0.md sha256=5f88ac98fe84ab80ed93dfc5a0e08a9972e2665649e152ecb2030503494135d0
+RUNTIME: total=1027.73s; explanation=0.89s; python=3.13.3
+ACCEPTANCE: PASSED — the supplemental prospective stability protocol and all three explanation gates passed

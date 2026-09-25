@@ -1,0 +1,127 @@
+{
+  "schema_version": "transformer-explanation-stability-protocol-v1",
+  "protocol_id": "sprint80-core-transformer-explanation-stability-v1",
+  "status": "predeclared",
+  "declared_at": "2026-09-24",
+  "question": "Does the frozen GPT-2 section-header probe satisfy fidelity, coefficient stability across grouped training-set perturbations, and label-randomization selectivity on a new grouped split?",
+  "thresholds": {
+    "heldout_accuracy": {
+      "comparator": ">=",
+      "value": 0.7
+    },
+    "coef_stability": {
+      "comparator": ">=",
+      "value": 0.8
+    },
+    "leakage_gap": {
+      "comparator": ">=",
+      "value": 0.15
+    }
+  },
+  "threshold_rationale": "The coefficient-stability threshold 0.8 is prospectively borrowed from the accepted Sprint 80.23 encoder-v3 explanation gate; the fidelity and selectivity cutoffs retain the frozen transformer thresholds. The historical transformer v2 coef_stability observation (approximately 1.0 with threshold null) is explicitly not used to select this threshold and remains ungated historical evidence.",
+  "source_evidence": {
+    "transformer_manifest_id": "sprint80-core-transformer-hidden-state-probe-v1",
+    "transformer_manifest_sha256": "c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a",
+    "prior_run_id": "421578bb1c06fa15",
+    "prior_artifact_sha256": "e2ebd582ac9fa0defe03f1b221290067d931a9b99b606b661da75fccab7eee7a",
+    "prior_explain_stage_record_sha256": "d629ecc3d0562bdd71292a332f58778b6ab70444ee7fc1d74766e32707650b1c",
+    "prior_diagnostic_report_sha256": "c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb",
+    "prior_rendered_report_sha256": "788b9a316ff3ec14922b7a1515fd8aee2b0d2b4b4d0dc884f321eb0e68b8693a",
+    "prior_stability_threshold": null,
+    "threshold_precedent": {
+      "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+      "source": "scripts/sprint80_task80_23_v3_proof.py",
+      "source_sha256": "87891b0c75d4ddcfe890792e421ac4108801d08aa49a9d3a234da764481cb53f",
+      "accepted_run_id": "6bca9afb72af32c4",
+      "accepted_artifact": "artifacts/diagnostics/proof-80-23-v3-model-weight-lesion-complete-20260923/artifacts/e5c6db0ab5080807138e091bc332a5d3e788889a382917e93775b15f562aef0f",
+      "accepted_artifact_sha256": "e5c6db0ab5080807138e091bc332a5d3e788889a382917e93775b15f562aef0f",
+      "accepted_run_record": "artifacts/diagnostics/proof-80-23-v3-model-weight-lesion-complete-20260923/proof-run.json",
+      "accepted_run_record_sha256": "deb38278b6442db366d09a2b8b5c0271eada8162f3913efd65f37648b47ba7f1",
+      "threshold": {
+        "metric": "coef_stability",
+        "comparator": ">=",
+        "value": 0.8
+      }
+    }
+  },
+  "data": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "dataset_id": "Salesforce/wikitext",
+    "dataset_config": "wikitext-2-raw-v1",
+    "dataset_revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+    "dataset_split": "validation",
+    "selection_identity": "wikitext-2-raw-v1-validation-3760rows-selected2048-maxtokens128",
+    "selection_manifest": "artifacts/m14/l04-wikitext-2-manifest.json",
+    "selected_rows": 2048,
+    "target_id": "section-header-attribute",
+    "target_rule": "section-header attribute '^ = .+ = $'",
+    "target_rule_sha256": "9b12485635decf738c4904702f75d7d5ae8cb6663555e2af5ee66476269f025b",
+    "representation": "openai-community-gpt2:hidden-states:layers0-11:dim768",
+    "localized_layer": "transformer.h.0",
+    "localized_layer_index": 0,
+    "capture_axes": ["slice", "feature"],
+    "capture_axes_semantics": "Bound model-capture axes only; target labels and sample identities remain separate target provenance.",
+    "prior_target_record_sha256": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+    "capture": "native output_hidden_states; per-layer last-nonpadding-token pooling; float64 storage; full extraction replay must be bit-identical"
+  },
+  "independent_split": {
+    "identity": "grouped-original-index-div8-seed83-v1",
+    "grouping": "original validation row index integer-divided by 8",
+    "algorithm": "Sort unique group IDs, shuffle with numpy default_rng(seed), assign floor(0.75 * group_count) groups to train and the remainder to heldout evaluation.",
+    "seed": 83,
+    "train_group_fraction": 0.75,
+    "requirements": [
+      "No group or sample identity overlaps between train and heldout evaluation.",
+      "Both target classes occur in each partition.",
+      "The declared linear probe has no more parameters than training rows.",
+      "Record exact ordered train/evaluation sample identities and their canonical digests."
+    ],
+    "independence_limit": "This is a new deterministic grouped partition of the same frozen 2,048 selected validation rows, not an independent source corpus; row identities can differ from both sides of the historical seed-79 split."
+  },
+  "explanation": {
+    "method": "shared Sprint 80.16 probe evaluator",
+    "hypothesis_id": "h-section-header-stability-v1",
+    "family_id": "separability_probe_leakage",
+    "fidelity_metric": "heldout_accuracy",
+    "selectivity_metric": "leakage_gap = heldout_accuracy - label_randomized_accuracy",
+    "capacity": "linear-logreg-C1.0-standardized",
+    "estimator": "Training-only StandardScaler followed by balanced LogisticRegression(C=1.0, solver=lbfgs, max_iter=1000).",
+    "headline_fit_seed": 173,
+    "evaluation_bootstrap_seed": 181,
+    "control_seed": 179,
+    "uncertainty": {
+      "repetitions": 200,
+      "confidence_level": 0.95,
+      "resampling": "Resample heldout predictions; no estimator refitting."
+    }
+  },
+  "stability": {
+    "estimand": "Minimum absolute cosine similarity between the headline standardized-probe coefficient vector and five independently fit coefficient vectors from group-disjoint-from-evaluation 80% subsamples of the independent split's training groups.",
+    "cosine": "Absolute cosine is sign-aware for the binary decision direction.",
+    "replicate_group_fraction": 0.8,
+    "sampling_seeds": [109, 113, 127, 131, 137],
+    "fit_seeds": [193, 197, 199, 211, 223],
+    "replicates": 5,
+    "gate": {
+      "metric": "coef_stability",
+      "comparator": ">=",
+      "value": 0.8
+    },
+    "failure_behavior": "Any absent/invalid replicate, identity leakage, or observed coefficient similarity below 0.8 blocks support; do not change the threshold or seeds after observing results."
+  },
+  "controls": {
+    "required": [
+      "declared probe capacity",
+      "label-randomized training control",
+      "non-separable Gaussian-feature negative control"
+    ],
+    "negative_control_feature_seed": 191,
+    "negative_control_fit_seed": 227,
+    "expected": "The randomized-label gap must satisfy the selectivity threshold; Gaussian negative-control accuracy must remain below the fidelity threshold; capacity and split integrity must pass."
+  },
+  "interpretation": {
+    "claim_scope": "Non-causal probe evidence only. Passing fidelity, stability, selectivity, leakage, and controls supports the probe explanation under this protocol; it does not establish causal feature use.",
+    "historical_artifact_policy": "Do not modify or retroactively relabel the accepted v2 artifact, its report, or its threshold-null stability status. Supplemental evidence is separately versioned and content-addressed."
+  }
+}

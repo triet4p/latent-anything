@@ -1,5 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Task 80.25 G2: pinned build inputs are raw-byte-hashed by the clean
+# reproducer; store exact bytes on every platform.
+.python-version -text
+pyproject.toml -text
+uv.lock -text
 # Bash scripts are transported/executed as byte-sensitive payloads; keep LF
 # line endings even when a Windows clone enables core.autocrlf.
 *.sh text eol=lf
@@ -8,3 +13,64 @@
 artifacts/m14/l04-* -text
 artifacts/m14/l049-v2-* -text
 artifacts/m14/l04-explanations.ssh.TunedLogitLens.436d3a6b9f59b6530e7aa4d2b62f8cadbd0e0c1f.audit.json -text
+# The frozen diagnostic schema is raw-byte-pinned; preserve canonical LF bytes
+# across Windows checkouts instead of applying text line-ending conversion.
+artifacts/diagnostic_report_schema_v1.json -text
+# The historical Sprint 80 proof entrypoints are byte-hash-pinned inputs.
+scripts/sprint80_task80_23_proof.py -text
+scripts/sprint80_task80_24_proof.py -text
+# Task 80.25 G2: every raw-byte-pinned driver input and content-addressed
+# evidence path must survive Windows core.autocrlf=true checkouts unchanged.
+# Narrow -text rules (no broad binary/eol overrides) covering the accepted
+# encoder v3 / transformer v1 target-v2 / stability-supplement inputs and
+# their committed proof outputs. Historical failed-run evidence keeps the
+# same protection so failure bytes are never rewritten by checkout.
+artifacts/benchmark_manifest_schema_v1.json -text
+artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v1.json -text
+artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json -text
+artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json -text
+artifacts/benchmark_manifest_sprint80_transformer_explanation_stability_v1.json -text
+artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz -text
+artifacts/m14/l04-wikitext-2-manifest.json -text
+artifacts/diagnostics/proof-80-23-v3-model-weight-lesion-complete-20260923/** -text
+artifacts/diagnostics/proof-80-24-v2-rule-bound/** -text
+artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996/** -text
+artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996/** -text
+artifacts/diagnostics/proof-80-25-committed-encoder-v3-20260924-160321-176370-23440/** -text
+artifacts/diagnostics/proof-80-25-committed-transformer-v1-target-v2-20260924-160321-176370-23440/** -text
+artifacts/diagnostics/proof-80-25-committed-transformer-stability-supplement-20260924-160321-176370-23440/** -text
+artifacts/task_80.25_evidence/** -text
+artifacts/task_80.25_evidence_attempt1_failed/** -text
+artifacts/task_80.25_evidence_clean_20260924/** -text
+artifacts/task_80.25_evidence_committed_20260924-151256-484003-10236/** -text
+artifacts/task_80.25_evidence_committed_20260924-160321-176370-23440/** -text
+scripts/sprint80_task80_23_v3_proof.py -text
+scripts/sprint80_task80_24_stability_proof.py -text
+scripts/sprint80_task80_25_clean_repro.py -text
+src/latent_anything/_artifact_path.py -text
+src/latent_anything/_benchmark_manifest.py -text
+src/latent_anything/_capture_binding.py -text
+src/latent_anything/_collapse_detection.py -text
+src/latent_anything/_diagnostic_artifact.py -text
+src/latent_anything/_diagnostic_report.py -text
+src/latent_anything/_diagnostic_validator.py -text
+src/latent_anything/_diagnostic_workflow.py -text
+src/latent_anything/_intervention_trials.py -text
+src/latent_anything/_layer_slice_localization.py -text
+src/latent_anything/_portable_contract.py -text
+src/latent_anything/_probe_tcav_ig_explanation.py -text
+src/latent_anything/_redundancy_separability_detection.py -text
+src/latent_anything/_report_renderer.py -text
+src/latent_anything/_representation_taxonomy.py -text
+src/latent_anything/_run_comparison.py -text
+src/latent_anything/_run_record_codec.py -text
+src/latent_anything/_run_record_schema.py -text
+src/latent_anything/_target_evidence.py -text
+src/latent_anything/capture.py -text
+src/latent_anything/diagnostics.py -text
+src/latent_anything/latent_space.py -text
+src/latent_anything/latent_value.py -text
+src/latent_anything/probes.py -text
+tests/test_sprint80_25_clean_repro.py -text
+tests/test_target_evidence.py -text
+artifacts/sprint-80/task-25.md -text

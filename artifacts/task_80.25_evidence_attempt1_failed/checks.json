@@ -1,0 +1,1092 @@
+[
+ {
+  "check": "pinned_inputs_verified_pre",
+  "detail": "12 files",
+  "ok": true
+ },
+ {
+  "check": "declared_snapshots_verified_pre",
+  "detail": {
+   "datasets--Salesforce--wikitext": 4,
+   "models--openai-community--gpt2": 6
+  },
+  "ok": true
+ },
+ {
+  "check": "disk_space_headroom",
+  "detail": {
+   "free_bytes": 58894209024
+  },
+  "ok": true
+ },
+ {
+  "check": "fresh_root_inputs_present",
+  "detail": [
+   ".python-version",
+   "artifacts/benchmark_manifest_schema_v1.json",
+   "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v1.json",
+   "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json",
+   "artifacts/conv_vae_heldout_benchmark.json",
+   "artifacts/diagnostic_report_schema_v1.json",
+   "artifacts/m14/l04-wikitext-2-manifest.json",
+   "artifacts/representation_problem_taxonomy_v1.json",
+   "pyproject.toml",
+   "scripts/sprint80_task80_23_proof.py",
+   "scripts/sprint80_task80_24_proof.py",
+   "uv.lock"
+  ],
+  "ok": true
+ },
+ {
+  "check": "fresh_root_pins_match",
+  "detail": "12 files",
+  "ok": true
+ },
+ {
+  "check": "overlay_changes_only_declared_adjustments",
+  "detail": {
+   "adjustment_failures": {},
+   "changed": [
+    "fsspec"
+   ],
+   "disallowed": []
+  },
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "exit_code_zero",
+  "detail": {
+   "exit": 1,
+   "label": "80_23_run0"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "peak_rss_below_16gib",
+  "detail": {
+   "peak_rss_bytes": 4259840,
+   "wall_s": 11.26
+  },
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "pooled_cache_written_in_isolated_temp",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "run_cwd_left_empty_no_output_materialized",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "fresh_root_has_no_validator_clean_artifact",
+  "detail": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\artifacts\\diagnostics\\proof-80-23",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "acceptance_not_passed",
+  "detail": {
+   "actual": null,
+   "expected": "NOT PASSED"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "validator_clean_flag_false",
+  "detail": "no validator-clean artifact claimed",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "detect_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "capture_identity_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "heldout_latents_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:NOT OBSERVED",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:3.1149 ≥3.0",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:0.4735 ≥0.25",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_contains:truthful negative",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_contains:declared affected criterion",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "blocker_contains:StageContractError",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "blocker_contains:no localized/supported prior slice selection",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:index digests 0b03643758a0/48e9e0ed2c89 match th",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-healthy-counterexample passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-benign-low-variance passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-null-shuffle recorded",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:PASS fail-closed persistence: DiagnosticArtifact",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:PASS frozen invariance: all five frozen artifact",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:ACCEPTANCE: NOT PASSED —80.23 frozen acceptance ",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_absent:BLOCKED chain",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "output_absent:ACCEPTANCE: PASSED",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "resources_line_present",
+  "detail": null,
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "exit_code_zero",
+  "detail": {
+   "exit": 1,
+   "label": "80_23_run1"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "peak_rss_below_16gib",
+  "detail": {
+   "peak_rss_bytes": 4259840,
+   "wall_s": 8.23
+  },
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "pooled_cache_written_in_isolated_temp",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "run_cwd_left_empty_no_output_materialized",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "fresh_root_has_no_validator_clean_artifact",
+  "detail": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\artifacts\\diagnostics\\proof-80-23",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "acceptance_not_passed",
+  "detail": {
+   "actual": null,
+   "expected": "NOT PASSED"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "validator_clean_flag_false",
+  "detail": "no validator-clean artifact claimed",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "detect_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "capture_identity_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "heldout_latents_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:NOT OBSERVED",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:3.1149 ≥3.0",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "positive_case_contains:0.4735 ≥0.25",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_contains:truthful negative",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "localize_contains:declared affected criterion",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "blocker_contains:StageContractError",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "blocker_contains:no localized/supported prior slice selection",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:index digests 0b03643758a0/48e9e0ed2c89 match th",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-healthy-counterexample passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-benign-low-variance passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:control-null-shuffle recorded",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:PASS fail-closed persistence: DiagnosticArtifact",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:PASS frozen invariance: all five frozen artifact",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_contains:ACCEPTANCE: NOT PASSED —80.23 frozen acceptance ",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "output_absent:BLOCKED chain",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "output_absent:ACCEPTANCE: PASSED",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "resources_line_present",
+  "detail": null,
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "exit_code_zero",
+  "detail": {
+   "exit": 1,
+   "label": "80_24_run2"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "peak_rss_below_16gib",
+  "detail": {
+   "peak_rss_bytes": 4263936,
+   "wall_s": 8.05
+  },
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "pooled_cache_written_in_isolated_temp",
+  "detail": [],
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "run_cwd_left_empty_no_output_materialized",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "fresh_root_has_no_validator_clean_artifact",
+  "detail": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\artifacts\\diagnostics\\proof-80-24",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "acceptance_not_passed",
+  "detail": {
+   "actual": null,
+   "expected": "NOT PASSED"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "validator_clean_flag_false",
+  "detail": "no validator-clean artifact claimed",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "detect_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "localize_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "capture_identity_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "pooled_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "positive_case_contains:OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, p",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "blocker_contains:report failed independent validation",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "blocker_contains:taxonomy applicability mismatch for separability",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:train 1549 rows",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:eval 499 rows",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:capacity passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:label-randomization passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:nonseparable-negative passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:split-swap null recorded",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:RECORD intervene: remove remove-section-header-d",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:effect -0.2685",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:RECORD compare: neither",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:PASS frozen invariance: all six frozen artifacts",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:ACCEPTANCE: NOT PASSED — see recorded outcomes a",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_absent:BLOCKED chain",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "output_absent:ACCEPTANCE: PASSED",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:RECORD intervene:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:RECORD compare:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:BLOCKED persistence:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "resources_line_present",
+  "detail": null,
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "exit_code_zero",
+  "detail": {
+   "exit": 1,
+   "label": "80_24_run3"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "peak_rss_below_16gib",
+  "detail": {
+   "peak_rss_bytes": 4259840,
+   "wall_s": 7.23
+  },
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "pooled_cache_written_in_isolated_temp",
+  "detail": [],
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "run_cwd_left_empty_no_output_materialized",
+  "detail": [],
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "fresh_root_has_no_validator_clean_artifact",
+  "detail": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\artifacts\\diagnostics\\proof-80-24",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "acceptance_not_passed",
+  "detail": {
+   "actual": null,
+   "expected": "NOT PASSED"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "validator_clean_flag_false",
+  "detail": "no validator-clean artifact claimed",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "detect_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "localize_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "capture_identity_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "pooled_sha_matches_recorded",
+  "detail": {
+   "actual": null,
+   "expected": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b"
+  },
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "positive_case_contains:OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, p",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "blocker_contains:report failed independent validation",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "blocker_contains:taxonomy applicability mismatch for separability",
+  "detail": "",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:train 1549 rows",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:eval 499 rows",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:capacity passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:label-randomization passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:nonseparable-negative passed",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:split-swap null recorded",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:RECORD intervene: remove remove-section-header-d",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:effect -0.2685",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:RECORD compare: neither",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:PASS frozen invariance: all six frozen artifacts",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_contains:ACCEPTANCE: NOT PASSED — see recorded outcomes a",
+  "detail": "recorded output line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "output_absent:BLOCKED chain",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "output_absent:ACCEPTANCE: PASSED",
+  "detail": "must not appear",
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:RECORD intervene:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:RECORD compare:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "stage_line:BLOCKED persistence:",
+  "detail": "required recorded stage line",
+  "ok": false
+ },
+ {
+  "case": "80_24",
+  "check": "resources_line_present",
+  "detail": null,
+  "ok": false
+ },
+ {
+  "case": "80_23",
+  "check": "detect_sha_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "localize_sha_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "case": "80_23",
+  "check": "capture_identity_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "detect_sha_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "localize_sha_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "case": "80_24",
+  "check": "capture_identity_identical_across_runs",
+  "detail": [
+   "null"
+  ],
+  "ok": true
+ },
+ {
+  "check": "fresh_root_tree_only_gained_build_metadata",
+  "detail": {
+   "added": [
+    "build/lib/latent_anything/__init__.py",
+    "build/lib/latent_anything/_api_freeze_inventory.py",
+    "build/lib/latent_anything/_api_freeze_runtime.py",
+    "build/lib/latent_anything/_benchmark_manifest.py",
+    "build/lib/latent_anything/_capture_binding.py",
+    "build/lib/latent_anything/_collapse_detection.py",
+    "build/lib/latent_anything/_density_drift_detection.py",
+    "build/lib/latent_anything/_diagnostic_artifact.py",
+    "build/lib/latent_anything/_diagnostic_report.py",
+    "build/lib/latent_anything/_diagnostic_validator.py",
+    "build/lib/latent_anything/_diagnostic_workflow.py",
+    "build/lib/latent_anything/_hook_output.py",
+    "build/lib/latent_anything/_intervention_trials.py",
+    "build/lib/latent_anything/_jepa_checkpoint.py",
+    "build/lib/latent_anything/_jepa_evaluation.py",
+    "build/lib/latent_anything/_jepa_training.py",
+    "build/lib/latent_anything/_jepa_validation.py",
+    "build/lib/latent_anything/_layer_slice_localization.py",
+    "build/lib/latent_anything/_lerobot_benchmark_environment.py",
+    "build/lib/latent_anything/_lerobot_benchmark_execution.py",
+    "build/lib/latent_anything/_lerobot_benchmark_statistics.py",
+    "build/lib/latent_anything/_lerobot_smolvla_loader.py",
+    "build/lib/latent_anything/_lerobot_smolvla_metrics.py",
+    "build/lib/latent_anything/_lerobot_smolvla_runtime.py",
+    "build/lib/latent_anything/_mlp_controls.py",
+    "build/lib/latent_anything/_mlp_training.py",
+    "build/lib/latent_anything/_plugin_builtins.py",
+    "build/lib/latent_anything/_portable_contract.py",
+    "build/lib/latent_anything/_portable_nodes.py",
+    "build/lib/latent_anything/_probe_split.py",
+    "build/lib/latent_anything/_probe_tcav_ig_explanation.py",
+    "build/lib/latent_anything/_recorder_contract.py",
+    "build/lib/latent_anything/_redundancy_separability_detection.py",
+    "build/lib/latent_anything/_report_renderer.py",
+    "build/lib/latent_anything/_representation_taxonomy.py",
+    "build/lib/latent_anything/_reward_value_metrics.py",
+    "build/lib/latent_anything/_rssm_checkpoint.py",
+    "build/lib/latent_anything/_rssm_evaluation.py",
+    "build/lib/latent_anything/_rssm_runtime.py",
+    "build/lib/latent_anything/_rssm_training.py",
+    "build/lib/latent_anything/_rssm_validation.py",
+    "build/lib/latent_anything/_run_comparison.py",
+    "build/lib/latent_anything/_run_record_codec.py",
+    "build/lib/latent_anything/_run_record_comparison.py",
+    "build/lib/latent_anything/_run_record_persistence.py",
+    "build/lib/latent_anything/_run_record_schema.py",
+    "build/lib/latent_anything/_sae_atlas.py",
+    "build/lib/latent_anything/_sae_lens_geometry_density_clustering.py",
+    "build/lib/latent_anything/_sae_metrics.py",
+    "build/lib/latent_anything/_sparse_temporal_detection.py",
+    "build/lib/latent_anything/_statistical_controls.py",
+    "build/lib/latent_anything/_tcav_model.py",
+    "build/lib/latent_anything/_tcav_statistics.py",
+    "build/lib/latent_anything/_tokenized_dynamics.py",
+    "build/lib/latent_anything/_tokenized_evaluation.py",
+    "build/lib/latent_anything/_tokenized_integrity.py",
+    "build/lib/latent_anything/_tokenized_training.py",
+    "build/lib/latent_anything/_tokenized_validation.py",
+    "build/lib/latent_anything/_transformer_analysis.py",
+    "build/lib/latent_anything/_transformer_backend.py",
+    "build/lib/latent_anything/_transformer_runtime.py",
+    "build/lib/latent_anything/_transition_core.py",
+    "build/lib/latent_anything/_transition_deterministic.py",
+    "build/lib/latent_anything/_transition_stochastic.py",
+    "build/lib/latent_anything/_transition_types.py",
+    "build/lib/latent_anything/adapters/__init__.py",
+    "build/lib/latent_anything/adapters/conv_vae.py",
+    "build/lib/latent_anything/adapters/gaussian_3d_renderer.py",
+    "build/lib/latent_anything/adapters/gaussian_renderer.py",
+    "build/lib/latent_anything/adapters/hidden_state.py",
+    "build/lib/latent_anything/adapters/jepa.py",
+    "build/lib/latent_anything/adapters/protocols.py",
+    "build/lib/latent_anything/adapters/random_projection.py",
+    "build/lib/latent_anything/adapters/vae.py",
+    "build/lib/latent_anything/adapters/vq_vae.py",
+    "build/lib/latent_anything/analysis_pipeline.py",
+    "build/lib/latent_anything/artifact_store.py",
+    "build/lib/latent_anything/capture.py",
+    "build/lib/latent_anything/cem.py",
+    "build/lib/latent_anything/cli.py",
+    "build/lib/latent_anything/clustering.py",
+    "build/lib/latent_anything/config.py",
+    "build/lib/latent_anything/covariance.py",
+    "build/lib/latent_anything/density.py",
+    "build/lib/latent_anything/diagnostics.py",
+    "build/lib/latent_anything/dictionary_learning.py",
+    "build/lib/latent_anything/dtw.py",
+    "build/lib/latent_anything/evaluation.py",
+    "build/lib/latent_anything/experiment_recorder.py",
+    "build/lib/latent_anything/gaussian_3d.py",
+    "build/lib/latent_anything/gaussian_3d_evaluation.py",
+    "build/lib/latent_anything/geodesic.py",
+    "build/lib/latent_anything/geometry.py",
+    "build/lib/latent_anything/integrated_gradients.py",
+    "build/lib/latent_anything/integrations/__init__.py",
+    "build/lib/latent_anything/integrations/_lerobot_diffusion_analysis.py",
+    "build/lib/latent_anything/integrations/_optional.py",
+    "build/lib/latent_anything/integrations/_tracking_common.py",
+    "build/lib/latent_anything/integrations/diffusers_conditional.py",
+    "build/lib/latent_anything/integrations/diffusers_vae.py",
+    "build/lib/latent_anything/integrations/gsplat_renderer.py",
+    "build/lib/latent_anything/integrations/lerobot.py",
+    "build/lib/latent_anything/integrations/lerobot_act.py",
+    "build/lib/latent_anything/integrations/lerobot_benchmark.py",
+    "build/lib/latent_anything/integrations/lerobot_dataset.py",
+    "build/lib/latent_anything/integrations/lerobot_diffusion.py",
+    "build/lib/latent_anything/integrations/lerobot_recording.py",
+    "build/lib/latent_anything/integrations/lerobot_smolvla.py",
+    "build/lib/latent_anything/integrations/mlflow_recorder.py",
+    "build/lib/latent_anything/integrations/transformer_lm.py",
+    "build/lib/latent_anything/integrations/wandb_recorder.py",
+    "build/lib/latent_anything/latent_space.py",
+    "build/lib/latent_anything/latent_value.py",
+    "build/lib/latent_anything/manipulation_pipeline.py",
+    "build/lib/latent_anything/methods/__init__.py",
+    "build/lib/latent_anything/methods/_base.py",
+    "build/lib/latent_anything/methods/activation_patch.py",
+    "build/lib/latent_anything/methods/b_protocols.py",
+    "build/lib/latent_anything/methods/lerp.py",
+    "build/lib/latent_anything/methods/pca.py",
+    "build/lib/latent_anything/methods/protocols.py",
+    "build/lib/latent_anything/methods/sae.py",
+    "build/lib/latent_anything/methods/steering.py",
+    "build/lib/latent_anything/methods/umap.py",
+    "build/lib/latent_anything/mlp_probe.py",
+    "build/lib/latent_anything/mppi.py",
+    "build/lib/latent_anything/pipeline.py",
+    "build/lib/latent_anything/pipeline_config.py",
+    "build/lib/latent_anything/pipeline_contract.py",
+    "build/lib/latent_anything/pipeline_models.py",
+    "build/lib/latent_anything/plugin_discovery.py",
+    "build/lib/latent_anything/plugin_groups.py",
+    "build/lib/latent_anything/plugin_metadata.py",
+    "build/lib/latent_anything/portable.py",
+    "build/lib/latent_anything/portable_results.py",
+    "build/lib/latent_anything/pose.py",
+    "build/lib/latent_anything/probes.py",
+    "build/lib/latent_anything/projection.py",
+    "build/lib/latent_anything/registry.py",
+    "build/lib/latent_anything/registry_aliases.py",
+    "build/lib/latent_anything/reward_value.py",
+    "build/lib/latent_anything/rollout_pipeline.py",
+    "build/lib/latent_anything/rssm.py",
+    "build/lib/latent_anything/run_record.py",
+    "build/lib/latent_anything/runtime/__init__.py",
+    "build/lib/latent_anything/runtime/batch_executor.py",
+    "build/lib/latent_anything/runtime/cache.py",
+    "build/lib/latent_anything/runtime/disk_cache.py",
+    "build/lib/latent_anything/runtime/profiling.py",
+    "build/lib/latent_anything/sae_evaluation.py",
+    "build/lib/latent_anything/tcav.py",
+    "build/lib/latent_anything/temporal.py",
+    "build/lib/latent_anything/tokenized_world_model.py",
+    "build/lib/latent_anything/trajectory.py",
+    "build/lib/latent_anything/transition.py",
+    "build/lib/latent_anything/transition_contract.py",
+    "build/lib/latent_anything/visualization/__init__.py",
+    "build/lib/latent_anything/visualization/data.py",
+    "build/lib/latent_anything/visualization/explorer.py",
+    "build/lib/latent_anything/visualization/figures.py",
+    "src/latent_anything.egg-info/PKG-INFO",
+    "src/latent_anything.egg-info/SOURCES.txt",
+    "src/latent_anything.egg-info/dependency_links.txt",
+    "src/latent_anything.egg-info/entry_points.txt",
+    "src/latent_anything.egg-info/requires.txt",
+    "src/latent_anything.egg-info/top_level.txt"
+   ],
+   "modified": [],
+   "removed": []
+  },
+  "ok": true
+ },
+ {
+  "check": "developer_warm_pooled_cache_untouched",
+  "detail": {
+   "after": [
+    {
+     "mtime": 1790065500,
+     "name": "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz",
+     "size": 79042289
+    }
+   ],
+   "before": [
+    {
+     "mtime": 1790065500,
+     "name": "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz",
+     "size": 79042289
+    }
+   ]
+  },
+  "ok": true
+ }
+]

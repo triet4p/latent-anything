@@ -1,0 +1,985 @@
+{
+  "acceptance": "PASSED",
+  "checks": [
+    {
+      "check": "disk_headroom_12_gib",
+      "free_bytes": 58234064896,
+      "ok": true
+    },
+    {
+      "check": "pinned_repo_inputs_pre",
+      "count": 10,
+      "hashes": {
+        ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+        "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+        "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+        "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+        "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+        "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+        "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+        "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+        "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+        "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+      },
+      "ok": true
+    },
+    {
+      "check": "pinned_hf_snapshots_pre",
+      "hashes": {
+        "datasets--Salesforce--wikitext": {
+          "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+        },
+        "models--openai-community--gpt2": {
+          "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+          "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+          "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+          "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+          "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+          "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+        }
+      },
+      "ok": true
+    },
+    {
+      "bytes": 24725021,
+      "check": "fresh_root_copy_and_pin_match",
+      "count": 1404,
+      "inventory_files": 1404,
+      "ok": true
+    },
+    {
+      "check": "uv_frozen_no_dev_transformers_noneditable_install",
+      "latent_anything": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages\\latent_anything\\__init__.py",
+      "ok": true,
+      "python": "3.13.3"
+    },
+    {
+      "check": "pinned_runtime_versions",
+      "ok": true,
+      "torch_module": "2.10.0+cpu",
+      "versions": {
+        "datasets": "3.6.0",
+        "huggingface-hub": "0.35.3",
+        "numpy": "2.4.6",
+        "scikit-learn": "1.9.0",
+        "tokenizers": "0.22.2",
+        "torch": "2.10.0",
+        "transformers": "4.57.6"
+      }
+    },
+    {
+      "check": "uv_pip_check_clean",
+      "detail": "Checked 64 packages in 4ms\nAll installed packages are compatible",
+      "ok": true
+    },
+    {
+      "case": "80.23-encoder-v3",
+      "check": "fresh_runtime_caches_empty_or_pinned_only_pre",
+      "generated_caches_empty": {
+        "HF_DATASETS_CACHE": true,
+        "HF_MODULES_CACHE": true,
+        "TMP": true
+      },
+      "hf_cache": {
+        "empty_before_pinned_copy": true
+      },
+      "ok": true
+    },
+    {
+      "artifact_digest": "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681",
+      "case": "80.23-encoder-v3",
+      "check": "validator_clean_content_addressed_artifact",
+      "ok": true,
+      "run_id": "ae320a82c7db5f8b"
+    },
+    {
+      "case": "80.23-encoder-v3",
+      "check": "independent_reload_and_deterministic_render",
+      "ok": true,
+      "render_sha256": "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5"
+    },
+    {
+      "case": "80.23-encoder-v3",
+      "check": "bounded_wall_and_process_tree_memory",
+      "ok": true,
+      "peak_process_tree_rss_bytes": 353533952,
+      "wall_s": 15.563
+    },
+    {
+      "case": "80.24-transformer-v1-target-evidence-v2",
+      "check": "fresh_runtime_caches_empty_or_pinned_only_pre",
+      "generated_caches_empty": {
+        "HF_DATASETS_CACHE": true,
+        "HF_MODULES_CACHE": true,
+        "TMP": true
+      },
+      "hf_cache": {
+        "copied_pinned_files": {
+          "datasets--Salesforce--wikitext": {
+            "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+            "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+            "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+            "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+          },
+          "models--openai-community--gpt2": {
+            "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+            "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+            "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+            "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+            "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+            "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+          }
+        },
+        "empty_before_pinned_copy": true
+      },
+      "ok": true
+    },
+    {
+      "artifact_digest": "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba",
+      "case": "80.24-transformer-v1-target-evidence-v2",
+      "check": "validator_clean_content_addressed_artifact",
+      "ok": true,
+      "run_id": "c4012406e89254ea"
+    },
+    {
+      "case": "80.24-transformer-v1-target-evidence-v2",
+      "check": "independent_reload_and_deterministic_render",
+      "ok": true,
+      "render_sha256": "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad"
+    },
+    {
+      "case": "80.24-transformer-v1-target-evidence-v2",
+      "check": "bounded_wall_and_process_tree_memory",
+      "ok": true,
+      "peak_process_tree_rss_bytes": 1784811520,
+      "wall_s": 983.945
+    },
+    {
+      "check": "pinned_inputs_and_external_snapshots_unchanged_post",
+      "hf_snapshot_hashes": {
+        "datasets--Salesforce--wikitext": {
+          "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+        },
+        "models--openai-community--gpt2": {
+          "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+          "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+          "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+          "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+          "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+          "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+        }
+      },
+      "ok": true,
+      "repo_hashes": {
+        ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+        "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+        "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+        "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+        "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+        "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+        "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+        "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+        "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+        "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+      }
+    },
+    {
+      "check": "fresh_root_source_inventory_unchanged_except_expected_outputs",
+      "delta": {
+        "added": [],
+        "modified": [],
+        "removed": []
+      },
+      "ok": true,
+      "unexpected_added": []
+    },
+    {
+      "check": "validator_clean_artifacts_copied_byte_exact",
+      "ok": true,
+      "outputs": [
+        {
+          "bytes": 114407,
+          "files": 19,
+          "inventory_sha256": "2a319348133847872a54a5989324ad13d254419ad3f2b683d0d14f45daf48b71",
+          "matches_fresh_root": true,
+          "relative_path": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996"
+        },
+        {
+          "bytes": 322070,
+          "files": 17,
+          "inventory_sha256": "aa93bd5e7cb3249641a3485b15b0ad5bfac5f258b65a36eee63bbf5702613ec7",
+          "matches_fresh_root": true,
+          "relative_path": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996"
+        }
+      ]
+    },
+    {
+      "check": "fresh_environment_and_runtime_cache_cleanup",
+      "ok": true,
+      "work_removed": true
+    }
+  ],
+  "checks_failed": [],
+  "cleanup": {
+    "removed": true,
+    "work": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996"
+  },
+  "commands": [
+    {
+      "argv": [
+        "uv",
+        "sync",
+        "--frozen",
+        "--no-dev",
+        "--extra",
+        "transformers",
+        "--no-editable"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "uv-sync",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-sync.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 1571,
+      "output_tail": "Using CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\nPrepared 1 package in 4.24s\nInstalled 50 packages in 10.51s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+      "peak_process_tree_rss_bytes": 91734016,
+      "timed_out": false,
+      "timeout_s": 1800,
+      "wall_s": 15.172
+    },
+    {
+      "argv": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "datasets==3.6.0",
+        "huggingface-hub==0.35.3"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "datasets-overlay",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/datasets-overlay.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 400,
+      "output_tail": "Resolved 31 packages in 29ms\nUninstalled 1 package in 9ms\nInstalled 15 packages in 841ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+      "peak_process_tree_rss_bytes": 93286400,
+      "timed_out": false,
+      "timeout_s": 900,
+      "wall_s": 1.12
+    },
+    {
+      "argv": [
+        "uv",
+        "pip",
+        "check",
+        "--python",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "uv-pip-check",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-pip-check.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 65,
+      "output_tail": "Checked 64 packages in 4ms\nAll installed packages are compatible\n",
+      "peak_process_tree_rss_bytes": 15736832,
+      "timed_out": false,
+      "timeout_s": 300,
+      "wall_s": 0.251
+    },
+    {
+      "argv": [
+        "uv",
+        "pip",
+        "list",
+        "--python",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "--format",
+        "json"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "uv-pip-list",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/uv-pip-list.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 2524,
+      "output_tail": "[{\"name\":\"aiohappyeyeballs\",\"version\":\"2.7.1\"},{\"name\":\"aiohttp\",\"version\":\"3.14.3\"},{\"name\":\"aiosignal\",\"version\":\"1.4.0\"},{\"name\":\"annotated-types\",\"version\":\"0.7.0\"},{\"name\":\"attrs\",\"version\":\"26.1.0\"},{\"name\":\"certifi\",\"version\":\"2026.6.17\"},{\"name\":\"charset-normalizer\",\"version\":\"3.4.9\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"contourpy\",\"version\":\"1.3.3\"},{\"name\":\"cycler\",\"version\":\"0.12.1\"},{\"name\":\"datasets\",\"version\":\"3.6.0\"},{\"name\":\"dill\",\"version\":\"0.3.8\"},{\"name\":\"filelock\",\"version\":\"3.29.4\"},{\"name\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"frozenlist\",\"version\":\"1.8.0\"},{\"name\":\"fsspec\",\"version\":\"2025.3.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"multidict\",\"version\":\"6.9.1\"},{\"name\":\"multiprocess\",\"version\":\"0.70.16\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pandas\",\"version\":\"3.0.6\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"propcache\",\"version\":\"0.5.4\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"tzdata\",\"version\":\"2026.4\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"},{\"name\":\"xxhash\",\"version\":\"4.0.1\"},{\"name\":\"yarl\",\"version\":\"1.25.1\"}]\n",
+      "peak_process_tree_rss_bytes": 20885504,
+      "timed_out": false,
+      "timeout_s": 300,
+      "wall_s": 0.255
+    },
+    {
+      "argv": [
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "-c",
+        "import json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nnames = ['datasets','huggingface-hub','numpy','scikit-learn','tokenizers','torch','transformers']\nd = distribution('latent-anything')\nurl = d.read_text('direct_url.json')\neditable = bool(json.loads(url).get('dir_info', {}).get('editable')) if url else False\nprint('@@JSON@@' + json.dumps({'python':sys.version.split()[0], 'executable':sys.executable, 'prefix':sys.prefix, 'latent_file':latent_anything.__file__, 'sys_path':sys.path, 'editable':editable, 'versions':{n:version(n) for n in names}, 'torch_module':__import__('torch').__version__}))\n"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "isolation-probe",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/isolation-probe.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 1178,
+      "output_tail": "@@JSON@@{\"python\": \"3.13.3\", \"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-clean-20260924-035357-6996\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"datasets\": \"3.6.0\", \"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module\": \"2.10.0+cpu\"}\n",
+      "peak_process_tree_rss_bytes": 342978560,
+      "timed_out": false,
+      "timeout_s": 300,
+      "wall_s": 14.656
+    },
+    {
+      "argv": [
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "-c",
+        "import scripts.sprint80_task80_23_v3_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996'; proof.OUTPUT_ROOT=proof.REPO / proof.OUTPUT_LOCATION; raise SystemExit(proof.main())"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "80_23_encoder_v3",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_23_encoder_v3.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 21644,
+      "output_tail": "del-random-direction\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-random-direction\",\n        \"detail\": null,\n        \"expected_behavior\": \"a seeded brightness-orthogonal random row does not recover task accuracy\",\n        \"interval\": null,\n        \"kind\": \"randomized\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.17222222222222222\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.4638888888888889\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5256802323007345929\n      },\n      \"model-shuffled-pairing\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-shuffled-pairing\",\n        \"detail\": null,\n        \"expected_behavior\": \"restoring the row with shuffled heldout pairing does not recover accuracy\",\n        \"interval\": null,\n        \"kind\": \"shuffled\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.019444444444444375\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.4638888888888889\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5692638005944590380\n      },\n      \"model-zero-strength\": {\n        \"confidence_level\": 0.95,\n        \"control_id\": \"model-zero-strength\",\n        \"detail\": null,\n        \"expected_behavior\": \"zero-strength leaves the lesioned encoder row unchanged\",\n        \"interval\": null,\n        \"kind\": \"null\",\n        \"observed\": {\n          \"heldout-brightness-bin-accuracy\": 0.005555555555555536\n        },\n        \"reason\": \"control comparator below_threshold against threshold 0.02\",\n        \"repetitions\": 2,\n        \"required\": true,\n        \"seed_role\": \"control\",\n        \"status\": \"passed\",\n        \"stream_seed\": 5998771819571697858\n      }\n    },\n    \"control_thresholds\": {\n      \"model-off-target-row\": 0.4638888888888889,\n      \"model-random-direction\": 0.4638888888888889,\n      \"model-shuffled-pairing\": 0.4638888888888889,\n      \"model-zero-strength\": 0.02\n    },\n    \"effect\": 0.4638888888888889,\n    \"expected_effect\": \"increase\",\n    \"hypothesis_id\": \"h-brightness-axis-dim0-v3\",\n    \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n    \"intervention_id\": \"restore-lesioned-encoder-dim0-v3\",\n    \"kind\": \"patch\",\n    \"measurements\": {\n      \"baseline\": {\n        \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n        \"metric_id\": \"heldout-brightness-bin-accuracy\",\n        \"role\": \"baseline\",\n        \"stream_seed\": 2664558170771750229,\n        \"value\": 0.5361111111111111\n      },\n      \"controls\": {\n        \"model-off-target-row\": {\n          \"control_class\": \"off_target\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 7680239923086700748,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim1\",\n          \"value\": 0.5388888888888889\n        },\n        \"model-random-direction\": {\n          \"control_class\": \"random\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5256802323007345929,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.3638888888888889\n        },\n        \"model-shuffled-pairing\": {\n          \"control_class\": \"shuffled\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5692638005944590380,\n          \"strength\": 1.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.5166666666666667\n        },\n        \"model-zero-strength\": {\n          \"control_class\": \"zero_strength\",\n          \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n          \"metric_id\": \"heldout-brightness-bin-accuracy\",\n          \"role\": \"control\",\n          \"stream_seed\": 5998771819571697858,\n          \"strength\": 0.0,\n          \"target\": \"brightness-axis-dim0\",\n          \"value\": 0.5305555555555556\n        }\n      },\n      \"intervened\": {\n        \"inputs_digest\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n        \"metric_id\": \"heldout-brightness-bin-accuracy\",\n        \"role\": \"intervened\",\n        \"stream_seed\": 1623955078298768741,\n        \"value\": 1.0\n      }\n    },\n    \"metric_direction\": \"higher_is_better\",\n    \"metric_id\": \"heldout-brightness-bin-accuracy\",\n    \"provenance\": {\n      \"capture_identity\": \"dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388\",\n      \"carrier\": \"paired-baseline-encoder-row\",\n      \"hypothesis_id\": \"h-brightness-axis-dim0-v3\",\n      \"localize_family_id\": \"collapse_rank_loss\",\n      \"localize_metric_id\": \"bottleneck-feature-variance-ratio\",\n      \"localize_verdict\": \"localized\",\n      \"manifest_id\": \"sprint80-core-encoder-autoencoder-collapse-model-lesion-v3\",\n      \"method\": \"encoder-weight-restoration\",\n      \"metric_direction\": \"higher_is_better\",\n      \"representation_identity\": \"linear_pca_autoencoder:bottleneck:latent_dim=4\",\n      \"request_id\": \"proof-80-23-v3-model-lesion\",\n      \"seeds\": {\n        \"baseline_stream\": 2664558170771750229,\n        \"controls\": 17,\n        \"evaluation\": 42,\n        \"intervened_stream\": 1623955078298768741,\n        \"uncertainty_stream\": 6817681662129837904\n      }\n    },\n    \"reason\": \"material increase effect 0.4638888888888889 beyond tolerance 0.02 with identity, random, shuffled, and off-target controls passing and uncertainty excluding the baseline\",\n    \"strength\": 1.0,\n    \"strength_semantics\": \"fraction-of-paired-baseline-encoder-row-restored\",\n    \"target\": \"brightness-axis-dim0\",\n    \"threshold\": {\n      \"comparator\": \">=\",\n      \"metric_id\": \"heldout-brightness-bin-accuracy\",\n      \"predeclared\": true,\n      \"tolerance\": 0.02,\n      \"value\": 0.9\n    },\n    \"uncertainty\": {\n      \"confidence_level\": 0.95,\n      \"lower\": 1.0,\n      \"mean\": 1.0,\n      \"method\": \"bootstrap\",\n      \"repetitions\": 200,\n      \"seed\": 6817681662129837904,\n      \"upper\": 1.0\n    },\n    \"zero_tolerance\": 0.02\n  },\n  \"lesion_boundary\": \"encoder row 0 and bias zeroed before heldout encoding\",\n  \"lesion_record_sha256\": \"d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570\",\n  \"lesioned_checkpoint_sha256\": \"81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008\",\n  \"localization\": {\n    \"axes\": [\n      {\n        \"affected\": [\n          \"brightness-axis-dim0\"\n        ],\n        \"axis\": \"feature\",\n        \"earliest\": \"brightness-axis-dim0\",\n        \"reason\": \"affected feature coordinate(s) brightness-axis-dim0 under declared feature-axis identity 'linear-autoencoder-feature-axis-4' and order\",\n        \"report_rows\": [\n          {\n            \"axis\": \"feature\",\n            \"confidence\": 1.0,\n            \"evidence_refs\": [\n              \"detect:collapse_rank_loss:bottleneck-feature-variance-ratio\"\n            ],\n            \"id\": \"location-feature-brightness-axis-dim0\",\n            \"selection\": \"brightness-axis-dim0\",\n            \"status\": \"supported\"\n          }\n        ],\n        \"status\": \"localized\"\n      }\n    ],\n    \"control_outcomes\": {\n      \"control-benign-low-variance\": \"passed\",\n      \"control-healthy-counterexample\": \"passed\",\n      \"control-null-shuffle\": \"passed\"\n    },\n    \"family_id\": \"collapse_rank_loss\",\n    \"metric_id\": \"bottleneck-feature-variance-ratio\",\n    \"reason\": \"1 axe(s) localized (feature); global score ignored\",\n    \"report_localization\": [\n      {\n        \"axis\": \"feature\",\n        \"confidence\": 1.0,\n        \"evidence_refs\": [\n          \"detect:collapse_rank_loss:bottleneck-feature-variance-ratio\"\n        ],\n        \"id\": \"location-feature-brightness-axis-dim0\",\n        \"selection\": \"brightness-axis-dim0\",\n        \"status\": \"supported\"\n      }\n    ],\n    \"representation_identity\": \"linear_pca_autoencoder:bottleneck:latent_dim=4\",\n    \"verdict\": \"localized\"\n  },\n  \"manifest_digest\": \"f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f\",\n  \"manifest_id\": \"sprint80-core-encoder-autoencoder-collapse-model-lesion-v3\",\n  \"manifest_raw_sha256\": \"e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82\",\n  \"manifest_raw_unchanged_during_run\": true,\n  \"output_root\": \"artifacts\\\\diagnostics\\\\proof-80-25-clean-encoder-v3-20260924-035357-6996\",\n  \"proof_completed_at\": \"2026-09-24T03:54:56.173740+00:00\",\n  \"proof_started_at\": \"2026-09-24T03:54:55.142623+00:00\",\n  \"workflow_stages\": [\n    \"capture\",\n    \"detect\",\n    \"localize\",\n    \"explain\",\n    \"intervene\",\n    \"compare\",\n    \"report\"\n  ],\n  \"workflow_status\": \"completed\"\n}\n",
+      "peak_process_tree_rss_bytes": 353533952,
+      "timed_out": false,
+      "timeout_s": 1800,
+      "wall_s": 15.563
+    },
+    {
+      "argv": [
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "-c",
+        "import scripts.sprint80_task80_24_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996'; raise SystemExit(proof.main())"
+      ],
+      "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+      "exit": 0,
+      "label": "80_24_transformer_v1_target_evidence_v2",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_24_transformer_v1_target_evidence_v2.log",
+      "memory_limit_bytes": 17179869184,
+      "memory_limit_exceeded": false,
+      "output_bytes": 5642,
+      "output_tail": "\nGenerating test split:   0%|          | 0/4358 [00:00<?, ? examples/s]\nGenerating test split: 100%|██████████| 4358/4358 [00:00<00:00, 102786.19 examples/s]\n\nGenerating train split:   0%|          | 0/36718 [00:00<?, ? examples/s]\nGenerating train split: 100%|██████████| 36718/36718 [00:00<00:00, 773384.89 examples/s]\n\nGenerating validation split:   0%|          | 0/3760 [00:00<?, ? examples/s]\nGenerating validation split: 100%|██████████| 3760/3760 [00:00<00:00, 253685.02 examples/s]\nPASS frozen-inputs: manifest c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a validated; gpt2@e7da7f221d5b… snapshot present; wikitext f776294184f1… validation verified against the pinned L04 manifest (official 3760, nonblank 2461, selected 2048 indices+hashes exact); 6 frozen artifacts hashed\nPASS leakage-safe grouping: grouped original-index//8 split seed79 -> train 1549 rows (grouped-original-index-div8-train79-1549rows) / eval 499 rows (grouped-original-index-div8-eval79-499rows); groups disjoint, both classes in both partitions, n_train>=770 capacity gate satisfied\nRECORD declared attribute: is-section-header (pattern '^ = .+ = $') -> 516 positives / 1532 negatives (predeclared before evidence; never changed)\nPASS deterministic-replay: pooled hidden states sha b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b reproduced bit-identically on a full re-extraction (12 layers x 2048 rows x768)\nPASS capture: capture_identity 28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89 shape (2048, 768) dtype float64 via bind_selection/resolve_captures (native output_hidden_states, last-nonpadding-token-pooling-v1)\nRECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4509 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}\nRECORD controls: capacity passed (declared linear-logreg, n_params770<=n_train), label-randomization passed (randomized acc 0.5491), nonseparable-negative passed (noise acc 0.5832 <0.7), split-swap null recorded\nRECORD headline probe: accuracy 1.0000 at the localized-layer probe (cached predictions shared by detect/compare/intervene — no stage refits)\nRECORD per-layer probe accuracies h.0..h.11: [1.0, 0.998, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; localize verdict 'localized', earliest 'transformer.h.0', affected layers ['transformer.h.0', 'transformer.h.1', 'transformer.h.2', 'transformer.h.3', 'transformer.h.4', 'transformer.h.5', 'transformer.h.6', 'transformer.h.7', 'transformer.h.8', 'transformer.h.9', 'transformer.h.10', 'transformer.h.11']\nPASS determinism: detect payload sha f0b63c4c41cf0a50c155b06f8751df4ebd9616ec2740e7a75d9b74434d59a737, localize payload sha 1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc, capture identity stable (split digests train/eval identities fixed)\nRECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}\nRECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000\nPASS artifact: run c4012406e89254ea, artifact sha 972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba, report sha eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b; independent validator re-run on fresh load passed (13 content-addressed blobs)\nPASS report: deterministic render 5819 bytes, sha 930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad; 13 evidence links re-hashed; content-addressed render sha 930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad; output materialized at artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996/diagnostic-report\nPASS fail-closed manifest tamper: BenchmarkManifestValidationError: manifest digest does not match canonical content\nPASS fail-closed capture provenance: CaptureBindingError: provenance mismatch: selection representation_identity 'openai-community-gpt2:hidden-states:layers0-10:dim768' != manifest 'openai-community-gpt2:hidden-states:layers0-11:dim768'\nPASS fail-closed leakage: DetectionError: train/eval split leaks: a sample position appears on both sides\nPASS fail-closed resume identity: WorkflowError: checkpoint request_digest does not match current inputs\nPASS fail-closed failed control: using the target itself as the non-separable negative -> outcome inconclusive, claim_allowed=False, missing ['failed-control:control-nonseparable-negative']\nPASS frozen invariance: all six frozen artifacts byte-identical after the run\nACCEPTANCE: PASSED — detect -> localize -> explain -> intervene -> compare -> report completed with the declared positive, counterexample, and negative controls\nresources: proof body 969.65s (frozen+data=0.00s, extraction+replay=909.97s, capture=10.10s, detect=2.54s, localize=0.38s, determinism=3.39s, workflow=6.58s, report-assembly=0.28s, persist+render=7.17s); wall including imports 982.12s; tracemalloc peak 535.4 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0\ncommands: uv run --extra transformers --with \"datasets>=2.19,<4\" --with \"huggingface-hub>=0.34,<1\" python scripts/sprint80_task80_24_proof.py; uv run --extra transformers --with \"datasets>=2.19,<4\" --with \"huggingface-hub>=0.34,<1\" pytest tests/test_transformer_end_to_end_proof.py -q\n",
+      "peak_process_tree_rss_bytes": 1784811520,
+      "timed_out": false,
+      "timeout_s": 1800,
+      "wall_s": 983.945
+    }
+  ],
+  "environment": {
+    "clean_install_probe": {
+      "editable": false,
+      "executable": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "latent_file": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages\\latent_anything\\__init__.py",
+      "prefix": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv",
+      "python": "3.13.3",
+      "sys_path": [
+        "",
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip",
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\DLLs",
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Lib",
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages"
+      ],
+      "torch_module": "2.10.0+cpu",
+      "versions": {
+        "datasets": "3.6.0",
+        "huggingface-hub": "0.35.3",
+        "numpy": "2.4.6",
+        "scikit-learn": "1.9.0",
+        "tokenizers": "0.22.2",
+        "torch": "2.10.0",
+        "transformers": "4.57.6"
+      }
+    },
+    "clean_runtime": "Python venv, temp, per-run HF hub/model, dataset, modules and torch caches removed after copying validator-clean outputs",
+    "declared_hf_snapshot_root": "F:\\llms\\hf\\models",
+    "dependency_overlay": {
+      "argv": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "datasets==3.6.0",
+        "huggingface-hub==0.35.3"
+      ],
+      "output_tail": "Resolved 31 packages in 29ms\nUninstalled 1 package in 9ms\nInstalled 15 packages in 841ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+      "wall_s": 1.12
+    },
+    "environment_policy": {
+      "hf_auth_tokens_passed": false,
+      "runtime_overrides": [
+        "TMP/TEMP/TMPDIR",
+        "HF_HOME/HF_HUB_CACHE",
+        "HF_DATASETS_CACHE/HF_MODULES_CACHE",
+        "XDG_CACHE_HOME",
+        "TORCH_HOME/TORCHINDUCTOR_CACHE_DIR",
+        "telemetry disabled",
+        "two BLAS/OpenMP threads",
+        "tokenizers parallelism disabled"
+      ],
+      "stripped_variables": [
+        "CONDA_DEFAULT_ENV",
+        "CONDA_PREFIX",
+        "HF_DATASETS_CACHE",
+        "HF_DATASETS_OFFLINE",
+        "HF_HOME",
+        "HF_HUB_CACHE",
+        "HF_HUB_ENABLE_HF_TRANSFER",
+        "HF_HUB_OFFLINE",
+        "HF_MODULES_CACHE",
+        "HF_TOKEN",
+        "HUGGINGFACE_HUB_CACHE",
+        "HUGGINGFACE_HUB_TOKEN",
+        "PYTHONCASEOK",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONHOME",
+        "PYTHONPATH",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE",
+        "PYTORCH_TRANSFORMERS_CACHE",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_HOME",
+        "TRANSFORMERS_CACHE",
+        "UV_CACHE_DIR",
+        "UV_PROJECT_ENVIRONMENT",
+        "UV_PYTHON",
+        "VIRTUAL_ENV",
+        "XDG_CACHE_HOME"
+      ],
+      "uv_package_cache": "uv default package cache (not used for proof data/model caches)"
+    },
+    "fresh_root": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+    "fresh_venv_python": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+    "host": {
+      "logical_cpu_count": 8,
+      "physical_memory_bytes": 16905965568,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 140 Stepping 2, GenuineIntel",
+      "python_host": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+      "uv": "0.9.7"
+    },
+    "output_artifacts_preserved": [
+      {
+        "bytes": 114407,
+        "files": 19,
+        "inventory_sha256": "2a319348133847872a54a5989324ad13d254419ad3f2b683d0d14f45daf48b71",
+        "matches_fresh_root": true,
+        "relative_path": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996"
+      },
+      {
+        "bytes": 322070,
+        "files": 17,
+        "inventory_sha256": "aa93bd5e7cb3249641a3485b15b0ad5bfac5f258b65a36eee63bbf5702613ec7",
+        "matches_fresh_root": true,
+        "relative_path": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996"
+      }
+    ],
+    "packages": [
+      {
+        "name": "aiohappyeyeballs",
+        "version": "2.7.1"
+      },
+      {
+        "name": "aiohttp",
+        "version": "3.14.3"
+      },
+      {
+        "name": "aiosignal",
+        "version": "1.4.0"
+      },
+      {
+        "name": "annotated-types",
+        "version": "0.7.0"
+      },
+      {
+        "name": "attrs",
+        "version": "26.1.0"
+      },
+      {
+        "name": "certifi",
+        "version": "2026.6.17"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.4.9"
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6"
+      },
+      {
+        "name": "contourpy",
+        "version": "1.3.3"
+      },
+      {
+        "name": "cycler",
+        "version": "0.12.1"
+      },
+      {
+        "name": "datasets",
+        "version": "3.6.0"
+      },
+      {
+        "name": "dill",
+        "version": "0.3.8"
+      },
+      {
+        "name": "filelock",
+        "version": "3.29.4"
+      },
+      {
+        "name": "fonttools",
+        "version": "4.63.0"
+      },
+      {
+        "name": "frozenlist",
+        "version": "1.8.0"
+      },
+      {
+        "name": "fsspec",
+        "version": "2025.3.0"
+      },
+      {
+        "name": "huggingface-hub",
+        "version": "0.35.3"
+      },
+      {
+        "name": "idna",
+        "version": "3.18"
+      },
+      {
+        "name": "jinja2",
+        "version": "3.1.6"
+      },
+      {
+        "name": "joblib",
+        "version": "1.5.3"
+      },
+      {
+        "name": "kiwisolver",
+        "version": "1.5.0"
+      },
+      {
+        "name": "latent-anything",
+        "version": "0.9.0"
+      },
+      {
+        "name": "llvmlite",
+        "version": "0.47.0"
+      },
+      {
+        "name": "markupsafe",
+        "version": "3.0.3"
+      },
+      {
+        "name": "matplotlib",
+        "version": "3.11.0"
+      },
+      {
+        "name": "mpmath",
+        "version": "1.3.0"
+      },
+      {
+        "name": "multidict",
+        "version": "6.9.1"
+      },
+      {
+        "name": "multiprocess",
+        "version": "0.70.16"
+      },
+      {
+        "name": "narwhals",
+        "version": "2.22.1"
+      },
+      {
+        "name": "networkx",
+        "version": "3.6.1"
+      },
+      {
+        "name": "numba",
+        "version": "0.65.1"
+      },
+      {
+        "name": "numpy",
+        "version": "2.4.6"
+      },
+      {
+        "name": "packaging",
+        "version": "25.0"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.6"
+      },
+      {
+        "name": "pillow",
+        "version": "12.2.0"
+      },
+      {
+        "name": "propcache",
+        "version": "0.5.4"
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2"
+      },
+      {
+        "name": "pyarrow",
+        "version": "24.0.0"
+      },
+      {
+        "name": "pydantic",
+        "version": "2.13.4"
+      },
+      {
+        "name": "pydantic-core",
+        "version": "2.46.4"
+      },
+      {
+        "name": "pynndescent",
+        "version": "0.6.0"
+      },
+      {
+        "name": "pyparsing",
+        "version": "3.3.2"
+      },
+      {
+        "name": "python-dateutil",
+        "version": "2.9.0.post0"
+      },
+      {
+        "name": "pyyaml",
+        "version": "6.0.3"
+      },
+      {
+        "name": "regex",
+        "version": "2026.7.10"
+      },
+      {
+        "name": "requests",
+        "version": "2.34.2"
+      },
+      {
+        "name": "safetensors",
+        "version": "0.8.0"
+      },
+      {
+        "name": "scikit-learn",
+        "version": "1.9.0"
+      },
+      {
+        "name": "scipy",
+        "version": "1.17.1"
+      },
+      {
+        "name": "setuptools",
+        "version": "80.10.2"
+      },
+      {
+        "name": "six",
+        "version": "1.17.0"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "threadpoolctl",
+        "version": "3.6.0"
+      },
+      {
+        "name": "tokenizers",
+        "version": "0.22.2"
+      },
+      {
+        "name": "torch",
+        "version": "2.10.0"
+      },
+      {
+        "name": "tqdm",
+        "version": "4.68.2"
+      },
+      {
+        "name": "transformers",
+        "version": "4.57.6"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.15.0"
+      },
+      {
+        "name": "typing-inspection",
+        "version": "0.4.2"
+      },
+      {
+        "name": "tzdata",
+        "version": "2026.4"
+      },
+      {
+        "name": "umap-learn",
+        "version": "0.5.12"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.7.0"
+      },
+      {
+        "name": "xxhash",
+        "version": "4.0.1"
+      },
+      {
+        "name": "yarl",
+        "version": "1.25.1"
+      }
+    ],
+    "uv_pip_check": {
+      "argv": [
+        "uv",
+        "pip",
+        "check",
+        "--python",
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe"
+      ],
+      "exit": 0,
+      "output_tail": "Checked 64 packages in 4ms\nAll installed packages are compatible\n"
+    },
+    "uv_sync": {
+      "argv": [
+        "uv",
+        "sync",
+        "--frozen",
+        "--no-dev",
+        "--extra",
+        "transformers",
+        "--no-editable"
+      ],
+      "output_tail": "Using CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\nPrepared 1 package in 4.24s\nInstalled 50 packages in 10.51s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+      "peak_process_tree_rss_bytes": 91734016,
+      "wall_s": 15.172
+    }
+  },
+  "error": null,
+  "fresh_root_inventory_delta": {
+    "added": [],
+    "modified": [],
+    "removed": []
+  },
+  "historical_negative_evidence_preserved": true,
+  "memory_bound_bytes_process_tree": 17179869184,
+  "pinned_hf_snapshots_post": {
+    "datasets--Salesforce--wikitext": {
+      "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+      "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+      "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+      "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+    },
+    "models--openai-community--gpt2": {
+      "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+      "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+      "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+      "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+      "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+      "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+    }
+  },
+  "pinned_hf_snapshots_pre": {
+    "datasets--Salesforce--wikitext": {
+      "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+      "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+      "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+      "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+    },
+    "models--openai-community--gpt2": {
+      "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+      "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+      "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+      "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+      "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+      "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+    }
+  },
+  "pinned_repository_inputs_post": {
+    ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+    "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+    "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+    "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+    "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+    "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+    "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+    "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+    "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+    "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+  },
+  "pinned_repository_inputs_pre": {
+    ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+    "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+    "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+    "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+    "artifacts/benchmark_model_sprint80_encoder_autoencoder_v3_baseline.npz": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+    "artifacts/diagnostic_report_schema_v1.json": "e2bbdccdb5999e53b13bfcbdb497282059818ab693a95258e5bf0fb02a16c71a",
+    "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+    "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+    "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+    "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+  },
+  "runs": [
+    {
+      "acceptance": "passed",
+      "artifact_digest": "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681",
+      "case": "80.23-encoder-v3",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "-c",
+        "import scripts.sprint80_task80_23_v3_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996'; proof.OUTPUT_ROOT=proof.REPO / proof.OUTPUT_LOCATION; raise SystemExit(proof.main())"
+      ],
+      "content_addressed": {
+        "blob_count": 14,
+        "blobs": {
+          "031daeeccf5e63c374860b2ca536007f3a1668105013b6418bae3f27d358784c": 123,
+          "16a79fe1fa0c5de5fc32923a4ee837ea3c31754e60317f75fee9a503c1d6c584": 975,
+          "2a78208b19117f3322c488aaa96a66808254dd3d0a2b82ea051979982004206b": 2054,
+          "45acfc305d86ac7ab4a075f7606d7211b2f110d926c265f5366918ec66cec47b": 7435,
+          "60a7497096f5e5cf008f785dd1988afc52afcbbbb2393cf8a18639d5785f6085": 6692,
+          "61bb2cbbec7afce6f6083fc3506d3055bdbda269449c109db7cdcd56d98cddec": 6133,
+          "63daf9c06ac88458a0b4ed4e93a265c98e9f3d15d571af1ccec9d6d870dc3c14": 5496,
+          "7fe22088bdc847d3b0d646dccdc5ca34bc27be402e1aab5e10f3f33ddde13c4c": 7052,
+          "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194": 7218,
+          "95fb45cc3d9dee15335ab45acf02d337b1959bdbe21ef14c3932f061053e0bda": 1983,
+          "9f1738367b9eee150f5b3065fa8b937c6df29ef6c2c3cd2657c22d5b1b9d0412": 8263,
+          "ebb664af871d7d0a57d4294b8b59e59eff5c4f9eedc27912c78ca4f5398487f0": 2993,
+          "ed4b0bbb1ac91a92bd6e4f388f11f85cc0e3cf105edbc97fbe1773e8b4e4f681": 9252,
+          "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5": 5690
+        }
+      },
+      "deterministic_render": true,
+      "fresh_dataset_cache_files_after": [],
+      "fresh_model_cache_files_after": {},
+      "fresh_modules_cache_files_after": [],
+      "fresh_temp_files_after": [],
+      "independent_validator": {
+        "inputs_digest": "92b86dea2a44c2d8e946d0247b7e251b5e36a37414ead8c5ef0decc8d26baff3",
+        "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+        "status": "passed",
+        "validator": "diagnostic-report-validator"
+      },
+      "lesion_record_sha256": "d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570",
+      "lesioned_checkpoint_sha256": "81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008",
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_23_encoder_v3.log",
+      "memory_limit_bytes": 17179869184,
+      "output_root": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996",
+      "peak_process_tree_rss_bytes": 353533952,
+      "render_sha256": "fe3e1444db1e5888ae3eb415f2c1e99ebe4e113ef19da7a5af748ec8fbe8ded5",
+      "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "run_id": "ae320a82c7db5f8b",
+      "stages": [
+        "capture",
+        "detect",
+        "localize",
+        "explain",
+        "intervene",
+        "compare",
+        "report"
+      ],
+      "timeout_s": 1800,
+      "wall_s": 15.563,
+      "workflow_status": "completed"
+    },
+    {
+      "artifact_digest": "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba",
+      "case": "80.24-transformer-v1-target-evidence-v2",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+        "-c",
+        "import scripts.sprint80_task80_24_proof as proof; proof.OUTPUT_LOCATION='artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996'; raise SystemExit(proof.main())"
+      ],
+      "content_addressed": {
+        "blob_count": 15,
+        "blobs": {
+          "027701ec421a56829f7e6cfeefcc3816bddcfea0a97d0a0b52a2b716556731e2": 146849,
+          "080853337f4274c6d92b700ddbc592f55ada5f4a83611408d116b580ade1a160": 6969,
+          "0944fca9e50a3e2118ccd97d82d619cd06009c6354d72416347190b476866983": 6310,
+          "12792403ee021875ed3cc9130e497a5e24a7f6fc23b946842b70835952a1eb62": 6484,
+          "257e66114a672c30727fbb1a8a5a94f5d750e21387aa2f080136dc0569e62ddb": 111,
+          "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19": 50335,
+          "4c3cc683e515312460bac83a049014d685c64fd09bed031be283172c370fd044": 1771,
+          "5dd1432fefe8bbd757f852fe4ecc47067f2e4bc69173483382bce61db0a81865": 1842,
+          "791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838": 5266,
+          "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad": 5819,
+          "972babae550002d74fa68f2cfae107caa21bf4350d38c99ac2ad97684a6879ba": 9500,
+          "c19c88c2296f12bee550f6d16fe8a2b0d27052aeb94ee037b411832d4250acbe": 55087,
+          "c9d7f0d94b6b33a63464b03b26d4a340b578ebaa443c2a2bd249fe6d9bb967de": 6253,
+          "d1560b5bff6335222f7a6f9bbccc0d0ccb61d74b67e8e3c633622651fefeeb76": 1013,
+          "eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b": 6590
+        }
+      },
+      "evidence_contract": "diagnostic-evidence-v2",
+      "evidence_links_rehashed": 13,
+      "fresh_dataset_cache_files_after": [
+        "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/dataset_info.json",
+        "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-test.arrow",
+        "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-train.arrow",
+        "Salesforce___wikitext/wikitext-2-raw-v1/0.0.0/f776294184f13b8ff2337b3841cf9269a6216d1e/wikitext-validation.arrow"
+      ],
+      "fresh_model_cache_files_after": {
+        "datasets--Salesforce--wikitext": {
+          "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+          "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+          "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+          "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+        },
+        "models--openai-community--gpt2": {
+          "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+          "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+          "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+          "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+          "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+          "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+        }
+      },
+      "fresh_modules_cache_files_after": [],
+      "fresh_temp_files_after": [
+        "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz"
+      ],
+      "log": "artifacts/task_80.25_evidence_clean_20260924/logs/80_24_transformer_v1_target_evidence_v2.log",
+      "manifest_commitment": "c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a",
+      "memory_limit_bytes": 17179869184,
+      "output_root": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996",
+      "peak_process_tree_rss_bytes": 1784811520,
+      "render_sha256": "930a2082d9fa297c1b4f90f5c7858dbea65d4f8f6085fc6048be5f4294360aad",
+      "report_digest": "eac5228f809d4127ba2cbf9c216be4e643ac4c37a26bb77f4a5adb70b0609c7b",
+      "run_id": "c4012406e89254ea",
+      "run_status": "completed",
+      "target_record_sha256": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+      "timeout_s": 1800,
+      "validator_status": "passed",
+      "wall_s": 983.945
+    }
+  ],
+  "runtime_bound_s_per_proof": 1800,
+  "source_scripts_pre": {
+    "scripts/sprint80_task80_23_v3_proof.py": "f9f25df0e746c1423b116ea5c3e481ab8e10837a856d4fad0618297689c888be",
+    "scripts/sprint80_task80_24_proof.py": "b9e036eba0fb6831dbfa3ba6ba960f51843c8cce0e24f887b635146c2488a31a"
+  },
+  "started_at_utc": "2026-09-24T03:53:57.620327+00:00",
+  "status": "PASSED",
+  "task": "80.25"
+}

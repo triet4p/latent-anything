@@ -13,7 +13,7 @@ import re
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 from latent_anything._artifact_path import resolve_artifact_path
 
@@ -67,7 +67,9 @@ def _int_list(value: object, *, name: str, minimum: int = 1) -> list[int]:
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
         raise BenchmarkManifestValidationError(f"{name} must be a list of integers")
     result = list(value)
-    if len(result) < minimum or not all(isinstance(item, int) and not isinstance(item, bool) and item >= 0 for item in result):
+    if len(result) < minimum or not all(
+        isinstance(item, int) and not isinstance(item, bool) and item >= 0 for item in result
+    ):
         raise BenchmarkManifestValidationError(f"{name} must contain at least {minimum} non-negative integers")
     if len(set(result)) != len(result):
         raise BenchmarkManifestValidationError(f"{name} contains duplicate seeds")
@@ -265,7 +267,9 @@ def _validate_causal_expectation(causal: Mapping[str, object], metric_ids: set[s
     _string(causal.get("falsification_rule"), name="causal_expectation.falsification_rule")
     reason = _string(causal.get("non_applicable_reason"), name="causal_expectation.non_applicable_reason")
     if applicable and (not linked or expectation == "not_applicable" or reason != "not_applicable"):
-        raise BenchmarkManifestValidationError("applicable causal expectation must name metrics and have no non-applicable reason")
+        raise BenchmarkManifestValidationError(
+            "applicable causal expectation must name metrics and have no non-applicable reason"
+        )
     if not applicable and (linked or expectation != "not_applicable" or reason == "not_applicable"):
         raise BenchmarkManifestValidationError("non-applicable causal expectation must fail closed explicitly")
 
@@ -305,7 +309,9 @@ def manifest_digest(manifest: Mapping[str, object]) -> str:
     unsigned_commitment = dict(commitment)
     unsigned_commitment.pop("manifest_sha256", None)
     unsigned["commitment"] = unsigned_commitment
-    encoded = json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    encoded = json.dumps(unsigned, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -318,7 +324,24 @@ def validate_manifest(manifest: Mapping[str, object], *, schema: Mapping[str, ob
         load_schema()
     _exact_keys(
         manifest,
-        frozenset({"schema_version", "manifest_id", "status", "model", "dataset", "representation", "defect", "metrics", "seeds", "controls", "uncertainty", "causal_expectation", "thresholds", "commitment"}),
+        frozenset(
+            {
+                "schema_version",
+                "manifest_id",
+                "status",
+                "model",
+                "dataset",
+                "representation",
+                "defect",
+                "metrics",
+                "seeds",
+                "controls",
+                "uncertainty",
+                "causal_expectation",
+                "thresholds",
+                "commitment",
+            }
+        ),
         name="manifest",
     )
     if manifest.get("schema_version") != SCHEMA_VERSION or manifest.get("status") != "predeclared":
@@ -335,7 +358,9 @@ def validate_manifest(manifest: Mapping[str, object], *, schema: Mapping[str, ob
     _validate_causal_expectation(_mapping(manifest.get("causal_expectation"), name="causal_expectation"), metric_ids)
     _validate_thresholds(manifest.get("thresholds"), metric_ids)
     commitment = _mapping(manifest.get("commitment"), name="commitment")
-    _exact_keys(commitment, frozenset({"locked", "declared_at", "manifest_sha256", "canonicalization"}), name="commitment")
+    _exact_keys(
+        commitment, frozenset({"locked", "declared_at", "manifest_sha256", "canonicalization"}), name="commitment"
+    )
     if commitment.get("locked") is not True:
         raise BenchmarkManifestValidationError("manifest commitment must be locked")
     _string(commitment.get("declared_at"), name="commitment.declared_at")

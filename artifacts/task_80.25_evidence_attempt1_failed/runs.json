@@ -1,0 +1,122 @@
+[
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\scripts\\sprint80_task80_23_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\run-cwd\\80_23_run0",
+  "exit": 1,
+  "label": "80_23_run0",
+  "log": "task_80.25_evidence\\logs\\80_23_run0.log",
+  "parsed": {
+   "acceptance": null,
+   "blocked_lines": [],
+   "capture_identity": null,
+   "case": "80_23",
+   "compare_line": null,
+   "detect_sha": null,
+   "determinism_line_found": false,
+   "heldout_latents_sha": null,
+   "intervene_line": null,
+   "localize_line": null,
+   "localize_sha": null,
+   "pooled_sha": null,
+   "positive_line": null,
+   "resources_line": null,
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 4259840,
+  "script": "sprint80_task80_23_proof.py",
+  "wall_s": 11.256
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\scripts\\sprint80_task80_23_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\run-cwd\\80_23_run1",
+  "exit": 1,
+  "label": "80_23_run1",
+  "log": "task_80.25_evidence\\logs\\80_23_run1.log",
+  "parsed": {
+   "acceptance": null,
+   "blocked_lines": [],
+   "capture_identity": null,
+   "case": "80_23",
+   "compare_line": null,
+   "detect_sha": null,
+   "determinism_line_found": false,
+   "heldout_latents_sha": null,
+   "intervene_line": null,
+   "localize_line": null,
+   "localize_sha": null,
+   "pooled_sha": null,
+   "positive_line": null,
+   "resources_line": null,
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 4259840,
+  "script": "sprint80_task80_23_proof.py",
+  "wall_s": 8.229
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\scripts\\sprint80_task80_24_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\run-cwd\\80_24_run2",
+  "exit": 1,
+  "label": "80_24_run2",
+  "log": "task_80.25_evidence\\logs\\80_24_run2.log",
+  "parsed": {
+   "acceptance": null,
+   "blocked_lines": [],
+   "capture_identity": null,
+   "case": "80_24",
+   "compare_line": null,
+   "detect_sha": null,
+   "determinism_line_found": false,
+   "heldout_latents_sha": null,
+   "intervene_line": null,
+   "localize_line": null,
+   "localize_sha": null,
+   "pooled_sha": null,
+   "positive_line": null,
+   "resources_line": null,
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 4263936,
+  "script": "sprint80_task80_24_proof.py",
+  "wall_s": 8.046
+ },
+ {
+  "argv": [
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\.venv\\Scripts\\python.exe",
+   "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\root\\scripts\\sprint80_task80_24_proof.py"
+  ],
+  "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-170215\\run-cwd\\80_24_run3",
+  "exit": 1,
+  "label": "80_24_run3",
+  "log": "task_80.25_evidence\\logs\\80_24_run3.log",
+  "parsed": {
+   "acceptance": null,
+   "blocked_lines": [],
+   "capture_identity": null,
+   "case": "80_24",
+   "compare_line": null,
+   "detect_sha": null,
+   "determinism_line_found": false,
+   "heldout_latents_sha": null,
+   "intervene_line": null,
+   "localize_line": null,
+   "localize_sha": null,
+   "pooled_sha": null,
+   "positive_line": null,
+   "resources_line": null,
+   "validator_clean": false
+  },
+  "peak_rss_bytes": 4259840,
+  "script": "sprint80_task80_24_proof.py",
+  "wall_s": 7.225
+ }
+]

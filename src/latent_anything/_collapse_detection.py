@@ -57,26 +57,27 @@ from latent_anything._benchmark_manifest import (
     BenchmarkManifestValidationError,
     validate_manifest,
 )
+from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
 from latent_anything._jepa_evaluation import compute_latent_health
 from latent_anything._portable_contract import PortableNodeError, canonical_json
 from latent_anything._representation_taxonomy import evaluate_claim
-from latent_anything.diagnostics import DiagnosticRequest
-from latent_anything.latent_value import LatentValue
-from latent_anything._diagnostic_workflow import StageInvocation, StageOutput
-from latent_anything._statistical_controls import run_bootstrap as _central_bootstrap
 from latent_anything._statistical_controls import ControlPlan as _ControlPlan
 from latent_anything._statistical_controls import ControlSpec as _ControlSpec
 from latent_anything._statistical_controls import execute_plan as _execute_plan
 from latent_anything._statistical_controls import failed_required as _failed_required
-from latent_anything._statistical_controls import run_permutation_control as _central_null
+from latent_anything.diagnostics import DiagnosticRequest
+from latent_anything.latent_value import LatentValue
 
 SUPPORTED_FAMILIES: tuple[str, ...] = ("anisotropy_inactive_dimensions", "collapse_rank_loss")
 """Detector scope for this task. Exact taxonomy identifiers; nothing else is evaluated."""
+
+_FEATURE_VARIANCE_RATIO_METRIC = "bottleneck-feature-variance-ratio"
 
 METRIC_FAMILY: Mapping[str, str] = MappingProxyType(
     {
         "bottleneck-effective-rank": "collapse_rank_loss",
         "bottleneck-singular-spread": "collapse_rank_loss",
+        _FEATURE_VARIANCE_RATIO_METRIC: "collapse_rank_loss",
     }
 )
 """Predeclared collapse metric-to-family wiring. Unknown metrics reject."""
@@ -89,6 +90,40 @@ ClaimOutcome = Literal["supported", "inconclusive", "unsupported"]
 
 class DetectionError(ValueError):
     """Raised when detection input, config, or evidence is fail-closed invalid."""
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    if not isinstance(value, DiagnosticRequest):
+        raise DetectionError("request must be a DiagnosticRequest")
+    return value
+
+
+def _require_config(value: object) -> DetectionConfig:
+    if not isinstance(value, DetectionConfig):
+        raise DetectionError("config must be a DetectionConfig")
+    return value
+
+
+def _require_batch(value: object) -> LatentValue:
+    if not isinstance(value, LatentValue):
+        raise DetectionError("value must be a LatentValue")
+    return value
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    from latent_anything._diagnostic_workflow import StageInvocation as _Invocation
+
+    if not isinstance(value, _Invocation):
+        from latent_anything._diagnostic_workflow import StageContractError as _ContractError
+
+        raise _ContractError("detect executor requires a StageInvocation")
+    return value
+
+
+def _require_bool(value: object) -> bool:
+    if not isinstance(value, bool):
+        raise DetectionError("claim_allowed must be boolean")
+    return value
 
 
 def _non_empty_string(value: object, *, name: str) -> str:
@@ -224,12 +259,9 @@ def _non_negative_int(value: object, *, name: str) -> int:
     return value
 
 
-def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping[str, object]) -> DetectionConfig:
+def detection_config_from_manifest(request: object, manifest: Mapping[str, object]) -> DetectionConfig:
     """Parse the predeclared detector configuration; fail closed on any gap."""
-    if not isinstance(request, DiagnosticRequest):
-        raise DetectionError("request must be a DiagnosticRequest")
-    if not isinstance(manifest, Mapping):
-        raise DetectionError("manifest must be a mapping")
+    request = _require_request(request)
     try:
         validate_manifest(manifest)
     except BenchmarkManifestValidationError as exc:
@@ -246,10 +278,10 @@ def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping
     raw_thresholds = manifest.get("thresholds")
     if isinstance(raw_thresholds, (str, bytes)) or not isinstance(raw_thresholds, Sequence):
         raise DetectionError("manifest thresholds must be a list")
-    thresholds: list[FamilyThreshold] = []
+    manifest_thresholds: list[FamilyThreshold] = []
     for index, raw in enumerate(raw_thresholds):
         item = _mapping(raw, name=f"thresholds[{index}]")
-        thresholds.append(
+        manifest_thresholds.append(
             FamilyThreshold(
                 metric_id=_non_empty_string(item.get("metric_id"), name=f"thresholds[{index}].metric_id"),
                 comparator=_non_empty_string(item.get("comparator"), name=f"thresholds[{index}].comparator"),
@@ -257,8 +289,14 @@ def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping
                 tolerance=_finite_number(item.get("tolerance"), name=f"thresholds[{index}].tolerance"),
             )
         )
-    if len({item.metric_id for item in thresholds}) != len(thresholds):
-        raise DetectionError("every metric must have exactly one predeclared threshold")
+    if len({item.metric_id for item in manifest_thresholds}) != len(manifest_thresholds):
+        raise DetectionError("every manifest metric must have exactly one predeclared threshold")
+    threshold_by_metric = {item.metric_id: item for item in manifest_thresholds}
+    requested_metric_ids = tuple(request.controls.metric_ids)
+    missing_thresholds = [metric_id for metric_id in requested_metric_ids if metric_id not in threshold_by_metric]
+    if missing_thresholds:
+        raise DetectionError(f"missing predeclared thresholds for requested metrics: {', '.join(missing_thresholds)}")
+    thresholds = [threshold_by_metric[metric_id] for metric_id in requested_metric_ids]
 
     raw_controls = manifest.get("controls")
     if isinstance(raw_controls, (str, bytes)) or not isinstance(raw_controls, Sequence) or not raw_controls:
@@ -304,7 +342,9 @@ def detection_config_from_manifest(request: DiagnosticRequest, manifest: Mapping
         family_ids=family_ids,
         metric_ids=tuple(request.controls.metric_ids),
         thresholds=tuple(thresholds),
-        required_controls=tuple(control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True),
+        required_controls=tuple(
+            control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is True
+        ),
         optional_controls=tuple(
             control_id for control_id in manifest_controls if manifest_controls[control_id]["required"] is not True
         ),
@@ -325,7 +365,7 @@ class FamilyDetection:
 
     family_id: str
     outcome: ClaimOutcome
-    claim_allowed: bool
+    claim_allowed: object
     observed_metrics: Mapping[str, float]
     threshold_pass: Mapping[str, bool]
     control_outcomes: Mapping[str, str]
@@ -338,8 +378,7 @@ class FamilyDetection:
             raise DetectionError(f"unsupported family: {self.family_id!r}")
         if self.outcome not in ("supported", "inconclusive", "unsupported"):
             raise DetectionError(f"unsupported claim outcome: {self.outcome!r}")
-        if not isinstance(self.claim_allowed, bool):
-            raise DetectionError("claim_allowed must be boolean")
+        object.__setattr__(self, "claim_allowed", _require_bool(self.claim_allowed))
         object.__setattr__(self, "observed_metrics", MappingProxyType(dict(self.observed_metrics)))
         object.__setattr__(self, "threshold_pass", MappingProxyType(dict(self.threshold_pass)))
         object.__setattr__(self, "control_outcomes", MappingProxyType(dict(self.control_outcomes)))
@@ -366,9 +405,8 @@ class FamilyDetection:
         }
 
 
-def _batch_matrix(value: LatentValue) -> np.ndarray:
-    if not isinstance(value, LatentValue):
-        raise DetectionError("value must be a LatentValue")
+def _batch_matrix(value: object) -> np.ndarray:
+    value = _require_batch(value)
     data = np.asarray(value.to_numpy(), dtype=np.float64)
     if data.ndim != 2:
         raise DetectionError(f"incompatible rank: detection requires one 2D (n_samples, dim) batch, got {data.ndim}D")
@@ -403,33 +441,51 @@ def _singular_spread(centered: np.ndarray) -> float:
     return _spread_of(_spectrum(centered))
 
 
+def _feature_variance_ratios(matrix: np.ndarray) -> tuple[float, ...]:
+    """Return sample variances divided by their median for aligned features."""
+    variances = np.var(matrix, axis=0, ddof=1)
+    median = float(np.median(variances))
+    if not np.isfinite(median) or median <= 0.0:
+        raise DetectionError("feature variance ratio is undefined when median feature variance is zero")
+    ratios = variances / median
+    if not np.isfinite(ratios).all():
+        raise DetectionError("feature variance ratio produced a non-finite value")
+    return tuple(float(item) for item in ratios)
+
+
 @dataclass(frozen=True)
 class _EvaluatedBatch:
-    """One batch decomposed exactly once: one health spectrum, one SVD."""
+    """One batch decomposed once into spectrum and optional feature-variance evidence."""
 
     n_samples: int
     dim: int
     effective_rank: float
     singular_spread: float
     min_variance: float
+    feature_variance_ratio: float | None
+    feature_variance_ratios: tuple[float, ...]
     inactive_fraction: float
     covariance_condition: float
     singular: tuple[float, ...]
 
 
-def _evaluate_batch(matrix: np.ndarray) -> _EvaluatedBatch:
-    """Decompose one validated batch once and derive every metric from it."""
+def _evaluate_batch(matrix: np.ndarray, *, include_feature_variance: bool = False) -> _EvaluatedBatch:
+    """Decompose one validated batch once and derive configured metrics from it."""
     health = compute_latent_health(matrix)
     centered = matrix - np.mean(matrix, axis=0)
     singular = _spectrum(centered)
     spread = _spread_of(singular)
     variances = np.var(matrix, axis=0)
+    feature_ratios = _feature_variance_ratios(matrix) if include_feature_variance else ()
+    feature_ratio = min(feature_ratios) if feature_ratios else None
     observed = {
         "bottleneck-effective-rank": float(health.effective_rank),
         "bottleneck-singular-spread": spread,
         "bottleneck-min-variance": float(np.min(variances)),
         "bottleneck-inactive-fraction": float(health.collapsed_fraction),
     }
+    if feature_ratio is not None:
+        observed[_FEATURE_VARIANCE_RATIO_METRIC] = feature_ratio
     for metric_id, number in observed.items():
         if not np.isfinite(number):
             raise DetectionError(f"metric {metric_id!r} produced a non-finite value")
@@ -439,41 +495,23 @@ def _evaluate_batch(matrix: np.ndarray) -> _EvaluatedBatch:
         effective_rank=observed["bottleneck-effective-rank"],
         singular_spread=observed["bottleneck-singular-spread"],
         min_variance=observed["bottleneck-min-variance"],
+        feature_variance_ratio=feature_ratio,
+        feature_variance_ratios=feature_ratios,
         inactive_fraction=observed["bottleneck-inactive-fraction"],
         covariance_condition=float(health.covariance_condition),
         singular=singular,
     )
 
 
-def _summarize(
-    samples: Sequence[float], *, repetitions: int, seed: int, confidence_level: float
-) -> dict[str, object]:
-    """Summarize draws through the central statistical-control executor.
-
-    Strict seam: the percentile math lives in
-    ``_statistical_controls.summarize_interval``; this local alias keeps the
-    detector's one-fit/one-calibration call sites unchanged while the central
-    executor owns the interval contract.
-    """
-    from latent_anything._statistical_controls import summarize_interval as _summarize_central
-
-    return dict(
-        _summarize_central(
-            samples, repetitions=repetitions, seed=seed, confidence_level=confidence_level
-        )
-    )
-
-
 def _bootstrap_both(
-    data: np.ndarray, *, repetitions: int, seed: int, confidence_level: float
+    data: np.ndarray,
+    *,
+    repetitions: int,
+    seed: int,
+    confidence_level: float,
+    include_feature_variance: bool = False,
 ) -> dict[str, dict[str, object]]:
-    """Resample exactly ``repetitions`` times and record both statistics per draw.
-
-    One shared draw schedule under the central executor: each draw records
-    both statistics from one resampled block, so the batch costs exactly
-    ``repetitions`` decompositions total instead of one full loop per metric.
-    Both intervals share the schedule's identity-derived stream seed.
-    """
+    """Resample once per draw and record rank, spread, and configured feature variance ratio."""
     from latent_anything._statistical_controls import derive_stream_seed as _derive
     from latent_anything._statistical_controls import summarize_interval as _interval
 
@@ -482,12 +520,15 @@ def _bootstrap_both(
     rng = np.random.default_rng(stream)
     rank_samples: list[float] = []
     spread_samples: list[float] = []
+    feature_ratio_samples: list[float] | None = [] if include_feature_variance else None
     for _ in range(repetitions):
         rows = rng.integers(0, n, size=n)
         block = data[rows]
         rank_samples.append(float(compute_latent_health(block).effective_rank))
         spread_samples.append(float(_singular_spread(block - np.mean(block, axis=0))))
-    return {
+        if feature_ratio_samples is not None:
+            feature_ratio_samples.append(min(_feature_variance_ratios(block)))
+    results = {
         "bottleneck-effective-rank": dict(
             _interval(rank_samples, repetitions=repetitions, seed=stream, confidence_level=confidence_level)
         ),
@@ -495,6 +536,16 @@ def _bootstrap_both(
             _interval(spread_samples, repetitions=repetitions, seed=stream, confidence_level=confidence_level)
         ),
     }
+    if feature_ratio_samples is not None:
+        results[_FEATURE_VARIANCE_RATIO_METRIC] = dict(
+            _interval(
+                feature_ratio_samples,
+                repetitions=repetitions,
+                seed=stream,
+                confidence_level=confidence_level,
+            )
+        )
+    return results
 
 
 @dataclass(frozen=True)
@@ -517,6 +568,7 @@ class _DetectionContext:
         object.__setattr__(self, "null_metrics", dict(self.null_metrics))
         object.__setattr__(self, "uncertainty", {key: dict(item) for key, item in self.uncertainty.items()})
 
+
 def _evaluate_context(
     value: LatentValue,
     config: DetectionConfig,
@@ -533,18 +585,24 @@ def _evaluate_context(
     if missing:
         raise DetectionError(f"required controls are missing batch data: {', '.join(missing)}")
 
-    evaluated = _evaluate_batch(data)
-    control_evaluated = {control_id: _evaluate_batch(matrix) for control_id, matrix in matrices.items()}
+    include_feature_variance = _FEATURE_VARIANCE_RATIO_METRIC in config.metric_ids
+    evaluated = _evaluate_batch(data, include_feature_variance=include_feature_variance)
+    control_evaluated = {
+        control_id: _evaluate_batch(matrix, include_feature_variance=include_feature_variance)
+        for control_id, matrix in matrices.items()
+    }
     thresholds = {item.metric_id: item for item in config.thresholds}
-    control_metrics = {
-        control_id: {
+    control_metrics: dict[str, dict[str, float]] = {}
+    for control_id, item in control_evaluated.items():
+        metrics = {
             "bottleneck-effective-rank": item.effective_rank,
             "bottleneck-singular-spread": item.singular_spread,
             "bottleneck-min-variance": item.min_variance,
             "bottleneck-inactive-fraction": item.inactive_fraction,
         }
-        for control_id, item in control_evaluated.items()
-    }
+        if item.feature_variance_ratio is not None:
+            metrics[_FEATURE_VARIANCE_RATIO_METRIC] = item.feature_variance_ratio
+        control_metrics[control_id] = metrics
 
     def _null_statistic(rng: np.random.Generator) -> Mapping[str, float]:
         # Central transform: the single seeded column permutation runs inside
@@ -568,7 +626,19 @@ def _evaluate_context(
     derived_ids: dict[str, str] = {}
     for control_id in (*config.required_controls, *config.optional_controls):
         full_linked = tuple(config.control_metrics[control_id])
-        linked = tuple(m for m in full_linked if m in ("bottleneck-effective-rank", "bottleneck-singular-spread")) or full_linked
+        linked = (
+            tuple(
+                metric_id
+                for metric_id in full_linked
+                if metric_id
+                in (
+                    "bottleneck-effective-rank",
+                    "bottleneck-singular-spread",
+                    _FEATURE_VARIANCE_RATIO_METRIC,
+                )
+            )
+            or full_linked
+        )
         required = control_id in config.required_controls
         if "null" in control_id or "shuffle" in control_id:
             specs.append(
@@ -593,7 +663,7 @@ def _evaluate_context(
                     required=required,
                     metric_ids=(metric_id,),
                     expected_behavior=f"supplied reference evaluated against predeclared {metric_id} threshold",
-                    comparator=gate,  # type: ignore[arg-type]
+                    comparator=gate,
                     threshold_value=float(thresholds[metric_id].value),
                 )
             )
@@ -629,7 +699,10 @@ def _evaluate_context(
         raise DetectionError("central column-shuffle null did not execute")
     if _derived_null.status == "failed":
         raise DetectionError(f"central null control failed: {_derived_null.reason}")
-    _null_values = {key: float(value) for key, value in _derived_null.observed.items()}
+    _null_observed: object = _derived_null.observed
+    if not isinstance(_null_observed, Mapping):
+        raise DetectionError("central null control observed must be a mapping")
+    _null_values = {key: float(value) for key, value in _null_observed.items()}
     # Fold per-metric parts back to declared control identities: a declared
     # control passes iff every central part passes or records; any failed
     # part fails the declared control. Central parts stay visible in the
@@ -642,7 +715,9 @@ def _evaluate_context(
             control_outcomes[control_id] = "passed" if outcome.status in ("passed", "recorded") else "failed"
             continue
         statuses = [_central_gating[part].status for part in parts]
-        control_outcomes[control_id] = "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+        control_outcomes[control_id] = (
+            "passed" if all(status in ("passed", "recorded") for status in statuses) else "failed"
+        )
     central_outcomes = {control_id: outcome.to_dict() for control_id, outcome in _central_gating.items()}
     _blocked_parts = set(_failed_required(_central_gating))
     _blocked = sorted({derived_ids.get(part, part) for part in _blocked_parts} & set(config.required_controls))
@@ -661,6 +736,7 @@ def _evaluate_context(
             repetitions=config.repetitions,
             seed=config.evaluation_seed,
             confidence_level=config.confidence_level,
+            include_feature_variance=include_feature_variance,
         ),
     )
 
@@ -674,6 +750,10 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
         "bottleneck-min-variance": evaluated.min_variance,
         "bottleneck-inactive-fraction": evaluated.inactive_fraction,
     }
+    if _FEATURE_VARIANCE_RATIO_METRIC in config.metric_ids:
+        if evaluated.feature_variance_ratio is None:
+            raise DetectionError("configured feature variance ratio was not evaluated")
+        observed[_FEATURE_VARIANCE_RATIO_METRIC] = evaluated.feature_variance_ratio
     thresholds = {item.metric_id: item for item in config.thresholds}
     verdicts: dict[str, bool] = {}
     for metric_id in config.metric_ids:
@@ -713,9 +793,12 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
             evidence = {
                 "anisotropy_activity_spectrum": "observed",
                 "anisotropy_predeclared_threshold": "observed",
-                "anisotropy_isotropy_negative_control": "observed"
-                if "control-benign-low-variance" in control_outcomes or "control-healthy-counterexample" in control_outcomes
-                else "missing",
+                "anisotropy_isotropy_negative_control": (
+                    "observed"
+                    if "control-benign-low-variance" in control_outcomes
+                    or "control-healthy-counterexample" in control_outcomes
+                    else "missing"
+                ),
                 "anisotropy_provenance": "observed",
             }
         decision = evaluate_claim(family_id, applicability="applicable", evidence_status=evidence)
@@ -745,7 +828,7 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                     threshold_pass={metric_id: verdicts[metric_id] for metric_id in family_metrics},
                     control_outcomes=dict(control_outcomes),
                     evidence_status=dict(evidence),
-                    missing_evidence=tuple(decision.missing),
+                    missing_evidence=tuple(decision.missing_evidence),
                     reason=decision.reason,
                 )
             )
@@ -760,7 +843,11 @@ def _decide(context: _DetectionContext, config: DetectionConfig) -> tuple[Family
                 control_outcomes=dict(control_outcomes),
                 evidence_status=dict(evidence),
                 missing_evidence=(),
-                reason=f"metrics {'pass' if metrics_pass else 'flag a defect'} predeclared thresholds with required controls passed",
+                reason=(
+                    "metrics pass predeclared thresholds with required controls passed"
+                    if metrics_pass
+                    else "metrics flag a defect predeclared thresholds with required controls passed"
+                ),
             )
         )
     return tuple(detections)
@@ -778,10 +865,10 @@ def detect_families(
     separate :func:`detection_payload` call evaluates twice. Production paths
     (including :func:`make_detect_executor`) must use :func:`evaluate_detection`.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
+    config = _require_config(config)
     supplied = dict(controls or {})
     return _decide(_evaluate_context(value, config, supplied), config)
+
 
 def detection_payload(
     detections: Sequence[FamilyDetection],
@@ -804,26 +891,36 @@ def detection_payload(
     for control_id in supplied_metrics:
         if control_id not in config.control_metrics:
             raise DetectionError(f"unknown control reference: {control_id!r}")
+
+    measurements: dict[str, object] = {
+        "covariance_condition": float(evaluated.covariance_condition)
+        if np.isfinite(evaluated.covariance_condition)
+        else None,
+        "effective_rank": float(evaluated.effective_rank),
+        "inactive_fraction": float(evaluated.inactive_fraction),
+        "n_samples": int(evaluated.n_samples),
+        "null_shuffled": dict(resolved.null_metrics),
+        "representation_dim": int(evaluated.dim),
+        "representation_identity": resolved.representation_identity,
+        "singular_spread": float(evaluated.singular_spread),
+        "singular_values": list(resolved.singular),
+        "uncertainty": {key: dict(item) for key, item in resolved.uncertainty.items()},
+    }
+    if _FEATURE_VARIANCE_RATIO_METRIC in config.metric_ids:
+        if evaluated.feature_variance_ratio is None:
+            raise DetectionError("configured feature variance ratio was not evaluated")
+        measurements[_FEATURE_VARIANCE_RATIO_METRIC] = evaluated.feature_variance_ratio
+        measurements["feature_variance_ratios"] = list(evaluated.feature_variance_ratios)
     return {
         "config": config.to_dict(),
         "control_metrics": supplied_metrics,
-        "controls": {control_id: dict(outcome) for control_id, outcome in resolved.central_outcomes.items()},
+        "controls": {
+            control_id: dict(cast(Mapping[str, object], outcome))
+            for control_id, outcome in resolved.central_outcomes.items()
+        },
         "families": [detection.to_dict() for detection in detections],
         "family_evidence": {detection.family_id: dict(detection.evidence_status) for detection in detections},
-        "measurements": {
-            "covariance_condition": float(evaluated.covariance_condition)
-            if np.isfinite(evaluated.covariance_condition)
-            else None,
-            "effective_rank": float(evaluated.effective_rank),
-            "inactive_fraction": float(evaluated.inactive_fraction),
-            "n_samples": int(evaluated.n_samples),
-            "null_shuffled": dict(resolved.null_metrics),
-            "representation_dim": int(evaluated.dim),
-            "representation_identity": resolved.representation_identity,
-            "singular_spread": float(evaluated.singular_spread),
-            "singular_values": list(resolved.singular),
-            "uncertainty": {key: dict(item) for key, item in resolved.uncertainty.items()},
-        },
+        "measurements": measurements,
     }
 
 
@@ -842,20 +939,21 @@ def evaluate_detection(
     not be composed naively in production paths, since that composition would
     evaluate everything twice.
     """
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
+    config = _require_config(config)
     supplied = dict(controls)
     context = _evaluate_context(value, config, supplied)
     detections = _decide(context, config)
-    control_metrics = {
-        control_id: {
+    control_metrics: dict[str, dict[str, float]] = {}
+    for control_id, item in context.control_evaluated.items():
+        metrics = {
             "bottleneck-effective-rank": item.effective_rank,
             "bottleneck-singular-spread": item.singular_spread,
             "bottleneck-min-variance": item.min_variance,
             "bottleneck-inactive-fraction": item.inactive_fraction,
         }
-        for control_id, item in context.control_evaluated.items()
-    }
+        if item.feature_variance_ratio is not None:
+            metrics[_FEATURE_VARIANCE_RATIO_METRIC] = item.feature_variance_ratio
+        control_metrics[control_id] = metrics
     payload = detection_payload(detections, config, value, control_metrics=control_metrics, context=context)
     return detections, payload
 
@@ -877,18 +975,22 @@ def make_detect_executor(
     gating. No algorithm enters ``DiagnosticWorkflow`` itself.
     """
     _non_empty_string(version, name="version")
-    if not isinstance(value, LatentValue):
-        raise DetectionError("value must be a LatentValue")
-    if not isinstance(config, DetectionConfig):
-        raise DetectionError("config must be a DetectionConfig")
+    value = _require_batch(value)
+    config = _require_config(config)
     frozen_controls = dict(controls or {})
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
         from latent_anything._diagnostic_workflow import StageContractError as _ContractError
 
+        invocation = _require_invocation(invocation)
         if invocation.stage != "detect":
             raise _ContractError(f"detect executor received stage {invocation.stage!r}")
-        if invocation.request.manifest_id != config.manifest_id:
+        from latent_anything.diagnostics import DiagnosticRequest as _Request
+
+        request = invocation.request
+        if not isinstance(request, _Request):
+            raise _ContractError("detect executor requires a DiagnosticRequest")
+        if request.manifest_id != config.manifest_id:
             raise _ContractError("detect executor manifest identity mismatch")
         _, payload = evaluate_detection(value, config, frozen_controls)
         aggregate_outcome: Literal["completed", "unsupported"] = "completed"
@@ -896,6 +998,7 @@ def make_detect_executor(
 
     _execute.detector_version = version  # type: ignore[attr-defined]
     return _execute
+
 
 __all__ = [
     "ANISOTROPY_METRICS",

@@ -1,0 +1,787 @@
+{
+ "acceptance_80_25": "REPRODUCTION CHECK FAILURES",
+ "checks_failed": 4,
+ "checks_total": 136,
+ "cleanup": {
+  "removed": true,
+  "work": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645"
+ },
+ "commands": [
+  {
+   "argv": [
+    "uv",
+    "--version"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "uv 0.9.7 (0adb44480 2025-10-30)\n",
+   "wall": 0.026
+  },
+  {
+   "argv": [
+    "uv",
+    "sync",
+    "--frozen",
+    "--no-dev",
+    "--extra",
+    "transformers",
+    "--no-editable"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root",
+   "exit": 0,
+   "output_tail": "warning: `VIRTUAL_ENV=F:\\ai-ml\\latent-anything\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nUsing CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\nPrepared 1 package in 7.62s\nInstalled 50 packages in 18.71s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+   "wall": 26.733
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "-c",
+    "\nimport json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nrecorded_names = ['huggingface-hub', 'numpy', 'scikit-learn', 'tokenizers', 'torch', 'transformers']\nversions = {name: version(name) for name in recorded_names}\ndist = distribution(\"latent-anything\")\ndirect_url = dist.read_text(\"direct_url.json\")\neditable = False\nif direct_url:\n    editable = bool(json.loads(direct_url).get(\"dir_info\", {}).get(\"editable\"))\nprint(\"@@JSON@@\" + json.dumps({\n    \"executable\": sys.executable,\n    \"prefix\": sys.prefix,\n    \"python\": sys.version.split()[0],\n    \"latent_file\": latent_anything.__file__,\n    \"sys_path\": sys.path,\n    \"editable\": editable,\n    \"versions\": versions,\n    \"torch_module_version\": __import__(\"torch\").__version__,\n}))\n"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "@@JSON@@{\"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"python\": \"3.13.3\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module_version\": \"2.10.0+cpu\"}\n",
+   "wall": 26.476
+  },
+  {
+   "argv": [
+    "uv",
+    "pip",
+    "list",
+    "--python",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "--format",
+    "json"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "5\\root\\.venv\n[{\"name\":\"annotated-types\",\"version\":\"0.7.0\"},{\"name\":\"certifi\",\"version\":\"2026.6.17\"},{\"name\":\"charset-normalizer\",\"version\":\"3.4.9\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"contourpy\",\"version\":\"1.3.3\"},{\"name\":\"cycler\",\"version\":\"0.12.1\"},{\"name\":\"filelock\",\"version\":\"3.29.4\"},{\"name\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"fsspec\",\"version\":\"2026.2.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"}]\n",
+   "wall": 0.22
+  },
+  {
+   "argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "datasets==3.6.0",
+    "huggingface-hub==0.35.3"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "Using Python 3.13.3 environment at: C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\nResolved 31 packages in 42ms\nUninstalled 1 package in 21ms\nInstalled 15 packages in 922ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+   "wall": 1.068
+  },
+  {
+   "argv": [
+    "uv",
+    "pip",
+    "check",
+    "--python",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "Using Python 3.13.3 environment at: C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\nChecked 64 packages in 5ms\nAll installed packages are compatible\n",
+   "wall": 0.081
+  },
+  {
+   "argv": [
+    "uv",
+    "pip",
+    "list",
+    "--python",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "--format",
+    "json"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "e\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"frozenlist\",\"version\":\"1.8.0\"},{\"name\":\"fsspec\",\"version\":\"2025.3.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"multidict\",\"version\":\"6.9.1\"},{\"name\":\"multiprocess\",\"version\":\"0.70.16\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pandas\",\"version\":\"3.0.6\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"propcache\",\"version\":\"0.5.4\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"tzdata\",\"version\":\"2026.4\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"},{\"name\":\"xxhash\",\"version\":\"4.0.1\"},{\"name\":\"yarl\",\"version\":\"1.25.1\"}]\n",
+   "wall": 0.045
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "-c",
+    "\nimport json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nrecorded_names = ['datasets', 'huggingface-hub', 'numpy', 'scikit-learn', 'tokenizers', 'torch', 'transformers']\nversions = {name: version(name) for name in recorded_names}\ndist = distribution(\"latent-anything\")\ndirect_url = dist.read_text(\"direct_url.json\")\neditable = False\nif direct_url:\n    editable = bool(json.loads(direct_url).get(\"dir_info\", {}).get(\"editable\"))\nprint(\"@@JSON@@\" + json.dumps({\n    \"executable\": sys.executable,\n    \"prefix\": sys.prefix,\n    \"python\": sys.version.split()[0],\n    \"latent_file\": latent_anything.__file__,\n    \"sys_path\": sys.path,\n    \"editable\": editable,\n    \"versions\": versions,\n    \"torch_module_version\": __import__(\"torch\").__version__,\n}))\n"
+   ],
+   "cwd": null,
+   "exit": 0,
+   "output_tail": "@@JSON@@{\"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"python\": \"3.13.3\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"datasets\": \"3.6.0\", \"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module_version\": \"2.10.0+cpu\"}\n",
+   "wall": 11.265
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run0",
+   "exit": 0,
+   "label": "80_23_run0",
+   "wall": 81.173
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run1",
+   "exit": 0,
+   "label": "80_23_run1",
+   "wall": 11.688
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run2",
+   "exit": 0,
+   "label": "80_24_run2",
+   "wall": 955.053
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run3",
+   "exit": 0,
+   "label": "80_24_run3",
+   "wall": 1047.59
+  }
+ ],
+ "copy": {
+  "bytes": 24524576,
+  "count": 1395
+ },
+ "environment": {
+  "child_env_overrides": {
+   "set_by_run": [
+    "TMP",
+    "TEMP",
+    "TMPDIR",
+    "PYTHONNOUSERSITE",
+    "PYTHONIOENCODING",
+    "PYTHONUTF8",
+    "HF_HUB_CACHE",
+    "HUGGINGFACE_HUB_CACHE",
+    "HF_DATASETS_CACHE",
+    "HF_MODULES_CACHE",
+    "HF_HUB_DISABLE_TELEMETRY",
+    "DO_NOT_TRACK"
+   ],
+   "stripped": [
+    "CONDA_DEFAULT_ENV",
+    "CONDA_PREFIX",
+    "HF_DATASETS_CACHE",
+    "HF_DATASETS_OFFLINE",
+    "HF_HOME",
+    "HF_HUB_CACHE",
+    "HF_HUB_ENABLE_HF_TRANSFER",
+    "HF_HUB_OFFLINE",
+    "HF_MODULES_CACHE",
+    "HF_TOKEN",
+    "HUGGINGFACE_HUB_CACHE",
+    "HUGGINGFACE_HUB_TOKEN",
+    "PYTHONCASEOK",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "PYTHONUSERBASE",
+    "TEMP",
+    "TMP",
+    "TMPDIR",
+    "UV_CACHE_DIR",
+    "UV_PROJECT_ENVIRONMENT",
+    "UV_PYTHON",
+    "VIRTUAL_ENV"
+   ]
+  },
+  "clean_latent_anything": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Lib\\site-packages\\latent_anything\\__init__.py",
+  "clean_prefix": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv",
+  "commands": [
+   {
+    "argv": [
+     "uv",
+     "--version"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "uv 0.9.7 (0adb44480 2025-10-30)\n",
+    "wall": 0.026
+   },
+   {
+    "argv": [
+     "uv",
+     "sync",
+     "--frozen",
+     "--no-dev",
+     "--extra",
+     "transformers",
+     "--no-editable"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root",
+    "exit": 0,
+    "output_tail": "warning: `VIRTUAL_ENV=F:\\ai-ml\\latent-anything\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nUsing CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\nPrepared 1 package in 7.62s\nInstalled 50 packages in 18.71s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+    "wall": 26.733
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "-c",
+     "\nimport json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nrecorded_names = ['huggingface-hub', 'numpy', 'scikit-learn', 'tokenizers', 'torch', 'transformers']\nversions = {name: version(name) for name in recorded_names}\ndist = distribution(\"latent-anything\")\ndirect_url = dist.read_text(\"direct_url.json\")\neditable = False\nif direct_url:\n    editable = bool(json.loads(direct_url).get(\"dir_info\", {}).get(\"editable\"))\nprint(\"@@JSON@@\" + json.dumps({\n    \"executable\": sys.executable,\n    \"prefix\": sys.prefix,\n    \"python\": sys.version.split()[0],\n    \"latent_file\": latent_anything.__file__,\n    \"sys_path\": sys.path,\n    \"editable\": editable,\n    \"versions\": versions,\n    \"torch_module_version\": __import__(\"torch\").__version__,\n}))\n"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "@@JSON@@{\"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"python\": \"3.13.3\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module_version\": \"2.10.0+cpu\"}\n",
+    "wall": 26.476
+   },
+   {
+    "argv": [
+     "uv",
+     "pip",
+     "list",
+     "--python",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "--format",
+     "json"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "5\\root\\.venv\n[{\"name\":\"annotated-types\",\"version\":\"0.7.0\"},{\"name\":\"certifi\",\"version\":\"2026.6.17\"},{\"name\":\"charset-normalizer\",\"version\":\"3.4.9\"},{\"name\":\"colorama\",\"version\":\"0.4.6\"},{\"name\":\"contourpy\",\"version\":\"1.3.3\"},{\"name\":\"cycler\",\"version\":\"0.12.1\"},{\"name\":\"filelock\",\"version\":\"3.29.4\"},{\"name\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"fsspec\",\"version\":\"2026.2.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"}]\n",
+    "wall": 0.22
+   },
+   {
+    "argv": [
+     "uv",
+     "pip",
+     "install",
+     "--python",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "datasets==3.6.0",
+     "huggingface-hub==0.35.3"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "Using Python 3.13.3 environment at: C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\nResolved 31 packages in 42ms\nUninstalled 1 package in 21ms\nInstalled 15 packages in 922ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+    "wall": 1.068
+   },
+   {
+    "argv": [
+     "uv",
+     "pip",
+     "check",
+     "--python",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "Using Python 3.13.3 environment at: C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\nChecked 64 packages in 5ms\nAll installed packages are compatible\n",
+    "wall": 0.081
+   },
+   {
+    "argv": [
+     "uv",
+     "pip",
+     "list",
+     "--python",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "--format",
+     "json"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "e\":\"fonttools\",\"version\":\"4.63.0\"},{\"name\":\"frozenlist\",\"version\":\"1.8.0\"},{\"name\":\"fsspec\",\"version\":\"2025.3.0\"},{\"name\":\"huggingface-hub\",\"version\":\"0.35.3\"},{\"name\":\"idna\",\"version\":\"3.18\"},{\"name\":\"jinja2\",\"version\":\"3.1.6\"},{\"name\":\"joblib\",\"version\":\"1.5.3\"},{\"name\":\"kiwisolver\",\"version\":\"1.5.0\"},{\"name\":\"latent-anything\",\"version\":\"0.9.0\"},{\"name\":\"llvmlite\",\"version\":\"0.47.0\"},{\"name\":\"markupsafe\",\"version\":\"3.0.3\"},{\"name\":\"matplotlib\",\"version\":\"3.11.0\"},{\"name\":\"mpmath\",\"version\":\"1.3.0\"},{\"name\":\"multidict\",\"version\":\"6.9.1\"},{\"name\":\"multiprocess\",\"version\":\"0.70.16\"},{\"name\":\"narwhals\",\"version\":\"2.22.1\"},{\"name\":\"networkx\",\"version\":\"3.6.1\"},{\"name\":\"numba\",\"version\":\"0.65.1\"},{\"name\":\"numpy\",\"version\":\"2.4.6\"},{\"name\":\"packaging\",\"version\":\"25.0\"},{\"name\":\"pandas\",\"version\":\"3.0.6\"},{\"name\":\"pillow\",\"version\":\"12.2.0\"},{\"name\":\"propcache\",\"version\":\"0.5.4\"},{\"name\":\"psutil\",\"version\":\"7.2.2\"},{\"name\":\"pyarrow\",\"version\":\"24.0.0\"},{\"name\":\"pydantic\",\"version\":\"2.13.4\"},{\"name\":\"pydantic-core\",\"version\":\"2.46.4\"},{\"name\":\"pynndescent\",\"version\":\"0.6.0\"},{\"name\":\"pyparsing\",\"version\":\"3.3.2\"},{\"name\":\"python-dateutil\",\"version\":\"2.9.0.post0\"},{\"name\":\"pyyaml\",\"version\":\"6.0.3\"},{\"name\":\"regex\",\"version\":\"2026.7.10\"},{\"name\":\"requests\",\"version\":\"2.34.2\"},{\"name\":\"safetensors\",\"version\":\"0.8.0\"},{\"name\":\"scikit-learn\",\"version\":\"1.9.0\"},{\"name\":\"scipy\",\"version\":\"1.17.1\"},{\"name\":\"setuptools\",\"version\":\"80.10.2\"},{\"name\":\"six\",\"version\":\"1.17.0\"},{\"name\":\"sympy\",\"version\":\"1.14.0\"},{\"name\":\"threadpoolctl\",\"version\":\"3.6.0\"},{\"name\":\"tokenizers\",\"version\":\"0.22.2\"},{\"name\":\"torch\",\"version\":\"2.10.0\"},{\"name\":\"tqdm\",\"version\":\"4.68.2\"},{\"name\":\"transformers\",\"version\":\"4.57.6\"},{\"name\":\"typing-extensions\",\"version\":\"4.15.0\"},{\"name\":\"typing-inspection\",\"version\":\"0.4.2\"},{\"name\":\"tzdata\",\"version\":\"2026.4\"},{\"name\":\"umap-learn\",\"version\":\"0.5.12\"},{\"name\":\"urllib3\",\"version\":\"2.7.0\"},{\"name\":\"xxhash\",\"version\":\"4.0.1\"},{\"name\":\"yarl\",\"version\":\"1.25.1\"}]\n",
+    "wall": 0.045
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "-c",
+     "\nimport json, sys\nfrom importlib.metadata import distribution, version\nimport latent_anything\nrecorded_names = ['datasets', 'huggingface-hub', 'numpy', 'scikit-learn', 'tokenizers', 'torch', 'transformers']\nversions = {name: version(name) for name in recorded_names}\ndist = distribution(\"latent-anything\")\ndirect_url = dist.read_text(\"direct_url.json\")\neditable = False\nif direct_url:\n    editable = bool(json.loads(direct_url).get(\"dir_info\", {}).get(\"editable\"))\nprint(\"@@JSON@@\" + json.dumps({\n    \"executable\": sys.executable,\n    \"prefix\": sys.prefix,\n    \"python\": sys.version.split()[0],\n    \"latent_file\": latent_anything.__file__,\n    \"sys_path\": sys.path,\n    \"editable\": editable,\n    \"versions\": versions,\n    \"torch_module_version\": __import__(\"torch\").__version__,\n}))\n"
+    ],
+    "cwd": null,
+    "exit": 0,
+    "output_tail": "@@JSON@@{\"executable\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Scripts\\\\python.exe\", \"prefix\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"python\": \"3.13.3\", \"latent_file\": \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\\\\latent_anything\\\\__init__.py\", \"sys_path\": [\"\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python313.zip\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\DLLs\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\Lib\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\", \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\sprint80-80-25-20260922-171645\\\\root\\\\.venv\\\\Lib\\\\site-packages\"], \"editable\": false, \"versions\": {\"datasets\": \"3.6.0\", \"huggingface-hub\": \"0.35.3\", \"numpy\": \"2.4.6\", \"scikit-learn\": \"1.9.0\", \"tokenizers\": \"0.22.2\", \"torch\": \"2.10.0\", \"transformers\": \"4.57.6\"}, \"torch_module_version\": \"2.10.0+cpu\"}\n",
+    "wall": 11.265
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run0",
+    "exit": 0,
+    "label": "80_23_run0",
+    "wall": 81.173
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run1",
+    "exit": 0,
+    "label": "80_23_run1",
+    "wall": 11.688
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run2",
+    "exit": 0,
+    "label": "80_24_run2",
+    "wall": 955.053
+   },
+   {
+    "argv": [
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+     "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+    ],
+    "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run3",
+    "exit": 0,
+    "label": "80_24_run3",
+    "wall": 1047.59
+   }
+  ],
+  "editable_install": false,
+  "fresh_root": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root",
+  "git": {
+   "branch": "main",
+   "head": "05794590619de51249603f5dc7a94bd26d52dd9c",
+   "status_entries": "103",
+   "status_sha256": "c22df304e05d335d2105994ca0af62d8529768a2437407efbbba7a3eb09eec0f"
+  },
+  "hf_root_declared": "F:\\llms\\hf\\models",
+  "hf_snapshots_verified": {
+   "datasets--Salesforce--wikitext": {
+    "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+    "verified_files": {
+     "README.md": "b7c15c5f44ca6e49d92f1843652287e48f5aaaace3d51af499aed3a3f2fba691",
+     "wikitext-2-raw-v1/test-00000-of-00001.parquet": "3ee89cd6a2ab912afd5d01e98867b46a67d9ec7a9eca0910e5e4c3cdd4cc1925",
+     "wikitext-2-raw-v1/train-00000-of-00001.parquet": "49280f3dd993cbdfd322186194133d5d1935f81e1c91064c239f2a70ebb02701",
+     "wikitext-2-raw-v1/validation-00000-of-00001.parquet": "a10eb5a42c4264c45dd38bfef4da6a74ddef5fc22cb419e1a89d54c4cc6d748f"
+    }
+   },
+   "models--openai-community--gpt2": {
+    "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+    "verified_files": {
+     "config.json": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4",
+     "generation_config.json": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b",
+     "merges.txt": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+     "model.safetensors": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+     "tokenizer.json": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+     "vocab.json": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+    }
+   }
+  },
+  "machine": "AMD64",
+  "mode": "full",
+  "overlay_added_packages": [
+   "aiohappyeyeballs",
+   "aiohttp",
+   "aiosignal",
+   "attrs",
+   "datasets",
+   "dill",
+   "frozenlist",
+   "multidict",
+   "multiprocess",
+   "pandas",
+   "propcache",
+   "tzdata",
+   "xxhash",
+   "yarl"
+  ],
+  "overlay_changed_locked_packages": [
+   "fsspec"
+  ],
+  "pinned_inputs_verified": {
+   ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
+   "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
+   "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v1.json": "e2935cd821a1605c719b63c748a9f93c2375cd6087c51739862d480a18c56959",
+   "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+   "artifacts/conv_vae_heldout_benchmark.json": "3a2c867e95a3368314ae8c031ddda5cf59e5a19e1a0a094943f17666bdb9aa3b",
+   "artifacts/diagnostic_report_schema_v1.json": "a76580e58a672ac283fa0a313b34f6148375dc5181dcb395ae1061ce42928d07",
+   "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
+   "artifacts/representation_problem_taxonomy_v1.json": "e1742b7833e587708133b9d927e39636df93b64b3e348b759353e1be46373c3b",
+   "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
+   "scripts/sprint80_task80_23_proof.py": "91c8d8b71861fe97aca9eb9d209f51b09ebfd1f75fe47526a5e9e51a771d1840",
+   "scripts/sprint80_task80_24_proof.py": "629c2c5933822ec79020dd60bf6730f13ce134c279e8c93697f9e35260536c7e",
+   "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 140 Stepping 2, GenuineIntel",
+  "python_clean": "3.13.3",
+  "python_host": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+  "run_id": "20260922-171645",
+  "sync_output_tail": "warning: `VIRTUAL_ENV=F:\\ai-ml\\latent-anything\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nUsing CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root\nPrepared 1 package in 7.62s\nInstalled 50 packages in 18.71s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-20260922-171645/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+  "torch_module_version_clean": "2.10.0+cpu",
+  "uv_version": "uv 0.9.7 (0adb44480 2025-10-30)",
+  "versions_clean": {
+   "datasets": "3.6.0",
+   "huggingface-hub": "0.35.3",
+   "numpy": "2.4.6",
+   "scikit-learn": "1.9.0",
+   "tokenizers": "0.22.2",
+   "torch": "2.10.0",
+   "transformers": "4.57.6"
+  },
+  "warm_generated_cache_excluded": [
+   {
+    "mtime": 1790065500,
+    "name": "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz",
+    "size": 79042289
+   }
+  ]
+ },
+ "failed": [
+  {
+   "case": "80_23",
+   "check": "pooled_cache_written_in_isolated_temp",
+   "detail": [
+    "torchinductor_admin"
+   ],
+   "ok": false
+  },
+  {
+   "case": "80_23",
+   "check": "pooled_cache_written_in_isolated_temp",
+   "detail": [
+    "torchinductor_admin"
+   ],
+   "ok": false
+  },
+  {
+   "case": "80_24",
+   "check": "pooled_cache_written_in_isolated_temp",
+   "detail": [
+    "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz",
+    "torchinductor_admin"
+   ],
+   "ok": false
+  },
+  {
+   "case": "80_24",
+   "check": "pooled_cache_written_in_isolated_temp",
+   "detail": [
+    "latent-anything-80-24-66594a8c1bab59165a94a0f91f5c28464d75dff777a0ad9edce920aba49ebdef.npz",
+    "torchinductor_admin"
+   ],
+   "ok": false
+  }
+ ],
+ "inventory": {
+  "delta": {
+   "added": [
+    "build/lib/latent_anything/__init__.py",
+    "build/lib/latent_anything/_api_freeze_inventory.py",
+    "build/lib/latent_anything/_api_freeze_runtime.py",
+    "build/lib/latent_anything/_artifact_path.py",
+    "build/lib/latent_anything/_benchmark_manifest.py",
+    "build/lib/latent_anything/_capture_binding.py",
+    "build/lib/latent_anything/_collapse_detection.py",
+    "build/lib/latent_anything/_density_drift_detection.py",
+    "build/lib/latent_anything/_diagnostic_artifact.py",
+    "build/lib/latent_anything/_diagnostic_report.py",
+    "build/lib/latent_anything/_diagnostic_validator.py",
+    "build/lib/latent_anything/_diagnostic_workflow.py",
+    "build/lib/latent_anything/_hook_output.py",
+    "build/lib/latent_anything/_intervention_trials.py",
+    "build/lib/latent_anything/_jepa_checkpoint.py",
+    "build/lib/latent_anything/_jepa_evaluation.py",
+    "build/lib/latent_anything/_jepa_training.py",
+    "build/lib/latent_anything/_jepa_validation.py",
+    "build/lib/latent_anything/_layer_slice_localization.py",
+    "build/lib/latent_anything/_lerobot_benchmark_environment.py",
+    "build/lib/latent_anything/_lerobot_benchmark_execution.py",
+    "build/lib/latent_anything/_lerobot_benchmark_statistics.py",
+    "build/lib/latent_anything/_lerobot_smolvla_loader.py",
+    "build/lib/latent_anything/_lerobot_smolvla_metrics.py",
+    "build/lib/latent_anything/_lerobot_smolvla_runtime.py",
+    "build/lib/latent_anything/_mlp_controls.py",
+    "build/lib/latent_anything/_mlp_training.py",
+    "build/lib/latent_anything/_plugin_builtins.py",
+    "build/lib/latent_anything/_portable_contract.py",
+    "build/lib/latent_anything/_portable_nodes.py",
+    "build/lib/latent_anything/_probe_split.py",
+    "build/lib/latent_anything/_probe_tcav_ig_explanation.py",
+    "build/lib/latent_anything/_recorder_contract.py",
+    "build/lib/latent_anything/_redundancy_separability_detection.py",
+    "build/lib/latent_anything/_report_renderer.py",
+    "build/lib/latent_anything/_representation_taxonomy.py",
+    "build/lib/latent_anything/_reward_value_metrics.py",
+    "build/lib/latent_anything/_rssm_checkpoint.py",
+    "build/lib/latent_anything/_rssm_evaluation.py",
+    "build/lib/latent_anything/_rssm_runtime.py",
+    "build/lib/latent_anything/_rssm_training.py",
+    "build/lib/latent_anything/_rssm_validation.py",
+    "build/lib/latent_anything/_run_comparison.py",
+    "build/lib/latent_anything/_run_record_codec.py",
+    "build/lib/latent_anything/_run_record_comparison.py",
+    "build/lib/latent_anything/_run_record_persistence.py",
+    "build/lib/latent_anything/_run_record_schema.py",
+    "build/lib/latent_anything/_sae_atlas.py",
+    "build/lib/latent_anything/_sae_lens_geometry_density_clustering.py",
+    "build/lib/latent_anything/_sae_metrics.py",
+    "build/lib/latent_anything/_sparse_temporal_detection.py",
+    "build/lib/latent_anything/_statistical_controls.py",
+    "build/lib/latent_anything/_tcav_model.py",
+    "build/lib/latent_anything/_tcav_statistics.py",
+    "build/lib/latent_anything/_tokenized_dynamics.py",
+    "build/lib/latent_anything/_tokenized_evaluation.py",
+    "build/lib/latent_anything/_tokenized_integrity.py",
+    "build/lib/latent_anything/_tokenized_training.py",
+    "build/lib/latent_anything/_tokenized_validation.py",
+    "build/lib/latent_anything/_transformer_analysis.py",
+    "build/lib/latent_anything/_transformer_backend.py",
+    "build/lib/latent_anything/_transformer_runtime.py",
+    "build/lib/latent_anything/_transition_core.py",
+    "build/lib/latent_anything/_transition_deterministic.py",
+    "build/lib/latent_anything/_transition_stochastic.py",
+    "build/lib/latent_anything/_transition_types.py",
+    "build/lib/latent_anything/adapters/__init__.py",
+    "build/lib/latent_anything/adapters/conv_vae.py",
+    "build/lib/latent_anything/adapters/gaussian_3d_renderer.py",
+    "build/lib/latent_anything/adapters/gaussian_renderer.py",
+    "build/lib/latent_anything/adapters/hidden_state.py",
+    "build/lib/latent_anything/adapters/jepa.py",
+    "build/lib/latent_anything/adapters/protocols.py",
+    "build/lib/latent_anything/adapters/random_projection.py",
+    "build/lib/latent_anything/adapters/vae.py",
+    "build/lib/latent_anything/adapters/vq_vae.py",
+    "build/lib/latent_anything/analysis_pipeline.py",
+    "build/lib/latent_anything/artifact_store.py",
+    "build/lib/latent_anything/capture.py",
+    "build/lib/latent_anything/cem.py",
+    "build/lib/latent_anything/cli.py",
+    "build/lib/latent_anything/clustering.py",
+    "build/lib/latent_anything/config.py",
+    "build/lib/latent_anything/covariance.py",
+    "build/lib/latent_anything/density.py",
+    "build/lib/latent_anything/diagnostics.py",
+    "build/lib/latent_anything/dictionary_learning.py",
+    "build/lib/latent_anything/dtw.py",
+    "build/lib/latent_anything/evaluation.py",
+    "build/lib/latent_anything/experiment_recorder.py",
+    "build/lib/latent_anything/gaussian_3d.py",
+    "build/lib/latent_anything/gaussian_3d_evaluation.py",
+    "build/lib/latent_anything/geodesic.py",
+    "build/lib/latent_anything/geometry.py",
+    "build/lib/latent_anything/integrated_gradients.py",
+    "build/lib/latent_anything/integrations/__init__.py",
+    "build/lib/latent_anything/integrations/_lerobot_diffusion_analysis.py",
+    "build/lib/latent_anything/integrations/_optional.py",
+    "build/lib/latent_anything/integrations/_tracking_common.py",
+    "build/lib/latent_anything/integrations/diffusers_conditional.py",
+    "build/lib/latent_anything/integrations/diffusers_vae.py",
+    "build/lib/latent_anything/integrations/gsplat_renderer.py",
+    "build/lib/latent_anything/integrations/lerobot.py",
+    "build/lib/latent_anything/integrations/lerobot_act.py",
+    "build/lib/latent_anything/integrations/lerobot_benchmark.py",
+    "build/lib/latent_anything/integrations/lerobot_dataset.py",
+    "build/lib/latent_anything/integrations/lerobot_diffusion.py",
+    "build/lib/latent_anything/integrations/lerobot_recording.py",
+    "build/lib/latent_anything/integrations/lerobot_smolvla.py",
+    "build/lib/latent_anything/integrations/mlflow_recorder.py",
+    "build/lib/latent_anything/integrations/transformer_lm.py",
+    "build/lib/latent_anything/integrations/wandb_recorder.py",
+    "build/lib/latent_anything/latent_space.py",
+    "build/lib/latent_anything/latent_value.py",
+    "build/lib/latent_anything/manipulation_pipeline.py",
+    "build/lib/latent_anything/methods/__init__.py",
+    "build/lib/latent_anything/methods/_base.py",
+    "build/lib/latent_anything/methods/activation_patch.py",
+    "build/lib/latent_anything/methods/b_protocols.py",
+    "build/lib/latent_anything/methods/lerp.py",
+    "build/lib/latent_anything/methods/pca.py",
+    "build/lib/latent_anything/methods/protocols.py",
+    "build/lib/latent_anything/methods/sae.py",
+    "build/lib/latent_anything/methods/steering.py",
+    "build/lib/latent_anything/methods/umap.py",
+    "build/lib/latent_anything/mlp_probe.py",
+    "build/lib/latent_anything/mppi.py",
+    "build/lib/latent_anything/pipeline.py",
+    "build/lib/latent_anything/pipeline_config.py",
+    "build/lib/latent_anything/pipeline_contract.py",
+    "build/lib/latent_anything/pipeline_models.py",
+    "build/lib/latent_anything/plugin_discovery.py",
+    "build/lib/latent_anything/plugin_groups.py",
+    "build/lib/latent_anything/plugin_metadata.py",
+    "build/lib/latent_anything/portable.py",
+    "build/lib/latent_anything/portable_results.py",
+    "build/lib/latent_anything/pose.py",
+    "build/lib/latent_anything/probes.py",
+    "build/lib/latent_anything/projection.py",
+    "build/lib/latent_anything/registry.py",
+    "build/lib/latent_anything/registry_aliases.py",
+    "build/lib/latent_anything/reward_value.py",
+    "build/lib/latent_anything/rollout_pipeline.py",
+    "build/lib/latent_anything/rssm.py",
+    "build/lib/latent_anything/run_record.py",
+    "build/lib/latent_anything/runtime/__init__.py",
+    "build/lib/latent_anything/runtime/batch_executor.py",
+    "build/lib/latent_anything/runtime/cache.py",
+    "build/lib/latent_anything/runtime/disk_cache.py",
+    "build/lib/latent_anything/runtime/profiling.py",
+    "build/lib/latent_anything/sae_evaluation.py",
+    "build/lib/latent_anything/tcav.py",
+    "build/lib/latent_anything/temporal.py",
+    "build/lib/latent_anything/tokenized_world_model.py",
+    "build/lib/latent_anything/trajectory.py",
+    "build/lib/latent_anything/transition.py",
+    "build/lib/latent_anything/transition_contract.py",
+    "build/lib/latent_anything/visualization/__init__.py",
+    "build/lib/latent_anything/visualization/data.py",
+    "build/lib/latent_anything/visualization/explorer.py",
+    "build/lib/latent_anything/visualization/figures.py",
+    "src/latent_anything.egg-info/PKG-INFO",
+    "src/latent_anything.egg-info/SOURCES.txt",
+    "src/latent_anything.egg-info/dependency_links.txt",
+    "src/latent_anything.egg-info/entry_points.txt",
+    "src/latent_anything.egg-info/requires.txt",
+    "src/latent_anything.egg-info/top_level.txt"
+   ],
+   "modified": [],
+   "removed": []
+  },
+  "fresh_root_files_baseline": 1395
+ },
+ "runs": [
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run0",
+   "exit": 0,
+   "label": "80_23_run0",
+   "log": "task_80.25_evidence\\logs\\80_23_run0.log",
+   "parsed": {
+    "acceptance": "NOT PASSED",
+    "blocked_lines": [
+     "BLOCKED explain: StageContractError — explain hypothesis 'h-collapse-bottleneck-mu' declares localization ('slice', 'slice-all') with no localized/supported prior slice selection carrying that identity; workflow failed at explain (7-stage chain cannot complete, no validator-clean artifact or rendered report is producible without fabricating a localization)"
+    ],
+    "capture_identity": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd",
+    "case": "80_23",
+    "compare_line": null,
+    "detect_sha": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a",
+    "determinism_line_found": true,
+    "heldout_latents_sha": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a",
+    "intervene_line": null,
+    "localize_line": "RECORD localize: truthful negative — no layer/sample meets the declared affected criterion (no layer or sample meets the declared affected criterion; benign negative produces no location); the manifest's expected feature-axis selection cannot be named without fabricating a location",
+    "localize_sha": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df",
+    "pooled_sha": null,
+    "positive_line": "RECORD positive-case (declared known defect): NOT OBSERVED — bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25; threshold_pass={'bottleneck-effective-rank': True, 'bottleneck-singular-spread': True}; bootstrap CI bottleneck-effective-rank [2.9134, 3.2664]",
+    "resources_line": "resources: proof body 72.01s (frozen+data+model=70.40s, capture=0.02s, detect=0.25s, localize=0.34s, workflow=0.59s, guards+previews=0.41s); wall including imports 79.89s; tracemalloc peak 81.1 MiB; environment python 3.13.3, numpy 2.4.6, torch-cpu, scikit-learn 1.9.0; declared output location 'artifacts/diagnostics/proof-80-23' intentionally not materialized (persistence refused)",
+    "validator_clean": false
+   },
+   "peak_rss_bytes": 512221184,
+   "script": "sprint80_task80_23_proof.py",
+   "wall_s": 81.173
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_23_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_23_run1",
+   "exit": 0,
+   "label": "80_23_run1",
+   "log": "task_80.25_evidence\\logs\\80_23_run1.log",
+   "parsed": {
+    "acceptance": "NOT PASSED",
+    "blocked_lines": [
+     "BLOCKED explain: StageContractError — explain hypothesis 'h-collapse-bottleneck-mu' declares localization ('slice', 'slice-all') with no localized/supported prior slice selection carrying that identity; workflow failed at explain (7-stage chain cannot complete, no validator-clean artifact or rendered report is producible without fabricating a localization)"
+    ],
+    "capture_identity": "16a5c11ae062d83ec489635f05c68df0b3c19acbd0bad65a8a11da3021bc2acd",
+    "case": "80_23",
+    "compare_line": null,
+    "detect_sha": "faeff74e9ad7aa9185814ef94cbfa8a21afcda72e7fd8cb97709aa18f83bfc8a",
+    "determinism_line_found": true,
+    "heldout_latents_sha": "a9bb7895b9a0db1fd2c2791f79da95d7cb0ac099c0ac0cf56422d1ae2e80c31a",
+    "intervene_line": null,
+    "localize_line": "RECORD localize: truthful negative — no layer/sample meets the declared affected criterion (no layer or sample meets the declared affected criterion; benign negative produces no location); the manifest's expected feature-axis selection cannot be named without fabricating a location",
+    "localize_sha": "35c17b76f805453b36087776849c2a9131d92dce4a4f384bcfe388a9341ac8df",
+    "pooled_sha": null,
+    "positive_line": "RECORD positive-case (declared known defect): NOT OBSERVED — bottleneck-effective-rank 3.1149 ≥3.0, bottleneck-singular-spread 0.4735 ≥0.25; threshold_pass={'bottleneck-effective-rank': True, 'bottleneck-singular-spread': True}; bootstrap CI bottleneck-effective-rank [2.9134, 3.2664]",
+    "resources_line": "resources: proof body 6.05s (frozen+data+model=4.56s, capture=0.01s, detect=0.24s, localize=0.34s, workflow=0.53s, guards+previews=0.37s); wall including imports 10.61s; tracemalloc peak 62.1 MiB; environment python 3.13.3, numpy 2.4.6, torch-cpu, scikit-learn 1.9.0; declared output location 'artifacts/diagnostics/proof-80-23' intentionally not materialized (persistence refused)",
+    "validator_clean": false
+   },
+   "peak_rss_bytes": 479645696,
+   "script": "sprint80_task80_23_proof.py",
+   "wall_s": 11.688
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run2",
+   "exit": 0,
+   "label": "80_24_run2",
+   "log": "task_80.25_evidence\\logs\\80_24_run2.log",
+   "parsed": {
+    "acceptance": "NOT PASSED",
+    "blocked_lines": [
+     "BLOCKED persistence: the taxonomy/manifest/binder axes triangle makes a validator-clean artifact unreachable — DiagnosticArtifactError: report failed independent validation; nothing was persisted: taxonomy applicability mismatch for separability_probe_leakage"
+    ],
+    "capture_identity": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89",
+    "case": "80_24",
+    "compare_line": "RECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000",
+    "detect_sha": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce",
+    "determinism_line_found": true,
+    "heldout_latents_sha": null,
+    "intervene_line": "RECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}",
+    "localize_line": null,
+    "localize_sha": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc",
+    "pooled_sha": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b",
+    "positive_line": "RECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4489 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}",
+    "resources_line": "resources: proof body 948.87s (frozen+data=0.00s, extraction+replay=911.86s, capture=9.86s, detect=1.35s, localize=0.21s, determinism=1.36s, workflow=4.00s, report-assembly=0.00s); wall including imports 953.03s; tracemalloc peak 538.8 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0",
+    "validator_clean": false
+   },
+   "peak_rss_bytes": 1809317888,
+   "script": "sprint80_task80_24_proof.py",
+   "wall_s": 955.053
+  },
+  {
+   "argv": [
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\.venv\\Scripts\\python.exe",
+    "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\root\\scripts\\sprint80_task80_24_proof.py"
+   ],
+   "cwd": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-20260922-171645\\run-cwd\\80_24_run3",
+   "exit": 0,
+   "label": "80_24_run3",
+   "log": "task_80.25_evidence\\logs\\80_24_run3.log",
+   "parsed": {
+    "acceptance": "NOT PASSED",
+    "blocked_lines": [
+     "BLOCKED persistence: the taxonomy/manifest/binder axes triangle makes a validator-clean artifact unreachable — DiagnosticArtifactError: report failed independent validation; nothing was persisted: taxonomy applicability mismatch for separability_probe_leakage"
+    ],
+    "capture_identity": "28f4fbd2c47231fec8908044d335d06a87b2fda2f18bde1e3f0567dcb8c05d89",
+    "case": "80_24",
+    "compare_line": "RECORD compare: neither — heldout-probe-accuracy delta 0.000000, probe-leakage-gap delta 0.000000",
+    "detect_sha": "23863ec19820f0ee555da8dda345b7971e141036e01b24d0c8cf1c4edddcc2ce",
+    "determinism_line_found": true,
+    "heldout_latents_sha": null,
+    "intervene_line": "RECORD intervene: remove remove-section-header-direction target transformer.h.0 -> conclusion supported (baseline 1.0000, intervened 0.7315, effect -0.2685); controls {'remove-layer-off': 'passed', 'remove-layer-random': 'passed', 'remove-layer-shuffled': 'passed', 'remove-layer-zero': 'passed'}",
+    "localize_line": null,
+    "localize_sha": "1129ac27a96fdbf79fff47e985779a7dcbd9c591e70319bedb0d2caceb00c2bc",
+    "pooled_sha": "b0e60bc54412e50e917ec8b9dfb3c4c2af467b691b27953e9a5feb5d1021a33b",
+    "positive_line": "RECORD positive-case (declared separability): OBSERVED — heldout-probe-accuracy 1.0000 ≥0.7, probe-leakage-gap 0.4489 ≥0.15; threshold_pass={'heldout-probe-accuracy': True, 'probe-leakage-gap': True}",
+    "resources_line": "resources: proof body 1040.18s (frozen+data=0.00s, extraction+replay=1003.40s, capture=9.78s, detect=1.37s, localize=0.26s, determinism=1.38s, workflow=4.00s, report-assembly=0.00s); wall including imports 1045.80s; tracemalloc peak 535.8 MiB; environment python 3.13.3, numpy 2.4.6, transformers 4.57.6, torch-cpu, scikit-learn 1.9.0, datasets 3.6.0",
+    "validator_clean": false
+   },
+   "peak_rss_bytes": 1776611328,
+   "script": "sprint80_task80_24_proof.py",
+   "wall_s": 1047.59
+  }
+ ],
+ "total_wall_s": 2197.26,
+ "verdict": "CHECK_FAILURES"
+}

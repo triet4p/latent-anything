@@ -93,6 +93,7 @@ from latent_anything._representation_taxonomy import load_taxonomy
 from latent_anything._run_record_codec import canonical_json
 from latent_anything._run_record_persistence import FileSystemRunRecorder
 from latent_anything._run_record_schema import ArtifactRef
+from latent_anything._target_evidence import EVIDENCE_CONTRACT_V1, EVIDENCE_CONTRACT_V2
 from latent_anything.diagnostics import DiagnosticRequest, DiagnosticResult
 
 DIAGNOSTIC_ARTIFACT_SCHEMA = "diagnostic-artifact-v1"
@@ -114,6 +115,150 @@ _REPORT_SECTION_IDS = (
 
 class DiagnosticArtifactError(ValueError):
     """Raised when a diagnostic artifact cannot be assembled, persisted, or loaded."""
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    if not isinstance(value, DiagnosticRequest):
+        raise DiagnosticArtifactError("request must be a DiagnosticRequest")
+    return value
+
+
+def _require_result(value: object) -> DiagnosticResult:
+    if not isinstance(value, DiagnosticResult):
+        raise DiagnosticArtifactError("result must be a DiagnosticResult")
+    return value
+
+
+def _require_checkpoint(value: object) -> WorkflowCheckpoint:
+    if not isinstance(value, WorkflowCheckpoint):
+        raise DiagnosticArtifactError("checkpoint must be a WorkflowCheckpoint")
+    return value
+
+
+def _require_manifest(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise DiagnosticArtifactError("manifest must be a mapping")
+    return value
+
+
+def _require_stage_entries(value: object) -> tuple[Mapping[str, object], ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError("artifact must declare its stage chain")
+    entries: list[Mapping[str, object]] = []
+    for item in value:
+        entries.append(_require_mapping(item, name="stage chain entries must be objects"))
+    return tuple(entries)
+
+
+def _require_blob(value: object, digest: str, *, name: str) -> bytes:
+    if not isinstance(value, bytes) or _digest_of(value) != digest:
+        raise DiagnosticArtifactError(f"{name} blob is missing or mis-hashed")
+    return value
+
+
+def _require_digest(value: object) -> str:
+    if not isinstance(value, str) or len(value) != _DIGEST_LENGTH:
+        raise DiagnosticArtifactError("run record does not reference a diagnostic artifact digest")
+    return value
+
+
+def _require_size(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise DiagnosticArtifactError("run record does not declare the artifact size")
+    return int(value)
+
+
+def _require_run_id(value: object) -> str:
+    if not isinstance(value, str) or not value or Path(value).name != value:
+        raise DiagnosticArtifactError(f"invalid run id: {value!r}")
+    return value
+
+
+def _require_family_evidence(value: object) -> Mapping[str, Mapping[str, str]]:
+    if not isinstance(value, Mapping):
+        raise DiagnosticArtifactError("detect family_evidence must be a mapping")
+    for family_id, status in value.items():
+        if not isinstance(family_id, str) or not isinstance(status, Mapping):
+            raise DiagnosticArtifactError("detect family_evidence must map families to evidence mappings")
+        for key, item in status.items():
+            if not isinstance(key, str) or not isinstance(item, str):
+                raise DiagnosticArtifactError("detect family_evidence must map families to string mappings")
+    return value
+
+
+def _require_str_mapping(value: object, *, name: str) -> Mapping[str, str]:
+    if not isinstance(value, Mapping):
+        raise DiagnosticArtifactError(f"{name} must be a mapping")
+    for key, item in value.items():
+        if not isinstance(key, str) or not isinstance(item, str):
+            raise DiagnosticArtifactError(f"{name} must map strings to strings")
+    return value
+
+
+def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise DiagnosticArtifactError(f"{name} must be a mapping")
+    return value
+
+
+def _require_outputs(value: object) -> tuple[StageOutput, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError("checkpoint outputs must be StageOutput items")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, StageOutput):
+            raise DiagnosticArtifactError("checkpoint outputs must be StageOutput items")
+    return items
+
+
+def _require_digests(value: object, *, count: int) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError("checkpoint output digests must be digests")
+    items = tuple(value)
+    if len(items) != count:
+        raise DiagnosticArtifactError("checkpoint digests must align with outputs")
+    for item in items:
+        if not isinstance(item, str):
+            raise DiagnosticArtifactError("checkpoint output digests must be digests")
+    return items
+
+
+def _require_stage_tuple(value: object, *, name: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError(f"{name} completed_stages must be a stage tuple")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DiagnosticArtifactError(f"{name} completed_stages must be a stage tuple")
+    return items
+
+
+def _require_refs(value: object, *, name: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError(f"{name} must be a list of strings")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise DiagnosticArtifactError(f"{name} must be a list of strings")
+    return items
+
+
+def _require_non_empty_string(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise DiagnosticArtifactError(f"{name} must be a non-empty string")
+    return value
+
+
+def _require_sequence(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError(f"{name} must be a sequence")
+    return tuple(value)
+
+
+def _require_axes(value: object) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise DiagnosticArtifactError("bound capture must declare axes")
+    return tuple(value)
 
 
 def _require(condition: bool, message: str) -> None:
@@ -147,46 +292,35 @@ def _digest_of(data: bytes) -> str:
 
 
 def _stage_records(
-    request: DiagnosticRequest,
-    result: DiagnosticResult,
-    checkpoint: WorkflowCheckpoint,
+    request: object,
+    result: object,
+    checkpoint: object,
 ) -> list[dict[str, object]]:
+    request = _require_request(request)
+    result = _require_result(result)
+    checkpoint = _require_checkpoint(checkpoint)
     _require(result.status == "completed", "diagnostic result must be completed")
-    _require(
-        tuple(result.completed_stages) == tuple(WORKFLOW_STAGES),
-        f"diagnostic result must cover exactly {list(WORKFLOW_STAGES)!r}, got "
-        f"{list(result.completed_stages)!r}",
-    )
     _require(checkpoint.status == "completed", "workflow checkpoint must be completed")
-    _require(
-        tuple(checkpoint.completed_stages) == tuple(WORKFLOW_STAGES),
-        f"workflow checkpoint must cover exactly {list(WORKFLOW_STAGES)!r}, got "
-        f"{list(checkpoint.completed_stages)!r}",
-    )
     _require(result.request_id == request.request_id, "result request_id does not match the request")
     _require(
         result.manifest_id == request.manifest_id,
         "result manifest_id does not match the request",
     )
-    stage_results = result.stage_results
-    if isinstance(stage_results, Mapping):
-        _require(stage_results.get("failure") is None, "diagnostic result records a failure")
-        declared = stage_results.get("stages")
-        _require(
-            isinstance(declared, Mapping),
-            "diagnostic result must declare its stage results",
-        )
-        rows = declared
-    else:
-        raise DiagnosticArtifactError("diagnostic result stage_results must be a mapping")
+    result_stages = _require_stage_tuple(result.completed_stages, name="diagnostic result")
+    checkpoint_stages = _require_stage_tuple(checkpoint.completed_stages, name="workflow checkpoint")
+    _require(
+        result_stages == checkpoint_stages == tuple(WORKFLOW_STAGES),
+        f"diagnostic result must cover exactly {list(WORKFLOW_STAGES)!r}",
+    )
+    stage_results = _require_mapping(result.stage_results, name="stage_results")
+    _require(stage_results.get("failure") is None, "diagnostic result records a failure")
+    rows = _require_mapping(stage_results.get("stages"), name="stages")
+    outputs = _require_outputs(checkpoint.outputs)
+    digests = _require_digests(checkpoint.output_digests, count=len(outputs))
 
     records: list[dict[str, object]] = []
-    for output, digest in zip(checkpoint.outputs, checkpoint.output_digests, strict=True):
-        row = rows.get(output.stage)
-        _require(
-            isinstance(row, Mapping),
-            f"diagnostic result is missing stage {output.stage!r}",
-        )
+    for output, digest in zip(outputs, digests, strict=True):
+        row = _require_mapping(rows.get(output.stage), name=f"stage {output.stage!r}")
         _require(
             row.get("outcome") == output.outcome,
             f"stage disagreement for {output.stage!r}: result outcome "
@@ -202,9 +336,10 @@ def _stage_records(
             output.digest(checkpoint.workflow_identity) == digest,
             f"stage digest disagreement for {output.stage!r}",
         )
+        output_refs = _require_refs(output.artifact_refs, name=f"stage {output.stage!r} artifact_refs")
         records.append(
             {
-                "artifact_refs": list(output.artifact_refs),
+                "artifact_refs": list(output_refs),
                 "outcome": output.outcome,
                 "output_digest": digest,
                 "record_digest": _digest_of(stage_bytes),
@@ -223,13 +358,14 @@ def _stage_records(
 # ---------------------------------------------------------------------------
 
 
-def _section_rows(report: dict[str, object], section: str) -> list[dict[str, object]]:
+def _section_rows(report: Mapping[str, object], section: str) -> list[dict[str, object]]:
     value = report.get(section)
-    _require(
-        isinstance(value, Sequence) and not isinstance(value, str | bytes),
-        f"report section {section!r} must be a list",
-    )
-    return [dict(cast(Mapping[str, object], item)) for item in value]  # pyright: ignore[reportUnknownVariableType]
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise DiagnosticArtifactError(f"report section {section!r} must be a list")
+    rows: list[dict[str, object]] = []
+    for item in value:
+        rows.append(dict(_require_mapping(item, name=f"{section} row")))
+    return rows
 
 
 def _register_evidence(
@@ -258,19 +394,16 @@ def _register_evidence(
 
     # 1. Capture provenance is rebuilt from the real bound capture record;
     #    the caller's provisional capture artifact references are remapped.
-    capture_payload = payloads.get("capture")
-    _require(
-        isinstance(capture_payload, Mapping) and isinstance(capture_payload.get("capture"), Mapping),
-        "registering evidence requires a real bound capture stage payload",
+    capture_payload = _require_mapping(
+        payloads.get("capture"), name="registering evidence requires a real capture stage payload"
     )
-    bound_capture = cast(Mapping[str, object], capture_payload["capture"])
-    model = manifest.get("model")
-    dataset = manifest.get("dataset")
-    representation = manifest.get("representation")
-    _require(
-        isinstance(model, Mapping) and isinstance(dataset, Mapping) and isinstance(representation, Mapping),
-        "manifest must declare model, dataset, and representation",
+    bound_capture = _require_mapping(
+        capture_payload.get("capture"),
+        name="registering evidence requires a real bound capture stage payload",
     )
+    model = _require_mapping(manifest.get("model"), name="manifest must declare model")
+    dataset = _require_mapping(manifest.get("dataset"), name="manifest must declare dataset")
+    representation = _require_mapping(manifest.get("representation"), name="manifest must declare representation")
     _require(
         bound_capture.get("capture_id") == request.capture.capture_id,
         "bound capture_id disagrees with the request capture selection",
@@ -284,8 +417,7 @@ def _register_evidence(
         "bound capture manifest disagrees with the request",
     )
     old_capture_refs: set[str] = set()
-    provenance = registered.get("capture_provenance")
-    _require(isinstance(provenance, Mapping), "report must declare capture_provenance")
+    provenance = _require_mapping(registered.get("capture_provenance"), name="report must declare capture_provenance")
     captures = provenance.get("captures")
     if isinstance(captures, Sequence) and not isinstance(captures, str | bytes):
         for raw in captures:
@@ -294,11 +426,7 @@ def _register_evidence(
                 if isinstance(refs, Sequence) and not isinstance(refs, str | bytes):
                     old_capture_refs.update(str(item) for item in refs)
     capture_ref = f"capture-{request.capture.capture_id}-record"
-    axes = bound_capture.get("axes")
-    _require(
-        isinstance(axes, Sequence) and not isinstance(axes, str | bytes) and len(axes) > 0,
-        "bound capture must declare axes",
-    )
+    axes = _require_axes(bound_capture.get("axes"))
     _add_evidence(capture_ref, dict(capture_payload))
     registered["capture_provenance"] = {
         "captures": [
@@ -308,13 +436,89 @@ def _register_evidence(
                 "capture_id": str(bound_capture.get("capture_id")),
                 "dataset_split": str(cast(Mapping[str, object], dataset).get("split_identity")),
                 "model_revision": str(cast(Mapping[str, object], model).get("revision")),
-                "representation_identity": str(
-                    cast(Mapping[str, object], representation).get("identity")
-                ),
+                "representation_identity": str(cast(Mapping[str, object], representation).get("identity")),
             }
         ]
     }
+    # 1b. Target-label provenance (v2 evidence contract): when the detect
+    #    payload carries the real evaluated target provenance, build and
+    #    validate the content-addressed target record, bind it against the
+    #    report's declared target block, and register it as evidence. When
+    #    absent, evidence_contract stays v1 and legacy behavior is unchanged.
+    detect_payload_for_target = payloads.get("detect")
+    target_block_raw = registered.get("target_evidence")
+    evidence_contract = EVIDENCE_CONTRACT_V1
+    if target_block_raw is not None:
+        from latent_anything._target_evidence import (
+            TARGET_EVIDENCE_SCHEMA_VERSION,
+            TargetEvidenceError,
+            link_for_record,
+            validate_target_record,
+        )
 
+        provenance = _require_mapping(
+            cast(Mapping[str, object], detect_payload_for_target).get("target_provenance"),
+            name="detect payload must carry target_provenance for the v2 evidence contract",
+        )
+        declared_block = _require_mapping(target_block_raw, name="report must declare target_evidence for v2")
+        try:
+            candidate: dict[str, object] = {
+                "capacity": str(provenance.get("capacity")),
+                "dataset_split_identity": str(cast(Mapping[str, object], dataset).get("split_identity")),
+                "eval_indices": list(cast(Sequence[object], provenance.get("eval_indices"))),
+                "eval_split_identity": str(provenance.get("eval_split_identity")),
+                "label_digest": str(provenance.get("label_digest")),
+                "labels": list(cast(Sequence[object], provenance.get("labels"))),
+                "representation_identity": str(cast(Mapping[str, object], representation).get("identity")),
+                "rule": str(provenance.get("rule")),
+                "rule_digest": _digest_of(str(provenance.get("rule")).encode("utf-8")),
+                "rule_kind": str(provenance.get("rule_kind")),
+                "sample_digest": str(provenance.get("sample_digest")),
+                "sample_ids": list(cast(Sequence[object], provenance.get("sample_ids"))),
+                "schema_version": TARGET_EVIDENCE_SCHEMA_VERSION,
+                "target_id": str(provenance.get("target_id")),
+                "train_indices": list(cast(Sequence[object], provenance.get("train_indices"))),
+                "train_split_identity": str(provenance.get("train_split_identity")),
+            }
+            validate_target_record(candidate)
+        except TargetEvidenceError as exc:
+            raise DiagnosticArtifactError(f"target evidence failed validation; nothing was persisted: {exc}") from exc
+        for key in ("rule", "rule_digest", "rule_kind", "target_id"):
+            _require(
+                str(declared_block.get(key)) == str(candidate[key]),
+                f"declared target {key} disagrees with evaluated detect-stage provenance",
+            )
+        _require(
+            str(declared_block.get("label_digest")) == str(provenance.get("label_digest")),
+            "declared target labels disagree with the evaluated detect payload",
+        )
+        _require(
+            str(declared_block.get("sample_digest")) == str(provenance.get("sample_digest")),
+            "declared target sample identities disagree with the evaluated detect payload",
+        )
+        link = link_for_record(candidate)
+        _require(
+            str(declared_block.get("record_digest")) == str(link["record_digest"]),
+            "declared target record digest disagrees with the evaluated target evidence",
+        )
+        target_ref = f"target-{str(candidate['target_id'])}-record"
+        _add_evidence(target_ref, dict(candidate))
+        registered["target_evidence"] = {
+            "evidence_refs": [target_ref],
+            "label_digest": str(candidate["label_digest"]),
+            "record_digest": str(link["record_digest"]),
+            "rule": str(candidate["rule"]),
+            "rule_digest": str(candidate["rule_digest"]),
+            "rule_kind": str(candidate["rule_kind"]),
+            "sample_digest": str(candidate["sample_digest"]),
+            "target_id": str(candidate["target_id"]),
+        }
+        evidence_contract = EVIDENCE_CONTRACT_V2
+    if evidence_contract == EVIDENCE_CONTRACT_V2:
+        registered["evidence_contract"] = evidence_contract
+    else:
+        registered.pop("target_evidence", None)
+        registered.pop("evidence_contract", None)
     # 2. Interventions-section rows are registered for every recorded trial.
     #    Caller-supplied rows are never dropped silently: each must be
     #    unique, backed by a real registered trial record, and agree with
@@ -364,21 +568,18 @@ def _register_evidence(
                     )
                     _require(
                         str(caller_row.get("target")) == str(trial.get("target")),
-                        f"interventions row {row_id!r} target disagrees with the "
-                        "recorded trial",
+                        f"interventions row {row_id!r} target disagrees with the recorded trial",
                     )
                     _require(
                         str(caller_row.get("intervention")) == str(trial.get("kind")),
-                        f"interventions row {row_id!r} intervention kind disagrees with "
-                        "the recorded trial",
+                        f"interventions row {row_id!r} intervention kind disagrees with the recorded trial",
                     )
                     raw_refs = caller_row.get("evidence_refs")
                     if isinstance(raw_refs, Sequence) and not isinstance(raw_refs, str | bytes):
                         for item in raw_refs:
                             _require(
                                 isinstance(item, str) and bool(item),
-                                f"interventions row {row_id!r} evidence_refs must be "
-                                "non-empty strings",
+                                f"interventions row {row_id!r} evidence_refs must be non-empty strings",
                             )
                             caller_refs.append(str(item))
                 merged_refs = list(caller_refs)
@@ -402,9 +603,7 @@ def _register_evidence(
             f"interventions row {row_id!r} is not backed by a registered trial record",
         )
     if registered_rows:
-        registered["interventions"] = [
-            registered_rows[key] for key in sorted(registered_rows)
-        ]
+        registered["interventions"] = [registered_rows[key] for key in sorted(registered_rows)]
 
     # 3. Comparison rows register their provisional record references.
     compare_payload = payloads.get("compare")
@@ -426,10 +625,9 @@ def _register_evidence(
         expected_ref = f"comparison-{row_id}-record"
         if expected_ref not in set(str(item) for item in refs):
             continue
-        record = comparison_records.get(row_id)
-        _require(
-            record is not None,
-            f"comparison row {row_id!r} has no recorded compare-stage record",
+        record = _require_mapping(
+            comparison_records.get(row_id),
+            name=f"comparison row {row_id!r} has no recorded compare-stage record",
         )
         _add_evidence(expected_ref, dict(record))
 
@@ -454,10 +652,8 @@ def _register_evidence(
     #    control references with the executed manifest controls, and require
     #    causal claims to point at a registered intervention row.
     detect_evidence = _detect_validator_evidence(payloads)
-    control_outcomes = detect_evidence["control_outcomes"]
-    executed_controls = sorted(
-        cast(Mapping[str, str], control_outcomes)
-    )
+    control_outcomes = _require_str_mapping(detect_evidence["control_outcomes"], name="control_outcomes")
+    executed_controls = sorted(control_outcomes)
     _require(bool(executed_controls), "no executed manifest control outcomes were recorded")
 
     registered_claims: list[dict[str, object]] = []
@@ -469,10 +665,9 @@ def _register_evidence(
             for reference in resolved_refs:
                 if reference.startswith("explanation-") and reference.endswith("-record"):
                     hypothesis_id = reference[len("explanation-") : -len("-record")]
-                    hypothesis = hypothesis_rows.get(hypothesis_id)
-                    _require(
-                        hypothesis is not None,
-                        f"explanation reference {reference!r} has no recorded explain-stage row",
+                    hypothesis = _require_mapping(
+                        hypothesis_rows.get(hypothesis_id),
+                        name=f"explanation reference {reference!r} has no recorded explain-stage row",
                     )
                     _add_evidence(reference, dict(hypothesis))
             claim["evidence_refs"] = resolved_refs
@@ -482,7 +677,7 @@ def _register_evidence(
             if isinstance(control_refs, Sequence) and not isinstance(control_refs, str | bytes)
             else []
         )
-        if not set(declared_controls).issubset(set(cast(Mapping[str, str], control_outcomes))):
+        if not set(declared_controls).issubset(set(control_outcomes)):
             claim["control_refs"] = list(executed_controls)
         if claim.get("kind") == "causal_result":
             claim_refs = claim.get("evidence_refs")
@@ -493,8 +688,7 @@ def _register_evidence(
             )
             _require(
                 bool(registered_intervention_ids.intersection(claim_ref_list)),
-                f"causal claim {claim.get('id')!r} does not reference a registered "
-                "intervention record",
+                f"causal claim {claim.get('id')!r} does not reference a registered intervention record",
             )
         registered_claims.append(claim)
     registered["claims"] = registered_claims
@@ -513,27 +707,25 @@ def _register_evidence(
             updated.append(row)
         registered[section] = updated
 
+    family_evidence = _require_family_evidence(detect_evidence["family_evidence"])
     validator_input = {
         "applicability": detect_evidence["applicability"],
         "artifact_digests": {},  # filled from the blob inventory after assembly
         "control_outcomes": dict(control_outcomes),
-        "family_evidence": dict(detect_evidence["family_evidence"]),
+        "family_evidence": {family_id: dict(status) for family_id, status in family_evidence.items()},
     }
     # F3: a provisional capture reference that collides with any registered
     # evidence or stage name fails closed instead of silently retargeting
     # unrelated evidence to the capture record.
     reserved_names = (
-        set(evidence_names)
-        | {f"stage-record-{stage}" for stage in WORKFLOW_STAGES}
-        | {"diagnostic-report"}
+        set(evidence_names) | {f"stage-record-{stage}" for stage in WORKFLOW_STAGES} | {"diagnostic-report"}
     )
     for old in sorted(old_capture_refs):
         if old == capture_ref:
             continue
         _require(
             old not in reserved_names,
-            f"provisional capture reference {old!r} collides with a registered "
-            "evidence name",
+            f"provisional capture reference {old!r} collides with a registered evidence name",
         )
     validate_report_shape(registered)
     return registered, evidence, validator_input
@@ -543,35 +735,23 @@ def _detect_validator_evidence(
     payloads: Mapping[str, Mapping[str, object]],
 ) -> dict[str, object]:
     """Derive validator evidence from the real detect-stage payload."""
-    detect_payload = payloads.get("detect")
-    _require(
-        isinstance(detect_payload, Mapping),
-        "registering evidence requires a real detect stage payload",
+    detect_payload = _require_mapping(
+        payloads.get("detect"), name="registering evidence requires a real detect stage payload"
     )
-    families = detect_payload.get("families")
-    _require(
-        isinstance(families, Sequence) and not isinstance(families, str | bytes) and len(families) > 0,
-        "detect payload must record at least one family",
-    )
+    families = _require_sequence(detect_payload.get("families"), name="detect families")
+    _require(bool(families), "detect payload must record at least one family")
     family_evidence: dict[str, dict[str, str]] = {}
     control_outcomes: dict[str, str] = {}
     applicability: dict[str, str] = {}
-    for raw in families:  # pyright: ignore[reportUnknownVariableType]
-        _require(isinstance(raw, Mapping), "detect families must be objects", )
-        family = cast(Mapping[str, object], raw)
-        family_id = family.get("family_id")
-        _require(
-            isinstance(family_id, str) and bool(family_id),
-            "detect families must declare family_id",
+    for raw in families:
+        family = _require_mapping(raw, name="detect families must be objects")
+        family_id = _require_non_empty_string(family.get("family_id"), name="detect families must declare family_id")
+        evidence_status = _require_mapping(
+            family.get("evidence_status"),
+            name=f"detect family {family_id!r} must declare evidence_status",
         )
-        evidence_status = family.get("evidence_status")
-        _require(
-            isinstance(evidence_status, Mapping) and bool(evidence_status),
-            f"detect family {family_id!r} must declare evidence_status",
-        )
-        family_evidence[family_id] = {
-            str(key): str(value) for key, value in evidence_status.items()
-        }
+        _require(bool(evidence_status), f"detect family {family_id!r} must declare evidence_status")
+        family_evidence[family_id] = {str(key): str(value) for key, value in evidence_status.items()}
         applicability[family_id] = "applicable"
         outcomes = family.get("control_outcomes")
         if isinstance(outcomes, Mapping):
@@ -612,7 +792,9 @@ def _assemble(
     report: Mapping[str, object],
 ) -> tuple[bytes, str, bytes, str, list[tuple[str, bytes]], dict[str, object]]:
     stage_records = _stage_records(request, result, checkpoint)
-    payloads = {item.stage: dict(item.payload) for item in checkpoint.outputs}
+    checkpoint = _require_checkpoint(checkpoint)
+    assemble_outputs = _require_outputs(checkpoint.outputs)
+    payloads = {item.stage: dict(_require_mapping(item.payload, name="stage payload")) for item in assemble_outputs}
     registered, evidence, validator_input = _register_evidence(
         report, request=request, manifest=manifest, payloads=payloads
     )
@@ -638,7 +820,7 @@ def _assemble(
     blob_rows: list[dict[str, object]] = []
     seen_names: set[str] = set()
     seen_names.add("diagnostic-report")
-    for output in checkpoint.outputs:
+    for output in assemble_outputs:
         stage_bytes = _canonical_bytes(output.to_dict())
         name = f"stage-record-{output.stage}"
         _require(name not in seen_names, f"duplicate blob name {name!r}")
@@ -674,9 +856,7 @@ def _assemble(
             "size_bytes": len(report_bytes),
         }
     )
-    validator_input["artifact_digests"] = {
-        str(row["name"]): str(row["digest"]) for row in blob_rows
-    }
+    validator_input["artifact_digests"] = {str(row["name"]): str(row["digest"]) for row in blob_rows}
 
     seeds_block = manifest.get("seeds")
     document: dict[str, object] = {
@@ -701,9 +881,7 @@ def _assemble(
             "status": result.status,
         },
         "schema": DIAGNOSTIC_ARTIFACT_SCHEMA,
-        "seeds": json.loads(_canonical_bytes(seeds_block).decode("utf-8"))
-        if isinstance(seeds_block, Mapping)
-        else {},
+        "seeds": json.loads(_canonical_bytes(seeds_block).decode("utf-8")) if isinstance(seeds_block, Mapping) else {},
         "stages": stage_records,
         "validator_input": validator_input,
         "validator_result": {},
@@ -718,22 +896,43 @@ def _assemble(
     # Independent validation over the registered report and real evidence.
     evidence_bytes = {name: data for name, data in evidence}
     evidence_digests = {name: _digest_of(data) for name, data in evidence}
+    target_input: dict[str, object] | None = None
+    target_provenance: Mapping[str, object] | None = None
+    target_block = registered.get("target_evidence")
+    if target_block is not None:
+        target_map = _require_mapping(target_block, name="target evidence")
+        target_refs = _require_refs(target_map.get("evidence_refs"), name="target evidence refs")
+        _require(len(target_refs) == 1, "v2 target evidence must register exactly one target record")
+        target_name = target_refs[0]
+        data = evidence_bytes.get(target_name)
+        if not isinstance(data, bytes):
+            raise DiagnosticArtifactError(f"target record blob {target_name!r} is missing")
+        try:
+            parsed_target = json.loads(data.decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001 - any parse gap fails closed
+            raise DiagnosticArtifactError(f"target record blob is not valid JSON: {exc}") from exc
+        _require(isinstance(parsed_target, Mapping), "target record blob must be an object")
+        target_input = dict(parsed_target)
+        target_input["record_digest"] = _digest_of(data)
+        detect_payload = _require_mapping(payloads.get("detect"), name="detect stage payload")
+        target_provenance = _require_mapping(
+            detect_payload.get("target_provenance"),
+            name="detect payload must carry target_provenance for v2",
+        )
     try:
         validate_diagnostic_report(
             registered,
             manifest,
             applicability=cast(Mapping[str, str], validator_input["applicability"]),
-            family_evidence=cast(
-                Mapping[str, Mapping[str, str]], validator_input["family_evidence"]
-            ),
+            family_evidence=cast(Mapping[str, Mapping[str, str]], validator_input["family_evidence"]),
             control_outcomes=cast(Mapping[str, str], validator_input["control_outcomes"]),
             artifacts=evidence_bytes,
             artifact_digests=evidence_digests,
+            target_evidence=target_input,
+            target_provenance=target_provenance,
         )
     except ReportValidationError as exc:
-        raise DiagnosticArtifactError(
-            f"report failed independent validation; nothing was persisted: {exc}"
-        ) from exc
+        raise DiagnosticArtifactError(f"report failed independent validation; nothing was persisted: {exc}") from exc
 
     document["validator_result"] = {
         "inputs_digest": _digest_of(
@@ -791,12 +990,17 @@ class LoadedDiagnosticArtifact:
 def persist_diagnostic_artifact(
     root: str | Path,
     *,
-    request: DiagnosticRequest,
-    manifest: Mapping[str, object],
-    result: DiagnosticResult,
-    checkpoint: WorkflowCheckpoint,
-    report: Mapping[str, object],
+    request: object,
+    manifest: object,
+    result: object,
+    checkpoint: object,
+    report: object,
 ) -> DiagnosticArtifactHandle:
+    request = _require_request(request)
+    manifest = _require_manifest(manifest)
+    result = _require_result(result)
+    checkpoint = _require_checkpoint(checkpoint)
+    report = _require_mapping(report, name="report")
     """Assemble, validate, and persist one content-addressed diagnostic artifact.
 
     The workflow must be completed and terminal; the registered report
@@ -813,17 +1017,6 @@ def persist_diagnostic_artifact(
     input is idempotent (no bytes are rewritten); an already completed
     run is never downgraded or rewritten.
     """
-    if not isinstance(request, DiagnosticRequest):
-        raise DiagnosticArtifactError("request must be a DiagnosticRequest")
-    if not isinstance(manifest, Mapping):
-        raise DiagnosticArtifactError("manifest must be a mapping")
-    if not isinstance(result, DiagnosticResult):
-        raise DiagnosticArtifactError("result must be a DiagnosticResult")
-    if not isinstance(checkpoint, WorkflowCheckpoint):
-        raise DiagnosticArtifactError("checkpoint must be a WorkflowCheckpoint")
-    if not isinstance(report, Mapping):
-        raise DiagnosticArtifactError("report must be a mapping")
-
     document_bytes, document_digest, _, report_digest, blobs, _ = _assemble(
         request=request,
         manifest=manifest,
@@ -835,8 +1028,7 @@ def persist_diagnostic_artifact(
     manifest_id = str(manifest.get("manifest_id"))
     model = manifest.get("model")
     dataset = manifest.get("dataset")
-    seeds_source = manifest.get("seeds")
-    _require(isinstance(seeds_source, Mapping), "manifest must declare seeds")
+    seeds_source = _require_mapping(manifest.get("seeds"), name="manifest must declare seeds")
     seed_values: list[int] = []
     for key in ("training", "evaluation", "controls"):
         rows = seeds_source.get(key)
@@ -877,7 +1069,11 @@ def persist_diagnostic_artifact(
             else {}
         ),
         dataset_revisions=(
-            {str(cast(Mapping[str, object], dataset).get("id")): str(cast(Mapping[str, object], dataset).get("revision"))}
+            {
+                str(cast(Mapping[str, object], dataset).get("id")): str(
+                    cast(Mapping[str, object], dataset).get("revision")
+                )
+            }
             if isinstance(dataset, Mapping)
             else {}
         ),
@@ -914,8 +1110,8 @@ def persist_diagnostic_artifact(
 def load_diagnostic_artifact(
     root: str | Path,
     *,
-    run_id: str,
-    manifest: Mapping[str, object],
+    run_id: object,
+    manifest: object,
 ) -> LoadedDiagnosticArtifact:
     """Load and fully revalidate one persisted diagnostic artifact.
 
@@ -925,30 +1121,18 @@ def load_diagnostic_artifact(
     the independent validator result must all agree or the load fails
     closed.
     """
-    if not isinstance(manifest, Mapping):
-        raise DiagnosticArtifactError("manifest must be a mapping")
-    if not isinstance(run_id, str) or not run_id or Path(run_id).name != run_id:
-        raise DiagnosticArtifactError(f"invalid run id: {run_id!r}")
+    manifest = _require_manifest(manifest)
+    run_id = _require_run_id(run_id)
     recorder = FileSystemRunRecorder(root)
     try:
         record = recorder.get(run_id)
     except FileNotFoundError as exc:
         raise DiagnosticArtifactError(f"run record {run_id!r} is missing") from exc
     metadata = record.metadata
-    document_digest = metadata.get("diagnostic_artifact_digest")
-    document_size = metadata.get("diagnostic_artifact_size")
-    metadata_request = metadata.get("diagnostic_request_id")
-    _require(
-        isinstance(document_digest, str) and len(document_digest) == _DIGEST_LENGTH,
-        "run record does not reference a diagnostic artifact digest",
-    )
-    _require(
-        isinstance(document_size, int) and not isinstance(document_size, bool) and document_size >= 0,
-        "run record does not declare the artifact size",
-    )
-    _require(
-        isinstance(metadata_request, str) and bool(metadata_request),
-        "run record does not declare the diagnostic request id",
+    document_digest = _require_digest(metadata.get("diagnostic_artifact_digest"))
+    document_size = _require_size(metadata.get("diagnostic_artifact_size"))
+    metadata_request = _require_non_empty_string(
+        metadata.get("diagnostic_request_id"), name="run record diagnostic request id"
     )
     _require(
         metadata.get("schema") == DIAGNOSTIC_ARTIFACT_SCHEMA,
@@ -966,9 +1150,7 @@ def load_diagnostic_artifact(
     try:
         document_bytes = recorder.read_artifact(document_ref)
     except FileNotFoundError as exc:
-        raise DiagnosticArtifactError(
-            f"artifact document blob {document_digest} is missing"
-        ) from exc
+        raise DiagnosticArtifactError(f"artifact document blob {document_digest} is missing") from exc
     except ValueError as exc:
         raise DiagnosticArtifactError(f"artifact document blob rejected: {exc}") from exc
     try:
@@ -1047,9 +1229,7 @@ def load_diagnostic_artifact(
         try:
             blob_bytes[ref.name] = recorder.read_artifact(ref)
         except FileNotFoundError as exc:
-            raise DiagnosticArtifactError(
-                f"blob {ref.name!r} ({ref.relative_path}) is missing"
-            ) from exc
+            raise DiagnosticArtifactError(f"blob {ref.name!r} ({ref.relative_path}) is missing") from exc
         except ValueError as exc:
             raise DiagnosticArtifactError(f"blob {ref.name!r} rejected: {exc}") from exc
 
@@ -1066,41 +1246,24 @@ def load_diagnostic_artifact(
     )
 
     # Stage chain: order, outcomes, per-stage workflow digests, payload blobs.
-    workflow = document.get("workflow")
-    _require(isinstance(workflow, Mapping), "artifact must declare its workflow identity")
-    workflow_identity = workflow.get("workflow_identity")
-    _require(
-        isinstance(workflow_identity, str) and len(workflow_identity) == _DIGEST_LENGTH,
-        "artifact workflow identity must be a digest",
-    )
-    raw_stages = document.get("stages")
-    _require(
-        isinstance(raw_stages, Sequence) and not isinstance(raw_stages, str | bytes),
-        "artifact must declare its stage chain",
-    )
-    stage_names = [str(cast(Mapping[str, object], raw).get("stage")) for raw in raw_stages]  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    workflow = _require_mapping(document.get("workflow"), name="artifact must declare its workflow identity")
+    workflow_identity = _require_digest(workflow.get("workflow_identity"))
+    stage_entries = _require_stage_entries(document.get("stages"))
+    stage_names = [str(entry.get("stage")) for entry in stage_entries]
     _require(
         stage_names == list(WORKFLOW_STAGES),
         f"persisted stage chain must be exactly {list(WORKFLOW_STAGES)!r}",
     )
-    for raw in raw_stages:  # pyright: ignore[reportUnknownVariableType]
-        _require(isinstance(raw, Mapping), "stage chain entries must be objects")
-        entry = cast(Mapping[str, object], raw)
+    stage_payloads: dict[str, Mapping[str, object]] = {}
+    for entry in stage_entries:
         stage = str(entry.get("stage"))
-        record_digest = entry.get("record_digest")
-        _require(
-            isinstance(record_digest, str) and len(record_digest) == _DIGEST_LENGTH,
-            f"stage {stage!r} must declare its record digest",
-        )
-        payload = blob_bytes.get(f"stage-record-{stage}")
-        _require(
-            payload is not None and _digest_of(payload) == record_digest,
-            f"stage record blob for {stage!r} is missing or mis-hashed",
-        )
+        record_digest = _require_digest(entry.get("record_digest"))
+        payload = _require_blob(blob_bytes.get(f"stage-record-{stage}"), record_digest, name=f"stage {stage!r}")
         try:
             parsed = json.loads(payload.decode("utf-8"))
         except Exception as exc:  # noqa: BLE001 - any parse gap fails closed
             raise DiagnosticArtifactError(f"stage record {stage!r} is not valid JSON: {exc}") from exc
+        stage_payloads[stage] = _require_mapping(parsed.get("payload"), name=f"stage record {stage!r} payload")
         try:
             output = StageOutput.from_dict(cast(Mapping[str, object], parsed))
         except Exception as exc:  # noqa: BLE001 - stage contract failures fail closed
@@ -1109,8 +1272,10 @@ def load_diagnostic_artifact(
             output.stage == stage and output.outcome == entry.get("outcome"),
             f"stage record {stage!r} disagrees with the persisted chain",
         )
+        output_refs = _require_refs(output.artifact_refs, name=f"stage {stage!r} artifact_refs")
+        entry_refs = _require_refs(entry.get("artifact_refs") or (), name=f"stage {stage!r} artifact_refs")
         _require(
-            list(output.artifact_refs) == list(entry.get("artifact_refs") or ()),
+            list(output_refs) == list(entry_refs),
             f"stage record {stage!r} artifact_refs disagree with the persisted chain",
         )
         _require(
@@ -1134,16 +1299,8 @@ def load_diagnostic_artifact(
     )
 
     # Report bytes and validator-result agreement.
-    report_digest = document.get("report_digest")
-    _require(
-        isinstance(report_digest, str) and len(report_digest) == _DIGEST_LENGTH,
-        "artifact must declare its report digest",
-    )
-    report_bytes = blob_bytes.get("diagnostic-report")
-    _require(
-        report_bytes is not None and _digest_of(report_bytes) == report_digest,
-        "report blob is missing or mis-hashed",
-    )
+    report_digest = _require_digest(document.get("report_digest"))
+    report_bytes = _require_blob(blob_bytes.get("diagnostic-report"), report_digest, name="report")
     try:
         report = json.loads(report_bytes.decode("utf-8"))
     except Exception as exc:  # noqa: BLE001 - any parse gap fails closed
@@ -1153,8 +1310,7 @@ def load_diagnostic_artifact(
     validator_result = document.get("validator_result")
     _require(isinstance(validator_result, Mapping), "artifact must declare its validator result")
     _require(
-        validator_result.get("status") == "passed"
-        and validator_result.get("validator") == _VALIDATOR_ID,
+        validator_result.get("status") == "passed" and validator_result.get("validator") == _VALIDATOR_ID,
         "persisted validator result must be a passing diagnostic-report validation",
     )
     _require(
@@ -1175,17 +1331,39 @@ def load_diagnostic_artifact(
         validator_result.get("inputs_digest") == recomputed_inputs_digest,
         "validator result disagrees with the persisted validator input",
     )
+    target_reload: dict[str, object] | None = None
+    target_provenance: Mapping[str, object] | None = None
+    target_block = report.get("target_evidence")
+    if target_block is not None:
+        target_map = _require_mapping(target_block, name="persisted target evidence")
+        target_refs = _require_refs(target_map.get("evidence_refs"), name="persisted target evidence refs")
+        _require(len(target_refs) == 1, "persisted v2 target evidence must reference exactly one record")
+        target_name = target_refs[0]
+        blob_data = blob_bytes.get(target_name)
+        if not isinstance(blob_data, bytes):
+            raise DiagnosticArtifactError(f"persisted target record {target_name!r} is missing")
+        try:
+            parsed_reload = json.loads(blob_data.decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001 - any parse gap fails closed
+            raise DiagnosticArtifactError(f"target record blob is not valid JSON: {exc}") from exc
+        _require(isinstance(parsed_reload, Mapping), "persisted target record must be an object")
+        target_reload = dict(parsed_reload)
+        target_reload["record_digest"] = _digest_of(blob_data)
+        target_provenance = _require_mapping(
+            stage_payloads["detect"].get("target_provenance"),
+            name="persisted detect stage must carry target_provenance for v2",
+        )
     try:
         validate_diagnostic_report(
             cast(Mapping[str, object], report),
             manifest,
             applicability=cast(Mapping[str, str], validator_input.get("applicability")),
-            family_evidence=cast(
-                Mapping[str, Mapping[str, str]], validator_input.get("family_evidence")
-            ),
+            family_evidence=cast(Mapping[str, Mapping[str, str]], validator_input.get("family_evidence")),
             control_outcomes=cast(Mapping[str, str], validator_input.get("control_outcomes")),
             artifacts=blob_bytes,
             artifact_digests=cast(Mapping[str, str], persisted_digests),
+            target_evidence=target_reload,
+            target_provenance=target_provenance,
         )
     except ReportValidationError as exc:
         raise DiagnosticArtifactError(

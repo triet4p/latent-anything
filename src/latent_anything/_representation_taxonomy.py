@@ -54,6 +54,15 @@ def _mapping(value: object, *, name: str) -> Mapping[str, object]:
     return cast(Mapping[str, object], value)
 
 
+def _require_string_map(value: object, *, name: str) -> Mapping[str, str]:
+    if not isinstance(value, Mapping):
+        raise TaxonomyValidationError(f"{name} must be an object")
+    for key, item in value.items():
+        if not isinstance(key, str) or not isinstance(item, str):
+            raise TaxonomyValidationError(f"{name} keys and values must be strings")
+    return value
+
+
 def _string(value: object, *, name: str) -> str:
     if not isinstance(value, str) or not value:
         raise TaxonomyValidationError(f"{name} must be a non-empty string")
@@ -163,7 +172,7 @@ def evaluate_claim(
     family_id: str,
     *,
     applicability: str,
-    evidence_status: Mapping[str, str],
+    evidence_status: object,
     taxonomy: Mapping[str, object] | None = None,
 ) -> ClaimDecision:
     """Apply fail-closed applicability and evidence rules for one claim.
@@ -179,10 +188,12 @@ def evaluate_claim(
     family = _family(document, family_id)
     if applicability not in _APPLICABILITY_STATES:
         raise TaxonomyValidationError(f"unsupported applicability state: {applicability!r}")
-    if any(not isinstance(key, str) or not isinstance(value, str) for key, value in evidence_status.items()):
-        raise TaxonomyValidationError("evidence status keys and values must be strings")
+    evidence_status = _require_string_map(evidence_status, name="evidence_status")
+    required_items = family["required_evidence"]
+    if isinstance(required_items, (str, bytes)) or not isinstance(required_items, Sequence):
+        raise TaxonomyValidationError(f"{family_id}.required_evidence must be a sequence of strings")
     required = _string_sequence(
-        tuple(_mapping(item, name="evidence").get("id") for item in family["required_evidence"]),
+        tuple(_mapping(item, name="evidence").get("id") for item in required_items),
         name=f"{family_id}.required_evidence",
     )
     unknown = tuple(sorted(set(evidence_status).difference(required)))

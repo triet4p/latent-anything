@@ -17,11 +17,12 @@ request, and the deterministic ``capture_identity`` digest naming the shared
 captured inputs), the exact prior ``localize`` payload identity (family,
 metric, manifest, representation), and the exact prior ``explain`` payload
 identity (hypothesis row plus a non-omitted ``family_evidence`` outcome,
-with that hypothesis carrying the trial's downstream metric). The trial
-metric must be a request-declared metric and a manifest causal-expectation
-target metric with a positive predeclared threshold tolerance. Requested
-intervention ids, targets, and control declarations must match the declared
-trials exactly.
+with the localized metric carried by that hypothesis; a comparison-only
+downstream task metric may be bound separately). The trial metric must be
+request-declared by detection or an aligned comparison, and a manifest
+causal-expectation target with a positive predeclared threshold tolerance.
+Requested intervention ids, targets, and control declarations must match the
+declared trials exactly.
 
 Control contract: every80.18 trial declares exactly one control of each
 required class — ``zero_strength`` (identity / zero-strength rerun),
@@ -99,19 +100,23 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from hashlib import sha256
 from math import isfinite
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 
 from latent_anything._diagnostic_workflow import StageContractError, StageInvocation, StageOutput
 from latent_anything._statistical_controls import (
+    ControlPlan as _ControlPlan,
+)
+from latent_anything._statistical_controls import (
+    ControlSpec as _ControlSpec,
+)
+from latent_anything._statistical_controls import (
     derive_stream_seed,
     execute_plan,
     run_bootstrap,
-    ControlPlan as _ControlPlan,
-    ControlSpec as _ControlSpec,
 )
-from latent_anything.diagnostics import DiagnosticRequest, InterventionRequest
+from latent_anything.diagnostics import CaptureSelection, DiagnosticRequest, InterventionRequest
 
 INTERVENTION_KINDS: tuple[str, ...] = ("patch", "ablate", "remove")
 """The three80.18 single-strength trial kinds. Anything else rejects there."""
@@ -134,9 +139,7 @@ STEERING_CONTROL_CLASSES: tuple[str, ...] = (
 )
 """Every80.19 steering trial requires exactly these three classes, all required."""
 
-_KNOWN_CONTROL_CLASSES: frozenset[str] = frozenset(
-    (*INTERVENTION_CONTROL_CLASSES, *STEERING_CONTROL_CLASSES)
-)
+_KNOWN_CONTROL_CLASSES: frozenset[str] = frozenset((*INTERVENTION_CONTROL_CLASSES, *STEERING_CONTROL_CLASSES))
 
 INTERVENTION_VERSION = "intervention-trials-v1"
 """Stage executor version bound into the workflow config digest."""
@@ -167,6 +170,12 @@ _REQUIRED_DIRECTION_PROVENANCE_KEYS: tuple[str, ...] = ("method", "carrier", "so
 
 class InterventionError(ValueError):
     """Raised when a declared trial or a returned measurement is fail-closed invalid."""
+
+
+def _require_generator(value: object) -> np.random.Generator:
+    if not isinstance(value, np.random.Generator):
+        raise InterventionError("control stream must be a numpy Generator")
+    return value
 
 
 def _non_empty_string(value: object, *, name: str) -> str:
@@ -202,14 +211,167 @@ def _require(condition: bool, message: str, *, error: type[ValueError] = Interve
         raise error(message)
 
 
+def _require_strengths(value: object) -> tuple[float, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise InterventionError("strengths must be a sequence of finite doses")
+    return tuple(_finite(item, name="strength") for item in value)
+
+
+def _require_doses(value: object) -> tuple[float, ...]:
+    if isinstance(value, str | bytes) or not isinstance(value, Sequence):
+        raise InterventionError("strengths must be a sequence of finite doses")
+    doses = tuple(_finite(raw, name=f"strengths[{position}]") for position, raw in enumerate(value))
+    return doses
+
+
+def _require_stream_seed(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise InterventionError("application stream_seed must be a non-negative integer")
+    return int(value)
+
+
+def _require_rng(value: object) -> np.random.Generator | None:
+    if value is not None and not isinstance(value, np.random.Generator):
+        raise InterventionError("application rng must be a numpy Generator or None")
+    return value
+
+
+def _require_target_str(value: object) -> str:
+    if not isinstance(value, str):
+        raise InterventionError("control target must be a string")
+    return value
+
+
+def _require_key(value: object, *, name: str) -> str:
+    if not isinstance(value, str):
+        raise InterventionError(f"{name} must use string keys")
+    return value
+
+
+def _require_str_value(value: object, *, name: str, key: object) -> str:
+    if not isinstance(value, str):
+        raise InterventionError(f"{name}[{key!r}] must be a string")
+    return value
+
+
+def _require_prior(value: object) -> tuple[StageOutput, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, (tuple, list)):
+        raise InterventionError("invocation prior outputs must be StageOutput items")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, StageOutput):
+            raise InterventionError("invocation prior outputs must be StageOutput items")
+    return items
+
+
+def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise InterventionError(f"{name} must be a mapping")
+    return value
+
+
+def _require_capture(value: object) -> CaptureSelection:
+    if not isinstance(value, CaptureSelection):
+        raise StageContractError("intervene executor requires a capture selection")
+    return value
+
+
+def _require_invocation(value: object) -> StageInvocation:
+    if not isinstance(value, StageInvocation):
+        raise StageContractError("intervene executor requires a StageInvocation")
+    return value
+
+
+def _require_request(value: object) -> DiagnosticRequest:
+    if not isinstance(value, DiagnosticRequest):
+        raise StageContractError("intervene executor requires a DiagnosticRequest")
+    return value
+
+
+def _require_manifest(value: object) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError("intervene executor requires a manifest mapping")
+    return value
+
+
+def _require_stage_str(value: object, *, name: str) -> str:
+    if not isinstance(value, str):
+        raise StageContractError(f"{name} must be a string")
+    return value
+
+
+def _require_non_empty(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise StageContractError(f"{name} must be a non-empty string")
+    return value
+
+
+def _require_str_sequence(value: object, *, name: str) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise StageContractError(f"{name} must be a sequence of strings")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, str):
+            raise StageContractError(f"{name} must be a sequence of strings")
+    return items
+
+
+def _require_non_empty_sequence(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError(f"{name} must be a non-empty sequence")
+    return tuple(value)
+
+
+def _require_explain_row(value: object, intervention_id: str, hypothesis_id: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError(f"trial {intervention_id!r} hypothesis {hypothesis_id!r} has no prior explain row")
+    return value
+
+
+def _require_row_metrics(value: object, *, name: str) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise StageContractError(f"{name} must be a sequence")
+    return tuple(value)
+
+
+def _require_hypothesis_rows(value: object) -> tuple[object, ...]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError("prior explain payload must declare at least one hypothesis")
+    return tuple(value)
+
+
+def _require_stage_mapping(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise StageContractError(f"{name} must be a mapping")
+    return value
+
+
+def _require_seed_int(value: object, *, role: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise StageContractError(f"manifest seeds.{role}[0] must be a non-negative integer")
+    return int(value)
+
+
+def _require_repetitions(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 2:
+        raise StageContractError("manifest uncertainty.repetitions must be at least two")
+    return int(value)
+
+
+def _require_seed_rows(value: object, *, role: str) -> Sequence[object]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence) or not value:
+        raise StageContractError(f"intervene executor requires manifest seeds.{role}")
+    return value
+
+
 def _provenance_map(value: object, required: tuple[str, ...], *, name: str) -> dict[str, str]:
     provenance = _mapping(value, name=name)
     for key in required:
         _non_empty_string(provenance.get(key), name=f"{name}[{key!r}]")
+    result: dict[str, str] = {}
     for key, item in provenance.items():
-        if not isinstance(item, str):
-            raise InterventionError(f"{name}[{key!r}] must be a string")
-    return dict(provenance)
+        result[_require_key(key, name=name)] = _require_str_value(item, name=name, key=key)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -224,7 +386,7 @@ class TrialControl:
     control_id: str
     control_class: str
     expected_behavior: str
-    target: str = ""
+    target: object = ""
 
     def __post_init__(self) -> None:
         _non_empty_string(self.control_id, name="control_id")
@@ -234,19 +396,15 @@ class TrialControl:
                 f"declared classes are {sorted(_KNOWN_CONTROL_CLASSES)!r}"
             )
         _non_empty_string(self.expected_behavior, name="expected_behavior")
-        if not isinstance(self.target, str):
-            raise InterventionError("control target must be a string")
+        target = _require_target_str(self.target)
         if self.control_class == "off_target":
-            _non_empty_string(self.target, name="off_target control target")
-        elif self.target:
-            raise InterventionError(
-                f"only off_target controls may declare a target override, got {self.target!r}"
-            )
+            _non_empty_string(target, name="off_target control target")
+        elif target:
+            raise InterventionError(f"only off_target controls may declare a target override, got {target!r}")
+        object.__setattr__(self, "target", target)
 
 
-def _validate_controls(
-    controls: object, expected_classes: tuple[str, ...], *, target: str
-) -> tuple[TrialControl, ...]:
+def _validate_controls(controls: object, expected_classes: tuple[str, ...], *, target: str) -> tuple[TrialControl, ...]:
     if isinstance(controls, str | bytes) or not isinstance(controls, Sequence):
         raise InterventionError("controls must be a sequence of TrialControl items")
     resolved = tuple(controls)
@@ -289,8 +447,7 @@ class TrialSpec:
         _non_empty_string(self.intervention_id, name="intervention_id")
         if self.kind not in INTERVENTION_KINDS:
             raise InterventionError(
-                f"unsupported intervention kind: {self.kind!r}; "
-                f"expected one of {list(INTERVENTION_KINDS)!r}"
+                f"unsupported intervention kind: {self.kind!r}; expected one of {list(INTERVENTION_KINDS)!r}"
             )
         _non_empty_string(self.target, name="target")
         _non_empty_string(self.metric_id, name="metric_id")
@@ -299,13 +456,14 @@ class TrialSpec:
         _non_empty_string(self.strength_semantics, name="strength_semantics")
         if self.expected_effect not in _EXPECTED_EFFECTS:
             raise InterventionError(
-                f"expected_effect must be one of {list(_EXPECTED_EFFECTS)!r}, "
-                f"got {self.expected_effect!r}"
+                f"expected_effect must be one of {list(_EXPECTED_EFFECTS)!r}, got {self.expected_effect!r}"
             )
         object.__setattr__(
             self, "controls", _validate_controls(self.controls, INTERVENTION_CONTROL_CLASSES, target=self.target)
         )
-        object.__setattr__(self, "provenance", _provenance_map(self.provenance, _REQUIRED_PROVENANCE_KEYS, name="provenance"))
+        object.__setattr__(
+            self, "provenance", _provenance_map(self.provenance, _REQUIRED_PROVENANCE_KEYS, name="provenance")
+        )
 
 
 @dataclass(frozen=True)
@@ -325,7 +483,7 @@ class SteeringTrialSpec:
     target: str
     metric_id: str
     hypothesis_id: str
-    strengths: tuple[float, ...]
+    strengths: object
     strength_semantics: str
     expected_effect: str
     direction: np.ndarray
@@ -338,12 +496,7 @@ class SteeringTrialSpec:
         _non_empty_string(self.target, name="target")
         _non_empty_string(self.metric_id, name="metric_id")
         _non_empty_string(self.hypothesis_id, name="hypothesis_id")
-        if isinstance(self.strengths, str | bytes) or not isinstance(self.strengths, Sequence):
-            raise InterventionError("strengths must be a sequence of finite doses")
-        doses = tuple(
-            _finite(raw, name=f"strengths[{position}]")
-            for position, raw in enumerate(self.strengths)
-        )
+        doses = _require_doses(self.strengths)
         if not doses:
             raise InterventionError("strengths must declare at least the zero/identity dose")
         if len(set(doses)) != len(doses):
@@ -351,15 +504,12 @@ class SteeringTrialSpec:
         if 0.0 not in doses:
             raise InterventionError("strengths must include the zero/identity dose")
         if sum(1 for dose in doses if dose != 0.0) < 2:
-            raise InterventionError(
-                "strengths must declare at least two nonzero doses to characterize the response"
-            )
+            raise InterventionError("strengths must declare at least two nonzero doses to characterize the response")
         object.__setattr__(self, "strengths", doses)
         _non_empty_string(self.strength_semantics, name="strength_semantics")
         if self.expected_effect not in _EXPECTED_EFFECTS:
             raise InterventionError(
-                f"expected_effect must be one of {list(_EXPECTED_EFFECTS)!r}, "
-                f"got {self.expected_effect!r}"
+                f"expected_effect must be one of {list(_EXPECTED_EFFECTS)!r}, got {self.expected_effect!r}"
             )
         try:
             direction = np.asarray(self.direction, dtype=np.float64)
@@ -372,8 +522,7 @@ class SteeringTrialSpec:
         norm = float(np.linalg.norm(direction))
         if not isfinite(norm) or abs(norm - 1.0) > 1e-6:
             raise InterventionError(
-                "direction must be a unit vector (the SteeringVector.direction contract); "
-                f"got norm {norm}"
+                f"direction must be a unit vector (the SteeringVector.direction contract); got norm {norm}"
             )
         frozen = np.array(direction, dtype=np.float64, copy=True)
         frozen.setflags(write=False)
@@ -431,15 +580,13 @@ class TrialApplication:
     control_id: str | None
     metric_id: str
     inputs_digest: str
-    stream_seed: int
-    rng: np.random.Generator | None
+    stream_seed: object
+    rng: object
 
     def __post_init__(self) -> None:
         _non_empty_string(self.intervention_id, name="application intervention_id")
         if self.kind not in (*INTERVENTION_KINDS, STEERING_KIND):
-            raise InterventionError(
-                f"application kind must be one of {[*INTERVENTION_KINDS, STEERING_KIND]!r}"
-            )
+            raise InterventionError(f"application kind must be one of {[*INTERVENTION_KINDS, STEERING_KIND]!r}")
         _non_empty_string(self.target, name="application target")
         object.__setattr__(self, "strength", _finite(self.strength, name="application strength"))
         _non_empty_string(self.strength_semantics, name="application strength_semantics")
@@ -447,24 +594,21 @@ class TrialApplication:
             raise InterventionError(f"application role must be one of {list(_ROLES)!r}")
         _non_empty_string(self.metric_id, name="application metric_id")
         _digest_string(self.inputs_digest, name="application inputs_digest")
-        if isinstance(self.stream_seed, bool) or not isinstance(self.stream_seed, int) or self.stream_seed < 0:
-            raise InterventionError("application stream_seed must be a non-negative integer")
+        object.__setattr__(self, "stream_seed", _require_stream_seed(self.stream_seed))
         if self.role == "control":
             if self.control_class not in _KNOWN_CONTROL_CLASSES:
-                raise InterventionError(
-                    "control applications must declare a required control class"
-                )
+                raise InterventionError("control applications must declare a required control class")
             _non_empty_string(self.control_id, name="application control_id")
         elif self.control_class is not None or self.control_id is not None:
-            raise InterventionError(
-                "baseline/intervened applications must not declare control identity"
-            )
-        if self.rng is not None and not isinstance(self.rng, np.random.Generator):
-            raise InterventionError("application rng must be a numpy Generator or None")
+            raise InterventionError("baseline/intervened applications must not declare control identity")
+        object.__setattr__(self, "rng", _require_rng(self.rng))
 
 
 MeasureFn = Callable[[TrialApplication], Measurement]
 """One caller-supplied measurement callback over the shared captured inputs."""
+
+_StatisticFn = Callable[..., object]
+"""One caller-supplied control transform over the identity-derived stream (local seam)."""
 
 
 # ---------------------------------------------------------------------------
@@ -485,7 +629,7 @@ class _ResolvedTrial:
 
 @dataclass(frozen=True)
 class _ResolvedSteering:
-    """ One80.19 steering trial plus its decision inputs."""
+    """One80.19 steering trial plus its decision inputs."""
 
     spec: SteeringTrialSpec
     request_entry: InterventionRequest
@@ -500,6 +644,7 @@ class _DeclarationTables:
 
     request_index: Mapping[str, InterventionRequest]
     declared_metrics: frozenset[str]
+    comparison_only_metrics: frozenset[str]
     causal_targets: frozenset[str]
     metric_directions: Mapping[str, str]
     threshold_rows: Mapping[str, Mapping[str, object]]
@@ -545,43 +690,31 @@ class _StageContext:
 
 
 def _prior_payloads(invocation: StageInvocation) -> dict[str, Mapping[str, object]]:
-    return {item.stage: dict(item.payload) for item in invocation.prior}
+    prior = _require_prior(invocation.prior)
+    return {item.stage: dict(_require_mapping(item.payload, name="prior payload")) for item in prior}
 
 
 def _seed_from_manifest(manifest: Mapping[str, object], role: str) -> int:
-    seeds = manifest.get("seeds")
-    _require(isinstance(seeds, Mapping), "intervene executor requires manifest seeds", error=StageContractError)
-    rows = seeds.get(role)  # pyright: ignore[reportUnknownMemberType]
-    _require(
-        isinstance(rows, Sequence) and not isinstance(rows, str | bytes) and len(rows) > 0,
-        f"intervene executor requires manifest seeds.{role}",
-        error=StageContractError,
-    )
-    first = rows[0]  # pyright: ignore[reportUnknownVariableType]
-    _require(
-        isinstance(first, int) and not isinstance(first, bool) and first >= 0,
-        f"manifest seeds.{role}[0] must be a non-negative integer",
-        error=StageContractError,
-    )
-    return int(first)
+    seeds = _require_stage_mapping(manifest.get("seeds"), name="intervene executor requires manifest seeds")
+    rows = _require_seed_rows(seeds.get(role), role=role)
+    return _require_seed_int(rows[0], role=role)
 
 
 def _bind_capture(invocation: StageInvocation, request: DiagnosticRequest) -> str:
     prior = _prior_payloads(invocation)
     _require("capture" in prior, "intervene executor requires a prior capture payload", error=StageContractError)
-    raw_capture = prior["capture"].get("capture")
-    _require(
-        isinstance(raw_capture, Mapping),
-        "the prior capture payload must carry a bound capture under the 'capture' key",
-        error=StageContractError,
+    raw_capture = _require_stage_mapping(
+        prior["capture"].get("capture"),
+        name="the prior capture payload must carry a bound capture under the 'capture' key",
     )
     try:
         capture_identity = _digest_string(raw_capture.get("capture_identity"), name="capture_identity")
     except InterventionError as exc:
         raise StageContractError(str(exc)) from exc
+    capture_selection = _require_capture(request.capture)
     fields = (
-        ("capture_id", request.capture.capture_id),
-        ("representation_identity", request.capture.representation_identity),
+        ("capture_id", capture_selection.capture_id),
+        ("representation_identity", capture_selection.representation_identity),
         ("manifest_id", request.manifest_id),
         ("request_id", request.request_id),
     )
@@ -601,31 +734,21 @@ def _bind_localize(
     prior = _prior_payloads(invocation)
     _require("localize" in prior, "intervene executor requires a prior localize payload", error=StageContractError)
     localize = prior["localize"]
-    manifest_id = manifest.get("manifest_id")
+    manifest_id = _require_non_empty(manifest.get("manifest_id"), name="prior localize manifest_id")
+    localize_capture = _require_capture(request.capture)
     for key, expected in (
         ("manifest_id", manifest_id),
-        ("representation_identity", request.capture.representation_identity),
+        ("representation_identity", localize_capture.representation_identity),
     ):
-        value = localize.get(key)
+        value = _require_stage_str(localize.get(key), name=f"prior localize {key!r}")
         _require(
-            isinstance(value, str) and isinstance(expected, str) and value == expected,
+            value == expected,
             f"prior localize {key!r} is {value!r}, expected {expected!r}",
             error=StageContractError,
         )
-    family_id = localize.get("family_id")
-    metric_id = localize.get("metric_id")
-    verdict = localize.get("verdict")
-    _require(
-        isinstance(family_id, str) and bool(family_id.strip()),
-        "prior localize payload must declare family_id",
-        error=StageContractError,
-    )
-    _require(
-        isinstance(metric_id, str) and bool(metric_id.strip()),
-        "prior localize payload must declare metric_id",
-        error=StageContractError,
-    )
-    _require(isinstance(verdict, str), "prior localize payload must declare verdict", error=StageContractError)
+    family_id = _require_non_empty(localize.get("family_id"), name="prior localize payload must declare family_id")
+    metric_id = _require_non_empty(localize.get("metric_id"), name="prior localize payload must declare metric_id")
+    verdict = _require_stage_str(localize.get("verdict"), name="prior localize payload must declare verdict")
     return family_id, metric_id, verdict
 
 
@@ -673,119 +796,69 @@ def _explain_index(
     prior = _prior_payloads(invocation)
     _require("explain" in prior, "intervene executor requires a prior explain payload", error=StageContractError)
     explain = prior["explain"]
-    rows = explain.get("hypotheses")
-    _require(
-        isinstance(rows, Sequence) and not isinstance(rows, str | bytes) and len(rows) > 0,
-        "prior explain payload must declare at least one hypothesis",
-        error=StageContractError,
-    )
+    rows = _require_hypothesis_rows(explain.get("hypotheses"))
     index: dict[str, Mapping[str, object]] = {}
-    for position, raw in enumerate(rows):  # pyright: ignore[reportUnknownVariableType]
-        _require(
-            isinstance(raw, Mapping),
-            f"explain hypotheses[{position}] must be an object",
-            error=StageContractError,
-        )
-        hypothesis_id = raw.get("hypothesis_id")
-        _require(
-            isinstance(hypothesis_id, str) and bool(hypothesis_id.strip()),
-            f"explain hypotheses[{position}] must declare hypothesis_id",
-            error=StageContractError,
+    for position, raw in enumerate(rows):
+        hypothesis = _require_stage_mapping(raw, name=f"explain hypotheses[{position}] must be an object")
+        hypothesis_id = _require_non_empty(
+            hypothesis.get("hypothesis_id"),
+            name=f"explain hypotheses[{position}] must declare hypothesis_id",
         )
         _require(
             hypothesis_id not in index,
             "explain hypothesis identifiers must be unique",
             error=StageContractError,
         )
-        index[hypothesis_id] = dict(raw)
-    evidence = explain.get("family_evidence")
-    _require(
-        isinstance(evidence, Mapping),
-        "prior explain payload must declare structured family_evidence",
-        error=StageContractError,
+        index[hypothesis_id] = dict(hypothesis)
+    evidence = _require_stage_mapping(
+        explain.get("family_evidence"), name="prior explain payload must declare structured family_evidence"
     )
     return index, evidence
-
-
-def _string_entries(value: object) -> tuple[str, ...]:
-    if isinstance(value, str):
-        return (value,) if value else ()
-    if isinstance(value, Sequence) and not isinstance(value, str | bytes):
-        return tuple(item for item in value if isinstance(item, str) and item)
-    return ()
 
 
 def _causal_and_metric_tables(
     manifest: Mapping[str, object],
 ) -> tuple[frozenset[str], dict[str, str], dict[str, Mapping[str, object]]]:
-    causal = manifest.get("causal_expectation")
-    _require(
-        isinstance(causal, Mapping),
-        "intervene executor requires a causal expectation",
-        error=StageContractError,
+    causal = _require_stage_mapping(
+        manifest.get("causal_expectation"), name="intervene executor requires a causal expectation"
     )
     _require(
         causal.get("applicable") is True,
         "manifest causal expectation is not applicable; intervention trials cannot run",
         error=StageContractError,
     )
-    targets = causal.get("target_metric_ids")
-    _require(
-        isinstance(targets, Sequence) and not isinstance(targets, str | bytes),
-        "manifest causal expectation must declare target_metric_ids",
-        error=StageContractError,
+    targets = _require_str_sequence(
+        causal.get("target_metric_ids"), name="manifest causal expectation must declare target_metric_ids"
     )
-    causal_targets = frozenset(str(item) for item in targets)
+    causal_targets = frozenset(targets)
 
     metric_directions: dict[str, str] = {}
-    raw_metrics = manifest.get("metrics")
-    _require(
-        isinstance(raw_metrics, Sequence) and not isinstance(raw_metrics, str | bytes) and len(raw_metrics) > 0,
-        "intervene executor requires a non-empty manifest metrics list",
-        error=StageContractError,
+    raw_metrics = _require_non_empty_sequence(
+        manifest.get("metrics"), name="intervene executor requires a non-empty manifest metrics list"
     )
-    for position, raw in enumerate(raw_metrics):  # pyright: ignore[reportUnknownVariableType]
-        _require(
-            isinstance(raw, Mapping),
-            f"manifest metrics[{position}] must be an object",
-            error=StageContractError,
-        )
-        metric_id = raw.get("id")
-        direction = raw.get("direction")
-        _require(
-            isinstance(metric_id, str) and isinstance(direction, str),
-            f"manifest metrics[{position}] must declare id and direction",
-            error=StageContractError,
+    for position, raw in enumerate(raw_metrics):
+        metric = _require_stage_mapping(raw, name=f"manifest metrics[{position}] must be an object")
+        metric_id = _require_non_empty(metric.get("id"), name=f"manifest metrics[{position}] must declare id")
+        direction = _require_non_empty(
+            metric.get("direction"), name=f"manifest metrics[{position}] must declare direction"
         )
         metric_directions[metric_id] = direction
 
     threshold_rows: dict[str, Mapping[str, object]] = {}
-    raw_thresholds = manifest.get("thresholds")
-    _require(
-        isinstance(raw_thresholds, Sequence)
-        and not isinstance(raw_thresholds, str | bytes)
-        and len(raw_thresholds) > 0,
-        "intervene executor requires a non-empty manifest thresholds list",
-        error=StageContractError,
+    raw_thresholds = _require_non_empty_sequence(
+        manifest.get("thresholds"), name="intervene executor requires a non-empty manifest thresholds list"
     )
-    for position, raw in enumerate(raw_thresholds):  # pyright: ignore[reportUnknownVariableType]
-        _require(
-            isinstance(raw, Mapping),
-            f"manifest thresholds[{position}] must be an object",
-            error=StageContractError,
-        )
-        metric_id = raw.get("metric_id")
-        _require(
-            isinstance(metric_id, str),
-            f"manifest thresholds[{position}] must declare metric_id",
-            error=StageContractError,
+    for position, raw in enumerate(raw_thresholds):
+        threshold = _require_stage_mapping(raw, name=f"manifest thresholds[{position}] must be an object")
+        metric_id = _require_non_empty(
+            threshold.get("metric_id"), name=f"manifest thresholds[{position}] must declare metric_id"
         )
         _require(
             metric_id not in threshold_rows,
             "manifest thresholds must be unique per metric",
             error=StageContractError,
         )
-        threshold_rows[metric_id] = dict(raw)
+        threshold_rows[metric_id] = dict(threshold)
     return causal_targets, metric_directions, threshold_rows
 
 
@@ -796,44 +869,28 @@ def _bind_stage(invocation: StageInvocation) -> tuple[_StageContext, _Declaratio
     family; the first gap raises ``StageContractError`` so the stage fails
     closed without touching model code.
     """
-    request = invocation.request
-    manifest = invocation.manifest
-    manifest_id = manifest.get("manifest_id")
-    _require(
-        isinstance(manifest_id, str) and bool(manifest_id),
-        "intervene executor requires a manifest_id",
-        error=StageContractError,
-    )
+    request = _require_request(invocation.request)
+    manifest = _require_manifest(invocation.manifest)
+    manifest_id = _require_non_empty(manifest.get("manifest_id"), name="intervene executor requires a manifest_id")
     _require(
         request.manifest_id == manifest_id,
-        f"intervene executor manifest mismatch: request {request.manifest_id!r} != "
-        f"manifest {manifest_id!r}",
+        f"intervene executor manifest mismatch: request {request.manifest_id!r} != manifest {manifest_id!r}",
         error=StageContractError,
     )
     expected_prior = ("capture", "detect", "localize", "explain")
-    stages = tuple(item.stage for item in invocation.prior)
+    stages = tuple(item.stage for item in _require_prior(invocation.prior))
     _require(
         stages == expected_prior,
         f"intervene executor prior stages must be exactly {list(expected_prior)!r}, got {stages!r}",
         error=StageContractError,
     )
     capture_identity = _bind_capture(invocation, request)
-    localize_family_id, localize_metric_id, localize_verdict = _bind_localize(
-        invocation, request, manifest
-    )
+    localize_family_id, localize_metric_id, localize_verdict = _bind_localize(invocation, request, manifest)
     explain_rows, explain_evidence = _explain_index(invocation)
-    uncertainty = manifest.get("uncertainty")
-    _require(
-        isinstance(uncertainty, Mapping),
-        "intervene executor requires manifest uncertainty",
-        error=StageContractError,
+    uncertainty = _require_stage_mapping(
+        manifest.get("uncertainty"), name="intervene executor requires manifest uncertainty"
     )
-    repetitions = uncertainty.get("repetitions")
-    _require(
-        isinstance(repetitions, int) and not isinstance(repetitions, bool) and repetitions >= 2,
-        "manifest uncertainty.repetitions must be at least two",
-        error=StageContractError,
-    )
+    repetitions = _require_repetitions(uncertainty.get("repetitions"))
     try:
         confidence = _finite(uncertainty.get("confidence_level"), name="uncertainty.confidence_level")
     except InterventionError as exc:
@@ -857,13 +914,13 @@ def _bind_stage(invocation: StageInvocation) -> tuple[_StageContext, _Declaratio
         manifest_id=manifest_id,
         request_id=request.request_id,
         capture_identity=capture_identity,
-        representation_identity=request.capture.representation_identity,
+        representation_identity=_require_capture(request.capture).representation_identity,
         localize_family_id=localize_family_id,
         localize_metric_id=localize_metric_id,
         localize_verdict=localize_verdict,
         evaluation_seed=_seed_from_manifest(manifest, "evaluation"),
         control_seed=_seed_from_manifest(manifest, "controls"),
-        repetitions=int(repetitions),
+        repetitions=_require_repetitions(repetitions),
         confidence_level=confidence,
         causal_expectation=dict(causal_record),
         workflow_identity=invocation.workflow_identity,
@@ -871,9 +928,14 @@ def _bind_stage(invocation: StageInvocation) -> tuple[_StageContext, _Declaratio
         manifest_digest=invocation.manifest_digest,
         config_digest=invocation.config_digest,
     )
+    comparison_metric_ids = frozenset(
+        metric_id for comparison in request.comparisons for metric_id in comparison.metric_ids
+    )
+    detector_metric_ids = frozenset(request.controls.metric_ids)
     tables = _DeclarationTables(
         request_index={entry.intervention_id: entry for entry in request.interventions},
-        declared_metrics=frozenset(request.controls.metric_ids),
+        declared_metrics=detector_metric_ids | comparison_metric_ids,
+        comparison_only_metrics=comparison_metric_ids - detector_metric_ids,
         causal_targets=causal_targets,
         metric_directions=dict(metric_directions),
         threshold_rows=dict(threshold_rows),
@@ -912,8 +974,7 @@ def _bind_declaration(
     )
     _require(
         set(entry.control_ids) == control_ids,
-        f"trial {intervention_id!r} controls {sorted(control_ids)!r} != "
-        f"requested {sorted(set(entry.control_ids))!r}",
+        f"trial {intervention_id!r} controls {sorted(control_ids)!r} != requested {sorted(set(entry.control_ids))!r}",
         error=StageContractError,
     )
     _require(
@@ -923,14 +984,13 @@ def _bind_declaration(
     )
     _require(
         metric_id in tables.causal_targets,
-        f"trial {intervention_id!r} metric {metric_id!r} is not a "
-        "manifest causal-expectation target metric",
+        f"trial {intervention_id!r} metric {metric_id!r} is not a manifest causal-expectation target metric",
         error=StageContractError,
     )
     _require(
-        metric_id == tables.localize_metric_id,
-        f"trial {intervention_id!r} metric {metric_id!r} does not match the "
-        f"prior localize metric {tables.localize_metric_id!r}",
+        metric_id == tables.localize_metric_id or metric_id in tables.comparison_only_metrics,
+        f"trial {intervention_id!r} metric {metric_id!r} must match the prior localize metric "
+        "or a comparison-only task metric",
         error=StageContractError,
     )
     _require(
@@ -938,22 +998,14 @@ def _bind_declaration(
         f"trial {intervention_id!r} metric {metric_id!r} is not manifest-declared",
         error=StageContractError,
     )
-    row = tables.explain_rows.get(hypothesis_id)
-    _require(
-        row is not None,
-        f"trial {intervention_id!r} hypothesis {hypothesis_id!r} has no prior explain row",
-        error=StageContractError,
-    )
-    row_metrics = row.get("metric_ids")
-    _require(
-        isinstance(row_metrics, Sequence) and not isinstance(row_metrics, str | bytes),
-        f"explain hypothesis {hypothesis_id!r} must declare metric_ids",
-        error=StageContractError,
+    row = _require_explain_row(tables.explain_rows.get(hypothesis_id), intervention_id, hypothesis_id)
+    row_metrics = _require_row_metrics(
+        row.get("metric_ids"), name=f"explain hypothesis {hypothesis_id!r} must declare metric_ids"
     )
     _require(
-        metric_id in {str(item) for item in row_metrics},
-        f"trial {intervention_id!r} metric {metric_id!r} is not carried by "
-        f"explain hypothesis {hypothesis_id!r}",
+        metric_id in {str(item) for item in row_metrics} or metric_id in tables.comparison_only_metrics,
+        f"trial {intervention_id!r} metric {metric_id!r} must be carried by its explanation hypothesis "
+        "or be a separately declared comparison-only metric",
         error=StageContractError,
     )
     _require(
@@ -962,36 +1014,30 @@ def _bind_declaration(
         f"the prior localize family {tables.localize_family_id!r}",
         error=StageContractError,
     )
-    row_representation = row.get("representation_id")
+    row_representation = _require_stage_str(
+        row.get("representation_id"), name=f"explain hypothesis {hypothesis_id!r} representation"
+    )
     _require(
-        isinstance(row_representation, str)
-        and (row_representation == "" or row_representation == tables.representation_identity),
+        row_representation == "" or row_representation == tables.representation_identity,
         f"explain hypothesis {hypothesis_id!r} representation contradicts the capture",
         error=StageContractError,
     )
-    row_manifest = row.get("manifest_id")
+    row_manifest = _require_stage_str(row.get("manifest_id"), name=f"explain hypothesis {hypothesis_id!r} manifest")
     _require(
-        isinstance(row_manifest, str)
-        and (row_manifest == "" or row_manifest == tables.manifest_id),
+        row_manifest == "" or row_manifest == tables.manifest_id,
         f"explain hypothesis {hypothesis_id!r} manifest contradicts the run manifest",
         error=StageContractError,
     )
-    evidence_row = tables.explain_evidence.get(hypothesis_id)
-    _require(
-        isinstance(evidence_row, Mapping),
-        f"trial {intervention_id!r} hypothesis {hypothesis_id!r} has no explain evidence",
-        error=StageContractError,
+    evidence_row = _require_stage_mapping(
+        tables.explain_evidence.get(hypothesis_id),
+        name=f"trial {intervention_id!r} hypothesis {hypothesis_id!r} has no explain evidence",
     )
-    outcome = evidence_row.get("outcome")
-    _require(
-        isinstance(outcome, str) and bool(outcome),
-        f"explain evidence for {hypothesis_id!r} must declare an outcome",
-        error=StageContractError,
+    outcome = _require_non_empty(
+        evidence_row.get("outcome"), name=f"explain evidence for {hypothesis_id!r} must declare an outcome"
     )
     _require(
         outcome != "omitted",
-        f"trial {intervention_id!r} binds hypothesis {hypothesis_id!r} whose "
-        "explanation was never evaluated (omitted)",
+        f"trial {intervention_id!r} binds hypothesis {hypothesis_id!r} whose explanation was never evaluated (omitted)",
         error=StageContractError,
     )
     threshold = tables.threshold_rows.get(metric_id)
@@ -1000,6 +1046,7 @@ def _bind_declaration(
         f"trial {intervention_id!r} metric {metric_id!r} has no predeclared threshold",
         error=StageContractError,
     )
+    threshold = cast(Mapping[str, object], threshold)
     try:
         zero_tolerance = _finite(threshold.get("tolerance"), name="threshold tolerance")
     except InterventionError as exc:
@@ -1026,9 +1073,7 @@ def _bind_request_set(declared_ids: set[str], tables: _DeclarationTables) -> Non
     )
 
 
-def _bind_trials(
-    trials: tuple[TrialSpec, ...], tables: _DeclarationTables
-) -> tuple[_ResolvedTrial, ...]:
+def _bind_trials(trials: tuple[TrialSpec, ...], tables: _DeclarationTables) -> tuple[_ResolvedTrial, ...]:
     _bind_request_set({spec.intervention_id for spec in trials}, tables)
     resolved: list[_ResolvedTrial] = []
     for spec in trials:
@@ -1077,8 +1122,7 @@ def _bind_steering(
         )
         _require(
             spec.target in tables.localize_selections,
-            f"steering trial {spec.intervention_id!r} target {spec.target!r} is not a "
-            "prior localize selection",
+            f"steering trial {spec.intervention_id!r} target {spec.target!r} is not a prior localize selection",
             error=StageContractError,
         )
         entry = tables.request_index[spec.intervention_id]
@@ -1099,12 +1143,25 @@ def _bind_steering(
 # ---------------------------------------------------------------------------
 
 
+def _require_trial_records(value: object) -> tuple[Mapping[str, object], ...]:
+    if isinstance(value, str | bytes) or not isinstance(value, Sequence):
+        raise InterventionError("trials must be a sequence of trial records")
+    items = tuple(value)
+    for item in items:
+        if not isinstance(item, Mapping):
+            raise InterventionError("trials must be a sequence of trial records")
+    return items
+
+
+def _call_measure(measure: MeasureFn, application: TrialApplication) -> object:
+    return measure(application)
+
+
 def _checked_measure(measure: MeasureFn, spec: Any, application: TrialApplication) -> Measurement:
-    result = measure(application)
+    result = _call_measure(measure, application)
     if not isinstance(result, Measurement):
         raise InterventionError(
-            f"measure callback for {spec.intervention_id!r} must return a Measurement, "
-            f"got {type(result).__name__}"
+            f"measure callback for {spec.intervention_id!r} must return a Measurement, got {type(result).__name__}"
         )
     if result.metric_id != spec.metric_id:
         raise InterventionError(
@@ -1152,7 +1209,7 @@ def _measurement_record(measurement: Measurement, application: TrialApplication)
         "inputs_digest": measurement.inputs_digest,
         "metric_id": measurement.metric_id,
         "role": application.role,
-        "stream_seed": int(application.stream_seed),
+        "stream_seed": _require_stream_seed(application.stream_seed),
         "value": float(measurement.value),
     }
 
@@ -1167,7 +1224,7 @@ def _run_central_controls(
     control_seed: int,
     repetitions: int,
     confidence_level: float,
-    statistics: Mapping[str, Callable[[np.random.Generator], Mapping[str, float]]],
+    statistics: Mapping[str, _StatisticFn],
 ) -> tuple[dict[str, str], dict[str, dict[str, object]]]:
     """Run every declared control through the central executor, verified."""
     specs = tuple(
@@ -1246,8 +1303,7 @@ def _decide_conclusion(
     if (effect > 0.0) != (expected_sign > 0.0):
         return (
             "falsified",
-            f"intervention moved {spec.metric_id} by {effect} opposite the declared "
-            f"{spec.expected_effect} direction",
+            f"intervention moved {spec.metric_id} by {effect} opposite the declared {spec.expected_effect} direction",
         )
     if interval_lower <= baseline_value <= interval_upper:
         return (
@@ -1263,14 +1319,10 @@ def _decide_conclusion(
     )
 
 
-def _execute_trial(
-    resolved: _ResolvedTrial, measure: MeasureFn, context: _StageContext
-) -> dict[str, object]:
+def _execute_trial(resolved: _ResolvedTrial, measure: MeasureFn, context: _StageContext) -> dict[str, object]:
     spec = resolved.spec
 
-    baseline_seed = derive_stream_seed(
-        context.evaluation_seed, f"{spec.intervention_id}#baseline", role="evaluation"
-    )
+    baseline_seed = derive_stream_seed(context.evaluation_seed, f"{spec.intervention_id}#baseline", role="evaluation")
     baseline_application = _application(
         spec,
         context,
@@ -1307,28 +1359,25 @@ def _execute_trial(
     specificity_threshold = max(abs(effect), resolved.zero_tolerance)
     control_thresholds: dict[str, float] = {}
     control_seeds: dict[str, int] = {}
-    statistics: dict[str, Callable[[np.random.Generator], Mapping[str, float]]] = {}
+    statistics: dict[str, _StatisticFn] = {}
     measurement_errors: dict[str, Exception] = {}
     control_measurements: dict[str, dict[str, object]] = {}
 
     for control in spec.controls:
-        threshold = (
-            resolved.zero_tolerance
-            if control.control_class == "zero_strength"
-            else specificity_threshold
-        )
+        threshold = resolved.zero_tolerance if control.control_class == "zero_strength" else specificity_threshold
         control_thresholds[control.control_id] = float(threshold)
         stream_seed = derive_stream_seed(context.control_seed, control.control_id, role="control")
         control_seeds[control.control_id] = stream_seed
 
         def _statistic(
-            rng: np.random.Generator,
+            rng: object,
             *,
             control_id: str = control.control_id,
             control_class: str = control.control_class,
-            control_target: str = control.target,
+            control_target: str = _require_target_str(control.target),
             bound_seed: int = stream_seed,
         ) -> Mapping[str, float]:
+            rng = _require_generator(rng)
             try:
                 application = _application(
                     spec,
@@ -1372,11 +1421,10 @@ def _execute_trial(
         ) from exc
 
     uncertainty_id = f"intervene:{spec.intervention_id}:intervened"
-    uncertainty_seed = derive_stream_seed(
-        context.evaluation_seed, uncertainty_id, role="evaluation"
-    )
+    uncertainty_seed = derive_stream_seed(context.evaluation_seed, uncertainty_id, role="evaluation")
 
-    def _uncertainty_draw(rng: np.random.Generator) -> float:
+    def _uncertainty_draw(rng: object) -> float:
+        rng = _require_generator(rng)
         application = _application(
             spec,
             context,
@@ -1471,7 +1519,7 @@ def _execute_trial(
 
 
 # ---------------------------------------------------------------------------
-#80.19 steering dose-response execution
+# 80.19 steering dose-response execution
 # ---------------------------------------------------------------------------
 
 
@@ -1483,11 +1531,7 @@ def _classify_response(
 ) -> str:
     """Classify the declared dose series from its consecutive material steps."""
     ordered = sorted(strengths)
-    material_change = any(
-        abs(values[strength] - baseline) > zero_tolerance
-        for strength in ordered
-        if strength != 0.0
-    )
+    material_change = any(abs(values[strength] - baseline) > zero_tolerance for strength in ordered if strength != 0.0)
     if not material_change:
         return "inert"
     signs: set[int] = set()
@@ -1551,14 +1595,11 @@ def _decide_steering(
             f"response is non-monotonic across the declared strengths; the predeclared "
             f"monotonic {spec.expected_effect} dose expectation fails",
         )
-    expected_classification = (
-        "monotonic_increase" if spec.expected_effect == "increase" else "monotonic_decrease"
-    )
+    expected_classification = "monotonic_increase" if spec.expected_effect == "increase" else "monotonic_decrease"
     if classification != expected_classification:
         return (
             "falsified",
-            f"monotonic {classification} response contradicts the declared "
-            f"{spec.expected_effect} dose expectation",
+            f"monotonic {classification} response contradicts the declared {spec.expected_effect} dose expectation",
         )
     if interval_lower <= baseline_value <= interval_upper:
         return (
@@ -1579,12 +1620,10 @@ def _execute_steering_trial(
     resolved: _ResolvedSteering, measure: MeasureFn, context: _StageContext
 ) -> dict[str, object]:
     spec = resolved.spec
-    nonzero = sorted(strength for strength in spec.strengths if strength != 0.0)
+    nonzero = sorted(strength for strength in _require_strengths(spec.strengths) if strength != 0.0)
     endpoint_strength = max(nonzero, key=abs)
 
-    baseline_seed = derive_stream_seed(
-        context.evaluation_seed, f"{spec.intervention_id}#baseline", role="evaluation"
-    )
+    baseline_seed = derive_stream_seed(context.evaluation_seed, f"{spec.intervention_id}#baseline", role="evaluation")
     baseline_application = _application(
         spec,
         context,
@@ -1602,7 +1641,7 @@ def _execute_steering_trial(
     dose_records: list[dict[str, object]] = []
     endpoint_record: dict[str, object] | None = None
 
-    for strength in sorted(spec.strengths):
+    for strength in sorted(_require_strengths(spec.strengths)):
         if strength == 0.0:
             continue
         stream_seed = derive_stream_seed(
@@ -1622,16 +1661,15 @@ def _execute_steering_trial(
         )
         measurement = _checked_measure(measure, spec, application)
         uncertainty_id = f"steer:{spec.intervention_id}:dose:{strength!r}"
-        uncertainty_seed = derive_stream_seed(
-            context.evaluation_seed, uncertainty_id, role="evaluation"
-        )
+        uncertainty_seed = derive_stream_seed(context.evaluation_seed, uncertainty_id, role="evaluation")
 
         def _dose_draw(
-            rng: np.random.Generator,
+            rng: object,
             *,
             dose: float = strength,
             bound_seed: int = uncertainty_seed,
         ) -> float:
+            rng = _require_generator(rng)
             draw_application = _application(
                 spec,
                 context,
@@ -1663,7 +1701,7 @@ def _execute_steering_trial(
                 f"{strength}: {dose_outcome.reason or 'interval unavailable'}"
             )
         values[strength] = float(measurement.value)
-        record = {
+        record: dict[str, object] = {
             "effect": float(measurement.value - baseline.value),
             "measurement": _measurement_record(measurement, application),
             "strength": float(strength),
@@ -1683,28 +1721,25 @@ def _execute_steering_trial(
     # control is sign-agnostic selectivity.
     specificity_threshold = max(abs(endpoint_effect), resolved.zero_tolerance)
     control_thresholds: dict[str, float] = {}
-    statistics: dict[str, Callable[[np.random.Generator], Mapping[str, float]]] = {}
+    statistics: dict[str, _StatisticFn] = {}
     measurement_errors: dict[str, Exception] = {}
     control_measurements: dict[str, dict[str, object]] = {}
     expected_positive = spec.expected_effect == "increase"
 
     for control in spec.controls:
-        threshold = (
-            resolved.zero_tolerance
-            if control.control_class == "zero_strength"
-            else specificity_threshold
-        )
+        threshold = resolved.zero_tolerance if control.control_class == "zero_strength" else specificity_threshold
         control_thresholds[control.control_id] = float(threshold)
         control_strength = 0.0 if control.control_class == "zero_strength" else endpoint_strength
 
         def _statistic(
-            rng: np.random.Generator,
+            rng: object,
             *,
             control_id: str = control.control_id,
             control_class: str = control.control_class,
-            control_target: str = control.target,
+            control_target: str = _require_target_str(control.target),
             applied_strength: float = control_strength,
         ) -> Mapping[str, float]:
+            rng = _require_generator(rng)
             bound_seed = derive_stream_seed(context.control_seed, control_id, role="control")
             try:
                 application = _application(
@@ -1729,11 +1764,7 @@ def _execute_steering_trial(
             control_measurements[control_id] = record
             delta = float(measurement.value) - float(baseline.value)
             if control_class == "random_direction":
-                aligned = (
-                    abs(delta)
-                    if delta != 0.0 and (delta > 0.0) == expected_positive
-                    else 0.0
-                )
+                aligned = abs(delta) if delta != 0.0 and (delta > 0.0) == expected_positive else 0.0
                 return {spec.metric_id: float(aligned)}
             return {spec.metric_id: abs(delta)}
 
@@ -1756,8 +1787,13 @@ def _execute_steering_trial(
             f"control {control_id!r} measurement failed for {spec.intervention_id!r}: {exc}"
         ) from exc
 
-    classification = _classify_response(spec.strengths, values, float(baseline.value), resolved.zero_tolerance)
-    endpoint_uncertainty = dict(endpoint_record["uncertainty"])  # pyright: ignore[reportUnknownMemberType]
+    classification = _classify_response(
+        _require_strengths(spec.strengths), values, float(baseline.value), resolved.zero_tolerance
+    )
+    assert endpoint_record is not None  # endpoint_strength came from the declared doses
+    endpoint_uncertainty = _require_mapping(
+        endpoint_record["uncertainty"], name="endpoint uncertainty must be a mapping"
+    )
     interval_lower = _finite(endpoint_uncertainty.get("lower"), name="endpoint lower bound")
     interval_upper = _finite(endpoint_uncertainty.get("upper"), name="endpoint upper bound")
     conclusion, reason = _decide_steering(
@@ -1821,7 +1857,7 @@ def _execute_steering_trial(
         "reason": reason,
         "response_classification": classification,
         "strength_semantics": spec.strength_semantics,
-        "strengths": [float(strength) for strength in spec.strengths],
+        "strengths": [float(strength) for strength in _require_strengths(spec.strengths)],
         "task_metric_change": float(endpoint_effect),
         "target": spec.target,
         "threshold": dict(resolved.threshold),
@@ -1835,7 +1871,7 @@ def _execute_steering_trial(
 # ---------------------------------------------------------------------------
 
 
-def intervention_report_items(trials: Sequence[Mapping[str, object]]) -> list[dict[str, object]]:
+def intervention_report_items(trials: object) -> list[dict[str, object]]:
     """Render trial records as shape-compatible causal claim fragments.
 
     Phase-IV boundary (not 80.21/80.22): items pass ``validate_report_shape``
@@ -1848,8 +1884,7 @@ def intervention_report_items(trials: Sequence[Mapping[str, object]]) -> list[di
     never do, and every blocked record names its blocking reason explicitly
     so the frozen validator fails closed on any overclaim.
     """
-    if isinstance(trials, str | bytes) or not isinstance(trials, Sequence):
-        raise InterventionError("trials must be a sequence of trial records")
+    trials = _require_trial_records(trials)
     items: list[dict[str, object]] = []
     seen: set[str] = set()
     allowed_kinds = (*INTERVENTION_KINDS, STEERING_KIND)
@@ -1863,17 +1898,13 @@ def intervention_report_items(trials: Sequence[Mapping[str, object]]) -> list[di
         if kind not in allowed_kinds:
             raise InterventionError(f"trial {intervention_id!r} kind is unsupported")
         target = _non_empty_string(record.get("target"), name=f"trial {intervention_id!r} target")
-        conclusion = _non_empty_string(
-            record.get("conclusion"), name=f"trial {intervention_id!r} conclusion"
-        )
+        conclusion = _non_empty_string(record.get("conclusion"), name=f"trial {intervention_id!r} conclusion")
         if conclusion not in _CONCLUSION_OUTCOMES:
             raise InterventionError(
                 f"trial {intervention_id!r} conclusion must be one of {list(_CONCLUSION_OUTCOMES)!r}"
             )
         reason = _non_empty_string(record.get("reason"), name=f"trial {intervention_id!r} reason")
-        control_outcomes = _mapping(
-            record.get("control_outcomes"), name=f"trial {intervention_id!r} control_outcomes"
-        )
+        control_outcomes = _mapping(record.get("control_outcomes"), name=f"trial {intervention_id!r} control_outcomes")
         control_refs = sorted(control_outcomes)
         if not control_refs:
             raise InterventionError(f"trial {intervention_id!r} must record control outcomes")
@@ -1900,9 +1931,7 @@ def intervention_report_items(trials: Sequence[Mapping[str, object]]) -> list[di
 
 
 def _intervene_output(records: Sequence[Mapping[str, object]], context: _StageContext) -> StageOutput:
-    conclusions = {
-        str(record["intervention_id"]): str(record["conclusion"]) for record in records
-    }
+    conclusions = {str(record["intervention_id"]): str(record["conclusion"]) for record in records}
     payload: dict[str, object] = {
         "config": {
             "causal_expectation": dict(context.causal_expectation),
@@ -1922,9 +1951,7 @@ def _intervene_output(records: Sequence[Mapping[str, object]], context: _StageCo
         "trials": list(records),
     }
     aggregate = (
-        "unsupported"
-        if conclusions and all(value == "unsupported" for value in conclusions.values())
-        else "completed"
+        "unsupported" if conclusions and all(value == "unsupported" for value in conclusions.values()) else "completed"
     )
     return StageOutput(stage="intervene", outcome=aggregate, payload=payload, artifact_refs=())
 
@@ -1971,7 +1998,8 @@ def make_intervene_executor(
         raise InterventionError("trial intervention identifiers must be unique")
     resolved_specs: tuple[TrialSpec, ...] = tuple(frozen)
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
+        invocation = _require_invocation(invocation)
         if invocation.stage != "intervene":
             raise StageContractError(f"intervene executor received stage {invocation.stage!r}")
         context = _bind_context(resolved_specs, invocation)
@@ -2016,7 +2044,8 @@ def make_steering_intervene_executor(
         raise InterventionError("trial intervention identifiers must be unique")
     resolved_specs: tuple[SteeringTrialSpec, ...] = tuple(frozen)
 
-    def _execute(invocation: StageInvocation) -> StageOutput:
+    def _execute(invocation: object) -> StageOutput:
+        invocation = _require_invocation(invocation)
         if invocation.stage != "intervene":
             raise StageContractError(f"intervene executor received stage {invocation.stage!r}")
         context, resolved = _bind_steering(resolved_specs, invocation)

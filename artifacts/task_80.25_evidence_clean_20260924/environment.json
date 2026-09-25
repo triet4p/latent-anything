@@ -1,0 +1,398 @@
+{
+  "clean_install_probe": {
+    "editable": false,
+    "executable": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+    "latent_file": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages\\latent_anything\\__init__.py",
+    "prefix": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv",
+    "python": "3.13.3",
+    "sys_path": [
+      "",
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python313.zip",
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\DLLs",
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\Lib",
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Lib\\site-packages"
+    ],
+    "torch_module": "2.10.0+cpu",
+    "versions": {
+      "datasets": "3.6.0",
+      "huggingface-hub": "0.35.3",
+      "numpy": "2.4.6",
+      "scikit-learn": "1.9.0",
+      "tokenizers": "0.22.2",
+      "torch": "2.10.0",
+      "transformers": "4.57.6"
+    }
+  },
+  "clean_runtime": "Python venv, temp, per-run HF hub/model, dataset, modules and torch caches removed after copying validator-clean outputs",
+  "declared_hf_snapshot_root": "F:\\llms\\hf\\models",
+  "dependency_overlay": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+      "datasets==3.6.0",
+      "huggingface-hub==0.35.3"
+    ],
+    "output_tail": "Resolved 31 packages in 29ms\nUninstalled 1 package in 9ms\nInstalled 15 packages in 841ms\n + aiohappyeyeballs==2.7.1\n + aiohttp==3.14.3\n + aiosignal==1.4.0\n + attrs==26.1.0\n + datasets==3.6.0\n + dill==0.3.8\n + frozenlist==1.8.0\n - fsspec==2026.2.0\n + fsspec==2025.3.0\n + multidict==6.9.1\n + multiprocess==0.70.16\n + pandas==3.0.6\n + propcache==0.5.4\n + tzdata==2026.4\n + xxhash==4.0.1\n + yarl==1.25.1\n",
+    "wall_s": 1.12
+  },
+  "environment_policy": {
+    "hf_auth_tokens_passed": false,
+    "runtime_overrides": [
+      "TMP/TEMP/TMPDIR",
+      "HF_HOME/HF_HUB_CACHE",
+      "HF_DATASETS_CACHE/HF_MODULES_CACHE",
+      "XDG_CACHE_HOME",
+      "TORCH_HOME/TORCHINDUCTOR_CACHE_DIR",
+      "telemetry disabled",
+      "two BLAS/OpenMP threads",
+      "tokenizers parallelism disabled"
+    ],
+    "stripped_variables": [
+      "CONDA_DEFAULT_ENV",
+      "CONDA_PREFIX",
+      "HF_DATASETS_CACHE",
+      "HF_DATASETS_OFFLINE",
+      "HF_HOME",
+      "HF_HUB_CACHE",
+      "HF_HUB_ENABLE_HF_TRANSFER",
+      "HF_HUB_OFFLINE",
+      "HF_MODULES_CACHE",
+      "HF_TOKEN",
+      "HUGGINGFACE_HUB_CACHE",
+      "HUGGINGFACE_HUB_TOKEN",
+      "PYTHONCASEOK",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONHOME",
+      "PYTHONPATH",
+      "PYTHONSTARTUP",
+      "PYTHONUSERBASE",
+      "PYTORCH_TRANSFORMERS_CACHE",
+      "TEMP",
+      "TMP",
+      "TMPDIR",
+      "TORCHINDUCTOR_CACHE_DIR",
+      "TORCH_HOME",
+      "TRANSFORMERS_CACHE",
+      "UV_CACHE_DIR",
+      "UV_PROJECT_ENVIRONMENT",
+      "UV_PYTHON",
+      "VIRTUAL_ENV",
+      "XDG_CACHE_HOME"
+    ],
+    "uv_package_cache": "uv default package cache (not used for proof data/model caches)"
+  },
+  "fresh_root": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root",
+  "fresh_venv_python": "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe",
+  "host": {
+    "logical_cpu_count": 8,
+    "physical_memory_bytes": 16905965568,
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 140 Stepping 2, GenuineIntel",
+    "python_host": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+    "uv": "0.9.7"
+  },
+  "output_artifacts_preserved": [
+    {
+      "bytes": 114407,
+      "files": 19,
+      "inventory_sha256": "2a319348133847872a54a5989324ad13d254419ad3f2b683d0d14f45daf48b71",
+      "matches_fresh_root": true,
+      "relative_path": "artifacts/diagnostics/proof-80-25-clean-encoder-v3-20260924-035357-6996"
+    },
+    {
+      "bytes": 322070,
+      "files": 17,
+      "inventory_sha256": "aa93bd5e7cb3249641a3485b15b0ad5bfac5f258b65a36eee63bbf5702613ec7",
+      "matches_fresh_root": true,
+      "relative_path": "artifacts/diagnostics/proof-80-25-clean-transformer-v1-target-v2-20260924-035357-6996"
+    }
+  ],
+  "packages": [
+    {
+      "name": "aiohappyeyeballs",
+      "version": "2.7.1"
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.14.3"
+    },
+    {
+      "name": "aiosignal",
+      "version": "1.4.0"
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.7.0"
+    },
+    {
+      "name": "attrs",
+      "version": "26.1.0"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.6.17"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.9"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.3.3"
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1"
+    },
+    {
+      "name": "datasets",
+      "version": "3.6.0"
+    },
+    {
+      "name": "dill",
+      "version": "0.3.8"
+    },
+    {
+      "name": "filelock",
+      "version": "3.29.4"
+    },
+    {
+      "name": "fonttools",
+      "version": "4.63.0"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0"
+    },
+    {
+      "name": "fsspec",
+      "version": "2025.3.0"
+    },
+    {
+      "name": "huggingface-hub",
+      "version": "0.35.3"
+    },
+    {
+      "name": "idna",
+      "version": "3.18"
+    },
+    {
+      "name": "jinja2",
+      "version": "3.1.6"
+    },
+    {
+      "name": "joblib",
+      "version": "1.5.3"
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.5.0"
+    },
+    {
+      "name": "latent-anything",
+      "version": "0.9.0"
+    },
+    {
+      "name": "llvmlite",
+      "version": "0.47.0"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.3"
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.11.0"
+    },
+    {
+      "name": "mpmath",
+      "version": "1.3.0"
+    },
+    {
+      "name": "multidict",
+      "version": "6.9.1"
+    },
+    {
+      "name": "multiprocess",
+      "version": "0.70.16"
+    },
+    {
+      "name": "narwhals",
+      "version": "2.22.1"
+    },
+    {
+      "name": "networkx",
+      "version": "3.6.1"
+    },
+    {
+      "name": "numba",
+      "version": "0.65.1"
+    },
+    {
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0"
+    },
+    {
+      "name": "pandas",
+      "version": "3.0.6"
+    },
+    {
+      "name": "pillow",
+      "version": "12.2.0"
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.4"
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2"
+    },
+    {
+      "name": "pyarrow",
+      "version": "24.0.0"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.4"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.46.4"
+    },
+    {
+      "name": "pynndescent",
+      "version": "0.6.0"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.2"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3"
+    },
+    {
+      "name": "regex",
+      "version": "2026.7.10"
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2"
+    },
+    {
+      "name": "safetensors",
+      "version": "0.8.0"
+    },
+    {
+      "name": "scikit-learn",
+      "version": "1.9.0"
+    },
+    {
+      "name": "scipy",
+      "version": "1.17.1"
+    },
+    {
+      "name": "setuptools",
+      "version": "80.10.2"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0"
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0"
+    },
+    {
+      "name": "threadpoolctl",
+      "version": "3.6.0"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.22.2"
+    },
+    {
+      "name": "torch",
+      "version": "2.10.0"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.68.2"
+    },
+    {
+      "name": "transformers",
+      "version": "4.57.6"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.15.0"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.2"
+    },
+    {
+      "name": "tzdata",
+      "version": "2026.4"
+    },
+    {
+      "name": "umap-learn",
+      "version": "0.5.12"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.7.0"
+    },
+    {
+      "name": "xxhash",
+      "version": "4.0.1"
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1"
+    }
+  ],
+  "uv_pip_check": {
+    "argv": [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "C:\\Users\\admin\\AppData\\Local\\Temp\\sprint80-80-25-clean-20260924-035357-6996\\root\\.venv\\Scripts\\python.exe"
+    ],
+    "exit": 0,
+    "output_tail": "Checked 64 packages in 4ms\nAll installed packages are compatible\n"
+  },
+  "uv_sync": {
+    "argv": [
+      "uv",
+      "sync",
+      "--frozen",
+      "--no-dev",
+      "--extra",
+      "transformers",
+      "--no-editable"
+    ],
+    "output_tail": "Using CPython 3.13.3 interpreter at: C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\nCreating virtual environment at: .venv\n   Building latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\n      Built latent-anything @ file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root\nPrepared 1 package in 4.24s\nInstalled 50 packages in 10.51s\n + annotated-types==0.7.0\n + certifi==2026.6.17\n + charset-normalizer==3.4.9\n + colorama==0.4.6\n + contourpy==1.3.3\n + cycler==0.12.1\n + filelock==3.29.4\n + fonttools==4.63.0\n + fsspec==2026.2.0\n + huggingface-hub==0.35.3\n + idna==3.18\n + jinja2==3.1.6\n + joblib==1.5.3\n + kiwisolver==1.5.0\n + latent-anything==0.9.0 (from file:///C:/Users/admin/AppData/Local/Temp/sprint80-80-25-clean-20260924-035357-6996/root)\n + llvmlite==0.47.0\n + markupsafe==3.0.3\n + matplotlib==3.11.0\n + mpmath==1.3.0\n + narwhals==2.22.1\n + networkx==3.6.1\n + numba==0.65.1\n + numpy==2.4.6\n + packaging==25.0\n + pillow==12.2.0\n + psutil==7.2.2\n + pyarrow==24.0.0\n + pydantic==2.13.4\n + pydantic-core==2.46.4\n + pynndescent==0.6.0\n + pyparsing==3.3.2\n + python-dateutil==2.9.0.post0\n + pyyaml==6.0.3\n + regex==2026.7.10\n + requests==2.34.2\n + safetensors==0.8.0\n + scikit-learn==1.9.0\n + scipy==1.17.1\n + setuptools==80.10.2\n + six==1.17.0\n + sympy==1.14.0\n + threadpoolctl==3.6.0\n + tokenizers==0.22.2\n + torch==2.10.0\n + tqdm==4.68.2\n + transformers==4.57.6\n + typing-extensions==4.15.0\n + typing-inspection==0.4.2\n + umap-learn==0.5.12\n + urllib3==2.7.0\n",
+    "peak_process_tree_rss_bytes": 91734016,
+    "wall_s": 15.172
+  }
+}

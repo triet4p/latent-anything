@@ -51,6 +51,88 @@ class DiagnosticRequestError(ValueError):
     """Raised when a diagnostic request is malformed or internally inconsistent."""
 
 
+def _require_capture(value: object) -> CaptureSelection:
+    if not isinstance(value, CaptureSelection):
+        raise DiagnosticRequestError("capture must be a CaptureSelection")
+    return value
+
+
+def _require_diagnostics(value: object) -> DiagnosticSelection:
+    if not isinstance(value, DiagnosticSelection):
+        raise DiagnosticRequestError("diagnostics must be a DiagnosticSelection")
+    return value
+
+
+def _require_controls(value: object) -> ControlSelection:
+    if not isinstance(value, ControlSelection):
+        raise DiagnosticRequestError("controls must be a ControlSelection")
+    return value
+
+
+def _require_include_report(value: object) -> bool:
+    if not isinstance(value, bool):
+        raise DiagnosticRequestError("include_report must be boolean")
+    return value
+
+
+def _require_result_status(value: object) -> ResultStatus:
+    if value == "pending":
+        return "pending"
+    if value == "running":
+        return "running"
+    if value == "completed":
+        return "completed"
+    if value == "failed":
+        return "failed"
+    if value == "interrupted":
+        return "interrupted"
+    raise DiagnosticRequestError(f"unsupported result status: {value!r}")
+
+
+def _require_output(value: object) -> OutputSelection:
+    if not isinstance(value, OutputSelection):
+        raise DiagnosticRequestError("output must be an OutputSelection")
+    return value
+
+
+def _require_interventions(value: object) -> tuple[InterventionRequest, ...]:
+    if isinstance(value, (tuple, list)):
+        items = tuple(value)
+        for item in items:
+            if not isinstance(item, InterventionRequest):
+                raise DiagnosticRequestError("interventions must be InterventionRequest items")
+        return items
+    raise DiagnosticRequestError("interventions and comparisons must be tuples")
+
+
+def _require_comparisons(value: object) -> tuple[ComparisonRequest, ...]:
+    if isinstance(value, (tuple, list)):
+        items = tuple(value)
+        for item in items:
+            if not isinstance(item, ComparisonRequest):
+                raise DiagnosticRequestError("comparisons must be ComparisonRequest items")
+        return items
+    raise DiagnosticRequestError("interventions and comparisons must be tuples")
+
+
+def _require_optional_string(value: object, *, name: str) -> str | None:
+    if value is None:
+        return None
+    return _non_empty_string(value, name=name)
+
+
+def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise DiagnosticRequestError(f"{name} must be a mapping")
+    return value
+
+
+def _require_text(value: object, *, name: str) -> str:
+    if not isinstance(value, str):
+        raise DiagnosticRequestError(f"{name} must be a string")
+    return value
+
+
 def _non_empty_string(value: object, *, name: str) -> str:
     if not isinstance(value, str) or not value:
         raise DiagnosticRequestError(f"{name} must be a non-empty string")
@@ -139,7 +221,12 @@ class InterventionRequest:
 
 @dataclass(frozen=True)
 class ComparisonRequest:
-    """One requested aligned run comparison."""
+    """One aligned comparison with manifest-bound metrics evaluated on both sides.
+
+    Comparison metrics may include task utility not selected for detection;
+    the compare executor validates metric identities and requires its
+    representation metric to remain detection-selected.
+    """
 
     comparison_id: str
     baseline_run: str
@@ -167,13 +254,17 @@ class OutputSelection:
         _non_empty_string(self.output_location, name="output_location")
         _validate_output_location(self.output_location)
         _non_empty_string(self.artifact_name, name="artifact_name")
-        if not isinstance(self.include_report, bool):
-            raise DiagnosticRequestError("include_report must be boolean")
+        object.__setattr__(self, "include_report", _require_include_report(self.include_report))
 
 
 @dataclass(frozen=True)
 class DiagnosticRequest:
-    """Complete domain-level declaration of one diagnostic workflow run."""
+    """Complete domain-level diagnostic request.
+
+    ``controls.metric_ids`` selects detector metrics. Comparison metric
+    declarations are validated by the compare executor against the manifest
+    and its representation/task roles.
+    """
 
     request_id: str
     manifest_id: str
@@ -187,62 +278,52 @@ class DiagnosticRequest:
     def __post_init__(self) -> None:
         _non_empty_string(self.request_id, name="request_id")
         _non_empty_string(self.manifest_id, name="manifest_id")
-        if not isinstance(self.capture, CaptureSelection):
-            raise DiagnosticRequestError("capture must be a CaptureSelection")
-        if not isinstance(self.diagnostics, DiagnosticSelection):
-            raise DiagnosticRequestError("diagnostics must be a DiagnosticSelection")
-        if not isinstance(self.controls, ControlSelection):
-            raise DiagnosticRequestError("controls must be a ControlSelection")
-        if not isinstance(self.output, OutputSelection):
-            raise DiagnosticRequestError("output must be an OutputSelection")
-        if isinstance(self.interventions, list):
-            object.__setattr__(self, "interventions", tuple(self.interventions))
-        if isinstance(self.comparisons, list):
-            object.__setattr__(self, "comparisons", tuple(self.comparisons))
-        if not isinstance(self.interventions, tuple) or not isinstance(self.comparisons, tuple):
-            raise DiagnosticRequestError("interventions and comparisons must be tuples")
-        for intervention in self.interventions:
-            if not isinstance(intervention, InterventionRequest):
-                raise DiagnosticRequestError("interventions must be InterventionRequest items")
-        for comparison in self.comparisons:
-            if not isinstance(comparison, ComparisonRequest):
-                raise DiagnosticRequestError("comparisons must be ComparisonRequest items")
-        intervention_ids = [item.intervention_id for item in self.interventions]
+        capture = _require_capture(self.capture)
+        diagnostics = _require_diagnostics(self.diagnostics)
+        controls = _require_controls(self.controls)
+        _require_output(self.output)
+        interventions = _require_interventions(self.interventions)
+        comparisons = _require_comparisons(self.comparisons)
+        intervention_ids = [item.intervention_id for item in interventions]
         if len(set(intervention_ids)) != len(intervention_ids):
             raise DiagnosticRequestError("intervention identifiers must be unique")
-        comparison_ids = [item.comparison_id for item in self.comparisons]
+        comparison_ids = [item.comparison_id for item in comparisons]
         if len(set(comparison_ids)) != len(comparison_ids):
             raise DiagnosticRequestError("comparison identifiers must be unique")
-        known_controls = set(self.controls.control_ids)
-        for intervention in self.interventions:
+        known_controls = set(controls.control_ids)
+        for intervention in interventions:
             unknown = sorted(set(intervention.control_ids) - known_controls)
             if unknown:
                 raise DiagnosticRequestError(
                     f"intervention {intervention.intervention_id} references undeclared controls: {', '.join(unknown)}"
                 )
-        known_metrics = set(self.controls.metric_ids)
-        for comparison in self.comparisons:
-            unknown_metrics = sorted(set(comparison.metric_ids) - known_metrics)
-            if unknown_metrics:
-                raise DiagnosticRequestError(
-                    f"comparison {comparison.comparison_id} references undeclared metrics: {', '.join(unknown_metrics)}"
-                )
+        object.__setattr__(self, "capture", capture)
+        object.__setattr__(self, "diagnostics", diagnostics)
+        object.__setattr__(self, "controls", controls)
+        object.__setattr__(self, "interventions", interventions)
+        object.__setattr__(self, "comparisons", comparisons)
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible mapping of this request."""
 
+        capture = _require_capture(self.capture)
+        diagnostics = _require_diagnostics(self.diagnostics)
+        controls = _require_controls(self.controls)
+        output = _require_output(self.output)
+        interventions = _require_interventions(self.interventions)
+        comparisons = _require_comparisons(self.comparisons)
         return {
             "request_id": self.request_id,
             "manifest_id": self.manifest_id,
             "capture": {
-                "capture_id": self.capture.capture_id,
-                "representation_identity": self.capture.representation_identity,
-                "axes": list(self.capture.axes),
+                "capture_id": capture.capture_id,
+                "representation_identity": capture.representation_identity,
+                "axes": list(capture.axes),
             },
-            "diagnostics": {"family_ids": list(self.diagnostics.family_ids)},
+            "diagnostics": {"family_ids": list(diagnostics.family_ids)},
             "controls": {
-                "control_ids": list(self.controls.control_ids),
-                "metric_ids": list(self.controls.metric_ids),
+                "control_ids": list(controls.control_ids),
+                "metric_ids": list(controls.metric_ids),
             },
             "interventions": [
                 {
@@ -250,7 +331,7 @@ class DiagnosticRequest:
                     "target": item.target,
                     "control_ids": list(item.control_ids),
                 }
-                for item in self.interventions
+                for item in interventions
             ],
             "comparisons": [
                 {
@@ -259,12 +340,12 @@ class DiagnosticRequest:
                     "candidate_run": item.candidate_run,
                     "metric_ids": list(item.metric_ids),
                 }
-                for item in self.comparisons
+                for item in comparisons
             ],
             "output": {
-                "output_location": self.output.output_location,
-                "artifact_name": self.output.artifact_name,
-                "include_report": self.output.include_report,
+                "output_location": output.output_location,
+                "artifact_name": output.artifact_name,
+                "include_report": output.include_report,
             },
         }
 
@@ -272,20 +353,24 @@ class DiagnosticRequest:
     def from_dict(cls, value: Mapping[str, object]) -> DiagnosticRequest:
         """Rebuild a request from its mapping form, failing closed on bad input."""
 
-        if not isinstance(value, Mapping):
-            raise DiagnosticRequestError("request must be a mapping")
-        expected = {"request_id", "manifest_id", "capture", "diagnostics", "controls", "interventions", "comparisons", "output"}
+        _require_mapping(value, name="request")
+        expected = {
+            "request_id",
+            "manifest_id",
+            "capture",
+            "diagnostics",
+            "controls",
+            "interventions",
+            "comparisons",
+            "output",
+        }
         actual = set(value)
         if actual != expected:
             raise DiagnosticRequestError("request fields are invalid")
-        capture = value["capture"]
-        diagnostics = value["diagnostics"]
-        controls = value["controls"]
-        output = value["output"]
-        if not isinstance(capture, Mapping) or not isinstance(diagnostics, Mapping):
-            raise DiagnosticRequestError("capture and diagnostics must be mappings")
-        if not isinstance(controls, Mapping) or not isinstance(output, Mapping):
-            raise DiagnosticRequestError("controls and output must be mappings")
+        capture = _require_mapping(value["capture"], name="capture")
+        diagnostics = _require_mapping(value["diagnostics"], name="diagnostics")
+        controls = _require_mapping(value["controls"], name="controls")
+        output = _require_mapping(value["output"], name="output")
         interventions = value["interventions"]
         comparisons = value["comparisons"]
         if isinstance(interventions, str) or not isinstance(interventions, (tuple, list)):
@@ -329,10 +414,10 @@ class DiagnosticRequest:
                 ),
                 output=OutputSelection(
                     output_location=_non_empty_string(output.get("output_location"), name="output_location"),
-                    artifact_name=_non_empty_string(output.get("artifact_name", "diagnostic-report"), name="artifact_name"),
-                    include_report=output.get("include_report", True)
-                    if isinstance(output.get("include_report", True), bool)
-                    else (_ for _ in ()).throw(DiagnosticRequestError("include_report must be boolean")),
+                    artifact_name=_non_empty_string(
+                        output.get("artifact_name", "diagnostic-report"), name="artifact_name"
+                    ),
+                    include_report=_require_include_report(output.get("include_report", True)),
                 ),
             )
         except (AttributeError, TypeError) as exc:
@@ -355,8 +440,7 @@ class DiagnosticResult:
     def __post_init__(self) -> None:
         _non_empty_string(self.request_id, name="request_id")
         _non_empty_string(self.manifest_id, name="manifest_id")
-        if self.status not in _RESULT_STATUSES:
-            raise DiagnosticRequestError(f"unsupported result status: {self.status!r}")
+        _require_result_status(self.status)
         _string_tuple(self.completed_stages, name="completed_stages")
         unknown_stages = sorted(set(self.completed_stages) - set(_WORKFLOW_STAGES))
         if unknown_stages:
@@ -364,11 +448,10 @@ class DiagnosticResult:
         _string_tuple(self.artifact_refs, name="artifact_refs")
         if self.report_id is not None:
             _non_empty_string(self.report_id, name="report_id")
-        if not isinstance(self.message, str):
-            raise DiagnosticRequestError("message must be a string")
-        if not isinstance(self.stage_results, Mapping):
-            raise DiagnosticRequestError("stage_results must be a mapping")
-        object.__setattr__(self, "stage_results", dict(self.stage_results))
+        message = _require_text(self.message, name="message")
+        stages = _require_mapping(self.stage_results, name="stage_results")
+        object.__setattr__(self, "message", message)
+        object.__setattr__(self, "stage_results", dict(stages))
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-compatible mapping of this result."""
@@ -388,8 +471,7 @@ class DiagnosticResult:
     def from_dict(cls, value: Mapping[str, object]) -> DiagnosticResult:
         """Rebuild a result from its mapping form, failing closed on bad input."""
 
-        if not isinstance(value, Mapping):
-            raise DiagnosticRequestError("result must be a mapping")
+        _require_mapping(value, name="result")
         expected = {
             "request_id",
             "manifest_id",
@@ -402,24 +484,17 @@ class DiagnosticResult:
         }
         if set(value) != expected:
             raise DiagnosticRequestError("result fields are invalid")
-        report_id = value["report_id"]
-        if report_id is not None and (not isinstance(report_id, str) or not report_id):
-            raise DiagnosticRequestError("report_id must be a non-empty string or null")
-        stage_results = value["stage_results"]
-        if not isinstance(stage_results, Mapping):
-            raise DiagnosticRequestError("stage_results must be a mapping")
+        report_id = _require_optional_string(value["report_id"], name="report_id")
+        stage_results = _require_mapping(value["stage_results"], name="stage_results")
+        status = _require_result_status(value["status"])
         return cls(
             request_id=_non_empty_string(value["request_id"], name="request_id"),
             manifest_id=_non_empty_string(value["manifest_id"], name="manifest_id"),
-            status=value["status"]  # type: ignore[arg-type]
-            if value["status"] in _RESULT_STATUSES
-            else (_ for _ in ()).throw(DiagnosticRequestError(f"unsupported result status: {value['status']!r}")),
+            status=status,
             completed_stages=_string_tuple(value["completed_stages"], name="completed_stages"),
             artifact_refs=_string_tuple(value["artifact_refs"], name="artifact_refs"),
-            report_id=report_id,  # type: ignore[arg-type]
-            message=value["message"] if isinstance(value["message"], str) else (_ for _ in ()).throw(
-                DiagnosticRequestError("message must be a string")
-            ),
+            report_id=report_id,
+            message=_require_text(value["message"], name="message"),
             stage_results=dict(stage_results),
         )
 

@@ -1,0 +1,226 @@
+{
+  "schema_version": "diagnostic-report-schema-v1",
+  "schema_id": "diagnostic-report",
+  "status": "frozen",
+  "report_status": "declared",
+  "additional_properties": false,
+  "required_fields": [
+    "schema_version",
+    "report_id",
+    "status",
+    "capture_provenance",
+    "symptoms",
+    "localization",
+    "hypotheses",
+    "statistical_evidence",
+    "interventions",
+    "comparisons",
+    "limitations",
+    "next_action",
+    "claims"
+  ],
+  "evidence_kinds": [
+    "observation",
+    "explanation",
+    "causal_result",
+    "unsupported_conclusion"
+  ],
+  "evidence_statuses": [
+    "observed",
+    "supported",
+    "falsified",
+    "inconclusive",
+    "unsupported"
+  ],
+  "claim_outcomes": [
+    "supported",
+    "falsified",
+    "inconclusive",
+    "unsupported"
+  ],
+  "evidence_item_fields": [
+    "id",
+    "kind",
+    "status",
+    "claim",
+    "evidence_refs",
+    "control_refs",
+    "causal",
+    "claim_allowed",
+    "missing_evidence"
+  ],
+  "evidence_semantics": {
+    "observation": {
+      "allowed_statuses": [
+        "observed",
+        "inconclusive",
+        "unsupported"
+      ],
+      "causal": false,
+      "required_refs": "direct capture or measurement references"
+    },
+    "explanation": {
+      "allowed_statuses": [
+        "supported",
+        "inconclusive",
+        "unsupported"
+      ],
+      "causal": false,
+      "required_refs": "observation or statistical evidence references"
+    },
+    "causal_result": {
+      "allowed_statuses": [
+        "supported",
+        "falsified",
+        "inconclusive",
+        "unsupported"
+      ],
+      "causal": true,
+      "required_refs": "intervention and control references"
+    },
+    "unsupported_conclusion": {
+      "allowed_statuses": [
+        "unsupported"
+      ],
+      "causal": false,
+      "claim_allowed": false,
+      "required_refs": "explicit missing-evidence reasons"
+    }
+  },
+  "sections": {
+    "capture_provenance": {
+      "type": "object",
+      "required_fields": [
+        "captures"
+      ],
+      "capture_fields": [
+        "capture_id",
+        "model_revision",
+        "dataset_split",
+        "representation_identity",
+        "axes",
+        "artifact_refs"
+      ]
+    },
+    "symptoms": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "description",
+        "metric_ids",
+        "evidence_refs",
+        "status"
+      ]
+    },
+    "localization": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "axis",
+        "selection",
+        "evidence_refs",
+        "confidence",
+        "status"
+      ]
+    },
+    "hypotheses": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "statement",
+        "evidence_refs",
+        "alternatives",
+        "status"
+      ]
+    },
+    "statistical_evidence": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "metric_id",
+        "estimate",
+        "uncertainty",
+        "control_refs",
+        "evidence_refs",
+        "status"
+      ]
+    },
+    "interventions": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "intervention",
+        "target",
+        "control_refs",
+        "outcome",
+        "evidence_refs",
+        "status"
+      ]
+    },
+    "comparisons": {
+      "type": "array",
+      "item_fields": [
+        "id",
+        "baseline",
+        "candidate",
+        "alignment",
+        "metric_ids",
+        "evidence_refs",
+        "status"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "minimum_items": 1,
+      "item_fields": [
+        "id",
+        "description",
+        "affects",
+        "blocking"
+      ]
+    },
+    "next_action": {
+      "type": "object",
+      "required_fields": [
+        "action",
+        "rationale",
+        "required_evidence_refs"
+      ]
+    },
+    "claims": {
+      "type": "array",
+      "minimum_items": 1,
+      "item_fields": [
+        "id",
+        "kind",
+        "status",
+        "claim",
+        "evidence_refs",
+        "control_refs",
+        "causal",
+        "claim_allowed",
+        "missing_evidence"
+      ]
+    }
+  },
+  "fail_closed": {
+    "malformed": {
+      "outcome": "rejected",
+      "claim_allowed": false
+    },
+    "conflated_evidence_kind": {
+      "outcome": "rejected",
+      "claim_allowed": false,
+      "requirements": [
+        "explanations are not causal results",
+        "unsupported conclusions cannot be claim-allowed",
+        "causal results declare causal=true"
+      ]
+    },
+    "unsupported_conclusion": {
+      "outcome": "unsupported",
+      "claim_allowed": false,
+      "evidence_status": "unsupported"
+    }
+  }
+}
