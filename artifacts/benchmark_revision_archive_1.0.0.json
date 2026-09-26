@@ -1,0 +1,228 @@
+{
+  "schema_version": "latent-anything-release-input-revision-archive-v1",
+  "archive_id": "latent-anything-v1.0.0-benchmark-model-dataset-revisions",
+  "recorded_at": "2026-09-27",
+  "package_version": "1.0.0",
+  "release": {
+    "tag": "v1.0.0",
+    "annotated_tag_object": "3bdb7ff2c5e09def32e39b9b4628750729104b22",
+    "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+    "release_workflow_run": "36251907256",
+    "github_release_url": "https://github.com/triet4p/latent-anything/releases/tag/v1.0.0",
+    "tag_modified_by_this_archive": false,
+    "documentation_record": {
+      "path": "docs/VERSIONED_DOCS_1.0.0.md",
+      "sha256": "391cfc7ca61635483fcd6c1fb7b923bb63ce5ee31dc74019e2cc9a931cbf852d",
+      "status": "post-release-companion; not part of the protected release tag"
+    },
+    "public_documentation_site": {
+      "status": "not-published",
+      "existing_pages_url": "https://triet4p.github.io/latent-anything/",
+      "blocker": "The configured MkDocs site uses `docs_dir: latent-anything-theory`; its workflow deploys that site on `theory-v*` tags and supports manual dispatch. Neither path publishes root package docs, and no versioned 1.0.0 package-docs deployment exists."
+    }
+  },
+  "redistribution": {
+    "archive_is_metadata_only": true,
+    "model_weight_bytes_included": false,
+    "dataset_bytes_included": false,
+    "raw_text_included": false,
+    "simulator_assets_included": false,
+    "recorded_metadata": [
+      "immutable model and dataset IDs/revisions",
+      "benchmark and protocol manifest paths, commitments, and byte hashes",
+      "selected-input digests, license declarations, evidence run IDs, and source commits"
+    ],
+    "note": "A digest identifies bytes but does not include them or grant redistribution rights. No model weights, dataset rows, raw text, cached model files, or simulator assets are copied into this archive."
+  },
+  "supported_claims": [
+    {
+      "claim_id": "sprint80-encoder-v3-model-weight-lesion",
+      "status": "signed-off bounded ordinary-DL core",
+      "benchmark_manifest": {
+        "path": "artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json",
+        "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+        "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_encoder_autoencoder_v3_model_weight_lesion.json",
+        "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+        "canonical_commitment_sha256": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+        "manifest_file_sha256": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+        "manifest_file_size_bytes": 6373
+      },
+      "model": {
+        "id": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+        "revision": "linear-pca-autoencoder-4d-train-only-v1",
+        "revision_kind": "locally-trained-artifact-digest",
+        "artifact_sha256": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+        "license_status": "Locally trained benchmark artifact; no upstream model card applies. The checkpoint bytes are not included."
+      },
+      "dataset": {
+        "id": "sklearn.datasets.load_digits",
+        "revision": "scikit-learn==1.9.0",
+        "split_identity": "default_rng-42-permutation-train1437-heldout360",
+        "split": "heldout",
+        "selected_data_sha256": "b3ed6f2d420b7dc8de35bb8adc0088b49f76a3b05d31057a0a48e37430966148",
+        "license": "BSD-3-Clause as recorded for the scikit-learn digits fixture in docs/EVIDENCE_LEDGER.md; no dataset bytes are included."
+      },
+      "evidence": {
+        "replay_source_commit": "52415535ba1889c49e67be65429985a7ed6f5c22",
+        "replay_source_url": "https://github.com/triet4p/latent-anything/commit/52415535ba1889c49e67be65429985a7ed6f5c22",
+        "replay_driver_run_id": "20260925-065327-115093-14640",
+        "case_run_id": "fa9bfd738a7dbc01",
+        "replay_artifact_sha256": "b2db02d6b9f39dc2331d503018b0f964a93e3e29414303c112652ac08e9ec0cb"
+      },
+      "scope_limit": "One prospectively declared model-weight lesion and fixed digits brightness-bin task; not evidence of a natural production defect, arbitrary encoder/dataset coverage, or GPU/CUDA behavior."
+    },
+    {
+      "claim_id": "sprint80-transformer-target-evidence-v2",
+      "status": "signed-off bounded ordinary-DL core",
+      "benchmark_manifest": {
+        "path": "artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json",
+        "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+        "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_transformer_hidden_state_v1.json",
+        "manifest_id": "sprint80-core-transformer-hidden-state-probe-v1",
+        "canonical_commitment_sha256": "c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a",
+        "manifest_file_sha256": "339c5c302def9d8b859e1914101803c84905347eec3caa1d596a5eadc015d0a2",
+        "manifest_file_size_bytes": 5750
+      },
+      "model": {
+        "id": "openai-community/gpt2",
+        "revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "revision_kind": "immutable-hub-commit",
+        "artifact_sha256": "68e7df45a27935c7e3efdd969edd714c130edc306aa5cc310d1e88aebbf04e51",
+        "license": "MIT",
+        "license_source": "https://huggingface.co/openai-community/gpt2/blob/e7da7f221d5bf496a48136c0cd264e630fe9fcc8/README.md",
+        "weights_included": false
+      },
+      "dataset": {
+        "id": "Salesforce/wikitext",
+        "config": "wikitext-2-raw-v1",
+        "revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+        "split": "validation",
+        "split_identity": "wikitext-2-raw-v1-validation-3760rows-selected2048-maxtokens128",
+        "selected_data_sha256": "98e79d9adbf9eed7a8e9dbd892c9a85cb0d31d2f2a5cccca99de3242fd4e990e",
+        "licenses": [
+          "CC-BY-SA-3.0",
+          "GFDL"
+        ],
+        "license_source": "https://huggingface.co/datasets/Salesforce/wikitext/blob/f776294184f13b8ff2337b3841cf9269a6216d1e/README.md",
+        "data_included": false
+      },
+      "target_evidence_v2": {
+        "target_record_sha256": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+        "target_rule_sha256": "9b12485635decf738c4904702f75d7d5ae8cb6663555e2af5ee66476269f025b"
+      },
+      "evidence": {
+        "replay_source_commit": "52415535ba1889c49e67be65429985a7ed6f5c22",
+        "replay_source_url": "https://github.com/triet4p/latent-anything/commit/52415535ba1889c49e67be65429985a7ed6f5c22",
+        "original_run_id": "421578bb1c06fa15",
+        "replay_run_id": "c64d382b1560e40e",
+        "replay_artifact_sha256": "b8a4afdc17108e14ebf028b469b0e32fd519b63acdfb5aea8cd91b26de3f488d"
+      },
+      "scope_limit": "Section-header attribute separability and first-layer localization under the frozen protocol; not causal feature-use evidence, a task-improvement claim, or arbitrary model/dataset coverage."
+    },
+    {
+      "claim_id": "sprint80-transformer-grouped-split-stability-supplement",
+      "status": "separately signed-off supplemental claim",
+      "protocol_manifest": {
+        "path": "artifacts/benchmark_manifest_sprint80_transformer_explanation_stability_v1.json",
+        "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+        "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_transformer_explanation_stability_v1.json",
+        "protocol_id": "sprint80-core-transformer-explanation-stability-v1",
+        "manifest_file_sha256": "a69b7152a800ac543ac76fec4d699c16681517708a95b353e5d241241c8acf0a",
+        "manifest_file_size_bytes": 7414,
+        "thresholds_predeclared_in_protocol": {
+          "coef_stability_at_least": 0.8
+        }
+      },
+      "inputs": {
+        "model_id": "openai-community/gpt2",
+        "model_revision": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8",
+        "model_license": "MIT",
+        "dataset_id": "Salesforce/wikitext",
+        "dataset_config": "wikitext-2-raw-v1",
+        "dataset_revision": "f776294184f13b8ff2337b3841cf9269a6216d1e",
+        "dataset_selection_sha256": "98e79d9adbf9eed7a8e9dbd892c9a85cb0d31d2f2a5cccca99de3242fd4e990e",
+        "dataset_licenses": [
+          "CC-BY-SA-3.0",
+          "GFDL"
+        ],
+        "license_sources": [
+          "https://huggingface.co/openai-community/gpt2/blob/e7da7f221d5bf496a48136c0cd264e630fe9fcc8/README.md",
+          "https://huggingface.co/datasets/Salesforce/wikitext/blob/f776294184f13b8ff2337b3841cf9269a6216d1e/README.md"
+        ],
+        "model_weights_included": false,
+        "dataset_bytes_included": false
+      },
+      "evidence": {
+        "replay_source_commit": "52415535ba1889c49e67be65429985a7ed6f5c22",
+        "run_record_path": "artifacts/diagnostics/proof-80-24-stability-v1/runs/a95ccce32461b78ddd0197188fc1f4b51a1b349d434d3a9812dbcc8251dbeb2d.json",
+        "run_record_sha256": "a95ccce32461b78ddd0197188fc1f4b51a1b349d434d3a9812dbcc8251dbeb2d",
+        "heldout_accuracy": 1.0,
+        "coef_stability": 0.974878,
+        "leakage_gap": 0.42549
+      },
+      "scope_limit": "The separate grouped-split protocol does not retroactively change the immutable target-evidence-v2 artifact's threshold:null value and does not establish causal feature use."
+    }
+  ],
+  "blocked_lanes": [
+    {
+      "claim_id": "sprint80-smolvla-secondary-vision-collapse",
+      "status": "BLOCKED_NON_GATING",
+      "historical_v1_manifest": {
+        "path": "artifacts/benchmark_manifest_sprint80_smolvla_secondary_v1.json",
+        "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+        "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_smolvla_secondary_v1.json",
+        "canonical_commitment_sha256": "cb45b0e90c8a30def0a34294a9e19665bf9204f262a346d608a70712549df8bc",
+        "manifest_file_sha256": "4961f5f8d764314d12d92a5f9712cdf3c7b0e27d0283b51d137f579b4298a73f",
+        "manifest_file_size_bytes": 5212
+      },
+      "prospective_v2_manifest": {
+        "path": "artifacts/benchmark_manifest_sprint80_smolvla_secondary_v2.json",
+        "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
+        "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_smolvla_secondary_v2.json",
+        "manifest_id": "sprint80-secondary-smolvla-vision-collapse-v2",
+        "canonical_commitment_sha256": "ec70d423fcf33a6ebbaabfb2dccbcac6ee8de167f53a125bc377386f6cd1cf1f",
+        "manifest_file_sha256": "af5fa26713531d0dafa4a98a33c9c7392b36eaa742ff7f5cb551a50b5c5239f3",
+        "manifest_file_size_bytes": 6021,
+        "status": "predeclared_unexecuted_768_to_32_projection"
+      },
+      "model": {
+        "id": "lerobot/smolvla_libero",
+        "revision": "31d453f7edd78c839a8bbc39744a292686daf0de",
+        "artifact_sha256": "9a9f6413e42c0f332fccbce9a0dc796af2790f82cf002f791cdbf7e01e1afca8",
+        "artifact_size_bytes": 906712520,
+        "license": "Apache-2.0",
+        "license_source": "https://huggingface.co/lerobot/smolvla_libero/blob/31d453f7edd78c839a8bbc39744a292686daf0de/README.md",
+        "weights_included": false
+      },
+      "dataset": {
+        "id": "lerobot/libero",
+        "revision": "a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4",
+        "split": "train",
+        "split_identity": "bounded-episodes0000-0003-frames-even0to30-16per-episode-64-total-train-episodes-0-1-eval-episodes-2-3",
+        "selected_data_sha256": "0ee63f53aa9e6fba04b79b382297bfa235a2df6d6544e3402862fe69689d4b51",
+        "license": "Apache-2.0",
+        "license_source": "https://huggingface.co/datasets/lerobot/libero/blob/a1aaacb7f6cd6ee5fb43120f673cebb0cfea7dd4/README.md",
+        "data_included": false
+      },
+      "blocked_attempt": {
+        "proof_source_commit": "24850717ca3f55afbd8d19dc28aeca587744f996",
+        "capture_shape": [
+          64,
+          768
+        ],
+        "frozen_v1_expected_shape": [
+          64,
+          1024
+        ],
+        "detector_guard": "64 samples cannot support rank estimation over 768 dimensions",
+        "workflow_stages_completed": [
+          "data"
+        ],
+        "validator_clean_diagnostic_exists": false,
+        "diagnosis_produced": false,
+        "v2_executed": false
+      },
+      "scope_limit": "No SmolVLA diagnosis is signed off. This remains a blocked, non-gating lane and does not establish general VLA or GPU/CUDA support."
+    }
+  ]
+}

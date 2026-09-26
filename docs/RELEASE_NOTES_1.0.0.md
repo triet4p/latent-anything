@@ -11,6 +11,7 @@ The released diagnostic claim is deliberately narrow and is based on the final S
 - A separately gated transformer stability supplement; it does not retroactively change the immutable v2 artifact's `threshold: null` value.
 
 The evidence, review references, and precise boundaries are recorded in the [Sprint 80 depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md). This is not a claim of arbitrary-model or dataset coverage, broad VLA support, model quality, deployment readiness, or GPU/CUDA readiness.
+Revision identifiers, manifest-file hashes, license sources, and the no-redistribution boundary are recorded in the [versioned v1.0.0 documentation](VERSIONED_DOCS_1.0.0.md) and its [metadata-only revision archive](../artifacts/benchmark_revision_archive_1.0.0.json).
 
 ## Compatibility and migration
 

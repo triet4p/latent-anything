@@ -78,8 +78,11 @@ The first OIDC upload activated the configured PyPI Trusted Publisher.
 GitHub Release assets. The active state and its activation evidence are
 recorded in [`release-gates.json`](release-gates.json). This checked-in
 documentation update is later than the tagged release commit and does not
-modify the published tag or release assets. Sprint 81 Task 5 remains `[~]`
-pending Main's evidence review; tasks 6, 7, and 9 remain open.
+modify the published tag or release assets. Sprint 81 Task 5 is `[x]` after
+Main's evidence review; Task 6 remains `[~]` pending its evidence review, and
+tasks 7 and 9 remain open. The companion [versioned v1.0.0 documentation](VERSIONED_DOCS_1.0.0.md)
+and [metadata-only benchmark/model/dataset revision archive](../artifacts/benchmark_revision_archive_1.0.0.json)
+record the source revisions, hashes, licensing, and restricted-data boundaries.
 
 ## Quy ước và điều kiện dừng
 

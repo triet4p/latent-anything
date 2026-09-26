@@ -43,10 +43,10 @@ operation. Push-triggered CI run 36247369268 passed all three Python jobs on
 that earlier commit. These are historical prerequisite proofs; the release
 commit's exact-SHA and audited release runs are recorded above.
 
-Sprint 81 task 8 is complete (owner-approved reorder, Review81Task8 PASS);
-task 4 is complete and task 5 remains `[~]` pending Main's evidence review.
-Tasks 6, 7, and 9 remain open. Sprint 79 task 604 is complete; Sprint 80 and
-Sprint 81 remain in scope.
+Sprint 81 tasks 4 and 5 are complete (task 5 was marked `[x]` after Main's
+evidence review), and task 8 is complete (owner-approved reorder,
+Review81Task8 PASS). Task 6 remains `[~]` pending Main's evidence review;
+tasks 7 and 9 remain open.
 
 ## Definition of Stable
 
@@ -131,9 +131,9 @@ from commit `a449ca33b4b83ce109c29db7cf471919820b1d56` after exact-SHA CI and
 the audited release workflow passed. The first PyPI OIDC upload succeeded and
 the Trusted Publisher is active with project JSON HTTP 200. This plan update is
 later than the tagged release commit and does not alter the published tag or
-assets. Task 5 remains `[~]` pending Main's evidence review; tasks 6 (versioned
-documentation), 7 (post-publication install and example verification), and 9
-(milestone closure and backlog) remain open.
+assets. Task 5 is complete; Task 6 (versioned documentation) remains `[~]`
+pending Main's evidence review. Tasks 7 (post-publication install and example
+verification) and 9 (milestone closure and backlog) remain open.
 
 Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81's own release gates passed for the published `1.0.0` release.
 

@@ -1,22 +1,24 @@
 # Migration and compatibility guide
 
-The current checkout has package metadata `1.0.0` for an unpublished Sprint 81
-candidate. It has not been built, tagged, or released. The latest published
-distribution remains the pre-stable `0.9.0` release.
+The package version `1.0.0` was published on 2026-09-26. Protected annotated
+tag `v1.0.0` points to release commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56`; this guide is a post-release
+documentation reconciliation. `0.9.0` remains the prior pre-stable release.
 
 The annotated `v0.9.0` tag points to merged commit
 `75341e4292fcdf1703186c58b626666b4a923c19`, and Release workflow run
 `35516933525` passed gate/build and publish. The GitHub Release carries the
 wheel, source distribution, `SHA256SUMS`, `PROVENANCE.json`, and release notes;
-all five asset hashes and a clean local-wheel import smoke were verified. PyPI
-publication was explicitly deferred for that release. The candidate API
-snapshot is [`api_freeze_snapshot_1.0.0.json`](../artifacts/api_freeze_snapshot_1.0.0.json).
+all five asset hashes and a clean local-wheel import smoke were verified.
+PyPI publication was explicitly deferred for `0.9.0`. The released `1.0.0`
+API snapshot is [`api_freeze_snapshot_1.0.0.json`](../artifacts/api_freeze_snapshot_1.0.0.json).
 The `0.9.0`-labeled source snapshot is a later pre-candidate inventory, not
 the published tag's release-time snapshot. The exact `v0.9.0` release-time
 inventory is recorded in the historical `CHANGELOG.md` section; the historical
 beta surface is preserved unchanged in
 [`api_freeze_snapshot_0.1.0b1.json`](../artifacts/api_freeze_snapshot_0.1.0b1.json).
 The human alias policy is [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md).
+The versioned [1.0.0 documentation and input-revision record](VERSIONED_DOCS_1.0.0.md) binds signed-off claims to exact release, benchmark, model, and dataset revisions. Its metadata-only [revision archive](../artifacts/benchmark_revision_archive_1.0.0.json) contains no model weights or dataset bytes.
 
 ## Installing the 0.9.0 release
 
@@ -41,11 +43,11 @@ data remain readable during the beta window. New code should use the canonical
 spellings below. This is an additive migration; this document does not remove
 an alias or rewrite historical release artifacts.
 
-The checked-in `1.0.0` candidate snapshot records **214 runtime top-level
+The published `1.0.0` release snapshot records **214 runtime top-level
 exports**, **211 canonical-stable entries**, **28 config schemas**, **89
 public dataclass/result schemas**, and **8 public exceptions** (SHA-256
 `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`). This
-describes candidate source, not a released API contract.
+describes the released API contract at tag `v1.0.0`.
 
 The later pre-candidate source snapshot named
 [`api_freeze_snapshot_0.9.0.json`](../artifacts/api_freeze_snapshot_0.9.0.json)
@@ -70,9 +72,9 @@ public methods submodule and has an additive top-level canonical counterpart.
 
 | Canonical spelling | Legacy spelling/path | Current state | Planned policy |
 |---|---|---|---|
-| `AnalysisMethod` | `Method` (`latent_anything`, `latent_anything.methods.protocols`) | Added Unreleased/Sprint 78.29 under metadata `0.1.0b1`; exact identity alias, retained in `0.9.0` and the 1.0.0 candidate source | Retain through 1.x; any removal requires a separately reviewed major-version migration |
-| `Intervention` | `BMethod` (`latent_anything.methods.b_protocols`) | Added Unreleased/Sprint 78.29; exact runtime-checkable Protocol identity, retained in `0.9.0` and the 1.0.0 candidate source | Retain through 1.x; any removal requires a separately reviewed major-version migration; no import-time warning |
-| `InterventionPipeline` | `ManipulationPipeline` (`latent_anything`, `latent_anything.manipulation_pipeline`) | Added Unreleased/Sprint 78.29; exact class identity/behavior, retained in `0.9.0` and the 1.0.0 candidate source | Retain through 1.x; any removal requires a separately reviewed major-version migration |
+| `AnalysisMethod` | `Method` (`latent_anything`, `latent_anything.methods.protocols`) | Added in repository Sprint 78.29 under metadata `0.1.0b1`; exact identity alias shipped in `0.9.0` and retained in the published `1.0.0` release | Retain through 1.x; any removal requires a separately reviewed major-version migration |
+| `Intervention` | `BMethod` (`latent_anything.methods.b_protocols`) | Added in repository Sprint 78.29 under metadata `0.1.0b1`; exact runtime-checkable Protocol identity shipped in `0.9.0` and retained in the published `1.0.0` release | Retain through 1.x; any removal requires a separately reviewed major-version migration; no import-time warning |
+| `InterventionPipeline` | `ManipulationPipeline` (`latent_anything`, `latent_anything.manipulation_pipeline`) | Added in repository Sprint 78.29 under metadata `0.1.0b1`; exact class identity/behavior shipped in `0.9.0` and retained in the published `1.0.0` release | Retain through 1.x; any removal requires a separately reviewed major-version migration |
 
 The RFC0001 `0.2.0` window was planned but that release was never published.
 It must not be used as a historical `since` or deprecation release. Registry
@@ -138,20 +140,19 @@ major-version boundary are in the [support policy](SUPPORT_POLICY.md).
 
 ## Versioned compatibility policy
 
-The full candidate support, Semantic Versioning, deprecation, upstream, and
+The current support, Semantic Versioning, deprecation, upstream, and
 artifact-reader commitments are in the [support policy](SUPPORT_POLICY.md).
-They become stable 1.x commitments only after the audited `1.0.0` release gates
-pass and a distribution is published.
+They are in force for the published `1.x` line beginning with `1.0.0`.
 
 For this migration guide:
 
-1. `0.9.0` remains the latest published distribution; the working-tree `1.0.0`
-   package and API snapshot describe an unpublished candidate only.
-2. The candidate's canonical-stable public surface is the checked-in
+1. `1.0.0` is the latest published distribution; protected tag `v1.0.0` points
+   to release commit `a449ca33b4b83ce109c29db7cf471919820b1d56`.
+2. The published release's canonical-stable public surface is the checked-in
    [`1.0.0` API snapshot](../artifacts/api_freeze_snapshot_1.0.0.json).
    Incompatible public API or behavior changes require a major-version release
    and a migration path.
-3. All 18 beta aliases remain available in the candidate and are retained
+3. All 18 beta aliases are retained in the published `1.0.0` release and
    throughout `1.x`; no alias removal is scheduled. Any removal requires a
    separately reviewed major-version migration.
 4. The only current cross-version data migrations are
@@ -162,13 +163,14 @@ For this migration guide:
    and evidence boundaries in `pyproject.toml` and their integration guides.
    An optional extra or pinned model identifier does not establish model
    quality, general VLA, or GPU/CUDA support.
-6. Stop before `1.0.0` publication if any supported diagnostic, packaging,
-   documentation, compatibility, security, or workflow gate fails. Sprint 80
-   signs off only the bounded ordinary-DL core; SmolVLA remains **BLOCKED** and
-   non-gating. Former 95% core / 90% overall theory-row thresholds are
-   portfolio-health metrics, not release gates.
+6. The audited `1.0.0` publication gates passed. Stop before any future
+   stable publication if a supported diagnostic, packaging, documentation,
+   compatibility, security, or workflow gate fails. Sprint 80 signs off only
+   the bounded ordinary-DL core; SmolVLA remains **BLOCKED** and non-gating.
+   Former 95% core / 90% overall theory-row thresholds are portfolio-health
+   metrics, not release gates.
 
 The [Sprint 80 evidence report](SPRINT_80_DEPTH_EVIDENCE.md) and
 [M14 stop-before-release contract](M14_REAL_SYSTEM_VALIDATION.md) remain
-authoritative for release readiness. This guide does not claim that the
-candidate has passed those gates.
+authoritative for the release's bounded evidence scope. The published package
+does not claim arbitrary-model coverage, general VLA support, or GPU/CUDA readiness.

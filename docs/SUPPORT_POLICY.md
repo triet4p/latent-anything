@@ -1,16 +1,16 @@
 # Support, versioning, and migration policy
 
-**Status:** This is the proposed user-facing policy for the unpublished `1.0.0` candidate. The stable `1.x` commitments below take effect only after the audited `1.0.0` release gates pass and a `1.0.0` distribution is actually published. Until then, `0.9.0` remains the latest published package; candidate metadata and documentation are not a released support promise.
+**Status:** Current user-facing policy for the published `1.0.0` release. The audited release gates passed and the `1.0.0` distribution was published on 2026-09-26; the stable `1.x` commitments below are in effect. `0.9.0` remains the prior pre-stable release and has no retroactive `1.x` compatibility guarantee.
 
 ## Supported scope
 
-After `1.0.0` is released, compatibility commitments apply to the canonical-stable public API recorded in the [candidate API snapshot](../artifacts/api_freeze_snapshot_1.0.0.json), the documented plugin API, and the explicitly supported serialized formats below. The snapshot is the inventory; the [API reference](API_REFERENCE.md) and [compatibility ledger](API_COMPATIBILITY.md) explain its public boundaries and aliases. An export not marked canonical-stable, an internal module, or a provider SDK object is not made public API by appearing in source code.
+Compatibility commitments apply to the canonical-stable public API recorded in the [published `1.0.0` API snapshot](../artifacts/api_freeze_snapshot_1.0.0.json), the documented plugin API, and the explicitly supported serialized formats below. The snapshot is the inventory; the [API reference](API_REFERENCE.md) and [compatibility ledger](API_COMPATIBILITY.md) explain its public boundaries and aliases. An export not marked canonical-stable, an internal module, or a provider SDK object is not made public API merely by appearing in source code.
 
 The package declares Python `>=3.12,<3.15`; the CI workflow exercises Python 3.12, 3.13, and 3.14 on Ubuntu. Required dependency ranges, optional extras, and resolver conflicts are defined by [`pyproject.toml`](../pyproject.toml). These bounds do not mean that every dependency version or optional-extra combination has been tested: support is limited to the individual extras and combinations documented by the integration guides and CI/evidence. Resolver success alone does not establish compatibility. The repository's [`uv.lock`](../uv.lock) pins the project validation environment and is not a promise that downstream applications resolve identical transitive versions.
 
 The 1.0 diagnostic claim is limited to the accepted ordinary-DL encoder and transformer cases and the separately gated transformer stability supplement in the [Sprint 80 evidence report](SPRINT_80_DEPTH_EVIDENCE.md). It does not promise arbitrary-model or arbitrary-dataset diagnosis. SmolVLA remains **BLOCKED** and non-gating; broad VLA support and GPU/CUDA readiness are excluded. Optional extras, a pinned model identifier, or an implementation seam do not independently establish model-quality or hardware support.
 
-The project makes no fixed calendar end-of-life promise for a major line. Once a stable line is released, compatibility applies across that major line; bug-fix and security releases target the latest patch of the current major line. Backports to `0.9.0`, older patch releases, or earlier major lines are not promised. Users should upgrade to the latest published patch. Any later end-of-support decision must be stated in a published release notice; this candidate does not set an end date.
+The project makes no fixed calendar end-of-life promise for a major line. Compatibility applies across the stable major line; bug-fix and security releases target the latest patch of the current major line. Backports to `0.9.0`, older patch releases, or earlier major lines are not promised. Users should upgrade to the latest published patch. Any later end-of-support decision must be stated in a published release notice; this policy sets no fixed end date.
 
 ## Semantic versioning
 
@@ -22,7 +22,7 @@ The package version follows [Semantic Versioning 2.0.0](https://semver.org/spec/
 | `MINOR` (`1.Y.0`) | Backward-compatible public additions and capabilities. Existing supported APIs, plugin contracts, and readable artifact versions remain usable. |
 | `PATCH` (`1.Y.Z`) | Backward-compatible bug fixes and security fixes. Do not remove public APIs or supported readers in a patch. |
 
-The `0.9.0` pre-1.0 release does not receive a retroactive `1.x` compatibility guarantee. The working-tree `1.0.0` candidate is not itself a stable release, and no version tag, package upload, or publication is authorized until every release gate and external prerequisite passes. The [release-gate record](release-gates.json), [Sprint 80 evidence](SPRINT_80_DEPTH_EVIDENCE.md), and [M14 stop-before-release contract](M14_REAL_SYSTEM_VALIDATION.md) remain authoritative for that decision.
+The `0.9.0` pre-1.0 release does not receive a retroactive `1.x` compatibility guarantee. Published `1.0.0` is the first stable release, and the 1.x commitments in this policy apply from that release. The [release-gate record](release-gates.json), [Sprint 80 evidence](SPRINT_80_DEPTH_EVIDENCE.md), and [M14 stop-before-release contract](M14_REAL_SYSTEM_VALIDATION.md) remain authoritative for the release evidence and bounded support scope.
 
 ## Deprecation and removal
 
