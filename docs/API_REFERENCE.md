@@ -9,10 +9,16 @@ artifacts/api_freeze_snapshot_1.0.0.json
 The historical beta surface is preserved unchanged in
 `artifacts/api_freeze_snapshot_0.1.0b1.json` and must not be rewritten.
 
-The checked-in snapshot describes the current `1.0.0` candidate source tree; it
-is not a published API contract because the candidate has not been built or
-released. The already-published `0.9.0` distribution had 205 runtime exports,
-a 202-entry canonical-stable projection, 7 public exceptions, and digest
+The checked-in snapshot records the public API at release commit
+[`a449ca33b4b83ce109c29db7cf471919820b1d56`](https://github.com/triet4p/latent-anything/commit/a449ca33b4b83ce109c29db7cf471919820b1d56).
+That commit was published on 2026-09-26 under the protected
+[`v1.0.0` tag](https://github.com/triet4p/latent-anything/tree/v1.0.0), as the
+[GitHub Release](https://github.com/triet4p/latent-anything/releases/tag/v1.0.0)
+and [PyPI 1.0.0 package](https://pypi.org/project/latent-anything/1.0.0/).
+This release-commit API snapshot does not imply that the later current `main`
+tree, including post-release documentation changes, is the tagged release tree.
+The already-published `0.9.0` distribution had 205 runtime exports, a 202-entry
+canonical-stable projection, 7 public exceptions, and digest
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
 repository-root `CHANGELOG.md` preserves that historical release record.
 
@@ -114,7 +120,7 @@ infer a new contract from an implementation detail.
 ## Explicitly non-API inventory
 
 SAM, OpenCLIP, timm, Torchvision model adapters, Open3D, trimesh, and an
-unnamed 3DGS checkpoint are not part of the candidate's supported diagnostic
+unnamed 3DGS checkpoint are not part of the published `1.0.0` diagnostic
 claim. A compact fixture or historical artifact does not establish support for
 arbitrary real checkpoints, hosted providers, CUDA, or model quality.
 Diffusers, Transformers, gsplat, LeRobot, MLflow, W&B, Plotly/Kaleido, and

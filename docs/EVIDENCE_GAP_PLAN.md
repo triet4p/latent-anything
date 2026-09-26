@@ -33,7 +33,7 @@ diagnosis-depth gaps carry into Sprint 80; the remaining breadth rows move to
 the post-1.0 research backlog. Sprint 80 is the depth gate; Sprint 81 owns
 stable publication.
 
-### Sprint 81 / 1.0.0 candidate boundary
+### Sprint 81 / 1.0.0 release boundary
 
 The theory-row percentages and former breadth thresholds above describe portfolio
 coverage only; they are not 1.0.0 release gates and do not measure diagnostic
@@ -41,9 +41,18 @@ quality. The final Sprint 80 review signs off the bounded ordinary-DL encoder
 v3 and transformer target-evidence-v2 cases plus their separate stability
 supplement, as recorded in the [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md).
 SmolVLA remains an explicitly blocked, non-gating secondary lane; broad VLA,
-GPU/CUDA, arbitrary-model, and dataset support are not claimed. The working-tree
-`1.0.0` package metadata and API snapshot identify an unpublished candidate,
-not a release or a theory-coverage promotion.
+GPU/CUDA, arbitrary-model, and dataset support are not claimed. The published
+[`v1.0.0` tag](https://github.com/triet4p/latent-anything/tree/v1.0.0) points
+to release commit
+[`a449ca33b4b83ce109c29db7cf471919820b1d56`](https://github.com/triet4p/latent-anything/commit/a449ca33b4b83ce109c29db7cf471919820b1d56),
+published on 2026-09-26 as the
+[GitHub Release](https://github.com/triet4p/latent-anything/releases/tag/v1.0.0)
+and [PyPI 1.0.0 package](https://pypi.org/project/latent-anything/1.0.0/).
+The API snapshot
+[`api_freeze_snapshot_1.0.0.json`](../artifacts/api_freeze_snapshot_1.0.0.json)
+records the release-commit API; this later main-branch evidence plan is not
+represented as part of the tagged source tree. Publication did not alter the
+`0.9.0` evidence baseline or promote theory-coverage rows.
 
 ### Sprint 79 L02 partial result
 

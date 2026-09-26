@@ -54,3 +54,81 @@ No external prerequisite status was changed. No tag, push, build, upload, workfl
 2. Sprint 81 Task 4 clean wheel/sdist and base/optional-extra installation checks remain pending and were not run here.
 3. Before Task 5 dispatches the actual `v1.0.0` release workflow, the changelog needs a dated `## [1.0.0] - <actual release date>` section for `scripts/extract_release_notes.py`. The current `[Unreleased]` candidate entry and draft release-notes page intentionally do not invent that date; the extraction failure above is observed and must be resolved at the actual publication boundary.
 4. The graph's one source-less `parametrize` code node and the historical stale review-title retrieval are noted above; neither was rewritten as unrelated source history.
+
+## Post-publication correction (2026-09-27)
+
+This addendum follows the original candidate-stage handoff. The earlier
+outcome, file list, verification, and open findings remain unchanged as the
+pre-publication account; the status below supersedes historical
+release-boundary findings where publication and post-release checks have
+since resolved them.
+
+The three publication-boundary findings in the earlier open-findings list are
+now resolved: the [Task 5 handoff](task-5.md) records the protected tag,
+GitHub Release, and first PyPI OIDC publication; the [Task 4 handoff](task-4.md)
+records completed clean build/install checks; and `CHANGELOG.md` now contains
+the dated `## [1.0.0] - 2026-09-26` section. Their pending states remain only
+as pre-publication history. Task 3 remains `[~]` pending Main's evidence review.
+
+The three mutable Task 3 documents now identify the published `1.0.0` release
+and link its protected `v1.0.0` tag, release commit
+[`a449ca33b4b83ce109c29db7cf471919820b1d56`](https://github.com/triet4p/latent-anything/commit/a449ca33b4b83ce109c29db7cf471919820b1d56),
+[GitHub Release](https://github.com/triet4p/latent-anything/releases/tag/v1.0.0),
+and [PyPI 1.0.0 version page](https://pypi.org/project/latent-anything/1.0.0/).
+The API snapshot is described as the release-commit API contract, distinct from
+the later current `main` tree. Historical `0.9.0` baseline facts remain, and
+the supported evidence scope remains limited to the signed-off ordinary-DL
+encoder v3 and transformer target-evidence-v2 cases plus the separate
+stability supplement. SmolVLA remains **BLOCKED** and non-gating; no broad
+VLA, GPU/CUDA, arbitrary-model, or dataset-support claim was added.
+
+## Corrected files
+
+- `docs/API_REFERENCE.md`
+- `docs/API_COMPATIBILITY.md`
+- `docs/EVIDENCE_GAP_PLAN.md`
+- `artifacts/sprint-81/task-3.md` (this addendum)
+
+The `v1.0.0` tag, release assets, immutable `docs-v1.0.0-r1` snapshot, API
+snapshot JSON, and Main-owned Sprint 81 plan checkbox were not changed.
+
+## Focused verification
+
+- The live [GitHub Release](https://github.com/triet4p/latent-anything/releases/tag/v1.0.0)
+  identifies version `1.0.0`, date `2026-09-26`, tag `v1.0.0`, and release
+  commit `a449ca33b4b83ce109c29db7cf471919820b1d56`.
+- The live [PyPI JSON metadata](https://pypi.org/pypi/latent-anything/1.0.0/json)
+  returned package version `1.0.0` and both published distributions: wheel
+  SHA-256 `3f7081d4cb8994c6a719d85d51a3c0ccff76171673c5a1dc33737d7770b408ea`
+  (635,199 bytes) and sdist SHA-256
+  `36b6b3950fd791cf9ffa5eeac79050c5052d5b9902d1c98a9a2b7a6d38e8e3a9`
+  (886,293 bytes). These match the release notes' stated asset digests.
+- A scoped Markdown-link audit across the three docs and this handoff resolved
+  all **58 relative targets**. The docs contain their release commit, protected
+  tag, GitHub Release, and PyPI version-page references; no current-source
+  unpublished-`1.0.0` claim remains. The historical `0.9.0` inventory counts
+  and digest remain in the API reference and compatibility ledger.
+- Focused query `graphify query "Task 3 mutable API and evidence documents are
+  reconciled to the published v1.0.0 release" --budget 350` exited 0 and
+  retrieved that semantic node from this handoff at `L73`.
+
+## Graph update
+
+- Scoped Graphify Markdown extraction covered exactly these three docs and this
+  handoff: **45 structural nodes / 56 edges**. The merged graph changed from
+  **16,758 nodes / 39,373 edges / 37 hyperedges** to **16,763 / 39,379 / 37**.
+  All **16,703 unrelated node IDs** were preserved; four inline semantic facts
+  were added/replaced; communities were retained without reclustering. The
+  manifest was restamped for these four sources only.
+- `graphify diagnose multigraph --json` reported zero missing/dangling
+  endpoints, self-loops, exact duplicate edges, or same-endpoint collapses.
+  One unverified code node remains: `π0 (Pi0)` from
+  `latent-anything-theory/10-world-models-vla/research/07-pi0.md`, outside the
+  four refreshed sources.
+
+## Open findings / blockers
+
+- Task 3 remains `[~]` pending Main's evidence review; this addendum does not
+  change the Main-owned Sprint 81 plan checkbox.
+- Graphify's single unverified code node is noted above. The diagnostic found
+  no graph-integrity failures in the refreshed graph.
