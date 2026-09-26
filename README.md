@@ -39,15 +39,21 @@ rollout story, not a LeRobot or real-model throughput claim. Sprint 76
 tracking evidence is local/offline only; it does not claim hosted tracking,
 remote servers, or team workflows.
 
-The published `0.9.0` package remains pre-1.0 and follows the `0.x` compatibility
-expectation. Sprint 81's package metadata targets `1.0.0`, but this candidate
-has not been tagged or released. Its diagnostic claim is limited to the two
-accepted ordinary-DL cases and separate stability supplement in
+The published `0.9.0` package remains pre-1.0 and follows the `0.x` compatibility expectation.
+
+Sprint 81's package metadata targets `1.0.0`, but this candidate has not been
+tagged or released. Its diagnostic claim is limited to the two accepted
+ordinary-DL cases and separate stability supplement in
 [`docs/SPRINT_80_DEPTH_EVIDENCE.md`](docs/SPRINT_80_DEPTH_EVIDENCE.md); this is
 not broad VLA, GPU/CUDA, or arbitrary-model support. The stable-tag ruleset is
-active and verified; the owner-managed App token proof and PyPI first-upload
-bootstrap remain pending. Task 4's clean package build and installation checks
-are complete.
+active and the owner-managed App-token proof passed in default-branch workflow
+run [36247385348](https://github.com/triet4p/latent-anything/actions/runs/36247385348)
+on commit `f87726950d5ae59d4287677f026c39e56baef236`. Push-triggered CI run
+[36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
+passed its Python 3.12/3.13/3.14 matrix on that exact commit. The pending
+changelog/documentation commit still requires green CI for its own SHA before
+release. The PyPI first upload remains pending. Task 4's clean package build
+and installation checks are complete.
 
 Registry configs use `adapter`, `analysis`, and `intervention` kinds. The beta
 `method_a` and `method_b` spellings remain deprecated warning aliases. The
@@ -143,11 +149,13 @@ Representative scripts live in `scripts/`, including:
 
 The audited release workflow runs the readiness preflight, strict documentation,
 quality, test, and package checks before its dedicated job creates the stable
-tag. It is dispatched from `main` with the exact `v1.0.0` candidate tag; direct
-tag pushes do not trigger publication. The active stable-tag ruleset and the
-PyPI Trusted Publisher configuration are verified, but the owner-managed App
-token proof and PyPI first upload remain pending. This checkout is not
-authorized to create the tag or publish a release.
+tag. The initial candidate commit's push-triggered CI run
+[36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
+passed the Python 3.12/3.13/3.14 matrix on `f87726950d5ae59d4287677f026c39e56baef236`.
+The App-token proof and PyPI Trusted Publisher configuration are verified, but
+the first upload remains pending. The final changelog/documentation commit has
+a new SHA and must pass its own exact-commit CI plus all guarded release-workflow
+checks before a tag or upload is authorized.
 
 The only published package release remains `v0.9.0`, available from the
 [GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).

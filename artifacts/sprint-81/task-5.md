@@ -419,3 +419,92 @@ remains forbidden until both remote proofs pass.
   hard-break spaces. No source, test, release-workflow, or other documentation
   whitespace issue remains. The staged candidate has not yet been committed
   or pushed.
+
+## Pushed candidate and App proof checkpoint (2026-09-26)
+
+- Commit `f87726950d5ae59d4287677f026c39e56baef236` committed 218 audited
+  files (`+32,211 / -785`) and pushed successfully to `origin/main` as a normal
+  fast-forward from `24850717`; no force push was used.
+- Push-triggered CI run
+  [36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
+  is for exact head SHA `f87726950d5ae59d4287677f026c39e56baef236`. It was still
+  `in_progress` when this checkpoint was written; no CI pass is claimed yet.
+- Safe proof run
+  [36247385348](https://github.com/triet4p/latent-anything/actions/runs/36247385348)
+  completed `success` on `main`, event `workflow_dispatch`, head SHA
+  `f87726950d5ae59d4287677f026c39e56baef236` (job completed
+  2026-09-26T14:06:48Z). Logs verified App ID `5083983` /
+  `latent-anything-release-bot`, the selected `triet4p` installation,
+  `contents: write`, and an installation token scoped to exactly
+  `triet4p/latent-anything`; the run performed no repository write or release
+  operation. Secret and token values were masked and not emitted.
+- `docs/release-gates.json` now marks the App-token proof ready with that run
+  evidence; the pending PyPI first-upload bootstrap remains separately
+  recorded. README, release notes, PLAN, and M14 now reflect the verified App
+  proof. These documentation/gate changes are not yet committed.
+- The App-token action log emitted a nonblocking deprecation warning for its
+  `app-id` input (`client-id` is recommended). No workflow change was made on
+  the basis of that warning. There has still been no release-workflow dispatch,
+  tag, GitHub Release, or PyPI upload.
+
+### Post-proof documentation checkpoint
+
+- After changing the App gate to `ready`, `uv run --locked --no-sync python
+  scripts/check_release_readiness.py` passed for the signed-off bounded
+  ordinary-DL core. The release job's CI/package checks still remain required.
+- A second `uv run --locked --no-sync mkdocs build --strict` after updating
+  README, PLAN, M14, release notes, and the Sprint 81 plan succeeded; MkDocs
+  reported a 24.32-second build with only its nonblocking MkDocs 2.0 warning.
+- The Sprint 81 plan now records the successful App proof and keeps Task 5
+  `[~]` pending Main review. The push-triggered exact candidate CI run
+  36247369268 had no observed green conclusion at this checkpoint. No release
+  dispatch, tag, GitHub Release, or PyPI upload occurred.
+
+### External configuration recheck
+
+- GitHub API revalidated ruleset `24036634`: active `refs/tags/v*`
+  creation/update/deletion/non-fast-forward rules, with only App integration
+  `5083983` as `always` bypass.
+- PyPI GitHub environment `pypi` (`22803163260`) remains restricted to branch
+  `main`, requires reviewer `triet4p`, has `can_admins_bypass=false`, and has
+  no environment secrets. The repository-level secret listing exposes only
+  the required names; secret values were not read.
+- PyPI's project JSON endpoint still returns HTTP 404 before the first OIDC
+  upload, consistent with the verified Trusted Publisher configuration and
+  expected first-project bootstrap. No upload has occurred.
+
+## Candidate CI and release-preparation checkpoint (2026-09-26)
+
+- Push-triggered CI run
+  [36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
+  completed successfully for exact commit
+  `f87726950d5ae59d4287677f026c39e56baef236` (event `push`, branch `main`).
+  The Python 3.12, 3.13, and 3.14 matrix jobs all passed GPT-2 proof-input
+  download, evidence-ledger validation, Ruff, format, Pyright, and Pytest.
+- `CHANGELOG.md` now has a dated `1.0.0` section. The release-note extraction
+  smoke
+  `uv run --locked --no-sync python scripts/extract_release_notes.py v1.0.0 --body-file .gh-pages-build/release-body-preview.md`
+  succeeded with version `1.0.0`, expected title, `prerelease=false`, and the
+  generated body at the requested path.
+- The README, PLAN, M14 validation contract, release notes, and Sprint 81 plan
+  record the successful App proof and initial candidate CI while explicitly
+  stating that the subsequent changelog/documentation commit still needs
+  exact-SHA CI. Task 5 remains `[~]`.
+- `uv run --locked --no-sync mkdocs build --strict` passed after these
+  documentation changes (28.42 seconds); only the existing informational
+  Material-for-MkDocs warning was emitted.
+- CI annotations reported Node.js 20 deprecation for existing actions and the
+  planned `ubuntu-latest` migration; all jobs nevertheless concluded success.
+- No release workflow was dispatched; no `v1.0.0` tag, GitHub Release, or
+  PyPI upload has occurred. The release remains blocked until the final
+  changelog/documentation commit is pushed and its exact-SHA CI plus guarded
+  release-workflow gates pass.
+- `graphify update .` completed in 139.89 seconds with a code-only/no-LLM
+  refresh: 16,693 nodes, 39,278 edges, 1,097 communities, and 2,103
+  cross-community edges. `graph.json`, `graph.html`, and `GRAPH_REPORT.md`
+  were updated.
+- Graphify reported 341 inputs with zero extracted nodes and noted community
+  labels need refresh (1,091 saved labels versus 1,097 current communities).
+  It requested `graphify label` for labels and a separate semantic update for
+  document changes. Those operations were not run; this result is the code
+  graph refresh only, not semantic-document extraction.

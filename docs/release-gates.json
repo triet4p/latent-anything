@@ -35,16 +35,16 @@
         "bypass_mode": "always"
       }
     },
-    "verification": "Keep pending until the owner-managed app is installed only on this repository with both secrets set, the active refs/tags/v* creation/update/deletion/non_fast_forward ruleset binds its Integration ID, and a nonpublishing default-branch run validates token minting, actor identity, repository scope, and contents:write."
+    "verification": "Verified 2026-09-26: owner-managed App ID 5083983 is installed only on this repository; the active refs/tags/v* creation/update/deletion/non_fast_forward ruleset binds its Integration ID; both required secret names are present by metadata only. Default-branch nonpublishing proof run 36247385348 passed on commit f87726950d5ae59d4287677f026c39e56baef236."
   },
   "external_prerequisites": {
     "release-tag-ruleset": {
       "status": "ready",
-      "evidence": "Authenticated 2026-09-26 API verified active ruleset 24036634 for refs/tags/v* with creation/update/deletion/non_fast_forward, sole Integration bypass actor 5083983 (always), and current_user_can_bypass never. Secret names are present by metadata only. A separate nonpublishing default-branch run has not validated the App token; see release-app-token-proof."
+      "evidence": "Authenticated 2026-09-26 API verified active ruleset 24036634 for refs/tags/v* with creation/update/deletion/non_fast_forward, sole Integration bypass actor 5083983 (always), and current_user_can_bypass never. Both required secret names are present by metadata only. Default-branch nonpublishing App-token proof run 36247385348 passed on f87726950d5ae59d4287677f026c39e56baef236; see release-app-token-proof."
     },
     "release-app-token-proof": {
-      "status": "pending",
-      "evidence": "Secret metadata exists, but App token minting and repository contents:write scope are unverified."
+      "status": "ready",
+      "evidence": "Default-branch workflow_dispatch run 36247385348 on commit f87726950d5ae59d4287677f026c39e56baef236 succeeded. Logs verified App ID 5083983 / latent-anything-release-bot, the selected installation for triet4p, contents:write, and an installation token scoped to exactly triet4p/latent-anything. The run performed no repository write, tag, or release operation; no credential value was logged."
     },
     "pypi-trusted-publisher": {
       "status": "pending",

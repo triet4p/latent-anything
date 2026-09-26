@@ -31,4 +31,14 @@ The theory-row percentages and former breadth thresholds are portfolio-coverage 
 
 ## Publication status
 
-The stable-tag ruleset is active and verified. The owner-managed App token proof and PyPI Trusted Publisher first-upload bootstrap remain pending. Sprint 81 Task 4 completed the clean wheel/sdist build and clean base/optional-extra installation checks. Other release-quality and workflow gates remain separate from the Sprint 80 depth PASS. Do not tag or publish this candidate until the audited release process verifies every prerequisite and gate.
+The stable-tag ruleset is active and verified. The owner-managed App-token
+proof passed in default-branch workflow-dispatch run [36247385348](https://github.com/triet4p/latent-anything/actions/runs/36247385348)
+on commit `f87726950d5ae59d4287677f026c39e56baef236`; the run was nonpublishing
+and verified the single-repository `contents: write` grant. Push-triggered
+candidate CI run [36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
+passed all Python 3.12/3.13/3.14 jobs on that exact commit. The changelog/docs
+preparation commit will have a new SHA and must pass its own exact-commit CI
+before release dispatch. The PyPI Trusted Publisher configuration is verified,
+but the first upload and project creation remain pending. Sprint 81 Task 4
+completed the clean wheel/sdist build and clean base/optional-extra installation
+checks. The audited release workflow still must pass every gate.

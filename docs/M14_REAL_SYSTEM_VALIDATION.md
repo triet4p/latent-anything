@@ -91,13 +91,16 @@ chain.
     sole `Integration` bypass actor id 5083983 with `bypass_mode: always`,
     `current_user_can_bypass: never`). Both App secret names are present by
     metadata only; their values remain unreadable by API design.
-    `release-app-token-proof` remains pending: no nonpublishing default-branch
-    run has verified token minting, actor identity, repository scope, or
-    `contents: write`. The branch-scoped diagnostic was removed after dispatch
-    returned HTTP 404 because GitHub resolves dispatchable workflows from the
-    default branch only. No release workflow dispatch, tag, upload, or
-    publication occurred. The preflight now blocks until a nonpublishing
-    default-branch validation run establishes the App-token proof.
+    `release-app-token-proof` passed in default-branch workflow-dispatch run
+    36247385348 on commit `f87726950d5ae59d4287677f026c39e56baef236`. Its logs
+    verified the owner App identity 5083983, selected installation,
+    `contents: write` permission, and a token scoped only to
+    `triet4p/latent-anything`. The run performed no repository write or release
+    operation. No release workflow dispatch, tag, upload, or publication has
+    occurred. Push-triggered CI run 36247369268 passed all matrix jobs for
+    Python 3.12, 3.13, and 3.14 on that exact commit. The pending
+    changelog/documentation update creates a new candidate SHA; its exact-SHA
+    CI and the guarded workflow gates must pass before release dispatch.
     See [GitHub App registration](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app),
     [installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app),
     and [repository rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository).

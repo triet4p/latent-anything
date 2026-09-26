@@ -11,37 +11,40 @@ Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 `v0.9.0` release-time snapshot recorded 205 runtime exports / 202
 canonical-stable names / 7 public exceptions (SHA-256
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`).
-Those values are historical, not the current source inventory. The checked-in
-1.0.0 candidate API-freeze snapshot now records 214 runtime exports / 211
-canonical-stable names / 8 public exceptions (SHA-256
+Those values are historical, not the current source inventory.
+
+The checked-in 1.0.0 candidate API-freeze snapshot records 214 runtime exports
+/ 211 canonical-stable names / 8 public exceptions (SHA-256
 `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`).
 Neither inventory alone is a release-readiness claim. The working-tree package
-metadata is now `1.0.0` for the unpublished Sprint 81 candidate. Any clean
-builds or installation checks are validation only; no `1.0.0` tag or
+metadata is `1.0.0` for the unpublished Sprint 81 candidate; no `1.0.0` tag or
 publication exists. The verified `v0.9.0` tag and GitHub Release remain the
 only published package distribution; PyPI publication was deferred for
-`0.9.0`. The `1.0.0` candidate is not release-authorized until the audited
-workflow itself runs: the active stable-tag ruleset is verified
+`0.9.0`. The stable-tag ruleset is verified
 (`id 24036634`, `target: tag`, `refs/tags/v*`,
 `creation`+`update`+`deletion`+`non_fast_forward`,
 `Integration` bypass actor id 5083983, `bypass_mode: always`,
-`enforcement: active`, `current_user_can_bypass: never`; re-verified 2026-09-26).
-The tag job is wired to mint a repository-scoped installation token from the
-owner-managed GitHub App, but only the `RELEASE_APP_ID` and
-`RELEASE_APP_PRIVATE_KEY` secret metadata are observable. The
-`release-app-token-proof` prerequisite remains pending: the temporary
-nonpublishing diagnostic was placed on a non-default branch, and GitHub
-returned HTTP 404 because dispatchable workflows must exist on the default
-branch. No token minting, actor identity, repository `contents: write` scope,
-or App-backed tag push has been observed. The release preflight now blocks
-until a nonpublishing default-branch run verifies those claims.
+`enforcement: active`, `current_user_can_bypass: never`; re-verified
+2026-09-26).
 
-The matching pending PyPI Trusted Publisher configuration is verified and its
-HTTP 404 is expected before the first upload; it does not establish an active
-PyPI project or authorize release by itself. Sprint 81 task 8 is complete
-(owner-approved reorder, Review81Task8 PASS) and no longer blocks readiness;
-task 4 is complete and task 5 remains in progress. Sprint 79 task 604 is
-complete; Sprint 80 and Sprint 81 remain in scope.
+The owner-managed App-token proof passed in default-branch workflow-dispatch
+run 36247385348 on commit
+`f87726950d5ae59d4287677f026c39e56baef236`. The successful logs verified App
+ID 5083983, the selected installation, `contents: write`, and a token scoped
+only to `triet4p/latent-anything`; no repository write or release operation
+was performed. The App secret names are observable by metadata only; their
+values were not read. Push-triggered CI run 36247369268 also passed all Python
+3.12/3.13/3.14 jobs on that exact commit.
+
+The matching pending PyPI Trusted Publisher configuration is verified and
+its HTTP 404 is expected before the first upload; it does not establish an
+active PyPI project or authorize release by itself. Changelog/documentation
+updates for release preparation create a new candidate commit, whose exact-SHA
+CI must pass before the audited release workflow is dispatched. The release
+workflow's own gates remain required. Sprint 81 task 8 is complete
+(owner-approved reorder, Review81Task8 PASS); task 4 is complete and task 5
+remains in progress. Sprint 79 task 604 is complete; Sprint 80 and Sprint 81
+remain in scope.
 
 ## Definition of Stable
 

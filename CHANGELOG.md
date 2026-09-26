@@ -2,47 +2,53 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-26
+
+### Release Summary
+
+Version `1.0.0` defines the initial stable compatibility contract and a narrowly
+bounded ordinary-DL diagnostic claim. It does not claim arbitrary-model,
+broad VLA, GPU/CUDA, or deployment readiness.
+
 ### Added
 
-- The unpublished 1.0.0 candidate source API freeze records 214 runtime
-  top-level exports (211 canonical-stable), 28 config schemas, 89 public
-  dataclass/result schemas, and 8 public exceptions. Its SHA-256 is
+- The `1.0.0` API freeze records 214 runtime top-level exports (211
+  canonical-stable), 28 config schemas, 89 public dataclass/result schemas,
+  and 8 public exceptions. Its SHA-256 is
   `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`.
-  This describes the candidate source tree, not the already-published `0.9.0`
-  distribution, whose release-time snapshot remains at 205 runtime top-level
-  exports, 202 canonical-stable entries, 7 public exceptions, and SHA-256
-  `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
-  nine reviewed Sprint 80.6 diagnostic request/result types are in the
-  candidate source surface; the historical `0.1.0-beta.1` freeze remains
+  The published `0.9.0` distribution's release-time snapshot remains at 205
+  runtime top-level exports, 202 canonical-stable entries, 7 public exceptions,
+  and SHA-256
+  `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`.
+  The nine reviewed Sprint 80.6 diagnostic request/result types are in the
+  `1.0.0` source surface; the historical `0.1.0-beta.1` freeze remains
   unchanged.
-
 - Added versioned `diagnostic-evidence-v2` target provenance, binding evaluated
   labels and exact sample/split/rule metadata separately from truthful
   activation capture axes while keeping legacy v1 fail-closed.
-
-- Drafted [1.0.0 release notes](docs/RELEASE_NOTES_1.0.0.md), explicitly
-  marked unpublished and limited to the bounded ordinary-DL evidence.
+- Prepared [1.0.0 release notes](docs/RELEASE_NOTES_1.0.0.md), limited to the
+  bounded ordinary-DL evidence.
 
 ### Changed
 
-- Set the working-tree package metadata to `1.0.0` for an unpublished Sprint 81
-  candidate. No stable tag or distribution has been created; `0.9.0` remains
-  the latest published package.
+- Set the working-tree package metadata to `1.0.0` for the Sprint 81 stable
+  release.
 - Kept all 18 beta compatibility aliases and committed to retaining them
   throughout the 1.x line. Any removal requires a separately reviewed
-  major-version migration; the candidate does not schedule an alias removal.
-- Updated the release workflow's candidate asset/version contract to `1.0.0`;
-  publication remains blocked by the release gates and external prerequisites.
+  major-version migration; no alias removal is scheduled for 1.x.
+- Updated the release workflow's asset/version contract to `1.0.0`.
 
 ### Fixed
+
 - Axial-localization results now serialize each validated per-axis status, so
   supported checkpoint identity remains available to probe and SAE explainers.
 - Confidence inputs reject boolean values, and invalid SAE feature-explanation
   contexts now raise `ExplanationError` instead of leaking an attribute error.
-- Shared explanation hypotheses now serialize their declared target identity, preserving target binding in explanation evidence.
-- Intervention trials can now measure predeclared downstream task metrics outside
-  detector selection when a metric is a requested comparison's task role; reports
-  verify that binding and render supported locations.
+- Shared explanation hypotheses now serialize their declared target identity,
+  preserving target binding in explanation evidence.
+- Intervention trials can now measure predeclared downstream task metrics
+  outside detector selection when a metric is a requested comparison's task
+  role; reports verify that binding and render supported locations.
 
 ## [0.9.0] - 2026-09-17
 
