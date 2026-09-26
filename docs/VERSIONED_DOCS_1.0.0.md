@@ -40,6 +40,16 @@ The archive contains identifiers, revisions, hashes, license declarations, sourc
 This versioned record is maintained in the repository and is content-hash-verifiable
 through the machine-readable archive. It is a post-release documentation
 companion, not an edit to the release tag or its five package assets.
+The corrected immutable source snapshot is the annotated
+[docs-v1.0.0-r1 tag](https://github.com/triet4p/latent-anything/tree/docs-v1.0.0-r1).
+It supersedes the unchanged [docs-v1.0.0 tag](https://github.com/triet4p/latent-anything/tree/docs-v1.0.0),
+whose archive recorded the SmolVLA v1 manifest's Windows CRLF checkout bytes
+instead of the pinned release commit's canonical LF bytes. The corrected archive
+records the exact 5,068-byte manifest from release commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56` (SHA-256
+`285f540624b389ca274425ef264ca4bbc91be7bad38521879cfc9c27dd2d5ddf`); the
+prior checkout-form digest was `4961f5f8d764314d12d92a5f9712cdf3c7b0e27d0283b51d137f579b4298a73f`
+for 5,212 bytes.
 The live [GitHub Pages site](https://triet4p.github.io/latent-anything/) is the
 separate Latent-Anything Theory site; `mkdocs.yml` sets
 `docs_dir: latent-anything-theory`. The deployment workflow publishes that

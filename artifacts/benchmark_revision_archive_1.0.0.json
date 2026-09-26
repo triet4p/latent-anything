@@ -2,6 +2,7 @@
   "schema_version": "latent-anything-release-input-revision-archive-v1",
   "archive_id": "latent-anything-v1.0.0-benchmark-model-dataset-revisions",
   "recorded_at": "2026-09-27",
+  "manifest_digest_basis": "Manifest SHA-256 values and byte sizes describe canonical Git blob bytes at each pinned release commit, before checkout line-ending conversion.",
   "package_version": "1.0.0",
   "release": {
     "tag": "v1.0.0",
@@ -12,13 +13,21 @@
     "tag_modified_by_this_archive": false,
     "documentation_record": {
       "path": "docs/VERSIONED_DOCS_1.0.0.md",
-      "sha256": "391cfc7ca61635483fcd6c1fb7b923bb63ce5ee31dc74019e2cc9a931cbf852d",
+      "sha256": "f92766f5fda3998559d58247bde9a75bd86b07479648f1c8bea9c809d0df8e28",
       "status": "post-release-companion; not part of the protected release tag"
     },
     "public_documentation_site": {
       "status": "not-published",
       "existing_pages_url": "https://triet4p.github.io/latent-anything/",
       "blocker": "The configured MkDocs site uses `docs_dir: latent-anything-theory`; its workflow deploys that site on `theory-v*` tags and supports manual dispatch. Neither path publishes root package docs, and no versioned 1.0.0 package-docs deployment exists."
+    },
+    "public_source_snapshot": {
+      "status": "published-on-annotated-tag",
+      "tag": "docs-v1.0.0-r1",
+      "tag_url": "https://github.com/triet4p/latent-anything/tree/docs-v1.0.0-r1",
+      "supersedes_tag": "docs-v1.0.0",
+      "companion_raw_url": "https://raw.githubusercontent.com/triet4p/latent-anything/docs-v1.0.0-r1/docs/VERSIONED_DOCS_1.0.0.md",
+      "revision_archive_raw_url": "https://raw.githubusercontent.com/triet4p/latent-anything/docs-v1.0.0-r1/artifacts/benchmark_revision_archive_1.0.0.json"
     }
   },
   "redistribution": {
@@ -172,8 +181,8 @@
         "release_commit": "a449ca33b4b83ce109c29db7cf471919820b1d56",
         "url": "https://github.com/triet4p/latent-anything/blob/a449ca33b4b83ce109c29db7cf471919820b1d56/artifacts/benchmark_manifest_sprint80_smolvla_secondary_v1.json",
         "canonical_commitment_sha256": "cb45b0e90c8a30def0a34294a9e19665bf9204f262a346d608a70712549df8bc",
-        "manifest_file_sha256": "4961f5f8d764314d12d92a5f9712cdf3c7b0e27d0283b51d137f579b4298a73f",
-        "manifest_file_size_bytes": 5212
+        "manifest_file_sha256": "285f540624b389ca274425ef264ca4bbc91be7bad38521879cfc9c27dd2d5ddf",
+        "manifest_file_size_bytes": 5068
       },
       "prospective_v2_manifest": {
         "path": "artifacts/benchmark_manifest_sprint80_smolvla_secondary_v2.json",
