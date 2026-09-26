@@ -3,9 +3,9 @@
 Copy this minimal layout and replace the provider/name with your own
 lowercase, provider-qualified entry name:
 
-The dependency range in this template is intended for use after framework
-version `1.0.0` is published. The repository's current `1.0.0` metadata is an
-unpublished candidate; it cannot be installed from a package index.
+The `latent-anything>=1.0.0,<2.0.0` dependency range is for published
+framework releases in the supported `1.x` line. The `1.0.0` release is
+available on [PyPI](https://pypi.org/project/latent-anything/1.0.0/).
 
 ```text
 my-latent-plugin/

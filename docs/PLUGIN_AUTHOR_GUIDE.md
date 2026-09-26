@@ -5,14 +5,12 @@ Sprint 73 supports external Python distributions through standard
 small: listing declarations reads metadata only; loading a plugin imports its
 callable and registers it in a caller-owned `Registry`.
 
-The framework source metadata currently targets an unpublished `1.0.0`
-candidate. The version-1 plugin contract below becomes a stable 1.x host
-compatibility promise only after the 1.0.0 release gates pass; no 1.0.0
-distribution is available from this candidate work.
+The published framework release is [`1.0.0` on PyPI](https://pypi.org/project/latent-anything/1.0.0/).
+The version-1 plugin contract below is a stable host compatibility promise for
+the `1.x` release line.
 
 The framework's 1.x support and compatibility boundary is described in the
-[support policy](SUPPORT_POLICY.md); this version-1 plugin commitment is
-conditional on release of `1.0.0`.
+[support policy](SUPPORT_POLICY.md).
 
 ## Supported groups
 
@@ -60,8 +58,8 @@ not the plugin distribution's own version. Keep the canonical entry-point
 groups and version-1 callable/config/provenance contract compatible across the
 framework's `1.x` releases. Breaking plugin-contract changes require a new
 major host/API version. The template's `latent-anything>=1.0.0,<2.0.0`
-dependency range is for use after 1.0.0 is actually published; the current
-candidate source metadata is not an installable release.
+dependency range is available for the published framework and follows this
+1.x compatibility policy.
 
 ## Build from config
 

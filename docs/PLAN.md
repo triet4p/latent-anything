@@ -4,7 +4,7 @@
 
 Latent Anything reached `1.0.0` by proving diagnostic depth on real model representations, not by accumulating model-family integrations, theory-row percentages, or attractive visualizations. The stable product claim is an end-to-end loop that lets an AI engineer capture, detect, localize, explain, causally validate, compare, and report internal representation problems with reproducible evidence.
 
-Sprints 1-26 established the beta foundation. Sprints 27-79 established the `0.9.0` pre-stable API and evidence baseline. Sprint 80 signed off only the bounded ordinary-DL depth cases; its secondary SmolVLA lane remains explicitly blocked. Sprint 81 has published `1.0.0` after passing the supported depth and release-quality gates. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
+Sprints 1-26 established the beta foundation. Sprints 27-79 established the `0.9.0` pre-stable API and evidence baseline. Sprint 80 signed off only the bounded ordinary-DL depth cases; its secondary SmolVLA lane remains explicitly blocked. Sprint 81 published `1.0.0` after the supported depth and release-quality gates passed. Tasks 1-8 passed their evidence reviews; Task 9 remains `[~]` pending Main's evidence review and the final deep-review gate. Sprint 81 and Milestone 14 are not complete until that gate passes. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
 
 Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 [`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the published
@@ -43,10 +43,7 @@ operation. Push-triggered CI run 36247369268 passed all three Python jobs on
 that earlier commit. These are historical prerequisite proofs; the release
 commit's exact-SHA and audited release runs are recorded above.
 
-Sprint 81 tasks 4 and 5 are complete (task 5 was marked `[x]` after Main's
-evidence review), and task 8 is complete (owner-approved reorder,
-Review81Task8 PASS). Task 6 remains `[~]` pending Main's evidence review;
-tasks 7 and 9 remain open.
+Sprint 81 tasks 1-8 passed their evidence reviews. Task 9 remains `[~]` pending Main's evidence review and the final deep-review gate; Sprint 81 and Milestone 14 remain open until that gate passes. See the [final release evidence and post-1.0 backlog](../artifacts/sprint-81/task-9.md).
 
 ## Definition of Stable
 
@@ -82,7 +79,7 @@ D-levels remain useful claim evidence, but the former 95% core / 90% overall the
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 and Sprint 79's `0.9.0` GitHub Release publication are complete; PyPI was explicitly deferred and non-gating for `0.9.0`. Sprint 80 proved the supported end-to-end diagnostic loop. Sprint 81 has published `1.0.0` after its depth-first release gates passed; the remaining post-release documentation, installation, and milestone-closure tasks are still open.
+- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 and Sprint 79's `0.9.0` GitHub Release publication are complete; PyPI was explicitly deferred and non-gating for `0.9.0`. Sprint 80 proved the supported end-to-end diagnostic loop. Sprint 81 published `1.0.0`, and tasks 1-8 passed review. Task 9 remains `[~]`; keep this milestone open until Main's evidence review and the final deep-review gate pass.
 
 ## Carryover Evidence Gates
 
@@ -125,16 +122,17 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-Sprint 81 is Active and owns the `1.0.0` publication gates and remaining
-post-release work. Protected tag `v1.0.0` and its GitHub Release were published
-from commit `a449ca33b4b83ce109c29db7cf471919820b1d56` after exact-SHA CI and
-the audited release workflow passed. The first PyPI OIDC upload succeeded and
-the Trusted Publisher is active with project JSON HTTP 200. This plan update is
-later than the tagged release commit and does not alter the published tag or
-assets. Task 5 is complete; Task 6 (versioned documentation) remains `[~]`
-pending Main's evidence review. Tasks 7 (post-publication install and example
-verification) and 9 (milestone closure and backlog) remain open.
-
+Sprint 81 is active only for its final closeout. Protected tag `v1.0.0`
+and its GitHub Release were published from commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56` after exact-SHA CI and the audited
+release workflow passed. The first PyPI OIDC upload succeeded, and the live
+project JSON reports version `1.0.0`. Tasks 1-8 passed their evidence reviews.
+Task 9 remains `[~]` pending Main's evidence review and the distinct final
+deep-review gate; neither Sprint 81 nor Milestone 14 is complete yet. The
+[final release evidence and post-1.0 backlog](../artifacts/sprint-81/task-9.md)
+records the bounded claims, public hashes, known caveats, backlog, and closure
+checklist. This post-release plan is later than the tagged release and does not
+alter its tag or assets.
 Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81's own release gates passed for the published `1.0.0` release.
 
 ## Planned Sprints
@@ -212,10 +210,10 @@ Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 compl
 
 ### Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release
 
-- [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
-- [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish and verify the `0.9.0` pre-stable evidence baseline through the exact GitHub Release assets. Task 604 is complete; PyPI is explicitly deferred and does not gate this sprint.
-- [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
-- [Sprint 81](sprint-plans/sprint-81.md) - Published `1.0.0` after Sprint 80 diagnostic-depth evidence and the audited release gates passed; post-release tasks remain listed in the active sprint plan.
+- [x] [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
+- [x] [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish and verify the `0.9.0` pre-stable evidence baseline through the exact GitHub Release assets. Task 604 is complete; PyPI is explicitly deferred and does not gate this sprint.
+- [x] [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
+- [~] [Sprint 81](sprint-plans/sprint-81.md) - Published `1.0.0`; tasks 1-8 passed their evidence reviews. Task 9 and Milestone 14 remain open pending Main's evidence review and final deep review.
 
 ## Completed Sprints
 
@@ -272,7 +270,7 @@ Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 compl
 - [x] [Sprint 71](sprint-plans/sprint-71.md) - Compact decoder-free JEPA/LeWM-style prediction, target-encoder health diagnostics, rollout/record integration, and marked public I-JEPA checkpoint smoke.
 - [x] [Sprint 72](sprint-plans/sprint-72.md) - Tokenized world-model next-token prediction, seeded rollout, codebook/likelihood/drift metrics, and reproducible synthetic evidence.
 
-- [Sprint 80](sprint-plans/sprint-80.md) - Bounded encoder v3 and transformer target-evidence-v2 diagnostic proofs, revision-backed 24/24 clean replay, guide/examples, and depth-evidence handoff; final differential review `agent://DeepReviewSprint80Fifth` — PASS. Secondary SmolVLA lane remains blocked; `1.0.0` publication belongs to Sprint 81.
+- [x] [Sprint 80](sprint-plans/sprint-80.md) - Bounded encoder v3 and transformer target-evidence-v2 diagnostic proofs, revision-backed 24/24 clean replay, guide/examples, and depth-evidence handoff; final differential review `agent://DeepReviewSprint80Fifth` — PASS. Secondary SmolVLA lane remains blocked; `1.0.0` publication belongs to Sprint 81.
 
 ## Planning Rules
 
