@@ -18,6 +18,8 @@ Corrected companion SHA-256: `f92766f5fda3998559d58247bde9a75bd86b07479648f1c8be
 - `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, `graphify-out/graph.html`, `graphify-out/.graphify_analysis.json`, `graphify-out/.graphify_labels.json`, `graphify-out/.graphify_labels.json.sig`, and `graphify-out/manifest.json` — scoped graph refresh outputs.
 - `graphify-out/2026-09-27/` — Graphify's automatic dated safety backup; retained.
 - `artifacts/sprint-81/task-6.md` — this handoff and evidence record.
+- Deep-review correction: `docs/VERSIONED_DOCS_1.0.0.md`, `docs/INDEX.md`, `docs/RELEASE_NOTES_1.0.0.md`, and this artifact — scope immutable r1's corrected manifest hashes separately from stale copied publication-status prose.
+- Graphify workspace refresh: the scoped current-doc extraction, safe graph merge, and output reconciliation below updated the existing ignored `graphify-out/` locally; Graph output files remain excluded from Git.
 
 Two docs-only commits published the companion/archive and checksum correction. Annotated tags `docs-v1.0.0` and `docs-v1.0.0-r1` are public; the first remains immutable and is explicitly superseded by r1. Protected release tag `v1.0.0` remains bound to tag object `3bdb7ff2c5e09def32e39b9b4628750729104b22` and release commit `a449ca33b4b83ce109c29db7cf471919820b1d56`. No release asset, upload, Pages deployment, or sprint-plan checkbox was changed.
 
@@ -34,12 +36,60 @@ Two docs-only commits published the companion/archive and checksum correction. A
 - **Graph commands:** `C:\Users\admin\AppData\Local\uv\cache\archive-v0\fSUTpEZ94kzDWKoBJUceQ\Scripts\graphify.exe cluster-only .` completed with 1,070 communities and regenerated `GRAPH_REPORT.md`, `graph.json`, and aggregated `graph.html` (1,070 community nodes / 1,917 cross-community edges). `C:\Users\admin\AppData\Local\uv\cache\archive-v0\fSUTpEZ94kzDWKoBJUceQ\Scripts\graphify.exe diagnose multigraph --json` reported 16,723 nodes / 39,325 edges; zero missing/dangling endpoints, external references, self-loops, exact duplicates, or same-endpoint collapse risks. One existing `verification=unverified` node remains at `latent-anything-theory/10-world-models-vla/research/07-pi0.md`.
 - **Graph maintenance notes:** a first page re-extraction was discarded after its preservation check found six prior semantic-reference edge keys missing. Rebuilding from Graphify's retained safety snapshot and merging only the handoff restored all prior nodes, edge keys, and hyperedges.
   The first cluster pass warned that 1,081 saved labels did not match 1,070 communities and automatically renamed 244 community labels by hub. Subsequent final `cluster-only` reruns completed with 1,070 communities and 1,917 cross-community edges without repeating that mismatch warning; no LLM label pass was run.
-  The graph retains its inherited `built_at_commit` marker `a449ca33b4b83ce109c29db7cf471919820b1d56`; Task 6's current docs are not represented as release-commit content. The installed Graphify package was 0.9.68 while local skills were 0.9.32.
-- **Graph follow-up:** existing Graphify outputs were not modified or refreshed for the checksum correction; the prior scoped refresh remains as recorded above, and the new correction details may not be represented in that graph.
+- **Historical Graphify marker:** the original versioned-doc refresh retained inherited `built_at_commit` `a449ca33b4b83ce109c29db7cf471919820b1d56`; this deep-review refresh records `2975da8176a2a62a854aa73344e75725ee278e79` as the checkout marker (details below). Neither marker implies these post-release docs were part of that commit. The installed Graphify package was 0.9.68 while local skills were 0.9.32.
+- **Graph follow-up:** the earlier checksum correction did not refresh Graphify outputs; this deep-review correction has now been extracted, merged, reclustered, and health-checked in the local ignored `graphify-out/` (details below).
 
 ## Findings and Release Status
 
 - **Immutable public source:** package documentation and the metadata archive are available through the corrected `docs-v1.0.0-r1` annotated tag and pinned raw URLs. GitHub Pages/MkDocs still serves only the Theory site, and no package-docs site is claimed.
 - **Restricted-content boundary:** archive entries are identifiers, revision strings, digests, license/source references, and provenance only. No restricted weights/data, cached model or dataset files, raw text, or simulator assets were copied or redistributed.
 - **SmolVLA boundary:** the v1 capture `(64, 768)` disagrees with asserted `(64, 1024)` and the frozen estimator rejects 64 samples for 768 dimensions. Execution stopped before diagnosis; there is no validator-clean artifact. Prospective v2 is recorded as unexecuted; this lane remains blocked and non-gating.
-- **Release immutability and initial-tag correction:** protected `v1.0.0` was not moved or recreated. The first public `docs-v1.0.0` tag is also unchanged, but its archive contains a CRLF-derived digest for one release-pinned manifest; `docs-v1.0.0-r1` is the corrected authoritative source. Task 6 remains `[~]` pending Main's evidence review.
+- **Release immutability and initial-tag correction:** protected `v1.0.0` was not moved or recreated. The first public `docs-v1.0.0` tag remains unchanged and retains its CRLF-derived digest for one release-pinned manifest; `docs-v1.0.0-r1` is authoritative for the corrected metadata-only archive's canonical manifest hashes, not for the publication-status prose in every frozen guide. Task 6 remains `[~]` pending Main's evidence review.
+
+## Deep-review correction — immutable r1 historical prose
+
+The current companion, index, and release notes now distinguish the
+`docs-v1.0.0-r1` archive's manifest-hash authority from editorial recency.
+The immutable r1 copies still describe `1.0.0` as an unpublished candidate in
+`docs/API_REFERENCE.md:12–14`, `docs/API_COMPATIBILITY.md:3–6, 58–60`,
+`docs/EVIDENCE_GAP_PLAN.md:36, 45–46`, `docs/PLUGIN_AUTHOR_GUIDE.md:8–15,
+62–64`, and `docs/PLUGIN_TEMPLATE.md:6–8`. The companion links each to its
+corrected current-source document at commit `379aaec2a7936edb2b5ba08a125c4002d1f58a39`.
+The r1 tag still resolves to `3cbc925de464a090bc1d65a2fc8858a11a0dcbf3`;
+neither docs tag, the protected package tag/assets, nor the revision archive
+was modified. No sprint-plan status was changed; Task 6 remains `[~]`.
+
+### Graphify refresh for deep-review correction
+
+Graphify's scoped Gemini extraction covered only `docs/VERSIONED_DOCS_1.0.0.md`,
+`docs/INDEX.md`, `docs/RELEASE_NOTES_1.0.0.md`, and this Task 6 record. It
+returned 18 nodes, 14 edges, and 2 hyperedges (10,691 input / 1,879 output
+tokens; estimated cost `$0.0110`). The safe additive merge filtered link-only
+nodes for untouched pages, added five node IDs, 14 edge keys, and 2 hyperedges,
+and preserved all 16,795 prior node IDs, 39,397 prior edge keys, and 37
+hyperedges.
+
+The first `cluster-only` pass coalesced the newly extracted
+`docs_versioned_docs_1_0_0` document node with the existing same-title heading,
+so the normalized graph has 16,799 nodes, 39,411 edges, 39 hyperedges, and
+1,084 communities (four new node IDs). No prior node IDs or edge keys were
+lost. The pass deterministically rebased 247 community labels by hub; no LLM
+label pass ran.
+
+Graphify's shrink guard refused to persist that one-node exact-label
+deduplication (`16,800` intermediate JSON nodes to `16,799` normalized graph
+nodes), and its default visualization limit skipped HTML at this graph size.
+After verifying that the collapsed node duplicated the existing heading and
+that all prior graph nodes and edges remained, the normalized graph was
+persisted and the visualization regenerated with explicit 5,000-node
+community aggregation: `graph.html` contains 1,084 community nodes and 1,802
+cross-community edges. The final multigraph diagnostic reports zero missing
+or dangling endpoints, exact duplicate edges, self-loops, or collapsed
+same-endpoint edges; its one unverified node was present in the baseline.
+
+The final Graphify manifest refresh stamps this completed Task 6 record and the
+versioned companion's final wording. `.gitignore` excludes `graphify-out/`, so
+these graph outputs are refreshed locally and are not included in the
+documentation commit. The report's `built_at_commit` is the pre-task
+`2975da8176a2a62a854aa73344e75725ee278e79` checkout, not a claim that these
+uncommitted docs belong to it. Task 6 remains `[~]`.

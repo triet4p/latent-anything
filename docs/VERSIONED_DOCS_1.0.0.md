@@ -50,6 +50,31 @@ records the exact 5,068-byte manifest from release commit
 `285f540624b389ca274425ef264ca4bbc91be7bad38521879cfc9c27dd2d5ddf`); the
 prior checkout-form digest was `4961f5f8d764314d12d92a5f9712cdf3c7b0e27d0283b51d137f579b4298a73f`
 for 5,212 bytes.
+
+### Immutable r1 snapshot: hash authority and editorial limits
+
+The public `docs-v1.0.0-r1` tag (commit
+[`3cbc925de464a090bc1d65a2fc8858a11a0dcbf3`](https://github.com/triet4p/latent-anything/commit/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3))
+and its metadata-only revision archive remain unchanged. The archive's
+immutable record of manifest paths, canonical Git-blob SHA-256 values, and byte
+lengths identifies the source bytes at the pinned release commit; those hashes
+do not replace the source files. That authority does not make every copied
+documentation page in the immutable tag current. Several r1 copies still
+describe `1.0.0` as an unpublished candidate even though the release is
+published. Treat the listed lines as historical wording, not as current
+publication status:
+| Immutable r1 copy and stale lines | Corrected current-source document |
+| --- | --- |
+| [`API_REFERENCE.md:12–14`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/API_REFERENCE.md#L12) frames the API as an unreleased candidate. | [API reference](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/API_REFERENCE.md#L12), corrected in `379aaec`. |
+| [`API_COMPATIBILITY.md:3–6, 58–60`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/API_COMPATIBILITY.md#L3) calls the API an unpublished candidate. | [Compatibility ledger](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/API_COMPATIBILITY.md#L3), corrected in `379aaec`. |
+| [`EVIDENCE_GAP_PLAN.md:36, 45–46`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/EVIDENCE_GAP_PLAN.md#L36) calls this the candidate boundary and says the package/API snapshot is unpublished. | [Evidence-gap plan](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/EVIDENCE_GAP_PLAN.md#L36), corrected in `379aaec`. |
+| [`PLUGIN_AUTHOR_GUIDE.md:8–15, 62–64`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/PLUGIN_AUTHOR_GUIDE.md#L8) makes the published 1.x contract conditional on release and calls the distribution unavailable. | [Plugin author guide](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/PLUGIN_AUTHOR_GUIDE.md#L8), corrected in `379aaec`. |
+| [`PLUGIN_TEMPLATE.md:6–8`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/PLUGIN_TEMPLATE.md#L6) calls `1.0.0` an unpublished candidate that cannot be installed. | [Plugin template](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/PLUGIN_TEMPLATE.md#L6), corrected in `379aaec`. |
+
+Use the linked current-source documents for API, evidence, and plugin
+publication status. This clarification does not move or recreate either docs
+tag, change the protected `v1.0.0` release, or alter any release asset.
+
 The live [GitHub Pages site](https://triet4p.github.io/latent-anything/) is the
 separate Latent-Anything Theory site; `mkdocs.yml` sets
 `docs_dir: latent-anything-theory`. The deployment workflow publishes that
