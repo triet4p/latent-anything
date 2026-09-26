@@ -6,7 +6,9 @@
 
 ## Outcome
 
-Safe blocked correction (2026-09-26): no 1.0.0 tag, dispatch, upload, or publication occurred. Authenticated checks re-verified the pending stable-tag ruleset (ruleset list still `[]`; valid-body creation+update+deletion `refs/tags/v*` ruleset with the GitHub Actions integration app id 15368 as Integration bypass actor returned HTTP 422 with no ruleset created) and the valid PyPI first-upload bootstrap (project JSON HTTP 404, latest GitHub release still `v0.9.0`). The preflight was fixed to match required tasks by title so the owner-approved Task 8 reorder no longer false-blocks; preflight now blocks only on `release-tag-ruleset (status: pending)`. GitHub private vulnerability reporting was enabled via the admin API (`PUT` HTTP 204, `GET` now `{"enabled": true}`); end-to-end non-maintainer usability remains unverified. Task 5 remains `[~]`; no changelog release date was added.
+Audited release run [36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256) published protected tag `v1.0.0`, the five-asset GitHub Release, and the first PyPI wheel/sdist through OIDC. PyPI project JSON is HTTP 200 for version `1.0.0`; the wheel/sdist digests match the GitHub Release assets, and provenance plus GitHub attestations verify the tag, release commit, and run. Exact-release-commit CI run 36250365395 passed. The post-publication PyPI readiness metadata and present-tense documentation are reconciled in this follow-up. Task 5 remains `[~]` pending Main's evidence review.
+
+Historical record: the pre-publication sections below preserve the 2026-09-26 pre-upload/release-preflight snapshot, including the failed ruleset probe and expected PyPI HTTP 404. Those statements describe the state before release run 36251907256; the current outcome above and reconciliation section below supersede them.
 
 ## Work and Changed Files
 
@@ -508,3 +510,62 @@ remains forbidden until both remote proofs pass.
   It requested `graphify label` for labels and a separate semantic update for
   document changes. Those operations were not run; this result is the code
   graph refresh only, not semantic-document extraction.
+
+## Live 1.0.0 publication (2026-09-26)
+
+- Final candidate `a449ca33b4b83ce109c29db7cf471919820b1d56` committed/pushed as
+  `docs(release): finalize 1.0.0 candidate changelog and readiness evidence`
+  (8 files, `+193 / -72`, staged by exact name; no scratch staged).
+- Exact-SHA CI run
+  [36250365395](https://github.com/triet4p/latent-anything/actions/runs/36250365395)
+  (`workflow_dispatch`, `main`, head `a449ca3`): completed success; all three
+  `lint-and-test (3.12/3.13/3.14)` jobs success, each step table showing
+  evidence-ledger, Ruff check, Ruff format check, Pyright, and Pytest success.
+- Audited release run
+  [36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256)
+  (`workflow_dispatch`, `main`, head `a449ca3`, input `tag=v1.0.0`): completed
+  success. All five jobs success: gate-and-build, attest-artifacts,
+  create-approved-release-tag, publish GitHub Release, publish PyPI.
+  The PyPI job ran only after owner approval of the pending `pypi`
+  (`22803163260`) deployment; no protection was altered.
+- Tag: remote `refs/tags/v1.0.0` = `3bdb7ff2c5e09def32e39b9b4628750729104b22`,
+  annotated dereference `a449ca33b4b83ce109c29db7cf471919820b1d56`.
+- GitHub Release `v1.0.0` (`Latent Anything 1.0.0 - Core latent-space framework`,
+  non-draft/non-prerelease, `targetCommitish: main`, created `2026-09-26T15:43:40Z`)
+  carries 5 assets: wheel (`635199` bytes,
+  `sha256:3f7081d4cb8994c6a719d85d51a3c0ccff76171673c5a1dc33737d7770b408ea`),
+  sdist (`886293` bytes,
+  `sha256:36b6b3950fd791cf9ffa5eeac79050c5052d5b9902d1c98a9a2b7a6d38e8e3a9`),
+  `PROVENANCE.json`, `release-body.md`, `SHA256SUMS`. Downloaded
+  `PROVENANCE.json` records `tag: v1.0.0`, `commit: a449ca3…`,
+  `workflow_run: 36251907256`, `repository: triet4p/latent-anything`, with both
+  distribution digests matching `SHA256SUMS`.
+- PyPI `https://pypi.org/pypi/latent-anything/json` now returns HTTP 200,
+  `version: 1.0.0`, with both filenames and SHA-256 digests byte-identical to
+  the GitHub Release assets (verified GH-download vs PyPI JSON match).
+- `gh attestation verify --owner triet4p` passed (exit 0) for both downloaded
+  distributions. Verification scratch was removed.
+
+When this live-release appendix was first written, the PyPI metadata and documentation still described the pre-publication candidate. That was the state before this reconciliation, not the current status.
+
+## Post-publication documentation reconciliation (2026-09-26)
+
+- `docs/release-gates.json` now records the PyPI Trusted Publisher as active, with project JSON HTTP 200 and activation evidence from successful OIDC release run 36251907256.
+- `README.md`, `docs/RELEASE_NOTES_1.0.0.md`, `docs/PLAN.md`, and `docs/M14_REAL_SYSTEM_VALIDATION.md` now describe the published release and distinguish the tagged release commit `a449ca3` from this later documentation update.
+- `docs/sprint-plans/sprint-81.md` records the publication and pending Task 5 evidence review without changing any task checkbox. Tasks 6, 7, and 9 remain outside this correction.
+- `CHANGELOG.md` already recorded the `1.0.0` release date in the release commit and is unchanged.
+
+Task 5 remains `[~]` pending Main's evidence review.
+
+## Focused verification
+
+- `uv run --locked --no-sync python scripts/check_release_readiness.py` — passed for the signed-off bounded ordinary-DL core.
+- `uv run --locked --no-sync pytest -q tests/test_release_readiness.py tests/test_release_workflow_contract.py` — 22 passed.
+- `uv run --locked --no-sync mkdocs build --strict` — passed in 43.02 seconds; output included only the informational Material warning.
+- No tag, dispatch, release update, or PyPI upload/publication action was performed in this correction.
+
+## Graph update
+
+- `graphify update .` refreshed the code graph; it re-extracted 344/344 code files and reported no code-topology changes (341 zero-node inputs were informational).
+- The semantic document merge refreshed the seven changed sources, renamed 13 stale publication-state nodes, added current run/PyPI evidence, and left zero dangling edges. The final graph has 16,699 nodes, 39,288 edges, and 37 hyperedges; all seven sources have semantic manifest hashes.
+- `graphify cluster-only .` completed and regenerated `GRAPH_REPORT.md` and `graph.html` for 1,109 communities. The initial relabel pass auto-renamed 646 labels after detecting 1,096 saved labels; the final rerun was stable. No LLM labeling pass was run.

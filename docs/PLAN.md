@@ -2,9 +2,9 @@
 
 ## Overview
 
-Latent Anything will reach `1.0.0` by proving diagnostic depth on real model representations, not by accumulating model-family integrations, theory-row percentages, or attractive visualizations. The stable product claim is an end-to-end loop that lets an AI engineer capture, detect, localize, explain, causally validate, compare, and report internal representation problems with reproducible evidence.
+Latent Anything reached `1.0.0` by proving diagnostic depth on real model representations, not by accumulating model-family integrations, theory-row percentages, or attractive visualizations. The stable product claim is an end-to-end loop that lets an AI engineer capture, detect, localize, explain, causally validate, compare, and report internal representation problems with reproducible evidence.
 
-Sprints 1-26 established the beta foundation. Sprints 27-79 establish the `0.9.0` pre-stable API and evidence baseline. Sprint 80 signs off only the bounded ordinary-DL depth cases; its secondary SmolVLA lane remains explicitly blocked. Sprint 81 owns all `1.0.0` release gates, and publication follows only when every gate passes. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
+Sprints 1-26 established the beta foundation. Sprints 27-79 established the `0.9.0` pre-stable API and evidence baseline. Sprint 80 signed off only the bounded ordinary-DL depth cases; its secondary SmolVLA lane remains explicitly blocked. Sprint 81 has published `1.0.0` after passing the supported depth and release-quality gates. Future sprint details remain planning hypotheses: running evidence may narrow unsupported claims, but any revision must be recorded in the ADR log and synchronized here.
 
 Sprint 78's API-freeze checkpoint is recorded in the owner decision and
 [`task_78.40_summary.md`](../artifacts/task_78.40_summary.md): the published
@@ -13,38 +13,40 @@ canonical-stable names / 7 public exceptions (SHA-256
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`).
 Those values are historical, not the current source inventory.
 
-The checked-in 1.0.0 candidate API-freeze snapshot records 214 runtime exports
-/ 211 canonical-stable names / 8 public exceptions (SHA-256
+The published `v1.0.0` API-freeze snapshot at release commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56` records 214 runtime exports /
+211 canonical-stable names / 8 public exceptions (SHA-256
 `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`).
-Neither inventory alone is a release-readiness claim. The working-tree package
-metadata is `1.0.0` for the unpublished Sprint 81 candidate; no `1.0.0` tag or
-publication exists. The verified `v0.9.0` tag and GitHub Release remain the
-only published package distribution; PyPI publication was deferred for
-`0.9.0`. The stable-tag ruleset is verified
-(`id 24036634`, `target: tag`, `refs/tags/v*`,
-`creation`+`update`+`deletion`+`non_fast_forward`,
-`Integration` bypass actor id 5083983, `bypass_mode: always`,
-`enforcement: active`, `current_user_can_bypass: never`; re-verified
-2026-09-26).
+The `0.9.0` release-time inventory above remains historical; neither inventory
+alone is a release-readiness claim.
 
-The owner-managed App-token proof passed in default-branch workflow-dispatch
-run 36247385348 on commit
-`f87726950d5ae59d4287677f026c39e56baef236`. The successful logs verified App
-ID 5083983, the selected installation, `contents: write`, and a token scoped
-only to `triet4p/latent-anything`; no repository write or release operation
-was performed. The App secret names are observable by metadata only; their
-values were not read. Push-triggered CI run 36247369268 also passed all Python
-3.12/3.13/3.14 jobs on that exact commit.
+Protected tag `v1.0.0` points from annotated tag object
+`3bdb7ff2c5e09def32e39b9b4628750729104b22` to the release commit. Exact-SHA
+CI run [36250365395](https://github.com/triet4p/latent-anything/actions/runs/36250365395)
+passed the Python 3.12/3.13/3.14 matrix. Audited release run
+[36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256)
+completed all five jobs, including artifact attestation, protected tag
+creation, GitHub Release publication, and the approved PyPI OIDC upload.
+`PROVENANCE.json` binds the tag, commit, and run; GitHub attestations verified
+for the wheel and sdist.
 
-The matching pending PyPI Trusted Publisher configuration is verified and
-its HTTP 404 is expected before the first upload; it does not establish an
-active PyPI project or authorize release by itself. Changelog/documentation
-updates for release preparation create a new candidate commit, whose exact-SHA
-CI must pass before the audited release workflow is dispatched. The release
-workflow's own gates remain required. Sprint 81 task 8 is complete
-(owner-approved reorder, Review81Task8 PASS); task 4 is complete and task 5
-remains in progress. Sprint 79 task 604 is complete; Sprint 80 and Sprint 81
-remain in scope.
+The PyPI Trusted Publisher is active after the first OIDC upload. The project
+JSON endpoint returns HTTP 200 for version `1.0.0`, and its wheel/sdist
+filenames and SHA-256 digests match the GitHub Release assets. The earlier
+pending-publisher configuration and HTTP 404 were valid pre-upload bootstrap
+evidence only and are retained in the historical task record.
+
+The pre-publication App-token proof passed in workflow run 36247385348 on
+commit `f87726950d5ae59d4287677f026c39e56baef236`; it verified the single-
+repository `contents: write` grant without a repository write or release
+operation. Push-triggered CI run 36247369268 passed all three Python jobs on
+that earlier commit. These are historical prerequisite proofs; the release
+commit's exact-SHA and audited release runs are recorded above.
+
+Sprint 81 task 8 is complete (owner-approved reorder, Review81Task8 PASS);
+task 4 is complete and task 5 remains `[~]` pending Main's evidence review.
+Tasks 6, 7, and 9 remain open. Sprint 79 task 604 is complete; Sprint 80 and
+Sprint 81 remain in scope.
 
 ## Definition of Stable
 
@@ -80,7 +82,7 @@ D-levels remain useful claim evidence, but the former 95% core / 90% overall the
 - [x] **Milestone 11 - LeRobot and VLA bridge (Sprints 56-62):** optional extra, dataset bridge, ACT/Diffusion/SmolVLA policy capture, causal simulation benchmark, and run recording.
 - [x] **Milestone 12 - World models and planning (Sprints 63-72):** implementation increments and the bounded evidence/governance remediation closure are complete. Current evidence remains synthetic CPU for the compact world-model lanes; early tokenized rollout failure is recorded rather than hidden.
 - [x] **Milestone 13 - Ecosystem and runtime hardening (Sprints 73-77):** Sprints 73-76 and Sprint 77 Phase A are complete; Sprint 77 Phase B recorded the owner-approved Rust/PyO3 deferral, passed the closure gates, completed the cumulative audit, and reconciled typed-ledger traceability.
-- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 and Sprint 79's `0.9.0` GitHub Release publication are complete; PyPI is explicitly deferred and non-gating. Sprint 80 proves the supported end-to-end diagnostic loop; Sprint 81 publishes `1.0.0` only after the depth-first gates pass.
+- [ ] **Milestone 14 - Pre-stable baseline, diagnostic depth, and stable release (Sprints 78-81):** Sprint 78 and Sprint 79's `0.9.0` GitHub Release publication are complete; PyPI was explicitly deferred and non-gating for `0.9.0`. Sprint 80 proved the supported end-to-end diagnostic loop. Sprint 81 has published `1.0.0` after its depth-first release gates passed; the remaining post-release documentation, installation, and milestone-closure tasks are still open.
 
 ## Carryover Evidence Gates
 
@@ -123,12 +125,17 @@ general diffusion-pipeline claims.
 
 ## Active Sprints
 
-Sprint 81 is Active and owns the `1.0.0` publication gates; no tag or
-publication occurs until every supported diagnostic and release-quality gate
-passes. The current `1.0.0` source metadata is only a candidate.
-Owner-approved Sprint 81 sequencing moved stable-policy task 8 ahead of publication task 5; the guarded workflow remains blocked until that policy gate and the effective release-tag ruleset pass. The configured PyPI pending publisher is the expected bootstrap state for the first OIDC upload, not proof of a published package.
+Sprint 81 is Active and owns the `1.0.0` publication gates and remaining
+post-release work. Protected tag `v1.0.0` and its GitHub Release were published
+from commit `a449ca33b4b83ce109c29db7cf471919820b1d56` after exact-SHA CI and
+the audited release workflow passed. The first PyPI OIDC upload succeeded and
+the Trusted Publisher is active with project JSON HTTP 200. This plan update is
+later than the tagged release commit and does not alter the published tag or
+assets. Task 5 remains `[~]` pending Main's evidence review; tasks 6 (versioned
+documentation), 7 (post-publication install and example verification), and 9
+(milestone closure and backlog) remain open.
 
-Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) now records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81 must apply its own release gates.
+Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81's own release gates passed for the published `1.0.0` release.
 
 ## Planned Sprints
 
@@ -208,7 +215,7 @@ Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 compl
 - [Sprint 78](sprint-plans/sprint-78.md) - Record the API-freeze checkpoint after the exhaustive inventory, SRP audit, compatibility snapshots, migration/API docs, and docs-conflict cleanup.
 - [Sprint 79](sprint-plans/sprint-79.md) - Close the broad real-system and theory inventory truthfully, preserve every negative/blocked result, reclassify breadth work outside the stable core, and publish and verify the `0.9.0` pre-stable evidence baseline through the exact GitHub Release assets. Task 604 is complete; PyPI is explicitly deferred and does not gate this sprint.
 - [Sprint 80](sprint-plans/sprint-80.md) - Prove the depth-first representation-diagnostic workflow on an encoder/autoencoder and transformer, with a bounded small-VLA lane as secondary evidence.
-- [Sprint 81](sprint-plans/sprint-81.md) - Publish `1.0.0` only after Sprint 80 diagnostic-depth evidence and the audited release gates pass.
+- [Sprint 81](sprint-plans/sprint-81.md) - Published `1.0.0` after Sprint 80 diagnostic-depth evidence and the audited release gates passed; post-release tasks remain listed in the active sprint plan.
 
 ## Completed Sprints
 

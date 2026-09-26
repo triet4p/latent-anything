@@ -4,7 +4,7 @@
 
 A Python framework that treats latent space as a first-class object: load latent representations from models, inspect them, manipulate them, and execute small runtime pipelines.
 
-## Published 0.9.0 Baseline and 1.0.0 Candidate
+## Published 1.0.0 Release and 0.9.0 Baseline
 
 `0.9.0` is a pre-stable API/evidence baseline (pre-1.0). It includes:
 
@@ -29,74 +29,81 @@ A Python framework that treats latent space as a first-class object: load latent
   behind a validated contract with offline parity evidence
 - Script-level demos and tracked release artifacts
 
-This pre-stable baseline does not claim the full Latent Anything thesis is implemented. The
-world-model and tokenized lanes are compact synthetic CPU references, not
-real-checkpoint or CUDA claims. Sprint 35 also records bounded local-CPU D2
-fidelity and ordered interpolation evidence for one cached Diffusers VAE; this
-does not claim perceptual quality or a complete diffusion pipeline. Stable release work remains
-future milestones. Sprint 75 streaming evidence is a synthetic offline CPU
-rollout story, not a LeRobot or real-model throughput claim. Sprint 76
-tracking evidence is local/offline only; it does not claim hosted tracking,
-remote servers, or team workflows.
+At the published `0.9.0` pre-stable baseline, the project did not claim the
+full Latent Anything thesis was implemented. The world-model and tokenized
+lanes were compact synthetic CPU references, not real-checkpoint or CUDA
+claims. Sprint 35 recorded bounded local-CPU D2 fidelity and ordered
+interpolation evidence for one cached Diffusers VAE; this did not claim
+perceptual quality or a complete diffusion pipeline. Stable release work was
+still a future milestone at that checkpoint. Sprint 75 streaming evidence is
+a synthetic offline CPU rollout story, not a LeRobot or real-model throughput
+claim. Sprint 76 tracking evidence is local/offline only; it does not claim
+hosted tracking, remote servers, or team workflows.
 
 The published `0.9.0` package remains pre-1.0 and follows the `0.x` compatibility expectation.
 
-Sprint 81's package metadata targets `1.0.0`, but this candidate has not been
-tagged or released. Its diagnostic claim is limited to the two accepted
-ordinary-DL cases and separate stability supplement in
-[`docs/SPRINT_80_DEPTH_EVIDENCE.md`](docs/SPRINT_80_DEPTH_EVIDENCE.md); this is
-not broad VLA, GPU/CUDA, or arbitrary-model support. The stable-tag ruleset is
-active and the owner-managed App-token proof passed in default-branch workflow
-run [36247385348](https://github.com/triet4p/latent-anything/actions/runs/36247385348)
-on commit `f87726950d5ae59d4287677f026c39e56baef236`. Push-triggered CI run
-[36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
-passed its Python 3.12/3.13/3.14 matrix on that exact commit. The pending
-changelog/documentation commit still requires green CI for its own SHA before
-release. The PyPI first upload remains pending. Task 4's clean package build
-and installation checks are complete.
+`1.0.0` was published from release commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56` under protected annotated tag
+`v1.0.0`. Exact-SHA CI run
+[36250365395](https://github.com/triet4p/latent-anything/actions/runs/36250365395)
+passed all Python 3.12/3.13/3.14 jobs. Audited release run
+[36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256)
+completed all five jobs, including artifact attestations, GitHub Release, and
+the PyPI OIDC upload after owner approval of environment `pypi`
+(`22803163260`). The PyPI Trusted Publisher is active; project JSON returns
+HTTP 200 for version `1.0.0`, and the wheel/sdist SHA-256 digests match the
+GitHub Release assets.
 
-Registry configs use `adapter`, `analysis`, and `intervention` kinds. The beta
-`method_a` and `method_b` spellings remain deprecated warning aliases. The
-1.0.0 candidate retains all 18 beta aliases; they remain available through the
-1.x line, and removal requires a separately reviewed major-version migration.
+The released diagnostic claim is limited to the two accepted ordinary-DL cases
+and separate stability supplement in
+[`docs/SPRINT_80_DEPTH_EVIDENCE.md`](docs/SPRINT_80_DEPTH_EVIDENCE.md); this is
+not broad VLA, GPU/CUDA, or arbitrary-model support. Task 4's clean package
+build and installation checks are complete.
+
+Registry configs use `adapter`, `analysis`, and `intervention` kinds. The
+`method_a` and `method_b` spellings remain deprecated warning aliases.
+Published `1.0.0` retains all 18 beta aliases; they remain available through
+the `1.x` line, and removal requires a separately reviewed major-version
+migration.
 Run `uv run python scripts/report_config_migration.py <config.json>` to inspect
 repository-owned JSON configs without rewriting them.
 
 See the [migration and compatibility guide](docs/MIGRATION.md) and the
 [API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger,
 the two separate schema/path migrations, frozen signatures, and current
-source API contract. The proposed 1.x compatibility, security-reporting
-status, upstream dependency, and artifact-migration commitments are in the
+source API contract. Current 1.x support, security-reporting status, upstream
+compatibility, and artifact-migration commitments are in the
 [support policy](docs/SUPPORT_POLICY.md). Security-reporting availability and
 instructions are also summarized in [`SECURITY.md`](SECURITY.md); the repository
 does not currently claim a verified private vulnerability-reporting route.
 
-The unpublished `1.0.0` candidate source snapshot records 214 runtime top-level
+The published `1.0.0` source API snapshot records 214 runtime top-level
 exports, 211 canonical-stable entries, 28 config schemas, 89 public
 dataclass/result schemas, and 8 public exceptions (SHA-256
-`46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`). These
-numbers describe candidate source, not the already-published `0.9.0`
-distribution: its release-time snapshot had 205 runtime top-level exports,
+`46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`). It
+describes the API shipped at tag `v1.0.0`, not a later source inventory. The
+previous `0.9.0` release-time snapshot had 205 runtime top-level exports,
 202 canonical-stable entries, 7 public exceptions, and digest
 `048ac553adabb11c24d3e1f4d86e0c6d469df6590064014c915d6a08c7d53c26`. The
 historical release record is preserved in [CHANGELOG.md](CHANGELOG.md). The
-candidate snapshot is `artifacts/api_freeze_snapshot_1.0.0.json`; the later
-pre-candidate `0.9.0`-labeled source snapshot and historical beta snapshot
-remain preserved separately.
+1.0.0 snapshot is `artifacts/api_freeze_snapshot_1.0.0.json`; the pre-candidate
+`0.9.0`-labeled source snapshot and historical beta snapshot remain preserved
+separately.
 
 ## Installation
 
-For the `0.9.0` release, download the wheel or sdist from the
-[GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).
-Verify the downloaded file against `SHA256SUMS`, then install the local asset:
+Install the published `1.0.0` package from PyPI:
 
 ```bash
-uv pip install ./latent_anything-0.9.0-py3-none-any.whl
-# or, for the source distribution:
-uv pip install ./latent_anything-0.9.0.tar.gz
+uv pip install latent-anything==1.0.0
 ```
 
-PyPI publication is deferred for this release and is intentionally non-gating.
+Alternatively, download the wheel or sdist from the
+[GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v1.0.0),
+verify the file against `SHA256SUMS`, then install the local asset. The earlier
+`0.9.0` release record and its migration notes remain available in
+[`docs/MIGRATION.md`](docs/MIGRATION.md).
+
 For development from a checkout, use [uv](https://docs.astral.sh/uv/):
 
 ```bash
@@ -115,7 +122,7 @@ from latent_anything import LatentSpace, Trajectory
 from latent_anything.methods import PCA
 
 print(latent_anything.__version__)
-# 1.0.0 (unpublished candidate source)
+# 1.0.0
 
 rng = np.random.default_rng(42)
 space = LatentSpace(dim=4)
@@ -145,23 +152,26 @@ Representative scripts live in `scripts/`, including:
 - `scripts/end_to_end_gaussian_renderer_demo.py`
 - `scripts/end_to_end_async_runtime_demo.py`
 
-## Release Gate
+## Release Evidence
 
-The audited release workflow runs the readiness preflight, strict documentation,
-quality, test, and package checks before its dedicated job creates the stable
-tag. The initial candidate commit's push-triggered CI run
-[36247369268](https://github.com/triet4p/latent-anything/actions/runs/36247369268)
-passed the Python 3.12/3.13/3.14 matrix on `f87726950d5ae59d4287677f026c39e56baef236`.
-The App-token proof and PyPI Trusted Publisher configuration are verified, but
-the first upload remains pending. The final changelog/documentation commit has
-a new SHA and must pass its own exact-commit CI plus all guarded release-workflow
-checks before a tag or upload is authorized.
+The audited release workflow runs the readiness preflight, strict
+documentation, quality, test, package, and attestation checks before creating
+the stable tag. Release commit
+`a449ca33b4b83ce109c29db7cf471919820b1d56` passed exact-SHA CI run
+[36250365395](https://github.com/triet4p/latent-anything/actions/runs/36250365395)
+for Python 3.12, 3.13, and 3.14. Audited release run
+[36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256)
+completed successfully across all five jobs, including the approved PyPI OIDC
+upload. Protected tag `v1.0.0` and its GitHub Release point to that release
+commit; provenance binds the tag, commit, and run, and attestations verified
+for both distributions.
 
-The only published package release remains `v0.9.0`, available from the
-[GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).
-Its historical install instructions and checksums are documented in
-[`docs/MIGRATION.md`](docs/MIGRATION.md). The 1.0.0 candidate notes are a
-[draft only](docs/RELEASE_NOTES_1.0.0.md).
+The active PyPI project JSON endpoint is
+[HTTP 200](https://pypi.org/pypi/latent-anything/json), version `1.0.0`; the
+wheel and sdist digests match the GitHub Release assets. This README
+reconciliation is later than the tagged release commit and does not change the
+published tag or assets. The previous `v0.9.0` GitHub Release and its historical
+install instructions remain documented in [`docs/MIGRATION.md`](docs/MIGRATION.md).
 
 ## Project Structure
 
@@ -188,8 +198,8 @@ latent-anything/
 - [docs/PLAN.md](docs/PLAN.md) - Incremental project plan
 - [docs/PLUGIN_AUTHOR_GUIDE.md](docs/PLUGIN_AUTHOR_GUIDE.md) - External plugin contract and security boundary
 - [docs/PLUGIN_TEMPLATE.md](docs/PLUGIN_TEMPLATE.md) - Minimal plugin package template
-- [1.0.0 candidate release notes (unpublished draft)](docs/RELEASE_NOTES_1.0.0.md)
-- [Support and versioning policy](docs/SUPPORT_POLICY.md) - Candidate 1.x support, SemVer, deprecation, upstream compatibility, and artifact migration.
+- [1.0.0 release notes](docs/RELEASE_NOTES_1.0.0.md)
+- [Support and versioning policy](docs/SUPPORT_POLICY.md) - 1.x support, SemVer, deprecation, upstream compatibility, and artifact migration.
 - [Security policy](SECURITY.md) - Current private-reporting availability and responsible-disclosure handling.
 
 ## License

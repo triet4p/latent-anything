@@ -53,6 +53,34 @@ execution in the same Python process. The security boundary remains the
 independently reloaded, tracked, byte-hashed promotion policy and evidence
 chain.
 
+## Current 1.0.0 publication status
+
+Protected annotated tag `v1.0.0` was published on 2026-09-26 from release
+commit `a449ca33b4b83ce109c29db7cf471919820b1d56`. Exact-SHA CI run
+[36250365395](https://github.com/triet4p/latent-anything/actions/runs/36250365395)
+passed all three Python 3.12/3.13/3.14 jobs. Audited release run
+[36251907256](https://github.com/triet4p/latent-anything/actions/runs/36251907256)
+completed all five jobs, including build, artifact attestations, protected tag
+creation, GitHub Release publication, and the PyPI OIDC upload after owner
+approval of environment `pypi` (`22803163260`).
+
+The annotated tag object is
+`3bdb7ff2c5e09def32e39b9b4628750729104b22`, pointing to the release commit.
+The five-asset GitHub Release includes wheel SHA-256
+`3f7081d4cb8994c6a719d85d51a3c0ccff76171673c5a1dc33737d7770b408ea` and sdist
+SHA-256 `36b6b3950fd791cf9ffa5eeac79050c5052d5b9902d1c98a9a2b7a6d38e8e3a9`.
+`PROVENANCE.json` binds tag `v1.0.0`, release commit, and run `36251907256`;
+GitHub attestations verified for both distributions.
+
+The first OIDC upload activated the configured PyPI Trusted Publisher.
+`https://pypi.org/pypi/latent-anything/json` returns HTTP 200 for version
+`1.0.0`, with distribution filenames, sizes, and SHA-256 digests matching the
+GitHub Release assets. The active state and its activation evidence are
+recorded in [`release-gates.json`](release-gates.json). This checked-in
+documentation update is later than the tagged release commit and does not
+modify the published tag or release assets. Sprint 81 Task 5 remains `[~]`
+pending Main's evidence review; tasks 6, 7, and 9 remain open.
+
 ## Quy ước và điều kiện dừng
 
 - `D0` = tài liệu; `D1` = code + focused tests; `D2` = benchmark dữ liệu không
@@ -95,12 +123,15 @@ chain.
     36247385348 on commit `f87726950d5ae59d4287677f026c39e56baef236`. Its logs
     verified the owner App identity 5083983, selected installation,
     `contents: write` permission, and a token scoped only to
-    `triet4p/latent-anything`. The run performed no repository write or release
-    operation. No release workflow dispatch, tag, upload, or publication has
-    occurred. Push-triggered CI run 36247369268 passed all matrix jobs for
-    Python 3.12, 3.13, and 3.14 on that exact commit. The pending
-    changelog/documentation update creates a new candidate SHA; its exact-SHA
-    CI and the guarded workflow gates must pass before release dispatch.
+    `triet4p/latent-anything`. That nonpublishing proof did not write to the
+    repository or perform a release operation. **Historical pre-publication
+    checkpoint (2026-09-26):** no release workflow dispatch, tag, upload, or
+    publication had yet occurred. Push-triggered CI run 36247369268 passed all
+    three Python jobs on that earlier commit. The later exact-release-commit CI
+    and audited publication runs are recorded in the current-status section
+    above. At that checkpoint, the changelog/documentation commit still needed
+    exact-SHA CI and the guarded workflow gates before release dispatch; those
+    gates subsequently passed.
     See [GitHub App registration](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app),
     [installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app),
     and [repository rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository).
@@ -119,20 +150,25 @@ chain.
   `pypi`, kiểm tra checksums, provenance và GitHub artifact attestations trước
   PyPA action; Trusted Publishing tạo PyPI attestations, không dùng PyPI API
   token.
-- The supplied PyPI account Publishing screenshot verifies a pending Trusted
-    Publisher for project `latent-anything`, repository `triet4p/latent-anything`,
-    workflow `release.yml`, and environment `pypi`. PyPI documents that a pending
-    publisher can create a project on its first OIDC upload and does not create
-    or reserve the project beforehand
+- The supplied PyPI account Publishing screenshot documented the **initial
+    pre-upload** Trusted Publisher configuration for project
+    `latent-anything`, repository `triet4p/latent-anything`, workflow
+    `release.yml`, and environment `pypi`. PyPI documents that a matching
+    pending publisher can create a project on its first OIDC upload and does
+    not create or reserve it beforehand
     ([first-project guidance](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)).
-    The observed project JSON HTTP 404 is therefore expected before the first
-    upload, not evidence of a mismatched publisher. Preflight accepts this
-    pending state only when the exact publisher configuration is verified and
-    HTTP 404 is recorded; it rejects absent or mismatched configuration. After
-    first upload, the manifest must instead record verified active publisher
-    evidence and project JSON HTTP 200. No upload or activation is claimed here.
-    The audited workflow run itself (tag push, GitHub Release, first PyPI OIDC
-    upload) is the remaining release proof; readiness no longer stops on the ruleset. Sprint 81 task 8 is complete with owner approval and Review81Task8 PASS; the preflight now matches required tasks by title because the plan lists that policy task ahead of publication task 5.
+    The HTTP 404 was the expected response before that first upload; the
+    preflight accepted that bootstrap state only with the verified exact
+    configuration and HTTP 404. This is historical bootstrap evidence, not
+    the current publisher status. The first OIDC upload then completed
+    successfully in audited release run 36251907256, and PyPI project JSON
+    returned HTTP 200 for version `1.0.0`; the active state and activation
+    evidence are in [`release-gates.json`](release-gates.json). The earlier
+    statement that no upload was claimed and the workflow remained the
+    outstanding release proof applied only before that run. Sprint 81 task 8
+    is complete with owner approval and Review81Task8 PASS; the preflight
+    matches required tasks by title because the plan lists that policy task
+    ahead of publication task 5.
 - Sprint 81 dừng trước tag/publish nếu còn blocker cho yêu cầu được hỗ trợ,
   waiver chưa được owner ký, hoặc Sprint 80 còn blocker depth chưa được giải
   quyết. Ngưỡng breadth cũ 95% core / 90% overall là chỉ số sức khỏe portfolio,
@@ -801,13 +837,14 @@ Artifact/command names trong bảng là normative; kết quả thực tế phả
 
 ## Trạng thái checkpoint API-freeze Sprint 78
 
-Snapshot API và tài liệu migration hiện ghi nhận **205 export runtime** và
+Snapshot API và tài liệu migration ghi nhận **205 export runtime** và
 projection canonical ổn định **202 entry**; [MIGRATION](MIGRATION.md),
 [API_REFERENCE](API_REFERENCE.md), và artifact của task 78.40 là các điểm vào
-cho người dùng, còn snapshot/ledger vẫn là nguồn máy móc chuẩn. Checkpoint này
-không cho phép xóa alias hay tuyên bố release readiness. Package metadata hiện
-là `0.9.0` dưới dạng candidate đã commit source nhưng chưa tag/publish; `v0.9.0`
-chỉ được tạo sau khi candidate evidence review pass, và mọi alias vẫn được giữ.
+cho người dùng, còn snapshot/ledger vẫn là nguồn máy móc chuẩn. Đây là
+checkpoint API-freeze Sprint 78 mang tính lịch sử: khi đó package metadata là
+candidate `0.9.0` đã commit source nhưng chưa tag/publish. Release `v0.9.0`
+được tạo sau review bằng chứng candidate; các thông tin này không mô tả package
+`v1.0.0` hiện đã phát hành. Mọi alias vẫn được giữ.
 
 ### L04.8 recovery correction after `ce4e66e`
 
