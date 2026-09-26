@@ -63,6 +63,7 @@ documentation page in the immutable tag current. Several r1 copies still
 describe `1.0.0` as an unpublished candidate even though the release is
 published. Treat the listed lines as historical wording, not as current
 publication status:
+
 | Immutable r1 copy and stale lines | Corrected current-source document |
 | --- | --- |
 | [`API_REFERENCE.md:12–14`](https://github.com/triet4p/latent-anything/blob/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3/docs/API_REFERENCE.md#L12) frames the API as an unreleased candidate. | [API reference](https://github.com/triet4p/latent-anything/blob/379aaec2a7936edb2b5ba08a125c4002d1f58a39/docs/API_REFERENCE.md#L12), corrected in `379aaec`. |
