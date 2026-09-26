@@ -1,0 +1,542 @@
+{
+  "acceptance": "passed",
+  "artifact": {
+    "artifact_digest": "9c4b62262404c5c30789c0604bd34d3e13d96ddce3991d94c950b9dea4255c56",
+    "independent_validator": {
+      "inputs_digest": "28008da6a2b2cccdd2c5a48bd5ca7e5f2712c2ebf402dabb7b1f6f03aed926a3",
+      "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "status": "passed",
+      "validator": "diagnostic-report-validator"
+    },
+    "persisted_render_sha256": "05f7ef165f2779e6e6b7bb0890aa9ad2003b1469356710373af063ae8265209a",
+    "render_deterministic": true,
+    "render_sha256": "05f7ef165f2779e6e6b7bb0890aa9ad2003b1469356710373af063ae8265209a",
+    "rendered_report_artifact": {
+      "artifact_name": "encoder-diagnosis-v3.md.rendered",
+      "declared_path": "artifacts\\diagnostics\\ai-engineer-task80-26-encoder\\encoder-diagnosis-v3.md",
+      "digest": "05f7ef165f2779e6e6b7bb0890aa9ad2003b1469356710373af063ae8265209a",
+      "relative_path": "artifacts/05f7ef165f2779e6e6b7bb0890aa9ad2003b1469356710373af063ae8265209a",
+      "run_id": "b52ab1cde4d818c8"
+    },
+    "rendered_report_path": "artifacts\\diagnostics\\ai-engineer-task80-26-encoder\\encoder-diagnosis-v3.md",
+    "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+    "run_id": "b52ab1cde4d818c8"
+  },
+  "baseline_checkpoint_sha256": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+  "comparison": {
+    "alignment": {
+      "axes": "sample,feature,slice",
+      "dataset_configuration": "default_rng-42-permutation-train1437-heldout360",
+      "dataset_slice_id": "brightness-axis-dim0",
+      "diagnostic_config": "0e77d219458bacb036c8fa42f2c0dc662d682c2046f646da4cc3a052b9e3b28c",
+      "layer_module_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+      "manifest_identity": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+      "model_identity": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+      "preprocessing_identity": "digits-pixels-0-to-16-scaled-by-16",
+      "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+      "representation_metric": "bottleneck-feature-variance-ratio",
+      "schema_identity": "benchmark-manifest-schema-v1",
+      "seeds": "training=0;evaluation=42;controls=17",
+      "task_metric": "heldout-brightness-bin-accuracy",
+      "taxonomy_identity": "collapse_rank_loss"
+    },
+    "baseline": {
+      "alignment": {
+        "axes": "sample,feature,slice",
+        "dataset_configuration": "default_rng-42-permutation-train1437-heldout360",
+        "dataset_slice_id": "brightness-axis-dim0",
+        "diagnostic_config": "0e77d219458bacb036c8fa42f2c0dc662d682c2046f646da4cc3a052b9e3b28c",
+        "layer_module_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+        "manifest_identity": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+        "model_identity": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+        "preprocessing_identity": "digits-pixels-0-to-16-scaled-by-16",
+        "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+        "representation_metric": "bottleneck-feature-variance-ratio",
+        "schema_identity": "benchmark-manifest-schema-v1",
+        "seeds": "training=0;evaluation=42;controls=17",
+        "task_metric": "heldout-brightness-bin-accuracy",
+        "taxonomy_identity": "collapse_rank_loss"
+      },
+      "checkpoint_id": "baseline-92829e57aaaebf52",
+      "run_id": "linear-autoencoder-heldout-healthy-v3"
+    },
+    "candidate": {
+      "alignment": {
+        "axes": "sample,feature,slice",
+        "dataset_configuration": "default_rng-42-permutation-train1437-heldout360",
+        "dataset_slice_id": "brightness-axis-dim0",
+        "diagnostic_config": "0e77d219458bacb036c8fa42f2c0dc662d682c2046f646da4cc3a052b9e3b28c",
+        "layer_module_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+        "manifest_identity": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+        "model_identity": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+        "preprocessing_identity": "digits-pixels-0-to-16-scaled-by-16",
+        "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+        "representation_metric": "bottleneck-feature-variance-ratio",
+        "schema_identity": "benchmark-manifest-schema-v1",
+        "seeds": "training=0;evaluation=42;controls=17",
+        "task_metric": "heldout-brightness-bin-accuracy",
+        "taxonomy_identity": "collapse_rank_loss"
+      },
+      "checkpoint_id": "lesion-81a29cc8d92b3816",
+      "run_id": "linear-autoencoder-heldout-lesion-v3"
+    },
+    "classification": "both",
+    "comparison_id": "cmp-healthy-vs-model-lesion-v3",
+    "provenance": {
+      "capture_identity": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+      "config_digest": "9225e30b67e8f04a78d00357d48b77d06894e5b2e9036b945462c64195a28ee3",
+      "detect_config_identity": "0e77d219458bacb036c8fa42f2c0dc662d682c2046f646da4cc3a052b9e3b28c",
+      "localize_family_id": "collapse_rank_loss",
+      "manifest_digest": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+      "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+      "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+      "request_digest": "f459e436302ceedc61a05ef65efcf0ad81e184df4422642cd0ed00e1432f9a0a",
+      "request_id": "proof-80-23-v3-model-lesion",
+      "upstream_blocked_by": [],
+      "workflow_identity": "7f885aff544dff2bd36ef0c1e5e4eb65e53c169713b0cea8a62d01b246e9dd49"
+    },
+    "reason": "representation and task metrics each changed beyond their declared tolerances with resolved, non-overlapping zero; each change is reported independently",
+    "representation": {
+      "absolute_delta": 0.8494925859561244,
+      "baseline": {
+        "interval": {
+          "confidence_level": 0.95,
+          "lower": 0.7628493789333285,
+          "mean": 0.8605776733732765,
+          "method": "bootstrap",
+          "repetitions": 200,
+          "seed": 1819199248829173906,
+          "upper": 0.973173004011399
+        },
+        "measurement": {
+          "checkpoint_id": "baseline-92829e57aaaebf52",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "bottleneck-feature-variance-ratio",
+          "metric_role": "representation",
+          "run_id": "linear-autoencoder-heldout-healthy-v3",
+          "stream_seed": 8220627128944250584,
+          "value": 0.8494925859561244
+        }
+      },
+      "candidate": {
+        "interval": {
+          "confidence_level": 0.95,
+          "lower": 0.0,
+          "mean": 0.0,
+          "method": "bootstrap",
+          "repetitions": 200,
+          "seed": 8589420254048180747,
+          "upper": 0.0
+        },
+        "measurement": {
+          "checkpoint_id": "lesion-81a29cc8d92b3816",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "bottleneck-feature-variance-ratio",
+          "metric_role": "representation",
+          "run_id": "linear-autoencoder-heldout-lesion-v3",
+          "stream_seed": 5276547849100417108,
+          "value": 0.0
+        }
+      },
+      "changed": true,
+      "definition": {
+        "direction": "higher_is_better",
+        "estimator": "minimum-feature-sample-variance-divided-by-median-feature-sample-variance",
+        "taxonomy_family_id": "collapse_rank_loss",
+        "unit": "ratio"
+      },
+      "delta_interval": [
+        -0.973173004011399,
+        -0.7628493789333285
+      ],
+      "metric_id": "bottleneck-feature-variance-ratio",
+      "resolved": true,
+      "signed_delta": -0.8494925859561244,
+      "tolerance": 0.05,
+      "unresolved": false
+    },
+    "task": {
+      "absolute_delta": 0.4638888888888889,
+      "baseline": {
+        "interval": {
+          "confidence_level": 0.95,
+          "lower": 1.0,
+          "mean": 1.0,
+          "method": "bootstrap",
+          "repetitions": 200,
+          "seed": 9030813715220855704,
+          "upper": 1.0
+        },
+        "measurement": {
+          "checkpoint_id": "baseline-92829e57aaaebf52",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "metric_role": "task",
+          "run_id": "linear-autoencoder-heldout-healthy-v3",
+          "stream_seed": 1602345021187057911,
+          "value": 1.0
+        }
+      },
+      "candidate": {
+        "interval": {
+          "confidence_level": 0.95,
+          "lower": 0.48333333333333334,
+          "mean": 0.5368194444444445,
+          "method": "bootstrap",
+          "repetitions": 200,
+          "seed": 6577942797945617413,
+          "upper": 0.5861111111111111
+        },
+        "measurement": {
+          "checkpoint_id": "lesion-81a29cc8d92b3816",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "metric_role": "task",
+          "run_id": "linear-autoencoder-heldout-lesion-v3",
+          "stream_seed": 5354243444239074661,
+          "value": 0.5361111111111111
+        }
+      },
+      "changed": true,
+      "definition": {
+        "direction": "higher_is_better",
+        "estimator": "fixed-training-median-global-brightness-bin-accuracy",
+        "taxonomy_family_id": "collapse_rank_loss",
+        "unit": "accuracy"
+      },
+      "delta_interval": [
+        -0.5166666666666666,
+        -0.41388888888888886
+      ],
+      "metric_id": "heldout-brightness-bin-accuracy",
+      "resolved": true,
+      "signed_delta": -0.4638888888888889,
+      "tolerance": 0.05,
+      "unresolved": false
+    }
+  },
+  "detection": {
+    "claim_allowed": true,
+    "control_outcomes": {
+      "control-benign-low-variance": "passed",
+      "control-healthy-counterexample": "passed",
+      "control-null-shuffle": "passed"
+    },
+    "observed_metrics": {
+      "bottleneck-effective-rank": 2.9576990034956805,
+      "bottleneck-feature-variance-ratio": 0.0,
+      "bottleneck-singular-spread": 0.0
+    },
+    "outcome": "supported",
+    "threshold_pass": {
+      "bottleneck-effective-rank": false,
+      "bottleneck-feature-variance-ratio": false,
+      "bottleneck-singular-spread": false
+    }
+  },
+  "explanation": {
+    "claim_allowed": true,
+    "control_outcomes": {
+      "control-probe-capacity": "passed",
+      "control-probe-negative": "passed",
+      "control-probe-randomized": "passed"
+    },
+    "fidelity": {
+      "metric": "heldout_accuracy",
+      "observed": 1.0,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.7
+      ],
+      "train_accuracy_note": "train accuracy is recorded nowhere and never promoted"
+    },
+    "leakage": {
+      "capacity_declared": "linear-logreg-C1.0-standardized",
+      "capacity_passed": true,
+      "disjoint_sample_identities": true,
+      "eval_split_identity": "digits-heldout-360",
+      "status": "passed",
+      "train_split_identity": "digits-train-1437"
+    },
+    "outcome": "supported",
+    "reason": "leakage-safe probe meets fidelity, stability, selectivity, leakage, and uncertainty gates",
+    "selectivity": {
+      "metric": "leakage_gap",
+      "observed": 0.9916666666666667,
+      "randomized_accuracy": 0.008333333333333333,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.15
+      ]
+    },
+    "stability": {
+      "metric": "coef_stability",
+      "observed": 1.0,
+      "seed_accuracies": [
+        1.0,
+        1.0
+      ],
+      "sign_aware": true,
+      "status": "passed",
+      "threshold": [
+        ">=",
+        0.8
+      ]
+    }
+  },
+  "intervention": {
+    "conclusion": "supported",
+    "control_outcomes": {
+      "model-off-target-row": {
+        "confidence_level": 0.95,
+        "control_id": "model-off-target-row",
+        "detail": null,
+        "expected_behavior": "restoring feature dim1 leaves the brightness-task lesion unchanged",
+        "interval": null,
+        "kind": "negative",
+        "observed": {
+          "heldout-brightness-bin-accuracy": 0.002777777777777768
+        },
+        "reason": "control comparator below_threshold against threshold 0.4638888888888889",
+        "repetitions": 2,
+        "required": true,
+        "seed_role": "control",
+        "status": "passed",
+        "stream_seed": 7680239923086700748
+      },
+      "model-random-direction": {
+        "confidence_level": 0.95,
+        "control_id": "model-random-direction",
+        "detail": null,
+        "expected_behavior": "a seeded brightness-orthogonal random row does not recover task accuracy",
+        "interval": null,
+        "kind": "randomized",
+        "observed": {
+          "heldout-brightness-bin-accuracy": 0.17222222222222222
+        },
+        "reason": "control comparator below_threshold against threshold 0.4638888888888889",
+        "repetitions": 2,
+        "required": true,
+        "seed_role": "control",
+        "status": "passed",
+        "stream_seed": 5256802323007345929
+      },
+      "model-shuffled-pairing": {
+        "confidence_level": 0.95,
+        "control_id": "model-shuffled-pairing",
+        "detail": null,
+        "expected_behavior": "restoring the row with shuffled heldout pairing does not recover accuracy",
+        "interval": null,
+        "kind": "shuffled",
+        "observed": {
+          "heldout-brightness-bin-accuracy": 0.019444444444444375
+        },
+        "reason": "control comparator below_threshold against threshold 0.4638888888888889",
+        "repetitions": 2,
+        "required": true,
+        "seed_role": "control",
+        "status": "passed",
+        "stream_seed": 5692638005944590380
+      },
+      "model-zero-strength": {
+        "confidence_level": 0.95,
+        "control_id": "model-zero-strength",
+        "detail": null,
+        "expected_behavior": "zero-strength leaves the lesioned encoder row unchanged",
+        "interval": null,
+        "kind": "null",
+        "observed": {
+          "heldout-brightness-bin-accuracy": 0.005555555555555536
+        },
+        "reason": "control comparator below_threshold against threshold 0.02",
+        "repetitions": 2,
+        "required": true,
+        "seed_role": "control",
+        "status": "passed",
+        "stream_seed": 5998771819571697858
+      }
+    },
+    "control_thresholds": {
+      "model-off-target-row": 0.4638888888888889,
+      "model-random-direction": 0.4638888888888889,
+      "model-shuffled-pairing": 0.4638888888888889,
+      "model-zero-strength": 0.02
+    },
+    "effect": 0.4638888888888889,
+    "expected_effect": "increase",
+    "hypothesis_id": "h-brightness-axis-dim0-v3",
+    "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+    "intervention_id": "restore-lesioned-encoder-dim0-v3",
+    "kind": "patch",
+    "measurements": {
+      "baseline": {
+        "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+        "metric_id": "heldout-brightness-bin-accuracy",
+        "role": "baseline",
+        "stream_seed": 2664558170771750229,
+        "value": 0.5361111111111111
+      },
+      "controls": {
+        "model-off-target-row": {
+          "control_class": "off_target",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "role": "control",
+          "stream_seed": 7680239923086700748,
+          "strength": 1.0,
+          "target": "brightness-axis-dim1",
+          "value": 0.5388888888888889
+        },
+        "model-random-direction": {
+          "control_class": "random",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "role": "control",
+          "stream_seed": 5256802323007345929,
+          "strength": 1.0,
+          "target": "brightness-axis-dim0",
+          "value": 0.3638888888888889
+        },
+        "model-shuffled-pairing": {
+          "control_class": "shuffled",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "role": "control",
+          "stream_seed": 5692638005944590380,
+          "strength": 1.0,
+          "target": "brightness-axis-dim0",
+          "value": 0.5166666666666667
+        },
+        "model-zero-strength": {
+          "control_class": "zero_strength",
+          "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+          "metric_id": "heldout-brightness-bin-accuracy",
+          "role": "control",
+          "stream_seed": 5998771819571697858,
+          "strength": 0.0,
+          "target": "brightness-axis-dim0",
+          "value": 0.5305555555555556
+        }
+      },
+      "intervened": {
+        "inputs_digest": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+        "metric_id": "heldout-brightness-bin-accuracy",
+        "role": "intervened",
+        "stream_seed": 1623955078298768741,
+        "value": 1.0
+      }
+    },
+    "metric_direction": "higher_is_better",
+    "metric_id": "heldout-brightness-bin-accuracy",
+    "provenance": {
+      "capture_identity": "dad64f245aeb70e81c40f752801acc7a20e3a4325fa4e0c32522eec6f9592388",
+      "carrier": "paired-baseline-encoder-row",
+      "hypothesis_id": "h-brightness-axis-dim0-v3",
+      "localize_family_id": "collapse_rank_loss",
+      "localize_metric_id": "bottleneck-feature-variance-ratio",
+      "localize_verdict": "localized",
+      "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+      "method": "encoder-weight-restoration",
+      "metric_direction": "higher_is_better",
+      "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+      "request_id": "proof-80-23-v3-model-lesion",
+      "seeds": {
+        "baseline_stream": 2664558170771750229,
+        "controls": 17,
+        "evaluation": 42,
+        "intervened_stream": 1623955078298768741,
+        "uncertainty_stream": 6817681662129837904
+      }
+    },
+    "reason": "material increase effect 0.4638888888888889 beyond tolerance 0.02 with identity, random, shuffled, and off-target controls passing and uncertainty excluding the baseline",
+    "strength": 1.0,
+    "strength_semantics": "fraction-of-paired-baseline-encoder-row-restored",
+    "target": "brightness-axis-dim0",
+    "threshold": {
+      "comparator": ">=",
+      "metric_id": "heldout-brightness-bin-accuracy",
+      "predeclared": true,
+      "tolerance": 0.02,
+      "value": 0.9
+    },
+    "uncertainty": {
+      "confidence_level": 0.95,
+      "lower": 1.0,
+      "mean": 1.0,
+      "method": "bootstrap",
+      "repetitions": 200,
+      "seed": 6817681662129837904,
+      "upper": 1.0
+    },
+    "zero_tolerance": 0.02
+  },
+  "lesion_boundary": "encoder row 0 and bias zeroed before heldout encoding",
+  "lesion_record_sha256": "d1b0763ee791b0069dc94e13b698edb51f4fcd7711ff169ce22264c3130d0570",
+  "lesioned_checkpoint_sha256": "81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008",
+  "localization": {
+    "axes": [
+      {
+        "affected": [
+          "brightness-axis-dim0"
+        ],
+        "axis": "feature",
+        "earliest": "brightness-axis-dim0",
+        "reason": "affected feature coordinate(s) brightness-axis-dim0 under declared feature-axis identity 'linear-autoencoder-feature-axis-4' and order",
+        "report_rows": [
+          {
+            "axis": "feature",
+            "confidence": 1.0,
+            "evidence_refs": [
+              "detect:collapse_rank_loss:bottleneck-feature-variance-ratio"
+            ],
+            "id": "location-feature-brightness-axis-dim0",
+            "selection": "brightness-axis-dim0",
+            "status": "supported"
+          }
+        ],
+        "status": "localized"
+      }
+    ],
+    "control_outcomes": {
+      "control-benign-low-variance": "passed",
+      "control-healthy-counterexample": "passed",
+      "control-null-shuffle": "passed"
+    },
+    "family_id": "collapse_rank_loss",
+    "metric_id": "bottleneck-feature-variance-ratio",
+    "reason": "1 axe(s) localized (feature); global score ignored",
+    "report_localization": [
+      {
+        "axis": "feature",
+        "confidence": 1.0,
+        "evidence_refs": [
+          "detect:collapse_rank_loss:bottleneck-feature-variance-ratio"
+        ],
+        "id": "location-feature-brightness-axis-dim0",
+        "selection": "brightness-axis-dim0",
+        "status": "supported"
+      }
+    ],
+    "representation_identity": "linear_pca_autoencoder:bottleneck:latent_dim=4",
+    "verdict": "localized"
+  },
+  "manifest_digest": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+  "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+  "manifest_raw_sha256": "e5bcd341b1b746f05e4ac02f908bcd27f23bace39737c86c8ac38888e7451b82",
+  "manifest_raw_unchanged_during_run": true,
+  "output_root": "artifacts\\diagnostics\\ai-engineer-task80-26-encoder",
+  "proof_completed_at": "2026-09-24T04:53:29.180770+00:00",
+  "proof_started_at": "2026-09-24T04:53:28.170040+00:00",
+  "workflow_stages": [
+    "capture",
+    "detect",
+    "localize",
+    "explain",
+    "intervene",
+    "compare",
+    "report"
+  ],
+  "workflow_status": "completed"
+}

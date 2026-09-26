@@ -14,7 +14,9 @@ network acquisition, or large checkpoints must be explicitly marked `gpu`,
 must never download a model implicitly.
 
 Integration upgrades require a bounded version range, a lower-bound import
-smoke test, and a pinned model/backend revision in the consuming sprint.
+smoke test, and a pinned model/backend revision in the consuming sprint. The
+project-wide upstream upgrade and pinning policy is in
+[SUPPORT_POLICY.md](SUPPORT_POLICY.md#upstream-and-optional-integration-compatibility).
 
 ## Experiment tracking (Sprint 76)
 

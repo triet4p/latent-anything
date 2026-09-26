@@ -35,19 +35,31 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Sync environment
-        run: uv sync --locked --extra viz
+        run: uv sync --locked --extra viz --group ci-proofs
+      - name: Cache pinned transformer proof inputs
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/huggingface
+          key: ${{ runner.os }}-hf-gpt2-e7da7f221d5bf496a48136c0cd264e630fe9fcc8-wikitext-f776294184f13b8ff2337b3841cf9269a6216d1e
+      - name: Download pinned GPT-2 proof snapshot
+        env:
+          HF_HOME: ${{ runner.temp }}/huggingface
+        run: |
+          uv run --locked --no-sync python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai-community/gpt2', revision='e7da7f221d5bf496a48136c0cd264e630fe9fcc8', allow_patterns=['config.json', 'generation_config.json', 'merges.txt', 'model.safetensors', 'tokenizer.json', 'vocab.json'])"
 
       - name: Validate evidence ledger
-        run: uv run python scripts/validate_evidence_ledger.py
+        run: uv run --locked --no-sync python scripts/validate_evidence_ledger.py
 
       - name: Ruff check
-        run: uv run ruff check src/ tests/
+        run: uv run --locked --no-sync ruff check src/ tests/
 
       - name: Ruff format check
-        run: uv run ruff format --check src/ tests/
+        run: uv run --locked --no-sync ruff format --check src/ tests/
 
       - name: Pyright
-        run: uv run pyright
+        run: uv run --locked --no-sync pyright
 
       - name: Pytest
-        run: uv run pytest -v
+        env:
+          HF_HOME: ${{ runner.temp }}/huggingface
+        run: uv run --locked --no-sync pytest -v

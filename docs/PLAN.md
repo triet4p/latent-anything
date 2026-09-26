@@ -16,13 +16,32 @@ Those values are historical, not the current source inventory. The checked-in
 canonical-stable names / 8 public exceptions (SHA-256
 `46ef4edd2bcb5d6235a02633caba10408b6e2000d5614928bef0794b20b005f4`).
 Neither inventory alone is a release-readiness claim. The working-tree package
-metadata is now `1.0.0` for the unpublished Sprint 81 candidate; it has not
-been built, tagged, or published. The verified `v0.9.0` tag and GitHub Release
-remain the only published package distribution; PyPI publication was
-explicitly deferred for `0.9.0`. The `1.0.0` candidate is not release-authorized:
-the stable-tag ruleset and PyPI Trusted Publisher prerequisites remain pending,
-and Task 4 still owns clean package build and installation checks. Sprint 79
-task 604 is complete; Sprint 80 and Sprint 81 remain in scope.
+metadata is now `1.0.0` for the unpublished Sprint 81 candidate. Any clean
+builds or installation checks are validation only; no `1.0.0` tag or
+publication exists. The verified `v0.9.0` tag and GitHub Release remain the
+only published package distribution; PyPI publication was deferred for
+`0.9.0`. The `1.0.0` candidate is not release-authorized until the audited
+workflow itself runs: the active stable-tag ruleset is verified
+(`id 24036634`, `target: tag`, `refs/tags/v*`,
+`creation`+`update`+`deletion`+`non_fast_forward`,
+`Integration` bypass actor id 5083983, `bypass_mode: always`,
+`enforcement: active`, `current_user_can_bypass: never`; re-verified 2026-09-26).
+The tag job is wired to mint a repository-scoped installation token from the
+owner-managed GitHub App, but only the `RELEASE_APP_ID` and
+`RELEASE_APP_PRIVATE_KEY` secret metadata are observable. The
+`release-app-token-proof` prerequisite remains pending: the temporary
+nonpublishing diagnostic was placed on a non-default branch, and GitHub
+returned HTTP 404 because dispatchable workflows must exist on the default
+branch. No token minting, actor identity, repository `contents: write` scope,
+or App-backed tag push has been observed. The release preflight now blocks
+until a nonpublishing default-branch run verifies those claims.
+
+The matching pending PyPI Trusted Publisher configuration is verified and its
+HTTP 404 is expected before the first upload; it does not establish an active
+PyPI project or authorize release by itself. Sprint 81 task 8 is complete
+(owner-approved reorder, Review81Task8 PASS) and no longer blocks readiness;
+task 4 is complete and task 5 remains in progress. Sprint 79 task 604 is
+complete; Sprint 80 and Sprint 81 remain in scope.
 
 ## Definition of Stable
 
@@ -104,6 +123,7 @@ general diffusion-pipeline claims.
 Sprint 81 is Active and owns the `1.0.0` publication gates; no tag or
 publication occurs until every supported diagnostic and release-quality gate
 passes. The current `1.0.0` source metadata is only a candidate.
+Owner-approved Sprint 81 sequencing moved stable-policy task 8 ahead of publication task 5; the guarded workflow remains blocked until that policy gate and the effective release-tag ruleset pass. The configured PyPI pending publisher is the expected bootstrap state for the first OIDC upload, not proof of a published package.
 
 Sprint 79 is complete with the verified GitHub Release `v0.9.0`. Sprint 80 completed its bounded ordinary-DL depth-evidence gate after `agent://DeepReviewSprint80Fifth` returned **PASS** with no actionable findings. The [depth-evidence report](SPRINT_80_DEPTH_EVIDENCE.md) now records that final signoff: no unresolved blocker remains for its bounded supported core, but the verdict is not general model, release-quality, or GPU/CUDA readiness. The 24/24 fresh-root replay was measured from source revision `5241553`; the 80.28 full offline suite (2,549 passed, 3 skipped, 42 deselected) ran in the shared worktree at code basis `f15859b`, while subsequent committed overlays had focused clean-clone checks, not a clean-clone full-suite rerun. SmolVLA remains an explicit non-gating blocker. Sprint 81 must apply its own release gates.
 

@@ -5,6 +5,10 @@ values and typed results. The public API returns ordinary NumPy/domain objects;
 PyArrow is an implementation dependency and does not leak through these
 boundaries.
 
+The stable writer/reader rules and the exact supported legacy migrations are
+listed in the [support policy](SUPPORT_POLICY.md); this page documents the
+portable codec, filesystem, and cache boundaries.
+
 ## Value nodes
 
 ```python
@@ -93,3 +97,10 @@ Cross-process parity is demonstrated by
 `python scripts/sprint74_portable_roundtrip.py`; the offline CPU size/latency
 comparison is `python scripts/sprint74_artifact_benchmark.py`. These are
 reproducibility lanes, not real-model or CUDA evidence.
+
+Writers always use the current format version. Readers accept only the current
+version and explicitly documented migrations; unknown versions and invalid
+checksums fail closed. The cache is derived state, not an archival format, and
+is not migrated as a user artifact. See the [versioned artifact migration
+policy](SUPPORT_POLICY.md#versioned-artifact-readers-and-writers) before
+moving persisted data between package versions.

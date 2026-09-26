@@ -39,15 +39,15 @@ rollout story, not a LeRobot or real-model throughput claim. Sprint 76
 tracking evidence is local/offline only; it does not claim hosted tracking,
 remote servers, or team workflows.
 
-The published `0.9.0` package is pre-1.0 and follows the `0.x` compatibility
-expectation. The working-tree package metadata now targets `1.0.0` for Sprint
-81, but this is an unpublished candidate: it has not been built, tagged, or
-released. Its diagnostic claim is limited to the two accepted ordinary-DL
-cases and separate stability supplement in
+The published `0.9.0` package remains pre-1.0 and follows the `0.x` compatibility
+expectation. Sprint 81's package metadata targets `1.0.0`, but this candidate
+has not been tagged or released. Its diagnostic claim is limited to the two
+accepted ordinary-DL cases and separate stability supplement in
 [`docs/SPRINT_80_DEPTH_EVIDENCE.md`](docs/SPRINT_80_DEPTH_EVIDENCE.md); this is
-not broad VLA, GPU/CUDA, or arbitrary-model support. The external tag-ruleset
-and PyPI Trusted Publisher prerequisites remain pending, and Task 4 still owns
-the clean package build and installation checks.
+not broad VLA, GPU/CUDA, or arbitrary-model support. The stable-tag ruleset is
+active and verified; the owner-managed App token proof and PyPI first-upload
+bootstrap remain pending. Task 4's clean package build and installation checks
+are complete.
 
 Registry configs use `adapter`, `analysis`, and `intervention` kinds. The beta
 `method_a` and `method_b` spellings remain deprecated warning aliases. The
@@ -59,7 +59,11 @@ repository-owned JSON configs without rewriting them.
 See the [migration and compatibility guide](docs/MIGRATION.md) and the
 [API reference](docs/API_REFERENCE.md) for the complete 18-row alias ledger,
 the two separate schema/path migrations, frozen signatures, and current
-source API contract.
+source API contract. The proposed 1.x compatibility, security-reporting
+status, upstream dependency, and artifact-migration commitments are in the
+[support policy](docs/SUPPORT_POLICY.md). Security-reporting availability and
+instructions are also summarized in [`SECURITY.md`](SECURITY.md); the repository
+does not currently claim a verified private vulnerability-reporting route.
 
 The unpublished `1.0.0` candidate source snapshot records 214 runtime top-level
 exports, 211 canonical-stable entries, 28 config schemas, 89 public
@@ -140,9 +144,10 @@ Representative scripts live in `scripts/`, including:
 The audited release workflow runs the readiness preflight, strict documentation,
 quality, test, and package checks before its dedicated job creates the stable
 tag. It is dispatched from `main` with the exact `v1.0.0` candidate tag; direct
-tag pushes do not trigger publication. The tag-ruleset and PyPI Trusted
-Publisher prerequisites are still pending, so this checkout is not authorized
-to create the tag or publish a release.
+tag pushes do not trigger publication. The active stable-tag ruleset and the
+PyPI Trusted Publisher configuration are verified, but the owner-managed App
+token proof and PyPI first upload remain pending. This checkout is not
+authorized to create the tag or publish a release.
 
 The only published package release remains `v0.9.0`, available from the
 [GitHub Release assets](https://github.com/triet4p/latent-anything/releases/tag/v0.9.0).
@@ -176,6 +181,8 @@ latent-anything/
 - [docs/PLUGIN_AUTHOR_GUIDE.md](docs/PLUGIN_AUTHOR_GUIDE.md) - External plugin contract and security boundary
 - [docs/PLUGIN_TEMPLATE.md](docs/PLUGIN_TEMPLATE.md) - Minimal plugin package template
 - [1.0.0 candidate release notes (unpublished draft)](docs/RELEASE_NOTES_1.0.0.md)
+- [Support and versioning policy](docs/SUPPORT_POLICY.md) - Candidate 1.x support, SemVer, deprecation, upstream compatibility, and artifact migration.
+- [Security policy](SECURITY.md) - Current private-reporting availability and responsible-disclosure handling.
 
 ## License
 

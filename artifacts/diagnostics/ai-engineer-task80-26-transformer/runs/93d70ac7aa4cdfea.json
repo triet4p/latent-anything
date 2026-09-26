@@ -1,0 +1,151 @@
+{
+  "artifacts": [
+    {
+      "digest": "5dd1432fefe8bbd757f852fe4ecc47067f2e4bc69173483382bce61db0a81865",
+      "media_type": "application/json",
+      "name": "stage-record-capture",
+      "relative_path": "artifacts/5dd1432fefe8bbd757f852fe4ecc47067f2e4bc69173483382bce61db0a81865",
+      "size_bytes": 1842
+    },
+    {
+      "digest": "82da14873dff9cbf9292db49bf59af0e3ea001bc584bc83fe009b1421e4c02b3",
+      "media_type": "application/json",
+      "name": "stage-record-detect",
+      "relative_path": "artifacts/82da14873dff9cbf9292db49bf59af0e3ea001bc584bc83fe009b1421e4c02b3",
+      "size_bytes": 55088
+    },
+    {
+      "digest": "027701ec421a56829f7e6cfeefcc3816bddcfea0a97d0a0b52a2b716556731e2",
+      "media_type": "application/json",
+      "name": "stage-record-localize",
+      "relative_path": "artifacts/027701ec421a56829f7e6cfeefcc3816bddcfea0a97d0a0b52a2b716556731e2",
+      "size_bytes": 146849
+    },
+    {
+      "digest": "d629ecc3d0562bdd71292a332f58778b6ab70444ee7fc1d74766e32707650b1c",
+      "media_type": "application/json",
+      "name": "stage-record-explain",
+      "relative_path": "artifacts/d629ecc3d0562bdd71292a332f58778b6ab70444ee7fc1d74766e32707650b1c",
+      "size_bytes": 6281
+    },
+    {
+      "digest": "af6ebb823ece9a4c669e1074f8af041f5ef99bebe1f56c75781dcb47c06c4dfc",
+      "media_type": "application/json",
+      "name": "stage-record-intervene",
+      "relative_path": "artifacts/af6ebb823ece9a4c669e1074f8af041f5ef99bebe1f56c75781dcb47c06c4dfc",
+      "size_bytes": 6484
+    },
+    {
+      "digest": "1cc4f2658b5378158b41f59cceb37abb04ad60bde5c796d3414b9c964a4b4461",
+      "media_type": "application/json",
+      "name": "stage-record-compare",
+      "relative_path": "artifacts/1cc4f2658b5378158b41f59cceb37abb04ad60bde5c796d3414b9c964a4b4461",
+      "size_bytes": 6969
+    },
+    {
+      "digest": "257e66114a672c30727fbb1a8a5a94f5d750e21387aa2f080136dc0569e62ddb",
+      "media_type": "application/json",
+      "name": "stage-record-report",
+      "relative_path": "artifacts/257e66114a672c30727fbb1a8a5a94f5d750e21387aa2f080136dc0569e62ddb",
+      "size_bytes": 111
+    },
+    {
+      "digest": "4c3cc683e515312460bac83a049014d685c64fd09bed031be283172c370fd044",
+      "media_type": "application/json",
+      "name": "capture-capture-transformer-hidden-states-record",
+      "relative_path": "artifacts/4c3cc683e515312460bac83a049014d685c64fd09bed031be283172c370fd044",
+      "size_bytes": 1771
+    },
+    {
+      "digest": "3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+      "media_type": "application/json",
+      "name": "target-section-header-attribute-record",
+      "relative_path": "artifacts/3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19",
+      "size_bytes": 50335
+    },
+    {
+      "digest": "791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838",
+      "media_type": "application/json",
+      "name": "stage-record-intervene-remove-section-header-direction",
+      "relative_path": "artifacts/791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838",
+      "size_bytes": 5266
+    },
+    {
+      "digest": "1d6723e96f34be5386f87b33c402d3b581068e2b9269c1f526eb29ebcd217c87",
+      "media_type": "application/json",
+      "name": "comparison-cmp-hiddenstate-eval-replay-record",
+      "relative_path": "artifacts/1d6723e96f34be5386f87b33c402d3b581068e2b9269c1f526eb29ebcd217c87",
+      "size_bytes": 6253
+    },
+    {
+      "digest": "d1560b5bff6335222f7a6f9bbccc0d0ccb61d74b67e8e3c633622651fefeeb76",
+      "media_type": "application/json",
+      "name": "explanation-h-section-header-separability-record",
+      "relative_path": "artifacts/d1560b5bff6335222f7a6f9bbccc0d0ccb61d74b67e8e3c633622651fefeeb76",
+      "size_bytes": 1013
+    },
+    {
+      "digest": "c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb",
+      "media_type": "application/json",
+      "name": "diagnostic-report",
+      "relative_path": "artifacts/c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb",
+      "size_bytes": 6591
+    },
+    {
+      "digest": "da7ea7f0eafb544abcf68bacba116972fd46f7645812bd01a6ed9e9b0c972cfd",
+      "media_type": "application/json",
+      "name": "diagnostic-artifact",
+      "relative_path": "artifacts/da7ea7f0eafb544abcf68bacba116972fd46f7645812bd01a6ed9e9b0c972cfd",
+      "size_bytes": 9470
+    },
+    {
+      "digest": "c3d1e2e03ce5065f859161932d488f3a537d14916bdbaa1fc25398c8bc4219d3",
+      "media_type": "text/markdown",
+      "name": "diagnostic-report.rendered",
+      "relative_path": "artifacts/c3d1e2e03ce5065f859161932d488f3a537d14916bdbaa1fc25398c8bc4219d3",
+      "size_bytes": 5820
+    }
+  ],
+  "child_run_ids": [],
+  "code_version": "working-tree",
+  "config": {
+    "artifact_digest": "da7ea7f0eafb544abcf68bacba116972fd46f7645812bd01a6ed9e9b0c972cfd",
+    "manifest_id": "sprint80-core-transformer-hidden-state-probe-v1",
+    "report_digest": "c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb"
+  },
+  "created_at": "2026-09-24T05:02:12.432463+00:00",
+  "dataset_revisions": {
+    "Salesforce/wikitext": "f776294184f13b8ff2337b3841cf9269a6216d1e"
+  },
+  "environment": {
+    "numpy": "2.4.6",
+    "python": "3.13.3",
+    "system": "Windows-AMD64"
+  },
+  "error": null,
+  "framework_version": "latent-anything-diagnostic",
+  "identity": "93d70ac7aa4cdfea1d4d08ce474c8f3c95a901c9e98d272d4c4e149692f0b3b2",
+  "metadata": {
+    "diagnostic_artifact_digest": "da7ea7f0eafb544abcf68bacba116972fd46f7645812bd01a6ed9e9b0c972cfd",
+    "diagnostic_artifact_size": 9470,
+    "diagnostic_request_id": "proof-80-24",
+    "schema": "diagnostic-artifact-v1"
+  },
+  "metrics": {},
+  "model_revisions": {
+    "openai-community/gpt2": "e7da7f221d5bf496a48136c0cd264e630fe9fcc8"
+  },
+  "name": "diagnostic:proof-80-24",
+  "parent_run_ids": [],
+  "run_id": "93d70ac7aa4cdfea",
+  "runtime_profile": {},
+  "schema_version": 1,
+  "seeds": [
+    79,
+    80,
+    81
+  ],
+  "status": "completed",
+  "theory_evidence_ids": [],
+  "updated_at": "2026-09-24T05:02:14.503132+00:00"
+}

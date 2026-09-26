@@ -14,6 +14,9 @@ RELEASE_GATES_PATH = ROOT / "docs" / "release-gates.json"
 
 _TASK_LINE = re.compile(r"^- \[([ x~])\] (.+)$")
 _REQUIRED_PRE_RELEASE_TASKS = (
+    # Matched by title prefix, not by position: the owner-approved plan lists
+    # the stable-policy task 8 ahead of the publication task 5, so positional
+    # indexing would false-block on the reordered plan.
     (1, "Confirm the Sprint 80 diagnostic-depth gate"),
     (2, "Enforce the depth-first stop-before-release contract"),
     (3, "Finalize version metadata"),
@@ -22,6 +25,7 @@ _REQUIRED_PRE_RELEASE_TASKS = (
 )
 _REQUIRED_EXTERNAL_PREREQUISITES = (
     "release-tag-ruleset",
+    "release-app-token-proof",
     "pypi-trusted-publisher",
 )
 _CORE_DEPTH_GATES = (
@@ -58,6 +62,54 @@ def _depth_section(report: str) -> str | None:
     return None if sections is None else sections.group("body")
 
 
+def _pypi_trusted_publisher_blockers(prerequisite: dict[str, object]) -> list[str]:
+    """Accept a verified pending publisher only for its first-upload bootstrap."""
+    blockers: list[str] = []
+    state = prerequisite.get("status")
+    if state not in ("pending", "active"):
+        blockers.append(f"PyPI Trusted Publisher state is not usable: {state}")
+
+    if prerequisite.get("configuration_status") != "verified":
+        blockers.append("PyPI Trusted Publisher configuration is not verified")
+
+    configuration = prerequisite.get("configuration")
+    expected_configuration = {
+        "project_name": "latent-anything",
+        "repository_owner": "triet4p",
+        "repository_name": "latent-anything",
+        "workflow_filename": "release.yml",
+        "environment": "pypi",
+    }
+    if not isinstance(configuration, dict):
+        blockers.append("PyPI Trusted Publisher configuration is missing")
+    else:
+        for field, expected in expected_configuration.items():
+            if configuration.get(field) != expected:
+                blockers.append(f"PyPI Trusted Publisher configuration mismatch: {field} must be {expected!r}")
+
+    configuration_evidence = prerequisite.get("configuration_evidence")
+    if not isinstance(configuration_evidence, str) or not configuration_evidence.strip():
+        blockers.append("PyPI Trusted Publisher has no configuration verification evidence")
+
+    project_json_status = prerequisite.get("project_json_http_status")
+    if state == "pending":
+        if type(project_json_status) is not int or project_json_status != 404:
+            blockers.append(
+                "Pending PyPI Trusted Publisher requires the pre-upload project JSON HTTP 404 "
+                f"(observed: {project_json_status})"
+            )
+    elif state == "active":
+        if type(project_json_status) is not int or project_json_status != 200:
+            blockers.append(
+                f"Active PyPI Trusted Publisher requires project JSON HTTP 200 (observed: {project_json_status})"
+            )
+        activation_evidence = prerequisite.get("activation_evidence")
+        if not isinstance(activation_evidence, str) or not activation_evidence.strip():
+            blockers.append("Active PyPI Trusted Publisher has no post-upload activation evidence")
+
+    return blockers
+
+
 def _external_prerequisite_blockers(manifest_text: str) -> list[str]:
     """Fail closed on missing or unresolved external release prerequisites."""
     try:
@@ -79,14 +131,15 @@ def _external_prerequisite_blockers(manifest_text: str) -> list[str]:
         if not isinstance(name, str) or not isinstance(prerequisite, dict):
             blockers.append("External release prerequisite entry is malformed")
             continue
+        if name == "pypi-trusted-publisher":
+            blockers.extend(_pypi_trusted_publisher_blockers(prerequisite))
+            continue
         status = prerequisite.get("status")
         if status != "ready":
             blockers.append(f"External release prerequisite is not ready: {name} (status: {status})")
         evidence = prerequisite.get("evidence")
         if not isinstance(evidence, str) or not evidence.strip():
-            blockers.append(f"External release prerequisite has no activation evidence: {name}")
-        if name == "pypi-trusted-publisher" and prerequisite.get("environment") != "pypi":
-            blockers.append("PyPI Trusted Publisher must use the GitHub Actions pypi environment")
+            blockers.append(f"External release prerequisite has no verification evidence: {name}")
 
     return blockers
 
@@ -96,17 +149,19 @@ def release_readiness_blockers(plan: str, depth_report: str, release_gates: str)
     blockers = _external_prerequisite_blockers(release_gates)
     tasks = _sprint_tasks(plan)
     for task_number, expected_title in _REQUIRED_PRE_RELEASE_TASKS:
-        if task_number > len(tasks):
+        matches = [(state, title) for state, title in tasks if title.startswith(expected_title)]
+        if not matches:
             blockers.append(f"Sprint 81 task {task_number} is missing; release prerequisite mapping needs review")
             continue
-        state, title = tasks[task_number - 1]
-        if not title.startswith(expected_title):
-            blockers.append(f"Sprint 81 task {task_number} changed; release prerequisite mapping needs review")
-            continue
+        state, title = matches[0]
         if state != "x":
             blockers.append(f"Sprint 81 task {task_number} is not complete: {title}")
 
-    if "**Sprint 80 diagnostic-depth gate:** **PASS — no unresolved blocker for the bounded supported ordinary-DL core.**" not in depth_report:
+    depth_pass_signal = (
+        "**Sprint 80 diagnostic-depth gate:** **PASS — no unresolved blocker "
+        "for the bounded supported ordinary-DL core.**"
+    )
+    if depth_pass_signal not in depth_report:
         blockers.append("Sprint 80 bounded ordinary-DL depth gate is not explicitly signed off PASS")
     if "This is not `1.0.0` publication approval." not in depth_report:
         blockers.append("Sprint 80 report no longer distinguishes bounded-core signoff from release approval")

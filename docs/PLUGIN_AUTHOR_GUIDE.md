@@ -10,6 +10,10 @@ candidate. The version-1 plugin contract below becomes a stable 1.x host
 compatibility promise only after the 1.0.0 release gates pass; no 1.0.0
 distribution is available from this candidate work.
 
+The framework's 1.x support and compatibility boundary is described in the
+[support policy](SUPPORT_POLICY.md); this version-1 plugin commitment is
+conditional on release of `1.0.0`.
+
 ## Supported groups
 
 Declare one of these canonical groups in your distribution's `pyproject.toml`:

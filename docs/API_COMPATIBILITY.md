@@ -16,6 +16,10 @@ published. Canonical symbols and registry kinds were added under historical
 `0.1.0b1` metadata and retained in the `0.9.0` release and the current
 candidate. No alias is removed by this ledger.
 
+The SemVer, deprecation/removal, and post-publication support rules are
+centralized in the [support policy](SUPPORT_POLICY.md). This ledger remains the
+source for each alias's exact identity, warning boundary, and verification.
+
 ## Alias records
 
 | # | Canonical spelling | Legacy spelling / path | RFC planned window; actual implementation/release; deprecation/removal | Warning and guarantee | Verification |

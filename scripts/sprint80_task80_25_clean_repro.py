@@ -47,8 +47,8 @@ REPO = Path(__file__).resolve().parents[1]
 # source bytes; those digests are recorded separately.
 PINNED_INPUT_SHA256: dict[str, str] = {
     ".python-version": "a7b9da5e355ce2ea4508cc53756849f44c960d87a38e5a76d0c734d7512c5371",
-    "pyproject.toml": "106da07c210ec587de33e93564777d080c0eaddba2bdcd851a0fd6986b2b05c6",
-    "uv.lock": "27e5e88166c9de1e18bd0dcd18bfe9faec5ae9e945b37d2c86d9e04c435e8deb",
+    "pyproject.toml": "7050e09260e2f11dcd12b46faf65ddd7f526563d3a78846187b2b1898653913d",
+    "uv.lock": "cb6a23d95b73954f212a29e3e0360fc20773ead147c7709c460e4c6e79eb1379",
     "artifacts/benchmark_manifest_schema_v1.json": "de24e80e267484df99f880927885fef836f2d70e4bd750e4a7a61d0c979364fc",
     "artifacts/diagnostic_report_schema_v1.json": "a76580e58a672ac283fa0a313b34f6148375dc5181dcb395ae1061ce42928d07",
     "artifacts/m14/l04-wikitext-2-manifest.json": "0908f843efd72ce93c628e34cdb27f56e37e764d196ef91be7eff6d7757b78f3",
@@ -193,7 +193,7 @@ PINNED_INPUT_SHA256: dict[str, str] = {
 }
 
 PINNED_SOURCE_TREE_FILE_COUNT = 162
-PINNED_SOURCE_TREE_SHA256 = "3226dc26ea19e15889e29f70c33c83ac29a0cf66115a81bd229a3b8eace75be4"
+PINNED_SOURCE_TREE_SHA256 = "8df33742de6c3072969aff823b514500c4b067592fc4d0ae303638f994fed3b6"
 
 PINNED_HF_SNAPSHOT: dict[str, dict[str, object]] = {
     "models--openai-community--gpt2": {

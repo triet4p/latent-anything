@@ -1,0 +1,10 @@
+{
+  "baseline_checkpoint_sha256": "92829e57aaaebf52d5446d1a9c9db5de4e12c1657fad5ecc986329ed8752bb2a",
+  "defect_boundary": "model.encoder_weight[0,:] and model.encoder_bias[0] before heldout encode",
+  "lesion_operation": "zero_encoder_row_and_bias_in_model_copy",
+  "lesioned_checkpoint_sha256": "81a29cc8d92b38164b108958764a6f1ffe07e5b822701077bd45faeffea91008",
+  "lesioned_state_sha256": "6133a69cdb06f01f3f3201e3b4ebbcab5a35fd4381ccdc10b8934907917809b4",
+  "manifest_digest": "f823efc1b016ca9ad62c0f207e17d138947040a39f5d1c1f42ab6d0d65f5954f",
+  "model_id": "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder",
+  "revision": "linear-pca-autoencoder-4d-train-only-v1"
+}

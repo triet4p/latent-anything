@@ -69,12 +69,39 @@ chain.
   tiếp từ Windows PowerShell; không dùng Git Bash hoặc WSL. L04 không chạy
   remote trong giai đoạn planning và không dùng local CPU để thay real-model
   evidence.
-- GitHub Actions cần tài khoản external có quyền; nếu thiếu thì là blocker,
-  không đổi workflow để giả PASS. Release workflow chỉ nhận
-  `workflow_dispatch` từ `main`; các release tag được tạo và push bởi job riêng
-  sau khi gate, quality checks và build đã thành công. Push tag trực tiếp không
-  kích hoạt publication; repository ruleset phải chặn direct write và chỉ cho
-  phép workflow được kiểm toán. Trạng thái này còn `pending` trong manifest.
+- GitHub Actions needs an authorized external account; missing access is a
+    blocker, not a reason to change the workflow to fake PASS. The release
+    workflow accepts `workflow_dispatch` from `main`; its dedicated tag job runs
+    only after the readiness gate, quality checks, build, and artifact attestation.
+    The job now checks for repository secrets `RELEASE_APP_ID` and
+    `RELEASE_APP_PRIVATE_KEY` before minting a short-lived installation token
+    with `actions/create-github-app-token@v3`. The token is scoped to this
+    repository and `contents: write`, and is passed to checkout for the one tag
+    push; the job's `GITHUB_TOKEN` is only `contents: read`. Missing secrets fail
+    before checkout or tag creation. Neither secret value is stored in source.
+    The default Actions integration (app ID 15368) was rejected as a bypass
+    actor (HTTP 422: it is not part of this user-owned repository's ruleset
+    source or owner organization). This is historical: the owner-managed
+    GitHub App and active stable-tag ruleset are now established and verified,
+    as recorded below. The default integration is not used as a bypass actor.
+    Re-verified 2026-09-26: the ruleset list returns sole active entry id
+    24036634 (`latent-anything-release-rules`, `target: tag`,
+    `enforcement: active`, `refs/tags/v*`,
+    `creation`+`update`+`deletion` plus `non_fast_forward`,
+    sole `Integration` bypass actor id 5083983 with `bypass_mode: always`,
+    `current_user_can_bypass: never`). Both App secret names are present by
+    metadata only; their values remain unreadable by API design.
+    `release-app-token-proof` remains pending: no nonpublishing default-branch
+    run has verified token minting, actor identity, repository scope, or
+    `contents: write`. The branch-scoped diagnostic was removed after dispatch
+    returned HTTP 404 because GitHub resolves dispatchable workflows from the
+    default branch only. No release workflow dispatch, tag, upload, or
+    publication occurred. The preflight now blocks until a nonpublishing
+    default-branch validation run establishes the App-token proof.
+    See [GitHub App registration](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app),
+    [installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app),
+    and [repository rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository).
+    Direct tag pushes do not authorize publication.
 - `scripts/check_release_readiness.py` đọc trạng thái hiện tại của tasks 1, 2,
   3, 4, 8 thuộc Sprint 81, bảng stable-depth trong báo cáo Sprint 80 và
   `docs/release-gates.json`. Prerequisite còn mở, thiếu hoặc sai định dạng đều
@@ -83,11 +110,26 @@ chain.
   claim.
 - Nếu còn blocker cho capture, detection, localization, statistical control,
   explanation, causal validation, reporting, packaging, documentation hoặc
-  workflow thì dừng trước tag và mọi publication. Workflow hiện chưa publish
-  PyPI. Cấu hình PyPI Trusted Publisher được báo cáo đang `pending`, không phải
-  publisher đã hoạt động; task 5 chỉ được thêm PyPI publish sau khi prerequisite
-  bên ngoài được bật, với `environment: pypi` và dependency trực tiếp vào các
-  gate/tag đã kiểm chứng.
+  workflow thì workflow dừng trước tag và mọi publication. Job PyPI riêng chỉ
+  chạy sau gate, ký nhận artifact, tag và GitHub Release đã được xác minh;
+  `id-token: write` chỉ được cấp trong job đó. Job dùng GitHub environment
+  `pypi`, kiểm tra checksums, provenance và GitHub artifact attestations trước
+  PyPA action; Trusted Publishing tạo PyPI attestations, không dùng PyPI API
+  token.
+- The supplied PyPI account Publishing screenshot verifies a pending Trusted
+    Publisher for project `latent-anything`, repository `triet4p/latent-anything`,
+    workflow `release.yml`, and environment `pypi`. PyPI documents that a pending
+    publisher can create a project on its first OIDC upload and does not create
+    or reserve the project beforehand
+    ([first-project guidance](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)).
+    The observed project JSON HTTP 404 is therefore expected before the first
+    upload, not evidence of a mismatched publisher. Preflight accepts this
+    pending state only when the exact publisher configuration is verified and
+    HTTP 404 is recorded; it rejects absent or mismatched configuration. After
+    first upload, the manifest must instead record verified active publisher
+    evidence and project JSON HTTP 200. No upload or activation is claimed here.
+    The audited workflow run itself (tag push, GitHub Release, first PyPI OIDC
+    upload) is the remaining release proof; readiness no longer stops on the ruleset. Sprint 81 task 8 is complete with owner approval and Review81Task8 PASS; the preflight now matches required tasks by title because the plan lists that policy task ahead of publication task 5.
 - Sprint 81 dừng trước tag/publish nếu còn blocker cho yêu cầu được hỗ trợ,
   waiver chưa được owner ký, hoặc Sprint 80 còn blocker depth chưa được giải
   quyết. Ngưỡng breadth cũ 95% core / 90% overall là chỉ số sức khỏe portfolio,

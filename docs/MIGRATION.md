@@ -131,37 +131,44 @@ model/checkpoint is reproducible. Portable values use `portable-node-v1` and
 artifact storage uses `artifact-envelope-v1`; the exact fixture versions and
 digests are in snapshot section J.
 
+Writers emit the current documented schema. Readers migrate only the named
+legacy shapes above; they validate the canonical result and do not silently
+rewrite the source artifact. The explicit current writer/reader matrix and
+major-version boundary are in the [support policy](SUPPORT_POLICY.md).
+
 ## Versioned compatibility policy
 
-The source candidate targets stable `1.0.0` semantics, but no stable release
-has been authorized. The current promise, if the release gates pass, is:
+The full candidate support, Semantic Versioning, deprecation, upstream, and
+artifact-reader commitments are in the [support policy](SUPPORT_POLICY.md).
+They become stable 1.x commitments only after the audited `1.0.0` release gates
+pass and a distribution is published.
 
-1. `0.9.0` remains the latest published distribution. The working-tree
-   `1.0.0` package and API snapshot identify an unpublished candidate only.
-2. The canonical-stable public surface is the checked-in
+For this migration guide:
+
+1. `0.9.0` remains the latest published distribution; the working-tree `1.0.0`
+   package and API snapshot describe an unpublished candidate only.
+2. The candidate's canonical-stable public surface is the checked-in
    [`1.0.0` API snapshot](../artifacts/api_freeze_snapshot_1.0.0.json).
-   Preserve compatibility within the `1.x` line: additive public API changes
-   may ship in minor releases; incompatible API or behavior changes require a
-   major-version release and a migration path.
-3. All 18 beta aliases remain available in the `1.0.0` candidate source.
-   Deprecated aliases continue to emit their documented construction-boundary
-   warnings; no alias removal is scheduled in `1.x`. Any later removal requires
-   a separately reviewed migration decision and a major-version boundary.
-4. Serialized formats keep explicit schema versions. The supported data
-   migrations are `result-envelope-v0` to `result-envelope-v1`, and
-   pre-versioned run records/legacy Windows artifact paths to run-record
-   `schema-v1`. Unknown versions fail closed; there is no implicit pickle or
-   general cross-version conversion promise.
-5. Optional model/provider integrations are supported only within the
-   dependency ranges and evidence boundaries recorded in `pyproject.toml` and
-   the corresponding integration guides. An optional extra or pinned model
-   identifier does not by itself establish model-quality, VLA, or GPU support.
+   Incompatible public API or behavior changes require a major-version release
+   and a migration path.
+3. All 18 beta aliases remain available in the candidate and are retained
+   throughout `1.x`; no alias removal is scheduled. Any removal requires a
+   separately reviewed major-version migration.
+4. The only current cross-version data migrations are
+   `result-envelope-v0` to `result-envelope-v1`, and pre-versioned run records
+   with legacy Windows artifact paths to run-record `schema-v1`. Unknown
+   versions fail closed; there is no implicit pickle or general conversion.
+5. Optional model/provider integrations are bounded by the dependency ranges
+   and evidence boundaries in `pyproject.toml` and their integration guides.
+   An optional extra or pinned model identifier does not establish model
+   quality, general VLA, or GPU/CUDA support.
 6. Stop before `1.0.0` publication if any supported diagnostic, packaging,
-   documentation, compatibility, security, or workflow gate fails. The Sprint
-   80 report signs off only the bounded ordinary-DL core; SmolVLA remains
-   explicitly blocked and non-gating. The former 95% core / 90% overall
-   theory-row thresholds remain portfolio-health facts, not release gates.
+   documentation, compatibility, security, or workflow gate fails. Sprint 80
+   signs off only the bounded ordinary-DL core; SmolVLA remains **BLOCKED** and
+   non-gating. Former 95% core / 90% overall theory-row thresholds are
+   portfolio-health metrics, not release gates.
 
-The evidence validator, [`SPRINT_80_DEPTH_EVIDENCE.md`](SPRINT_80_DEPTH_EVIDENCE.md),
-and M14 release-stop contract remain authoritative for release readiness. This
-guide does not claim that the candidate has passed those gates.
+The [Sprint 80 evidence report](SPRINT_80_DEPTH_EVIDENCE.md) and
+[M14 stop-before-release contract](M14_REAL_SYSTEM_VALIDATION.md) remain
+authoritative for release readiness. This guide does not claim that the
+candidate has passed those gates.

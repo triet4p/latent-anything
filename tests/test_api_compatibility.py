@@ -6,6 +6,7 @@ import json
 import warnings
 from contextlib import redirect_stdout
 from io import StringIO
+from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -121,5 +122,3 @@ def test_transition_aliases_preserve_prediction_and_metric_semantics() -> None:
     prediction_copy = GaussianPrediction(np.array([1.0]), np.array([0.2]))
     with pytest.raises(ValueError):
         prediction_copy.std[0] = 0.0
-
-

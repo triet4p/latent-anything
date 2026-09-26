@@ -29,9 +29,11 @@ Now, our projects include:
 23. [VQ_VAE_INTEGRATION](VQ_VAE_INTEGRATION.md): Compact VQ-VAE adapter and non-degenerate evidence scope.
 24. [visual-qa-checklist](visual-qa-checklist.md): Visual-quality review checklist for generated artifacts.
 25. [API_COMPATIBILITY](API_COMPATIBILITY.md): Current user-facing alias, deprecation, and schema/path migration ledger.
-26. [EVIDENCE_GAP_PLAN](EVIDENCE_GAP_PLAN.md): Sprint 79 closure plan for every current D0/D1 implementation-applicable or benchmark-only theory item.
-27. [MIGRATION](MIGRATION.md): Published 0.9.0 to unpublished 1.0.0 candidate compatibility and data-migration guide.
-28. [API_REFERENCE](API_REFERENCE.md): Human index to the checked-in API-freeze snapshot and public contract sections.
-29. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
-30. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.
-31. [1.0.0 candidate release notes](RELEASE_NOTES_1.0.0.md): Unpublished draft scoped to signed-off ordinary-DL evidence and open release gates.
+26. [SUPPORT_POLICY](SUPPORT_POLICY.md): Candidate 1.x semantic versioning, support scope, security reporting status, upstream compatibility, and artifact migration.
+27. [SECURITY](../SECURITY.md): Vulnerability-reporting availability and handling policy.
+28. [EVIDENCE_GAP_PLAN](EVIDENCE_GAP_PLAN.md): Sprint 79 closure plan for every current D0/D1 implementation-applicable or benchmark-only theory item.
+29. [MIGRATION](MIGRATION.md): Published 0.9.0 to unpublished 1.0.0 candidate compatibility and data-migration guide.
+30. [API_REFERENCE](API_REFERENCE.md): Human index to the checked-in API-freeze snapshot and public contract sections.
+31. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
+32. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.
+33. [1.0.0 candidate release notes](RELEASE_NOTES_1.0.0.md): Unpublished draft scoped to signed-off ordinary-DL evidence and open release gates.

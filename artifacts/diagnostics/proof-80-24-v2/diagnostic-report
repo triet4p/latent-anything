@@ -1,0 +1,82 @@
+# Diagnostic Report report-80-24-transformer
+
+## Identifiers
+render schema: diagnostic-report-render-v1
+artifact schema: diagnostic-artifact-v1
+report schema: diagnostic-report-schema-v1
+run id: 6e65beddb1dfeadf
+artifact digest: 14e60dfb1d06843af92670e0bd4f789664d4039589da7fa8a199380205179b1d
+report digest: c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb
+manifest: sprint80-core-transformer-hidden-state-probe-v1
+manifest sha256: c4773238ddf4d8854cb40ad26811b7b204cab8210ff9fe45f79e83e12da4675a
+taxonomy sha256: 77728d92e97e237dd9e07cefe862ab94d684dc8a99319eb3bd124e35352a57a5
+report schema sha256: 8dd0b2a248284e068e693991f76147b3424f334acf55ac7a800fea5cd1b0aa4b
+workflow identity: 2e78b3ec7f66b9f0e7dfe7d6a728459c3f8976aed876492a58ff4ea059fab544
+request id: proof-80-24
+validator: passed
+evidence contract: diagnostic-evidence-v2
+target: section-header-attribute
+target rule: section-header attribute '^ = .+ = $'
+target record: 3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19
+
+## Symptom
+description: heldout probe accuracy 1.0000 with leakage gap 0.4489 on the declared section-header attribute at transformer.h.0 (threshold heldout-probe-accuracy>=0.7, probe-leakage-gap>=0.15)
+metrics: heldout-probe-accuracy, probe-leakage-gap
+status: observed
+family: separability_probe_leakage
+bounded conclusion: supported
+reason: predeclared thresholds met with required controls passed
+hypothesis: the section-header attribute is linearly decodable from the localized layer under the frozen leakage-safe protocol
+hypothesis status: supported
+
+## Location
+axes: slice, feature
+representation: openai-community-gpt2:hidden-states:layers0-11:dim768
+location: layer transformer.h.0 (confidence 1.0, status supported)
+location: slice slice-validation-eval (confidence 1.0, status supported)
+
+## Evidence
+metric heldout-probe-accuracy: estimate 1.0, interval [1.0, 1.0], status observed
+metric probe-leakage-gap: estimate 0.44889779559118237, interval [0.40881763527054105, 0.49699398797595196], status observed
+control control-capacity: passed
+control control-label-randomization: passed
+control control-nonseparable-negative: passed
+control control-split-swap: passed
+family evidence separability_probe_leakage: probe_capacity_control=observed, probe_heldout_metric=observed, probe_label_randomization_control=observed, probe_nonseparable_negative_control=observed, probe_split_provenance=observed
+explanation h-section-header-separability: probe outcome supported
+evidence stage-record-capture: 5dd1432fefe8bbd757f852fe4ecc47067f2e4bc69173483382bce61db0a81865
+evidence stage-record-detect: 6cbfb6ba138cdb6947a292a67f9972e6fa7c9aa9b77d07237233a6c92c13c3cf
+evidence stage-record-localize: 027701ec421a56829f7e6cfeefcc3816bddcfea0a97d0a0b52a2b716556731e2
+evidence stage-record-explain: d629ecc3d0562bdd71292a332f58778b6ab70444ee7fc1d74766e32707650b1c
+evidence stage-record-intervene: 8349bd69fd8ed0c6123bb2ed87a226c118754af7235ee0170e6dea9b3d73fc36
+evidence stage-record-compare: 63991b71aaa214cf0f78f88836d96d0b7cca4f5575efd52016cd1238f9607edf
+evidence stage-record-report: 257e66114a672c30727fbb1a8a5a94f5d750e21387aa2f080136dc0569e62ddb
+evidence capture-capture-transformer-hidden-states-record: 4c3cc683e515312460bac83a049014d685c64fd09bed031be283172c370fd044
+evidence target-section-header-attribute-record: 3e470ef055e2a546408a6f51717bbc5a4d8bf2478410555862045a516955bc19
+evidence stage-record-intervene-remove-section-header-direction: 791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838
+evidence comparison-cmp-hiddenstate-eval-replay-record: 578ecb784e1a342b08aa0ec784504dbcdb7cdf239ec9b57aa4195c5e1686e31c
+evidence explanation-h-section-header-separability-record: d1560b5bff6335222f7a6f9bbccc0d0ccb61d74b67e8e3c633622651fefeeb76
+evidence diagnostic-report: c670acea7b27665581844916f17fb03aa38b5aa6d7740583dea34a5a6f467bdb
+
+## Causal
+intervention remove on transformer.h.0: intervention-remove-section-header-direction-record, conclusion supported
+record stage-record-intervene-remove-section-header-direction: 791bf36ad48fe4fa01960a7d98ff5afe8497ae7e5529a77212262c31a5d78838
+claim intervention-remove-section-header-direction: supported (claim allowed yes)
+
+## Comparison
+comparison cmp-hiddenstate-eval-replay: observed (classification neither), baseline gpt2-hiddenstate-eval-000100 (e7da7f22-validation-eval-a), candidate gpt2-hiddenstate-eval-000200 (e7da7f22-validation-eval-b)
+metrics: heldout-probe-accuracy, probe-leakage-gap
+representation heldout-probe-accuracy: signed delta 0.0, absolute delta 0.0, tolerance 0.02, changed no
+task probe-leakage-gap: signed delta 0.0, absolute delta 0.0, tolerance 0.02, changed no
+record comparison-cmp-hiddenstate-eval-replay-record: 578ecb784e1a342b08aa0ec784504dbcdb7cdf239ec9b57aa4195c5e1686e31c
+
+## Limitations
+limitation lim-1: token and time localization axes are explicit non-applicable for this row-level probe campaign: the manifest declares no time axis and no token-level claim is made; token scope is bound by the capture identity (gpt2-tokenizer-128-nonpadding-first128-pad=eos-last-nonpadding-token-pooling-v1) (affects localization; blocking no)
+limitation lim-2: the declared attribute (wikitext raw section-header rows) is correlated with row length and last-token identity; the claim is separability under the frozen protocol, not causal feature use (affects explain, detect; blocking no)
+limitation lim-3: per-sample localization rows for every heldout row are recorded in the content-addressed localize stage record; the report lists the layer and slice rows to stay concise (affects localization; blocking no)
+
+## Next action
+action: review the persisted artifact and rendered report
+rationale: the content-addressed artifact carries the full stage records
+requires evidence e-acc
+requires evidence o-1

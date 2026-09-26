@@ -1,0 +1,137 @@
+{
+  "artifacts": [
+    {
+      "digest": "2a78208b19117f3322c488aaa96a66808254dd3d0a2b82ea051979982004206b",
+      "media_type": "application/json",
+      "name": "stage-record-capture",
+      "relative_path": "artifacts/2a78208b19117f3322c488aaa96a66808254dd3d0a2b82ea051979982004206b",
+      "size_bytes": 2054
+    },
+    {
+      "digest": "9f1738367b9eee150f5b3065fa8b937c6df29ef6c2c3cd2657c22d5b1b9d0412",
+      "media_type": "application/json",
+      "name": "stage-record-detect",
+      "relative_path": "artifacts/9f1738367b9eee150f5b3065fa8b937c6df29ef6c2c3cd2657c22d5b1b9d0412",
+      "size_bytes": 8263
+    },
+    {
+      "digest": "ebb664af871d7d0a57d4294b8b59e59eff5c4f9eedc27912c78ca4f5398487f0",
+      "media_type": "application/json",
+      "name": "stage-record-localize",
+      "relative_path": "artifacts/ebb664af871d7d0a57d4294b8b59e59eff5c4f9eedc27912c78ca4f5398487f0",
+      "size_bytes": 2993
+    },
+    {
+      "digest": "61bb2cbbec7afce6f6083fc3506d3055bdbda269449c109db7cdcd56d98cddec",
+      "media_type": "application/json",
+      "name": "stage-record-explain",
+      "relative_path": "artifacts/61bb2cbbec7afce6f6083fc3506d3055bdbda269449c109db7cdcd56d98cddec",
+      "size_bytes": 6133
+    },
+    {
+      "digest": "9a4977749c111949692a06455eccba7870a993d4d2e6cf24a6f647869d312e14",
+      "media_type": "application/json",
+      "name": "stage-record-intervene",
+      "relative_path": "artifacts/9a4977749c111949692a06455eccba7870a993d4d2e6cf24a6f647869d312e14",
+      "size_bytes": 7052
+    },
+    {
+      "digest": "9cb124939822a2bb9a813039c7dabe3cef9c5cf94af7e68f29590811f13d7ff1",
+      "media_type": "application/json",
+      "name": "stage-record-compare",
+      "relative_path": "artifacts/9cb124939822a2bb9a813039c7dabe3cef9c5cf94af7e68f29590811f13d7ff1",
+      "size_bytes": 7435
+    },
+    {
+      "digest": "031daeeccf5e63c374860b2ca536007f3a1668105013b6418bae3f27d358784c",
+      "media_type": "application/json",
+      "name": "stage-record-report",
+      "relative_path": "artifacts/031daeeccf5e63c374860b2ca536007f3a1668105013b6418bae3f27d358784c",
+      "size_bytes": 123
+    },
+    {
+      "digest": "95fb45cc3d9dee15335ab45acf02d337b1959bdbe21ef14c3932f061053e0bda",
+      "media_type": "application/json",
+      "name": "capture-capture-linear-autoencoder-bottleneck-v3-record",
+      "relative_path": "artifacts/95fb45cc3d9dee15335ab45acf02d337b1959bdbe21ef14c3932f061053e0bda",
+      "size_bytes": 1983
+    },
+    {
+      "digest": "63daf9c06ac88458a0b4ed4e93a265c98e9f3d15d571af1ccec9d6d870dc3c14",
+      "media_type": "application/json",
+      "name": "stage-record-intervene-restore-lesioned-encoder-dim0-v3",
+      "relative_path": "artifacts/63daf9c06ac88458a0b4ed4e93a265c98e9f3d15d571af1ccec9d6d870dc3c14",
+      "size_bytes": 5496
+    },
+    {
+      "digest": "ce915f377a81bde1d669901f3b09d6160d494b5aad05499ccefe8bc4502ef5b8",
+      "media_type": "application/json",
+      "name": "comparison-cmp-healthy-vs-model-lesion-v3-record",
+      "relative_path": "artifacts/ce915f377a81bde1d669901f3b09d6160d494b5aad05499ccefe8bc4502ef5b8",
+      "size_bytes": 6692
+    },
+    {
+      "digest": "16a79fe1fa0c5de5fc32923a4ee837ea3c31754e60317f75fee9a503c1d6c584",
+      "media_type": "application/json",
+      "name": "explanation-h-brightness-axis-dim0-v3-record",
+      "relative_path": "artifacts/16a79fe1fa0c5de5fc32923a4ee837ea3c31754e60317f75fee9a503c1d6c584",
+      "size_bytes": 975
+    },
+    {
+      "digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "media_type": "application/json",
+      "name": "diagnostic-report",
+      "relative_path": "artifacts/8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194",
+      "size_bytes": 7218
+    },
+    {
+      "digest": "3cd3e905e3834e94d78ccb56e51d5ed31a2b215c381d8ea7ece78f11a89c3427",
+      "media_type": "application/json",
+      "name": "diagnostic-artifact",
+      "relative_path": "artifacts/3cd3e905e3834e94d78ccb56e51d5ed31a2b215c381d8ea7ece78f11a89c3427",
+      "size_bytes": 9252
+    }
+  ],
+  "child_run_ids": [],
+  "code_version": "working-tree",
+  "config": {
+    "artifact_digest": "3cd3e905e3834e94d78ccb56e51d5ed31a2b215c381d8ea7ece78f11a89c3427",
+    "manifest_id": "sprint80-core-encoder-autoencoder-collapse-model-lesion-v3",
+    "report_digest": "8fb1528f39d355a311d2a8db39e9cf7db6455e1c7392915e21f377a05d13f194"
+  },
+  "created_at": "2026-09-23T14:39:12.178362+00:00",
+  "dataset_revisions": {
+    "sklearn.datasets.load_digits": "scikit-learn==1.9.0"
+  },
+  "environment": {
+    "numpy": "2.4.6",
+    "python": "3.13.3",
+    "system": "Windows-AMD64"
+  },
+  "error": null,
+  "framework_version": "latent-anything-diagnostic",
+  "identity": "eefec71de29280e96df0a4067731235e81d2adf76af660e2624bd56927ab6606",
+  "metadata": {
+    "diagnostic_artifact_digest": "3cd3e905e3834e94d78ccb56e51d5ed31a2b215c381d8ea7ece78f11a89c3427",
+    "diagnostic_artifact_size": 9252,
+    "diagnostic_request_id": "proof-80-23-v3-model-lesion",
+    "schema": "diagnostic-artifact-v1"
+  },
+  "metrics": {},
+  "model_revisions": {
+    "scripts.sprint80_task80_23_v3_proof.LinearBrightnessPCAAutoencoder": "linear-pca-autoencoder-4d-train-only-v1"
+  },
+  "name": "diagnostic:proof-80-23-v3-model-lesion",
+  "parent_run_ids": [],
+  "run_id": "eefec71de29280e9",
+  "runtime_profile": {},
+  "schema_version": 1,
+  "seeds": [
+    0,
+    17,
+    42
+  ],
+  "status": "completed",
+  "theory_evidence_ids": [],
+  "updated_at": "2026-09-23T14:39:12.558075+00:00"
+}

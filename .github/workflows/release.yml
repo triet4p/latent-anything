@@ -69,29 +69,41 @@ jobs:
           echo "Verified release candidate $RELEASE_TAG -> $checkout_commit"
 
       - name: Sync environment
-        run: uv sync --locked --extra docs
+        run: uv sync --locked --extra docs --extra viz --group ci-proofs
+      - name: Cache pinned transformer proof inputs
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/huggingface
+          key: ${{ runner.os }}-hf-gpt2-e7da7f221d5bf496a48136c0cd264e630fe9fcc8-wikitext-f776294184f13b8ff2337b3841cf9269a6216d1e
+      - name: Download pinned GPT-2 proof snapshot
+        env:
+          HF_HOME: ${{ runner.temp }}/huggingface
+        run: |
+          uv run --locked --no-sync python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai-community/gpt2', revision='e7da7f221d5bf496a48136c0cd264e630fe9fcc8', allow_patterns=['config.json', 'generation_config.json', 'merges.txt', 'model.safetensors', 'tokenizer.json', 'vocab.json'])"
       - name: Enforce depth-first release stop
-        run: uv run python scripts/check_release_readiness.py
+        run: uv run --locked --no-sync python scripts/check_release_readiness.py
 
       - name: MkDocs strict
-        run: uv run mkdocs build --strict
+        run: uv run --locked --no-sync mkdocs build --strict
 
       - name: Ruff check
-        run: uv run ruff check src tests scripts
+        run: uv run --locked --no-sync ruff check src tests scripts
 
       - name: Ruff format check
-        run: uv run ruff format --check src tests scripts
+        run: uv run --locked --no-sync ruff format --check src tests scripts
 
       - name: Pyright
-        run: uv run pyright
+        run: uv run --locked --no-sync pyright
 
       - name: Pytest
-        run: uv run pytest -v
+        env:
+          HF_HOME: ${{ runner.temp }}/huggingface
+        run: uv run --locked --no-sync pytest -v
 
       - name: Extract release notes
         id: release_notes
         run: |
-          uv run python scripts/extract_release_notes.py \
+          uv run --locked --no-sync python scripts/extract_release_notes.py \
             "$RELEASE_TAG" \
             --body-file "${RUNNER_TEMP}/release-body.md" \
             --github-output "${GITHUB_OUTPUT}"
@@ -142,7 +154,7 @@ jobs:
           SOURCE_DATE_EPOCH: ${{ steps.verify_ref.outputs.commit_epoch }}
         run: |
           cp "${{ steps.release_notes.outputs.body_path }}" dist/release-body.md
-          uv run python - <<'PY'
+          uv run --locked --no-sync python - <<'PY'
           import email
           import hashlib
           import json
@@ -231,22 +243,125 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           overwrite: true
-  create-release-tag:
-    name: Create approved release tag
+
+  attest-artifacts:
+    name: Attest verified release artifacts
     needs: gate-and-build
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      attestations: write
+      contents: read
+      id-token: write
     env:
       RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
       RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
 
     steps:
+      - name: Download verified build evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: release-${{ needs.gate-and-build.outputs.release_tag }}-${{ github.run_id }}
+          path: dist
+
+      - name: Verify package checksums and provenance before attestation
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum --check SHA256SUMS)
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          dist = Path("dist")
+          expected = {
+              "latent_anything-1.0.0-py3-none-any.whl",
+              "latent_anything-1.0.0.tar.gz",
+          }
+          provenance = json.loads((dist / "PROVENANCE.json").read_text(encoding="utf-8"))
+          if (
+              provenance.get("schema") != "latent-anything-release-provenance-v1"
+              or provenance.get("tag") != os.environ["RELEASE_TAG"]
+              or provenance.get("commit") != os.environ["RELEASE_COMMIT"]
+              or provenance.get("repository") != os.environ["GITHUB_REPOSITORY"]
+          ):
+              raise SystemExit("release artifact provenance does not match the approved candidate")
+          files = provenance.get("files")
+          if not isinstance(files, list):
+              raise SystemExit("release artifact provenance has no file records")
+          recorded = {item["name"]: item["sha256"] for item in files}
+          if len(recorded) != len(files) or set(recorded) != expected:
+              raise SystemExit(f"unexpected provenance file set: {sorted(recorded)}")
+          for name, digest in recorded.items():
+              actual = hashlib.sha256((dist / name).read_bytes()).hexdigest()
+              if digest != actual:
+                  raise SystemExit(f"provenance digest mismatch for {name}")
+          PY
+
+      - name: Attest release distributions and integrity metadata
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS
+            dist/PROVENANCE.json
+
+  create-release-tag:
+    name: Create approved release tag
+    needs:
+      - gate-and-build
+      - attest-artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
+      RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
+
+    steps:
+      - name: Require release GitHub App credentials
+        shell: bash
+        env:
+          RELEASE_APP_ID: ${{ secrets.RELEASE_APP_ID }}
+          RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+
+          required = ("RELEASE_APP_ID", "RELEASE_APP_PRIVATE_KEY")
+          missing = [name for name in required if not os.environ.get(name)]
+          if missing:
+              print(
+                  "::error::Add the missing repository secret(s): " + ", ".join(missing),
+                  file=sys.stderr,
+              )
+              raise SystemExit(1)
+          PY
+
+      - name: Create repository-scoped release tag token
+        id: release-app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+
       - name: Checkout approved release commit
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.gate-and-build.outputs.commit }}
           fetch-depth: 0
+          token: ${{ steps.release-app-token.outputs.token }}
+          persist-credentials: true
+      - name: Configure audited release tag identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create and push annotated release tag
         shell: bash
@@ -349,3 +464,128 @@ jobs:
                   )
           print("Verified exact GitHub Release assets and SHA-256 hashes")
           PY
+
+  publish-pypi:
+    name: Publish verified distributions to PyPI
+    needs:
+      - gate-and-build
+      - attest-artifacts
+      - create-release-tag
+      - publish
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/latent-anything/
+    permissions:
+      attestations: read
+      contents: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ needs.gate-and-build.outputs.release_tag }}
+      RELEASE_COMMIT: ${{ needs.gate-and-build.outputs.commit }}
+
+    steps:
+      - name: Download verified build evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: release-${{ needs.gate-and-build.outputs.release_tag }}-${{ github.run_id }}
+          path: dist
+
+      - name: Verify package checksums, provenance, and exact distribution set
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/SHA256SUMS
+          test -s dist/PROVENANCE.json
+          test -s dist/release-body.md
+          (cd dist && sha256sum --check SHA256SUMS)
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          dist = Path("dist")
+          expected = {
+              "latent_anything-1.0.0-py3-none-any.whl",
+              "latent_anything-1.0.0.tar.gz",
+          }
+          actual = {path.name for path in dist.iterdir() if path.is_file() and path.suffix in {".whl", ".gz"}}
+          if actual != expected:
+              raise SystemExit(f"unexpected distribution set: {sorted(actual)}")
+          provenance = json.loads((dist / "PROVENANCE.json").read_text(encoding="utf-8"))
+          if (
+              provenance.get("schema") != "latent-anything-release-provenance-v1"
+              or provenance.get("tag") != os.environ["RELEASE_TAG"]
+              or provenance.get("commit") != os.environ["RELEASE_COMMIT"]
+              or provenance.get("repository") != os.environ["GITHUB_REPOSITORY"]
+              or provenance.get("workflow_run") != os.environ["GITHUB_RUN_ID"]
+          ):
+              raise SystemExit("release artifact provenance does not match the approved candidate")
+          files = provenance.get("files")
+          if not isinstance(files, list):
+              raise SystemExit("release artifact provenance has no file records")
+          recorded = {item["name"]: item["sha256"] for item in files}
+          if len(recorded) != len(files) or set(recorded) != expected:
+              raise SystemExit(f"unexpected provenance file set: {sorted(recorded)}")
+          for name, digest in recorded.items():
+              actual_digest = hashlib.sha256((dist / name).read_bytes()).hexdigest()
+              if digest != actual_digest:
+                  raise SystemExit(f"provenance digest mismatch for {name}")
+          PY
+
+      - name: Verify GitHub build attestations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for artifact in dist/latent_anything-1.0.0-py3-none-any.whl dist/latent_anything-1.0.0.tar.gz; do
+            gh attestation verify "$artifact" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml"
+          done
+
+      - name: Stage only verified PyPI distributions
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import shutil
+          from pathlib import Path
+
+          source = Path("dist")
+          packages = Path("dist-pypi")
+          expected = {
+              "latent_anything-1.0.0-py3-none-any.whl",
+              "latent_anything-1.0.0.tar.gz",
+          }
+          provenance = json.loads((source / "PROVENANCE.json").read_text(encoding="utf-8"))
+          files = provenance.get("files")
+          if not isinstance(files, list):
+              raise SystemExit("release artifact provenance has no file records")
+          verified = {item["name"]: item["sha256"] for item in files}
+          if len(verified) != len(files) or set(verified) != expected:
+              raise SystemExit(f"unexpected provenance file set: {sorted(verified)}")
+          if packages.exists():
+              raise SystemExit("PyPI distribution staging directory already exists")
+          packages.mkdir()
+          for name in sorted(expected):
+              original = source / name
+              if hashlib.sha256(original.read_bytes()).hexdigest() != verified[name]:
+                  raise SystemExit(f"verified distribution changed before staging: {name}")
+              staged = packages / name
+              shutil.copyfile(original, staged)
+              if hashlib.sha256(staged.read_bytes()).hexdigest() != verified[name]:
+                  raise SystemExit(f"staged distribution hash mismatch for {name}")
+          staged_files = {path.name for path in packages.iterdir() if path.is_file()}
+          if staged_files != expected:
+              raise SystemExit(f"unexpected PyPI staging set: {sorted(staged_files)}")
+          print("Verified PyPI staging contains only the hash-matched wheel and sdist")
+          PY
+
+      - name: Publish distributions and attestations with PyPI Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@v1.14.2
+        with:
+          packages-dir: dist-pypi
+          attestations: true
