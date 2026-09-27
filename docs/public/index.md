@@ -2,8 +2,8 @@
 
 Use this guide to choose a starting point for working with model representations, inspect or change latents, or connect analyses to your own code. It documents the **published `1.0.0` API**, not unreleased additions from the current source tree.
 
-!!! warning "Publication status"
-    This separate MkDocs configuration builds a site intended for `https://triet4p.github.io/latent-anything/api/`. The `/api/` site has **not** been published or verified as publicly available by this local build. The existing theory site remains at the Pages root; publishing both sites requires a later, combined deployment. Building this guide does not change or deploy the theory site.
+!!! note "Publication status"
+    This guide is published at [the `/api/` URL](https://triet4p.github.io/latent-anything/api/) alongside the existing theory site at the Pages root. A local build does not publish changes or verify the public site; use the combined deployment workflow to publish both trees atomically.
 
 ## Choose a route
 

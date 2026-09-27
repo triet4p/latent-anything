@@ -76,12 +76,18 @@ Use the linked current-source documents for API, evidence, and plugin
 publication status. This clarification does not move or recreate either docs
 tag, change the protected `v1.0.0` release, or alter any release asset.
 
-The live [GitHub Pages site](https://triet4p.github.io/latent-anything/) is the
-separate Latent-Anything Theory site; `mkdocs.yml` sets
+The live [GitHub Pages site](https://triet4p.github.io/latent-anything/) serves
+the separate Latent-Anything Theory site at `/`; `mkdocs.yml` sets
 `docs_dir: latent-anything-theory`. The combined deployment workflow publishes
-that theory site at `/` together with the task-oriented `1.0.0` API guide at
-`/api/` (built from `docs/public/` via `mkdocs-api.yml`) from one merged tree
-on `theory-v*`/`guide-v*` tags or manual `workflow_dispatch`. Until that
-combined deployment lands and is HTTP-verified, the intended
-`/api/` URL remains pending and this record does not claim the guide is live
-on Pages.
+that theory tree at `/` and the task-oriented `1.0.0` API guide at `/api/`
+(built from `docs/public/` via `mkdocs-api.yml`) in one merged tree on
+`theory-v*`/`guide-v*` tags or manual `workflow_dispatch`.
+
+The first combined publication completed successfully in Actions run
+[`36327680242`](https://github.com/triet4p/latent-anything/actions/runs/36327680242),
+triggered by `guide-v0.1.0` at source commit
+[`38140b0bb14a92663b1cbc7163ebd15bc7ecda49`](https://github.com/triet4p/latent-anything/commit/38140b0bb14a92663b1cbc7163ebd15bc7ecda49).
+On 2026-09-27, Chromium navigation verified the theory root, API guide root,
+and linked API reference-index route over HTTPS; each returned HTTP 200. This
+post-release publication record does not move or recreate the protected
+`v1.0.0` release tag/assets or the immutable `docs-v1.0.0` tags.

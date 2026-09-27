@@ -198,7 +198,7 @@ latent-anything/
 - [docs/PLAN.md](docs/PLAN.md) - Incremental project plan
 - [docs/PLUGIN_AUTHOR_GUIDE.md](docs/PLUGIN_AUTHOR_GUIDE.md) - External plugin contract and security boundary
 - [docs/PLUGIN_TEMPLATE.md](docs/PLUGIN_TEMPLATE.md) - Minimal plugin package template
-- [1.0.0 API guide](docs/public/index.md) - Task-oriented guide to the published `1.0.0` API (pending public site: `https://triet4p.github.io/latent-anything/api/` after the combined deployment lands; the theory site stays at the Pages root)
+- [1.0.0 API guide](docs/public/index.md) - Task-oriented guide to the published `1.0.0` API, live at [`/api/`](https://triet4p.github.io/latent-anything/api/); the theory site remains at the Pages root ([`/`](https://triet4p.github.io/latent-anything/)).
 - [1.0.0 release notes](docs/RELEASE_NOTES_1.0.0.md)
 - [Support and versioning policy](docs/SUPPORT_POLICY.md) - 1.x support, SemVer, deprecation, upstream compatibility, and artifact migration.
 - [Security policy](SECURITY.md) - Current private-reporting availability and responsible-disclosure handling.

@@ -37,4 +37,4 @@ Now, our projects include:
 31. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
 32. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.
 - [1.0.0 release notes](RELEASE_NOTES_1.0.0.md): Published release scope, compatibility, evidence boundaries, and publication record.
-- [1.0.0 API guide](public/index.md): Task-oriented guide to the published `1.0.0` API (pending public site at `/api/` after the combined deployment lands; the theory site stays at the Pages root).
+- [1.0.0 API guide](public/index.md): Task-oriented guide to the published `1.0.0` API at https://triet4p.github.io/latent-anything/api/; the theory site remains at the Pages root.
