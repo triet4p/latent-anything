@@ -1,0 +1,974 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Task-oriented guide to the published Latent Anything 1.0.0 API.">
+      
+      
+        <meta name="author" content="Latent Anything contributors">
+      
+      
+        <link rel="canonical" href="https://triet4p.github.io/latent-anything/api/hidden-state-path/">
+      
+      
+        <link rel="prev" href="../vae-paths/">
+      
+      
+        <link rel="next" href="../inspect-explain/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Decoder-free hidden-state paths - Latent Anything API Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#adapt-decoder-free-models-and-inspect-hidden-states" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Latent Anything API Guide" class="md-header__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Latent Anything API Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Decoder-free hidden-state paths
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Latent Anything API Guide" class="md-nav__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Latent Anything API Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start here
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../latent-primitives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent primitives and adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vae-paths/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VAE training and pretrained AutoencoderKL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder-free hidden-state paths
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder-free hidden-state paths
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use this API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-right-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the right route
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shapes-axes-and-coordinate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shapes, axes, and coordinate identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-adapt-one-named-hidden-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: adapt one named hidden layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-deliberately" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture deliberately
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-diagnostic-examplesnot-general-model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded diagnostic examples—not general model validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contract-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contract and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspect-explain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect and explain representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intervene-compare/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intervene and compare representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compose-persist-extend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compose, persist, and extend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API coverage and method-selection index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use this API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-right-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the right route
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shapes-axes-and-coordinate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shapes, axes, and coordinate identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-adapt-one-named-hidden-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: adapt one named hidden layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-deliberately" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture deliberately
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-diagnostic-examplesnot-general-model-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded diagnostic examples—not general model validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contract-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contract and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="adapt-decoder-free-models-and-inspect-hidden-states">Adapt decoder-free models and inspect hidden states</h1>
+<h2 id="when-to-use-this-api">When to use this API</h2>
+<p>Use a decoder-free model's intermediate activation as its representation when the model has no meaningful mapping back to the input space, or when the chosen hidden state is the object you want to inspect. The released <code>ModelAdapter</code> protocol needs only <code>latent_space</code> and <code>encode()</code>; it does not require a decoder. A user-owned adapter can therefore select a layer from an existing deep model and return its activation as a NumPy array.</p>
+<p>This guide is about carrying hidden representations into the released <code>1.0.0</code> API. It does not train your model, choose a scientifically meaningful layer, or establish that features support a particular task.</p>
+<h2 id="choose-the-right-route">Choose the right route</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Route</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>You already have a decoder-free model and want its real layer output</td>
+<td>Implement the structural <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/adapters/protocols.py"><code>ModelAdapter</code></a> contract around that model</td>
+<td>Your adapter controls inference, layer selection, output conversion, and provenance. It may return sequence-shaped values such as <code>(batch, tokens, hidden_dim)</code>.</td>
+</tr>
+<tr>
+<td>You want the released, lightweight hidden-state-shaped example</td>
+<td><code>HiddenStateAdapter</code> from <code>latent_anything.adapters</code></td>
+<td>This is a fixed-random NumPy MLP with input <code>(n_samples, input_dim)</code> and output <code>(n_samples, hidden_dim)</code>. Its two-layer weights are initialized but <code>encode()</code> returns only the first ReLU activation; it does not wrap your PyTorch model or a pretrained checkpoint. It has no <code>decode()</code>.</td>
+</tr>
+<tr>
+<td>You specifically need a decoder-only language-model lifecycle</td>
+<td><code>TransformerLMIntegration</code> in versions that provide it, with the optional Transformers dependency</td>
+<td>This is a model-specific integration for tokenization, forward passes, and transformer analysis, not the generic <code>ModelAdapter</code> contract. It is not a frozen <code>1.0.0</code> public import; installing an extra does not make an unfrozen name part of the release API.</td>
+</tr>
+</tbody>
+</table>
+<p>For a model you already own, the first route is the direct <code>1.0.0</code> extension point. The built-in <code>HiddenStateAdapter</code> is useful for exercising downstream methods with a reproducible fixed-random representation, but its <code>encode()</code> creates that representation itself. It should not be substituted for capture from the trained model whose hidden states you intend to analyze.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Use Python <code>&gt;=3.12,&lt;3.15</code> and the published base package:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;latent-anything==1.0.0&quot;</span>
+</code></pre></div>
+<p>The CPU example below uses PyTorch, which is in the base package, plus NumPy. It uses a tiny fixed-weight model defined in the example and makes no checkpoint or network request. <code>HiddenStateAdapter</code> itself uses NumPy and does not require the optional Transformers extra.</p>
+<p>The package also declares a <code>transformers</code> optional extra. Install it only when the specific optional integration you intend to use is available in your installed version:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;latent-anything[transformers]==1.0.0&quot;</span>
+</code></pre></div>
+<p>The extra supplies optional dependencies; it does not change the frozen <code>1.0.0</code> API surface. The repository's current <a href="https://github.com/triet4p/latent-anything/blob/main/src/latent_anything/integrations/transformer_lm.py"><code>TransformerLMIntegration</code> implementation</a> is a source reference, not a stable <code>1.0.0</code> import contract. For the exact revision-backed GPT-2 evidence path, use the pinned setup and executable example linked below rather than guessing an import path.</p>
+<h2 id="shapes-axes-and-coordinate-identity">Shapes, axes, and coordinate identity</h2>
+<p>For tokenized sequence input, the common shapes are:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Shape</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token IDs</td>
+<td><code>(batch, sequence)</code></td>
+<td>Input IDs supplied by the model's tokenizer, with a matching attention mask where applicable</td>
+</tr>
+<tr>
+<td>One selected layer</td>
+<td><code>(batch, sequence, hidden_dim)</code></td>
+<td>One hidden vector per token; <code>hidden_dim</code> is the final feature axis</td>
+</tr>
+<tr>
+<td>One selected, pooled layer</td>
+<td><code>(batch, hidden_dim)</code></td>
+<td>One vector per input after the explicitly chosen pooling rule</td>
+</tr>
+<tr>
+<td>Several captured layers</td>
+<td><code>(layers, batch, sequence, hidden_dim)</code></td>
+<td>A caller-stacked array; the layer axis is still just a leading axis to <code>LatentValue</code></td>
+</tr>
+</tbody>
+</table>
+<p>Declare <code>LatentSpace(dim=hidden_dim)</code> for one flat hidden vector. A <code>LatentValue</code> over <code>(batch, sequence, hidden_dim)</code> then has point shape <code>(hidden_dim,)</code> and <code>batch_shape == (batch, sequence)</code>. The wrapper preserves leading axes but does not infer that they mean batch, token, or layer. Record those meanings yourself. If layers have different semantics, keep them as separate values or identify the layer axis explicitly in your metadata rather than treating layer index as another feature.</p>
+<p>A matching shape does not imply matching coordinates. Set the representation identity to include the model identifier, exact layer or module path, and capture/pooling convention. Supply an immutable checkpoint revision or a caller-owned checkpoint version in <code>LatentValue</code> metadata. Include tokenizer revision and token/padding/pooling rules when they affect the captured vectors. Values from different layers, model revisions, or pooling choices must not be combined just because both end in the same <code>hidden_dim</code>.</p>
+<p><code>HiddenStateAdapter</code> does not know a user's trained model, layer, or checkpoint revision. Its optional <code>random_state</code> makes its generated feature weights reproducible, but the caller must still label which seed/configuration produced the values if they will be compared with another representation.</p>
+<h2 id="runnable-cpu-example-adapt-one-named-hidden-layer">Runnable CPU example: adapt one named hidden layer</h2>
+<p>This fixed-weight two-layer sequence encoder exposes a capture option and returns only the requested named layer. The adapter selects <code>encoder.layers.0</code>; no hooks, checkpoint downloads, or model training are involved. The same pattern applies to an existing model if its forward path can expose the selected activation. Run this exact block after installing the base package:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentSpace</span><span class="p">,</span> <span class="n">LatentValue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelAdapter</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TinySequenceModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tiny fixed-weight sequence encoder with two named hidden layers.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">embedding</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">freeze</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">((</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_ids</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">capture_layer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">embedded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+        <span class="n">hidden_0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">embedded</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">capture_layer</span> <span class="o">==</span> <span class="s2">&quot;encoder.layers.0&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hidden_0</span>
+        <span class="k">if</span> <span class="n">capture_layer</span> <span class="o">==</span> <span class="s2">&quot;encoder.layers.1&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">hidden_0</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown layer: </span><span class="si">{</span><span class="n">capture_layer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TinyHiddenStateAdapter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expose one model layer through the released NumPy adapter protocol.&quot;&quot;&quot;</span>
+
+    <span class="n">layer_name</span> <span class="o">=</span> <span class="s2">&quot;encoder.layers.0&quot;</span>
+    <span class="n">model_revision</span> <span class="o">=</span> <span class="s2">&quot;fixed-fixture-v1&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">TinySequenceModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">latent_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LatentSpace</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">LatentSpace</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">source_model</span><span class="o">=</span><span class="s2">&quot;tiny-sequence-encoder&quot;</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;source_representation_identity&quot;</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;tiny-sequence-encoder:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">:token-hidden&quot;</span>
+                <span class="p">)</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_ids</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">token_ids</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;token_ids must have shape (batch, sequence)&quot;</span><span class="p">)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+            <span class="n">selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">capture_layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">selected</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+
+<span class="n">adapter</span> <span class="o">=</span> <span class="n">TinyHiddenStateAdapter</span><span class="p">(</span><span class="n">TinySequenceModel</span><span class="p">())</span>
+<span class="n">input_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="n">hidden</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">LatentValue</span><span class="p">(</span>
+    <span class="n">hidden</span><span class="p">,</span>
+    <span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="n">adapter</span><span class="o">.</span><span class="n">model_revision</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">adapter</span><span class="p">,</span> <span class="n">ModelAdapter</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">hidden</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">value</span><span class="o">.</span><span class="n">item_shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,)</span>
+<span class="k">assert</span> <span class="n">value</span><span class="o">.</span><span class="n">batch_shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="k">assert</span> <span class="s2">&quot;encoder.layers.0&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">identity</span>
+<span class="k">assert</span> <span class="n">adapter</span><span class="o">.</span><span class="n">model_revision</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">identity</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;input_ids=</span><span class="si">{</span><span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; selected hidden=</span><span class="si">{</span><span class="n">hidden</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;point=</span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">item_shape</span><span class="si">}</span><span class="s2">; leading_axes=</span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">batch_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;layer=</span><span class="si">{</span><span class="n">adapter</span><span class="o">.</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">; revision=</span><span class="si">{</span><span class="n">adapter</span><span class="o">.</span><span class="n">model_revision</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;first token hidden=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">hidden</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Expected shape summary (the example also prints the selected fixture activation):</p>
+<div class="highlight"><pre><span></span><code>input_ids=(2, 3); selected hidden=(2, 3, 4)
+point=(4,); leading_axes=(2, 3)
+layer=encoder.layers.0; revision=fixed-fixture-v1
+</code></pre></div>
+<p>The code proves the NumPy adapter boundary, selected-layer delegation, shape/axis handling, and declared identity on this deterministic CPU fixture. It does not test a production transformer, demonstrate feature quality, or validate arbitrary model behavior. A live wrapper should use its model's documented inference path, set evaluation mode where appropriate, and return detached CPU NumPy data at the public adapter boundary.</p>
+<h2 id="capture-deliberately">Capture deliberately</h2>
+<p>Choose the layer and token scope before materializing activations. Prefer the model's native hidden-state outputs when available; otherwise install only the hook(s) needed for the selected module and remove them after the forward pass. Avoid storing every layer/token when the analysis needs only one layer or a pooled vector. Record the attention mask, token pooling rule, layer path/index, model and tokenizer revisions, dtype, and any preprocessing that changes coordinates.</p>
+<p>For a causal decoder-only language model, the optional source integration's native observation route is <code>output_hidden_states</code>; its current implementation reserves hooks for interventions. That implementation detail is not a <code>1.0.0</code> API promise. The bounded transformer evidence below captured the pinned model's layer outputs and used last-nonpadding-token pooling, with the target labels kept separate from the capture axes. Do not silently substitute a different tokenizer, pooling rule, layer numbering convention, or padding mask and still call it the same capture.</p>
+<h2 id="bounded-diagnostic-examplesnot-general-model-validation">Bounded diagnostic examples—not general model validation</h2>
+<p>The <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md">AI engineer guide</a> and its <a href="https://github.com/triet4p/latent-anything/blob/main/scripts/ai_engineer_example_encoder.py">encoder-v3 executable</a> and <a href="https://github.com/triet4p/latent-anything/blob/main/scripts/ai_engineer_example_transformer.py">transformer executable</a> are two separate, frozen diagnostic cases. Both scripts compose case-specific proof code; their coordinator is not a stable public import.</p>
+<ul>
+<li><strong>Encoder v3:</strong> a committed four-dimensional linear-autoencoder checkpoint, a pinned train/held-out digits split, and a predeclared weight lesion. Its accepted result is bounded to that model, split, and brightness-bin task. It is not evidence about the fixed-random <code>HiddenStateAdapter</code>, arbitrary encoders, or general reconstruction quality.</li>
+<li><strong>Transformer target-evidence-v2:</strong> this case pairs the frozen v1 transformer manifest with a separately versioned <code>diagnostic-evidence-v2</code> target record. It uses GPT-2 <code>openai-community/gpt2</code> at revision <code>e7da7f221d5bf496a48136c0cd264e630fe9fcc8</code> and the pinned Wikitext validation selection. The row-level section-header target is stored separately from real capture axes. The accepted probe result is evidence of separability under its frozen split and controls; it does not show that GPT-2 causally uses section headers. See the <a href="https://github.com/triet4p/latent-anything/blob/main/artifacts/diagnostics/proof-80-25-committed-transformer-v1-target-v2-20260926-115522-629609-4488/diagnostic-report">accepted target-evidence-v2 report</a>.</li>
+<li><strong>Separate stability supplement:</strong> the target-evidence-v2 validator pass did not establish coefficient stability because that record's stability threshold was null. A separately frozen supplement applied its own predeclared <code>coef_stability &gt;= 0.8</code> gate and observed <code>0.974878</code>; it did not mutate or retroactively gate the accepted target-evidence-v2 artifact. It reused the same selected Wikitext source corpus with a different grouped split, so it is not an independent corpus sample and remains a non-causal probe result. Read the <a href="https://github.com/triet4p/latent-anything/blob/main/artifacts/diagnostics/proof-80-25-committed-transformer-stability-supplement-20260926-115522-629609-4488/reports/5f88ac98fe84ab80ed93dfc5a0e08a9972e2665649e152ecb2030503494135d0.md">separate supplement report</a>.</li>
+</ul>
+<p>The transformer example requires the exact model/data revisions, a local model snapshot, the optional dependencies, and the recorded overlays described in the <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md#prerequisites-and-frozen-inputs">AI engineer guide's prerequisites</a>. It is a slow, heavyweight evidence replay, not a required smoke for the runnable CPU example on this page. <code>DiagnosticRequest</code> is the public request-configuration type; the proof-script <code>DiagnosticWorkflow</code> coordinator and model-specific compositions are not stable public imports. There is no no-configuration auto-diagnoser for arbitrary model/data pairs.</p>
+<h2 id="contract-and-next-steps">Contract and next steps</h2>
+<p>For the released names and signatures, see the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md">frozen <code>1.0.0</code> API reference</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/artifacts/api_freeze_snapshot_1.0.0.json">API freeze snapshot</a>, and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/adapters/protocols.py">adapter protocol source at the release tag</a>. Continue to <a href="../latent-primitives/">latent primitives and adapters</a> for <code>LatentSpace</code>, <code>LatentValue</code>, and adapter capabilities, or return to the <a href="../">guide home</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

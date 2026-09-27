@@ -1,0 +1,1084 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Task-oriented guide to the published Latent Anything 1.0.0 API.">
+      
+      
+        <meta name="author" content="Latent Anything contributors">
+      
+      
+        <link rel="canonical" href="https://triet4p.github.io/latent-anything/api/inspect-explain/">
+      
+      
+        <link rel="prev" href="../hidden-state-path/">
+      
+      
+        <link rel="next" href="../intervene-compare/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Inspect and explain representations - Latent Anything API Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#choose-a-method-to-inspect-or-explain-a-representation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Latent Anything API Guide" class="md-header__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Latent Anything API Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Inspect and explain representations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Latent Anything API Guide" class="md-nav__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Latent Anything API Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start here
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../latent-primitives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent primitives and adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vae-paths/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VAE training and pretrained AutoencoderKL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hidden-state-path/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder-free hidden-state paths
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect and explain representations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect and explain representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-by-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose by question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-and-common-input-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites and common input contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-to-inspect-structure-pca-or-umap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project to inspect structure: PCA or UMAP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-a-labeled-property-linear-first-then-bounded-nonlinear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe a labeled property: linear first, then bounded nonlinear
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discover-groups-or-score-distribution-shift-kmeans-and-gmm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discover groups or score distribution shift: KMeans and GMM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Discover groups or score distribution shift: KMeans and GMM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kmeans-for-unlabeled-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KMeans for unlabeled groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gmm-density-for-relative-ood-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GMM density for relative OOD scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluate-sparse-autoencoder-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluate sparse-autoencoder features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explain-a-concept-or-a-selected-target-tcav-and-integrated-gradients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explain a concept or a selected target: TCAV and Integrated Gradients
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Explain a concept or a selected target: TCAV and Integrated Gradients">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tcav-sensitivity-along-a-concept-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TCAV: sensitivity along a concept direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integrated-gradients-one-activation-path-one-scalar-logit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integrated Gradients: one activation path, one scalar logit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyze-a-time-ordered-latent-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyze a time-ordered latent sequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-projection-probe-and-clusters-on-known-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: projection, probe, and clusters on known data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence-boundaries-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence boundaries and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intervene-compare/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intervene and compare representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compose-persist-extend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compose, persist, and extend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API coverage and method-selection index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-by-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose by question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-and-common-input-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites and common input contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-to-inspect-structure-pca-or-umap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project to inspect structure: PCA or UMAP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-a-labeled-property-linear-first-then-bounded-nonlinear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe a labeled property: linear first, then bounded nonlinear
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discover-groups-or-score-distribution-shift-kmeans-and-gmm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discover groups or score distribution shift: KMeans and GMM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Discover groups or score distribution shift: KMeans and GMM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kmeans-for-unlabeled-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KMeans for unlabeled groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gmm-density-for-relative-ood-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GMM density for relative OOD scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluate-sparse-autoencoder-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluate sparse-autoencoder features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explain-a-concept-or-a-selected-target-tcav-and-integrated-gradients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explain a concept or a selected target: TCAV and Integrated Gradients
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Explain a concept or a selected target: TCAV and Integrated Gradients">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tcav-sensitivity-along-a-concept-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TCAV: sensitivity along a concept direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integrated-gradients-one-activation-path-one-scalar-logit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integrated Gradients: one activation path, one scalar logit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyze-a-time-ordered-latent-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyze a time-ordered latent sequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-projection-probe-and-clusters-on-known-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: projection, probe, and clusters on known data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence-boundaries-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence boundaries and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="choose-a-method-to-inspect-or-explain-a-representation">Choose a method to inspect or explain a representation</h1>
+<p>Start from the question, not the plot. A projection can show geometry; a probe tests whether a declared label is readable; a clusterer groups samples; a density model ranks unusual samples; attribution methods test sensitivity to a chosen target; and temporal methods analyze ordered states. These are different claims, not interchangeable explanations.</p>
+<p>This page describes selected APIs from the published <code>latent-anything==1.0.0</code> release. It is an instructional route, not a catalog of every stable export. The only executed example here is the small CPU digits workflow below. The UMAP, nonlinear-probe, GMM, SAE, TCAV, Integrated Gradients, and temporal sections are conditional method-selection guidance—not claimed execution or evidence for an arbitrary model.</p>
+<h2 id="choose-by-question">Choose by question</h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Starting method</th>
+<th>Labels needed to fit?</th>
+<th>What the result can answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What structure is visible in a lower-dimensional view?</td>
+<td>PCA or UMAP</td>
+<td>No</td>
+<td>How a fitted projection arranges these vectors under its objective</td>
+</tr>
+<tr>
+<td>Can this representation predict a named property?</td>
+<td>Linear probe; compare with a bounded MLP probe</td>
+<td>Yes, one label per sample</td>
+<td>Whether the property is linearly or nonlinearly accessible on the evaluated split</td>
+</tr>
+<tr>
+<td>Do samples form groups, or does a sample look unusual relative to a reference distribution?</td>
+<td>KMeans for groups; Gaussian-mixture density for density/OOD scores</td>
+<td>No labels to fit; ID/OOD labels only for external evaluation</td>
+<td>Assignment geometry, or relative density-based unusualness in one representation</td>
+</tr>
+<tr>
+<td>Are learned sparse features active, stable, and useful for a declared task?</td>
+<td>SAE feature evaluation</td>
+<td>No for basic metrics; aligned labels/model inputs for optional cross-checks</td>
+<td>Reconstruction, activation, stability, and bounded cross-check measures</td>
+</tr>
+<tr>
+<td>Does a human-defined concept direction affect a selected target?</td>
+<td>TCAV</td>
+<td>Positive concept and reference examples; a scalar target</td>
+<td>Target-gradient sensitivity along a learned concept direction</td>
+</tr>
+<tr>
+<td>Which selected activation dimensions contribute to a selected transformer logit?</td>
+<td>Activation-space Integrated Gradients</td>
+<td>No class labels; requires a model, input, and explicit scalar target</td>
+<td>Attribution along a baseline-to-activation path for one chosen target</td>
+</tr>
+<tr>
+<td>Where does an ordered latent sequence smooth or change phase?</td>
+<td>Trajectory smoothing, change-point detection, or DTW</td>
+<td>No for analysis; boundary labels for evaluation</td>
+<td>Geometry-aware smoothing, velocity-change candidates, or sequence alignment cost</td>
+</tr>
+</tbody>
+</table>
+<p>If you first need to define the sample unit, axes, coordinate identity, or trajectory shape, see <a href="../latent-primitives/">latent primitives and adapters</a>. Keep the model, checkpoint revision, layer, pooling/token selection, and preprocessing attached to the representation: matching feature dimensions alone does not make two representations comparable.</p>
+<h2 id="prerequisites-and-common-input-contract">Prerequisites and common input contract</h2>
+<p>Use Python <code>&gt;=3.12,&lt;3.15</code> and the published base package from PyPI: <code>python -m pip install "latent-anything==1.0.0"</code>. The base release includes NumPy, scikit-learn, UMAP, and PyTorch; the example uses only CPU and the local scikit-learn digits dataset. Do not download a checkpoint to run it.</p>
+<p>Most methods below consume a numeric matrix <code>X</code> with shape <code>(n_samples, n_features)</code>: rows are the analysis units and columns are the features of one selected representation. Supply a one-dimensional label array of shape <code>(n_samples,)</code> only when the method is supervised. Token, image, time, and layer axes are not automatically understood as sample or feature axes. Decide whether to pool, select a token/layer, or analyze each group separately, and record that choice. For geometry-bound methods, use points from the same representation identity and the geometry expected by that method.</p>
+<h2 id="project-to-inspect-structure-pca-or-umap">Project to inspect structure: PCA or UMAP</h2>
+<p><strong>Use PCA</strong> for a deterministic linear summary of variance, or <strong>UMAP</strong> when a nonlinear neighborhood layout is the question. Neither needs labels to fit. Fit on a declared reference/training matrix, then use that fitted object to transform the samples you intend to compare. Labels may be overlaid afterward for display or external checks; do not feed them into an unsupervised fit and then describe the resulting separation as discovery.</p>
+<p>Both methods take a two-dimensional NumPy matrix and return a two-dimensional NumPy array with the requested component count. PCA centers the data and returns linear principal coordinates; <code>explained_variance_ratio_</code> summarizes variance captured by each component. UMAP approximates local-neighborhood structure and has stochastic choices, so set <code>random_state</code> when reproducibility matters. A small UMAP <code>min_dist</code> or visually distinct islands are not evidence of well-separated real populations.</p>
+<p>Read PCA axes as high-variance directions, not necessarily task-relevant directions. Read UMAP primarily as a local-neighborhood visualization: its global distances, cluster sizes, and apparent gaps can change with hyperparameters, random seed, and sample composition. Compare multiple seeds/parameter settings and check whether a suspected neighborhood is also present in the original representation space. Neither plot establishes classification performance, a causal mechanism, or that the model uses the displayed feature.</p>
+<p>Released implementations: <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/methods/pca.py">PCA</a> and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/methods/umap.py">UMAP</a>.</p>
+<h2 id="probe-a-labeled-property-linear-first-then-bounded-nonlinear">Probe a labeled property: linear first, then bounded nonlinear</h2>
+<p>A probe answers: <em>can a simple readout recover this label from this representation on held-out examples?</em> <code>LinearProbe.fit(features, labels)</code> expects a 2D feature matrix and aligned 1D labels with at least two classes. It makes a stratified train/validation/test split; feature standardization, when enabled, is fitted on the training split only. Configure the split and seed deliberately. Its default row-wise split is not group-aware: if rows share a prompt, subject, sequence, or source document, keep related rows together in an independently designed evaluation instead of treating the default score as leakage-safe for that design.</p>
+<p><code>LinearProbeResult.accuracy</code> is held-out test accuracy. <code>val_accuracy</code> is <code>0.0</code> when validation is disabled (<code>val_size=0</code>), so treat it as a measured validation score only when validation was configured; <code>classes</code>, <code>predictions</code>, <code>probabilities</code>, <code>coefficients</code>, <code>intercept</code>, split masks, config, and provenance help interpret the result. Coefficient size is affected by feature scaling, regularization, class coding, and correlated dimensions; it is not a causal feature ranking. Compare against majority-class and shuffled-label controls on the same split, and repeat across predeclared seeds when stability matters. The released <code>cross_seed_evaluation</code> summarizes mean accuracy, confidence interval, and per-seed results.</p>
+<p>Use an <code>MLPProbe</code> only after the linear baseline, with bounded hidden sizes, regularization, early stopping, and a validation split. <code>compare_probes</code> returns a typed <code>ProbeComparison</code> with linear/nonlinear accuracy, their gap, confidence-interval fields, and a qualitative classification. Its helper compares one seed; its interval fields are zero-width and do not measure repeat-run uncertainty. The associated shuffled-label memorization check is important: a nonlinear gain that also appears on shuffled labels can reflect probe capacity rather than useful structure. <code>MLPProbeResult</code> retains held-out predictions and architecture details; <code>MLPProbe.predict()</code> is not available for new data in the released contract.</p>
+<p>A positive held-out probe result supports accessibility of that label under this sampling, split, representation, and probe capacity. It does not show that the base model relies on the label, that the representation improves the end task, or that the relationship is causal. Use a separately controlled intervention for a causal-use claim. The <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md">bounded diagnostic guide</a> is about its two named frozen diagnoses, not a generic endorsement of every probe run.
+Released contracts: <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/probes.py">linear probe</a> and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/mlp_probe.py">nonlinear MLP probe</a>.</p>
+<h2 id="discover-groups-or-score-distribution-shift-kmeans-and-gmm">Discover groups or score distribution shift: KMeans and GMM</h2>
+<h3 id="kmeans-for-unlabeled-groups">KMeans for unlabeled groups</h3>
+<p><code>KMeans.fit_predict(X)</code> expects flat <code>(n_samples, n_features)</code> points and a chosen <code>n_clusters &gt;= 2</code>. The default configuration standardizes features before fitting; the seed and number of initializations are part of the run definition. Supported geometries are Euclidean and unit-norm. If you have known labels, compare the resulting assignments afterward with permutation-invariant external metrics such as adjusted Rand index; labels are not used to fit KMeans.</p>
+<p>The typed <code>KMeansResult</code> contains <code>assignments</code>, <code>centers</code>, <code>cluster_sizes</code>, <code>inertia</code>, <code>silhouette_score</code>, optional per-sample silhouettes, and a nearest-versus-second-nearest distance <code>confidence</code> margin. That margin is a confidence proxy, not a calibrated probability. Cluster IDs are arbitrary and can permute between fits. Check cluster stability across seeds and compare to an appropriate baseline before treating structure as robust.</p>
+<p>A silhouette score or visually compact cluster does not establish a natural class, semantic meaning, causal role, or downstream performance. KMeans also requires a plausible <code>k</code> and is sensitive to scaling, outliers, and non-spherical structure.</p>
+<h3 id="gmm-density-for-relative-ood-scoring">GMM density for relative OOD scoring</h3>
+<p>Use <code>GaussianMixtureDensity</code> when the question is whether held-out points look unusual relative to a declared in-distribution representation. Fit the GMM on training ID examples only; calibrate on a separate held-out ID set; then score separate ID and OOD evaluation sets. Keep the source representation identity, geometry, split provenance, and preprocessing fixed across those stages. The estimator rejects a mismatched declared identity and supports flat Euclidean or unit-norm representations.</p>
+<p><code>DensityResult.log_density</code> is fitted log density, <code>responsibilities</code> are mixture-component probabilities, and <code>calibrated_ood_score</code> is an empirical tail rank when calibration has been performed (higher means more unusual). Without a calibration set the same field contains the raw negative log-density score, not a calibrated probability. <code>DensityEvaluationReport</code> keeps both evaluation results, <code>DensityMetrics</code> (AUROC, AUPRC, Brier score, and score means), and split provenance. Do not fit or tune against the OOD evaluation set; report multiple seeds and compare with a simple Mahalanobis baseline when appropriate.</p>
+<p>A density tail is relative to the fitted representation distribution, not a semantic error detector. High density does not guarantee correctness; low density does not prove an input is invalid. Performance depends on the chosen ID population, fit/calibration separation, dimensionality, and shift type. AUROC/AUPRC on one declared ID/OOD split are not guarantees under future deployment shifts.
+Released contracts: <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/clustering.py">KMeans</a> and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/density.py">Gaussian-mixture density/OOD</a>.</p>
+<h2 id="evaluate-sparse-autoencoder-features">Evaluate sparse-autoencoder features</h2>
+<p>Use <code>SAEFeatureEvaluation</code> to assess a sparse decomposition of a fixed activation matrix, not as a substitute for inspecting the source model or examples. <code>fit(train_activations, val_data=..., source_representation_identity=...)</code> fits on training activations and evaluates on held-out activations. Each row must be one sample from the same layer/model/checkpoint coordinate system. If <code>val_data</code> is omitted, the evaluator makes a seeded validation split and requires at least the configured minimum number of validation rows. Preserve identity and split provenance when comparing results.</p>
+<p><code>SAEEvaluationResult</code> reports train and validation reconstruction MSE, mean L0/L1 activity, dead-feature counts/fraction, per-feature activation frequencies and norms, validation activations, and decoder weights. A low reconstruction error alone does not establish interpretable features. Feature indices are fit-specific: use the cross-seed stability result, which matches decoder directions, rather than comparing column numbers across independently trained SAEs. <code>rank()</code> / the feature atlas can show top- and bottom-activating examples; those examples are hypotheses to inspect, not automatic semantic labels.</p>
+<p>Optional feature cross-checks have extra prerequisites. Labels supplied to the probe check must align with the SAE validation activations; that check includes shuffled labels. Concept sensitivity and steering agreement require the compatible model, token inputs, attention mask, scalar target, and layer. A feature is not thereby established as a cause: agreement with a separately controlled intervention is stronger evidence than activation frequency, example ranking, or probe accuracy alone. Stability is not guaranteed merely because the same SAE width was used.
+Released contracts: <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/sae_evaluation.py">SAE feature evaluation</a> and the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/methods/sae.py">SAE transform method</a>.</p>
+<h2 id="explain-a-concept-or-a-selected-target-tcav-and-integrated-gradients">Explain a concept or a selected target: TCAV and Integrated Gradients</h2>
+<p>These are conditional, model-backed paths. The released implementations target a decoder-only transformer-style interface with named <code>transformer.h.{layer}</code> modules; they are not general methods for arbitrary model objects, and they do not include a model checkpoint or tokenizer. Use the pinned model setup and specialist evidence where applicable rather than treating this prose as a verified run.</p>
+<h3 id="tcav-sensitivity-along-a-concept-direction">TCAV: sensitivity along a concept direction</h3>
+<p>TCAV needs positive concept activations and reference activations of shape <code>(n_examples, n_features)</code> from the same representation layer, coordinate system, model revision, and preprocessing. <code>ConceptDataset</code> records concept name and provenance and requires at least two examples from each group. It also needs evaluation token IDs, a matching attention mask, and a scalar <code>TransformerLogitTarget</code> (one token logit at a selected sequence position and batch item). Choose <code>mean_diff</code> or <code>linear_separator</code> direction fitting and predeclare the target/comparison family.</p>
+<p>A <code>TCAVScore.sensitivity</code> is the fraction of evaluated examples with positive directional derivative of the chosen target along the learned direction; it is not a probability that the concept is present. <code>TCAVResult</code> includes seed aggregation and uncertainty, random-concept baseline scores, empirical and Bonferroni-corrected p-values, significance, and optional intervention agreement. Read concept-direction stability and held-out concept/reference separability too. Control the concept examples, reference examples, target choice, random concepts, seeds, and number of comparisons. A significant sensitivity is a target-specific association, not proof that the model causally uses the human concept.</p>
+<h3 id="integrated-gradients-one-activation-path-one-scalar-logit">Integrated Gradients: one activation path, one scalar logit</h3>
+<p><code>IntegratedGradients</code> attributes one selected residual-block activation vector at <code>target_layer</code>, <code>activation_position</code>, and <code>activation_batch_index</code> to one <code>TransformerLogitTarget</code>. Its input IDs and attention mask are 2D arrays with matching shapes. It integrates along a straight path from a declared zero, batch-mean, or explicit activation baseline using the chosen integration rule and number of steps. This is activation-space attribution; it does not attribute input tokens, explain every output, or support an arbitrary module naming scheme.</p>
+<p><code>IntegratedGradientsResult.attributions</code> has one value per selected hidden dimension. Read <code>target_input</code>, <code>target_baseline</code>, <code>attribution_sum</code>, <code>completeness_error</code>, <code>n_steps</code>, baseline, target, layer, and provenance together: completeness compares the sum with the selected target change along that path. Repeat with step counts, baselines, target choices, and a randomized control using the sensitivity evaluator. A small completeness error checks numerical accounting for that path; it does not certify the baseline is meaningful, the attribution is unique, or the identified dimensions are causal.</p>
+<p>For the release-specific inputs and result types, consult <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/tcav.py">TCAV</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/integrated_gradients.py">Integrated Gradients</a>, and the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md">API reference</a>. The <a href="https://github.com/triet4p/latent-anything/blob/main/docs/SPRINT_80_DEPTH_EVIDENCE.md">Sprint 80 evidence report</a> distinguishes accepted evidence, a separate stability supplement, blocked work, and historical negatives; method availability does not erase those boundaries.</p>
+<h2 id="analyze-a-time-ordered-latent-sequence">Analyze a time-ordered latent sequence</h2>
+<p>Use a <code>Trajectory</code> for an ordered matrix of points shaped <code>(n_points, dim)</code> and a matching <code>LatentSpace</code> for geometry-aware distances. Keep time order and one consistent representation identity. <code>Trajectory</code> stores sequence order, not timestamps or a time axis inferred from arbitrary leading dimensions; keep a separate index-to-time mapping if the sampling interval is irregular.</p>
+<ul>
+<li><code>smooth_trajectory</code> applies a centered moving average with an odd positive window and uniform or triangular weights. It returns a <code>SmoothedTrajectory</code> containing the new trajectory, provenance, and mean/maximum distortion from the original under the selected geometry. Check that the window does not erase real transitions and report distortion.</li>
+<li><code>detect_change_points</code> looks for robust local changes in adjacent latent velocity. Its <code>ChangePointResult</code> contains boundary indices, half-open segments, scores, confidence, velocity, threshold, geometry, and provenance. These boundaries are candidate changes in the selected latent path—not automatically semantic events or timestamps.</li>
+<li><code>evaluate_boundaries</code> compares predicted indices against pre-annotated boundaries with an explicit tolerance and reports precision, recall, F1, and matching counts. Use known synthetic transitions or independently annotated sequences as controls; map indices to clock time using your own recorded sampling metadata.</li>
+<li><code>compute_dtw</code> aligns query and reference sequences in one <code>LatentSpace</code>, returning a typed distance, alignment path, point costs, normalization, and provenance. Choose a window, cost limit, and normalization before comparing sequences; check the <code>max_cells</code> bound for memory. DTW accommodates unequal sequence lengths, but an alignment is not evidence that two trajectories have the same cause or outcome.</li>
+</ul>
+<p>For these APIs see the released <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/temporal.py">temporal methods</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/dtw.py">DTW</a>, and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/trajectory.py">trajectory contract</a>.</p>
+<h2 id="runnable-cpu-example-projection-probe-and-clusters-on-known-data">Runnable CPU example: projection, probe, and clusters on known data</h2>
+<p>This uses the bundled scikit-learn digits dataset, selecting only digits 0 and 1. PCA and KMeans do not consume labels; the probe does, and KMeans labels are compared only afterward. The probe owns its stratified held-out split. KMeans is fitted and scored on the same rows here, so its adjusted Rand index is descriptive agreement—not a held-out prediction score. The PCA fit also uses the full subset and is only a visualization projection, not part of the probe's evaluation.</p>
+<p>Run after installing <code>latent-anything==1.0.0</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_digits</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.clustering</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span><span class="p">,</span> <span class="n">KMeansConfig</span><span class="p">,</span> <span class="n">compare_with_labels</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.probes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearProbe</span><span class="p">,</span> <span class="n">LinearProbeConfig</span>
+
+
+<span class="n">digits</span> <span class="o">=</span> <span class="n">load_digits</span><span class="p">()</span>
+<span class="n">keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">digits</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">features</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">target</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">}</span>
+
+<span class="n">projection</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">projection</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+<span class="n">coordinates</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+<span class="n">explained</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="k">assert</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">explained</span> <span class="o">&gt;</span> <span class="mf">0.30</span>
+
+<span class="n">probe</span> <span class="o">=</span> <span class="n">LinearProbe</span><span class="p">(</span>
+    <span class="n">LinearProbeConfig</span><span class="p">(</span><span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">82</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">probe_result</span> <span class="o">=</span> <span class="n">probe</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">features</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">,</span>
+    <span class="n">provenance</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="s2">&quot;sklearn load_digits, classes 0 and 1&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">probe_result</span><span class="o">.</span><span class="n">accuracy</span> <span class="o">&gt;=</span> <span class="mf">0.95</span>
+<span class="k">assert</span> <span class="n">probe_result</span><span class="o">.</span><span class="n">predictions</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">probe_result</span><span class="o">.</span><span class="n">test_indices</span><span class="o">.</span><span class="n">sum</span><span class="p">()),)</span>
+
+<span class="n">cluster_result</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span>
+    <span class="n">KMeansConfig</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_init</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">82</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+<span class="n">cluster_agreement</span> <span class="o">=</span> <span class="n">compare_with_labels</span><span class="p">(</span><span class="n">cluster_result</span><span class="o">.</span><span class="n">assignments</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+<span class="n">ari</span> <span class="o">=</span> <span class="n">cluster_agreement</span><span class="p">[</span><span class="s2">&quot;adjusted_rand_index&quot;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">ari</span> <span class="o">&gt;</span> <span class="mf">0.50</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;digits 0/1: </span><span class="si">{</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> examples, </span><span class="si">{</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> input features&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCA: coordinates=</span><span class="si">{</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, explained_variance=</span><span class="si">{</span><span class="n">explained</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LinearProbe: held-out accuracy=</span><span class="si">{</span><span class="n">probe_result</span><span class="o">.</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;KMeans: sizes=</span><span class="si">{</span><span class="n">cluster_result</span><span class="o">.</span><span class="n">cluster_sizes</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">, ARI=</span><span class="si">{</span><span class="n">ari</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>The thresholds are meaningful checks on this well-separated two-digit subset; the printed measurements are observations about this data and configuration only. They are not evidence for other models, datasets, probe labels, or deployed performance.</p>
+<h2 id="evidence-boundaries-and-next-steps">Evidence boundaries and next steps</h2>
+<p>The accepted <code>1.0</code> diagnostic evidence is limited to two frozen ordinary-DL cases—the prospective linear-autoencoder lesion on a held-out digits split and the pinned GPT-2/WikiText target-evidence-v2 case—plus the separately frozen transformer stability supplement. The supplement does not retroactively alter the immutable target-evidence-v2 artifact. Those case-specific controls and intervention results do not mean that PCA/UMAP separation or probe accuracy alone explains a model, proves causal use, or validates task performance. Arbitrary-model and arbitrary-dataset diagnosis, GPU/CUDA claims, and the blocked non-gating SmolVLA lane are outside that evidence scope. <code>DiagnosticWorkflow</code> is not a stable public import.</p>
+<p>For release signatures and exact result schemas, use the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md">frozen API reference</a> and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/artifacts/api_freeze_snapshot_1.0.0.json">1.0.0 API snapshot</a>. For the named diagnosis runs and their controls, see the <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md">AI engineer guide</a> and <a href="https://github.com/triet4p/latent-anything/blob/main/docs/SPRINT_80_DEPTH_EVIDENCE.md">Sprint 80 evidence report</a>. The site's <code>/api/</code> route is not publicly deployed or verified by a local build; see <a href="../">guide home</a> for the publication boundary and other task routes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

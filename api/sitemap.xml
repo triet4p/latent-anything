@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/api-reference-index/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/compose-persist-extend/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/hidden-state-path/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/inspect-explain/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/intervene-compare/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/latent-primitives/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+    <url>
+         <loc>https://triet4p.github.io/latent-anything/api/vae-paths/</loc>
+         <lastmod>2026-09-27</lastmod>
+    </url>
+</urlset>

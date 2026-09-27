@@ -1,0 +1,1045 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Task-oriented guide to the published Latent Anything 1.0.0 API.">
+      
+      
+        <meta name="author" content="Latent Anything contributors">
+      
+      
+        <link rel="canonical" href="https://triet4p.github.io/latent-anything/api/intervene-compare/">
+      
+      
+        <link rel="prev" href="../inspect-explain/">
+      
+      
+        <link rel="next" href="../compose-persist-extend/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Intervene and compare representations - Latent Anything API Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#intervene-on-latent-representations-and-compare-outcomes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Latent Anything API Guide" class="md-header__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Latent Anything API Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Intervene and compare representations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Latent Anything API Guide" class="md-nav__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Latent Anything API Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start here
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../latent-primitives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent primitives and adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vae-paths/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VAE training and pretrained AutoencoderKL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hidden-state-path/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder-free hidden-state paths
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspect-explain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect and explain representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intervene and compare representations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intervene and compare representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-and-coordinate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites and coordinate identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editing-a-stored-latent-is-not-a-model-forward-patch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing a stored latent is not a model-forward patch
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing a stored latent is not a model-forward patch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lerp-interpolate-between-two-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lerp: interpolate between two points
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#steeringvector-fit-a-contrast-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SteeringVector: fit a contrast direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subspaceprojection-preserve-remove-or-transfer-a-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubspaceProjection: preserve, remove, or transfer a component
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activationpatch-adapt-flat-data-batches-through-encode-and-decode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActivationPatch: adapt flat data batches through encode and decode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interventionpipeline-compose-do-not-reinterpret" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InterventionPipeline: compose, do not reinterpret
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controls-and-claim-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controls and claim boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-compare-identity-changed-and-off-target-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: compare identity, changed, and off-target results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-comparisons-and-released-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded comparisons and released contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compose-persist-extend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compose, persist, and extend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API coverage and method-selection index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#choose-the-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose the operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-and-coordinate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites and coordinate identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editing-a-stored-latent-is-not-a-model-forward-patch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing a stored latent is not a model-forward patch
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing a stored latent is not a model-forward patch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lerp-interpolate-between-two-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lerp: interpolate between two points
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#steeringvector-fit-a-contrast-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SteeringVector: fit a contrast direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subspaceprojection-preserve-remove-or-transfer-a-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubspaceProjection: preserve, remove, or transfer a component
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activationpatch-adapt-flat-data-batches-through-encode-and-decode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ActivationPatch: adapt flat data batches through encode and decode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interventionpipeline-compose-do-not-reinterpret" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InterventionPipeline: compose, do not reinterpret
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controls-and-claim-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controls and claim boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-compare-identity-changed-and-off-target-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: compare identity, changed, and off-target results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bounded-comparisons-and-released-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded comparisons and released contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="intervene-on-latent-representations-and-compare-outcomes">Intervene on latent representations and compare outcomes</h1>
+<p>Use this guide to choose an operation for changing a representation, distinguish a returned latent edit from an intervention inside a model's forward execution, and design comparisons that keep the claim within the evidence. These methods apply a declared transformation; they do not decide whether a representation feature is causal or validate an arbitrary model.</p>
+<h2 id="choose-the-operation">Choose the operation</h2>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Start with</th>
+<th>Do not choose it when…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Move between two compatible latent endpoints</td>
+<td><code>Lerp</code></td>
+<td>You need to learn a concept direction, decode a model output, or attribute a downstream effect.</td>
+</tr>
+<tr>
+<td>Add a learned contrast direction to a latent vector</td>
+<td><code>SteeringVector</code></td>
+<td>You lack contrast examples from the same coordinates, or you need a model-forward patch rather than a changed vector.</td>
+</tr>
+<tr>
+<td>Add a source-to-target mean latent delta and return decoded data</td>
+<td><code>ActivationPatch</code></td>
+<td>Your adapter is only generally decodable, has structured/non-flat batch semantics, or you need to inject an activation into a model's later layers.</td>
+</tr>
+<tr>
+<td>Keep or remove a fitted Euclidean component</td>
+<td><code>SubspaceProjection</code></td>
+<td>The value is not flat Euclidean, its coordinate identity differs from the basis, or you want a decoded/model-forward effect.</td>
+</tr>
+<tr>
+<td>Reuse one intervention across data batches or trajectories</td>
+<td><code>InterventionPipeline</code></td>
+<td>You expect it to add a new method, causal guarantee, or model-hook mechanism.</td>
+</tr>
+</tbody>
+</table>
+<p>For the shape and provenance basics behind these operations, see <a href="../latent-primitives/">latent primitives and adapters</a>. If the question is about whether a representation predicts a property before intervening, start with <a href="../inspect-explain/">inspect and explain representations</a> and keep that predictive result separate from an intervention result.</p>
+<h2 id="prerequisites-and-coordinate-identity">Prerequisites and coordinate identity</h2>
+<p>Use Python <code>&gt;=3.12,&lt;3.15</code> and the released base package:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;latent-anything==1.0.0&quot;</span>
+</code></pre></div>
+<p>The CPU example below uses NumPy and the base package only. It needs no optional extra, downloaded checkpoint, or network access.</p>
+<p>A feature axis has meaning only relative to the producing model, layer/representation, checkpoint, and preprocessing or pooling rule. <code>LatentValue</code> carries a declared coordinate identity and <code>SubspaceProjection</code> binds its fitted basis to that identity. <code>Lerp</code> and <code>SteeringVector</code> operate on NumPy arrays and do not compare or carry model/layer/revision identity for you: same-shaped arrays from different coordinates are not thereby compatible. Keep those identities aligned when preparing endpoints, positive/negative groups, source/target data, and evaluation examples. A declaration is caller-supplied provenance, not proof that the values came from the named weights.</p>
+<h2 id="editing-a-stored-latent-is-not-a-model-forward-patch">Editing a stored latent is not a model-forward patch</h2>
+<p><code>Lerp</code> and <code>SteeringVector</code> return new latent arrays; neither mutates a model, decodes the result, nor runs the model again. <code>SubspaceProjection.project()</code> and <code>.remove()</code> likewise return new <code>LatentValue</code> objects with operation provenance. These are suitable when the next step consumes the edited latent, or when you will explicitly decode it through your own compatible decoder.</p>
+<p><code>ActivationPatch</code> is adapter-mediated: it encodes flat data batches, adds the fitted mean target-minus-source latent delta, and decodes the changed latent batch to data space. Its released implementation does <strong>not</strong> install a hook, replace an intermediate activation during an arbitrary model forward pass, or resume the rest of that model's layers. If you need a true forward-execution intervention, your model integration must expose a supported way to inject the changed state and evaluate the downstream computation. Do not describe an encode/patch/decode round trip as a hook-based intervention unless your adapter actually implements that behavior.</p>
+<h3 id="lerp-interpolate-between-two-points"><code>Lerp</code>: interpolate between two points</h3>
+<p><code>Lerp(space=None)</code> is stateless. Call it with two 1-D arrays of the same shape and <code>t</code> in <code>[0, 1]</code>; it returns <code>(1 - t) * a + t * b</code> by default, or delegates to <code>LatentSpace.interpolate()</code> when given a space. Supply a space when the representation uses a supported non-Euclidean geometry. <code>t=0</code> and <code>t=1</code> are endpoint identity controls. Interpolation says where a point lies between supplied endpoints; it does not infer an attribute or show that the model uses the path.</p>
+<p><strong>Do not use <code>Lerp</code></strong> as a substitute for contrast fitting, subspace removal, or a model output intervention. It only needs matching shapes at the array level; the caller must ensure that the endpoints share the intended coordinates.</p>
+<h3 id="steeringvector-fit-a-contrast-direction"><code>SteeringVector</code>: fit a contrast direction</h3>
+<p><code>SteeringVector(space=None).fit(positives, negatives)</code> expects non-empty matrices <code>(n_positive, dim)</code> and <code>(n_negative, dim)</code> in the same coordinates. It normalizes <code>mean(positives) - mean(negatives)</code> to a unit direction. Calling the fitted method on one vector <code>(dim,)</code> adds <code>strength * direction</code>; strength <code>0</code> is a null/identity control and negative strength reverses the direction. An optional <code>LatentSpace</code> can apply its geometry-specific normalization after the addition.</p>
+<p>This is a mean-difference direction, not a learned causal mechanism. Check that the contrast groups are aligned and not distinguished by an unintended confound. <strong>Do not use it</strong> when there are no meaningful contrast examples or when you require a decoded or forward-executed model result; it returns only a latent vector (or a changed <code>Trajectory</code>).</p>
+<h3 id="subspaceprojection-preserve-remove-or-transfer-a-component"><code>SubspaceProjection</code>: preserve, remove, or transfer a component</h3>
+<p><code>SubspaceProjection</code> applies an orthonormal basis to <code>LatentValue</code> points in a flat Euclidean space. Fit a basis explicitly with <code>fit_basis()</code> or derive one with <code>fit_pca()</code>, and supply the source representation identity. For basis matrix <code>U</code>, columns are orthonormal and the operation is:</p>
+<ul>
+<li><code>project(value)</code>: keep the component <code>U Uᵀ z</code> inside the fitted subspace.</li>
+<li><code>remove(value)</code>: keep the residual <code>(I - U Uᵀ) z</code> outside it.</li>
+<li><code>transfer(source, target)</code>: retain the target's outside component and replace its subspace component with the source's.</li>
+</ul>
+<p>The point shape must be <code>(dim,)</code>, geometry must be Euclidean, and the <code>LatentValue</code> identity must equal the basis identity. Calls return new values and append operation provenance; they do not edit the source value or run a model. The origin label (<code>explicit</code>, <code>pca</code>, <code>probe</code>, or <code>concept</code>) records how the basis was derived; those origins answer different questions and are not interchangeable. <strong>Do not use it</strong> with a mismatched layer/checkpoint or to assert that a projected component is causal just because it separates labels.</p>
+<h3 id="activationpatch-adapt-flat-data-batches-through-encode-and-decode"><code>ActivationPatch</code>: adapt flat data batches through encode and decode</h3>
+<p><code>ActivationPatch(adapter)</code> requires the structural <code>FlatBatchDecodableAdapter</code> contract, which is narrower than <code>DecodableAdapter</code>: <code>latent_space</code>, <code>supports_flat_batch == True</code>, and flat matrix <code>encode</code>/<code>decode</code> semantics. The expected shape flow is <code>(n_samples, input_dim) -&gt; (n_samples, latent_dim) -&gt; (n_samples, output_dim)</code>. A <code>decode()</code> method alone is insufficient; for example, a structured renderer need not support a flat batch.</p>
+<p><code>fit(source_data, target_data)</code> takes two non-empty 2-D data batches with equal input feature width. It encodes both and stores <code>mean(target_latent) - mean(source_latent)</code>. Calling the fitted patch encodes the input batch, broadcasts that delta to each row, decodes, and returns data-space output. <code>apply_latent()</code> exposes the latent-batch edit without decoding. This fitting recipe defines an average displacement; it does not pair or align source and target rows, learn a per-example replacement, or validate that the decoded outputs remain on a model's data manifold.</p>
+<p><strong>Do not use it</strong> with an encoder-only adapter, a merely decodable structured adapter, or when the desired operation is an internal model hook. Confirm that input, latent, and output batch axes mean the same sample rows and that your adapter preserves the declared flat-matrix contract.</p>
+<h3 id="interventionpipeline-compose-do-not-reinterpret"><code>InterventionPipeline</code>: compose, do not reinterpret</h3>
+<p><code>InterventionPipeline(method, adapter=None)</code> is the released canonical name for the manipulation pipeline. <code>fit()</code> delegates to a stateful method. <code>run_trajectory()</code> delegates to that method's trajectory operation. <code>run_data()</code> needs a <code>FlatBatchDecodableAdapter</code>; for methods exposing <code>apply_latent()</code>, it encodes, applies the latent edit, and decodes, while other callable methods receive the data batch directly. It does not change the wrapped method's mathematical effect or add model hooks, controls, identity checks, or a causal interpretation. Use it to make that existing path explicit and repeatable, not as a substitute for choosing the right intervention.</p>
+<h2 id="controls-and-claim-boundaries">Controls and claim boundaries</h2>
+<p>For every comparison, define the measured outcome before looking at the intervention result and apply baseline and intervention to the same held-out examples under the same model/checkpoint, preprocessing, target, and evaluation code. At minimum consider:</p>
+<ul>
+<li><strong>Identity/null:</strong> preserve the input (<code>t=0</code>, steering <code>strength=0</code>, or a zero patch learned from identical source/target data). The result should match the unmodified path within a declared numerical tolerance.</li>
+<li><strong>Off-target:</strong> predeclare an unrelated feature, token, layer, or task metric and measure whether the intervention changes it. Report off-target movement instead of hiding it in a single aggregate score.</li>
+<li><strong>Randomized/null direction:</strong> compare the claimed direction with a shuffled-label, random, or otherwise appropriate null direction. A random direction is a separate control from a zero-strength identity run.</li>
+<li><strong>Positive/restore control where appropriate:</strong> verify that a known valid direction or restoration changes the intended measure, without using that observation to tune the original threshold after the fact.</li>
+</ul>
+<p>A probe, label association, visible edit, or output difference is observational/descriptive until a declared intervention is evaluated against these controls. A well-matched model-forward intervention can support a causal-use claim for that model, inputs, target, and tested pathway; a toy fixture or a latent-only transformation cannot establish general model behavior. Causal claims still need aligned runs, controls, uncertainty/stability checks, and limits stated at the scope actually tested.</p>
+<p>For persisted experiments, the released API includes <code>RunComparisonReport</code> / <code>build_comparison_report()</code> and the <code>compare-runs</code> CLI; compare aligned run identities and metric deltas rather than eyeballing separate outputs. See the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md#cli-contract">frozen API reference and CLI contract</a> and the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/run_record.py">stable run-record facade at the release tag</a>. These summarize recorded runs; a metric delta alone does not establish causal attribution.</p>
+<h2 id="runnable-cpu-example-compare-identity-changed-and-off-target-results">Runnable CPU example: compare identity, changed, and off-target results</h2>
+<p>This fixed 2-D adapter rotates flat inputs into a declared latent basis and inverts that transform on decode. The desired edit is defined in the first input feature; the second is a predeclared off-target feature. The identity patch and zero-strength steering are null controls. The example exercises latent interpolation, steering, subspace removal, adapter-mediated patching, and the intervention pipeline without claiming anything about a trained or nonlinear model.</p>
+<p>Run this block after installing <code>latent-anything==1.0.0</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">InterventionPipeline</span><span class="p">,</span>
+    <span class="n">LatentSpace</span><span class="p">,</span>
+    <span class="n">LatentValue</span><span class="p">,</span>
+    <span class="n">SubspaceProjection</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActivationPatch</span><span class="p">,</span> <span class="n">Lerp</span><span class="p">,</span> <span class="n">SteeringVector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatBatchDecodableAdapter</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FixedFlatAdapter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A deterministic flat-batch encode/decode fixture on CPU.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_space</span> <span class="o">=</span> <span class="n">LatentSpace</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">source_model</span><span class="o">=</span><span class="s2">&quot;two-feature-fixture&quot;</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;source_representation_identity&quot;</span><span class="p">:</span> <span class="s2">&quot;two-feature-fixture:rotated-encoder&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="s2">&quot;fixed-v1&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">latent_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LatentSpace</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_space</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supports_flat_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">latent</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation</span>
+
+
+<span class="n">adapter</span> <span class="o">=</span> <span class="n">FixedFlatAdapter</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">adapter</span><span class="p">,</span> <span class="n">FlatBatchDecodableAdapter</span><span class="p">)</span>
+
+<span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">11.0</span><span class="p">]])</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">11.0</span><span class="p">]])</span>
+<span class="n">evaluation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">]])</span>
+
+<span class="c1"># Stateless midpoint: decode only because this fixture explicitly provides a decoder.</span>
+<span class="n">lerp</span> <span class="o">=</span> <span class="n">Lerp</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">)</span>
+<span class="n">source_latent</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">source</span><span class="p">[:</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">target_latent</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">target</span><span class="p">[:</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">midpoint</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">lerp</span><span class="p">(</span><span class="n">source_latent</span><span class="p">,</span> <span class="n">target_latent</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">])</span>
+
+<span class="c1"># The learned direction shifts the declared first feature; strength=0 is a null control.</span>
+<span class="n">steering</span> <span class="o">=</span> <span class="n">SteeringVector</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">)</span>
+<span class="n">steering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+<span class="n">start_latent</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">evaluation</span><span class="p">[:</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">null_steer</span> <span class="o">=</span> <span class="n">steering</span><span class="p">(</span><span class="n">start_latent</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">steered</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">steering</span><span class="p">(</span><span class="n">start_latent</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">null_steer</span><span class="p">,</span> <span class="n">start_latent</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">steered</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">])</span>
+
+<span class="c1"># Remove the explicitly declared first-feature subspace from immutable latent values.</span>
+<span class="n">latent_values</span> <span class="o">=</span> <span class="n">LatentValue</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">evaluation</span><span class="p">),</span> <span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">)</span>
+<span class="n">signal_basis</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]]))[</span><span class="mi">0</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">subspace</span> <span class="o">=</span> <span class="n">SubspaceProjection</span><span class="p">()</span><span class="o">.</span><span class="n">fit_basis</span><span class="p">(</span>
+    <span class="n">signal_basis</span><span class="p">,</span>
+    <span class="n">source_representation_identity</span><span class="o">=</span><span class="n">latent_values</span><span class="o">.</span><span class="n">identity</span><span class="p">,</span>
+    <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;explicit&quot;</span><span class="p">,</span>
+    <span class="n">provenance</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;basis&quot;</span><span class="p">:</span> <span class="s2">&quot;fixture first input feature&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">removed</span> <span class="o">=</span> <span class="n">subspace</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">latent_values</span><span class="p">)</span>
+<span class="n">removed_data</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">removed</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">removed_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">removed_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">evaluation</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># ActivationPatch learns a mean target-minus-source delta and returns decoded data.</span>
+<span class="n">identity_patch</span> <span class="o">=</span> <span class="n">ActivationPatch</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
+<span class="n">identity_patch</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+<span class="n">identity_output</span> <span class="o">=</span> <span class="n">InterventionPipeline</span><span class="p">(</span><span class="n">identity_patch</span><span class="p">,</span> <span class="n">adapter</span><span class="o">=</span><span class="n">adapter</span><span class="p">)</span><span class="o">.</span><span class="n">run_data</span><span class="p">(</span><span class="n">evaluation</span><span class="p">)</span>
+
+<span class="n">patch</span> <span class="o">=</span> <span class="n">ActivationPatch</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
+<span class="n">patch</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<span class="n">patched_output</span> <span class="o">=</span> <span class="n">InterventionPipeline</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">adapter</span><span class="o">=</span><span class="n">adapter</span><span class="p">)</span><span class="o">.</span><span class="n">run_data</span><span class="p">(</span><span class="n">evaluation</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">identity_output</span><span class="p">,</span> <span class="n">evaluation</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">patched_output</span><span class="p">,</span> <span class="n">evaluation</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]))</span>
+<span class="n">off_target_delta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">patched_output</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">evaluation</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])))</span>
+<span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">off_target_delta</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lerp midpoint decoded: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Steering strength=0.5 decoded: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">steered</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">; strength=0 unchanged: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">null_steer</span><span class="p">,</span><span class="w"> </span><span class="n">start_latent</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subspace remove decoded rows: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">removed_data</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ActivationPatch latent delta: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ActivationPatch identity max |delta|: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">identity_output</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">evaluation</span><span class="p">))</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ActivationPatch changed rows: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">patched_output</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Off-target feature max |delta|: </span><span class="si">{</span><span class="n">off_target_delta</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code>Lerp midpoint decoded: [0.5, 10.0]
+Steering strength=0.5 decoded: [0.5, 12.0]; strength=0 unchanged: True
+Subspace remove decoded rows: [[0.0, 12.0], [0.0, 12.0]]
+ActivationPatch latent delta: [0.8, -0.6]
+ActivationPatch identity max |delta|: 0.000
+ActivationPatch changed rows: [[1.0, 12.0], [3.0, 12.0]]
+Off-target feature max |delta|: 0.000
+</code></pre></div>
+<p>The expected controls are an unchanged identity output, an intended first-feature change of <code>+1</code>, and zero movement in the declared second-feature off-target. The observed values establish only that the frozen API delegates these declared shapes and operations correctly on this deterministic linear fixture. They do not validate nonlinear encoders/decoders, establish data-manifold validity, or show that a trained model uses the edited component.</p>
+<h2 id="bounded-comparisons-and-released-contracts">Bounded comparisons and released contracts</h2>
+<p>The <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md">AI engineer guide</a> describes two bounded comparisons: its encoder-lesion case reports the predeclared healthy, benign low-variance, null-shuffle, explanation, and intervention controls plus an aligned healthy-versus-lesion comparison for its frozen linear-autoencoder/digits case; its transformer target-evidence-v2 case records a separate removal intervention, aligned comparison, and observational confounds. These are bounded examples, not validation of the toy fixture or arbitrary models.</p>
+<p>For the exact released surface, consult the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md">frozen <code>1.0.0</code> API reference</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/artifacts/api_freeze_snapshot_1.0.0.json">API-freeze snapshot</a>, <a href="https://github.com/triet4p/latent-anything/tree/v1.0.0/src/latent_anything/methods">intervention methods</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/projection.py">subspace projection</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/adapters/protocols.py">adapter protocols</a>, and <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/manipulation_pipeline.py">intervention pipeline</a>. Return to the <a href="../">guide home</a> to choose another released entry path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

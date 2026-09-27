@@ -1,0 +1,959 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Task-oriented guide to the published Latent Anything 1.0.0 API.">
+      
+      
+        <meta name="author" content="Latent Anything contributors">
+      
+      
+        <link rel="canonical" href="https://triet4p.github.io/latent-anything/api/latent-primitives/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../vae-paths/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Latent primitives and adapters - Latent Anything API Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#latent-primitives-and-generic-autoencoder-adapters" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Latent Anything API Guide" class="md-header__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Latent Anything API Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Latent primitives and adapters
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Latent Anything API Guide" class="md-nav__button md-logo" aria-label="Latent Anything API Guide" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Latent Anything API Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/triet4p/latent-anything" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    triet4p/latent-anything
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start here
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent primitives and adapters
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latent primitives and adapters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use this API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shapes-and-coordinate-meaning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shapes and coordinate meaning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shapes and coordinate meaning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coordinate-identity-and-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coordinate identity and provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter capabilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-wrap-an-existing-model-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: wrap an existing model object
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contract-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contract and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vae-paths/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VAE training and pretrained AutoencoderKL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hidden-state-path/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder-free hidden-state paths
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspect-explain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect and explain representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intervene-compare/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intervene and compare representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compose-persist-extend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compose, persist, and extend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API coverage and method-selection index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use this API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shapes-and-coordinate-meaning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shapes and coordinate meaning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shapes and coordinate meaning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coordinate-identity-and-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coordinate identity and provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter capabilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-cpu-example-wrap-an-existing-model-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable CPU example: wrap an existing model object
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contract-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contract and next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="latent-primitives-and-generic-autoencoder-adapters">Latent primitives and generic autoencoder adapters</h1>
+<h2 id="when-to-use-this-api">When to use this API</h2>
+<p>Use these types to give model outputs a shape and coordinate-system description, carry latent batches or sequences, or make an existing encoder/decoder available through the stable adapter protocols. They describe and route representations; they do not train a model, score reconstruction quality, or diagnose arbitrary autoencoders.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Use Python <code>&gt;=3.12,&lt;3.15</code> and the published <code>latent-anything==1.0.0</code> base package:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;latent-anything==1.0.0&quot;</span>
+</code></pre></div>
+<p>The example below needs no optional extra, downloaded checkpoint, or network access. It uses NumPy arrays on CPU. Save the code as <code>latent_adapter_example.py</code> and run <code>python latent_adapter_example.py</code> after installing the package.</p>
+<h2 id="shapes-and-coordinate-meaning">Shapes and coordinate meaning</h2>
+<p><code>LatentSpace</code> describes one point's geometry and point shape. A flat Euclidean space of dimension <code>d</code> has point shape <code>(d,)</code>. Structured spaces retain their point axes: for example, a Gaussian set has point shape <code>(n_gaussians, param_dim)</code>, while <code>so3</code> and <code>se3</code> points have shapes <code>(3, 3)</code> and <code>(4, 4)</code>.</p>
+<p><code>LatentValue(data, space, metadata=...)</code> associates an array with a space. The trailing axes of <code>data</code> must equal <code>space.shape</code>; any preceding axes are leading batch axes:</p>
+<table>
+<thead>
+<tr>
+<th>Representation</th>
+<th>Example array shape</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One flat point</td>
+<td><code>(d,)</code></td>
+<td>One Euclidean vector</td>
+</tr>
+<tr>
+<td>Flat batch</td>
+<td><code>(n, d)</code></td>
+<td><code>n</code> vectors</td>
+</tr>
+<tr>
+<td>Flat batch and time</td>
+<td><code>(batch, time, d)</code></td>
+<td>Leading axes retained before the point shape</td>
+</tr>
+<tr>
+<td>One structured point</td>
+<td><code>(n_gaussians, param_dim)</code></td>
+<td>One Gaussian-set point</td>
+</tr>
+<tr>
+<td>Structured batch</td>
+<td><code>(batch, n_gaussians, param_dim)</code></td>
+<td>Leading batch axis plus one structured point</td>
+</tr>
+</tbody>
+</table>
+<p>The API records leading dimensions as <code>LatentValue.batch_shape</code>; it does not infer whether an axis means batch, time, layer, or something else. The caller defines those meanings. <code>to_numpy()</code> returns a writable copy.</p>
+<p><code>Trajectory</code> is a separate flat sequence container with exactly two axes, <code>(n_points, dim)</code>. It does not carry a <code>LatentSpace</code>; use a <code>LatentValue</code> when geometry and coordinate identity must travel with the values. A structured value or a value with more than one leading axis cannot be converted to a flat <code>Trajectory</code>.</p>
+<h3 id="coordinate-identity-and-provenance">Coordinate identity and provenance</h3>
+<p>Matching dimension or array shape is not enough to make two values comparable. <code>LatentValue.identity</code> is assembled from declared representation/coordinate identity, <code>LatentSpace.source_model</code>, and a revision token such as <code>model_version</code>, <code>revision</code>, or <code>checkpoint</code> supplied in value or space metadata. Arithmetic such as <code>subtract()</code> requires the same geometry, point shape, stored shape, and the same non-empty identity. Missing identity or a different model, representation, or checkpoint raises <code>ValueError</code>.</p>
+<p>These fields are caller-supplied provenance, not a checksum or proof that an array really came from the named weights. Record the model, layer/representation, and checkpoint revision consistently; do not relabel same-shaped arrays to make them appear compatible.</p>
+<h2 id="adapter-capabilities">Adapter capabilities</h2>
+<p>The adapter protocols are structural: a user-owned class conforms by providing the required members and need not inherit from the protocol.</p>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Required capability</th>
+<th>Appropriate use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ModelAdapter</code></td>
+<td><code>latent_space</code> and <code>encode(data)</code></td>
+<td>Any model that exposes representations, including encoder-only or hidden-state adapters</td>
+</tr>
+<tr>
+<td><code>DecodableAdapter</code></td>
+<td><code>ModelAdapter</code> plus <code>decode(latent)</code></td>
+<td>An adapter with a decoder, including geometry-specific/structured decoders</td>
+</tr>
+<tr>
+<td><code>FlatBatchDecodableAdapter</code></td>
+<td><code>DecodableAdapter</code> plus <code>supports_flat_batch</code></td>
+<td>Flat matrix semantics: <code>(n, input_dim) -&gt; (n, latent_dim) -&gt; (n, output_dim)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Having <code>decode()</code> does not imply flat-batch support. A structured renderer can be decodable without satisfying <code>FlatBatchDecodableAdapter</code>; operations such as activation patching that assume flat batches need the narrower protocol. The flag describes the adapter's contract, not empirical validation of its model.</p>
+<h2 id="runnable-cpu-example-wrap-an-existing-model-object">Runnable CPU example: wrap an existing model object</h2>
+<p>This example wraps a tiny user-owned linear encoder/decoder object. Its fixed NumPy matrices stand in for already-available weights; nothing is trained. Replace the <code>ExistingLinearAE</code> instance with your already-constructed or loaded model and keep its public input/output shapes and provenance accurate.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentSpace</span><span class="p">,</span> <span class="n">LatentValue</span><span class="p">,</span> <span class="n">Trajectory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">latent_anything.adapters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DecodableAdapter</span><span class="p">,</span>
+    <span class="n">FlatBatchDecodableAdapter</span><span class="p">,</span>
+    <span class="n">ModelAdapter</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ExistingLinearAE</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Small CPU model object with fixed encoder and decoder weights.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">encoder_weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">decoder_weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_weights</span> <span class="o">=</span> <span class="n">encoder_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder_weights</span> <span class="o">=</span> <span class="n">decoder_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">revision</span> <span class="o">=</span> <span class="n">revision</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_weights</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">latent</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder_weights</span><span class="o">.</span><span class="n">T</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ExistingAEAdapter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapt an existing flat-batch encoder/decoder to Latent Anything.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">ExistingLinearAE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">latent_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LatentSpace</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">LatentSpace</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">encoder_weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">source_model</span><span class="o">=</span><span class="s2">&quot;tiny-linear-ae&quot;</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;source_representation_identity&quot;</span><span class="p">:</span> <span class="s2">&quot;example:tiny-linear-ae:encoder&quot;</span><span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supports_flat_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">latent</span><span class="p">)</span>
+
+
+<span class="n">encoder_v1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+<span class="n">decoder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
+<span class="n">model_v1</span> <span class="o">=</span> <span class="n">ExistingLinearAE</span><span class="p">(</span><span class="n">encoder_v1</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="s2">&quot;demo-v1&quot;</span><span class="p">)</span>
+<span class="n">adapter</span> <span class="o">=</span> <span class="n">ExistingAEAdapter</span><span class="p">(</span><span class="n">model_v1</span><span class="p">)</span>
+
+<span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">]])</span>
+<span class="n">encoded</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+<span class="n">latent</span> <span class="o">=</span> <span class="n">LatentValue</span><span class="p">(</span>
+    <span class="n">encoded</span><span class="p">,</span>
+    <span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="n">model_v1</span><span class="o">.</span><span class="n">revision</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">sequence</span> <span class="o">=</span> <span class="n">LatentValue</span><span class="p">(</span>
+    <span class="n">encoded</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span>
+    <span class="n">adapter</span><span class="o">.</span><span class="n">latent_space</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="n">model_v1</span><span class="o">.</span><span class="n">revision</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">Trajectory</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+<span class="n">reconstructed</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">latent</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;encode: </span><span class="si">{</span><span class="n">encoded</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; first=</span><span class="si">{</span><span class="n">encoded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LatentValue: </span><span class="si">{</span><span class="n">latent</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; identity=</span><span class="si">{</span><span class="n">latent</span><span class="o">.</span><span class="n">identity</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;leading axes: </span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; batch_shape=</span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">batch_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trajectory: </span><span class="si">{</span><span class="n">trajectory</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; decoded: </span><span class="si">{</span><span class="n">reconstructed</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="s2">&quot;protocols:&quot;</span><span class="p">,</span>
+    <span class="nb">isinstance</span><span class="p">(</span><span class="n">adapter</span><span class="p">,</span> <span class="n">ModelAdapter</span><span class="p">),</span>
+    <span class="nb">isinstance</span><span class="p">(</span><span class="n">adapter</span><span class="p">,</span> <span class="n">DecodableAdapter</span><span class="p">),</span>
+    <span class="nb">isinstance</span><span class="p">(</span><span class="n">adapter</span><span class="p">,</span> <span class="n">FlatBatchDecodableAdapter</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Same dimensions and representation, different weights revision: not arithmetic-compatible.</span>
+<span class="n">encoder_v2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+<span class="n">model_v2</span> <span class="o">=</span> <span class="n">ExistingLinearAE</span><span class="p">(</span><span class="n">encoder_v2</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="s2">&quot;demo-v2&quot;</span><span class="p">)</span>
+<span class="n">adapter_v2</span> <span class="o">=</span> <span class="n">ExistingAEAdapter</span><span class="p">(</span><span class="n">model_v2</span><span class="p">)</span>
+<span class="n">latent_v2</span> <span class="o">=</span> <span class="n">LatentValue</span><span class="p">(</span>
+    <span class="n">adapter_v2</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">samples</span><span class="p">),</span>
+    <span class="n">adapter_v2</span><span class="o">.</span><span class="n">latent_space</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="n">model_v2</span><span class="o">.</span><span class="n">revision</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">latent</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">latent_v2</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;same shape, different checkpoint: arithmetic rejected&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;different checkpoint identities must not be combined&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code>encode: (3, 2); first=[1.0, 2.0]
+LatentValue: (3, 2); identity=example:tiny-linear-ae:encoder::tiny-linear-ae::demo-v1
+leading axes: (1, 3, 2); batch_shape=(1, 3)
+Trajectory: (3, 2); decoded: (3, 3)
+protocols: True True True
+same shape, different checkpoint: arithmetic rejected
+</code></pre></div>
+<p>This proves only that the adapter delegates the declared CPU shapes and that the latent wrapper exposes the expected metadata/identity behavior. The example's matrices are illustrative, untrained weights; it does not establish reconstruction quality or validate arbitrary autoencoders, datasets, or hardware. For independently bounded diagnostic cases, see the <a href="https://github.com/triet4p/latent-anything/blob/main/docs/AI_ENGINEER_GUIDE.md">AI engineer guide</a>.</p>
+<h2 id="contract-and-next-steps">Contract and next steps</h2>
+<p>This page follows the <code>1.0.0</code> release. Check the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/docs/API_REFERENCE.md">frozen API reference</a>, <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/artifacts/api_freeze_snapshot_1.0.0.json">API freeze snapshot</a>, and the <a href="https://github.com/triet4p/latent-anything/blob/v1.0.0/src/latent_anything/adapters/protocols.py">adapter protocol definitions</a> for the released contract. Return to the <a href="../">guide home</a> for other entry paths.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
