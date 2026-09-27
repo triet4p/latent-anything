@@ -36,5 +36,5 @@ Now, our projects include:
 30. [API_REFERENCE](API_REFERENCE.md): Human index to the checked-in API-freeze snapshot and public contract sections.
 31. [AI_ENGINEER_GUIDE](AI_ENGINEER_GUIDE.md): English guide with executable, independently validated encoder v3 and transformer target-evidence-v2 diagnoses, pinned inputs, expected outcomes, limits, and output hashes.
 32. [SPRINT_80_DEPTH_EVIDENCE](SPRINT_80_DEPTH_EVIDENCE.md): Frozen-input claim ledger, bounded core evidence, explicit negative and excluded lanes, quality-gate disposition, and binary Sprint 81 readiness handoff.
-33. [1.0.0 release notes](RELEASE_NOTES_1.0.0.md): Published release scope, compatibility, evidence boundaries, and publication record.
-34. [Versioned 1.0.0 documentation](VERSIONED_DOCS_1.0.0.md): Post-release documentation record and metadata-only benchmark/model/dataset revision archive; clarifies that r1 hash authority is limited to archived manifests and identifies stale historical status prose.
+- [1.0.0 release notes](RELEASE_NOTES_1.0.0.md): Published release scope, compatibility, evidence boundaries, and publication record.
+- [1.0.0 API guide](public/index.md): Task-oriented guide to the published `1.0.0` API (pending public site at `/api/` after the combined deployment lands; the theory site stays at the Pages root).

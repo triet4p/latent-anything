@@ -1,0 +1,66 @@
+name: Docs check (theory + API guide)
+
+# Strict documentation gate for documentation-only changes. CI ignores
+# docs/** on main pushes, so this workflow owns the docs contract:
+# both MkDocs trees must build with --strict, the merge must succeed,
+# and every internal link/anchor in the merged tree must resolve.
+# It never publishes; publication is deploy-latent-anything-theory.yml.
+
+on:
+  pull_request:
+    paths:
+      - "docs/public/**"
+      - "latent-anything-theory/**"
+      - "mkdocs.yml"
+      - "mkdocs-api.yml"
+      - "scripts/merge_pages_trees.py"
+      - "scripts/check_pages_links.py"
+      - ".github/workflows/docs-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/public/**"
+      - "latent-anything-theory/**"
+      - "mkdocs.yml"
+      - "mkdocs-api.yml"
+      - "scripts/merge_pages_trees.py"
+      - "scripts/check_pages_links.py"
+      - ".github/workflows/docs-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-strict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync theory docs environment
+        run: uv sync --project latent-anything-theory --group dev --locked
+
+      - name: Strict theory build
+        # Renders committed notebooks as-is (mkdocs-jupyter execute:false);
+        # notebook execution stays a deploy-time gate.
+        run: uv run --project latent-anything-theory --group dev mkdocs build --strict
+
+      - name: Sync API guide environment
+        run: uv sync --locked --extra docs
+
+      - name: Strict API guide build
+        run: uv run --locked --no-sync mkdocs build --strict --config-file mkdocs-api.yml
+
+      - name: Merge trees and audit internal links
+        run: |
+          uv run --locked --no-sync python scripts/merge_pages_trees.py
+          uv run --locked --no-sync python scripts/check_pages_links.py

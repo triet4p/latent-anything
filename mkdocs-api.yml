@@ -1,0 +1,38 @@
+site_name: Latent Anything API Guide
+site_url: https://triet4p.github.io/latent-anything/api/
+site_description: Task-oriented guide to the published Latent Anything 1.0.0 API.
+site_author: Latent Anything contributors
+repo_url: https://github.com/triet4p/latent-anything
+repo_name: triet4p/latent-anything
+
+docs_dir: docs/public
+site_dir: .api-pages-build
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search:
+      lang: en
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables
+
+nav:
+  - Start here: index.md
+  - Latent primitives and adapters: latent-primitives.md
+  - VAE training and pretrained AutoencoderKL: vae-paths.md
+  - Decoder-free hidden-state paths: hidden-state-path.md
+  - Inspect and explain representations: inspect-explain.md
+  - Intervene and compare representations: intervene-compare.md
+  - Compose, persist, and extend: compose-persist-extend.md
+  - API coverage and method-selection index: api-reference-index.md

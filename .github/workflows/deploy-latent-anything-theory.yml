@@ -1,13 +1,21 @@
-name: Deploy Latent-Anything Theory to GitHub Pages
+name: Deploy combined theory + API guide to GitHub Pages
 
 on:
+  # Combined theory + API-guide publication. Both theory-v* tags and guide-v*
+  # tags run the same single deploy so the theory root is never replaced by an
+  # API-only push; the merged tree (theory at /, guide at /api/) is published
+  # atomically with force_orphan. Manual dispatch stays for emergency rebuilds.
   push:
     tags:
       - "theory-v*"
+      - "guide-v*"
   workflow_dispatch:
 
 permissions:
   contents: write
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -79,14 +87,26 @@ jobs:
           print("Notebook image outputs verified.")
           PY
 
-      - name: Build MkDocs site
+      - name: Build theory MkDocs site
         run: uv run --project latent-anything-theory --group dev mkdocs build --strict
 
-      - name: Deploy to GitHub Pages
+      - name: Sync API guide environment
+        run: uv sync --locked --extra docs
+
+      - name: Build API guide site
+        run: uv run --locked --no-sync mkdocs build --strict --config-file mkdocs-api.yml
+
+      - name: Merge guide tree under api/
+        run: uv run --locked --no-sync python scripts/merge_pages_trees.py
+
+      - name: Audit merged internal links
+        run: uv run --locked --no-sync python scripts/check_pages_links.py
+
+      - name: Deploy combined tree to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./.gh-pages-build
           publish_branch: gh-pages
           force_orphan: true
-          commit_message: "deploy: latent-anything-theory docs from ${{ github.sha }}"
+          commit_message: "deploy: combined theory + API guide from ${{ github.sha }}"

@@ -3,6 +3,7 @@
 
 # MkDocs build output
 .gh-pages-build/
+.api-pages-build/
 **/.cache/
 
 # Virtual environments

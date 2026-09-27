@@ -78,8 +78,10 @@ tag, change the protected `v1.0.0` release, or alter any release asset.
 
 The live [GitHub Pages site](https://triet4p.github.io/latent-anything/) is the
 separate Latent-Anything Theory site; `mkdocs.yml` sets
-`docs_dir: latent-anything-theory`. The deployment workflow publishes that
-theory site on `theory-v*` tags and also supports manual `workflow_dispatch`;
-neither path publishes root package documentation. No package-documentation
-deployment or versioned `1.0.0` site URL is configured, so this record does not
-claim root package docs are live on Pages.
+`docs_dir: latent-anything-theory`. The combined deployment workflow publishes
+that theory site at `/` together with the task-oriented `1.0.0` API guide at
+`/api/` (built from `docs/public/` via `mkdocs-api.yml`) from one merged tree
+on `theory-v*`/`guide-v*` tags or manual `workflow_dispatch`. Until that
+combined deployment lands and is HTTP-verified, the intended
+`/api/` URL remains pending and this record does not claim the guide is live
+on Pages.
