@@ -1,7 +1,7 @@
 # Sprint 81 Task 9 — Final Release Evidence and Post-1.0 Backlog
 
 **Evidence date:** 2026-09-27  
-**Status:** Task 9 remains `[~]`. This artifact is an evidence handoff, not a review verdict. Main's evidence review and the final deep-review gate are pending; Sprint 81 and Milestone 14 are not marked complete.
+**Status:** Task 9's evidence gate, Sprint 81, and Milestone 14 are complete. The final differential review (`agent://DeepReviewSprint81Final`) returned **PASS** with zero actionable findings. The original provisional handoff below is retained as historical evidence; its pending-status and next-gate statements are superseded by the final closure addendum at the end.
 
 ## Executive disposition
 
@@ -78,7 +78,7 @@ The live [PyPI 1.0.0 metadata](https://pypi.org/pypi/latent-anything/1.0.0/json)
 
 Task 3 corrected the three API/evidence current-source files at commit `379aaec` and passed `Review81Task3Postrelease`. The mutable plugin guide/template corrections are at `8d288c8`; their source links do not imply the immutable r1 copies or PyPI metadata changed. Task 5 and Task 6 correction reviews and their evidence remain recorded in the review table.
 
-## Closure status and exact next gate
+## Historical closure status and exact next gate (superseded by the final closure addendum)
 
 - Sprints 78, 79, and 80 are complete. Sprint 81 Tasks 1–8 passed review. The global plan reflects these facts and leaves Sprint 81 in progress.
 - Task 9 remains `[~]`; Main must review this artifact, public links, source corrections, and plan language. This file does not mark its own checkbox `[x]`.
@@ -105,3 +105,19 @@ The scoped local Markdown/link check covered this artifact and `docs/sprint-plan
 
 Graphify 0.9.68 was updated incrementally for only these two documents; the graph was not reclustered and its report/HTML were not regenerated. The initial scoped merge extracted **16 AST nodes / 29 edges**, preserved **7 prior semantic source nodes / 8 edges**, and added **3 explicit concepts / 4 reference edges**. It grew the graph from **16,799 nodes / 39,411 edges / 39 hyperedges** to **16,803 / 39,415 / 39**, preserving all **16,777 unrelated nodes**, **39,377 unrelated edges**, and all hyperedges; losses were zero. After the verification text was finalized, Task 9 alone was re-extracted (**11 AST nodes / 24 edges**); the persisted Task 9 semantic slice remained **9 concept/rationale nodes / 10 edges**, and the graph totals were unchanged. The manifest has **1,821** rows, with only the two target rows refreshed and **0** other rows changed. Final diagnostics matched the baseline's **1 unverified node** and reported zero malformed edges, missing/dangling endpoints, external references, self-loops, duplicates, or same-endpoint collapses. A focused graph query returned the new node **“Immutable docs-v1.0.0-r1 copies retain pre-release wording in five files.”**
 
+
+## Final closure addendum — 2026-09-27
+
+The final differential review (`agent://DeepReviewSprint81Final`) returned **PASS** with zero actionable findings. All nine Sprint 81 task-level evidence gates are complete; Sprint 81 and Milestone 14 are complete. This addendum supersedes only the pending-status and next-gate statements in the provisional handoff above; the underlying release evidence and evidence-led post-1.0 backlog remain unchanged. The P1 findings for stale public PyPI metadata and immutable `docs-v1.0.0-r1` copies remain open at their existing, separately authorized publication boundaries.
+
+This post-release status record is committed separately from the published release commit [`a449ca33`](https://github.com/triet4p/latent-anything/commit/a449ca33b4b83ce109c29db7cf471919820b1d56). It does not move or rewrite protected tag [`v1.0.0`](https://github.com/triet4p/latent-anything/tree/v1.0.0) or immutable tags [`docs-v1.0.0`](https://github.com/triet4p/latent-anything/tree/docs-v1.0.0) and [`docs-v1.0.0-r1`](https://github.com/triet4p/latent-anything/tree/docs-v1.0.0-r1), nor alter release assets or published PyPI metadata. `docs-v1.0.0-r1` remains pinned to commit [`3cbc925d`](https://github.com/triet4p/latent-anything/commit/3cbc925de464a090bc1d65a2fc8858a11a0dcbf3).
+
+**Closure update paths:** docs/PLAN.md; docs/sprint-plans/sprint-81.md; artifacts/sprint-81/task-9.md.
+
+**Focused final closure verification (2026-09-27):** The local Markdown link/status smoke found **130 relative links / 0 missing** across these three records. It confirmed all nine Sprint 81 task rows are `[x]`, Sprint 81 and Milestone 14 are complete, Active Sprints is None, and the stale PyPI metadata and immutable r1 copy findings remain open.
+
+Graphify 0.9.68 re-extracted only the three records (**37 structural nodes / 113 edges; 15 semantic nodes / 21 edges**) and changed only their three manifest rows. It removed the stale Task 9 pending-review concept, preserving **16,753 unrelated nodes**, **39,278 unrelated edges**, and all **39 hyperedges**; the existing release-evidence hyperedge now points to the renamed Sprint 81 Closure Notes heading. The final graph has **16,805 nodes / 39,422 edges / 39 hyperedges** and **1,101 communities**. Diagnostics found zero malformed, missing or dangling endpoints, external-reference edges, self-loops, exact duplicates, or collapsed endpoint pairs, matching the baseline's one pre-existing unverified node. Two cluster-only passes refreshed the report and aggregated HTML (**1,101 community nodes / 2,018 cross-community edges**): the first pass saw 1,084 saved labels against 1,101 communities and renamed 235 labels by hub; the second completed without that mismatch. No LLM labeling pass ran. The graph has the final review and completion concepts linked from the global plan Overview/Milestones, Sprint 81 Closure Notes, and this artifact. Graphify package 0.9.68 emitted the installed skill-copy mismatch warning (local skill 0.9.32).
+
+The final diagnostic showed both installed skill copies (agents and OpenCode) are 0.9.32, versus Graphify package 0.9.68; the package emitted a warning for each.
+
+After recording this verification, Task 9 alone was re-extracted to index the final artifact text; its graph topology did not change.

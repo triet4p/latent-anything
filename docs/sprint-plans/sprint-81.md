@@ -1,5 +1,7 @@
 # Sprint 81 Plan
 
+Status: Complete
+
 ## Sprint Goal
 
 Publish `1.0.0` only after Sprint 80 proves the end-to-end representation-diagnostic depth contract, with a stable API, reproducible evidence, complete integration guidance, and an explicit post-1.0 compatibility commitment.
@@ -16,11 +18,11 @@ Status legend: [ ] pending / [~] in progress / [x] done
 - [x] Publish signed/checksummed package artifacts and the stable GitHub/PyPI release through the audited workflow.
 - [x] Tag versioned documentation and archive benchmark/model/dataset revision manifests without redistributing restricted weights/data.
 - [x] Verify post-publication install, links, plugin discovery, and one lightweight end-to-end example.
-- [~] Mark completed sprints/milestones, publish the final artifact, and open the evidence-led post-1.0 backlog.
+- [x] Mark completed sprints/milestones, publish the final artifact, and open the evidence-led post-1.0 backlog.
 
-## Notes / Blockers
+## Closure Notes
 
-The version number follows diagnostic evidence. If a Sprint 80 depth gate fails, this sprint remains pending; the project narrows unsupported claims rather than substituting broad integration counts for diagnostic validity. External GitHub Actions access remains required for workflow-backed publication.
+The `1.0.0` release followed signed-off Sprint 80 diagnostic depth and audited release-quality gates. The supported claim remains the bounded ordinary-DL core; unsupported breadth is not promoted to a general model, VLA, or GPU claim.
 
 Task 8 was moved ahead of Task 5 with owner approval because the audited release preflight requires the stable-policy contract before it permits a tag. Task 8 passed its final evidence review (`agent://Review81Task8Final`) after the security-setting update.
 
@@ -30,4 +32,4 @@ Task 6 passed its evidence review (`agent://Review81Task6Tags`). The authoritati
 
 Task 7 passed its evidence review (`agent://Review81Task7Initial`). A clean public-PyPI wheel install, matching GitHub/PyPI distribution hashes, corrected versioned-document links, separately installed external-plugin behavior, and a pinned CPU encoder diagnostic with independent report validation all passed. The immutable PyPI 1.0.0 long description and `docs-v1.0.0-r1` plugin guides retain pre-release wording; current-source corrections and the limitation must be preserved in the final handoff rather than misrepresented as edits to those immutable snapshots.
 
-Task 9's final release-evidence handoff is in [`artifacts/sprint-81/task-9.md`](../../artifacts/sprint-81/task-9.md). The first sprint-wide review (`agent://DeepReviewSprint81`) found actionable residual pre-release wording in mutable API/evidence documents and immutable documentation snapshots not covered by the backlog. Tasks 3, 5, and 6 passed their fresh correction reviews (`agent://Review81Task3Postrelease`, `agent://Review81Task5DeepCorrection`, `agent://Review81Task6DeepCorrection`). Task 9 remains open to extend the immutable-snapshot backlog and final handoff; Sprint 81 and Milestone 14 remain open until a subsequent sprint-wide deep review passes.
+Task 9's final release-evidence handoff is in [`artifacts/sprint-81/task-9.md`](../../artifacts/sprint-81/task-9.md). The first sprint-wide review (`agent://DeepReviewSprint81`) found residual pre-release wording in mutable API/evidence documents and immutable documentation snapshots not covered by the backlog. Tasks 3, 5, 6, and 9 passed fresh correction reviews (`agent://Review81Task3Postrelease`, `agent://Review81Task5DeepCorrection`, `agent://Review81Task6DeepCorrection`, `agent://Review81Task9DeepCorrection`); all nine task-level gates passed. The final sprint-wide differential review (`agent://DeepReviewSprint81Final`) passed with no actionable findings. Sprint 81 and Milestone 14 are complete; PyPI 1.0.0 and immutable documentation copy limitations remain explicitly tracked in the post-1.0 backlog.
